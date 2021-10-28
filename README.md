@@ -47,6 +47,9 @@ print(schame.a);
 ```js
 i: schameInt;
 i = 1;
+// if use a number after def operator":", malloc memory to variable
+j: 32;
+// malloc 32 bit to j
 ```
 2 - schame parameter
 ```js
@@ -57,6 +60,5 @@ a = eval(fn, 1,2,3);
 // or
 a = fn = (1,2,3);
 ```
-3 - math lib for operator
-4 - ...
+3 - math lib for operator, memory management, threading, ...
 
