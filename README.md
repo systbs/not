@@ -42,7 +42,7 @@ schame3: (schame1, schame2, {
 schame = eval(schame3);
 print(schame.a);
 ```
-#todo list
+# todo
 1 - schame for variable
 ```js
 i: schameInt;
