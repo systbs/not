@@ -21,7 +21,7 @@ schame: {
 ```js
 [schame name]:([schame_extend_name1],[schame_extend_name2], {
   [expr...]
-}
+});
 ```
 
 ## sample code
