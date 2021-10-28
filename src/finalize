@@ -1,0 +1,122 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <memory.h>
+#include <string.h>
+#include <fcntl.h>
+#include <assert.h>
+#include <time.h>
+#include <dirent.h>
+
+#include "types.h"
+#include "utils.h"
+#include "array.h"
+#include "table.h"
+#include "lexer.h"
+#include "memory.h"
+#include "parser.h"
+#include "vm.h"
+#include "object.h"
+#include "data.h"
+#include "layout.h"
+
+typedef struct decode {
+    array_t *code;
+
+    layout_t *layout;
+	
+	object_t *object;
+
+	table_t *layouts;
+} decode_t;
+
+
+iarray_t *
+decode_imm(decode_t *dec, array_t *code, iarray_t *c){
+    value_t value = c->value;
+    c = c->next;
+    if(c->value == TP_NULL){
+		object_t *obj;
+		if(!(obj = qalam_object_malloc(sizeof(void *)))){
+			printf("unable to alloc memory!\n");
+			exit(-1);
+		}
+		obj->type = TP_NULL;
+		obj->ptr = nullptr;
+        array_rpush(dec->code, IMM);
+        array_rpush(dec->code, (value_t)obj);
+    } 
+    else if(c->value == TP_VAR){
+		
+    } 
+    else if(c->value == TP_IMM){
+		object_t *obj;
+		if(!(obj = qalam_object_malloc(sizeof(double)))){
+			printf("unable to alloc memory!\n");
+			exit(-1);
+		}
+		obj->type = TP_NUMBER;
+		obj->num = value;
+        array_rpush(dec->code, IMM);
+        array_rpush(dec->code, (value_t)obj);
+    } 
+    else if(c->value == TP_NUMBER){
+		object_t *obj;
+		if(!(obj = qalam_object_malloc(sizeof(double)))){
+			printf("unable to alloc memory!\n");
+			exit(-1);
+		}
+		obj->type = TP_NUMBER;
+		obj->num = utils_atof((char *)value);
+        array_rpush(dec->code, TP_NUMBER);
+        array_rpush(dec->code, (value_t)obj);
+    } 
+    else if(c->value == TP_CHAR){
+		object_t *obj;
+		if(!(obj = qalam_object_malloc(sizeof(char)))){
+			printf("unable to alloc memory!\n");
+			exit(-1);
+		}
+		obj->type = TP_CHAR;
+		obj->num = (char)value;
+        array_rpush(dec->code, TP_CHAR);
+        array_rpush(dec->code, (value_t)obj);
+    } 
+    else if(c->value == TP_STRING){
+		object_t *obj;
+		if(!(obj = qalam_object_malloc(sizeof(void *)))){
+			printf("unable to alloc memory!\n");
+			exit(-1);
+		}
+		obj->type = TP_STRING;
+		obj->ptr = data_from ((char *)value);
+        array_rpush(dec->code, TP_STRING);
+        array_rpush(dec->code, (value_t)obj);
+    } 
+    else if(c->value == TP_SCHEMA){
+		object_t *obj;
+		if(!(obj = qalam_object_malloc(sizeof(schema_t)))){
+			printf("unable to alloc memory!\n");
+			exit(-1);
+		}
+		obj->type = TP_SCHEMA;
+		obj->ptr = (schema_t *)c->value;
+        array_rpush(dec->code, TP_SCHEMA);
+        array_rpush(dec->code, (value_t)obj);
+    } 
+    else {
+		printf("IMM, unknown type!\n");
+		exit(-1);
+	}
+}
+
+
+iarray_t *
+decode(decode_t *dec, array_t *code, iarray_t *c){
+    if(c->value == IMM){
+        c = decode_imm(dec, code, c->next);
+    } else {
+        array_rpush(dec->code, c->value);
+    }
+    c = c->next;
+}
