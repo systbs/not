@@ -577,15 +577,23 @@ thread_imm(thread_t *tr, iarray_t *c) {
 	}
 	else if(c->value == TP_NUMBER){
         object_t *object;
-        validate_format(!!(object = object_define(TP_ARRAY, sizeof(double_t))), 
+        validate_format(!!(object = object_define(TP_NUMBER, sizeof(double_t))), 
             "unable to alloc memory!");
         object->num = utils_atof((char *)value);
 		tr->object = object;
 		return c->next;
 	}
+	else if(c->value == TP_IMM){
+        object_t *object;
+        validate_format(!!(object = object_define(TP_NUMBER, sizeof(double_t))), 
+            "unable to alloc memory!");
+        object->num = value;
+		tr->object = object;
+		return c->next;
+	}
 	else if(c->value == TP_NULL){
         object_t *object;
-        validate_format(!!(object = object_define(TP_ARRAY, sizeof(ptr_t))), 
+        validate_format(!!(object = object_define(TP_NULL, sizeof(ptr_t))), 
             "unable to alloc memory!");
         object->ptr = nullptr;
 		tr->object = object;
@@ -729,6 +737,8 @@ thread_ent(thread_t *tr, iarray_t *c) {
 
 	tr->schema = (schema_t *)table_content(table_rpop(tr->board));
 
+	tr->schema->object = object_define(TP_NULL, sizeof(ptr_t));
+
 	validate_format((tr->schema->type == SCHEMA_DUP), 
 		"schema before called");
 
@@ -782,7 +792,7 @@ thread_head(thread_t *tr, iarray_t *c){
 
 iarray_t *
 thread_lev(thread_t *tr, iarray_t *c) {
-	tr->object = (object_t *)table_content(table_rpop(tr->board));
+	tr->object = tr->schema->object;
 	tr->schema = (schema_t *)table_content(table_rpop(tr->frame));
 
 	object_t *esp;
@@ -800,7 +810,7 @@ thread_lev(thread_t *tr, iarray_t *c) {
 
 iarray_t *
 thread_ret(thread_t *tr, iarray_t *c) {
-	table_rpush(tr->board, (value_p)tr->object);
+	tr->schema->object = tr->object;
 	return c->next;
 }
 
@@ -810,8 +820,18 @@ thread_def(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"[DEF] missing object");
 
-	validate_format((esp->type == TP_SCHEMA) || (esp->type == TP_NULL), 
+	validate_format((esp->type == TP_SCHEMA) || (esp->type == TP_NULL) || (esp->type == TP_NUMBER), 
 		"[DEF] def type use only for null or schema type, %s", object_typeAsString(esp->type));
+
+	if(((esp->type == TP_NULL) || (esp->type == TP_NUMBER)) && (tr->object->type == TP_NUMBER)){
+		esp = object_redefine(
+			esp, 
+			esp->type, 
+			tr->object->num
+		);
+		tr->object = esp;
+		return c->next;
+	}
 
 	if(esp->type == TP_NULL){
 		validate_format(!!(esp = object_redefine(esp, TP_SCHEMA, sizeof(schema_t))), 
@@ -822,11 +842,15 @@ thread_def(thread_t *tr, iarray_t *c) {
 			validate_format(!!(object = (object_t *)table_content(table_rpop((table_t *)tr->object->ptr))), 
 				"[DEF] pop schema fram list ignored");
 			validate_format((object->type == TP_SCHEMA), 
-				"[DEF] def type use only for schema type, %s", object_typeAsString(object->type));
+				"[DEF] def type use only for schema type, %s", 
+				object_typeAsString(object->type)
+			);
 			esp->ptr = object->ptr;
 		} else {
 			validate_format((tr->object->type == TP_SCHEMA), 
-				"[DEF] def type use only for schema type, %s", object_typeAsString(tr->object->type));
+				"[DEF] def type use only for schema type, %s", 
+				object_typeAsString(tr->object->type)
+			);
 			esp->ptr = tr->object->ptr;
 			tr->object = esp;
 			return c->next;
@@ -846,10 +870,18 @@ thread_def(thread_t *tr, iarray_t *c) {
 				"[DEF] schema type for def operator is required %s", object_typeAsString(object->type));
 			table_rpush(schema->extends, (value_p)object->ptr);
 		}
-	} else {
+	} 
+	else if(tr->object->type == TP_SCHEMA) {
 		validate_format((tr->object->type == TP_SCHEMA), 
 			"[DEF] schema type for def operator is required %s", object_typeAsString(tr->object->type));
 		table_rpush(schema->extends, (value_p)tr->object->ptr);
+	}
+	else if(tr->object->type == TP_NUMBER) {
+		schema->object = object_redefine(
+			schema->object, 
+			schema->object->type, 
+			tr->object->num
+		);
 	}
 
 	tr->object = esp;

@@ -27,9 +27,9 @@ typedef struct object {
 
 
 #define object_define(otp, size) ({\
-    object_t *obj = qalam_object_malloc(size);\
-    obj->type = otp;\
-    obj;\
+    object_t *object = qalam_object_malloc(size);\
+    object->type = otp;\
+    object;\
 })
 
 #define object_redefine(object, otp, size) ({\

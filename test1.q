@@ -8,10 +8,12 @@ category2: {
 
 category3: (category1, category2, {
 	c = "a simple text 3";
-	print("hello world");
+	print("Hello World");
 });
 
 d = eval(category3);
+
+e:16;
 
 print(d.c);
 print(d.a);

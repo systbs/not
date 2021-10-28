@@ -28,6 +28,8 @@ typedef struct schema {
 
 	table_t *duplicate;
 
+	object_t *object;
+
 	struct schema *parent;
 } schema_t;
 
