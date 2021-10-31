@@ -23,10 +23,10 @@ static char *STR_NULL = "NULL";
 //static char *STR_NUMBER = "NUMBER";
 //static char *STR_DATA = "DATA";
 
-value_t
+arval_t
 data_sizeof(table_t *tbl)
 {
-    value_t res = 0;
+    arval_t res = 0;
     itable_t *t;
     for(t = tbl->begin; t != tbl->end; t = t->next){
         res += object_sizeof((object_t *) t->value);
@@ -43,7 +43,7 @@ data_clone(table_t *tbl)
         object_t *obj;
         validate_format(!!(obj = object_clone((object_t *)t->value)),
 			"data clone, object not clone");
-        table_rpush(res, (value_p)obj);
+        table_rpush(res, (tbval_t)obj);
     }
     return res;
 }
@@ -52,13 +52,13 @@ table_t *
 data_from(char *str)
 {
     table_t *tbl = table_create();
-    value_t i;
+    arval_t i;
     for(i = 0; i < strlen(str); i++){
         object_t *obj;
         validate_format(!!(obj = object_define(TP_CHAR, sizeof(char_t))),
 			"data from string, bad object malloc");
         *(char_t *)obj->ptr = (char_t)str[i];
-        table_rpush(tbl, (value_p)obj);
+        table_rpush(tbl, (tbval_t)obj);
     }
     return tbl;
 }
@@ -83,23 +83,23 @@ data_format(table_t *tbl, table_t *format)
         obj = (object_t *)t->value;
 
         if(obj->type == TP_NULL){
-			value_t i;
+			arval_t i;
 			for(i = 0; i < strlen(STR_NULL); i++){
 				validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
 					"data from string, bad object malloc");
                 *(char_t *)esp->ptr = (char_t)STR_NULL[i];
-				table_rpush(deformed, (value_p)esp);
+				table_rpush(deformed, (tbval_t)esp);
 			}
 			validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
 				"data from string, bad object malloc");
 			*(char_t *)esp->ptr = ' ';
-			table_rpush(deformed, (value_p)esp);
+			table_rpush(deformed, (tbval_t)esp);
             t = t->next;
             continue;
         }
 		else
 		if(obj->type == TP_CHAR){
-			value_t num = 0;
+			arval_t num = 0;
 			if(*(char_t *)obj->ptr == '%'){
 				t = t->next;
 				obj = (object_t *)t->value;
@@ -154,12 +154,12 @@ data_format(table_t *tbl, table_t *format)
 
 					qalam_free(fmt);
 
-					value_t i;
+					arval_t i;
 					for(i = 0; i < strlen(str_num); i++){
 						validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
 							"data from string, bad object malloc");
 						*(char_t *)esp->ptr = (char_t)str_num[i];
-						table_rpush(deformed, (value_p)esp);
+						table_rpush(deformed, (tbval_t)esp);
 					}
 
 					qalam_free(str_num);
@@ -187,12 +187,12 @@ data_format(table_t *tbl, table_t *format)
 
 					qalam_free(fmt);
 
-					value_t i;
+					arval_t i;
 					for(i = 0; i < strlen(str_num); i++){
 						validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
 							"data from string, bad object malloc");
 						*(char_t *)esp->ptr = (char_t)str_num[i];
-						table_rpush(deformed, (value_p)esp);
+						table_rpush(deformed, (tbval_t)esp);
 					}
 
 					qalam_free(str_num);
@@ -222,12 +222,12 @@ data_format(table_t *tbl, table_t *format)
 
 					qalam_free(fmt);
 
-					value_t i;
+					arval_t i;
 					for(i = 0; i < strlen(str_num); i++){
 						validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
 							"data from string, bad object malloc");
 						*(char_t *)esp->ptr = (char)str_num[i];
-						table_rpush(deformed, (value_p)esp);
+						table_rpush(deformed, (tbval_t)esp);
 					}
 
 					qalam_free(str_num);
@@ -241,7 +241,7 @@ data_format(table_t *tbl, table_t *format)
 
 				*(char_t *)esp->ptr = *(char_t *)obj->ptr;
 
-				table_rpush(deformed, (value_p)esp);
+				table_rpush(deformed, (tbval_t)esp);
 
 				t = t->next;
 				continue;
@@ -252,7 +252,7 @@ data_format(table_t *tbl, table_t *format)
 
 			*(char_t *)esp->ptr = *(char_t *)obj->ptr;
 
-			table_rpush(deformed, (value_p)esp);
+			table_rpush(deformed, (tbval_t)esp);
 			t = t->next;
 			continue;
 		}
@@ -265,12 +265,12 @@ data_format(table_t *tbl, table_t *format)
 			else {
 				sprintf(str_num, "%lld", *(long64_t *)obj->ptr);
 			}
-			value_t i;
+			arval_t i;
 			for(i = 0; i < strlen(str_num); i++){
 				validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
 					"data from string, bad object malloc");
 				*(char_t *)esp->ptr = (char_t)str_num[i];
-				table_rpush(deformed, (value_p)esp);
+				table_rpush(deformed, (tbval_t)esp);
 			}
 
 			qalam_free(str_num);
@@ -279,7 +279,7 @@ data_format(table_t *tbl, table_t *format)
 				"data from string, bad object malloc");
 
 			*(char_t *)esp->ptr = ' ';
-			table_rpush(deformed, (value_p)esp);
+			table_rpush(deformed, (tbval_t)esp);
 			t = t->next;
 			continue;
 		}
@@ -297,7 +297,7 @@ data_format(table_t *tbl, table_t *format)
 	return deformed;
 }
 
-value_t
+arval_t
 data_compare(table_t *tbl1, table_t *tbl2)
 {
 	if(table_count(tbl1) != table_count(tbl2)){
@@ -342,7 +342,7 @@ char *
 data_to(table_t *tbl)
 {
     char *str = qalam_malloc(table_count(tbl) * sizeof(char));
-    value_t i = 0;
+    arval_t i = 0;
     itable_t *b;
     for(b = tbl->begin; b && (b != tbl->end); b = b->next){
         object_t *obj = (object_t *)b->value;

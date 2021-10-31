@@ -57,8 +57,8 @@ object_clone(object_t *object)
 	return obj;
 }
 
-value_t
-object_sort(value_t *obj_1, value_t *obj_2)
+arval_t
+object_sort(arval_t *obj_1, arval_t *obj_2)
 {
 	object_t *obj1 = (object_t *)obj_1;
 	object_t *obj2 = (object_t *)obj_2;
@@ -115,4 +115,24 @@ const char * const object_type_name[] = {
 const char *
 object_typeAsString(object_type_t tp){
 	return object_type_name[tp];
+}
+
+int object_typesLength[] = {
+	[TP_SHORT] = sizeof(short_t),
+	[TP_LONG] = sizeof(long_t),
+	[TP_LONG64] = sizeof(long64_t),
+	[TP_FLAOT] = sizeof(float_t),
+	[TP_DOUBLE] = sizeof(double_t),
+	[TP_DOUBLE64] = sizeof(double64_t),
+	[TP_CHAR] = sizeof(char_t),
+	[TP_NULL] = sizeof(ptr_t),
+	[TP_ARRAY] = sizeof(table_t),
+	[TP_PARAMS] = sizeof(schema_t),
+	[TP_SCHEMA] = sizeof(table_t),
+	[TP_ADRS] = sizeof(arval_t)
+};
+
+int
+object_typesSizeof(object_type_t tp){
+	return object_typesLength[tp];
 }

@@ -3,6 +3,12 @@
 typedef enum object_type {
 	TP_IMM,
 	TP_NUMBER,
+	TP_SHORT,
+	TP_LONG,
+	TP_LONG64,
+	TP_FLAOT,
+	TP_DOUBLE,
+	TP_DOUBLE64,
 	TP_VAR,
 	TP_PTR,
 	TP_CHAR,
@@ -19,6 +25,8 @@ typedef struct object {
 	ptr_t ptr;
 } object_t;
 
+
+
 #define object_define(otp, size) ({\
     object_t *object = qalam_malloc(sizeof(object_t));\
 	object->ptr = qalam_malloc(size);\
@@ -32,11 +40,20 @@ typedef struct object {
     object;\
 })
 
+#define object_isnum(obj) ( \
+	(obj->type == TP_SHORT) || \
+	(obj->type == TP_LONG) || \
+	(obj->type == TP_LONG64) || \
+	(obj->type == TP_FLAOT) || \
+	(obj->type == TP_DOUBLE) || \
+	(obj->type == TP_DOUBLE64)\
+)
+
 size_t
 object_sizeof(object_t *object);
 
-value_t
-object_sort(value_t *obj_1, value_t *obj_2);
+arval_t
+object_sort(arval_t *obj_1, arval_t *obj_2);
 
 object_t *
 object_clone(object_t *object);

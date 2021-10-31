@@ -96,7 +96,7 @@ const char * const symbols[] = {
 
 
 token_t *
-token_create(value_t identifier, value_t value, value_t pos, value_t row, value_t col)
+token_create(arval_t identifier, arval_t value, arval_t pos, arval_t row, arval_t col)
 {
     token_t *token = (token_t *)malloc(sizeof(token_t));
     token->identifier = identifier;
@@ -108,7 +108,7 @@ token_create(value_t identifier, value_t value, value_t pos, value_t row, value_
     return token;
 }
 
-value_t
+arval_t
 token_destroy(itable_t *it)
 {
     token_t *token = (token_t *)it->value;
@@ -123,7 +123,7 @@ token_destroy(itable_t *it)
 }
 
 void
-lexer_error(const char *source, value_t pos, value_t row, value_t col, char *str){
+lexer_error(const char *source, arval_t pos, arval_t row, arval_t col, char *str){
     printf("lexer(%lld:%lld): %s!\n", row, col, str);
     char c;
     while((c = source[pos--])){
@@ -143,10 +143,10 @@ lexer_error(const char *source, value_t pos, value_t row, value_t col, char *str
 void
 lexer(table_t *ls, const char *source)
 {
-    value_t c, a;
-    value_t pos = 0;
-    value_t row = 1;
-    value_t col = 1;
+    arval_t c, a;
+    arval_t pos = 0;
+    arval_t row = 1;
+    arval_t col = 1;
 
     while ((c = source[pos])) {
         if(c == '\n' || c == '\v'){
@@ -166,7 +166,7 @@ lexer(table_t *ls, const char *source)
             if(c == '"' || c == '\''){
                 // parse string literal, currently, the only supported escape
                 // character is '\n', store the string literal into data.
-                value_t pos2 = pos + 1;
+                arval_t pos2 = pos + 1;
                 pos++;
                 col++;
 
@@ -179,7 +179,7 @@ lexer(table_t *ls, const char *source)
                 strncpy(data, source + pos2, pos - pos2 );
                 data[pos - pos2] = '\0';
 
-                if(table_rpush(ls, (value_p)token_create(TOKEN_DATA,(value_t)data,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_DATA,(arval_t)data,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
 
@@ -188,7 +188,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '('){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_LPAREN,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_LPAREN,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -196,7 +196,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == ')'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_RPAREN,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_RPAREN,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -204,7 +204,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '['){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_LBRACKET,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_LBRACKET,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -212,7 +212,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == ']'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_RBRACKET,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_RBRACKET,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -220,7 +220,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '{'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_LBRACE,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_LBRACE,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -228,7 +228,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '}'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_RBRACE,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_RBRACE,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -237,14 +237,14 @@ lexer(table_t *ls, const char *source)
             }
             else if(c == '='){
                 if ((a = source[pos + 1]) && a == '=') {
-                    if(table_rpush(ls, (value_p)token_create(TOKEN_EQEQ,0,pos,row,col)) == nullptr){
+                    if(table_rpush(ls, (tbval_t)token_create(TOKEN_EQEQ,0,pos,row,col)) == nullptr){
                         lexer_error(source, pos, row, col, "not append data!");
                     }
                     pos += 2;
                     col += 2;
                     continue;
                 }
-                if(table_rpush(ls, (value_p)token_create(TOKEN_EQ,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_EQ,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -252,7 +252,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '?'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_QUESTION,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_QUESTION,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -261,14 +261,14 @@ lexer(table_t *ls, const char *source)
             }
             else if(c == '|'){
                 if ((a = source[pos + 1]) && a == '|') {
-                    if(table_rpush(ls, (value_p)token_create(TOKEN_LOR,0,pos,row,col)) == nullptr){
+                    if(table_rpush(ls, (tbval_t)token_create(TOKEN_LOR,0,pos,row,col)) == nullptr){
                         lexer_error(source, pos, row, col, "not append data!");
                     }
                     pos += 2;
                     col += 2;
                     continue;
                 }
-                if(table_rpush(ls, (value_p)token_create(TOKEN_OR,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_OR,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -277,14 +277,14 @@ lexer(table_t *ls, const char *source)
             }
             else if(c == '&'){
                 if ((a = source[pos + 1]) && a == '&') {
-                    if(table_rpush(ls, (value_p)token_create(TOKEN_LAND,0,pos,row,col)) == nullptr){
+                    if(table_rpush(ls, (tbval_t)token_create(TOKEN_LAND,0,pos,row,col)) == nullptr){
                         lexer_error(source, pos, row, col, "not append data!");
                     }
                     pos += 2;
                     col += 2;
                     continue;
                 }
-                if(table_rpush(ls, (value_p)token_create(TOKEN_AND,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_AND,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -292,7 +292,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '^'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_CARET,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_CARET,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -301,14 +301,14 @@ lexer(table_t *ls, const char *source)
             }
             else if(c == '!'){
                 if ((a = source[pos + 1]) && a == '=') {
-                    if(table_rpush(ls, (value_p)token_create(TOKEN_NEQ,0,pos,row,col)) == nullptr){
+                    if(table_rpush(ls, (tbval_t)token_create(TOKEN_NEQ,0,pos,row,col)) == nullptr){
                         lexer_error(source, pos, row, col, "not append data!");
                     }
                     pos += 2;
                     col += 2;
                     continue;
                 }
-                if(table_rpush(ls, (value_p)token_create(TOKEN_NOT,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_NOT,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -317,7 +317,7 @@ lexer(table_t *ls, const char *source)
             }
             else if(c == '<'){
                 if ((a = source[pos + 1]) && a == '<') {
-                    if(table_rpush(ls, (value_p)token_create(TOKEN_LTLT,0,pos,row,col)) == nullptr){
+                    if(table_rpush(ls, (tbval_t)token_create(TOKEN_LTLT,0,pos,row,col)) == nullptr){
                         lexer_error(source, pos, row, col, "not append data!");
                     }
                     pos += 2;
@@ -325,14 +325,14 @@ lexer(table_t *ls, const char *source)
                     continue;
                 }
                 if ((a = source[pos + 1]) && a == '=') {
-                    if(table_rpush(ls, (value_p)token_create(TOKEN_LTEQ,0,pos,row,col)) == nullptr){
+                    if(table_rpush(ls, (tbval_t)token_create(TOKEN_LTEQ,0,pos,row,col)) == nullptr){
                         lexer_error(source, pos, row, col, "not append data!");
                     }
                     pos += 2;
                     col += 2;
                     continue;
                 }
-                if(table_rpush(ls, (value_p)token_create(TOKEN_LT,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_LT,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -341,7 +341,7 @@ lexer(table_t *ls, const char *source)
             }
             else if(c == '>'){
                 if ((a = source[pos + 1]) && a == '>') {
-                    if(table_rpush(ls, (value_p)token_create(TOKEN_GTGT,0,pos,row,col)) == nullptr){
+                    if(table_rpush(ls, (tbval_t)token_create(TOKEN_GTGT,0,pos,row,col)) == nullptr){
                         lexer_error(source, pos, row, col, "not append data!");
                     }
                     pos += 2;
@@ -349,14 +349,14 @@ lexer(table_t *ls, const char *source)
                     continue;
                 }
                 if ((a = source[pos + 1]) && a == '=') {
-                    if(table_rpush(ls, (value_p)token_create(TOKEN_GTEQ,0,pos,row,col)) == nullptr){
+                    if(table_rpush(ls, (tbval_t)token_create(TOKEN_GTEQ,0,pos,row,col)) == nullptr){
                         lexer_error(source, pos, row, col, "not append data!");
                     }
                     pos += 2;
                     col += 2;
                     continue;
                 }
-                if(table_rpush(ls, (value_p)token_create(TOKEN_GT,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_GT,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -364,7 +364,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '+'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_PLUS,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_PLUS,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -372,7 +372,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '-'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_MINUS,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_MINUS,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -380,7 +380,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '*'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_STAR,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_STAR,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -399,7 +399,7 @@ lexer(table_t *ls, const char *source)
                 else if ((a = source[pos + 1]) && a == '*') {
                     pos += 2;
                     col += 2;
-                    value_t i = 0, p = 0;
+                    arval_t i = 0, p = 0;
                     while ((a = source[pos])) {
                         if(a == '*'){
                             if ((a = source[pos + 1]) && a == '/' && i < 1) {
@@ -420,7 +420,7 @@ lexer(table_t *ls, const char *source)
                     }
                     continue;
                 }
-                else if(table_rpush(ls, (value_p)token_create(TOKEN_SLASH,0,pos,row,col)) == nullptr){
+                else if(table_rpush(ls, (tbval_t)token_create(TOKEN_SLASH,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -428,7 +428,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '%'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_PERCENT,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_PERCENT,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -436,7 +436,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '.'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_DOT,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_DOT,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -444,7 +444,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == ','){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_COMMA,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_COMMA,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -453,14 +453,14 @@ lexer(table_t *ls, const char *source)
             }
             else if(c == ':'){
                 if ((a = source[pos + 1]) && a == '>') {
-                    if(table_rpush(ls, (value_p)token_create(TOKEN_CGT,0,pos,row,col)) == nullptr){
+                    if(table_rpush(ls, (tbval_t)token_create(TOKEN_CGT,0,pos,row,col)) == nullptr){
                         lexer_error(source, pos, row, col, "not append data!");
                     }
                     pos += 2;
                     col += 2;
                     continue;
                 }
-                if(table_rpush(ls, (value_p)token_create(TOKEN_COLON,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_COLON,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -468,7 +468,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == ';'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_SEMICOLON,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_SEMICOLON,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -476,7 +476,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '~'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_TILDE,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_TILDE,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -484,7 +484,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '#'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_HASH,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_HASH,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -492,7 +492,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '_'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_UNDERLINE,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_UNDERLINE,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -500,7 +500,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '@'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_AT,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_AT,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -508,7 +508,7 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == '$'){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_DOLLER,0,pos,row,col)) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_DOLLER,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
                 pos++;
@@ -524,8 +524,8 @@ lexer(table_t *ls, const char *source)
         }
         else if(valid_digit(c)) {
             // parse number, three kinds: dec(123) hex(0x123) oct(017)
-            value_t token_val = c - '0';
-            value_t pos2 = pos;
+            arval_t token_val = c - '0';
+            arval_t pos2 = pos;
 
             if (token_val > 0) {
                 pos++;
@@ -541,7 +541,7 @@ lexer(table_t *ls, const char *source)
                 strncpy(data, source + pos2, pos - pos2 );
                 data[pos - pos2] = '\0';
 
-                if(table_rpush(ls, (value_p)token_create(TOKEN_NUMBER, (value_t)data,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_NUMBER, (arval_t)data,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
 
@@ -563,7 +563,7 @@ lexer(table_t *ls, const char *source)
                     strncpy(data, source + pos2, pos - pos2 );
                     data[pos - pos2] = '\0';
 
-                    if(table_rpush(ls, (value_p)token_create(TOKEN_NUMBER ,(value_t)data ,pos2 ,row ,col-(pos-pos2))) == nullptr){
+                    if(table_rpush(ls, (tbval_t)token_create(TOKEN_NUMBER ,(arval_t)data ,pos2 ,row ,col-(pos-pos2))) == nullptr){
                         lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                     }
                     continue;
@@ -579,7 +579,7 @@ lexer(table_t *ls, const char *source)
                     strncpy(data, source + pos2, pos - pos2 );
                     data[pos - pos2] = '\0';
 
-                    if(table_rpush(ls, (value_p)token_create(TOKEN_NUMBER, (value_t)data,pos2,row,col-(pos-pos2))) == nullptr){
+                    if(table_rpush(ls, (tbval_t)token_create(TOKEN_NUMBER, (arval_t)data,pos2,row,col-(pos-pos2))) == nullptr){
                         lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                     }
                 } else {
@@ -592,15 +592,15 @@ lexer(table_t *ls, const char *source)
             strncpy(data, source + pos2, pos - pos2 );
             data[pos - pos2] = '\0';
 
-            if(table_rpush(ls, (value_p)token_create(TOKEN_NUMBER, (value_t)data,pos2,row,col-(pos-pos2))) == nullptr){
+            if(table_rpush(ls, (tbval_t)token_create(TOKEN_NUMBER, (arval_t)data,pos2,row,col-(pos-pos2))) == nullptr){
                 lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
             }
             continue;
         }
         else {
             // parse identifier
-            value_t pos2 = pos;
-            value_t hash = 0;
+            arval_t pos2 = pos;
+            arval_t hash = 0;
             while ((a = source[pos]) && ( valid_alpha(a) || valid_digit(a) || (a == '_'))) {
                 hash = hash * 147 + a;
                 pos++;
@@ -608,97 +608,97 @@ lexer(table_t *ls, const char *source)
             }
 
             if(strncmp(source + pos2, "while", 5) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_WHILE,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_WHILE,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "if", 2) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_IF,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_IF,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "else", 4) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_ELSE,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_ELSE,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "break", 5) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_BREAK,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_BREAK,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "continue", 8) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_CONTINUE,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_CONTINUE,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "this", 4) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_THIS,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_THIS,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "super", 5) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_SUPER,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_SUPER,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "return", 6) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_RETURN,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_RETURN,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "import", 6) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_IMPORT,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_IMPORT,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "sizeof", 6) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_SIZEOF,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_SIZEOF,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "typeof", 6) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_TYPEOF,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_TYPEOF,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "format", 6) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_FORMAT,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_FORMAT,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "print", 5) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_PRINT,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_PRINT,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "delete", 6) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_DELETE,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_DELETE,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "null", 4) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_NULL,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_NULL,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "ref", 3) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_REF,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_REF,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "count", 4) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_COUNT,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_COUNT,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "insert", 6) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_INSERT,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_INSERT,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
             } else if(strncmp(source + pos2, "eval", 4) == 0){
-                if(table_rpush(ls, (value_p)token_create(TOKEN_EVAL,0,pos2,row,col-(pos-pos2))) == nullptr){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_EVAL,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
@@ -708,7 +708,7 @@ lexer(table_t *ls, const char *source)
             strncpy(var, source + pos2, pos - pos2);
             var[pos - pos2] = '\0';
 
-            if(table_rpush(ls, (value_p)token_create(TOKEN_ID,(value_t)var,pos2,row,col-(pos-pos2))) == nullptr){
+            if(table_rpush(ls, (tbval_t)token_create(TOKEN_ID,(arval_t)var,pos2,row,col-(pos-pos2))) == nullptr){
                 lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
             }
             continue;

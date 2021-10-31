@@ -33,7 +33,7 @@ typedef struct decode {
 
 iarray_t *
 decode_imm(decode_t *dec, array_t *code, iarray_t *c){
-    value_t value = c->value;
+    arval_t value = c->value;
     c = c->next;
     if(c->value == TP_NULL){
 		object_t *obj;
@@ -44,7 +44,7 @@ decode_imm(decode_t *dec, array_t *code, iarray_t *c){
 		obj->type = TP_NULL;
 		obj->ptr = nullptr;
         array_rpush(dec->code, IMM);
-        array_rpush(dec->code, (value_t)obj);
+        array_rpush(dec->code, (arval_t)obj);
     } 
     else if(c->value == TP_VAR){
 		
@@ -58,7 +58,7 @@ decode_imm(decode_t *dec, array_t *code, iarray_t *c){
 		obj->type = TP_NUMBER;
 		obj->num = value;
         array_rpush(dec->code, IMM);
-        array_rpush(dec->code, (value_t)obj);
+        array_rpush(dec->code, (arval_t)obj);
     } 
     else if(c->value == TP_NUMBER){
 		object_t *obj;
@@ -69,7 +69,7 @@ decode_imm(decode_t *dec, array_t *code, iarray_t *c){
 		obj->type = TP_NUMBER;
 		obj->num = utils_atof((char *)value);
         array_rpush(dec->code, TP_NUMBER);
-        array_rpush(dec->code, (value_t)obj);
+        array_rpush(dec->code, (arval_t)obj);
     } 
     else if(c->value == TP_CHAR){
 		object_t *obj;
@@ -80,7 +80,7 @@ decode_imm(decode_t *dec, array_t *code, iarray_t *c){
 		obj->type = TP_CHAR;
 		obj->num = (char)value;
         array_rpush(dec->code, TP_CHAR);
-        array_rpush(dec->code, (value_t)obj);
+        array_rpush(dec->code, (arval_t)obj);
     } 
     else if(c->value == TP_STRING){
 		object_t *obj;
@@ -91,7 +91,7 @@ decode_imm(decode_t *dec, array_t *code, iarray_t *c){
 		obj->type = TP_STRING;
 		obj->ptr = data_from ((char *)value);
         array_rpush(dec->code, TP_STRING);
-        array_rpush(dec->code, (value_t)obj);
+        array_rpush(dec->code, (arval_t)obj);
     } 
     else if(c->value == TP_SCHEMA){
 		object_t *obj;
@@ -102,7 +102,7 @@ decode_imm(decode_t *dec, array_t *code, iarray_t *c){
 		obj->type = TP_SCHEMA;
 		obj->ptr = (schema_t *)c->value;
         array_rpush(dec->code, TP_SCHEMA);
-        array_rpush(dec->code, (value_t)obj);
+        array_rpush(dec->code, (arval_t)obj);
     } 
     else {
 		printf("IMM, unknown type!\n");

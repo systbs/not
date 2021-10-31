@@ -59,23 +59,23 @@ schema_duplicate(schema_t *source){
     schema->parameters = table_create();
 	itable_t *b;
 	for(b = source->parameters->begin; b != source->parameters->end; b = b->next){
-		table_rpush(schema->parameters, (value_p)object_clone((object_t *)b->value));
+		table_rpush(schema->parameters, (tbval_t)object_clone((object_t *)b->value));
 	}
 
     schema->variables = table_create();
 	for(b = source->variables->begin; b != source->variables->end; b = b->next){
-		table_rpush(schema->variables, (value_p)object_clone((object_t *)b->value));
+		table_rpush(schema->variables, (tbval_t)object_clone((object_t *)b->value));
 	}
 
 	schema->extends = table_create();
 	for(b = source->extends->begin; b != source->extends->end; b = b->next){
-		table_rpush(schema->extends, (value_p)b->value);
+		table_rpush(schema->extends, (tbval_t)b->value);
 	}
 
 	schema->packet = table_create();
 	schema->frame = table_create();
 
-	table_rpush(schema->duplicate, (value_p)schema);
+	table_rpush(schema->duplicate, (tbval_t)schema);
 
     return schema;
 }

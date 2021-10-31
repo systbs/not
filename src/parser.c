@@ -30,7 +30,7 @@
 })
 
 int
-next_is(parser_t *prs, value_t identifier){
+next_is(parser_t *prs, arval_t identifier){
     itable_t *b = prs->c;
     token_t *token = (token_t *)table_content(b->next);
     return token->identifier == identifier;
@@ -100,7 +100,7 @@ expression_continue(parser_t *prs, array_t *code){
     while(b != code->begin){
         if(b->value == BLP){
             array_rpush(code, JMP);
-            array_rpush(code, (value_t)b);
+            array_rpush(code, (arval_t)b);
             break;
         }
         b = b->previous;
@@ -337,8 +337,8 @@ expression_question(parser_t *prs, array_t *code){
 
     expression(prs, code);
 
-    a->value = (value_t) b->next;
-    b->value = (value_t) array_rpush(code, NUL);
+    a->value = (arval_t) b->next;
+    b->value = (arval_t) array_rpush(code, NUL);
 }
 
 void
@@ -576,7 +576,7 @@ expression_if(parser_t *prs, array_t *code){
         token = (token_t *)table_content(prs->c);
 
         if(token->identifier == TOKEN_IF){
-            a->value = (value_t) array_rpush(code, NUL);
+            a->value = (arval_t) array_rpush(code, NUL);
             b->value = a->value;
             return;
         }
@@ -584,11 +584,11 @@ expression_if(parser_t *prs, array_t *code){
         expression(prs, code);
         token_next(prs);
 
-        a->value = (value_t) b->next;
+        a->value = (arval_t) b->next;
         a = b;
     }
 
-    a->value = (value_t) array_rpush(code, NUL);
+    a->value = (arval_t) array_rpush(code, NUL);
 }
 
 void
@@ -618,9 +618,9 @@ expression_while(parser_t *prs, array_t *code){
     }
 
     array_rpush(code, JMP);
-    array_rpush(code, (value_t)a);
+    array_rpush(code, (arval_t)a);
 
-    b->value = (value_t) array_rpush(code, ELP);
+    b->value = (arval_t) array_rpush(code, ELP);
 }
 
 void
@@ -694,12 +694,12 @@ expression_lbrace(parser_t *prs, array_t *code){
     iarray_t *region = array_rpush(code, 0);
 
     schema_t *schema = schema_create(prs->schema);
-    table_rpush(prs->schema->branches, (value_p)schema);
+    table_rpush(prs->schema->branches, (tbval_t)schema);
 
     schema->start = array_rpush(code, ENT);
     array_rpush(code, HEAD);
 
-    table_rpush(prs->schemas, (value_p)prs->schema);
+    table_rpush(prs->schemas, (tbval_t)prs->schema);
     prs->schema = schema;
 
     do {
@@ -715,8 +715,8 @@ expression_lbrace(parser_t *prs, array_t *code){
 
     schema->end = array_rpush(code, LEV);
 
-    region->value = (value_t)array_rpush(code, IMM);
-    array_rpush(code, (value_t)schema);
+    region->value = (arval_t)array_rpush(code, IMM);
+    array_rpush(code, (arval_t)schema);
     array_rpush(code, TP_SCHEMA);
 }
 

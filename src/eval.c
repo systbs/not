@@ -57,10 +57,10 @@ call(thread_t *tr, schema_t *schema, iarray_t *adrs) {
 	object_t *object;
 	validate_format(!!(object = object_define(TP_ADRS, sizeof(long64_t))), 
 		"unable to alloc memory!");
-	object->ptr = (value_p)adrs;
+	object->ptr = (tbval_t)adrs;
 
-	table_rpush(tr->schema->frame, (value_p)object);
-	table_rpush(tr->board, (value_p)schema_duplicate(schema));
+	table_rpush(tr->schema->frame, (tbval_t)object);
+	table_rpush(tr->board, (tbval_t)schema_duplicate(schema));
 
 	return (iarray_t *)schema->start;
 }
@@ -104,7 +104,7 @@ thread_lor(thread_t *tr, iarray_t *c) {
 	
 	*(long64_t *)object->ptr = *(long64_t *)esp->ptr | *(long64_t *)tr->object->ptr;
 
-	// table_rpush(tr->pool, (value_p)tr->object);
+	// table_rpush(tr->pool, (tbval_t)tr->object);
 
 	tr->object = object;
 
@@ -463,15 +463,15 @@ thread_comma(thread_t *tr, iarray_t *c){
 
 		table_t *tbl = table_create();
 
-		table_rpush(tbl, (value_p)esp);
+		table_rpush(tbl, (tbval_t)esp);
 
-		table_rpush(tbl, (value_p)tr->object);
+		table_rpush(tbl, (tbval_t)tr->object);
 
 		obj->ptr = tbl;
 
 		tr->object = obj;
 	} else {
-		table_rpush((table_t *)esp->ptr, (value_p)tr->object);
+		table_rpush((table_t *)esp->ptr, (tbval_t)tr->object);
 		tr->object = esp;
 	}
 	return c->next;
@@ -485,12 +485,12 @@ thread_sim(thread_t *tr, iarray_t *c){
 	validate_format(!!(schema = (schema_t *)tr->object->ptr), 
 		"[SIM] object is empty");
 	if(schema->type == SCHEMA_DUP){
-		table_rpush(tr->frame, (value_p)tr->schema);
+		table_rpush(tr->frame, (tbval_t)tr->schema);
 		tr->schema = schema;
 		return c->next;
 	}
 	else if(schema->type == SCHEMA_PRIMARY){
-		table_rpush(tr->frame, (value_p)tr->schema);
+		table_rpush(tr->frame, (tbval_t)tr->schema);
 		tr->schema = schema_duplicate(schema);
 		return c->next;
 	}
@@ -514,7 +514,7 @@ iarray_t *
 thread_imm(thread_t *tr, iarray_t *c) {
 	// load immediate value to object
 	c = c->next;
-	value_t value = c->value;
+	arval_t value = c->value;
 	c = c->next;
 	if(c->value == TP_VAR){
 		variable_t *var;
@@ -529,7 +529,7 @@ thread_imm(thread_t *tr, iarray_t *c) {
 			}
 			var = variable_define((char *)value);
 			var->object = object_define(TP_NULL, sizeof(ptr_t));
-			table_rpush(tr->schema->variables, (value_p)var);
+			table_rpush(tr->schema->variables, (tbval_t)var);
 		}
 		validate_format(!!(tr->object = variable_content(var)),
 			"[IMM] variable dnot have content");
@@ -605,7 +605,7 @@ thread_ld(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_push(thread_t *tr, iarray_t *c) {
 	// push the value of object onto the frames
-	table_rpush(tr->schema->frame, (value_p)tr->object);
+	table_rpush(tr->schema->frame, (tbval_t)tr->object);
 	return c->next;
 }
 
@@ -637,7 +637,7 @@ thread_this(thread_t *tr, iarray_t *c) {
 	object_t *object;
 	validate_format(!!(object = object_define(TP_SCHEMA, sizeof(schema_t))), 
 		"unable to alloc memory!");
-	object->ptr = (value_p)tr->schema;
+	object->ptr = (tbval_t)tr->schema;
 	tr->object = object;
 	return c->next;
 }
@@ -647,7 +647,7 @@ thread_super(thread_t *tr, iarray_t *c) {
 	object_t *object;
 	validate_format(!!(object = object_define(TP_SCHEMA, sizeof(schema_t))), 
 		"unable to alloc memory!");
-	object->ptr = (value_p)tr->schema->parent;
+	object->ptr = (tbval_t)tr->schema->parent;
 	tr->object = object;
 	return c->next;
 }
@@ -669,10 +669,10 @@ thread_cgt(thread_t *tr, iarray_t *c) {
 		table_t *tbl = (table_t *)esp->ptr;
 		itable_t *b;
 		for(b = tbl->begin; b != tbl->end; b = b->next){
-			table_rpush(schema->parameters, (value_p)b->value);
+			table_rpush(schema->parameters, (tbval_t)b->value);
 		}
 	} else {
-		table_rpush(schema->parameters, (value_p)esp);
+		table_rpush(schema->parameters, (tbval_t)esp);
 	}
 
 	return c->next;
@@ -701,7 +701,7 @@ thread_call(thread_t *tr, iarray_t *c) {
 
 iarray_t *
 thread_ent(thread_t *tr, iarray_t *c) {
-	table_rpush(tr->frame, (value_p)tr->schema);
+	table_rpush(tr->frame, (tbval_t)tr->schema);
 
 	tr->schema = (schema_t *)table_content(table_rpop(tr->board));
 
@@ -739,17 +739,17 @@ thread_head(thread_t *tr, iarray_t *c){
 	for(b = extends->begin; b != extends->end; b = b->next){
 		schema_t *schema = (schema_t *)b->value;
 		if(!schema_fpt(tr->schema->stack, schema->identifier)){
-			table_rpush(tr->schema->stack, (value_p)schema);
+			table_rpush(tr->schema->stack, (tbval_t)schema);
 			schema = schema_duplicate(schema);
 			schema->variables = tr->schema->variables;
 
 			object_t *object;
 			validate_format(!!(object = object_define(TP_ADRS, sizeof(long64_t))), 
 				"unable to alloc memory!");
-			object->ptr = (value_p)c;
+			object->ptr = (tbval_t)c;
 
-			table_rpush(tr->schema->frame, (value_p)object);
-			table_rpush(tr->board, (value_p)schema);
+			table_rpush(tr->schema->frame, (tbval_t)object);
+			table_rpush(tr->board, (tbval_t)schema);
 
 			return (iarray_t *)schema->start;
 		}
@@ -836,13 +836,13 @@ thread_def(thread_t *tr, iarray_t *c) {
 			object_t *object = (object_t *)b->value;
 			validate_format((object->type == TP_SCHEMA), 
 				"[DEF] schema type for def operator is required %s", object_typeAsString(object->type));
-			table_rpush(schema->extends, (value_p)object->ptr);
+			table_rpush(schema->extends, (tbval_t)object->ptr);
 		}
 	} 
 	else if(tr->object->type == TP_SCHEMA) {
 		validate_format((tr->object->type == TP_SCHEMA), 
 			"[DEF] schema type for def operator is required %s", object_typeAsString(tr->object->type));
-		table_rpush(schema->extends, (value_p)tr->object->ptr);
+		table_rpush(schema->extends, (tbval_t)tr->object->ptr);
 	}
 	else if(tr->object->type == TP_NUMBER) {
 		schema->object = object_redefine(
@@ -865,10 +865,10 @@ thread_print(thread_t *tr, iarray_t *c) {
 		tbl = (table_t *)tr->object->ptr;
 	} else {
 		tbl = table_create();
-		table_rpush(tbl, (value_p)tr->object);
+		table_rpush(tbl, (tbval_t)tr->object);
 	}
 
-	value_t i = table_count(tbl);
+	arval_t i = table_count(tbl);
 
 	while((esp = (object_t *)table_content(table_rpop(tbl)))){
 		if(esp->type == TP_NULL){
@@ -1133,7 +1133,7 @@ main(int argc, char **argv)
         return -1;
     }
 
-    value_t i;
+    arval_t i;
     FILE *fd;
 
 	char destination [ MAX_PATH ];
@@ -1162,11 +1162,11 @@ main(int argc, char **argv)
     argv++;
 
     // Current position
-    value_t pos = ftell(fd);
+    arval_t pos = ftell(fd);
     // Go to end
     fseek(fd, 0, SEEK_END);
     // read the position which is the size
-    value_t chunk = ftell(fd);
+    arval_t chunk = ftell(fd);
     // restore original position
     fseek(fd, pos, SEEK_SET);
 

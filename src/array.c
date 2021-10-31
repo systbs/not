@@ -38,13 +38,13 @@ array_create()
     return array_apply(arr);
 }
 
-value_t
+arval_t
 array_isempty(array_t *arr)
 {
     return (arr->begin == arr->end);
 }
 
-value_t
+arval_t
 array_content(iarray_t *current){
     return current ? current->value : 0;
 }
@@ -61,10 +61,10 @@ array_previous(iarray_t *current)
     return current->previous;
 }
 
-value_t
+arval_t
 array_count(array_t *arr)
 {
-    value_t cnt = 0;
+    arval_t cnt = 0;
     iarray_t *b;
     for(b = arr->begin; b && (b != arr->end); b = b->next){
         cnt++;
@@ -72,8 +72,8 @@ array_count(array_t *arr)
     return cnt;
 }
 
-value_t
-array_clear(array_t *arr, value_t (*f)(iarray_t*))
+arval_t
+array_clear(array_t *arr, arval_t (*f)(iarray_t*))
 {
     if (array_isempty(arr))
         return 0;
@@ -90,7 +90,7 @@ array_clear(array_t *arr, value_t (*f)(iarray_t*))
 }
 
 void
-array_destroy(array_t *arr, value_t (*f)(iarray_t*))
+array_destroy(array_t *arr, arval_t (*f)(iarray_t*))
 {
     array_clear(arr, *f);
     qalam_free (arr);
@@ -129,7 +129,7 @@ array_unlink(array_t *arr, iarray_t* it)
 }
 
 iarray_t*
-array_remove(array_t *arr, value_t (*f)(value_t))
+array_remove(array_t *arr, arval_t (*f)(arval_t))
 {
     iarray_t *b, *n;
     for(b = arr->begin; b != arr->end; b = n){
@@ -148,7 +148,7 @@ array_rpop(array_t *arr)
 }
 
 iarray_t *
-array_rpush(array_t *arr, value_t value)
+array_rpush(array_t *arr, arval_t value)
 {
     iarray_t *it;
     if(!(it = (iarray_t *)qalam_malloc(sizeof(*it)))) {
@@ -167,7 +167,7 @@ array_lpop(array_t *arr)
 }
 
 iarray_t *
-array_lpush(array_t *arr, value_t value)
+array_lpush(array_t *arr, arval_t value)
 {
     iarray_t *it;
 
@@ -181,10 +181,10 @@ array_lpush(array_t *arr, value_t value)
 }
 
 iarray_t *
-array_insert(array_t *arr, value_t n, value_t value)
+array_insert(array_t *arr, arval_t n, arval_t value)
 {
     iarray_t *current = arr->begin;
-    for (value_t i = 0; i < n; i++)
+    for (arval_t i = 0; i < n; i++)
     {
         if (current == arr->end) {
             return 0;
@@ -203,7 +203,7 @@ array_insert(array_t *arr, value_t n, value_t value)
     return array_link(arr, current, it);
 }
 
-value_t
+arval_t
 array_null(array_t *arr)
 {
     if(arr == 0){
@@ -213,7 +213,7 @@ array_null(array_t *arr)
 }
 
 iarray_t *
-array_at(array_t *arr, value_t key)
+array_at(array_t *arr, arval_t key)
 {
     iarray_t *b, *n;
     for(b = arr->begin; b && (b != arr->end); b = n){
@@ -270,7 +270,7 @@ array_last(array_t *arr)
 }
 
 iarray_t *
-array_first_or_default(array_t *arr, value_t (*f)(value_t))
+array_first_or_default(array_t *arr, arval_t (*f)(arval_t))
 {
     iarray_t *b, *n;
     for(b = arr->begin; b && (b != arr->end); b = n){
@@ -283,7 +283,7 @@ array_first_or_default(array_t *arr, value_t (*f)(value_t))
 }
 
 iarray_t *
-array_last_or_default(array_t *arr, value_t (*f)(value_t))
+array_last_or_default(array_t *arr, arval_t (*f)(arval_t))
 {
     iarray_t *b, *p;
     for(b = arr->end->previous; b && (b != arr->end); b = p){
@@ -295,13 +295,13 @@ array_last_or_default(array_t *arr, value_t (*f)(value_t))
     return 0;
 }
 
-value_t
-array_aggregate(array_t *arr, value_t(*f)(value_t, value_t))
+arval_t
+array_aggregate(array_t *arr, arval_t(*f)(arval_t, arval_t))
 {
     if (array_isempty(arr))
         return 0;
 
-    value_t result = 0;
+    arval_t result = 0;
 
     iarray_t *b, *n;
     for(b = arr->begin; b && (b != arr->end); b = n){
@@ -313,8 +313,8 @@ array_aggregate(array_t *arr, value_t(*f)(value_t, value_t))
 }
 
 
-value_t 
-array_ateq(array_t *arr, value_t key, value_t value)
+arval_t 
+array_ateq(array_t *arr, arval_t key, arval_t value)
 {
     iarray_t *b, *n;
     for(b = arr->begin; b && (b != arr->end); b = n){
@@ -355,8 +355,8 @@ array_ateq(array_t *arr, value_t key, value_t value)
 }
 
 
-value_t 
-array_lasteq(array_t *arr, value_t value)
+arval_t 
+array_lasteq(array_t *arr, arval_t value)
 {
     if(arr->end->previous != 0){
         iarray_t *it = arr->end->previous;

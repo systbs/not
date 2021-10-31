@@ -85,19 +85,19 @@ enum
 
 /* token type */
 typedef struct token {
-  value_t identifier;
-  value_t value;
-  value_t pos;
-  value_t row;
-  value_t col;
-  value_t fileid;
+  arval_t identifier;
+  arval_t value;
+  arval_t pos;
+  arval_t row;
+  arval_t col;
+  arval_t fileid;
   const char * symbol;
 } token_t;
 
 token_t *
-token_create(value_t identifier, value_t value, value_t pos, value_t row, value_t col);
+token_create(arval_t identifier, arval_t value, arval_t pos, arval_t row, arval_t col);
 
-value_t
+arval_t
 token_destroy(itable_t *it);
 
 void
