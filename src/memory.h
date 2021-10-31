@@ -11,3 +11,6 @@ qalam_malloc(size_t size);
 
 void
 qalam_free(void * ptr);
+
+#define qalam_sizeof(ptr) ((size_t) (malloc_usable_size(ptr)))
+

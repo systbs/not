@@ -41,10 +41,8 @@ data_clone(table_t *tbl)
     itable_t *t;
     for(t = tbl->begin; t != tbl->end; t = t->next){
         object_t *obj;
-        if(!(obj = object_clone((object_t *)t->value))){
-            printf("data clone, object not clone!\n");
-            exit(-1);
-        }
+        validate_format(!!(obj = object_clone((object_t *)t->value)),
+			"data clone, object not clone");
         table_rpush(res, (value_p)obj);
     }
     return res;
@@ -57,12 +55,9 @@ data_from(char *str)
     value_t i;
     for(i = 0; i < strlen(str); i++){
         object_t *obj;
-        if(!(obj = qalam_object_malloc(sizeof(char)))){
-            printf("string to data convert, bad memory!\n");
-            exit(-1);
-        }
-        obj->type = TP_CHAR;
-        obj->num = str[i];
+        validate_format(!!(obj = object_define(TP_CHAR, sizeof(char_t))),
+			"data from string, bad object malloc");
+        *(char_t *)obj->ptr = (char_t)str[i];
         table_rpush(tbl, (value_p)obj);
     }
     return tbl;
@@ -90,20 +85,14 @@ data_format(table_t *tbl, table_t *format)
         if(obj->type == TP_NULL){
 			value_t i;
 			for(i = 0; i < strlen(STR_NULL); i++){
-				if(!(esp = qalam_object_malloc(sizeof(char)))){
-                    printf("unable to alloc memory!\n");
-                    exit(-1);
-                }
-                esp->type = TP_CHAR;
-                esp->num = (char)STR_NULL[i];
+				validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+					"data from string, bad object malloc");
+                *(char_t *)esp->ptr = (char_t)STR_NULL[i];
 				table_rpush(deformed, (value_p)esp);
 			}
-			if(!(esp = qalam_object_malloc(sizeof(char)))){
-				printf("unable to alloc memory!\n");
-				exit(-1);
-			}
-			esp->type = TP_CHAR;
-			esp->num = ' ';
+			validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+				"data from string, bad object malloc");
+			*(char_t *)esp->ptr = ' ';
 			table_rpush(deformed, (value_p)esp);
             t = t->next;
             continue;
@@ -111,72 +100,65 @@ data_format(table_t *tbl, table_t *format)
 		else
 		if(obj->type == TP_CHAR){
 			value_t num = 0;
-			if(obj->num == '%'){
+			if(*(char_t *)obj->ptr == '%'){
 				t = t->next;
 				obj = (object_t *)t->value;
 
-				if(obj->num == 's'){
-					if(!(f = table_rpop(format))){
-						printf("format, %%s require a string data!\n");
-						exit(-1);
-					}
+				if(*(char_t *)obj->ptr == 's'){
+					validate_format(!!(f = table_rpop(format)), 
+						"format, %%s require a string data!");
+					
 					obj = (object_t *)f->value;
-					if(obj->type != TP_ARRAY){
-						printf("%%s must be input string data!\n");
-						exit(-1);
-					}
+
+					validate_format((obj->type == TP_ARRAY),
+						"%%s must be input string data!");
+
                     data_merge(deformed, data_format((table_t *)obj->ptr, format));
 					t = t->next;
 					continue;
 				}
 				else
-				if(obj->num == '.'){
+				if(*(char_t *)obj->ptr == '.'){
 					t = t->next;
 					obj = (object_t *)t->value;
-					if(obj->type != TP_CHAR){
-						printf("object not a char type!\n");
-						exit(-1);
-					}
-					while(valid_digit(obj->num)){
-						if(obj->type != TP_CHAR){
-							printf("object not a char type!\n");
-							exit(-1);
-						}
-						num = num * 10 + (char)obj->num - '0';
+
+					validate_format((obj->type == TP_CHAR),
+						"object not a char type!");
+
+					while(valid_digit(*(char_t *)obj->ptr)){
+						validate_format(obj->type == TP_CHAR, 
+							"object not a char type");
+						num = num * 10 + *(char_t *)obj->ptr - '0';
 						t = t->next;
 						obj = (object_t *)t->value;
 					}
 				}
 
-				if(obj->num == 'n'){
-					if(!(f = table_rpop(format))){
-						printf("format, %%n require a number!\n");
-						exit(-1);
-					}
+				if(*(char_t *)obj->ptr == 'n'){
+
+					validate_format(!!(f = table_rpop(format)),
+						"format, %%n require a number!");
 
 					obj = (object_t *)f->value;
 
-					char *fmt = qalam_malloc(sizeof(char) * 255);
+					char_t *fmt = qalam_malloc(sizeof(char_t) * 255);
 					sprintf(fmt, "%%.%lldf", num);
 
-					char *str_num = qalam_malloc(sizeof(char) * 255);
-					if(((obj->num - (value_t)obj->num) != 0) || (num > 0)){
-						sprintf(str_num, fmt, obj->num);
+					char_t *str_num = qalam_malloc(sizeof(char_t) * 255);
+					if(((*(double64_t *)obj->ptr - *(long64_t *)obj->ptr) != 0) || (num > 0)){
+						sprintf(str_num, fmt, *(double64_t *)obj->ptr);
 					}
 					else {
-						sprintf(str_num, "%lld", (value_t)obj->num);
+						sprintf(str_num, "%lld", *(long64_t *)obj->ptr);
 					}
 
 					qalam_free(fmt);
 
 					value_t i;
 					for(i = 0; i < strlen(str_num); i++){
-						if(!(esp = qalam_object_malloc(sizeof(char)))){
-							printf("unable to alloc memory!\n");
-							exit(-1);
-						}
-						esp->type = TP_CHAR;
-						esp->num = (char)str_num[i];
+						validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+							"data from string, bad object malloc");
+						*(char_t *)esp->ptr = (char_t)str_num[i];
 						table_rpush(deformed, (value_p)esp);
 					}
 
@@ -186,35 +168,30 @@ data_format(table_t *tbl, table_t *format)
 					continue;
 				}
 				else
-				if(obj->num == 'h'){
-					if(!(f = table_rpop(format))){
-						printf("format, %%n require a number!\n");
-						exit(-1);
-					}
+				if(*(char_t *)obj->ptr == 'h'){
+					validate_format(!!(f = table_rpop(format)),
+						"format, %%n require a number!");
 
 					obj = (object_t *)f->value;
 
-					char *fmt = qalam_malloc(sizeof(char) * 255);
+					char_t *fmt = qalam_malloc(sizeof(char_t) * 255);
 					sprintf(fmt, "%%0%lldllx", num);
 
-					char *str_num = qalam_malloc(sizeof(char) * 255);
-					if(((obj->num - (value_t)obj->num) != 0) || (num > 0)){
-						sprintf(str_num, fmt, obj->num);
+					char_t *str_num = qalam_malloc(sizeof(char_t) * 255);
+					if(((*(double64_t *)obj->ptr - *(long64_t *)obj->ptr) != 0) || (num > 0)){
+						sprintf(str_num, fmt, *(double64_t *)obj->ptr);
 					}
 					else {
-						sprintf(str_num, "%llx", (value_t)obj->num);
+						sprintf(str_num, "%llx", *(long64_t *)obj->ptr);
 					}
 
 					qalam_free(fmt);
 
 					value_t i;
 					for(i = 0; i < strlen(str_num); i++){
-						if(!(esp = qalam_object_malloc(sizeof(char)))){
-							printf("unable to alloc memory!\n");
-							exit(-1);
-						}
-						esp->type = TP_CHAR;
-						esp->num = (char)str_num[i];
+						validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+							"data from string, bad object malloc");
+						*(char_t *)esp->ptr = (char_t)str_num[i];
 						table_rpush(deformed, (value_p)esp);
 					}
 
@@ -224,7 +201,7 @@ data_format(table_t *tbl, table_t *format)
 					continue;
 				}
 				else
-				if(obj->num == 'H'){
+				if(*(char_t *)obj->ptr == 'H'){
 					if(!(f = table_rpop(format))){
 						printf("format, %%n require a number!\n");
 						exit(-1);
@@ -232,27 +209,24 @@ data_format(table_t *tbl, table_t *format)
 
 					obj = (object_t *)f->value;
 
-					char *fmt = qalam_malloc(sizeof(char) * 255);
+					char_t *fmt = qalam_malloc(sizeof(char_t) * 255);
 					sprintf(fmt, "%%0%lldllX", num);
 
-					char *str_num = qalam_malloc(sizeof(char) * 255);
-					if(((obj->num - (value_t)obj->num) != 0) || (num > 0)){
-						sprintf(str_num, fmt, obj->num);
+					char_t *str_num = qalam_malloc(sizeof(char_t) * 255);
+					if(((*(double64_t *)obj->ptr - *(long64_t *)obj->ptr) != 0) || (num > 0)){
+						sprintf(str_num, fmt, *(double64_t *)obj->ptr);
 					}
 					else {
-						sprintf(str_num, "%llX", (value_t)obj->num);
+						sprintf(str_num, "%llX", *(long64_t *)obj->ptr);
 					}
 
 					qalam_free(fmt);
 
 					value_t i;
 					for(i = 0; i < strlen(str_num); i++){
-						if(!(esp = qalam_object_malloc(sizeof(char)))){
-							printf("unable to alloc memory!\n");
-							exit(-1);
-						}
-						esp->type = TP_CHAR;
-						esp->num = (char)str_num[i];
+						validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+							"data from string, bad object malloc");
+						*(char_t *)esp->ptr = (char)str_num[i];
 						table_rpush(deformed, (value_p)esp);
 					}
 
@@ -262,56 +236,49 @@ data_format(table_t *tbl, table_t *format)
 					continue;
 				}
 
-				if(!(esp = qalam_object_malloc(sizeof(char)))){
-					printf("unable to alloc memory!\n");
-					exit(-1);
-				}
-				esp->type = TP_CHAR;
-				esp->num = obj->num;
+				validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+					"data from string, bad object malloc");
+
+				*(char_t *)esp->ptr = *(char_t *)obj->ptr;
+
 				table_rpush(deformed, (value_p)esp);
 
 				t = t->next;
 				continue;
 			}
 
-			if(!(esp = qalam_object_malloc(sizeof(char)))){
-				printf("unable to alloc memory!\n");
-				exit(-1);
-			}
-			esp->type = TP_CHAR;
-			esp->num = obj->num;
+			validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+				"data from string, bad object malloc");
+
+			*(char_t *)esp->ptr = *(char_t *)obj->ptr;
+
 			table_rpush(deformed, (value_p)esp);
 			t = t->next;
 			continue;
 		}
 		else
 		if(obj->type == TP_NUMBER){
-			char *str_num = qalam_malloc(sizeof(char) * 255);
-			if((obj->num - (value_t)obj->num) != 0){
-				sprintf(str_num, "%.16f", obj->num);
+			char *str_num = qalam_malloc(sizeof(char_t) * 255);
+			if((*(double64_t *)obj->ptr - *(long64_t *)obj->ptr) != 0){
+				sprintf(str_num, "%.16Lf", *(double64_t *)obj->ptr);
 			}
 			else {
-				sprintf(str_num, "%lld", (value_t)obj->num);
+				sprintf(str_num, "%lld", *(long64_t *)obj->ptr);
 			}
 			value_t i;
 			for(i = 0; i < strlen(str_num); i++){
-				if(!(esp = qalam_object_malloc(sizeof(char)))){
-					printf("unable to alloc memory!\n");
-					exit(-1);
-				}
-				esp->type = TP_CHAR;
-				esp->num = (char)str_num[i];
+				validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+					"data from string, bad object malloc");
+				*(char_t *)esp->ptr = (char_t)str_num[i];
 				table_rpush(deformed, (value_p)esp);
 			}
 
 			qalam_free(str_num);
 
-			if(!(esp = qalam_object_malloc(sizeof(char)))){
-				printf("unable to alloc memory!\n");
-				exit(-1);
-			}
-			esp->type = TP_CHAR;
-			esp->num = ' ';
+			validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+				"data from string, bad object malloc");
+
+			*(char_t *)esp->ptr = ' ';
 			table_rpush(deformed, (value_p)esp);
 			t = t->next;
 			continue;
@@ -353,13 +320,13 @@ data_compare(table_t *tbl1, table_t *tbl2)
 		}
 		else
 		if(obj1->type == TP_NUMBER){
-			if(obj1->num != obj2->num){
+			if(*(double64_t *)obj1->ptr != *(double64_t *)obj2->ptr){
 				return 0;
 			}
 		}
 		else
 		if(obj1->type == TP_CHAR){
-			if(obj1->num != obj2->num){
+			if(*(double64_t *)obj1->ptr != *(double64_t *)obj2->ptr){
 				return 0;
 			}
 		}
@@ -380,7 +347,7 @@ data_to(table_t *tbl)
     for(b = tbl->begin; b && (b != tbl->end); b = b->next){
         object_t *obj = (object_t *)b->value;
         if(obj->type == TP_CHAR){
-            str[i++] = (char)obj->num;
+            str[i++] = *(char_t *)obj->ptr;
             continue;
         }
     }

@@ -13,7 +13,4 @@ category3: (category1, category2, {
 
 d = eval(category3);
 
-e:16;
-
 print(d.c);
-print(d.a);

@@ -1,7 +1,7 @@
 
 VERSION := 0.0.1
 CC      :=  gcc
-CFLAGS  := -Wall -O3 -g -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -ggdb -fno-omit-frame-pointer
+CFLAGS  := -Wall -O3 -g -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -ggdb -fno-omit-frame-pointer 
 LDFLAGS := 
 
 BUILDDIR := build

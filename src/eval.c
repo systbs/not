@@ -78,10 +78,10 @@ thread_or(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(char))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long64_t))), 
 		"unable to alloc memory!");
 	
-	object->num = esp->num || tr->object->num;
+	*(long64_t *)object->ptr = *(long64_t *)esp->ptr || *(long64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -99,10 +99,10 @@ thread_lor(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long_t))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long64_t))), 
 		"unable to alloc memory!");
 	
-	object->num = (long_t)esp->num | (long_t)tr->object->num;
+	*(long64_t *)object->ptr = *(long64_t *)esp->ptr | *(long64_t *)tr->object->ptr;
 
 	// table_rpush(tr->pool, (value_p)tr->object);
 
@@ -124,10 +124,8 @@ thread_xor(thread_t *tr, iarray_t *c) {
 
 	validate_format(!!(object = object_define(TP_NUMBER, sizeof(double_t))), 
 		"unable to alloc memory!");
-	
-	object->num = (long_t)esp->num ^ (long_t)tr->object->num;
 
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(long64_t *)object->ptr = *(long64_t *)esp->ptr ^ *(long64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -145,12 +143,10 @@ thread_and(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(char_t))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long64_t))), 
 		"unable to alloc memory!");
 	
-	object->num = esp->num && tr->object->num;
-
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(long64_t *)object->ptr = *(long64_t *)esp->ptr && *(long64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -168,12 +164,10 @@ thread_land(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(double_t))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long64_t))), 
 		"unable to alloc memory!");
 	
-	object->num = (long_t)esp->num & (long_t)tr->object->num;
-
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(long64_t *)object->ptr = *(long64_t *)esp->ptr & *(long64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -191,12 +185,10 @@ thread_eq(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(char_t))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long64_t))), 
 		"unable to alloc memory!");
 	
-	object->num = esp->num == tr->object->num;
-
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(long64_t *)object->ptr = *(long64_t *)esp->ptr == *(long64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -214,12 +206,10 @@ thread_ne(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(char_t))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long64_t))), 
 		"unable to alloc memory!");
 	
-	object->num = esp->num != tr->object->num;
-
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(long64_t *)object->ptr = *(long64_t *)esp->ptr != *(long64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -237,12 +227,10 @@ thread_lt(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(char_t))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long64_t))), 
 		"unable to alloc memory!");
 
-	object->num = esp->num < tr->object->num;
-
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(long64_t *)object->ptr = *(long64_t *)esp->ptr < *(long64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -260,12 +248,10 @@ thread_le(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(char_t))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long64_t))), 
 		"unable to alloc memory!");
 	
-	object->num = esp->num <= tr->object->num;
-
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(long64_t *)object->ptr = *(long64_t *)esp->ptr <= *(long64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -283,12 +269,10 @@ thread_gt(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(char_t))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long64_t))), 
 		"unable to alloc memory!");
 	
-	object->num = esp->num > tr->object->num;
-
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(long64_t *)object->ptr = *(long64_t *)esp->ptr > *(long64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -306,12 +290,10 @@ thread_ge(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(char_t))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long64_t))), 
 		"unable to alloc memory!");
 	
-	object->num = esp->num >= tr->object->num;
-
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(long64_t *)object->ptr = *(long64_t *)esp->ptr >= *(long64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -329,12 +311,10 @@ thread_lshift(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long_t))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long64_t))), 
 		"unable to alloc memory!");
 	
-	object->num = (long_t)esp->num << (long_t)tr->object->num;
-
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(long64_t *)object->ptr = *(long64_t *)esp->ptr << *(long64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -352,12 +332,10 @@ thread_rshift(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long_t))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long64_t))), 
 		"unable to alloc memory!");
 	
-	object->num = (long_t)esp->num >> (long_t)tr->object->num;
-
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(long64_t *)object->ptr = *(long64_t *)esp->ptr >> *(long64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -375,12 +353,10 @@ thread_add(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(double_t))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(double64_t))), 
 		"unable to alloc memory!");
 	
-	object->num = esp->num + tr->object->num;
-
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(double64_t *)object->ptr = *(double64_t *)esp->ptr + *(double64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -398,12 +374,10 @@ thread_sub(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(double_t))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(double64_t))), 
 		"unable to alloc memory!");
 	
-	object->num = esp->num - tr->object->num;
-
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(double64_t *)object->ptr = *(double64_t *)esp->ptr - *(double64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -424,9 +398,7 @@ thread_mul(thread_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(TP_NUMBER, sizeof(double_t))), 
 		"unable to alloc memory!");
 	
-	object->num = esp->num * tr->object->num;
-
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(double64_t *)object->ptr = *(double64_t *)esp->ptr * *(double64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -444,12 +416,10 @@ thread_div(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(double_t))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(double64_t))), 
 		"unable to alloc memory!");
 
-	object->num = esp->num / tr->object->num;
-
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(double64_t *)object->ptr = *(double64_t *)esp->ptr / *(double64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -469,12 +439,10 @@ thread_mod(thread_t *tr, iarray_t *c) {
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(TP_NUMBER, sizeof(double_t))), 
+	validate_format(!!(object = object_define(TP_NUMBER, sizeof(long64_t))), 
 		"unable to alloc memory!");
 	
-	object->num = (long_t)esp->num % (long_t)tr->object->num;
-
-	// table_rpush(tr->pool, (value_p)tr->object);
+	*(long64_t *)object->ptr = *(long64_t *)esp->ptr % *(long64_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -571,23 +539,23 @@ thread_imm(thread_t *tr, iarray_t *c) {
         object_t *object;
         validate_format(!!(object = object_define(TP_ARRAY, sizeof(table_t))), 
             "unable to alloc memory!");
-        object->ptr = data_from((char *)value);
+        object->ptr = data_from((char_t *)value);
 		tr->object = object;
 		return c->next;
 	}
 	else if(c->value == TP_NUMBER){
         object_t *object;
-        validate_format(!!(object = object_define(TP_NUMBER, sizeof(double_t))), 
+        validate_format(!!(object = object_define(TP_NUMBER, sizeof(double64_t))), 
             "unable to alloc memory!");
-        object->num = utils_atof((char *)value);
+        *(double64_t *)object->ptr = utils_atof((char *)value);
 		tr->object = object;
 		return c->next;
 	}
 	else if(c->value == TP_IMM){
         object_t *object;
-        validate_format(!!(object = object_define(TP_NUMBER, sizeof(double_t))), 
+        validate_format(!!(object = object_define(TP_NUMBER, sizeof(long64_t))), 
             "unable to alloc memory!");
-        object->num = value;
+        *(long64_t *)object->ptr = (long64_t)value;
 		tr->object = object;
 		return c->next;
 	}
@@ -652,14 +620,14 @@ iarray_t *
 thread_jz(thread_t *tr, iarray_t *c) {
 	// jump if object is zero
 	c = c->next;
-	return (tr->object->num) ? c->next : (iarray_t *)c->value;
+	return (*(double_t *)tr->object->ptr) ? c->next : (iarray_t *)c->value;
 }
 
 iarray_t *
 thread_jnz(thread_t *tr, iarray_t *c) {
 	// jump if object is not zero
 	c = c->next;
-	return (tr->object->num) ? (iarray_t *)c->value : c->next;
+	return (*(double_t *)tr->object->ptr) ? (iarray_t *)c->value : c->next;
 }
 
 
@@ -827,7 +795,7 @@ thread_def(thread_t *tr, iarray_t *c) {
 		esp = object_redefine(
 			esp, 
 			esp->type, 
-			tr->object->num
+			*(double_t *)tr->object->ptr
 		);
 		tr->object = esp;
 		return c->next;
@@ -880,7 +848,7 @@ thread_def(thread_t *tr, iarray_t *c) {
 		schema->object = object_redefine(
 			schema->object, 
 			schema->object->type, 
-			tr->object->num
+			*(double_t *)tr->object->ptr
 		);
 	}
 
@@ -903,9 +871,12 @@ thread_print(thread_t *tr, iarray_t *c) {
 	value_t i = table_count(tbl);
 
 	while((esp = (object_t *)table_content(table_rpop(tbl)))){
-		//printf("esp %d %f\n", esp->type, esp->num);
 		if(esp->type == TP_NULL){
 			printf("%s ", object_typeAsString(TP_NULL));
+			continue;
+		}
+		else if(esp->type == TP_CHAR){
+			printf("%d ", *(char_t *)esp->ptr);
 			continue;
 		}
 		else if(esp->type == TP_ARRAY){
@@ -920,33 +891,32 @@ thread_print(thread_t *tr, iarray_t *c) {
 			itable_t *t;
 			while((t = table_lpop(formated))){
 				object_t *obj = (object_t *)t->value;
-				if(obj->num == '\\'){
-					//object_delete(obj, deleteIfTemp);
+				if(*(char_t *)obj->ptr == '\\'){
 
 					t = table_lpop(formated);
 					obj = (object_t *)t->value;
 
-					if(obj->num == 'n'){
+					if(*(char_t *)obj->ptr == 'n'){
 						printf("\n");
 						continue;
 					}
 					else
-					if(obj->num == 't'){
+					if(*(char_t *)obj->ptr == 't'){
 						printf("\t");
 						continue;
 					}
 					else
-					if(obj->num == 'v'){
+					if(*(char_t *)obj->ptr == 'v'){
 						printf("\v");
 						continue;
 					}
 					else
-					if(obj->num == 'a'){
+					if(*(char_t *)obj->ptr == 'a'){
 						printf("\a");
 						continue;
 					}
 					else
-					if(obj->num == 'b'){
+					if(*(char_t *)obj->ptr == 'b'){
 						printf("\b");
 						continue;
 					}
@@ -955,22 +925,24 @@ thread_print(thread_t *tr, iarray_t *c) {
 					continue;
 				}
 
-				printf("%c", (char)obj->num);
-				//object_delete(obj, deleteIfTemp);
+				printf("%c", *(char_t *)obj->ptr);
 			}
 
 			continue;
 		}
 		else if(esp->type == TP_NUMBER){
-			if((esp->num - (value_t)esp->num) != 0){
-				printf("%.16f", esp->num);
+			if((*(double64_t *)esp->ptr - *(long64_t *)esp->ptr) != 0){
+				printf("%.16Lf", *(double64_t *)esp->ptr);
 			}else{
-				printf("%lld", (value_t)esp->num);
+				printf("%lld", *(long64_t *)esp->ptr);
 			}
 			continue;
 		}
+		else if(esp->type == TP_SCHEMA) {
+			printf("SCHEMA \n");
+		}
 		else {
-			printf("%.16f", esp->num);
+			printf("%.16Lf", *(double64_t *)esp->ptr);
 		}
 	}
 	printf("\n");
