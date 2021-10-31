@@ -65,6 +65,15 @@ typedef enum operator {
 	EXIT,
 } operator_type;
 
+typedef enum imm_type {
+	TP_IMM,
+	TP_VAR,
+	TP_NUMBER,
+	TP_SCHEMA,
+	TP_NULL,
+	TP_ARRAY
+} imm_type_t;
+
 typedef struct parser {
     schema_t *schema; 
     table_t *schemas; 

@@ -1,23 +1,20 @@
 #pragma once
 
+
 typedef enum object_type {
-	TP_IMM,
-	TP_NUMBER,
-	TP_SHORT,
-	TP_LONG,
-	TP_LONG64,
-	TP_FLAOT,
-	TP_DOUBLE,
-	TP_DOUBLE64,
-	TP_VAR,
-	TP_PTR,
-	TP_CHAR,
-	//enum ptr types
-	TP_NULL,
-	TP_ARRAY,
-	TP_PARAMS,
-	TP_SCHEMA,
-	TP_ADRS,
+	OTP_SHORT,
+	OTP_INT,
+	OTP_LONG,
+	OTP_LONG64,
+	OTP_FLAOT,
+	OTP_DOUBLE,
+	OTP_DOUBLE64,
+	OTP_CHAR,
+	OTP_PARAMS,
+	OTP_ADRS,
+	OTP_ARRAY,
+	OTP_SCHEMA,
+	OTP_NULL
 } object_type_t;
 
 typedef struct object {
@@ -26,34 +23,72 @@ typedef struct object {
 } object_t;
 
 
+#define otp(target, source) { \
+	if(target->type == OTP_CHAR && source->type == OTP_CHAR){ \
+		*(char_t *)target->ptr = *(char_t *)source->ptr;\
+	}\
+	else if(target->type == OTP_SHORT && source->type == OTP_SHORT){ \
+		*(short_t *)target->ptr = *(short_t *)source->ptr;\
+	}\
+	else if(target->type == OTP_INT && source->type == OTP_INT){ \
+		*(int_t *)target->ptr = *(int_t *)source->ptr;\
+	}\
+	else if(target->type == OTP_LONG && source->type == OTP_LONG){ \
+		*(long_t *)target->ptr = *(long_t *)source->ptr;\
+	}\
+	else if(target->type == OTP_LONG64 && source->type == OTP_LONG64){ \
+		*(long64_t *)target->ptr = *(long64_t *)source->ptr;\
+	}\
+	else if(target->type == OTP_FLAOT && source->type == OTP_FLAOT){ \
+		*(float_t *)target->ptr = *(float_t *)source->ptr;\
+	}\
+	else if(target->type == OTP_DOUBLE && source->type == OTP_DOUBLE){ \
+		*(double_t *)target->ptr = *(double_t *)source->ptr;\
+	}\
+	else if(target->type == OTP_DOUBLE64 && source->type == OTP_DOUBLE64){ \
+		*(double64_t *)target->ptr = *(double64_t *)source->ptr;\
+	}\
+	else if(target->type == OTP_ARRAY && source->type == OTP_ARRAY){ \
+		*(table_t *)target->ptr = *(table_t *)source->ptr;\
+	}\
+	else if(target->type == OTP_PARAMS && source->type == OTP_PARAMS){ \
+		*(table_t *)target->ptr = *(table_t *)source->ptr;\
+	}\
+	else if(target->type == OTP_SCHEMA && source->type == OTP_SCHEMA){ \
+		*(schema_t *)target->ptr = *(schema_t *)source->ptr;\
+	}\
+	else if(target->type == OTP_ADRS && source->type == OTP_ADRS){ \
+		*(long64_t *)target->ptr = *(long64_t *)source->ptr;\
+	}\
+	else { \
+		target->ptr = source->ptr;\
+	}\
+}
 
-#define object_define(otp, size) ({\
+#define object_define(tp, size) ({\
     object_t *object = qalam_malloc(sizeof(object_t));\
 	object->ptr = qalam_malloc(size);\
-    object->type = otp;\
+    object->type = tp;\
     object;\
 })
 
-#define object_redefine(object, otp, size) ({\
+#define object_redefine(object, tp, size) ({\
     object->ptr = qalam_realloc(object->ptr, size);\
-    object->type = otp;\
+    object->type = tp;\
     object;\
 })
 
 #define object_isnum(obj) ( \
-	(obj->type == TP_SHORT) || \
-	(obj->type == TP_LONG) || \
-	(obj->type == TP_LONG64) || \
-	(obj->type == TP_FLAOT) || \
-	(obj->type == TP_DOUBLE) || \
-	(obj->type == TP_DOUBLE64)\
+	(obj->type == OTP_SHORT) || \
+	(obj->type == OTP_LONG) || \
+	(obj->type == OTP_LONG64) || \
+	(obj->type == OTP_FLAOT) || \
+	(obj->type == OTP_DOUBLE) || \
+	(obj->type == OTP_DOUBLE64)\
 )
 
 size_t
 object_sizeof(object_t *object);
-
-arval_t
-object_sort(arval_t *obj_1, arval_t *obj_2);
 
 object_t *
 object_clone(object_t *object);

@@ -11,6 +11,7 @@ typedef long double double64_t;
 
 typedef void * ptr_t;
 typedef char * string_t;
+typedef void * void_t;
 
 typedef unsigned char 		 uchar_t;
 typedef unsigned short 		 ushort_t;

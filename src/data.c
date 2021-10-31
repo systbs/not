@@ -55,7 +55,7 @@ data_from(char *str)
     arval_t i;
     for(i = 0; i < strlen(str); i++){
         object_t *obj;
-        validate_format(!!(obj = object_define(TP_CHAR, sizeof(char_t))),
+        validate_format(!!(obj = object_define(OTP_CHAR, sizeof(char_t))),
 			"data from string, bad object malloc");
         *(char_t *)obj->ptr = (char_t)str[i];
         table_rpush(tbl, (tbval_t)obj);
@@ -82,23 +82,22 @@ data_format(table_t *tbl, table_t *format)
     while( t != tbl->end ){
         obj = (object_t *)t->value;
 
-        if(obj->type == TP_NULL){
+        if(obj->type == OTP_NULL){
 			arval_t i;
 			for(i = 0; i < strlen(STR_NULL); i++){
-				validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+				validate_format(!!(esp = object_define(OTP_CHAR, sizeof(char_t))),
 					"data from string, bad object malloc");
                 *(char_t *)esp->ptr = (char_t)STR_NULL[i];
 				table_rpush(deformed, (tbval_t)esp);
 			}
-			validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+			validate_format(!!(esp = object_define(OTP_CHAR, sizeof(char_t))),
 				"data from string, bad object malloc");
 			*(char_t *)esp->ptr = ' ';
 			table_rpush(deformed, (tbval_t)esp);
             t = t->next;
             continue;
         }
-		else
-		if(obj->type == TP_CHAR){
+		else if(obj->type == OTP_CHAR){
 			arval_t num = 0;
 			if(*(char_t *)obj->ptr == '%'){
 				t = t->next;
@@ -110,7 +109,7 @@ data_format(table_t *tbl, table_t *format)
 					
 					obj = (object_t *)f->value;
 
-					validate_format((obj->type == TP_ARRAY),
+					validate_format((obj->type == OTP_ARRAY),
 						"%%s must be input string data!");
 
                     data_merge(deformed, data_format((table_t *)obj->ptr, format));
@@ -122,11 +121,11 @@ data_format(table_t *tbl, table_t *format)
 					t = t->next;
 					obj = (object_t *)t->value;
 
-					validate_format((obj->type == TP_CHAR),
+					validate_format((obj->type == OTP_CHAR),
 						"object not a char type!");
 
 					while(valid_digit(*(char_t *)obj->ptr)){
-						validate_format(obj->type == TP_CHAR, 
+						validate_format(obj->type == OTP_CHAR, 
 							"object not a char type");
 						num = num * 10 + *(char_t *)obj->ptr - '0';
 						t = t->next;
@@ -145,8 +144,8 @@ data_format(table_t *tbl, table_t *format)
 					sprintf(fmt, "%%.%lldf", num);
 
 					char_t *str_num = qalam_malloc(sizeof(char_t) * 255);
-					if(((*(double64_t *)obj->ptr - *(long64_t *)obj->ptr) != 0) || (num > 0)){
-						sprintf(str_num, fmt, *(double64_t *)obj->ptr);
+					if(((*(double_t *)obj->ptr - *(long64_t *)obj->ptr) != 0) || (num > 0)){
+						sprintf(str_num, fmt, *(double_t *)obj->ptr);
 					}
 					else {
 						sprintf(str_num, "%lld", *(long64_t *)obj->ptr);
@@ -156,7 +155,7 @@ data_format(table_t *tbl, table_t *format)
 
 					arval_t i;
 					for(i = 0; i < strlen(str_num); i++){
-						validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+						validate_format(!!(esp = object_define(OTP_CHAR, sizeof(char_t))),
 							"data from string, bad object malloc");
 						*(char_t *)esp->ptr = (char_t)str_num[i];
 						table_rpush(deformed, (tbval_t)esp);
@@ -178,8 +177,8 @@ data_format(table_t *tbl, table_t *format)
 					sprintf(fmt, "%%0%lldllx", num);
 
 					char_t *str_num = qalam_malloc(sizeof(char_t) * 255);
-					if(((*(double64_t *)obj->ptr - *(long64_t *)obj->ptr) != 0) || (num > 0)){
-						sprintf(str_num, fmt, *(double64_t *)obj->ptr);
+					if(((*(double_t *)obj->ptr - *(long64_t *)obj->ptr) != 0) || (num > 0)){
+						sprintf(str_num, fmt, *(double_t *)obj->ptr);
 					}
 					else {
 						sprintf(str_num, "%llx", *(long64_t *)obj->ptr);
@@ -189,7 +188,7 @@ data_format(table_t *tbl, table_t *format)
 
 					arval_t i;
 					for(i = 0; i < strlen(str_num); i++){
-						validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+						validate_format(!!(esp = object_define(OTP_CHAR, sizeof(char_t))),
 							"data from string, bad object malloc");
 						*(char_t *)esp->ptr = (char_t)str_num[i];
 						table_rpush(deformed, (tbval_t)esp);
@@ -213,8 +212,8 @@ data_format(table_t *tbl, table_t *format)
 					sprintf(fmt, "%%0%lldllX", num);
 
 					char_t *str_num = qalam_malloc(sizeof(char_t) * 255);
-					if(((*(double64_t *)obj->ptr - *(long64_t *)obj->ptr) != 0) || (num > 0)){
-						sprintf(str_num, fmt, *(double64_t *)obj->ptr);
+					if(((*(double_t *)obj->ptr - *(long64_t *)obj->ptr) != 0) || (num > 0)){
+						sprintf(str_num, fmt, *(double_t *)obj->ptr);
 					}
 					else {
 						sprintf(str_num, "%llX", *(long64_t *)obj->ptr);
@@ -224,7 +223,7 @@ data_format(table_t *tbl, table_t *format)
 
 					arval_t i;
 					for(i = 0; i < strlen(str_num); i++){
-						validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+						validate_format(!!(esp = object_define(OTP_CHAR, sizeof(char_t))),
 							"data from string, bad object malloc");
 						*(char_t *)esp->ptr = (char)str_num[i];
 						table_rpush(deformed, (tbval_t)esp);
@@ -236,7 +235,7 @@ data_format(table_t *tbl, table_t *format)
 					continue;
 				}
 
-				validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+				validate_format(!!(esp = object_define(OTP_CHAR, sizeof(char_t))),
 					"data from string, bad object malloc");
 
 				*(char_t *)esp->ptr = *(char_t *)obj->ptr;
@@ -247,7 +246,7 @@ data_format(table_t *tbl, table_t *format)
 				continue;
 			}
 
-			validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+			validate_format(!!(esp = object_define(OTP_CHAR, sizeof(char_t))),
 				"data from string, bad object malloc");
 
 			*(char_t *)esp->ptr = *(char_t *)obj->ptr;
@@ -256,18 +255,12 @@ data_format(table_t *tbl, table_t *format)
 			t = t->next;
 			continue;
 		}
-		else
-		if(obj->type == TP_NUMBER){
+		else if(obj->type == OTP_LONG64){
 			char *str_num = qalam_malloc(sizeof(char_t) * 255);
-			if((*(double64_t *)obj->ptr - *(long64_t *)obj->ptr) != 0){
-				sprintf(str_num, "%.16Lf", *(double64_t *)obj->ptr);
-			}
-			else {
-				sprintf(str_num, "%lld", *(long64_t *)obj->ptr);
-			}
+			sprintf(str_num, "%lld", *(long64_t *)obj->ptr);
 			arval_t i;
 			for(i = 0; i < strlen(str_num); i++){
-				validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+				validate_format(!!(esp = object_define(OTP_CHAR, sizeof(char_t))),
 					"data from string, bad object malloc");
 				*(char_t *)esp->ptr = (char_t)str_num[i];
 				table_rpush(deformed, (tbval_t)esp);
@@ -275,7 +268,7 @@ data_format(table_t *tbl, table_t *format)
 
 			qalam_free(str_num);
 
-			validate_format(!!(esp = object_define(TP_CHAR, sizeof(char_t))),
+			validate_format(!!(esp = object_define(OTP_CHAR, sizeof(char_t))),
 				"data from string, bad object malloc");
 
 			*(char_t *)esp->ptr = ' ';
@@ -283,8 +276,28 @@ data_format(table_t *tbl, table_t *format)
 			t = t->next;
 			continue;
 		}
-		else
-		if(obj->type == TP_ARRAY){
+		else if(obj->type == OTP_DOUBLE){
+			char *str_num = qalam_malloc(sizeof(char_t) * 255);
+			sprintf(str_num, "%.16f", *(double_t *)obj->ptr);
+			long64_t i;
+			for(i = 0; i < strlen(str_num); i++){
+				validate_format(!!(esp = object_define(OTP_CHAR, sizeof(char_t))),
+					"data from string, bad object malloc");
+				*(char_t *)esp->ptr = (char_t)str_num[i];
+				table_rpush(deformed, (tbval_t)esp);
+			}
+
+			qalam_free(str_num);
+
+			validate_format(!!(esp = object_define(OTP_CHAR, sizeof(char_t))),
+				"data from string, bad object malloc");
+
+			*(char_t *)esp->ptr = ' ';
+			table_rpush(deformed, (tbval_t)esp);
+			t = t->next;
+			continue;
+		}
+		else if(obj->type == OTP_ARRAY){
             data_merge(deformed, data_format((table_t *)obj->ptr, format));
 			t = t->next;
 			continue;
@@ -313,20 +326,43 @@ data_compare(table_t *tbl1, table_t *tbl2)
 		if(obj1->type != obj2->type){
 			return 0;
 		}
-		if(obj1->type == TP_NULL){
+		if(obj1->type == OTP_NULL){
 			if(obj1->ptr != obj2->ptr){
 				return 0;
 			}
 		}
-		else
-		if(obj1->type == TP_NUMBER){
+		else if(obj1->type == OTP_SHORT){
+			if(*(short_t *)obj1->ptr != *(short_t *)obj2->ptr){
+				return 0;
+			}
+		}
+		else if(obj1->type == OTP_INT){
+			if(*(int_t *)obj1->ptr != *(int_t *)obj2->ptr){
+				return 0;
+			}
+		}
+		else if(obj1->type == OTP_LONG){
+			if(*(long_t *)obj1->ptr != *(long_t *)obj2->ptr){
+				return 0;
+			}
+		}
+		else if(obj1->type == OTP_LONG64){
+			if(*(long64_t *)obj1->ptr != *(long64_t *)obj2->ptr){
+				return 0;
+			}
+		}
+		else if(obj1->type == OTP_DOUBLE){
+			if(*(double_t *)obj1->ptr != *(double_t *)obj2->ptr){
+				return 0;
+			}
+		}
+		else if(obj1->type == OTP_DOUBLE64){
 			if(*(double64_t *)obj1->ptr != *(double64_t *)obj2->ptr){
 				return 0;
 			}
 		}
-		else
-		if(obj1->type == TP_CHAR){
-			if(*(double64_t *)obj1->ptr != *(double64_t *)obj2->ptr){
+		else if(obj1->type == OTP_CHAR){
+			if(*(char_t *)obj1->ptr != *(char_t *)obj2->ptr){
 				return 0;
 			}
 		}
@@ -346,7 +382,7 @@ data_to(table_t *tbl)
     itable_t *b;
     for(b = tbl->begin; b && (b != tbl->end); b = b->next){
         object_t *obj = (object_t *)b->value;
-        if(obj->type == TP_CHAR){
+        if(obj->type == OTP_CHAR){
             str[i++] = *(char_t *)obj->ptr;
             continue;
         }

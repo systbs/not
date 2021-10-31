@@ -31,41 +31,12 @@ object_clone(object_t *object)
 	object_t *obj;
 	validate_format(!!(obj = object_define(object->type, qalam_sizeof(object->ptr))),
 		"[OBJECT CLONE] object not defined");
-
-	switch (object->type) {
-		case TP_NULL:
-			obj->ptr = object->ptr;
-			break;
-		case TP_CHAR:
-			*(char_t *)obj->ptr = *(char_t *)object->ptr;
-			break;
-		case TP_NUMBER:
-			*(double64_t *)obj->ptr = *(double64_t *)object->ptr;
-			break;
-		case TP_ARRAY:
-		case TP_PARAMS:
-			obj->ptr = data_clone((table_t *)object->ptr);
-			break;
-		case TP_SCHEMA:
-			obj->ptr = (schema_t *)object->ptr;
-			break;
-		default:
-			printf("clone, unknown type! %d\n", object->type);
-			exit(-1);
+	if(object->type == OTP_ARRAY || object->type == OTP_PARAMS){
+		obj->ptr = data_clone((table_t *)object->ptr);
+	} else {
+		otp(obj, object);
 	}
-
 	return obj;
-}
-
-arval_t
-object_sort(arval_t *obj_1, arval_t *obj_2)
-{
-	object_t *obj1 = (object_t *)obj_1;
-	object_t *obj2 = (object_t *)obj_2;
-	if(obj1->type == TP_NUMBER && obj2->type == TP_NUMBER){
-		return *(double_t *)obj1->ptr < *(double_t *)obj2->ptr;
-	}
-	return 0;
 }
 
 void 
@@ -74,24 +45,7 @@ object_assign(object_t *target, object_t *source){
 		target = object_redefine(target, source->type, qalam_sizeof(source->ptr));
 	}
 	target->type = source->type;
-	switch (source->type) {
-		case TP_CHAR:
-			*(char_t *)target->ptr = *(char_t *)source->ptr;
-			break;
-		case TP_NUMBER:
-			*(double64_t *)target->ptr = *(double64_t *)source->ptr;
-			break;
-		case TP_PARAMS:
-		case TP_ARRAY:
-			*(table_t *)target->ptr = *(table_t *)source->ptr;
-			break;
-		case TP_SCHEMA:
-			*(schema_t *)target->ptr = *(schema_t *)source->ptr;
-			break;
-		default:
-			printf("ASSIGN, unknown type! %d\n", source->type);
-			exit(-1);
-	}
+	otp(target, source);
 }
 
 void
@@ -100,16 +54,19 @@ object_delete(object_t *obj) {
 }
 
 const char * const object_type_name[] = {
-  [TP_IMM]       = "IMM",
-  [TP_NUMBER]    = "NUMBER",
-  [TP_VAR]     = "LABEL",
-  [TP_PTR]       = "PTR",
-  [TP_CHAR]      = "CHAR",
-  [TP_NULL]      = "NULL",
-  [TP_ARRAY]     = "ARRAY",
-  [TP_PARAMS]    = "PARAMS",
-  [TP_SCHEMA]    = "SCHEMA",
-  [TP_ADRS]      = "ADRS"
+  [OTP_SHORT]     = "SHORT",
+  [OTP_INT]    	 = "INT",
+  [OTP_LONG]    	 = "LONG",
+  [OTP_LONG64]    = "LONG64",
+  [OTP_FLAOT]     = "FLAOT",
+  [OTP_DOUBLE]    = "DOUBLE",
+  [OTP_DOUBLE64]  = "DOUBLE64",
+  [OTP_CHAR]      = "CHAR",
+  [OTP_NULL]      = "NULL",
+  [OTP_ARRAY]     = "ARRAY",
+  [OTP_PARAMS]    = "PARAMS",
+  [OTP_SCHEMA]    = "SCHEMA",
+  [OTP_ADRS]      = "ADRS"
 };
 
 const char *
@@ -118,18 +75,19 @@ object_typeAsString(object_type_t tp){
 }
 
 int object_typesLength[] = {
-	[TP_SHORT] = sizeof(short_t),
-	[TP_LONG] = sizeof(long_t),
-	[TP_LONG64] = sizeof(long64_t),
-	[TP_FLAOT] = sizeof(float_t),
-	[TP_DOUBLE] = sizeof(double_t),
-	[TP_DOUBLE64] = sizeof(double64_t),
-	[TP_CHAR] = sizeof(char_t),
-	[TP_NULL] = sizeof(ptr_t),
-	[TP_ARRAY] = sizeof(table_t),
-	[TP_PARAMS] = sizeof(schema_t),
-	[TP_SCHEMA] = sizeof(table_t),
-	[TP_ADRS] = sizeof(arval_t)
+	[OTP_SHORT] = sizeof(short_t),
+	[OTP_INT] = sizeof(int_t),
+	[OTP_LONG] = sizeof(long_t),
+	[OTP_LONG64] = sizeof(long64_t),
+	[OTP_FLAOT] = sizeof(float_t),
+	[OTP_DOUBLE] = sizeof(double_t),
+	[OTP_DOUBLE64] = sizeof(double_t),
+	[OTP_CHAR] = sizeof(char_t),
+	[OTP_NULL] = sizeof(ptr_t),
+	[OTP_ARRAY] = sizeof(table_t),
+	[OTP_PARAMS] = sizeof(schema_t),
+	[OTP_SCHEMA] = sizeof(table_t),
+	[OTP_ADRS] = sizeof(arval_t)
 };
 
 int

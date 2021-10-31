@@ -71,15 +71,15 @@ decode_imm(decode_t *dec, array_t *code, iarray_t *c){
         array_rpush(dec->code, TP_NUMBER);
         array_rpush(dec->code, (arval_t)obj);
     } 
-    else if(c->value == TP_CHAR){
+    else if(c->value == OTP_CHAR){
 		object_t *obj;
 		if(!(obj = qalam_object_malloc(sizeof(char)))){
 			printf("unable to alloc memory!\n");
 			exit(-1);
 		}
-		obj->type = TP_CHAR;
+		obj->type = OTP_CHAR;
 		obj->num = (char)value;
-        array_rpush(dec->code, TP_CHAR);
+        array_rpush(dec->code, OTP_CHAR);
         array_rpush(dec->code, (arval_t)obj);
     } 
     else if(c->value == TP_STRING){
