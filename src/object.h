@@ -2,13 +2,8 @@
 
 
 typedef enum object_type {
-	OTP_SHORT,
-	OTP_INT,
 	OTP_LONG,
-	OTP_LONG64,
-	OTP_FLAOT,
 	OTP_DOUBLE,
-	OTP_DOUBLE64,
 	OTP_CHAR,
 	OTP_PARAMS,
 	OTP_ADRS,
@@ -27,26 +22,11 @@ typedef struct object {
 	if(target->type == OTP_CHAR && source->type == OTP_CHAR){ \
 		*(char_t *)target->ptr = *(char_t *)source->ptr;\
 	}\
-	else if(target->type == OTP_SHORT && source->type == OTP_SHORT){ \
-		*(short_t *)target->ptr = *(short_t *)source->ptr;\
-	}\
-	else if(target->type == OTP_INT && source->type == OTP_INT){ \
-		*(int_t *)target->ptr = *(int_t *)source->ptr;\
-	}\
 	else if(target->type == OTP_LONG && source->type == OTP_LONG){ \
 		*(long_t *)target->ptr = *(long_t *)source->ptr;\
 	}\
-	else if(target->type == OTP_LONG64 && source->type == OTP_LONG64){ \
-		*(long64_t *)target->ptr = *(long64_t *)source->ptr;\
-	}\
-	else if(target->type == OTP_FLAOT && source->type == OTP_FLAOT){ \
-		*(float_t *)target->ptr = *(float_t *)source->ptr;\
-	}\
 	else if(target->type == OTP_DOUBLE && source->type == OTP_DOUBLE){ \
 		*(double_t *)target->ptr = *(double_t *)source->ptr;\
-	}\
-	else if(target->type == OTP_DOUBLE64 && source->type == OTP_DOUBLE64){ \
-		*(double64_t *)target->ptr = *(double64_t *)source->ptr;\
 	}\
 	else if(target->type == OTP_ARRAY && source->type == OTP_ARRAY){ \
 		*(table_t *)target->ptr = *(table_t *)source->ptr;\
@@ -58,7 +38,7 @@ typedef struct object {
 		*(schema_t *)target->ptr = *(schema_t *)source->ptr;\
 	}\
 	else if(target->type == OTP_ADRS && source->type == OTP_ADRS){ \
-		*(long64_t *)target->ptr = *(long64_t *)source->ptr;\
+		*(long_t *)target->ptr = *(long_t *)source->ptr;\
 	}\
 	else { \
 		target->ptr = source->ptr;\
@@ -78,16 +58,11 @@ typedef struct object {
     object;\
 })
 
-#define object_isnum(obj) ( \
-	(obj->type == OTP_SHORT) || \
-	(obj->type == OTP_LONG) || \
-	(obj->type == OTP_LONG64) || \
-	(obj->type == OTP_FLAOT) || \
-	(obj->type == OTP_DOUBLE) || \
-	(obj->type == OTP_DOUBLE64)\
-)
 
-size_t
+int
+object_isnum(object_t *obj);
+
+long_t
 object_sizeof(object_t *object);
 
 object_t *
@@ -100,4 +75,4 @@ void
 object_delete(object_t *obj);
 
 const char *
-object_typeAsString(object_type_t tp);
+object_tas(object_type_t tp);

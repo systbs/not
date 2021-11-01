@@ -62,7 +62,7 @@ void
 expression_cgt(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_CGT), 
-        "[CGT] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[CGT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -73,7 +73,7 @@ void
 expression_colon(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_COLON), 
-        "[COLON] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[COLON] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -84,7 +84,7 @@ void
 expression_comma(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_COMMA), 
-        "[COMMA] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[COMMA] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -95,7 +95,7 @@ void
 expression_continue(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_CONTINUE), 
-        "[CONTINUE] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[CONTINUE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     iarray_t *b = array_last(code);
     while(b != code->begin){
         if(b->value == BLP){
@@ -111,7 +111,7 @@ void
 expression_break(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_BREAK), 
-        "[BREAK] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[BREAK] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, JMP);
     array_rpush(code, BREAK);
 }
@@ -124,7 +124,7 @@ expression_id(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
 
     validate_format((token->identifier == TOKEN_ID), 
-        "[ID] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[ID] bad expression [row:%ld col:%ld]\n", token->row, token->col);
 
     array_rpush(code, IMM);
     array_rpush(code, token->value);
@@ -159,7 +159,7 @@ expression_super(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
 
     validate_format((token->identifier == TOKEN_SUPER), 
-        "[SUPER] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[SUPER] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, SUPER);
     
     if(next_is(prs, TOKEN_LPAREN)){
@@ -168,7 +168,7 @@ expression_super(parser_t *prs, array_t *code){
         expression(prs, code);
         token = (token_t *)table_content(prs->c);
         validate_format((token->identifier == TOKEN_RPAREN), 
-            "[SUPER] expression must end to ')' [row:%lld col:%lld]\n", token->row, token->col);
+            "[SUPER] expression must end to ')' [row:%ld col:%ld]\n", token->row, token->col);
         array_rpush(code, CALL);
         return;
     }
@@ -187,7 +187,7 @@ void
 expression_this(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_THIS), 
-        "[THIS] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[THIS] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, THIS);
     if(next_is(prs, TOKEN_LPAREN)){
         token_next(prs);
@@ -195,7 +195,7 @@ expression_this(parser_t *prs, array_t *code){
         expression(prs, code);
         token = (token_t *)table_content(prs->c);
         validate_format((token->identifier == TOKEN_RPAREN), 
-            "[THIS] expression must end to ')' [row:%lld col:%lld]\n", token->row, token->col);
+            "[THIS] expression must end to ')' [row:%ld col:%ld]\n", token->row, token->col);
         array_rpush(code, CALL);
         return;
     }
@@ -215,7 +215,7 @@ expression_data(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
 
     validate_format((token->identifier == TOKEN_DATA), 
-        "[DATA] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[DATA] bad expression [row:%ld col:%ld]\n", token->row, token->col);
 
     array_rpush(code, IMM);
     array_rpush(code, token->value);
@@ -237,7 +237,7 @@ expression_number(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
 
     validate_format((token->identifier == TOKEN_NUMBER), 
-        "[NUMBER] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[NUMBER] bad expression [row:%ld col:%ld]\n", token->row, token->col);
 
     array_rpush(code, IMM);
     array_rpush(code, token->value);
@@ -259,14 +259,14 @@ expression_null(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
 
     validate_format((token->identifier == TOKEN_NULL), 
-        "[NULL] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[NULL] bad expression [row:%ld col:%ld]\n", token->row, token->col);
 
     array_rpush(code, IMM);
     array_rpush(code, token->value);
     array_rpush(code, TP_NULL);
 
     validate_format(!(next_is(prs, TOKEN_EQ)), 
-        "[NULL] wrong! after null used '=' [row:%lld col:%lld]\n", token->row, token->col);
+        "[NULL] wrong! after null used '=' [row:%ld col:%ld]\n", token->row, token->col);
     if(next_continuable(prs)){
         token_next(prs);
         expression(prs, code);
@@ -280,7 +280,7 @@ void
 expression_eq(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_EQ), 
-        "[EQ] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[EQ] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -291,7 +291,7 @@ void
 expression_not(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_NOT), 
-        "[NOT] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[NOT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     token_next(prs);
     expression(prs, code);
     array_rpush(code, PUSH);
@@ -305,7 +305,7 @@ void
 expression_tilde(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_TILDE), 
-        "[TILDE] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[TILDE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     token_next(prs);
     expression(prs, code);
     array_rpush(code, PUSH);
@@ -319,7 +319,7 @@ void
 expression_question(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_QUESTION), 
-        "[QUESTION] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[QUESTION] bad expression [row:%ld col:%ld]\n", token->row, token->col);
 
     array_rpush(code, JZ);
     iarray_t *a = array_rpush(code, 0);
@@ -329,7 +329,7 @@ expression_question(parser_t *prs, array_t *code){
 
     token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_COLON), 
-        "[QUESTION] missing colon in conditional [row:%lld col:%lld]\n", token->row, token->col);
+        "[QUESTION] missing colon in conditional [row:%ld col:%ld]\n", token->row, token->col);
     token_next(prs);
 
     array_rpush(code, JMP);
@@ -345,7 +345,7 @@ void
 expression_caret(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_CARET), 
-        "[CARET] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[CARET] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -356,7 +356,7 @@ void
 expression_mul(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_STAR), 
-        "[STAR] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[STAR] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -367,7 +367,7 @@ void
 expression_div(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_SLASH), 
-        "[SLASH] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[SLASH] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -378,7 +378,7 @@ void
 expression_episode(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_BACKSLASH), 
-        "[BACKSLASH] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[BACKSLASH] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -389,7 +389,7 @@ void
 expression_mod(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_PERCENT), 
-        "[PERCENT] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[PERCENT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -400,7 +400,7 @@ void
 expression_plus(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_PLUS), 
-        "[PLUS] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[PLUS] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -411,7 +411,7 @@ void
 expression_minus(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_MINUS), 
-        "[MINUS] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[MINUS] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -422,7 +422,7 @@ void
 expression_ee(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_EQ), 
-        "[EQ] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[EQ] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -433,7 +433,7 @@ void
 expression_ne(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_NEQ), 
-        "[NE] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[NE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -444,7 +444,7 @@ void
 expression_ge(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_GTEQ), 
-        "[GE] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[GE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -455,7 +455,7 @@ void
 expression_le(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_LTEQ), 
-        "[LE] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[LE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -466,7 +466,7 @@ void
 expression_land(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_LAND), 
-        "[LAND] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[LAND] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -477,7 +477,7 @@ void
 expression_lor(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_LOR), 
-        "[LOR] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[LOR] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -488,7 +488,7 @@ void
 expression_and(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_AND), 
-        "[AND] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[AND] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -499,7 +499,7 @@ void
 expression_or(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_OR), 
-        "[OR] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[OR] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -510,7 +510,7 @@ void
 expression_lt(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_LT), 
-        "[LT] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[LT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -521,7 +521,7 @@ void
 expression_gt(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_GT), 
-        "[GT] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[GT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -532,7 +532,7 @@ void
 expression_lshift(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_LTLT), 
-        "[LSHIFT] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[LSHIFT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -543,7 +543,7 @@ void
 expression_rshift(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_GTGT), 
-        "[RSHIFT] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[RSHIFT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
@@ -554,7 +554,7 @@ void
 expression_if(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_IF), 
-        "[IF] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[IF] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     /* if expr expr else expr */
     token_next(prs);
     expression(prs, code);
@@ -595,7 +595,7 @@ void
 expression_while(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_WHILE), 
-        "[WHILE] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[WHILE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     /* while expr expr */
     iarray_t *a = array_rpush(code, BLP);
 
@@ -627,7 +627,7 @@ void
 expression_return(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_RETURN), 
-        "[RETURN] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[RETURN] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     token_next(prs);
     expression(prs, code);
     array_rpush(code, RET);
@@ -638,7 +638,7 @@ void
 expression_eval(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_EVAL), 
-        "[EVAL] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[EVAL] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     token_next(prs);
     expression(prs, code);
     array_rpush(code, CALL);
@@ -648,7 +648,7 @@ void
 expression_print(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_PRINT), 
-        "[PRINT] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[PRINT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     token_next(prs);
     expression(prs, code);
     array_rpush(code, PRTF);
@@ -658,7 +658,7 @@ void
 expression_lparen(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_LPAREN), 
-        "[LPAREN] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[LPAREN] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     do {
         token_next(prs);
         expression(prs, code);
@@ -676,7 +676,7 @@ void
 expression_lbracket(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_LBRACKET), 
-        "[LBRACKET] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[LBRACKET] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     do {
         token_next(prs);
         expression(prs, code);
@@ -688,7 +688,7 @@ void
 expression_lbrace(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_LBRACE), 
-        "[LBRACE] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[LBRACE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
 
     array_rpush(code, JMP);
     iarray_t *region = array_rpush(code, 0);
@@ -724,7 +724,7 @@ void
 expression_dot(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_DOT), 
-        "[DOT] bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "[DOT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, SIM);
     token_next(prs);
     expression(prs, code);
@@ -874,7 +874,7 @@ expression(parser_t *prs, array_t *code){
     }
     
     validate_format(token_done(prs),
-        "bad expression [row:%lld col:%lld]\n", token->row, token->col);
+        "bad expression [row:%ld col:%ld]\n", token->row, token->col);
 
     return;
 }

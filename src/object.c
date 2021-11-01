@@ -20,7 +20,7 @@
 #include "schema.h"
 #include "parser.h"
 
-size_t
+long_t
 object_sizeof(object_t *object){
 	return qalam_sizeof(object->ptr) + sizeof(object_t);
 }
@@ -53,44 +53,42 @@ object_delete(object_t *obj) {
 	qalam_free(obj);
 }
 
-const char * const object_type_name[] = {
-  [OTP_SHORT]     = "SHORT",
-  [OTP_INT]    	 = "INT",
-  [OTP_LONG]    	 = "LONG",
-  [OTP_LONG64]    = "LONG64",
-  [OTP_FLAOT]     = "FLAOT",
-  [OTP_DOUBLE]    = "DOUBLE",
-  [OTP_DOUBLE64]  = "DOUBLE64",
-  [OTP_CHAR]      = "CHAR",
-  [OTP_NULL]      = "NULL",
-  [OTP_ARRAY]     = "ARRAY",
-  [OTP_PARAMS]    = "PARAMS",
-  [OTP_SCHEMA]    = "SCHEMA",
-  [OTP_ADRS]      = "ADRS"
+const char * const object_tn[] = {
+	[OTP_LONG]      = "LONG",
+	[OTP_DOUBLE]    = "DOUBLE",
+	[OTP_CHAR]      = "CHAR",
+	[OTP_NULL]      = "NULL",
+	[OTP_ARRAY]     = "ARRAY",
+	[OTP_PARAMS]    = "PARAMS",
+	[OTP_SCHEMA]    = "SCHEMA",
+	[OTP_ADRS]      = "ADRS"
 };
 
 const char *
-object_typeAsString(object_type_t tp){
-	return object_type_name[tp];
+object_tas(object_type_t tp){
+	return object_tn[tp];
 }
 
-int object_typesLength[] = {
-	[OTP_SHORT] = sizeof(short_t),
-	[OTP_INT] = sizeof(int_t),
-	[OTP_LONG] = sizeof(long_t),
-	[OTP_LONG64] = sizeof(long64_t),
-	[OTP_FLAOT] = sizeof(float_t),
-	[OTP_DOUBLE] = sizeof(double_t),
-	[OTP_DOUBLE64] = sizeof(double_t),
-	[OTP_CHAR] = sizeof(char_t),
-	[OTP_NULL] = sizeof(ptr_t),
-	[OTP_ARRAY] = sizeof(table_t),
-	[OTP_PARAMS] = sizeof(schema_t),
-	[OTP_SCHEMA] = sizeof(table_t),
-	[OTP_ADRS] = sizeof(arval_t)
+const int object_typesLength[] = {
+	[OTP_LONG] 		= sizeof(long_t),
+	[OTP_DOUBLE] 	= sizeof(double_t),
+	[OTP_CHAR] 		= sizeof(char_t),
+	[OTP_NULL] 		= sizeof(ptr_t),
+	[OTP_ARRAY] 	= sizeof(table_t),
+	[OTP_PARAMS] 	= sizeof(table_t),
+	[OTP_SCHEMA] 	= sizeof(schema_t),
+	[OTP_ADRS] 		= sizeof(arval_t)
 };
 
 int
-object_typesSizeof(object_type_t tp){
+object_ts(object_type_t tp){
 	return object_typesLength[tp];
+}
+
+int
+object_isnum(object_t *obj) {
+	if((obj->type == OTP_LONG) || (obj->type == OTP_DOUBLE)) {
+		return 1;
+	}
+	return 0;
 }

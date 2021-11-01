@@ -141,14 +141,14 @@ data_format(table_t *tbl, table_t *format)
 					obj = (object_t *)f->value;
 
 					char_t *fmt = qalam_malloc(sizeof(char_t) * 255);
-					sprintf(fmt, "%%.%lldf", num);
+					sprintf(fmt, "%%.%ldf", num);
 
 					char_t *str_num = qalam_malloc(sizeof(char_t) * 255);
-					if(((*(double_t *)obj->ptr - *(long64_t *)obj->ptr) != 0) || (num > 0)){
+					if(((*(double_t *)obj->ptr - *(long_t *)obj->ptr) != 0) || (num > 0)){
 						sprintf(str_num, fmt, *(double_t *)obj->ptr);
 					}
 					else {
-						sprintf(str_num, "%lld", *(long64_t *)obj->ptr);
+						sprintf(str_num, "%ld", *(long_t *)obj->ptr);
 					}
 
 					qalam_free(fmt);
@@ -174,14 +174,14 @@ data_format(table_t *tbl, table_t *format)
 					obj = (object_t *)f->value;
 
 					char_t *fmt = qalam_malloc(sizeof(char_t) * 255);
-					sprintf(fmt, "%%0%lldllx", num);
+					sprintf(fmt, "%%0%ldllx", num);
 
 					char_t *str_num = qalam_malloc(sizeof(char_t) * 255);
-					if(((*(double_t *)obj->ptr - *(long64_t *)obj->ptr) != 0) || (num > 0)){
+					if(((*(double_t *)obj->ptr - *(long_t *)obj->ptr) != 0) || (num > 0)){
 						sprintf(str_num, fmt, *(double_t *)obj->ptr);
 					}
 					else {
-						sprintf(str_num, "%llx", *(long64_t *)obj->ptr);
+						sprintf(str_num, "%lx", *(long_t *)obj->ptr);
 					}
 
 					qalam_free(fmt);
@@ -209,14 +209,14 @@ data_format(table_t *tbl, table_t *format)
 					obj = (object_t *)f->value;
 
 					char_t *fmt = qalam_malloc(sizeof(char_t) * 255);
-					sprintf(fmt, "%%0%lldllX", num);
+					sprintf(fmt, "%%0%ldllX", num);
 
 					char_t *str_num = qalam_malloc(sizeof(char_t) * 255);
-					if(((*(double_t *)obj->ptr - *(long64_t *)obj->ptr) != 0) || (num > 0)){
+					if(((*(double_t *)obj->ptr - *(long_t *)obj->ptr) != 0) || (num > 0)){
 						sprintf(str_num, fmt, *(double_t *)obj->ptr);
 					}
 					else {
-						sprintf(str_num, "%llX", *(long64_t *)obj->ptr);
+						sprintf(str_num, "%lx", *(long_t *)obj->ptr);
 					}
 
 					qalam_free(fmt);
@@ -255,9 +255,9 @@ data_format(table_t *tbl, table_t *format)
 			t = t->next;
 			continue;
 		}
-		else if(obj->type == OTP_LONG64){
+		else if(obj->type == OTP_LONG){
 			char *str_num = qalam_malloc(sizeof(char_t) * 255);
-			sprintf(str_num, "%lld", *(long64_t *)obj->ptr);
+			sprintf(str_num, "%ld", *(long_t *)obj->ptr);
 			arval_t i;
 			for(i = 0; i < strlen(str_num); i++){
 				validate_format(!!(esp = object_define(OTP_CHAR, sizeof(char_t))),
@@ -279,7 +279,7 @@ data_format(table_t *tbl, table_t *format)
 		else if(obj->type == OTP_DOUBLE){
 			char *str_num = qalam_malloc(sizeof(char_t) * 255);
 			sprintf(str_num, "%.16f", *(double_t *)obj->ptr);
-			long64_t i;
+			long_t i;
 			for(i = 0; i < strlen(str_num); i++){
 				validate_format(!!(esp = object_define(OTP_CHAR, sizeof(char_t))),
 					"data from string, bad object malloc");
@@ -331,33 +331,13 @@ data_compare(table_t *tbl1, table_t *tbl2)
 				return 0;
 			}
 		}
-		else if(obj1->type == OTP_SHORT){
-			if(*(short_t *)obj1->ptr != *(short_t *)obj2->ptr){
-				return 0;
-			}
-		}
-		else if(obj1->type == OTP_INT){
-			if(*(int_t *)obj1->ptr != *(int_t *)obj2->ptr){
-				return 0;
-			}
-		}
 		else if(obj1->type == OTP_LONG){
 			if(*(long_t *)obj1->ptr != *(long_t *)obj2->ptr){
 				return 0;
 			}
 		}
-		else if(obj1->type == OTP_LONG64){
-			if(*(long64_t *)obj1->ptr != *(long64_t *)obj2->ptr){
-				return 0;
-			}
-		}
 		else if(obj1->type == OTP_DOUBLE){
 			if(*(double_t *)obj1->ptr != *(double_t *)obj2->ptr){
-				return 0;
-			}
-		}
-		else if(obj1->type == OTP_DOUBLE64){
-			if(*(double64_t *)obj1->ptr != *(double64_t *)obj2->ptr){
 				return 0;
 			}
 		}

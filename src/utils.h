@@ -34,13 +34,13 @@ utils_atof (const char *p);
 int
 utils_atoi(char *str);
 
-long64_t
+long_t
 check_hexadecimal(char *str);
 
-long64_t
+long_t
 check_double(char *str);
 
-long64_t
+long_t
 check_integer(char *str);
 
 #define MAX_PATH 4098

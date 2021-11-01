@@ -55,7 +55,7 @@ thread_create(schema_t *schema){
 iarray_t *
 call(thread_t *tr, schema_t *schema, iarray_t *adrs) {
 	object_t *object;
-	validate_format(!!(object = object_define(OTP_ADRS, sizeof(long64_t))), 
+	validate_format(!!(object = object_define(OTP_ADRS, sizeof(long_t))), 
 		"unable to alloc memory!");
 	object->ptr = (tbval_t)adrs;
 
@@ -72,16 +72,15 @@ thread_or(thread_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
-
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
-
+	
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+	
 	object_t *object;
-
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(long64_t))), 
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long64_t *)object->ptr = *(long64_t *)esp->ptr || *(long64_t *)tr->object->ptr;
+	*(long_t *)object->ptr = *(long_t *)esp->ptr || *(long_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -94,17 +93,15 @@ thread_lor(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(long64_t))), 
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long64_t *)object->ptr = *(long64_t *)esp->ptr | *(long64_t *)tr->object->ptr;
-
-	// table_rpush(tr->pool, (tbval_t)tr->object);
+	*(long_t *)object->ptr = *(long_t *)esp->ptr | *(long_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -117,15 +114,15 @@ thread_xor(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 
-	*(long64_t *)object->ptr = *(long64_t *)esp->ptr ^ *(long64_t *)tr->object->ptr;
+	*(long_t *)object->ptr = *(long_t *)esp->ptr ^ *(long_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -138,15 +135,15 @@ thread_and(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(long64_t))), 
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long64_t *)object->ptr = *(long64_t *)esp->ptr && *(long64_t *)tr->object->ptr;
+	*(long_t *)object->ptr = *(long_t *)esp->ptr && *(long_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -159,15 +156,15 @@ thread_land(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(long64_t))), 
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long64_t *)object->ptr = *(long64_t *)esp->ptr & *(long64_t *)tr->object->ptr;
+	*(long_t *)object->ptr = *(long_t *)esp->ptr & *(long_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -180,15 +177,15 @@ thread_eq(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(long64_t))), 
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long64_t *)object->ptr = *(long64_t *)esp->ptr == *(long64_t *)tr->object->ptr;
+	*(long_t *)object->ptr = *(long_t *)esp->ptr == *(long_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -201,15 +198,15 @@ thread_ne(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(long64_t))), 
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long64_t *)object->ptr = *(long64_t *)esp->ptr != *(long64_t *)tr->object->ptr;
+	*(long_t *)object->ptr = *(long_t *)esp->ptr != *(long_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -222,15 +219,15 @@ thread_lt(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(long64_t))), 
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 
-	*(long64_t *)object->ptr = *(long64_t *)esp->ptr < *(long64_t *)tr->object->ptr;
+	*(long_t *)object->ptr = *(long_t *)esp->ptr < *(long_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -243,15 +240,15 @@ thread_le(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(long64_t))), 
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long64_t *)object->ptr = *(long64_t *)esp->ptr <= *(long64_t *)tr->object->ptr;
+	*(long_t *)object->ptr = *(long_t *)esp->ptr <= *(long_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -264,15 +261,15 @@ thread_gt(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(long64_t))), 
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long64_t *)object->ptr = *(long64_t *)esp->ptr > *(long64_t *)tr->object->ptr;
+	*(long_t *)object->ptr = *(long_t *)esp->ptr > *(long_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -285,15 +282,15 @@ thread_ge(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(long64_t))), 
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long64_t *)object->ptr = *(long64_t *)esp->ptr >= *(long64_t *)tr->object->ptr;
+	*(long_t *)object->ptr = *(long_t *)esp->ptr >= *(long_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -306,15 +303,17 @@ thread_lshift(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)),
+		"in << operator used object %s && %s", 
+		object_tas(esp->type), object_tas(tr->object->type)
+	);
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(long64_t))), 
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long64_t *)object->ptr = *(long64_t *)esp->ptr << *(long64_t *)tr->object->ptr;
+	*(long_t *)object->ptr = *(long_t *)esp->ptr << *(long_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -327,15 +326,17 @@ thread_rshift(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)),
+		"in >> operator used object %s && %s", 
+		object_tas(esp->type), object_tas(tr->object->type)
+	);
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(long64_t))), 
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long64_t *)object->ptr = *(long64_t *)esp->ptr >> *(long64_t *)tr->object->ptr;
+	*(long_t *)object->ptr = *(long_t *)esp->ptr >> *(long_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -348,15 +349,20 @@ thread_add(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
-		"unable to alloc memory!");
-	
-	*(double_t *)object->ptr = *(double_t *)esp->ptr + *(double_t *)tr->object->ptr;
+	if((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)){
+		validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
+			"unable to alloc memory!");
+		*(long_t *)object->ptr = *(long_t *)esp->ptr + *(long_t *)tr->object->ptr;
+	} else {
+		validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
+			"unable to alloc memory!");
+		*(double_t *)object->ptr = *(double_t *)esp->ptr + *(double_t *)tr->object->ptr;
+	}
 
 	tr->object = object;
 
@@ -369,15 +375,20 @@ thread_sub(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
-		"unable to alloc memory!");
-	
-	*(double_t *)object->ptr = *(double_t *)esp->ptr - *(double_t *)tr->object->ptr;
+	if((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)){
+		validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
+			"unable to alloc memory!");
+		*(long_t *)object->ptr = *(long_t *)esp->ptr - *(long_t *)tr->object->ptr;
+	} else {
+		validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
+			"unable to alloc memory!");
+		*(double_t *)object->ptr = *(double_t *)esp->ptr - *(double_t *)tr->object->ptr;
+	}
 
 	tr->object = object;
 
@@ -390,15 +401,20 @@ thread_mul(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
-		"unable to alloc memory!");
-	
-	*(double_t *)object->ptr = *(double_t *)esp->ptr * *(double_t *)tr->object->ptr;
+	if((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)){
+		validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
+			"unable to alloc memory!");
+		*(long_t *)object->ptr = *(long_t *)esp->ptr * *(long_t *)tr->object->ptr;
+	} else {
+		validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
+			"unable to alloc memory!");
+		*(double_t *)object->ptr = *(double_t *)esp->ptr * *(double_t *)tr->object->ptr;
+	}
 
 	tr->object = object;
 
@@ -411,15 +427,20 @@ thread_div(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
-		"unable to alloc memory!");
-
-	*(double_t *)object->ptr = *(double_t *)esp->ptr / *(double_t *)tr->object->ptr;
+	if((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)){
+		validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
+			"unable to alloc memory!");
+		*(long_t *)object->ptr = *(long_t *)esp->ptr / *(long_t *)tr->object->ptr;
+	} else {
+		validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
+			"unable to alloc memory!");
+		*(double_t *)object->ptr = *(double_t *)esp->ptr / *(double_t *)tr->object->ptr;
+	}
 
 	tr->object = object;
 
@@ -434,15 +455,14 @@ thread_mod(thread_t *tr, iarray_t *c) {
 		exit(-1);
 	}
 
-	validate_format(esp->type == OTP_DOUBLE && tr->object->type == OTP_DOUBLE, 
-		"object type is wrong %d && %d", esp->type, tr->object->type);
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
 
 	object_t *object;
 
-	validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(long64_t))), 
-		"unable to alloc memory!");
-	
-	*(long64_t *)object->ptr = *(long64_t *)esp->ptr % *(long64_t *)tr->object->ptr;
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
+			"unable to alloc memory!");
+	*(long_t *)object->ptr = *(long_t *)esp->ptr + *(long_t *)tr->object->ptr;
 
 	tr->object = object;
 
@@ -545,17 +565,24 @@ thread_imm(thread_t *tr, iarray_t *c) {
 	}
 	else if(c->value == TP_NUMBER){
         object_t *object;
-        validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
+		double_t num = utils_atof((char *)value);
+		if(num - (long_t)num != 0){
+			validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
             "unable to alloc memory!");
-        *(double_t *)object->ptr = utils_atof((char *)value);
+			*(double_t *)object->ptr = num;
+		} else {
+			validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
+            "unable to alloc memory!");
+			*(long_t *)object->ptr = (long_t)num;
+		}
 		tr->object = object;
 		return c->next;
 	}
 	else if(c->value == TP_IMM){
         object_t *object;
-        validate_format(!!(object = object_define(OTP_LONG64, sizeof(long64_t))), 
+        validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
             "unable to alloc memory!");
-        *(long64_t *)object->ptr = (long64_t)value;
+        *(long_t *)object->ptr = (long_t)value;
 		tr->object = object;
 		return c->next;
 	}
@@ -598,7 +625,7 @@ thread_ld(thread_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!(esp = (object_t *)table_content(table_rpop(tr->schema->parameters))),
 		"load data, bad pop data!");
-	tr->object = esp;
+	object_assign(tr->object, esp);
 	return c->next;
 }
 
@@ -620,14 +647,14 @@ iarray_t *
 thread_jz(thread_t *tr, iarray_t *c) {
 	// jump if object is zero
 	c = c->next;
-	return (*(double_t *)tr->object->ptr) ? c->next : (iarray_t *)c->value;
+	return (*(long_t *)tr->object->ptr) ? c->next : (iarray_t *)c->value;
 }
 
 iarray_t *
 thread_jnz(thread_t *tr, iarray_t *c) {
 	// jump if object is not zero
 	c = c->next;
-	return (*(double_t *)tr->object->ptr) ? (iarray_t *)c->value : c->next;
+	return (*(long_t *)tr->object->ptr) ? (iarray_t *)c->value : c->next;
 }
 
 
@@ -694,7 +721,7 @@ thread_call(thread_t *tr, iarray_t *c) {
 
 	validate_format((esp->type == OTP_SCHEMA), 
 		"[CALL] for %s type, eval operator only use for SCHEMA type", 
-		object_typeAsString(esp->type));
+		object_tas(esp->type));
 		
 	return call(tr, (schema_t *)esp->ptr, c->next);
 }
@@ -744,7 +771,7 @@ thread_head(thread_t *tr, iarray_t *c){
 			schema->variables = tr->schema->variables;
 
 			object_t *object;
-			validate_format(!!(object = object_define(OTP_ADRS, sizeof(long64_t))), 
+			validate_format(!!(object = object_define(OTP_ADRS, sizeof(long_t))), 
 				"unable to alloc memory!");
 			object->ptr = (tbval_t)c;
 
@@ -788,18 +815,8 @@ thread_def(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"[DEF] missing object");
 
-	validate_format((esp->type == OTP_SCHEMA) || (esp->type == OTP_NULL) || (esp->type == OTP_DOUBLE), 
-		"[DEF] def type use only for null or schema type, %s", object_typeAsString(esp->type));
-
-	if(((esp->type == OTP_NULL) || (esp->type == OTP_DOUBLE)) && (tr->object->type == OTP_DOUBLE)){
-		esp = object_redefine(
-			esp, 
-			esp->type, 
-			*(double_t *)tr->object->ptr
-		);
-		tr->object = esp;
-		return c->next;
-	}
+	validate_format((esp->type == OTP_SCHEMA) || (esp->type == OTP_NULL), 
+		"[DEF] def type use only for null or schema type, %s", object_tas(esp->type));
 
 	if(esp->type == OTP_NULL){
 		validate_format(!!(esp = object_redefine(esp, OTP_SCHEMA, sizeof(schema_t))), 
@@ -811,13 +828,13 @@ thread_def(thread_t *tr, iarray_t *c) {
 				"[DEF] pop schema fram list ignored");
 			validate_format((object->type == OTP_SCHEMA), 
 				"[DEF] def type use only for schema type, %s", 
-				object_typeAsString(object->type)
+				object_tas(object->type)
 			);
 			esp->ptr = object->ptr;
 		} else {
 			validate_format((tr->object->type == OTP_SCHEMA), 
 				"[DEF] def type use only for schema type, %s", 
-				object_typeAsString(tr->object->type)
+				object_tas(tr->object->type)
 			);
 			esp->ptr = tr->object->ptr;
 			tr->object = esp;
@@ -835,20 +852,20 @@ thread_def(thread_t *tr, iarray_t *c) {
 		for(b = tbl->begin; b != tbl->end; b = b->next){
 			object_t *object = (object_t *)b->value;
 			validate_format((object->type == OTP_SCHEMA), 
-				"[DEF] schema type for def operator is required %s", object_typeAsString(object->type));
+				"[DEF] schema type for def operator is required %s", object_tas(object->type));
 			table_rpush(schema->extends, (tbval_t)object->ptr);
 		}
 	} 
 	else if(tr->object->type == OTP_SCHEMA) {
 		validate_format((tr->object->type == OTP_SCHEMA), 
-			"[DEF] schema type for def operator is required %s", object_typeAsString(tr->object->type));
+			"[DEF] schema type for def operator is required %s", object_tas(tr->object->type));
 		table_rpush(schema->extends, (tbval_t)tr->object->ptr);
 	}
-	else if(tr->object->type == OTP_DOUBLE) {
+	else if(tr->object->type == OTP_LONG) {
 		schema->object = object_redefine(
 			schema->object, 
 			schema->object->type, 
-			*(double_t *)tr->object->ptr
+			*(long_t *)tr->object->ptr
 		);
 	}
 
@@ -860,7 +877,6 @@ iarray_t *
 thread_print(thread_t *tr, iarray_t *c) {
 	object_t *esp;
 	table_t *tbl;
-
 	if(tr->object->type == OTP_PARAMS){
 		tbl = (table_t *)tr->object->ptr;
 	} else {
@@ -868,11 +884,9 @@ thread_print(thread_t *tr, iarray_t *c) {
 		table_rpush(tbl, (tbval_t)tr->object);
 	}
 
-	arval_t i = table_count(tbl);
-
 	while((esp = (object_t *)table_content(table_rpop(tbl)))){
 		if(esp->type == OTP_NULL){
-			printf("%s ", object_typeAsString(OTP_NULL));
+			printf("%s ", object_tas(OTP_NULL));
 			continue;
 		}
 		else if(esp->type == OTP_CHAR){
@@ -881,12 +895,8 @@ thread_print(thread_t *tr, iarray_t *c) {
 		}
 		else if(esp->type == OTP_ARRAY){
 			table_t *formated;
-			if(i > 0){
-				formated = data_format((table_t *)esp->ptr, tbl);
-			}
-			else {
-				formated = (table_t *)esp->ptr;
-			}
+
+			formated = data_format((table_t *)esp->ptr, tbl);
 
 			itable_t *t;
 			while((t = table_lpop(formated))){
@@ -930,23 +940,21 @@ thread_print(thread_t *tr, iarray_t *c) {
 
 			continue;
 		}
+		else if(esp->type == OTP_LONG){
+			printf("%ld", *(long_t *)esp->ptr);
+			continue;
+		}
 		else if(esp->type == OTP_DOUBLE){
-			if((*(double_t *)esp->ptr - *(long64_t *)esp->ptr) != 0){
-				printf("%.16f", *(double_t *)esp->ptr);
-			}else{
-				printf("%lld", *(long64_t *)esp->ptr);
-			}
+			printf("%.6f", *(double_t *)esp->ptr);
 			continue;
 		}
 		else if(esp->type == OTP_SCHEMA) {
 			printf("SCHEMA \n");
 		}
 		else {
-			printf("%.16f", *(double_t *)esp->ptr);
+			printf("%ld", *(long_t *)esp->ptr);
 		}
 	}
-	printf("\n");
-
 	return c->next;
 }
 
@@ -957,7 +965,7 @@ thread_print(thread_t *tr, iarray_t *c) {
 iarray_t *
 decode(thread_t *tr, iarray_t *c) {
 
-	// printf("thread %lld\n", c->value);
+	// printf("thread %ld\n", c->value);
 
 	switch (c->value) {
 		case NUL:
@@ -1097,7 +1105,7 @@ decode(thread_t *tr, iarray_t *c) {
 			break;
 
 		default:
-			printf("unknown instruction %lld\n", c->value);
+			printf("unknown instruction %ld\n", c->value);
             exit(-1);
 	}
 
@@ -1173,13 +1181,13 @@ main(int argc, char **argv)
     char *buf;
 
     if (!(buf = malloc(chunk + 1))) {
-        printf("could not malloc(%lld) for buf area\n", chunk);
+        printf("could not malloc(%ld) for buf area\n", chunk);
         return -1;
     }
 
     // read the source file
     if ((i = fread(buf, 1, chunk, fd)) < chunk) {
-        printf("read returned %lld\n", i);
+        printf("read returned %ld\n", i);
         return -1;
     }
 

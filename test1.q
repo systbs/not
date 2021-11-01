@@ -7,10 +7,17 @@ category2: {
 };
 
 category3: (category1, category2, {
-	c = "a simple text 3";
-	print("Hello World");
+	c = "a simple text 3\n";
+	print("Hello World\n");
 });
 
-d = eval(category3);
+d = category3 = null;
 
 print(d.c);
+
+i = 1;
+while(i < 100000){
+	i = i + 1;
+}
+
+print(i);

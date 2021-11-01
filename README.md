@@ -47,7 +47,7 @@ print(schame.a);
 ```js
 i: schameInt;
 i = 1;
-// if use a number after def operator":", malloc memory to variable
+// if use a number after def operator":", malloc memory to schema variable
 j: 32;
 // malloc 32 bit to j
 ```
@@ -60,5 +60,33 @@ a = eval(fn, 1,2,3);
 // or
 a = fn = (1,2,3);
 ```
-3 - math lib for operator, memory management, threading, ...
+3 - create a new phase after parser for remove phase dynamic schema allocate to static schema and increase speed. After making the changes, the inital variables are applied and the program enters the phase whithout the need to check the information. 
+```js
+[schame name]:([schame_extend_name1],[schame_extend_name2], {
+  [expr...]
+});
+
+change to :
+
+[schame name] extends [schame_extend_name1],[schame_extend_name2] {
+  [expr...]
+});
+
+it's mean in eval phase:
+ENT
+jmp schame_extend_name1 // and return next line
+jmp schame_extend_name2 // and return next line
+// if have parameter
+IMM param1 LONG
+PUSH
+SD
+IMM param2 LONG
+PUSH
+SD
+  ...
+RET
+LEV
+// then run eval phase
+```
+4 - math lib for operator, memory management, threading, ...
 

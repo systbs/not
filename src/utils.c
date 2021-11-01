@@ -249,10 +249,10 @@ utils_atoi(char *str)
 }
 
 
-long64_t
+long_t
 check_hexadecimal(char *str)
 {
-  long64_t i;
+  long_t i;
   for(i = 0; i < strlen(str); i++){
     if(i == 1 && str[i] == 'x'){
       continue;
@@ -264,10 +264,10 @@ check_hexadecimal(char *str)
   return 1;
 }
 
-long64_t
+long_t
 check_double(char *str)
 {
-  long64_t i, rep = 0;
+  long_t i, rep = 0;
   for(i = 0; i < strlen(str); i++){
     if(str[i] == '.'){
       rep++;
@@ -283,10 +283,10 @@ check_double(char *str)
   return 1;
 }
 
-long64_t
+long_t
 check_integer(char *str)
 {
-  long64_t i;
+  long_t i;
   for(i = 0; i < strlen(str); i++){
     if(!valid_digit(str[i])){
       return 0;

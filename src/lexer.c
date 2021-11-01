@@ -124,7 +124,7 @@ token_destroy(itable_t *it)
 
 void
 lexer_error(const char *source, arval_t pos, arval_t row, arval_t col, char *str){
-    printf("lexer(%lld:%lld): %s!\n", row, col, str);
+    printf("lexer(%ld:%ld): %s!\n", row, col, str);
     char c;
     while((c = source[pos--])){
         if(c == '\n'){
