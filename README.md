@@ -72,7 +72,7 @@ change to :
   [expr...]
 });
 
-it's mean in eval phase:
+// it's mean in before eval phase and after parser:
 ENT
 jmp schame_extend_name1 // and return next line
 jmp schame_extend_name2 // and return next line
