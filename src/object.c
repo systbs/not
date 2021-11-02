@@ -34,7 +34,7 @@ object_clone(object_t *object)
 	if(object->type == OTP_ARRAY || object->type == OTP_PARAMS){
 		obj->ptr = data_clone((table_t *)object->ptr);
 	} else {
-		otp(obj, object);
+		oset(obj, object);
 	}
 	return obj;
 }
@@ -45,7 +45,7 @@ object_assign(object_t *target, object_t *source){
 		target = object_redefine(target, source->type, qalam_sizeof(source->ptr));
 	}
 	target->type = source->type;
-	otp(target, source);
+	oset(target, source);
 }
 
 void

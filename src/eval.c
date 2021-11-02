@@ -80,7 +80,7 @@ thread_or(thread_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr || *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = oget(esp) || oget(tr->object);
 
 	tr->object = object;
 
@@ -101,7 +101,7 @@ thread_lor(thread_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr | *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = (long_t)oget(esp) | (long_t)oget(tr->object);
 
 	tr->object = object;
 
@@ -122,7 +122,7 @@ thread_xor(thread_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 
-	*(long_t *)object->ptr = *(long_t *)esp->ptr ^ *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = (long_t)oget(esp) ^ (long_t)oget(tr->object);
 
 	tr->object = object;
 
@@ -143,7 +143,7 @@ thread_and(thread_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr && *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = oget(esp) && oget(tr->object);
 
 	tr->object = object;
 
@@ -164,7 +164,7 @@ thread_land(thread_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr & *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = (long_t)oget(esp) & (long_t)oget(tr->object);
 
 	tr->object = object;
 
@@ -185,7 +185,7 @@ thread_eq(thread_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr == *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = oget(esp) == oget(tr->object);
 
 	tr->object = object;
 
@@ -206,7 +206,7 @@ thread_ne(thread_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr != *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = oget(esp) != oget(tr->object);
 
 	tr->object = object;
 
@@ -225,9 +225,8 @@ thread_lt(thread_t *tr, iarray_t *c) {
 	object_t *object;
 
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
-		"unable to alloc memory!");
-
-	*(long_t *)object->ptr = *(long_t *)esp->ptr < *(long_t *)tr->object->ptr;
+			"unable to alloc memory!");
+	*(long_t *)object->ptr = oget(esp) < oget(tr->object);
 
 	tr->object = object;
 
@@ -248,7 +247,7 @@ thread_le(thread_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr <= *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = oget(esp) <= oget(tr->object);
 
 	tr->object = object;
 
@@ -269,7 +268,7 @@ thread_gt(thread_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr > *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = oget(esp) > oget(tr->object);
 
 	tr->object = object;
 
@@ -290,7 +289,7 @@ thread_ge(thread_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr >= *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = oget(esp) >= oget(tr->object);
 
 	tr->object = object;
 
@@ -313,7 +312,7 @@ thread_lshift(thread_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr << *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = (long_t)oget(esp) << (long_t)oget(tr->object);
 
 	tr->object = object;
 
@@ -336,7 +335,7 @@ thread_rshift(thread_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr >> *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = (long_t)oget(esp) >> (long_t)oget(tr->object);
 
 	tr->object = object;
 
@@ -357,11 +356,11 @@ thread_add(thread_t *tr, iarray_t *c) {
 	if((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)){
 		validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 			"unable to alloc memory!");
-		*(long_t *)object->ptr = *(long_t *)esp->ptr + *(long_t *)tr->object->ptr;
+		*(long_t *)object->ptr = (long_t)(oget(esp) + oget(tr->object));
 	} else {
 		validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
 			"unable to alloc memory!");
-		*(double_t *)object->ptr = *(double_t *)esp->ptr + *(double_t *)tr->object->ptr;
+		*(double_t *)object->ptr = (double_t)(oget(esp) + oget(tr->object));
 	}
 
 	tr->object = object;
@@ -383,11 +382,11 @@ thread_sub(thread_t *tr, iarray_t *c) {
 	if((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)){
 		validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 			"unable to alloc memory!");
-		*(long_t *)object->ptr = *(long_t *)esp->ptr - *(long_t *)tr->object->ptr;
+		*(long_t *)object->ptr = (long_t)(oget(esp) - oget(tr->object));
 	} else {
 		validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
 			"unable to alloc memory!");
-		*(double_t *)object->ptr = *(double_t *)esp->ptr - *(double_t *)tr->object->ptr;
+		*(double_t *)object->ptr = (double_t)(oget(esp) - oget(tr->object));
 	}
 
 	tr->object = object;
@@ -409,11 +408,11 @@ thread_mul(thread_t *tr, iarray_t *c) {
 	if((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)){
 		validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 			"unable to alloc memory!");
-		*(long_t *)object->ptr = *(long_t *)esp->ptr * *(long_t *)tr->object->ptr;
+		*(long_t *)object->ptr = (long_t)(oget(esp) * oget(tr->object));
 	} else {
 		validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
 			"unable to alloc memory!");
-		*(double_t *)object->ptr = *(double_t *)esp->ptr * *(double_t *)tr->object->ptr;
+		*(double_t *)object->ptr = (double_t)(oget(esp) * oget(tr->object));
 	}
 
 	tr->object = object;
@@ -435,11 +434,11 @@ thread_div(thread_t *tr, iarray_t *c) {
 	if((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)){
 		validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 			"unable to alloc memory!");
-		*(long_t *)object->ptr = *(long_t *)esp->ptr / *(long_t *)tr->object->ptr;
+		*(long_t *)object->ptr = (long_t)(oget(esp) / oget(tr->object));
 	} else {
 		validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
 			"unable to alloc memory!");
-		*(double_t *)object->ptr = *(double_t *)esp->ptr / *(double_t *)tr->object->ptr;
+		*(double_t *)object->ptr = (double_t)(oget(esp) / oget(tr->object));
 	}
 
 	tr->object = object;
@@ -462,7 +461,15 @@ thread_mod(thread_t *tr, iarray_t *c) {
 
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 			"unable to alloc memory!");
-	*(long_t *)object->ptr = *(long_t *)esp->ptr + *(long_t *)tr->object->ptr;
+	if((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)){
+		validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
+			"unable to alloc memory!");
+		*(long_t *)object->ptr = (long_t)((long_t)oget(esp) % (long_t)oget(tr->object));
+	} else {
+		validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
+			"unable to alloc memory!");
+		*(double_t *)object->ptr = (double_t)((long_t)oget(esp) % (long_t)oget(tr->object));
+	}
 
 	tr->object = object;
 
@@ -615,6 +622,7 @@ thread_sd(thread_t *tr, iarray_t *c) {
 		"save data, bad pop data");
 	if(esp->type != OTP_SCHEMA){
 		object_assign(esp, tr->object);
+		tr->object = esp;
 		return c->next;
 	}
 	return call(tr, (schema_t *)esp->ptr, c->next);
@@ -647,14 +655,14 @@ iarray_t *
 thread_jz(thread_t *tr, iarray_t *c) {
 	// jump if object is zero
 	c = c->next;
-	return (*(long_t *)tr->object->ptr) ? c->next : (iarray_t *)c->value;
+	return (long_t)oget(tr->object) ? c->next : (iarray_t *)c->value;
 }
 
 iarray_t *
 thread_jnz(thread_t *tr, iarray_t *c) {
 	// jump if object is not zero
 	c = c->next;
-	return (*(long_t *)tr->object->ptr) ? (iarray_t *)c->value : c->next;
+	return (long_t)oget(tr->object) ? (iarray_t *)c->value : c->next;
 }
 
 

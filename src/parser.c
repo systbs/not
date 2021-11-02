@@ -22,10 +22,17 @@
 #include "data.h"
 
 #define token_done(prs) (prs->c == prs->tokens->end)
+#define token_begin(prs) (prs->c == prs->tokens->begin)
 
 #define token_next(prs) ({\
-    validate_format(!token_done(prs), "call next token in end of list");\
+    validate_format(!token_done(prs), "[PARSER] call next token in end of list");\
     prs->c = prs->c->next;\
+    prs->c;\
+})
+
+#define token_prev(prs) ({\
+    validate_format(!token_begin(prs), "[PARSER] call next token in end of list");\
+    prs->c = prs->c->previous;\
     prs->c;\
 })
 
@@ -33,6 +40,13 @@ int
 next_is(parser_t *prs, arval_t identifier){
     itable_t *b = prs->c;
     token_t *token = (token_t *)table_content(b->next);
+    return token->identifier == identifier;
+}
+
+int
+prev_is(parser_t *prs, arval_t identifier){
+    itable_t *b = prs->c;
+    token_t *token = (token_t *)table_content(b->previous);
     return token->identifier == identifier;
 }
 
@@ -100,7 +114,7 @@ expression_continue(parser_t *prs, array_t *code){
     while(b != code->begin){
         if(b->value == BLP){
             array_rpush(code, JMP);
-            array_rpush(code, (arval_t)b);
+            array_rpush(code, (arval_t)b->next);
             break;
         }
         b = b->previous;
@@ -605,20 +619,21 @@ expression_while(parser_t *prs, array_t *code){
     array_rpush(code, JZ);
     iarray_t *b = array_rpush(code, 0);
 
-    token_next(prs);
-    token = (token_t *)table_content(prs->c);
-    if(token->identifier == TOKEN_LBRACE){
+    if(next_is(prs, TOKEN_LBRACE)){
+        token_next(prs);
+        token_next(prs);
         do {
-            token_next(prs);
             expression(prs, code);
+            token_next(prs);
             token = (token_t *)table_content(prs->c);
         } while(token->identifier != TOKEN_RBRACE);
-    } else {
+    }
+    else {
         expression(prs, code);
     }
 
     array_rpush(code, JMP);
-    array_rpush(code, (arval_t)a);
+    array_rpush(code, (arval_t)a->next);
 
     b->value = (arval_t) array_rpush(code, ELP);
 }
@@ -659,9 +674,10 @@ expression_lparen(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_LPAREN), 
         "[LPAREN] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+    token_next(prs);
     do {
-        token_next(prs);
         expression(prs, code);
+        token_next(prs);
         token = (token_t *)table_content(prs->c);
     } while (token->identifier != TOKEN_RPAREN);
     
@@ -677,9 +693,10 @@ expression_lbracket(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_LBRACKET), 
         "[LBRACKET] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+    token_next(prs);
     do {
-        token_next(prs);
         expression(prs, code);
+        token_next(prs);
         token = (token_t *)table_content(prs->c);
     } while (token->identifier != TOKEN_RBRACKET);
 }
@@ -702,9 +719,11 @@ expression_lbrace(parser_t *prs, array_t *code){
     table_rpush(prs->schemas, (tbval_t)prs->schema);
     prs->schema = schema;
 
+    token_next(prs);
+
     do {
-        token_next(prs);
         expression(prs, code);
+        token_next(prs);
         token = (token_t *)table_content(prs->c);
     } while (token->identifier != TOKEN_RBRACE);
 

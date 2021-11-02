@@ -80,6 +80,7 @@ typedef struct parser {
 	table_t *pool; 
     table_t *tokens; 
     itable_t *c;
+	long_t deep;
 } parser_t;
 
 void

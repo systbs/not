@@ -74,8 +74,8 @@ change to :
 
 // it's mean in before eval phase and after parser:
 ENT
-jmp schame_extend_name1 // and return next line
-jmp schame_extend_name2 // and return next line
+JMP schame_extend_name1 // and return next line
+JMP schame_extend_name2 // and return next line
 // if have parameter
 IMM param1 LONG
 PUSH
