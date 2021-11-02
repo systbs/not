@@ -79,10 +79,10 @@ jmp schame_extend_name2 // and return next line
 // if have parameter
 IMM param1 LONG
 PUSH
-SD
+LD
 IMM param2 LONG
 PUSH
-SD
+LD
   ...
 RET
 LEV
