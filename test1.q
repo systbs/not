@@ -1,13 +1,13 @@
 category1: {
-	a = "a simple text 1";
+	a = "simple text 1";
 };
 
 category2: {
-	b = "a simple text 2";
+	b = "simple text 2";
 };
 
 category3: (category1, category2, {
-	c = "a simple text 3\n";
+	c = "simple text 3\n";
 	print("Hello World\n");
 });
 

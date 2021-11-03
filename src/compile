@@ -27,18 +27,26 @@
 #include "parser.h"
 #include "data.h"
 
-typedef struct decode {
+
+typedef struct layout {
+	table_t *variables;
+	table_t *layouts;
+	struct layout parent;
+} layout_t;
+
+
+typedef struct compile {
 	schema_t *schema;
 
 	table_t *frame;
 	table_t *board;
 
 	object_t *object;
-} decode_t;
+} compile_t;
 
-decode_t *
-decode_create(schema_t *schema){
-	decode_t *tr = qalam_malloc(sizeof(decode_t));
+compile_t *
+compile_create(schema_t *schema){
+	compile_t *tr = qalam_malloc(sizeof(compile_t));
 
 	tr->schema = schema_duplicate(schema);
 
@@ -51,7 +59,7 @@ decode_create(schema_t *schema){
 
 //OR LOR XOR AND LAND EQ NE LT LE GT GE LSHIFT RSHIFT ADD SUB MUL DIV MOD
 iarray_t *
-call(decode_t *tr, schema_t *schema, iarray_t *adrs) {
+call(compile_t *tr, schema_t *schema, iarray_t *adrs) {
 	object_t *object;
 	validate_format(!!(object = object_define(OTP_ADRS, sizeof(long_t))), 
 		"unable to alloc memory!");
@@ -66,7 +74,7 @@ call(decode_t *tr, schema_t *schema, iarray_t *adrs) {
 
 
 iarray_t *
-decode_or(decode_t *tr, iarray_t *c) {
+compile_or(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
@@ -78,7 +86,7 @@ decode_or(decode_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr || *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = oget(esp) || oget(tr->object);
 
 	tr->object = object;
 
@@ -86,49 +94,7 @@ decode_or(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_lor(decode_t *tr, iarray_t *c) {
-	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
-		"frame is empty");
-
-	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
-
-	object_t *object;
-
-	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
-		"unable to alloc memory!");
-	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr | *(long_t *)tr->object->ptr;
-
-	tr->object = object;
-
-	return c->next;
-}
-
-iarray_t *
-decode_xor(decode_t *tr, iarray_t *c) {
-	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
-		"frame is empty");
-
-	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
-
-	object_t *object;
-
-	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
-		"unable to alloc memory!");
-
-	*(long_t *)object->ptr = *(long_t *)esp->ptr ^ *(long_t *)tr->object->ptr;
-
-	tr->object = object;
-
-	return c->next;
-}
-
-iarray_t *
-decode_and(decode_t *tr, iarray_t *c) {
+compile_lor(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
@@ -141,7 +107,7 @@ decode_and(decode_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr && *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = (long_t)oget(esp) | (long_t)oget(tr->object);
 
 	tr->object = object;
 
@@ -149,7 +115,28 @@ decode_and(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_land(decode_t *tr, iarray_t *c) {
+compile_xor(compile_t *tr, iarray_t *c) {
+	object_t *esp;
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+		"frame is empty");
+
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+
+	object_t *object;
+
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
+		"unable to alloc memory!");
+
+	*(long_t *)object->ptr = (long_t)oget(esp) ^ (long_t)oget(tr->object);
+
+	tr->object = object;
+
+	return c->next;
+}
+
+iarray_t *
+compile_and(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
@@ -162,7 +149,7 @@ decode_land(decode_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr & *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = oget(esp) && oget(tr->object);
 
 	tr->object = object;
 
@@ -170,7 +157,7 @@ decode_land(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_eq(decode_t *tr, iarray_t *c) {
+compile_land(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
@@ -183,7 +170,7 @@ decode_eq(decode_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr == *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = (long_t)oget(esp) & (long_t)oget(tr->object);
 
 	tr->object = object;
 
@@ -191,7 +178,7 @@ decode_eq(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_ne(decode_t *tr, iarray_t *c) {
+compile_eq(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
@@ -204,7 +191,7 @@ decode_ne(decode_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr != *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = oget(esp) == oget(tr->object);
 
 	tr->object = object;
 
@@ -212,28 +199,7 @@ decode_ne(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_lt(decode_t *tr, iarray_t *c) {
-	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
-		"frame is empty");
-
-	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
-
-	object_t *object;
-
-	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
-		"unable to alloc memory!");
-
-	*(long_t *)object->ptr = *(long_t *)esp->ptr < *(long_t *)tr->object->ptr;
-
-	tr->object = object;
-
-	return c->next;
-}
-
-iarray_t *
-decode_le(decode_t *tr, iarray_t *c) {
+compile_ne(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
@@ -246,7 +212,7 @@ decode_le(decode_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr <= *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = oget(esp) != oget(tr->object);
 
 	tr->object = object;
 
@@ -254,7 +220,27 @@ decode_le(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_gt(decode_t *tr, iarray_t *c) {
+compile_lt(compile_t *tr, iarray_t *c) {
+	object_t *esp;
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+		"frame is empty");
+
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+
+	object_t *object;
+
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
+			"unable to alloc memory!");
+	*(long_t *)object->ptr = oget(esp) < oget(tr->object);
+
+	tr->object = object;
+
+	return c->next;
+}
+
+iarray_t *
+compile_le(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
@@ -267,7 +253,7 @@ decode_gt(decode_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr > *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = oget(esp) <= oget(tr->object);
 
 	tr->object = object;
 
@@ -275,7 +261,7 @@ decode_gt(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_ge(decode_t *tr, iarray_t *c) {
+compile_gt(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
@@ -288,7 +274,7 @@ decode_ge(decode_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr >= *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = oget(esp) > oget(tr->object);
 
 	tr->object = object;
 
@@ -296,7 +282,28 @@ decode_ge(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_lshift(decode_t *tr, iarray_t *c) {
+compile_ge(compile_t *tr, iarray_t *c) {
+	object_t *esp;
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+		"frame is empty");
+
+	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
+		"object type is wrong %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+
+	object_t *object;
+
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
+		"unable to alloc memory!");
+	
+	*(long_t *)object->ptr = oget(esp) >= oget(tr->object);
+
+	tr->object = object;
+
+	return c->next;
+}
+
+iarray_t *
+compile_lshift(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
@@ -311,7 +318,7 @@ decode_lshift(decode_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr << *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = (long_t)oget(esp) << (long_t)oget(tr->object);
 
 	tr->object = object;
 
@@ -319,7 +326,7 @@ decode_lshift(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_rshift(decode_t *tr, iarray_t *c) {
+compile_rshift(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
@@ -334,7 +341,7 @@ decode_rshift(decode_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = *(long_t *)esp->ptr >> *(long_t *)tr->object->ptr;
+	*(long_t *)object->ptr = (long_t)oget(esp) >> (long_t)oget(tr->object);
 
 	tr->object = object;
 
@@ -342,7 +349,7 @@ decode_rshift(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_add(decode_t *tr, iarray_t *c) {
+compile_add(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
@@ -355,11 +362,11 @@ decode_add(decode_t *tr, iarray_t *c) {
 	if((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)){
 		validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 			"unable to alloc memory!");
-		*(long_t *)object->ptr = *(long_t *)esp->ptr + *(long_t *)tr->object->ptr;
+		*(long_t *)object->ptr = (long_t)(oget(esp) + oget(tr->object));
 	} else {
 		validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
 			"unable to alloc memory!");
-		*(double_t *)object->ptr = *(double_t *)esp->ptr + *(double_t *)tr->object->ptr;
+		*(double_t *)object->ptr = (double_t)(oget(esp) + oget(tr->object));
 	}
 
 	tr->object = object;
@@ -368,7 +375,7 @@ decode_add(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_sub(decode_t *tr, iarray_t *c) {
+compile_sub(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
@@ -381,11 +388,11 @@ decode_sub(decode_t *tr, iarray_t *c) {
 	if((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)){
 		validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 			"unable to alloc memory!");
-		*(long_t *)object->ptr = *(long_t *)esp->ptr - *(long_t *)tr->object->ptr;
+		*(long_t *)object->ptr = (long_t)(oget(esp) - oget(tr->object));
 	} else {
 		validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
 			"unable to alloc memory!");
-		*(double_t *)object->ptr = *(double_t *)esp->ptr - *(double_t *)tr->object->ptr;
+		*(double_t *)object->ptr = (double_t)(oget(esp) - oget(tr->object));
 	}
 
 	tr->object = object;
@@ -394,7 +401,7 @@ decode_sub(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_mul(decode_t *tr, iarray_t *c) {
+compile_mul(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
@@ -407,11 +414,11 @@ decode_mul(decode_t *tr, iarray_t *c) {
 	if((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)){
 		validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 			"unable to alloc memory!");
-		*(long_t *)object->ptr = *(long_t *)esp->ptr * *(long_t *)tr->object->ptr;
+		*(long_t *)object->ptr = (long_t)(oget(esp) * oget(tr->object));
 	} else {
 		validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
 			"unable to alloc memory!");
-		*(double_t *)object->ptr = *(double_t *)esp->ptr * *(double_t *)tr->object->ptr;
+		*(double_t *)object->ptr = (double_t)(oget(esp) * oget(tr->object));
 	}
 
 	tr->object = object;
@@ -420,7 +427,7 @@ decode_mul(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_div(decode_t *tr, iarray_t *c) {
+compile_div(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"frame is empty");
@@ -433,11 +440,11 @@ decode_div(decode_t *tr, iarray_t *c) {
 	if((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)){
 		validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 			"unable to alloc memory!");
-		*(long_t *)object->ptr = *(long_t *)esp->ptr / *(long_t *)tr->object->ptr;
+		*(long_t *)object->ptr = (long_t)(oget(esp) / oget(tr->object));
 	} else {
 		validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
 			"unable to alloc memory!");
-		*(double_t *)object->ptr = *(double_t *)esp->ptr / *(double_t *)tr->object->ptr;
+		*(double_t *)object->ptr = (double_t)(oget(esp) / oget(tr->object));
 	}
 
 	tr->object = object;
@@ -446,7 +453,7 @@ decode_div(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_mod(decode_t *tr, iarray_t *c) {
+compile_mod(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	if(!(esp = (object_t *)table_content(table_rpop(tr->schema->frame)))){
 		printf("[%%], you can use '%%' between two object!\n");
@@ -460,7 +467,15 @@ decode_mod(decode_t *tr, iarray_t *c) {
 
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 			"unable to alloc memory!");
-	*(long_t *)object->ptr = *(long_t *)esp->ptr + *(long_t *)tr->object->ptr;
+	if((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)){
+		validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
+			"unable to alloc memory!");
+		*(long_t *)object->ptr = (long_t)((long_t)oget(esp) % (long_t)oget(tr->object));
+	} else {
+		validate_format(!!(object = object_define(OTP_DOUBLE, sizeof(double_t))), 
+			"unable to alloc memory!");
+		*(double_t *)object->ptr = (double_t)((long_t)oget(esp) % (long_t)oget(tr->object));
+	}
 
 	tr->object = object;
 
@@ -468,7 +483,7 @@ decode_mod(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_comma(decode_t *tr, iarray_t *c){
+compile_comma(compile_t *tr, iarray_t *c){
 	object_t *esp;
 	if(!(esp = (object_t *)table_content(table_rpop(tr->schema->frame)))){
 		printf("[,] you can use ',' between two object!\n");
@@ -496,7 +511,7 @@ decode_comma(decode_t *tr, iarray_t *c){
 }
 
 iarray_t *
-decode_sim(decode_t *tr, iarray_t *c){
+compile_sim(compile_t *tr, iarray_t *c){
 	validate_format(!!(tr->object->type = OTP_SCHEMA), 
 		"[SIM] object is empty");
 	schema_t *schema;
@@ -516,7 +531,7 @@ decode_sim(decode_t *tr, iarray_t *c){
 }
 
 iarray_t *
-decode_rel(decode_t *tr, iarray_t *c){
+compile_rel(compile_t *tr, iarray_t *c){
 	validate_format(!!(tr->schema = (schema_t *)table_content(table_rpop(tr->frame))), 
 		"schema rel back frame is empty");
 	return c->next;
@@ -529,7 +544,7 @@ decode_rel(decode_t *tr, iarray_t *c){
 */
 
 iarray_t *
-decode_imm(decode_t *tr, iarray_t *c) {
+compile_imm(compile_t *tr, iarray_t *c) {
 	// load immediate value to object
 	c = c->next;
 	arval_t value = c->value;
@@ -607,19 +622,20 @@ decode_imm(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_sd(decode_t *tr, iarray_t *c) {
+compile_sd(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))), 
 		"save data, bad pop data");
 	if(esp->type != OTP_SCHEMA){
 		object_assign(esp, tr->object);
+		tr->object = esp;
 		return c->next;
 	}
 	return call(tr, (schema_t *)esp->ptr, c->next);
 }
 
 iarray_t *
-decode_ld(decode_t *tr, iarray_t *c) {
+compile_ld(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!(esp = (object_t *)table_content(table_rpop(tr->schema->parameters))),
 		"load data, bad pop data!");
@@ -628,37 +644,37 @@ decode_ld(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_push(decode_t *tr, iarray_t *c) {
+compile_push(compile_t *tr, iarray_t *c) {
 	// push the value of object onto the frames
 	table_rpush(tr->schema->frame, (tbval_t)tr->object);
 	return c->next;
 }
 
 iarray_t *
-decode_jmp(decode_t *tr, iarray_t *c) {
+compile_jmp(compile_t *tr, iarray_t *c) {
 	// jump to the address
 	c = c->next;
 	return (iarray_t *)c->value;
 }
 
 iarray_t *
-decode_jz(decode_t *tr, iarray_t *c) {
+compile_jz(compile_t *tr, iarray_t *c) {
 	// jump if object is zero
 	c = c->next;
-	return (*(long_t *)tr->object->ptr) ? c->next : (iarray_t *)c->value;
+	return (long_t)oget(tr->object) ? c->next : (iarray_t *)c->value;
 }
 
 iarray_t *
-decode_jnz(decode_t *tr, iarray_t *c) {
+compile_jnz(compile_t *tr, iarray_t *c) {
 	// jump if object is not zero
 	c = c->next;
-	return (*(long_t *)tr->object->ptr) ? (iarray_t *)c->value : c->next;
+	return (long_t)oget(tr->object) ? (iarray_t *)c->value : c->next;
 }
 
 
 
 iarray_t *
-decode_this(decode_t *tr, iarray_t *c) {
+compile_this(compile_t *tr, iarray_t *c) {
 	object_t *object;
 	validate_format(!!(object = object_define(OTP_SCHEMA, sizeof(schema_t))), 
 		"unable to alloc memory!");
@@ -668,7 +684,7 @@ decode_this(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_super(decode_t *tr, iarray_t *c) {
+compile_super(compile_t *tr, iarray_t *c) {
 	object_t *object;
 	validate_format(!!(object = object_define(OTP_SCHEMA, sizeof(schema_t))), 
 		"unable to alloc memory!");
@@ -678,7 +694,7 @@ decode_super(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_cgt(decode_t *tr, iarray_t *c) {
+compile_cgt(compile_t *tr, iarray_t *c) {
 	validate_format((tr->object->type == OTP_SCHEMA), 
 		"cgt, diffrent type of object %d\n", tr->object->type);
 
@@ -707,7 +723,7 @@ decode_cgt(decode_t *tr, iarray_t *c) {
 
 
 iarray_t *
-decode_call(decode_t *tr, iarray_t *c) {
+compile_call(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	if(tr->object->type == OTP_PARAMS){
 		validate_format(!!(esp = (object_t *)table_content(table_lpop((table_t *)tr->object->ptr))),
@@ -718,14 +734,14 @@ decode_call(decode_t *tr, iarray_t *c) {
 	}
 
 	validate_format((esp->type == OTP_SCHEMA), 
-		"[CALL] for %s type, eval operator only use for SCHEMA type", 
+		"[CALL] for %s type, compile operator only use for SCHEMA type", 
 		object_tas(esp->type));
 		
 	return call(tr, (schema_t *)esp->ptr, c->next);
 }
 
 iarray_t *
-decode_ent(decode_t *tr, iarray_t *c) {
+compile_ent(compile_t *tr, iarray_t *c) {
 	table_rpush(tr->frame, (tbval_t)tr->schema);
 
 	tr->schema = (schema_t *)table_content(table_rpop(tr->board));
@@ -755,7 +771,7 @@ decode_ent(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_head(decode_t *tr, iarray_t *c){
+compile_head(compile_t *tr, iarray_t *c){
 	if(!tr->schema->stack){
 		tr->schema->stack = table_create();
 	}
@@ -784,7 +800,7 @@ decode_head(decode_t *tr, iarray_t *c){
 }
 
 iarray_t *
-decode_lev(decode_t *tr, iarray_t *c) {
+compile_lev(compile_t *tr, iarray_t *c) {
 	tr->object = tr->schema->object;
 	tr->schema = (schema_t *)table_content(table_rpop(tr->frame));
 
@@ -802,13 +818,13 @@ decode_lev(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_ret(decode_t *tr, iarray_t *c) {
+compile_ret(compile_t *tr, iarray_t *c) {
 	tr->schema->object = tr->object;
 	return c->next;
 }
 
 iarray_t *
-decode_def(decode_t *tr, iarray_t *c) {
+compile_def(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
 		"[DEF] missing object");
@@ -872,7 +888,7 @@ decode_def(decode_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-decode_print(decode_t *tr, iarray_t *c) {
+compile_print(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	table_t *tbl;
 	if(tr->object->type == OTP_PARAMS){
@@ -961,9 +977,9 @@ decode_print(decode_t *tr, iarray_t *c) {
 
 
 iarray_t *
-decode(decode_t *tr, iarray_t *c) {
+compile_decode(compile_t *tr, iarray_t *c) {
 
-	// printf("decode %ld\n", c->value);
+	// printf("compile %ld\n", c->value);
 
 	switch (c->value) {
 		case NUL:
@@ -980,122 +996,122 @@ decode(decode_t *tr, iarray_t *c) {
 			break;
 
 		case OR:
-			return decode_or(tr, c);
+			return compile_or(tr, c);
 			break;
 		case LOR:
-			return decode_lor(tr, c);
+			return compile_lor(tr, c);
 			break;
 		case XOR:
-			return decode_xor(tr, c);
+			return compile_xor(tr, c);
 			break;
 		case AND:
-			return decode_and(tr, c);
+			return compile_and(tr, c);
 			break;
 		case LAND:
-			return decode_land(tr, c);
+			return compile_land(tr, c);
 			break;
 		case EQ:
-			return decode_eq(tr, c);
+			return compile_eq(tr, c);
 			break;
 		case NE:
-			return decode_ne(tr, c);
+			return compile_ne(tr, c);
 			break;
 		case LT:
-			return decode_lt(tr, c);
+			return compile_lt(tr, c);
 			break;
 		case LE:
-			return decode_le(tr, c);
+			return compile_le(tr, c);
 			break;
 		case GT:
-			return decode_gt(tr, c);
+			return compile_gt(tr, c);
 			break;
 		case GE:
-			return decode_ge(tr, c);
+			return compile_ge(tr, c);
 			break;
 		case LSHIFT:
-			return decode_lshift(tr, c);
+			return compile_lshift(tr, c);
 			break;
 		case RSHIFT:
-			return decode_rshift(tr, c);
+			return compile_rshift(tr, c);
 			break;
 		case ADD:
-			return decode_add(tr, c);
+			return compile_add(tr, c);
 			break;
 		case SUB:
-			return decode_sub(tr, c);
+			return compile_sub(tr, c);
 			break;
 		case MUL:
-			return decode_mul(tr, c);
+			return compile_mul(tr, c);
 			break;
 		case DIV:
-			return decode_div(tr, c);
+			return compile_div(tr, c);
 			break;
 		case MOD:
-			return decode_mod(tr, c);
+			return compile_mod(tr, c);
 			break;
 
 			// VAR IMM DATA SD LD PUSH JMP JZ JNZ CENT CLEV CALL ENT LEV THIS SUPER DOT
 			// SIZEOF TYPEOF DELETE INSERT COUNT BREAK NEW REF RET
 		case IMM:
-			return decode_imm(tr, c);
+			return compile_imm(tr, c);
 			break;
 		case SD:
-			return decode_sd(tr, c);
+			return compile_sd(tr, c);
 			break;
 		case LD:
-			return decode_ld(tr, c);
+			return compile_ld(tr, c);
 			break;
 		case PUSH:
-			return decode_push(tr, c);
+			return compile_push(tr, c);
 			break;
 		case JMP:
-			return decode_jmp(tr, c);
+			return compile_jmp(tr, c);
 			break;
 		case JZ:
-			return decode_jz(tr, c);
+			return compile_jz(tr, c);
 			break;
 		case JNZ:
-			return decode_jnz(tr, c);
+			return compile_jnz(tr, c);
 			break;
 		case COMMA:
-			return decode_comma(tr, c);
+			return compile_comma(tr, c);
 			break;
 		case CALL:
-			return decode_call(tr, c);
+			return compile_call(tr, c);
 			break;
 		case ENT:
-			return decode_ent(tr, c);
+			return compile_ent(tr, c);
 			break;
 		case HEAD:
-			return decode_head(tr, c);
+			return compile_head(tr, c);
 			break;
 		case LEV:
-			return decode_lev(tr, c);
+			return compile_lev(tr, c);
 			break;
 		case REL:
-			return decode_rel(tr, c);
+			return compile_rel(tr, c);
 			break;
 		case SIM:
-			return decode_sim(tr, c);
+			return compile_sim(tr, c);
 			break;
 		case CGT:
-			return decode_cgt(tr, c);
+			return compile_cgt(tr, c);
 			break;
 		case DEF:
-			return decode_def(tr, c);
+			return compile_def(tr, c);
 			break;
 		case RET:
-			return decode_ret(tr, c);
+			return compile_ret(tr, c);
 			break;
 
 		case THIS:
-			return decode_this(tr, c);
+			return compile_this(tr, c);
 			break;
 		case SUPER:
-			return decode_super(tr, c);
+			return compile_super(tr, c);
 			break;
 		case PRTF:
-			return decode_print(tr, c);
+			return compile_print(tr, c);
 			break;
 
 		case EXIT:
@@ -1111,16 +1127,18 @@ decode(decode_t *tr, iarray_t *c) {
 }
 
 void
-eval(schema_t *root, array_t *code)
+compile(schema_t *root, array_t *code)
 {
-	decode_t *tr = decode_create(root);
+	compile_t *tr = compile_create(root);
 
 	iarray_t *adrs = array_rpush(code, EXIT);
 
 	iarray_t *c = call(tr, root, adrs);
 
 	do {
-		c = decode(tr, c);
+		c = compile_decode(tr, c);
 	} while (c != code->end);
 }
+
+
 
