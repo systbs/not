@@ -60,33 +60,5 @@ a = eval(fn, 1,2,3);
 // or
 a = fn = (1,2,3);
 ```
-3 - create a new phase after parser for remove phase dynamic schema allocate to static schema and increase speed. After making the changes, the inital variables are applied and the program enters the phase whithout the need to check the information. 
-```js
-[schame name]:([schame_extend_name1],[schame_extend_name2], {
-  [expr...]
-});
-
-change to :
-
-[schame name] extends [schame_extend_name1],[schame_extend_name2] {
-  [expr...]
-});
-
-// it's mean in before eval phase and after parser:
-ENT
-JMP schame_extend_name1 // and return next line
-JMP schame_extend_name2 // and return next line
-// if have parameter
-IMM param1 LONG
-PUSH
-LD
-IMM param2 LONG
-PUSH
-LD
-  ...
-RET
-LEV
-// then run eval phase
-```
-4 - math lib for operator, memory management, threading, ...
+3 - math lib for operator, memory management, threading, compile, ...
 
