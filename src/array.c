@@ -62,6 +62,15 @@ array_previous(iarray_t *current)
 }
 
 arval_t
+array_free(iarray_t *it){
+    if(it){
+        qalam_free(it);
+        return 1;
+    }
+    return 0;
+}
+
+arval_t
 array_count(array_t *arr)
 {
     arval_t cnt = 0;
@@ -311,6 +320,50 @@ array_aggregate(array_t *arr, arval_t(*f)(arval_t, arval_t))
 
     return result;
 }
+
+iarray_t *
+array_find(array_t *arr, arval_t value)
+{
+    if (array_isempty(arr))
+        return nullptr;
+    iarray_t *b;
+    for(b = arr->begin; (b != arr->end); b = b->next){
+        if(b->value == value){
+            return b;
+        }
+    }
+    return nullptr;
+}
+
+iarray_t *
+array_findBefore(array_t *arr, iarray_t *n, arval_t value)
+{
+    if (array_isempty(arr))
+        return nullptr;
+    iarray_t *b;
+    for(b = n; (b != arr->end); b = b->previous){
+        if(b->value == value){
+            return b;
+        }
+    }
+    return nullptr;
+}
+
+iarray_t *
+array_findAfter(array_t *arr, iarray_t *n, arval_t value)
+{
+    if (array_isempty(arr))
+        return nullptr;
+    iarray_t *b;
+    for(b = n; (b != arr->end); b = b->next){
+        if(b->value == value){
+            return b;
+        }
+    }
+    return nullptr;
+}
+
+
 
 
 arval_t 

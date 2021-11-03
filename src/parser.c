@@ -110,15 +110,17 @@ expression_continue(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_CONTINUE), 
         "[CONTINUE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    iarray_t *b = array_last(code);
-    while(b != code->begin){
-        if(b->value == BLP){
-            array_rpush(code, JMP);
-            array_rpush(code, (arval_t)b->next);
-            break;
+    array_rpush(code, JMP);
+    iarray_t *b;
+    for(b = array_last(code); b != code->begin; b = b->previous){
+        if((b->value == BLP) && (b->next->value == ELP)){
+            array_rpush(code, (arval_t)b);
+            return;
         }
-        b = b->previous;
     }
+    validate_format(!!(b != code->begin), 
+        "[CONTINUE] bad expression, can not find begin scope [row:%ld col:%ld]\n", 
+            token->row, token->col);
 }
 
 void
@@ -127,7 +129,15 @@ expression_break(parser_t *prs, array_t *code){
     validate_format((token->identifier == TOKEN_BREAK), 
         "[BREAK] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, JMP);
-    array_rpush(code, BREAK);
+    iarray_t *b;
+    for(b = array_last(code); b != code->begin; b = b->previous){
+        if(b->value == ELP && b->previous->value == BLP){
+            array_rpush(code, (arval_t)b);
+            return;
+        }
+    }
+    validate_format(!!(b != code->begin), 
+        "[BREAK] bad expression [row:%ld col:%ld]\n", token->row, token->col);
 }
 
 
@@ -573,30 +583,46 @@ expression_if(parser_t *prs, array_t *code){
     token_next(prs);
     expression(prs, code);
 
-    token_next(prs);
-
     array_rpush(code, JZ);
     iarray_t *a = array_rpush(code, 0);
 
-    expression(prs, code);
-    token_next(prs);
-    token = (token_t *)table_content(prs->c);
+    if(next_is(prs, TOKEN_LBRACE)){
+        token_next(prs);
+        token_next(prs);
+        do {
+            expression(prs, code);
+            token_next(prs);
+            token = (token_t *)table_content(prs->c);
+        } while(token->identifier != TOKEN_RBRACE);
+    }
+    else {
+        expression(prs, code);
+    }
 
-    if(token->identifier == TOKEN_ELSE){
+    if(next_is(prs, TOKEN_ELSE)){
+        token_next(prs);
+
         array_rpush(code, JMP);
         iarray_t *b = array_rpush(code, NUL);
 
-        token_next(prs);
-        token = (token_t *)table_content(prs->c);
-
-        if(token->identifier == TOKEN_IF){
+        if(next_is(prs, TOKEN_IF)){
             a->value = (arval_t) array_rpush(code, NUL);
             b->value = a->value;
             return;
         }
 
-        expression(prs, code);
-        token_next(prs);
+        if(next_is(prs, TOKEN_LBRACE)){
+            token_next(prs);
+            token_next(prs);
+            do {
+                expression(prs, code);
+                token_next(prs);
+                token = (token_t *)table_content(prs->c);
+            } while(token->identifier != TOKEN_RBRACE);
+        }
+        else {
+            expression(prs, code);
+        }
 
         a->value = (arval_t) b->next;
         a = b;
@@ -612,6 +638,7 @@ expression_while(parser_t *prs, array_t *code){
         "[WHILE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     /* while expr expr */
     iarray_t *a = array_rpush(code, BLP);
+    iarray_t *c = array_rpush(code, ELP);
 
     token_next(prs);
     expression(prs, code);
@@ -632,10 +659,12 @@ expression_while(parser_t *prs, array_t *code){
         expression(prs, code);
     }
 
+    array_unlink(code, c);
     array_rpush(code, JMP);
     array_rpush(code, (arval_t)a->next);
+    array_link(code, code->end, c);
 
-    b->value = (arval_t) array_rpush(code, ELP);
+    b->value = (arval_t) c;
 }
 
 void
@@ -714,7 +743,7 @@ expression_lbrace(parser_t *prs, array_t *code){
     table_rpush(prs->schema->branches, (tbval_t)schema);
 
     schema->start = array_rpush(code, ENT);
-    array_rpush(code, HEAD);
+    array_rpush(code, EXTND);
 
     table_rpush(prs->schemas, (tbval_t)prs->schema);
     prs->schema = schema;
@@ -764,6 +793,9 @@ expression(parser_t *prs, array_t *code){
         return;
     } else if(token->identifier == TOKEN_COMMA){
         expression_comma(prs, code);
+        return;
+    } else if(token->identifier == TOKEN_CONTINUE){
+        expression_continue(prs, code);
         return;
     } else if(token->identifier == TOKEN_BREAK){
         expression_break(prs, code);
@@ -937,8 +969,7 @@ const char * const STRCODE[] = {
 	[RET] = "RET",
     [SIM] = "SIM",
     [REL] = "REL",
-	[HEAD] = "HEAD",
-	[FOOT] = "FOOT",
+	[EXTND] = "EXTND",
 	[FN] = "FN",
 	[AT] = "AT", 
 	[DEF] = "DEF", 

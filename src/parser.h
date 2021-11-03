@@ -28,8 +28,7 @@ typedef enum operator {
 	RET,
 	SIM,
 	REL,
-	HEAD,
-	FOOT,
+	EXTND,
 	FN,
 	AT, // @
 	DEF, // prototype

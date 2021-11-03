@@ -19,8 +19,12 @@ i = 1;
 while(i <= 5){
 	j = 1;
 	while(j <= i) {
-		print(j);
 		j = j + 1;
+		if(j > 3){
+			print(j);
+		}else{
+			continue;
+		}
 	}
 	i = i + 1;
 	print("\n");

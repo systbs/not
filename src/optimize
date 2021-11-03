@@ -28,13 +28,6 @@
 #include "data.h"
 
 
-typedef struct layout {
-	table_t *variables;
-	table_t *layouts;
-	struct layout parent;
-} layout_t;
-
-
 typedef struct compile {
 	schema_t *schema;
 

@@ -36,8 +36,14 @@ array_count(array_t *que);
 arval_t
 array_clear(array_t *que, arval_t (*f)(iarray_t*));
 
+arval_t
+array_free(iarray_t *it);
+
 void
 array_destroy(array_t *que, arval_t (*f)(iarray_t*));
+
+iarray_t*
+array_link(array_t *arr, iarray_t *current, iarray_t *it);
 
 iarray_t*
 array_unlink(array_t *que, iarray_t* it);
@@ -83,3 +89,12 @@ array_aggregate(array_t *que, arval_t(*f)(arval_t, arval_t));
 
 arval_t 
 array_lasteq(array_t *arr, arval_t value);
+
+iarray_t *
+array_find(array_t *arr, arval_t value);
+
+iarray_t *
+array_findBefore(array_t *arr, iarray_t *n, arval_t value);
+
+iarray_t *
+array_findAfter(array_t *arr, iarray_t *n, arval_t value);
