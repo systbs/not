@@ -29,6 +29,7 @@ schema_create(schema_t *parent){
 	schema->branches = table_create();
 	schema->extends = table_create();
 	schema->variables = table_create();
+	schema->parameters = table_create();
 
     schema->parent = parent;
 

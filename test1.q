@@ -9,11 +9,16 @@ category2: {
 category3: (category1, category2, {
 	c = "simple text 3\n";
 	print("Hello World\n");
+	fn: (i,j,k) :> {
+		return i + j + k;
+	}
 });
 
 d = category3 = null;
+f = d.fn = (1,2,3);
 
 print(d.c);
+print(f);
 
 i = 1;
 while(i <= 5){

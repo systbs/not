@@ -76,7 +76,7 @@ thread_or(thread_t *tr, iarray_t *c) {
 		"frame is empty");
 	
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 	
 	object_t *object;
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
@@ -96,7 +96,7 @@ thread_lor(thread_t *tr, iarray_t *c) {
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
 	object_t *object;
 
@@ -117,7 +117,7 @@ thread_xor(thread_t *tr, iarray_t *c) {
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
 	object_t *object;
 
@@ -138,7 +138,7 @@ thread_and(thread_t *tr, iarray_t *c) {
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
 	object_t *object;
 
@@ -159,7 +159,7 @@ thread_land(thread_t *tr, iarray_t *c) {
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
 	object_t *object;
 
@@ -180,7 +180,7 @@ thread_eq(thread_t *tr, iarray_t *c) {
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
 	object_t *object;
 
@@ -201,7 +201,7 @@ thread_ne(thread_t *tr, iarray_t *c) {
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
 	object_t *object;
 
@@ -222,7 +222,7 @@ thread_lt(thread_t *tr, iarray_t *c) {
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
 	object_t *object;
 
@@ -242,7 +242,7 @@ thread_le(thread_t *tr, iarray_t *c) {
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
 	object_t *object;
 
@@ -263,7 +263,7 @@ thread_gt(thread_t *tr, iarray_t *c) {
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
 	object_t *object;
 
@@ -284,7 +284,7 @@ thread_ge(thread_t *tr, iarray_t *c) {
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
 	object_t *object;
 
@@ -306,7 +306,7 @@ thread_lshift(thread_t *tr, iarray_t *c) {
 
 	validate_format(!!((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)),
 		"in << operator used object %s && %s", 
-		object_tas(esp->type), object_tas(tr->object->type)
+		object_tas(esp), object_tas(tr->object)
 	);
 
 	object_t *object;
@@ -329,7 +329,7 @@ thread_rshift(thread_t *tr, iarray_t *c) {
 
 	validate_format(!!((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)),
 		"in >> operator used object %s && %s", 
-		object_tas(esp->type), object_tas(tr->object->type)
+		object_tas(esp), object_tas(tr->object)
 	);
 
 	object_t *object;
@@ -351,7 +351,7 @@ thread_add(thread_t *tr, iarray_t *c) {
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
 	object_t *object;
 
@@ -377,7 +377,7 @@ thread_sub(thread_t *tr, iarray_t *c) {
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
 	object_t *object;
 
@@ -403,7 +403,7 @@ thread_mul(thread_t *tr, iarray_t *c) {
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
 	object_t *object;
 
@@ -429,7 +429,7 @@ thread_div(thread_t *tr, iarray_t *c) {
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
 	object_t *object;
 
@@ -457,7 +457,7 @@ thread_mod(thread_t *tr, iarray_t *c) {
 	}
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
-		"wrong in object type %s && %s", object_tas(esp->type), object_tas(tr->object->type));
+		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
 	object_t *object;
 
@@ -519,6 +519,7 @@ thread_imm(thread_t *tr, iarray_t *c) {
 	if(c->value == TP_VAR){
 		variable_t *var;
 		if(!!(var = layout_variable(tr->layout, (char *)value))){
+			var->ref++;
 			validate_format(!!(tr->object = variable_content(var)),
 				"[IMM] variable dont have content");
 			return c->next;
@@ -668,12 +669,12 @@ thread_super(thread_t *tr, iarray_t *c) {
 
 iarray_t *
 thread_cgt(thread_t *tr, iarray_t *c) {
-	validate_format((tr->object->type == OTP_LAYOUT), 
-		"cgt, diffrent type of object %d\n", tr->object->type);
+	validate_format((tr->object->type == OTP_SCHEMA), 
+		"cgt, diffrent type of object %s\n", object_tas(tr->object));
 
-	layout_t *layout;
-	validate_format(!!(layout = (layout_t *)tr->object->ptr), 
-		"layout not defined");
+	schema_t *schema;
+	validate_format(!!(schema = (schema_t *)tr->object->ptr), 
+		"schema not defined");
 
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))), 
@@ -683,10 +684,28 @@ thread_cgt(thread_t *tr, iarray_t *c) {
 		table_t *tbl = (table_t *)esp->ptr;
 		itable_t *b;
 		for(b = tbl->begin; b != tbl->end; b = b->next){
-			table_rpush(layout->parameters, (tbval_t)b->value);
+			variable_t *var;
+			validate_format(!!(var = layout_fcnt(tr->layout, (object_t *)b->value)),
+				"can not find variable");
+			if(var->ref > 0){
+				var->ref--;
+				validate_format(!!(var = variable_define((char *)var->identifier)),
+					"unable to alloc var");
+				var->object = object_define(OTP_NULL, sizeof(ptr_t));
+			}
+			table_rpush(schema->parameters, (tbval_t)var);
 		}
 	} else {
-		table_rpush(layout->parameters, (tbval_t)esp);
+		variable_t *var;
+		validate_format(!!(var = layout_fcnt(tr->layout, esp)),
+			"can not find variable");
+		if(var->ref > 0){
+			var->ref--;
+			validate_format(!!(var = variable_define((char *)var->identifier)),
+				"unable to alloc var");
+			var->object = object_define(OTP_NULL, sizeof(ptr_t));
+		}
+		table_rpush(schema->parameters, (tbval_t)var);
 	}
 
 	return c->next;
@@ -708,7 +727,7 @@ thread_call(thread_t *tr, iarray_t *c) {
 
 	validate_format((esp->type == OTP_SCHEMA), 
 		"[CALL] for %s type, eval operator only use for SCHEMA type", 
-	object_tas(esp->type));
+	object_tas(esp));
 		
 	return call(tr, (schema_t *)esp->ptr, c->next);
 }
@@ -803,7 +822,7 @@ thread_def(thread_t *tr, iarray_t *c) {
 		"[DEF] missing object");
 
 	validate_format((esp->type == OTP_SCHEMA) || (esp->type == OTP_NULL), 
-		"[DEF] def type use only for null or schema type, %s", object_tas(esp->type));
+		"[DEF] def type use only for null or schema type, %s", object_tas(esp));
 
 	if(esp->type == OTP_NULL){
 		validate_format(!!(esp = object_redefine(esp, OTP_SCHEMA, sizeof(schema_t))), 
@@ -814,13 +833,13 @@ thread_def(thread_t *tr, iarray_t *c) {
 				"[DEF] pop schema fram list ignored");
 			validate_format((object->type == OTP_SCHEMA), 
 				"[DEF] def type use only for schema type, %s", 
-				object_tas(object->type)
+				object_tas(object)
 			);
 			esp->ptr = object->ptr;
 		} else {
 			validate_format((tr->object->type == OTP_SCHEMA), 
 				"[DEF] def type use only for schema type, %s", 
-				object_tas(tr->object->type)
+				object_tas(tr->object)
 			);
 			esp->ptr = tr->object->ptr;
 			tr->object = esp;
@@ -838,13 +857,13 @@ thread_def(thread_t *tr, iarray_t *c) {
 		for(b = tbl->begin; b != tbl->end; b = b->next){
 			object_t *object = (object_t *)b->value;
 			validate_format((object->type == OTP_SCHEMA), 
-				"[DEF] schema type for def operator is required %s", object_tas(object->type));
+				"[DEF] schema type for def operator is required %s", object_tas(object));
 			table_rpush(schema->extends, (tbval_t)object->ptr);
 		}
 	} 
 	else if(tr->object->type == OTP_SCHEMA) {
 		validate_format((tr->object->type == OTP_SCHEMA), 
-			"[DEF] schema type for def operator is required %s", object_tas(tr->object->type));
+			"[DEF] schema type for def operator is required %s", object_tas(tr->object));
 		table_rpush(schema->extends, (tbval_t)tr->object->ptr);
 	}
 
@@ -894,7 +913,7 @@ thread_print(thread_t *tr, iarray_t *c) {
 
 	while((esp = (object_t *)table_content(table_rpop(tbl)))){
 		if(esp->type == OTP_NULL){
-			printf("%s ", object_tas(OTP_NULL));
+			printf("%s ", object_tas(esp));
 			continue;
 		}
 		else if(esp->type == OTP_CHAR){

@@ -9,6 +9,7 @@ typedef struct schema {
 	table_t *extends;
 	table_t *branches;
 	table_t *variables;
+	table_t *parameters;
 
 	struct schema *parent;
 } schema_t;

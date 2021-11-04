@@ -23,3 +23,6 @@ layout_fpt(table_t *tbl, char *identifier);
 
 variable_t *
 layout_variable(layout_t *layout, char *identifier);
+
+variable_t *
+layout_fcnt(layout_t *layout, object_t *object);

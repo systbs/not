@@ -67,8 +67,8 @@ const char * const object_tn[] = {
 };
 
 const char *
-object_tas(object_type_t tp){
-	return object_tn[tp];
+object_tas(object_t *obj){
+	return object_tn[obj->type];
 }
 
 const int object_typesLength[] = {
@@ -84,8 +84,8 @@ const int object_typesLength[] = {
 };
 
 int
-object_ts(object_type_t tp){
-	return object_typesLength[tp];
+object_ts(object_t *obj){
+	return object_typesLength[obj->type];
 }
 
 int
