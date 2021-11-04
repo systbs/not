@@ -26,59 +26,15 @@ schema_create(schema_t *parent){
 
     schema->identifier = uuid(32);
 
-	schema->type = SCHEMA_PRIMARY;
-    
 	schema->branches = table_create();
-    schema->parameters = table_create();
-    schema->variables = table_create();
 	schema->extends = table_create();
+	schema->variables = table_create();
 
-    schema->subschema = parent;
+    schema->parent = parent;
 
     return schema;
 }
 
-
-schema_t *
-schema_duplicate(schema_t *source){
-	validate_format((source->type == SCHEMA_PRIMARY),
-		"you only create duplicate from primary schema");
-		
-    schema_t *schema = (schema_t *)qalam_malloc(sizeof(schema_t));
-	schema->type = SCHEMA_DUP;
-
-    schema->identifier = source->identifier;
-
-	schema->start = source->start;
-	schema->end = source->end;
-    
-	schema->branches = source->branches;
-	schema->subschema = source->subschema;
-	schema->duplicate = source->duplicate ? source->duplicate : table_create();
-
-    schema->parameters = table_create();
-	itable_t *b;
-	for(b = source->parameters->begin; b != source->parameters->end; b = b->next){
-		table_rpush(schema->parameters, (tbval_t)object_clone((object_t *)b->value));
-	}
-
-    schema->variables = table_create();
-	for(b = source->variables->begin; b != source->variables->end; b = b->next){
-		table_rpush(schema->variables, (tbval_t)object_clone((object_t *)b->value));
-	}
-
-	schema->extends = table_create();
-	for(b = source->extends->begin; b != source->extends->end; b = b->next){
-		table_rpush(schema->extends, (tbval_t)b->value);
-	}
-
-	schema->packet = table_create();
-	schema->frame = table_create();
-
-	table_rpush(schema->duplicate, (tbval_t)schema);
-
-    return schema;
-}
 
 schema_t *
 schema_fpt(table_t *tbl, char *identifier) {
@@ -105,18 +61,18 @@ variable_t *
 schema_variable(schema_t *schema, char *identifier)
 {
 	variable_t *var;
-	if((var = variable_findlst(schema->variables, identifier))){
+	if(!!(var = variable_findlst(schema->variables, identifier))){
 		return var;
 	}
     // search dynamic vars
 	if(schema->parent != nullptr){
-		if((var = schema_variable(schema->parent, identifier))){
+		if(!!(var = schema_variable(schema->parent, identifier))){
 			return var;
 		}
 	}
     // search in static vars
-    if(schema->subschema != nullptr){
-		if((var = schema_variable(schema->subschema, identifier))){
+    if(schema->parent != nullptr){
+		if(!!(var = schema_variable(schema->parent, identifier))){
 			return var;
 		}
 	}

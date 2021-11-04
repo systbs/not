@@ -18,6 +18,7 @@
 #include "data.h"
 #include "variable.h"
 #include "schema.h"
+#include "layout.h"
 #include "parser.h"
 
 long_t
@@ -34,7 +35,7 @@ object_clone(object_t *object)
 	if(object->type == OTP_ARRAY || object->type == OTP_PARAMS){
 		obj->ptr = data_clone((table_t *)object->ptr);
 	} else {
-		oset(obj, object);
+		object_assign(obj, object);
 	}
 	return obj;
 }
@@ -61,6 +62,7 @@ const char * const object_tn[] = {
 	[OTP_ARRAY]     = "ARRAY",
 	[OTP_PARAMS]    = "PARAMS",
 	[OTP_SCHEMA]    = "SCHEMA",
+	[OTP_LAYOUT]    = "LAYOUT",
 	[OTP_ADRS]      = "ADRS"
 };
 
@@ -77,6 +79,7 @@ const int object_typesLength[] = {
 	[OTP_ARRAY] 	= sizeof(table_t),
 	[OTP_PARAMS] 	= sizeof(table_t),
 	[OTP_SCHEMA] 	= sizeof(schema_t),
+	[OTP_LAYOUT] 	= sizeof(layout_t),
 	[OTP_ADRS] 		= sizeof(arval_t)
 };
 

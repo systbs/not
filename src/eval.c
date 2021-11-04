@@ -24,13 +24,13 @@
 #include "object.h"
 #include "variable.h"
 #include "schema.h"
+#include "layout.h"
 #include "parser.h"
 #include "data.h"
 
 
-
 typedef struct thread {
-	schema_t *schema;
+	layout_t *layout;
 
 	table_t *frame;
 	table_t *board;
@@ -42,12 +42,13 @@ thread_t *
 thread_create(schema_t *schema){
 	thread_t *tr = qalam_malloc(sizeof(thread_t));
 
-	tr->schema = schema_duplicate(schema);
+	tr->layout = layout_create(schema);
+	tr->layout->parent = nullptr;
 
-	tr->object = nullptr;
 	tr->frame = table_create();
 	tr->board = table_create();
 
+	tr->object = nullptr;
 	return tr;
 }
 
@@ -59,8 +60,8 @@ call(thread_t *tr, schema_t *schema, iarray_t *adrs) {
 		"unable to alloc memory!");
 	object->ptr = (tbval_t)adrs;
 
-	table_rpush(tr->schema->frame, (tbval_t)object);
-	table_rpush(tr->board, (tbval_t)schema_duplicate(schema));
+	table_rpush(tr->layout->frame, (tbval_t)object);
+	table_rpush(tr->board, (tbval_t)layout_create(schema));
 
 	return (iarray_t *)schema->start;
 }
@@ -70,7 +71,7 @@ call(thread_t *tr, schema_t *schema, iarray_t *adrs) {
 iarray_t *
 thread_or(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 	
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -90,7 +91,7 @@ thread_or(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_lor(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -111,7 +112,7 @@ thread_lor(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_xor(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -132,7 +133,7 @@ thread_xor(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_and(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -153,7 +154,7 @@ thread_and(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_land(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -174,7 +175,7 @@ thread_land(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_eq(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -195,7 +196,7 @@ thread_eq(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_ne(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -216,7 +217,7 @@ thread_ne(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_lt(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -236,7 +237,7 @@ thread_lt(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_le(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -257,7 +258,7 @@ thread_le(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_gt(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -278,7 +279,7 @@ thread_gt(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_ge(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -299,7 +300,7 @@ thread_ge(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_lshift(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)),
@@ -322,7 +323,7 @@ thread_lshift(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_rshift(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)),
@@ -345,7 +346,7 @@ thread_rshift(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_add(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -371,7 +372,7 @@ thread_add(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_sub(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -397,7 +398,7 @@ thread_sub(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_mul(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -423,7 +424,7 @@ thread_mul(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_div(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -449,7 +450,7 @@ thread_div(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_mod(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	if(!(esp = (object_t *)table_content(table_rpop(tr->schema->frame)))){
+	if(!(esp = (object_t *)table_content(table_rpop(tr->layout->frame)))){
 		printf("[%%], you can use '%%' between two object!\n");
 		exit(-1);
 	}
@@ -479,10 +480,8 @@ thread_mod(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_comma(thread_t *tr, iarray_t *c){
 	object_t *esp;
-	if(!(esp = (object_t *)table_content(table_rpop(tr->schema->frame)))){
-		printf("[,] you can use ',' between two object!\n");
-		exit(-1);
-	}
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
+		"[,] you can use ',' between two object!");
 	object_t *obj;
 	if (esp->type != OTP_PARAMS) {
 		validate_format(!!(obj = object_define(OTP_PARAMS, sizeof(table_t))), 
@@ -515,23 +514,29 @@ thread_imm(thread_t *tr, iarray_t *c) {
 	c = c->next;
 	arval_t value = c->value;
 	c = c->next;
+	
 	if(c->value == TP_VAR){
 		variable_t *var;
-		if(!(var = schema_variable(tr->schema, (char *)value))){
-			schema_t *schema;
-			if(!!(schema = schema_branches(tr->schema, (char *)value))){
-				object_t *object;
-				validate_format(!!(object = object_define(OTP_SCHEMA, sizeof(schema_t))), 
-					"[IMM] schema object not created");
-				tr->object = object;
-				return c->next;
-			}
-			var = variable_define((char *)value);
-			var->object = object_define(OTP_NULL, sizeof(ptr_t));
-			table_rpush(tr->schema->variables, (tbval_t)var);
+		if(!!(var = layout_variable(tr->layout, (char *)value))){
+			validate_format(!!(tr->object = variable_content(var)),
+				"[IMM] variable dont have content");
+			return c->next;
 		}
+		schema_t *schema;
+		if(!!(schema = schema_branches(tr->layout->schema, (char *)value))){
+			object_t *object;
+			validate_format(!!(object = object_define(OTP_SCHEMA, sizeof(schema_t))), 
+				"[IMM] schema object not created");
+			object->ptr = schema;
+			tr->object = object;
+			return c->next;
+		}
+		
+		var = variable_define((char *)value);
+		var->object = object_define(OTP_NULL, sizeof(ptr_t));
+		table_rpush(tr->layout->variables, (tbval_t)var);
 		validate_format(!!(tr->object = variable_content(var)),
-			"[IMM] variable dnot have content");
+			"[IMM] variable dont have content");
 		return c->next;
 	}
 	else if(c->value == TP_ARRAY){
@@ -590,7 +595,7 @@ thread_imm(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_sd(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))), 
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))), 
 		"save data, bad pop data");
 	if(esp->type != OTP_SCHEMA){
 		object_assign(esp, tr->object);
@@ -603,7 +608,7 @@ thread_sd(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_ld(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!(esp = (object_t *)table_content(table_rpop(tr->schema->parameters))),
+	validate_format(!(esp = (object_t *)table_content(table_rpop(tr->layout->parameters))),
 		"load data, bad pop data!");
 	object_assign(tr->object, esp);
 	return c->next;
@@ -612,7 +617,7 @@ thread_ld(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_push(thread_t *tr, iarray_t *c) {
 	// push the value of object onto the frames
-	table_rpush(tr->schema->frame, (tbval_t)tr->object);
+	table_rpush(tr->layout->frame, (tbval_t)tr->object);
 	return c->next;
 }
 
@@ -642,9 +647,9 @@ thread_jnz(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_this(thread_t *tr, iarray_t *c) {
 	object_t *object;
-	validate_format(!!(object = object_define(OTP_SCHEMA, sizeof(schema_t))), 
+	validate_format(!!(object = object_define(OTP_LAYOUT, sizeof(layout_t))), 
 		"unable to alloc memory!");
-	object->ptr = (tbval_t)tr->schema;
+	object->ptr = (tbval_t)tr->layout;
 	tr->object = object;
 	return c->next;
 }
@@ -652,34 +657,34 @@ thread_this(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_super(thread_t *tr, iarray_t *c) {
 	object_t *object;
-	validate_format(!!(object = object_define(OTP_SCHEMA, sizeof(schema_t))), 
+	validate_format(!!(object = object_define(OTP_LAYOUT, sizeof(layout_t))), 
 		"unable to alloc memory!");
-	object->ptr = (tbval_t)tr->schema->parent;
+	object->ptr = (tbval_t)tr->layout->parent;
 	tr->object = object;
 	return c->next;
 }
 
 iarray_t *
 thread_cgt(thread_t *tr, iarray_t *c) {
-	validate_format((tr->object->type == OTP_SCHEMA), 
+	validate_format((tr->object->type == OTP_LAYOUT), 
 		"cgt, diffrent type of object %d\n", tr->object->type);
 
-	schema_t *schema;
-	validate_format(!!(schema = (schema_t *)tr->object->ptr), 
-		"schema not defined");
+	layout_t *layout;
+	validate_format(!!(layout = (layout_t *)tr->object->ptr), 
+		"layout not defined");
 
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))), 
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))), 
 		"cgt, null argument\n");
 
 	if(esp->type == OTP_PARAMS){
 		table_t *tbl = (table_t *)esp->ptr;
 		itable_t *b;
 		for(b = tbl->begin; b != tbl->end; b = b->next){
-			table_rpush(schema->parameters, (tbval_t)b->value);
+			table_rpush(layout->parameters, (tbval_t)b->value);
 		}
 	} else {
-		table_rpush(schema->parameters, (tbval_t)esp);
+		table_rpush(layout->parameters, (tbval_t)esp);
 	}
 
 	return c->next;
@@ -701,28 +706,29 @@ thread_call(thread_t *tr, iarray_t *c) {
 
 	validate_format((esp->type == OTP_SCHEMA), 
 		"[CALL] for %s type, eval operator only use for SCHEMA type", 
-		object_tas(esp->type));
+	object_tas(esp->type));
 		
 	return call(tr, (schema_t *)esp->ptr, c->next);
 }
 
 iarray_t *
 thread_ent(thread_t *tr, iarray_t *c) {
-	table_rpush(tr->frame, (tbval_t)tr->schema);
+	table_rpush(tr->frame, (tbval_t)tr->layout);
 
-	tr->schema = (schema_t *)table_content(table_rpop(tr->board));
+	layout_t *layout;
+	layout = (layout_t *)table_content(table_rpop(tr->board));
+	layout->parent = tr->layout;
+	tr->layout = layout;
 
-	tr->schema->object = object_define(OTP_NULL, sizeof(ptr_t));
-
-	validate_format((tr->schema->type == SCHEMA_DUP), 
-		"schema before called");
+	tr->layout->object = object_define(OTP_NULL, sizeof(ptr_t));
 
 	itable_t *b;
-	for(b = tr->schema->parameters->begin; b != tr->schema->parameters->end; b = b->next){
-		object_t *target = object_clone((object_t *)b->value);
+	for(b = tr->layout->parameters->begin; b != tr->layout->parameters->end; b = b->next){
+		object_t *target = (object_t *)b->value;
 		if(!!tr->object){
 			if(tr->object->type == OTP_PARAMS){
-				object_t *source = (object_t *)table_rpop((table_t *)tr->object->ptr);
+				object_t *source;
+				source = (object_t *)table_content(table_rpop((table_t *)tr->object->ptr));
 				if(source){
 					object_assign(target, source);
 				}
@@ -738,40 +744,41 @@ thread_ent(thread_t *tr, iarray_t *c) {
 
 iarray_t *
 thread_extend(thread_t *tr, iarray_t *c){
-	if(!tr->schema->stack){
-		tr->schema->stack = table_create();
-	}
-	table_t *extends = tr->schema->extends;
-	itable_t *b;
-	for(b = extends->begin; b != extends->end; b = b->next){
+	itable_t *b, *n;
+	for(b = tr->layout->schema->extends->begin; b != tr->layout->schema->extends->end; b = b->next){
 		schema_t *schema = (schema_t *)b->value;
-		if(!schema_fpt(tr->schema->stack, schema->identifier)){
-			table_rpush(tr->schema->stack, (tbval_t)schema);
-			schema = schema_duplicate(schema);
-			schema->variables = tr->schema->variables;
-
-			object_t *object;
-			validate_format(!!(object = object_define(OTP_ADRS, sizeof(long_t))), 
-				"unable to alloc memory!");
-			object->ptr = (tbval_t)c;
-
-			table_rpush(tr->schema->frame, (tbval_t)object);
-			table_rpush(tr->board, (tbval_t)schema);
-
-			return (iarray_t *)schema->start;
+		int found = 0;
+		for(n = tr->layout->extends->begin; n != tr->layout->extends->end; n = n->next){
+			layout_t *layout = (layout_t *)n->value;
+			if(strncmp(layout->schema->identifier, layout->schema->identifier, max(strlen(layout->schema->identifier), strlen(layout->schema->identifier))) == 0){
+				found = 1;
+				break;
+			}
 		}
+		if(found){
+			continue;
+		}
+		layout_t *layout = layout_create(schema);
+		object_t *object;
+		validate_format(!!(object = object_define(OTP_ADRS, sizeof(long_t))), 
+			"unable to alloc memory!");
+		object->ptr = (tbval_t)c;
+		table_rpush(tr->layout->frame, (tbval_t)object);
+		table_rpush(tr->layout->extends, (tbval_t)layout);
+		table_rpush(tr->board, (tbval_t)layout);
+		return (iarray_t *)schema->start;
 	}
-	table_destroy(tr->schema->stack);
+	
 	return c->next;
 }
 
 iarray_t *
 thread_lev(thread_t *tr, iarray_t *c) {
-	tr->object = tr->schema->object;
-	tr->schema = (schema_t *)table_content(table_rpop(tr->frame));
+	tr->object = tr->layout->object;
+	tr->layout = (layout_t *)table_content(table_rpop(tr->frame));
 
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"wrong! bad leave function, not found adrs");
 
 	validate_format((esp->type == OTP_ADRS), 
@@ -785,14 +792,14 @@ thread_lev(thread_t *tr, iarray_t *c) {
 
 iarray_t *
 thread_ret(thread_t *tr, iarray_t *c) {
-	tr->schema->object = tr->object;
+	tr->layout->object = tr->object;
 	return c->next;
 }
 
 iarray_t *
 thread_def(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"[DEF] missing object");
 
 	validate_format((esp->type == OTP_SCHEMA) || (esp->type == OTP_NULL), 
@@ -841,13 +848,6 @@ thread_def(thread_t *tr, iarray_t *c) {
 			"[DEF] schema type for def operator is required %s", object_tas(tr->object->type));
 		table_rpush(schema->extends, (tbval_t)tr->object->ptr);
 	}
-	else if(tr->object->type == OTP_LONG) {
-		schema->object = object_redefine(
-			schema->object, 
-			schema->object->type, 
-			*(long_t *)tr->object->ptr
-		);
-	}
 
 	tr->object = esp;
 	return c->next;
@@ -855,28 +855,30 @@ thread_def(thread_t *tr, iarray_t *c) {
 
 iarray_t *
 thread_sim(thread_t *tr, iarray_t *c){
-	validate_format(!!(tr->object->type = OTP_SCHEMA), 
+	validate_format(!!((tr->object->type == OTP_SCHEMA) || (tr->object->type == OTP_LAYOUT)), 
 		"[SIM] object is empty");
-	schema_t *schema;
-	validate_format(!!(schema = (schema_t *)tr->object->ptr), 
-		"[SIM] object is empty");
-	if(schema->type == SCHEMA_DUP){
-		table_rpush(tr->frame, (tbval_t)tr->schema);
-		tr->schema = schema;
+	if(tr->object->type == OTP_SCHEMA){
+		schema_t *schema;
+		validate_format(!!(schema = (schema_t *)tr->object->ptr), 
+			"[SIM] object is empty");
+		table_rpush(tr->frame, (tbval_t)tr->layout);
+		tr->layout = layout_create(schema);
 		return c->next;
 	}
-	else if(schema->type == SCHEMA_PRIMARY){
-		table_rpush(tr->frame, (tbval_t)tr->schema);
-		tr->schema = schema_duplicate(schema);
+	else {
+		layout_t *layout;
+		validate_format(!!(layout = (layout_t *)tr->object->ptr), 
+			"[SIM] object is empty");
+		table_rpush(tr->frame, (tbval_t)tr->layout);
+		tr->layout = layout;
 		return c->next;
 	}
-	return c->next;
 }
 
 iarray_t *
 thread_rel(thread_t *tr, iarray_t *c){
-	validate_format(!!(tr->schema = (schema_t *)table_content(table_rpop(tr->frame))), 
-		"schema rel back frame is empty");
+	validate_format(!!(tr->layout = (layout_t *)table_content(table_rpop(tr->frame))), 
+		"layout rel back frame is empty");
 	return c->next;
 }
 
@@ -972,7 +974,7 @@ thread_print(thread_t *tr, iarray_t *c) {
 iarray_t *
 decode(thread_t *tr, iarray_t *c) {
 
-	// printf("thread %ld\n", c->value);
+	//printf("thread %ld\n", c->value);
 
 	switch (c->value) {
 		case NUL:

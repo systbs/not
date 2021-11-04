@@ -9,6 +9,7 @@ typedef enum object_type {
 	OTP_ADRS,
 	OTP_ARRAY,
 	OTP_SCHEMA,
+	OTP_LAYOUT,
 	OTP_NULL
 } object_type_t;
 
@@ -17,10 +18,13 @@ typedef struct object {
 	ptr_t ptr;
 } object_t;
 
+const char *
+object_tas(object_type_t tp);
 
 #define oset(target, source) { \
 	validate_format((target->type == source->type), \
-		"[OBJECT SET] invalid type");\
+		"[OBJECT SET] invalid type, %s, %s", \
+	object_tas(target->type), object_tas(source->type));\
 	if(source->type == OTP_CHAR){ \
 		*(char_t *)target->ptr = *(char_t *)source->ptr;\
 	}\
@@ -38,6 +42,9 @@ typedef struct object {
 	}\
 	else if(source->type == OTP_SCHEMA){ \
 		*(schema_t *)target->ptr = *(schema_t *)source->ptr;\
+	}\
+	else if(source->type == OTP_LAYOUT){ \
+		*(layout_t *)target->ptr = *(layout_t *)source->ptr;\
 	}\
 	else if(source->type == OTP_ADRS){ \
 		*(long_t *)target->ptr = *(long_t *)source->ptr;\
@@ -77,6 +84,3 @@ object_assign(object_t *target, object_t *source);
 
 void
 object_delete(object_t *obj);
-
-const char *
-object_tas(object_type_t tp);
