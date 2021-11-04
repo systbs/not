@@ -59,5 +59,5 @@ i = 1;
 j: 32;
 // malloc 32 bit to j
 ```
-2 - improve schema for layout and another objects
+2 - improve operator ":>" for layout and another objects\n
 3 - math lib for operator, memory management, threading, compile, ...
