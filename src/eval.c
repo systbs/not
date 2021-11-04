@@ -39,11 +39,12 @@ typedef struct thread {
 } thread_t;
 
 thread_t *
-thread_create(schema_t *schema){
-	thread_t *tr = qalam_malloc(sizeof(thread_t));
+thread_create(){
+	thread_t *tr;
+	validate_format(!!(tr = qalam_malloc(sizeof(thread_t))), 
+		"unable to malloc root thread");
 
-	tr->layout = layout_create(schema);
-	tr->layout->parent = nullptr;
+	tr->layout = layout_create(nullptr);
 
 	tr->frame = table_create();
 	tr->board = table_create();
@@ -522,6 +523,7 @@ thread_imm(thread_t *tr, iarray_t *c) {
 				"[IMM] variable dont have content");
 			return c->next;
 		}
+		
 		schema_t *schema;
 		if(!!(schema = schema_branches(tr->layout->schema, (char *)value))){
 			object_t *object;
@@ -659,7 +661,7 @@ thread_super(thread_t *tr, iarray_t *c) {
 	object_t *object;
 	validate_format(!!(object = object_define(OTP_LAYOUT, sizeof(layout_t))), 
 		"unable to alloc memory!");
-	object->ptr = (tbval_t)tr->layout->parent;
+	object->ptr = (tbval_t)tr->layout->parent ? tr->layout->parent : tr->layout;
 	tr->object = object;
 	return c->next;
 }
@@ -728,17 +730,15 @@ thread_ent(thread_t *tr, iarray_t *c) {
 		if(!!tr->object){
 			if(tr->object->type == OTP_PARAMS){
 				object_t *source;
-				source = (object_t *)table_content(table_rpop((table_t *)tr->object->ptr));
-				if(source){
+				if (!!(source = (object_t *)table_content(table_rpop((table_t *)tr->object->ptr)))) {
 					object_assign(target, source);
 				}
-			}else{
+			} else {
 				object_assign(target, tr->object);
 				tr->object = nullptr;
 			}
 		}
 	}
-
 	return c->next;
 }
 
@@ -808,7 +808,6 @@ thread_def(thread_t *tr, iarray_t *c) {
 	if(esp->type == OTP_NULL){
 		validate_format(!!(esp = object_redefine(esp, OTP_SCHEMA, sizeof(schema_t))), 
 			"[DEF] redefine object for type schema");
-
 		if(tr->object->type == OTP_PARAMS) {
 			object_t *object;
 			validate_format(!!(object = (object_t *)table_content(table_rpop((table_t *)tr->object->ptr))), 
@@ -1122,7 +1121,7 @@ decode(thread_t *tr, iarray_t *c) {
 void
 eval(schema_t *root, array_t *code)
 {
-	thread_t *tr = thread_create(root);
+	thread_t *tr = thread_create();
 
 	iarray_t *adrs = array_rpush(code, EXIT);
 

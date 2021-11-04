@@ -9,7 +9,6 @@ typedef struct layout {
 	table_t *parameters;
 	table_t *variables;
 	table_t *frame;
-	table_t *stack;
 
 	object_t *object;
 

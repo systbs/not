@@ -34,7 +34,6 @@ layout_create(schema_t *schema)
     layout->parameters = table_create();
     layout->variables = table_create();
 	layout->extends = table_create();
-    layout->stack = table_create();
 
 	layout->parent = nullptr;
 
@@ -55,6 +54,22 @@ layout_fpt(table_t *tbl, char *identifier)
 }
 
 variable_t *
+layout_vwp(layout_t *layout, char *identifier)
+{
+	variable_t *var;
+	if(!!(var = variable_findlst(layout->variables, identifier))){
+		return var;
+	}
+    itable_t *b;
+	for(b = layout->extends->begin; (b != layout->extends->end); b = b->next){
+        if(!!(var = layout_vwp((layout_t *)b->value, identifier))){
+            return var;
+        }
+    }
+	return nullptr;
+}
+
+variable_t *
 layout_variable(layout_t *layout, char *identifier)
 {
 	variable_t *var;
@@ -63,10 +78,15 @@ layout_variable(layout_t *layout, char *identifier)
 	}
     itable_t *b;
 	for(b = layout->extends->begin; (b != layout->extends->end); b = b->next){
-        if(!!(var = layout_variable((layout_t *)b->value, identifier))){
+        if(!!(var = layout_vwp((layout_t *)b->value, identifier))){
             return var;
         }
     }
-    // search in static vars
+    // search in parent vars
+	if(!!layout->parent){
+		if(!!(var = layout_variable(layout->parent, identifier))){
+            return var;
+        }
+	}
 	return nullptr;
 }
