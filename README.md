@@ -37,11 +37,19 @@ schame2: {
 schame3: (schame1, schame2, {
   c = "sample text 3";
   print("hello world");
+  fn: (i,j,k) :> {
+    return i+j+k;
+  }
 });
 
 schame = eval(schame3);
 print(schame.a);
+
+sum = schema.fn = (1,2,3);
+print(sum);
 ```
+
+
 # todo
 1 - schame for variable
 ```js
@@ -51,14 +59,4 @@ i = 1;
 j: 32;
 // malloc 32 bit to j
 ```
-2 - schame parameter
-```js
-fn: (a,b,c) :> {
-  return a + b + c;
-}
-a = eval(fn, 1,2,3);
-// or
-a = fn = (1,2,3);
-```
-3 - math lib for operator, memory management, threading, compile, ...
-
+2 - math lib for operator, memory management, threading, compile, ...
