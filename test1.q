@@ -20,6 +20,10 @@ f = d.fn = (1,2,3);
 print(d.c);
 print(f);
 
+print("\n");
+g = 2 * 3 + 3 * 2 * 4;
+print(g);
+
 i = 1;
 while(i <= 5){
 	j = 1;

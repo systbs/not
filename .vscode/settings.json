@@ -8,6 +8,7 @@
         "array": "cpp",
         "functional": "cpp",
         "tuple": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "algorithm": "c"
     }
 }

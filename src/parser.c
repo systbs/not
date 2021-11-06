@@ -36,11 +36,45 @@
     prs->c;\
 })
 
+int array_sizeof(int *arr) {
+    int count=0;
+    for(;*arr++;)
+        count++;
+    return count;
+}
+
+int
+next_n_is(parser_t *prs, long_t n, arval_t identifier){
+    itable_t *b = prs->c;
+    long_t i = 0;
+    for(i = 0; i < n; i++){
+        b = b->next;
+        if((b == prs->tokens->end)){
+            return 0;
+        }
+    }
+    token_t *token = (token_t *)table_content(b);
+    return token->identifier == identifier;
+}
+
 int
 next_is(parser_t *prs, arval_t identifier){
     itable_t *b = prs->c;
     token_t *token = (token_t *)table_content(b->next);
     return token->identifier == identifier;
+}
+
+int
+next_each(parser_t *prs, int *ids){
+    itable_t *b = prs->c;
+    token_t *token = (token_t *)table_content(b->next);
+    long_t i = 0;
+    int res = 0; 
+    long_t len = array_sizeof(ids);
+    for(i = 0; i < len; i++){
+        res = res || (token->identifier == ids[i]);
+    }
+    return res;
 }
 
 int
@@ -51,21 +85,28 @@ prev_is(parser_t *prs, arval_t identifier){
 }
 
 int
-next_continuable(parser_t *prs){
-    return next_is(prs, TOKEN_PLUS) +
-    next_is(prs, TOKEN_MINUS) +
-    next_is(prs, TOKEN_EQEQ) +
-    next_is(prs, TOKEN_NEQ) +
-    next_is(prs, TOKEN_GTEQ) +
-    next_is(prs, TOKEN_LTEQ) +
-    next_is(prs, TOKEN_LAND) +
-    next_is(prs, TOKEN_LOR) +
-    next_is(prs, TOKEN_AND) +
-    next_is(prs, TOKEN_OR) +
-    next_is(prs, TOKEN_LT) +
-    next_is(prs, TOKEN_GT) +
-    next_is(prs, TOKEN_LTLT) +
-    next_is(prs, TOKEN_GTGT) > 0;
+next_isop(parser_t *prs){
+    int idsc[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    return next_each(prs, idsc);
 }
 
 
@@ -154,28 +195,21 @@ expression_id(parser_t *prs, array_t *code){
     array_rpush(code, token->value);
     array_rpush(code, TP_VAR);
 
-    if(next_is(prs, TOKEN_EQ)){
-        token_next(prs);
-        expression(prs, code);
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids) || (prs->ub == 1)){
         return;
     }
 
-    if(next_is(prs, TOKEN_CGT)){
-        token_next(prs);
-        expression(prs, code);
-        return;
-    }
-
-    if(next_is(prs, TOKEN_DOT)){
-        token_next(prs);
-        expression(prs, code);
-        return;
-    }
-
-    if(next_continuable(prs)){
-        token_next(prs);
-        expression(prs, code);
-    }
+    token_next(prs);
+    expression(prs, code);
 }
 
 void
@@ -186,25 +220,21 @@ expression_super(parser_t *prs, array_t *code){
         "[SUPER] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, SUPER);
     
-    if(next_is(prs, TOKEN_LPAREN)){
-        token_next(prs);
-        array_rpush(code, PUSH);
-        expression(prs, code);
-        token = (token_t *)table_content(prs->c);
-        validate_format((token->identifier == TOKEN_RPAREN), 
-            "[SUPER] expression must end to ')' [row:%ld col:%ld]\n", token->row, token->col);
-        array_rpush(code, CALL);
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids) || (prs->ub == 1)){
         return;
     }
-    else if(next_is(prs, TOKEN_EQ)){
-        token_next(prs);
-        expression(prs, code);
-        return;
-    }
-    else if(next_continuable(prs)){
-        token_next(prs);
-        expression(prs, code);
-    }
+
+    token_next(prs);
+    expression(prs, code);
 }
 
 void
@@ -213,25 +243,22 @@ expression_this(parser_t *prs, array_t *code){
     validate_format((token->identifier == TOKEN_THIS), 
         "[THIS] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, THIS);
-    if(next_is(prs, TOKEN_LPAREN)){
-        token_next(prs);
-        array_rpush(code, PUSH);
-        expression(prs, code);
-        token = (token_t *)table_content(prs->c);
-        validate_format((token->identifier == TOKEN_RPAREN), 
-            "[THIS] expression must end to ')' [row:%ld col:%ld]\n", token->row, token->col);
-        array_rpush(code, CALL);
+
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids) || (prs->ub == 1)){
         return;
     }
-    else if(next_is(prs, TOKEN_EQ)){
-        token_next(prs);
-        expression(prs, code);
-        return;
-    }
-    else if(next_continuable(prs)){
-        token_next(prs);
-        expression(prs, code);
-    }
+
+    token_next(prs);
+    expression(prs, code);
 }
 
 void
@@ -245,15 +272,21 @@ expression_data(parser_t *prs, array_t *code){
     array_rpush(code, token->value);
     array_rpush(code, TP_ARRAY);
 
-    if(next_is(prs, TOKEN_EQ)){
-        token_next(prs);
-        expression(prs, code);
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids) || (prs->ub == 1)){
         return;
     }
-    else if(next_continuable(prs)){
-        token_next(prs);
-        expression(prs, code);
-    }
+
+    token_next(prs);
+    expression(prs, code);
 }
 
 void
@@ -267,15 +300,21 @@ expression_number(parser_t *prs, array_t *code){
     array_rpush(code, token->value);
     array_rpush(code, TP_NUMBER);
 
-    if(next_is(prs, TOKEN_EQ)){
-        token_next(prs);
-        expression(prs, code);
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids) || (prs->ub == 1)){
         return;
     }
-    else if(next_continuable(prs)){
-        token_next(prs);
-        expression(prs, code);
-    }
+
+    token_next(prs);
+    expression(prs, code);
 }
 
 void
@@ -289,12 +328,21 @@ expression_null(parser_t *prs, array_t *code){
     array_rpush(code, token->value);
     array_rpush(code, TP_NULL);
 
-    validate_format(!(next_is(prs, TOKEN_EQ)), 
-        "[NULL] wrong! after null used '=' [row:%ld col:%ld]\n", token->row, token->col);
-    if(next_continuable(prs)){
-        token_next(prs);
-        expression(prs, code);
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids) || (prs->ub == 1)){
+        return;
     }
+
+    token_next(prs);
+    expression(prs, code);
 }
 
 
@@ -372,8 +420,36 @@ expression_caret(parser_t *prs, array_t *code){
         "[CARET] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
+    prs->ub = 1;
     expression(prs, code);
+    int ids1[] = {
+        TOKEN_CARET,
+        TOKEN_LAND,
+        TOKEN_LOR
+    };
+    if(next_each(prs, ids1)){
+        prs->ub = 1;
+        token_next(prs);
+        expression(prs, code);
+    }
     array_rpush(code, XOR);
+
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids)){
+        return;
+    }
+
+    token_next(prs);
+    prs->ub = 0;
+    expression(prs, code);
 }
 
 void
@@ -383,8 +459,42 @@ expression_mul(parser_t *prs, array_t *code){
         "[STAR] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
+    prs->ub = 1;
     expression(prs, code);
+    int ids1[] = {
+        TOKEN_CARET,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_STAR, 
+        TOKEN_SLASH, 
+        TOKEN_PERCENT, 
+        TOKEN_BACKSLASH
+    };
+    if(next_each(prs, ids1)){
+        token_next(prs);
+        prs->ub = 1;
+        expression(prs, code);
+    }
     array_rpush(code, MUL);
+
+    prs->ub = 0;
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids)){
+        return;
+    }
+
+    if(next_isop(prs)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -394,8 +504,42 @@ expression_div(parser_t *prs, array_t *code){
         "[SLASH] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
+    prs->ub = 1;
     expression(prs, code);
+    int ids1[] = {
+        TOKEN_CARET,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_STAR, 
+        TOKEN_SLASH, 
+        TOKEN_PERCENT, 
+        TOKEN_BACKSLASH
+    };
+    if(next_each(prs, ids1)){
+        prs->ub = 1;
+        token_next(prs);
+        expression(prs, code);
+    }
     array_rpush(code, DIV);
+
+    prs->ub = 0;
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids)){
+        return;
+    }
+
+    if(next_isop(prs)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -405,8 +549,42 @@ expression_episode(parser_t *prs, array_t *code){
         "[BACKSLASH] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
+    prs->ub = 1;
     expression(prs, code);
+    int ids1[] = {
+        TOKEN_CARET,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_STAR, 
+        TOKEN_SLASH, 
+        TOKEN_PERCENT, 
+        TOKEN_BACKSLASH
+    };
+    if(next_each(prs, ids1)){
+        prs->ub = 1;
+        token_next(prs);
+        expression(prs, code);
+    }
     array_rpush(code, EPISODE);
+    
+    prs->ub = 0;
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids)){
+        return;
+    }
+
+    if(next_isop(prs)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -416,8 +594,40 @@ expression_mod(parser_t *prs, array_t *code){
         "[PERCENT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
+    prs->ub = 1;
     expression(prs, code);
+    int ids1[] = {
+        TOKEN_CARET,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_STAR, 
+        TOKEN_SLASH, 
+        TOKEN_PERCENT, 
+        TOKEN_BACKSLASH
+    };
+    if(next_each(prs, ids1)){
+        prs->ub = 0;
+        token_next(prs);
+        expression(prs, code);
+    }
     array_rpush(code, MOD);
+
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids)){
+        return;
+    }
+
+    token_next(prs);
+    prs->ub = 0;
+    expression(prs, code);
 }
 
 void
@@ -427,8 +637,42 @@ expression_plus(parser_t *prs, array_t *code){
         "[PLUS] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
+    prs->ub = 1;
     expression(prs, code);
+    int ids1[] = {
+        TOKEN_CARET,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_STAR, 
+        TOKEN_SLASH, 
+        TOKEN_PERCENT, 
+        TOKEN_BACKSLASH
+    };
+    if(next_each(prs, ids1)){
+        token_next(prs);
+        prs->ub = 1;
+        expression(prs, code);
+    }
     array_rpush(code, ADD);
+
+    prs->ub = 0;
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids)){
+        return;
+    }
+
+    if(next_isop(prs)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -438,8 +682,40 @@ expression_minus(parser_t *prs, array_t *code){
         "[MINUS] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
+    prs->ub = 1;
     expression(prs, code);
+    int ids1[] = {
+        TOKEN_CARET,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_STAR, 
+        TOKEN_SLASH, 
+        TOKEN_PERCENT, 
+        TOKEN_BACKSLASH
+    };
+    if(next_each(prs, ids1)){
+        prs->ub = 1;
+        token_next(prs);
+        expression(prs, code);
+    }
     array_rpush(code, SUB);
+
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids)){
+        return;
+    }
+
+    token_next(prs);
+    prs->ub = 0;
+    expression(prs, code);
 }
 
 void
@@ -493,8 +769,36 @@ expression_land(parser_t *prs, array_t *code){
         "[LAND] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
+    prs->ub = 1;
     expression(prs, code);
+    int ids1[] = {
+        TOKEN_CARET,
+        TOKEN_LAND,
+        TOKEN_LOR
+    };
+    if(next_each(prs, ids1)){
+        prs->ub = 1;
+        token_next(prs);
+        expression(prs, code);
+    }
     array_rpush(code, LAND);
+
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids)){
+        return;
+    }
+
+    token_next(prs);
+    prs->ub = 0;
+    expression(prs, code);
 }
 
 void
@@ -504,8 +808,36 @@ expression_lor(parser_t *prs, array_t *code){
         "[LOR] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
+    prs->ub = 1;
     expression(prs, code);
+    int ids1[] = {
+        TOKEN_CARET,
+        TOKEN_LAND,
+        TOKEN_LOR
+    };
+    if(next_each(prs, ids1)){
+        prs->ub = 1;
+        token_next(prs);
+        expression(prs, code);
+    }
     array_rpush(code, LOR);
+
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids)){
+        return;
+    }
+
+    token_next(prs);
+    prs->ub = 0;
+    expression(prs, code);
 }
 
 void
@@ -933,6 +1265,7 @@ expression(parser_t *prs, array_t *code){
 void 
 statement(parser_t *prs, array_t *code) {
     do {
+        prs->ub = 0;
         expression(prs, code);
         token_next(prs);
         //printf("\n");
