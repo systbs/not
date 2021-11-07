@@ -33,8 +33,6 @@ typedef enum operator {
 	AT, // @
 	DEF, // prototype
 	COMMA,
-	BLP,
-	ELP,
 
 	OR,
 	LOR,
@@ -62,6 +60,8 @@ typedef enum operator {
 	TYPEOF,
 
 	EXIT,
+	BLP = 66271,
+	ELP = 27166,
 } operator_type;
 
 typedef enum imm_type {
