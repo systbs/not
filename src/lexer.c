@@ -49,8 +49,7 @@ const char * const symbols[] = {
   [TOKEN_OR]        = "OR",	
   [TOKEN_RBRACE]    = "RBRACE",	 
   [TOKEN_TILDE]     = "TILDE",	
-
-  [TOKEN_CGT]       = "CGT",           
+        
   [TOKEN_LTLT]      = "LTLT",     
   [TOKEN_GTGT]      = "GTGT",      
   [TOKEN_LOR]       = "LOR",       
@@ -452,14 +451,6 @@ lexer(table_t *ls, const char *source)
                 continue;
             }
             else if(c == ':'){
-                if ((a = source[pos + 1]) && a == '>') {
-                    if(table_rpush(ls, (tbval_t)token_create(TOKEN_CGT,0,pos,row,col)) == nullptr){
-                        lexer_error(source, pos, row, col, "not append data!");
-                    }
-                    pos += 2;
-                    col += 2;
-                    continue;
-                }
                 if(table_rpush(ls, (tbval_t)token_create(TOKEN_COLON,0,pos,row,col)) == nullptr){
                     lexer_error(source, pos, row, col, "not append data!");
                 }
@@ -679,11 +670,6 @@ lexer(table_t *ls, const char *source)
                 continue;
             } else if(strncmp(source + pos2, "null", 4) == 0){
                 if(table_rpush(ls, (tbval_t)token_create(TOKEN_NULL,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "ref", 3) == 0){
-                if(table_rpush(ls, (tbval_t)token_create(TOKEN_REF,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;

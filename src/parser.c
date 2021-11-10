@@ -112,18 +112,6 @@ next_isop(parser_t *prs){
 
 
 
-
-void
-expression_cgt(parser_t *prs, array_t *code){
-    token_t *token = (token_t *)table_content(prs->c);
-    validate_format((token->identifier == TOKEN_CGT), 
-        "[CGT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    array_rpush(code, PUSH);
-    token_next(prs);
-    expression(prs, code);
-    array_rpush(code, CGT);
-}
-
 void
 expression_colon(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
@@ -1125,10 +1113,7 @@ expression(parser_t *prs, array_t *code){
 
     //printf(" %s ", (char *)token->symbol);
 
-    if(token->identifier == TOKEN_CGT){
-        expression_cgt(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_COLON) {
+    if(token->identifier == TOKEN_COLON) {
         expression_colon(prs, code);
         return;
     } else if(token->identifier == TOKEN_COMMA){

@@ -680,51 +680,6 @@ thread_super(thread_t *tr, iarray_t *c) {
 	return c->next;
 }
 
-iarray_t *
-thread_cgt(thread_t *tr, iarray_t *c) {
-	validate_format((tr->object->type == OTP_SCHEMA), 
-		"cgt, diffrent type of object %s\n", object_tas(tr->object));
-
-	schema_t *schema;
-	validate_format(!!(schema = (schema_t *)tr->object->ptr), 
-		"schema not defined");
-
-	object_t *esp;
-	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))), 
-		"cgt, null argument\n");
-
-	if(esp->type == OTP_PARAMS){
-		table_t *tbl = (table_t *)esp->ptr;
-		itable_t *b;
-		for(b = tbl->begin; b != tbl->end; b = b->next){
-			variable_t *var;
-			validate_format(!!(var = layout_fcnt(tr->layout, (object_t *)b->value)),
-				"can not find variable");
-			if(var->ref > 0){
-				var->ref--;
-				validate_format(!!(var = variable_define((char *)var->identifier)),
-					"unable to alloc var");
-				var->object = object_define(OTP_NULL, sizeof(ptr_t));
-			}
-			table_rpush(schema->parameters, (tbval_t)var);
-		}
-	} else {
-		variable_t *var;
-		validate_format(!!(var = layout_fcnt(tr->layout, esp)),
-			"can not find variable");
-		if(var->ref > 0){
-			var->ref--;
-			validate_format(!!(var = variable_define((char *)var->identifier)),
-				"unable to alloc var");
-			var->object = object_define(OTP_NULL, sizeof(ptr_t));
-		}
-		table_rpush(schema->parameters, (tbval_t)var);
-	}
-
-	return c->next;
-}
-
-
 
 
 iarray_t *
@@ -1120,9 +1075,6 @@ decode(thread_t *tr, iarray_t *c) {
 			break;
 		case SIM:
 			return thread_sim(tr, c);
-			break;
-		case CGT:
-			return thread_cgt(tr, c);
 			break;
 		case DEF:
 			return thread_def(tr, c);
