@@ -30,20 +30,23 @@ layout_create(schema_t *schema)
 
     layout->schema = schema;
 
+	// save previous object in frame then retrive it
 	layout->frame = table_create();
+	// save previous variables in scope
+	layout->scope = table_create();
     layout->parameters = table_create();
     layout->variables = table_create();
 	layout->extends = table_create();
 
 	if(!!schema){
 		itable_t *b;
-		for(b = schema->parameters->begin; b != schema->parameters->end; b = b->next){
+		for(b = schema->variables->begin; b != schema->variables->end; b = b->next){
 			variable_t *var = (variable_t *)b->value;
 			validate_format(!!(var = variable_define((char *)var->identifier)),
 				"unable to alloc var");
 			var->object = object_define(OTP_NULL, sizeof(ptr_t));
 			table_rpush(layout->variables, (tbval_t)var);
-			table_rpush(layout->parameters, (tbval_t)var->object);
+			table_rpush(layout->parameters, (tbval_t)object_clone(var->object));
 		}
 	}
 
@@ -67,15 +70,20 @@ layout_fpt(table_t *tbl, char *identifier)
 
 //find variable by id without parent
 variable_t *
-layout_var_wp(layout_t *layout, char *identifier)
+layout_vwp(layout_t *layout, char *identifier)
 {
 	variable_t *var;
 	if(!!(var = variable_findlst(layout->variables, identifier))){
 		return var;
 	}
     itable_t *b;
+	for(b = layout->scope->begin; (b != layout->scope->end); b = b->next){
+        if(!!(var = variable_findlst((table_t *)b->value, identifier))){
+            return var;
+        }
+    }
 	for(b = layout->extends->begin; (b != layout->extends->end); b = b->next){
-        if(!!(var = layout_var_wp((layout_t *)b->value, identifier))){
+        if(!!(var = layout_vwp((layout_t *)b->value, identifier))){
             return var;
         }
     }
@@ -86,58 +94,17 @@ variable_t *
 layout_variable(layout_t *layout, char *identifier)
 {
 	variable_t *var;
-	if(!!(var = variable_findlst(layout->variables, identifier))){
+	if(!!(var = layout_vwp(layout, identifier))){
 		return var;
 	}
     itable_t *b;
 	for(b = layout->extends->begin; (b != layout->extends->end); b = b->next){
-        if(!!(var = layout_var_wp((layout_t *)b->value, identifier))){
+        if(!!(var = layout_vwp((layout_t *)b->value, identifier))){
             return var;
         }
     }
-    // search in parent vars
 	if(!!layout->parent){
 		if(!!(var = layout_variable(layout->parent, identifier))){
-            return var;
-        }
-	}
-	return nullptr;
-}
-
-//find variable by content without parent
-variable_t *
-layout_var_cwp(layout_t *layout, object_t *object)
-{
-	variable_t *var;
-	if(!!(var = variable_fcnt(layout->variables, object))){
-		return var;
-	}
-    itable_t *b;
-	for(b = layout->extends->begin; (b != layout->extends->end); b = b->next){
-        if(!!(var = layout_var_cwp((layout_t *)b->value, object))){
-            return var;
-        }
-    }
-	return nullptr;
-}
-
-//get variable by content
-variable_t *
-layout_fcnt(layout_t *layout, object_t *object)
-{
-	variable_t *var;
-	if(!!(var = variable_fcnt(layout->variables, object))){
-		return var;
-	}
-    itable_t *b;
-	for(b = layout->extends->begin; (b != layout->extends->end); b = b->next){
-        if(!!(var = layout_var_cwp((layout_t *)b->value, object))){
-            return var;
-        }
-    }
-    // search in parent vars
-	if(!!layout->parent){
-		if(!!(var = layout_fcnt(layout->parent, object))){
             return var;
         }
 	}

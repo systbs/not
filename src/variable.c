@@ -28,7 +28,6 @@ variable_define(char *identifier)
 	validate_format(!!(var = qalam_malloc(sizeof(variable_t))), 
 		"variable not true defined");
 	var->identifier = identifier;
-	var->ref = 0;
 	return var;
 }
 

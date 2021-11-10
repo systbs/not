@@ -2,7 +2,6 @@
 
 typedef struct variable {
 	char_t *identifier;
-	long_t ref;
 	object_t *object;
 } variable_t;
 

@@ -216,6 +216,14 @@ expression_super(parser_t *prs, array_t *code){
         "[SUPER] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, SUPER);
     
+    if(next_is(prs, TOKEN_LPAREN)){
+        array_rpush(code, PUSH);
+        token_next(prs);
+        expression(prs, code);
+        array_rpush(code, COMMA);
+        array_rpush(code, CALL);
+    }
+
     int ids[] = {
         TOKEN_COMMA, 
         TOKEN_SEMICOLON, 
@@ -239,6 +247,14 @@ expression_this(parser_t *prs, array_t *code){
     validate_format((token->identifier == TOKEN_THIS), 
         "[THIS] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, THIS);
+
+    if(next_is(prs, TOKEN_LPAREN)){
+        array_rpush(code, PUSH);
+        token_next(prs);
+        expression(prs, code);
+        array_rpush(code, COMMA);
+        array_rpush(code, CALL);
+    }
 
     int ids[] = {
         TOKEN_COMMA, 

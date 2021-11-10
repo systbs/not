@@ -957,9 +957,18 @@ thread_print(thread_t *tr, iarray_t *c) {
 	return c->next;
 }
 
+iarray_t *
+thread_blp(thread_t *tr, iarray_t *c) {
+	table_rpush(tr->layout->scope, (tbval_t)tr->layout->variables);
+	tr->layout->variables = table_create();
+	return c->next;
+}
 
-
-
+iarray_t *
+thread_elp(thread_t *tr, iarray_t *c) {
+	tr->layout->variables = (table_t *)table_content(table_rpop(tr->layout->scope));
+	return c->next;
+}
 
 iarray_t *
 decode(thread_t *tr, iarray_t *c) {
@@ -971,10 +980,10 @@ decode(thread_t *tr, iarray_t *c) {
 			return c->next;
 			break;
 		case BLP:
-			return c->next;
+			return thread_blp(tr, c);
 			break;
 		case ELP:
-			return c->next;
+			return thread_blp(tr, c);
 			break;
 
 		case OR:

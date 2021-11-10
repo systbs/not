@@ -9,6 +9,7 @@ typedef struct layout {
 	table_t *parameters;
 	table_t *variables;
 	table_t *frame;
+	table_t *scope;
 
 	object_t *object;
 
@@ -23,6 +24,3 @@ layout_fpt(table_t *tbl, char *identifier);
 
 variable_t *
 layout_variable(layout_t *layout, char *identifier);
-
-variable_t *
-layout_fcnt(layout_t *layout, object_t *object);
