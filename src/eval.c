@@ -788,29 +788,29 @@ thread_ret(thread_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-thread_def(thread_t *tr, iarray_t *c) {
+thread_classify(thread_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
-		"[DEF] missing object");
+		"[CLSFY] missing object");
 
 	validate_format((esp->type == OTP_SCHEMA) || (esp->type == OTP_NULL), 
-		"[DEF] def type use only for null or schema type, %s", object_tas(esp));
+		"[CLSFY] classify type use only for null or schema type, %s", object_tas(esp));
 
 	if((esp->type == OTP_NULL)){
 		validate_format(!!(esp = object_redefine(esp, OTP_SCHEMA, sizeof(schema_t))), 
-			"[DEF] redefine object for type schema");
+			"[CLSFY] redefine object for type schema");
 		if(tr->object->type == OTP_PARAMS) {
 			object_t *object;
 			validate_format(!!(object = (object_t *)table_content(table_rpop((table_t *)tr->object->ptr))), 
-				"[DEF] pop schema fram list ignored");
+				"[CLSFY] pop schema fram list ignored");
 			validate_format((object->type == OTP_SCHEMA), 
-				"[DEF] def type use only for schema type, %s", 
+				"[CLSFY] classify type use only for schema type, %s", 
 				object_tas(object)
 			);
 			esp->ptr = object->ptr;
 		} else {
 			validate_format((tr->object->type == OTP_SCHEMA), 
-				"[DEF] def type use only for schema type, %s", 
+				"[CLSFY] classify type use only for schema type, %s", 
 				object_tas(tr->object)
 			);
 			esp->ptr = tr->object->ptr;
@@ -821,7 +821,7 @@ thread_def(thread_t *tr, iarray_t *c) {
 
 	schema_t *schema;
 	validate_format(!!(schema = (schema_t *)esp->ptr),
-		"[DEF] schema is null");
+		"[CLSFY] schema is null");
 
 	if(tr->object->type == OTP_PARAMS){
 		table_t *tbl = (table_t *)tr->object->ptr;
@@ -829,13 +829,13 @@ thread_def(thread_t *tr, iarray_t *c) {
 		for(b = tbl->begin; b != tbl->end; b = b->next){
 			object_t *object = (object_t *)b->value;
 			validate_format((object->type == OTP_SCHEMA), 
-				"[DEF] schema type for def operator is required %s", object_tas(object));
+				"[CLSFY] schema type for classify operator is required %s", object_tas(object));
 			table_rpush(schema->extends, (tbval_t)object->ptr);
 		}
 	} 
 	else if(tr->object->type == OTP_SCHEMA) {
 		validate_format((tr->object->type == OTP_SCHEMA), 
-			"[DEF] schema type for def operator is required %s", object_tas(tr->object));
+			"[CLSFY] schema type for classify operator is required %s", object_tas(tr->object));
 		table_rpush(schema->extends, (tbval_t)tr->object->ptr);
 	}
 
@@ -1085,8 +1085,8 @@ decode(thread_t *tr, iarray_t *c) {
 		case SIM:
 			return thread_sim(tr, c);
 			break;
-		case DEF:
-			return thread_def(tr, c);
+		case CLSFY:
+			return thread_classify(tr, c);
 			break;
 		case RET:
 			return thread_ret(tr, c);

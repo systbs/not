@@ -603,6 +603,11 @@ lexer(table_t *ls, const char *source)
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
+            } else if(strncmp(source + pos2, "def", 3) == 0){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_DEF,0,pos2,row,col-(pos-pos2))) == nullptr){
+                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
+                }
+                continue;
             } else if(strncmp(source + pos2, "if", 2) == 0){
                 if(table_rpush(ls, (tbval_t)token_create(TOKEN_IF,0,pos2,row,col-(pos-pos2))) == nullptr){
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");

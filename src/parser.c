@@ -120,7 +120,7 @@ expression_colon(parser_t *prs, array_t *code){
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
-    array_rpush(code, DEF);
+    array_rpush(code, CLSFY);
 }
 
 void
@@ -1079,6 +1079,24 @@ expression_lbrace(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_LBRACE), 
         "[LBRACE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+    token_next(prs);
+    do {
+        expression(prs, code);
+        token_next(prs);
+        token = (token_t *)table_content(prs->c);
+    } while (token->identifier != TOKEN_RBRACE);
+}
+
+void
+expression_def(parser_t *prs, array_t *code){
+    token_t *token = (token_t *)table_content(prs->c);
+    validate_format((token->identifier == TOKEN_DEF), 
+        "[DEF] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+
+    token_next(prs);
+    token = (token_t *)table_content(prs->c);
+    validate_format((token->identifier == TOKEN_LBRACE), 
+        "[DEF] bad expression [row:%ld col:%ld]\n", token->row, token->col);
 
     array_rpush(code, JMP);
     iarray_t *region = array_rpush(code, 0);
@@ -1092,13 +1110,7 @@ expression_lbrace(parser_t *prs, array_t *code){
     table_rpush(prs->schemas, (tbval_t)prs->schema);
     prs->schema = schema;
 
-    token_next(prs);
-
-    do {
-        expression(prs, code);
-        token_next(prs);
-        token = (token_t *)table_content(prs->c);
-    } while (token->identifier != TOKEN_RBRACE);
+    expression(prs, code);
 
     prs->schema = (schema_t *)table_content(table_rpop(prs->schemas));
     
@@ -1252,6 +1264,9 @@ expression(parser_t *prs, array_t *code){
     } else if(token->identifier == TOKEN_LBRACE){
         expression_lbrace(prs, code);
         return;
+    } else if(token->identifier == TOKEN_DEF){
+        expression_def(prs, code);
+        return;
     } else if(token->identifier == TOKEN_DOT){
         expression_dot(prs, code);
         return;
@@ -1314,7 +1329,7 @@ const char * const STRCODE[] = {
 	[EXTND] = "EXTND",
 	[FN] = "FN",
 	[AT] = "AT", 
-	[DEF] = "DEF", 
+	[CLSFY] = "CLSFY", 
 	[COMMA] = "COMMA",
 	[BLP] = "BLP",
 	[ELP] = "ELP",

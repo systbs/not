@@ -38,7 +38,7 @@ enum
   TOKEN_RBRACE = 125,	 //	}
   TOKEN_TILDE = 126,	 //	~
 
-  TOKEN_CGT,            // :>
+  TOKEN_CGT,       // :>
   TOKEN_LTLT,      // <<
   TOKEN_GTGT,      // >>
   TOKEN_LOR,       // ||
@@ -70,6 +70,7 @@ enum
   TOKEN_EVAL,
   TOKEN_FN,
   TOKEN_ARG,
+  TOKEN_DEF,
 
 
   // system function

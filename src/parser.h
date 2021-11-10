@@ -31,7 +31,7 @@ typedef enum operator {
 	EXTND,
 	FN,
 	AT, // @
-	DEF, // prototype
+	CLSFY, // prototype
 	COMMA,
 
 	OR,

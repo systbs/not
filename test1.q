@@ -1,15 +1,15 @@
-category1: {
+category1: def {
 	a = "simple text 1";
 };
 
-category2: {
+category2: def {
 	b = "simple text 2";
 };
 
-category3: (category1, category2, {
+category3: (category1, category2, def {
 	c = "simple text 3\n";
 	print("Hello World\n");
-	fn: {
+	fn: def {
 		(i, j, k) = params;
 		return i + j + k;
 	}
