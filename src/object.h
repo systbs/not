@@ -1,6 +1,5 @@
 #pragma once
 
-
 typedef enum object_type {
 	OTP_LONG,
 	OTP_DOUBLE,

@@ -42,6 +42,18 @@ object_clone(object_t *object)
 
 void 
 object_assign(object_t *target, object_t *source){
+	if((target->type == OTP_PARAMS) && (source->type == OTP_PARAMS)){
+		table_t *tt = (table_t *)target->ptr;
+		table_t *ts = (table_t *)source->ptr;
+		itable_t *a, *b;
+		for(a = tt->begin, b = ts->begin; a != tt->end; a = a->next){
+			if(b == ts->end){
+				return;
+			}
+			object_assign((object_t *)a->value, (object_t *)b->value);
+		}
+		return;
+	}
 	if(object_sizeof(source) != object_sizeof(target)){
 		target = object_redefine(target, source->type, qalam_sizeof(source->ptr));
 	}

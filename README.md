@@ -37,7 +37,8 @@ schame2: {
 schame3: (schame1, schame2, {
   c = "sample text 3";
   print("hello world");
-  fn: (i,j,k) :> {
+  fn: {
+    (i, j, k) = params;
     return i+j+k;
   }
 });
@@ -59,6 +60,4 @@ i = 1;
 j: 32;
 // malloc 32 bit to j
 ```
-2 - improve operator ":>" for layout and another objects
-
-3 - math lib for operator, memory management, threading, compile, ...
+2 - math lib for operator, memory management, threading, compile, ...

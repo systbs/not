@@ -516,15 +516,13 @@ thread_imm(thread_t *tr, iarray_t *c) {
 	arval_t value = c->value;
 	c = c->next;
 	
-	if(c->value == TP_VAR){
+	if (c->value == TP_VAR) {
 		variable_t *var;
 		if(!!(var = layout_variable(tr->layout, (char *)value))){
-			var->ref++;
 			validate_format(!!(tr->object = variable_content(var)),
 				"[IMM] variable dont have content");
 			return c->next;
 		}
-		
 		schema_t *schema;
 		if(!!(schema = schema_branches(tr->layout->schema, (char *)value))){
 			object_t *object;
@@ -534,7 +532,6 @@ thread_imm(thread_t *tr, iarray_t *c) {
 			tr->object = object;
 			return c->next;
 		}
-		
 		var = variable_define((char *)value);
 		var->object = object_define(OTP_NULL, sizeof(ptr_t));
 		table_rpush(tr->layout->variables, (tbval_t)var);
@@ -743,21 +740,25 @@ thread_ent(thread_t *tr, iarray_t *c) {
 
 	tr->layout->object = object_define(OTP_NULL, sizeof(ptr_t));
 
-	itable_t *b;
-	for(b = tr->layout->parameters->begin; b != tr->layout->parameters->end; b = b->next){
-		object_t *target = (object_t *)b->value;
-		if(!!tr->object){
-			if(tr->object->type == OTP_PARAMS){
-				object_t *source;
-				if (!!(source = (object_t *)table_content(table_rpop((table_t *)tr->object->ptr)))) {
-					object_assign(target, source);
-				}
-			} else {
-				object_assign(target, tr->object);
-				tr->object = nullptr;
+	if(!!tr->object){
+		if(tr->object->type == OTP_PARAMS){
+			object_t *object;
+			while (!!(object = (object_t *)table_content(table_lpop((table_t *)tr->object->ptr)))) {
+				table_rpush(tr->layout->parameters, (tbval_t)object);
 			}
+			tr->object = nullptr;
+		} else {
+			table_rpush(tr->layout->parameters, (tbval_t)tr->object);
+			tr->object = nullptr;
 		}
 	}
+
+	variable_t *var;
+	var = variable_define("params");
+	var->object = object_define(OTP_PARAMS, sizeof(table_t));
+	table_rpush(tr->layout->variables, (tbval_t)var);
+	var->object->ptr = tr->layout->parameters;
+
 	return c->next;
 }
 
@@ -824,7 +825,7 @@ thread_def(thread_t *tr, iarray_t *c) {
 	validate_format((esp->type == OTP_SCHEMA) || (esp->type == OTP_NULL), 
 		"[DEF] def type use only for null or schema type, %s", object_tas(esp));
 
-	if(esp->type == OTP_NULL){
+	if((esp->type == OTP_NULL)){
 		validate_format(!!(esp = object_redefine(esp, OTP_SCHEMA, sizeof(schema_t))), 
 			"[DEF] redefine object for type schema");
 		if(tr->object->type == OTP_PARAMS) {

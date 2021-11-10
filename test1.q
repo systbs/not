@@ -9,7 +9,8 @@ category2: {
 category3: (category1, category2, {
 	c = "simple text 3\n";
 	print("Hello World\n");
-	fn: (i,j,k) :> {
+	fn: {
+		(i, j, k) = params;
 		return i + j + k;
 	}
 });
