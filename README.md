@@ -5,39 +5,39 @@ interpreter
 ## variable
 ```js
 [var name] = [value];
-schame: {
+schame: def {
   a = "sample text";
 }
 ```
 
 ## class(schame)
 ```js
-[schame name]: {
+[schame name]: def {
   [expr...]
 }
 ```
 
 ## inheritance
 ```js
-[schame name]:([schame_extend_name1],[schame_extend_name2], {
+[schame name]:([schame_extend_name1],[schame_extend_name2], def {
   [expr...]
 });
 ```
 
 ## sample code
 ```js
-schame1: {
+schame1: def {
   a = "sample text 1";
 }
 
-schame2: {
+schame2: def {
   b = "sample text 2";
 }
 
-schame3: (schame1, schame2, {
+schame3: (schame1, schame2, def {
   c = "sample text 3";
   print("hello world");
-  fn: {
+  fn: def {
     (i, j, k) = params;
     return i+j+k;
   }
