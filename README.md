@@ -46,7 +46,8 @@ schame3: (schame1, schame2, {
 schame = eval(schame3);
 print(schame.a);
 
-sum = schema.fn = (1,2,3);
+sum = schema.fn(1,2,3);
+// sum = schema.fn = (1,2,3);
 print(sum);
 ```
 

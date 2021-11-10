@@ -492,13 +492,29 @@ thread_comma(thread_t *tr, iarray_t *c){
 
 		table_rpush(tbl, (tbval_t)esp);
 
-		table_rpush(tbl, (tbval_t)tr->object);
-
+		if(tr->object->type == OTP_PARAMS){
+			table_t *ts = (table_t *)tr->object->ptr;
+			itable_t *a;
+			for(a = ts->begin; a != ts->end; a = a->next){
+				table_rpush(tbl, (tbval_t)a->value);
+			}
+		}else{
+			table_rpush(tbl, (tbval_t)tr->object);
+		}
+		
 		obj->ptr = tbl;
 
 		tr->object = obj;
 	} else {
-		table_rpush((table_t *)esp->ptr, (tbval_t)tr->object);
+		if(tr->object->type == OTP_PARAMS){
+			table_t *ts = (table_t *)tr->object->ptr;
+			itable_t *a;
+			for(a = ts->begin; a != ts->end; a = a->next){
+				table_rpush((table_t *)esp->ptr, (tbval_t)a->value);
+			}
+		}else{
+			table_rpush((table_t *)esp->ptr, (tbval_t)tr->object);
+		}
 		tr->object = esp;
 	}
 	return c->next;

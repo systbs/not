@@ -16,7 +16,7 @@ category3: (category1, category2, {
 });
 
 d = category3 = null;
-f = d.fn = (1,2,3);
+f = d.fn(1,2,3);
 
 print(d.c);
 print(f);

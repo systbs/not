@@ -195,6 +195,14 @@ expression_id(parser_t *prs, array_t *code){
     array_rpush(code, token->value);
     array_rpush(code, TP_VAR);
 
+    if(next_is(prs, TOKEN_LPAREN)){
+        array_rpush(code, PUSH);
+        token_next(prs);
+        expression(prs, code);
+        array_rpush(code, COMMA);
+        array_rpush(code, CALL);
+    }
+
     int ids[] = {
         TOKEN_COMMA, 
         TOKEN_SEMICOLON, 
@@ -566,7 +574,7 @@ expression_episode(parser_t *prs, array_t *code){
         expression(prs, code);
     }
     array_rpush(code, EPISODE);
-    
+
     prs->ub = 0;
     int ids[] = {
         TOKEN_COMMA, 
