@@ -11,11 +11,12 @@ category3: (category1, category2, def {
 	print("Hello World\n");
 	fn: def {
 		(i, j, k) = params;
+		print(params[1]);
 		return i + j + k;
 	}
 });
 
-d = category3 = null;
+d = category3();
 f = d.fn(1,2,3);
 
 print(d.c);

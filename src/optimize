@@ -820,27 +820,27 @@ iarray_t *
 compile_def(compile_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->schema->frame))),
-		"[CLSFY] missing object");
+		"[CLS] missing object");
 
 	validate_format((esp->type == OTP_SCHEMA) || (esp->type == OTP_NULL), 
-		"[CLSFY] def type use only for null or schema type, %s", object_tas(esp->type));
+		"[CLS] def type use only for null or schema type, %s", object_tas(esp->type));
 
 	if(esp->type == OTP_NULL){
 		validate_format(!!(esp = object_redefine(esp, OTP_SCHEMA, sizeof(schema_t))), 
-			"[CLSFY] redefine object for type schema");
+			"[CLS] redefine object for type schema");
 
 		if(tr->object->type == OTP_PARAMS) {
 			object_t *object;
 			validate_format(!!(object = (object_t *)table_content(table_rpop((table_t *)tr->object->ptr))), 
-				"[CLSFY] pop schema fram list ignored");
+				"[CLS] pop schema fram list ignored");
 			validate_format((object->type == OTP_SCHEMA), 
-				"[CLSFY] def type use only for schema type, %s", 
+				"[CLS] def type use only for schema type, %s", 
 				object_tas(object->type)
 			);
 			esp->ptr = object->ptr;
 		} else {
 			validate_format((tr->object->type == OTP_SCHEMA), 
-				"[CLSFY] def type use only for schema type, %s", 
+				"[CLS] def type use only for schema type, %s", 
 				object_tas(tr->object->type)
 			);
 			esp->ptr = tr->object->ptr;
@@ -851,7 +851,7 @@ compile_def(compile_t *tr, iarray_t *c) {
 
 	schema_t *schema;
 	validate_format(!!(schema = (schema_t *)esp->ptr),
-		"[CLSFY] schema is null");
+		"[CLS] schema is null");
 
 	if(tr->object->type == OTP_PARAMS){
 		table_t *tbl = (table_t *)tr->object->ptr;
@@ -859,13 +859,13 @@ compile_def(compile_t *tr, iarray_t *c) {
 		for(b = tbl->begin; b != tbl->end; b = b->next){
 			object_t *object = (object_t *)b->value;
 			validate_format((object->type == OTP_SCHEMA), 
-				"[CLSFY] schema type for def operator is required %s", object_tas(object->type));
+				"[CLS] schema type for def operator is required %s", object_tas(object->type));
 			table_rpush(schema->extends, (tbval_t)object->ptr);
 		}
 	} 
 	else if(tr->object->type == OTP_SCHEMA) {
 		validate_format((tr->object->type == OTP_SCHEMA), 
-			"[CLSFY] schema type for def operator is required %s", object_tas(tr->object->type));
+			"[CLS] schema type for def operator is required %s", object_tas(tr->object->type));
 		table_rpush(schema->extends, (tbval_t)tr->object->ptr);
 	}
 	else if(tr->object->type == OTP_LONG) {
@@ -1090,7 +1090,7 @@ compile_decode(compile_t *tr, iarray_t *c) {
 		case CGT:
 			return compile_cgt(tr, c);
 			break;
-		case CLSFY:
+		case CLS:
 			return compile_def(tr, c);
 			break;
 		case RET:

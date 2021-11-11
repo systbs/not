@@ -17,7 +17,7 @@ typedef enum operator {
 	BREAK, 	// break
 	DOT,  	// change schema path
 	CALL, 	// call a function 12
-	CGT,
+	CELL,
 
 	JMP,   	// jump
 	JZ,  	// jump if sp is not zero
@@ -31,7 +31,7 @@ typedef enum operator {
 	EXTND,
 	FN,
 	AT, // @
-	CLSFY, // prototype
+	CLS, // prototype
 	COMMA,
 
 	OR,
@@ -60,8 +60,10 @@ typedef enum operator {
 	TYPEOF,
 
 	EXIT,
-	BLP = 66271,
-	ELP = 27166,
+	BSCP,
+	ESCP,
+	BLP,
+	ELP
 } operator_type;
 
 typedef enum imm_type {

@@ -120,7 +120,7 @@ expression_colon(parser_t *prs, array_t *code){
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
-    array_rpush(code, CLSFY);
+    array_rpush(code, CLS);
 }
 
 void
@@ -186,9 +186,22 @@ expression_id(parser_t *prs, array_t *code){
     if(next_is(prs, TOKEN_LPAREN)){
         array_rpush(code, PUSH);
         token_next(prs);
-        expression(prs, code);
-        array_rpush(code, COMMA);
+        if(!next_is(prs, TOKEN_RPAREN)){
+            expression(prs, code);
+        }else{
+            token_next(prs);
+        }
         array_rpush(code, CALL);
+    }
+    else if(next_is(prs, TOKEN_LBRACKET)){
+        array_rpush(code, PUSH);
+        token_next(prs);
+        if(!next_is(prs, TOKEN_RBRACKET)){
+            expression(prs, code);
+        }else{
+            token_next(prs);
+        }
+        array_rpush(code, CELL);
     }
 
     int ids[] = {
@@ -981,6 +994,8 @@ expression_while(parser_t *prs, array_t *code){
     validate_format((token->identifier == TOKEN_WHILE), 
         "[WHILE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     /* while expr expr */
+    array_rpush(code, BSCP);
+
     iarray_t *a = array_rpush(code, BLP);
     iarray_t *c = array_rpush(code, ELP);
 
@@ -997,9 +1012,8 @@ expression_while(parser_t *prs, array_t *code){
             expression(prs, code);
             token_next(prs);
             token = (token_t *)table_content(prs->c);
-        } while(token->identifier != TOKEN_RBRACE);
-    }
-    else {
+        } while (token->identifier != TOKEN_RBRACE);
+    } else {
         expression(prs, code);
     }
 
@@ -1009,6 +1023,7 @@ expression_while(parser_t *prs, array_t *code){
     array_link(code, code->end, c);
 
     b->value = (arval_t) c;
+    array_rpush(code, ESCP);
 }
 
 void
@@ -1020,16 +1035,6 @@ expression_return(parser_t *prs, array_t *code){
     expression(prs, code);
     array_rpush(code, RET);
     array_rpush(code, LEV);
-}
-
-void
-expression_eval(parser_t *prs, array_t *code){
-    token_t *token = (token_t *)table_content(prs->c);
-    validate_format((token->identifier == TOKEN_EVAL), 
-        "[EVAL] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    token_next(prs);
-    expression(prs, code);
-    array_rpush(code, CALL);
 }
 
 void
@@ -1252,9 +1257,6 @@ expression(parser_t *prs, array_t *code){
     } else if(token->identifier == TOKEN_PRINT){
         expression_print(prs, code);
         return;
-    } else if(token->identifier == TOKEN_EVAL){
-        expression_eval(prs, code);
-        return;
     } else if(token->identifier == TOKEN_LPAREN){
         expression_lparen(prs, code);
         return;
@@ -1300,9 +1302,9 @@ statement(parser_t *prs, array_t *code) {
 
 
 const char * const STRCODE[] = {
-	[NUL]       = "NUL", 
-	[IMM]       = "IMM",   
-	[VAR]       = "VAR",
+	[NUL] = "NUL", 
+	[IMM] = "IMM",   
+	[VAR] = "VAR",
 	[DATA] = "DATA",
 	[SUPER] = "SUPER", 
 	[THIS] = "THIS", 
@@ -1315,7 +1317,7 @@ const char * const STRCODE[] = {
 	[BREAK] = "BREAK",
 	[DOT] = "DOT", 
 	[CALL] = "CALL", 
-	[CGT] = "CGT",
+	[CELL] = "CELL",
 
 	[JMP] = "JMP",  
 	[JZ] = "JZ",  	
@@ -1329,7 +1331,7 @@ const char * const STRCODE[] = {
 	[EXTND] = "EXTND",
 	[FN] = "FN",
 	[AT] = "AT", 
-	[CLSFY] = "CLSFY", 
+	[CLS] = "CLS", 
 	[COMMA] = "COMMA",
 	[BLP] = "BLP",
 	[ELP] = "ELP",

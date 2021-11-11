@@ -492,29 +492,13 @@ thread_comma(thread_t *tr, iarray_t *c){
 
 		table_rpush(tbl, (tbval_t)esp);
 
-		if(tr->object->type == OTP_PARAMS){
-			table_t *ts = (table_t *)tr->object->ptr;
-			itable_t *a;
-			for(a = ts->begin; a != ts->end; a = a->next){
-				table_rpush(tbl, (tbval_t)a->value);
-			}
-		}else{
-			table_rpush(tbl, (tbval_t)tr->object);
-		}
+		table_rpush(tbl, (tbval_t)tr->object);
 		
 		obj->ptr = tbl;
 
 		tr->object = obj;
 	} else {
-		if(tr->object->type == OTP_PARAMS){
-			table_t *ts = (table_t *)tr->object->ptr;
-			itable_t *a;
-			for(a = ts->begin; a != ts->end; a = a->next){
-				table_rpush((table_t *)esp->ptr, (tbval_t)a->value);
-			}
-		}else{
-			table_rpush((table_t *)esp->ptr, (tbval_t)tr->object);
-		}
+		table_rpush((table_t *)esp->ptr, (tbval_t)tr->object);
 		tr->object = esp;
 	}
 	return c->next;
@@ -681,21 +665,34 @@ thread_super(thread_t *tr, iarray_t *c) {
 }
 
 
+iarray_t *
+thread_cell(thread_t *tr, iarray_t *c) {
+	object_t *esp;
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
+			"bad get operation!");
+
+	validate_format((esp->type == OTP_ARRAY) || (esp->type == OTP_PARAMS), 
+		"[CELL] for %s type, get array operator only use for ARRAY/PARAMS type", 
+	object_tas(esp));
+
+	validate_format(!!object_isnum(tr->object), 
+		"[CELL] for %s type, index must be a number type", 
+		object_tas(tr->object));
+
+	tr->object = (object_t *)table_content(table_at((table_t *)esp->ptr, oget(tr->object)));
+	return c->next;
+}
+
 
 iarray_t *
 thread_call(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	if(tr->object->type == OTP_PARAMS){
-		validate_format(!!(esp = (object_t *)table_content(table_lpop((table_t *)tr->object->ptr))),
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 			"bad call operation!");
-	} else {
-		esp = tr->object;
-		tr->object = nullptr;
-	}
 
 	validate_format((esp->type == OTP_SCHEMA), 
 		"[CALL] for %s type, eval operator only use for SCHEMA type", 
-	object_tas(esp));
+		object_tas(esp));
 		
 	return call(tr, (schema_t *)esp->ptr, c->next);
 }
@@ -788,29 +785,29 @@ thread_ret(thread_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-thread_classify(thread_t *tr, iarray_t *c) {
+thread_scheming(thread_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
-		"[CLSFY] missing object");
+		"[CLS] missing object");
 
 	validate_format((esp->type == OTP_SCHEMA) || (esp->type == OTP_NULL), 
-		"[CLSFY] classify type use only for null or schema type, %s", object_tas(esp));
+		"[CLS] scheming type use only for null or schema type, %s", object_tas(esp));
 
 	if((esp->type == OTP_NULL)){
 		validate_format(!!(esp = object_redefine(esp, OTP_SCHEMA, sizeof(schema_t))), 
-			"[CLSFY] redefine object for type schema");
+			"[CLS] redefine object for type schema");
 		if(tr->object->type == OTP_PARAMS) {
 			object_t *object;
 			validate_format(!!(object = (object_t *)table_content(table_rpop((table_t *)tr->object->ptr))), 
-				"[CLSFY] pop schema fram list ignored");
+				"[CLS] pop schema fram list ignored");
 			validate_format((object->type == OTP_SCHEMA), 
-				"[CLSFY] classify type use only for schema type, %s", 
+				"[CLS] scheming type use only for schema type, %s", 
 				object_tas(object)
 			);
 			esp->ptr = object->ptr;
 		} else {
 			validate_format((tr->object->type == OTP_SCHEMA), 
-				"[CLSFY] classify type use only for schema type, %s", 
+				"[CLS] scheming type use only for schema type, %s", 
 				object_tas(tr->object)
 			);
 			esp->ptr = tr->object->ptr;
@@ -821,7 +818,7 @@ thread_classify(thread_t *tr, iarray_t *c) {
 
 	schema_t *schema;
 	validate_format(!!(schema = (schema_t *)esp->ptr),
-		"[CLSFY] schema is null");
+		"[CLS] schema is null");
 
 	if(tr->object->type == OTP_PARAMS){
 		table_t *tbl = (table_t *)tr->object->ptr;
@@ -829,13 +826,13 @@ thread_classify(thread_t *tr, iarray_t *c) {
 		for(b = tbl->begin; b != tbl->end; b = b->next){
 			object_t *object = (object_t *)b->value;
 			validate_format((object->type == OTP_SCHEMA), 
-				"[CLSFY] schema type for classify operator is required %s", object_tas(object));
+				"[CLS] schema type for scheming operator is required %s", object_tas(object));
 			table_rpush(schema->extends, (tbval_t)object->ptr);
 		}
 	} 
 	else if(tr->object->type == OTP_SCHEMA) {
 		validate_format((tr->object->type == OTP_SCHEMA), 
-			"[CLSFY] schema type for classify operator is required %s", object_tas(tr->object));
+			"[CLS] schema type for scheming operator is required %s", object_tas(tr->object));
 		table_rpush(schema->extends, (tbval_t)tr->object->ptr);
 	}
 
@@ -958,17 +955,18 @@ thread_print(thread_t *tr, iarray_t *c) {
 }
 
 iarray_t *
-thread_blp(thread_t *tr, iarray_t *c) {
+thread_bscp(thread_t *tr, iarray_t *c) {
 	table_rpush(tr->layout->scope, (tbval_t)tr->layout->variables);
 	tr->layout->variables = table_create();
 	return c->next;
 }
 
 iarray_t *
-thread_elp(thread_t *tr, iarray_t *c) {
+thread_escp(thread_t *tr, iarray_t *c) {
 	tr->layout->variables = (table_t *)table_content(table_rpop(tr->layout->scope));
 	return c->next;
 }
+
 
 iarray_t *
 decode(thread_t *tr, iarray_t *c) {
@@ -980,10 +978,16 @@ decode(thread_t *tr, iarray_t *c) {
 			return c->next;
 			break;
 		case BLP:
-			return thread_blp(tr, c);
+			return c->next;
 			break;
 		case ELP:
-			return thread_blp(tr, c);
+			return c->next;
+			break;
+		case BSCP:
+			return thread_bscp(tr, c);
+			break;
+		case ESCP:
+			return thread_escp(tr, c);
 			break;
 
 		case OR:
@@ -1070,6 +1074,9 @@ decode(thread_t *tr, iarray_t *c) {
 		case CALL:
 			return thread_call(tr, c);
 			break;
+		case CELL:
+			return thread_cell(tr, c);
+			break;
 		case ENT:
 			return thread_ent(tr, c);
 			break;
@@ -1085,8 +1092,8 @@ decode(thread_t *tr, iarray_t *c) {
 		case SIM:
 			return thread_sim(tr, c);
 			break;
-		case CLSFY:
-			return thread_classify(tr, c);
+		case CLS:
+			return thread_scheming(tr, c);
 			break;
 		case RET:
 			return thread_ret(tr, c);
