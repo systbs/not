@@ -3,15 +3,15 @@ interpreter
 
 # syntax && code
 ```js
-schame1: def {
+class1: def {
   a = "sample text 1";
 }
 
-schame2: def {
+class2: def {
   b = "sample text 2";
 }
 
-schame3: (schame1, schame2, def {
+class3: (class1, class2, def {
   c = "sample text 3";
   print("hello world");
   fn: def {
@@ -20,11 +20,11 @@ schame3: (schame1, schame2, def {
   }
 });
 
-schame = schame3();
-print(schame.a);
+ca = class3();
+print(ca.a);
 
-sum = schema.fn(1,2,3);
-// sum = schema.fn = (1,2,3);
+sum = ca.fn(1,2,3);
+// sum = ca.fn = (1,2,3);
 print(sum);
 //output: 6
 
