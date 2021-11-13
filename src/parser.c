@@ -232,9 +232,22 @@ expression_super(parser_t *prs, array_t *code){
     if(next_is(prs, TOKEN_LPAREN)){
         array_rpush(code, PUSH);
         token_next(prs);
-        expression(prs, code);
-        array_rpush(code, COMMA);
+        if(!next_is(prs, TOKEN_RPAREN)){
+            expression(prs, code);
+        }else{
+            token_next(prs);
+        }
         array_rpush(code, CALL);
+    }
+    else if(next_is(prs, TOKEN_LBRACKET)){
+        array_rpush(code, PUSH);
+        token_next(prs);
+        if(!next_is(prs, TOKEN_RBRACKET)){
+            expression(prs, code);
+        }else{
+            token_next(prs);
+        }
+        array_rpush(code, CELL);
     }
 
     int ids[] = {
@@ -264,9 +277,22 @@ expression_this(parser_t *prs, array_t *code){
     if(next_is(prs, TOKEN_LPAREN)){
         array_rpush(code, PUSH);
         token_next(prs);
-        expression(prs, code);
-        array_rpush(code, COMMA);
+        if(!next_is(prs, TOKEN_RPAREN)){
+            expression(prs, code);
+        }else{
+            token_next(prs);
+        }
         array_rpush(code, CALL);
+    }
+    else if(next_is(prs, TOKEN_LBRACKET)){
+        array_rpush(code, PUSH);
+        token_next(prs);
+        if(!next_is(prs, TOKEN_RBRACKET)){
+            expression(prs, code);
+        }else{
+            token_next(prs);
+        }
+        array_rpush(code, CELL);
     }
 
     int ids[] = {
@@ -1077,6 +1103,7 @@ expression_lbracket(parser_t *prs, array_t *code){
         token_next(prs);
         token = (token_t *)table_content(prs->c);
     } while (token->identifier != TOKEN_RBRACKET);
+    array_rpush(code, ARRAY);
 }
 
 void
@@ -1139,6 +1166,33 @@ expression_dot(parser_t *prs, array_t *code){
     expression(prs, code);
     array_rpush(code, REL);
 }
+
+void
+expression_eval(parser_t *prs, array_t *code){
+    token_t *token = (token_t *)table_content(prs->c);
+    validate_format((token->identifier == TOKEN_EVAL), 
+        "[EVAL] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+    token_next(prs);
+    expression(prs, code);
+    array_rpush(code, EVAL);
+
+    int ids[] = {
+        TOKEN_COMMA, 
+        TOKEN_SEMICOLON, 
+        TOKEN_RBRACE, 
+        TOKEN_RBRACKET, 
+        TOKEN_RPAREN,
+        TOKEN_CGT,
+        TOKEN_COLON
+    };
+    if(next_each(prs, ids) || (prs->ub == 1)){
+        return;
+    }
+
+    token_next(prs);
+    expression(prs, code);
+}
+
 
 void
 expression(parser_t *prs, array_t *code){
@@ -1268,6 +1322,9 @@ expression(parser_t *prs, array_t *code){
         return;
     } else if(token->identifier == TOKEN_DEF){
         expression_def(prs, code);
+        return;
+    } else if(token->identifier == TOKEN_EVAL){
+        expression_eval(prs, code);
         return;
     } else if(token->identifier == TOKEN_DOT){
         expression_dot(prs, code);

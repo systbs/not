@@ -672,17 +672,21 @@ thread_cell(thread_t *tr, iarray_t *c) {
 			"bad get operation!");
 
 	validate_format((esp->type == OTP_ARRAY) || (esp->type == OTP_PARAMS), 
-		"[CELL] for %s type, get array operator only use for ARRAY/PARAMS type", 
-	object_tas(esp));
+		"[CELL] for %s type, get array operator only use for ARRAY/PARAMS type", object_tas(esp));
 
-	validate_format(!!object_isnum(tr->object), 
-		"[CELL] for %s type, index must be a number type", 
-		object_tas(tr->object));
+	validate_format(!!(tr->object->type == OTP_ARRAY), 
+		"[CELL] for %s type, argument must be an array", object_tas(tr->object));
 
-	tr->object = (object_t *)table_content(table_at((table_t *)esp->ptr, oget(tr->object)));
+	object_t *obj;
+	validate_format(!!(obj = (object_t *)table_content(table_lpop((table_t *)tr->object->ptr))), 
+		"[CELL] object not retrived");
+
+	validate_format(!!object_isnum(obj), 
+		"[CELL] for %s type, index must be a number type", object_tas(obj));
+
+	tr->object = (object_t *)table_content(table_at((table_t *)esp->ptr, oget(obj)));
 	return c->next;
 }
-
 
 iarray_t *
 thread_call(thread_t *tr, iarray_t *c) {
@@ -967,6 +971,28 @@ thread_escp(thread_t *tr, iarray_t *c) {
 	return c->next;
 }
 
+iarray_t *
+thread_array(thread_t *tr, iarray_t *c){
+	validate_format(!!tr->object,
+		"[ARRAY] object is required!");
+	object_t *obj;
+	validate_format(!!(obj = object_define(OTP_ARRAY, sizeof(table_t))), 
+		"unable to alloc memory!");
+	table_t *tbl = table_create();
+	if(tr->object->type == OTP_PARAMS){
+		table_t *tt = (table_t *)tr->object->ptr;
+		itable_t *a;
+		for(a = tt->begin; a != tt->end; a = a->next){
+			table_rpush(tbl, (tbval_t)a->value);
+		}
+	} else {
+		table_rpush(tbl, (tbval_t)tr->object);
+	}
+	obj->ptr = tbl;
+	tr->object = obj;
+	return c->next;
+}
+
 
 iarray_t *
 decode(thread_t *tr, iarray_t *c) {
@@ -1107,6 +1133,9 @@ decode(thread_t *tr, iarray_t *c) {
 			break;
 		case PRTF:
 			return thread_print(tr, c);
+			break;
+		case ARRAY:
+			return thread_array(tr, c);
 			break;
 
 		case EXIT:

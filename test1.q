@@ -10,7 +10,7 @@ category3: (category1, category2, def {
 	c = "simple text 3\n";
 	print("Hello World\n");
 	fn: def {
-		(i, j, k) = params;
+		[i, j, k] = params;
 		print(params[1]);
 		return i + j + k;
 	}

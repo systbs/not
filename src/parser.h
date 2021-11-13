@@ -18,6 +18,7 @@ typedef enum operator {
 	DOT,  	// change schema path
 	CALL, 	// call a function 12
 	CELL,
+	EVAL,
 
 	JMP,   	// jump
 	JZ,  	// jump if sp is not zero
@@ -58,6 +59,7 @@ typedef enum operator {
 	PRTF,  
 	SIZEOF,
 	TYPEOF,
+	ARRAY,
 
 	EXIT,
 	BSCP,

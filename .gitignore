@@ -1,3 +1,4 @@
 
 *.o
 qalam
+CMakeLists.txt
