@@ -40,3 +40,13 @@ while(i <= 5){
 	i = i + 1;
 	print("\n");
 }
+
+
+a = 1;
+b = 2;
+c = 3;
+
+(b,c,a) = (a, b, c);
+
+print("\n");
+print(b);

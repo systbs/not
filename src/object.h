@@ -9,7 +9,8 @@ typedef enum object_type {
 	OTP_ARRAY,
 	OTP_SCHEMA,
 	OTP_LAYOUT,
-	OTP_NULL
+	OTP_NULL,
+	OTP_ASM
 } object_type_t;
 
 typedef struct object {

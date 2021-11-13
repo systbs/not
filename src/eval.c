@@ -35,6 +35,8 @@ typedef struct thread {
 	table_t *frame;
 	table_t *board;
 
+	table_t *variables;
+
 	object_t *object;
 } thread_t;
 
@@ -48,6 +50,8 @@ thread_create(){
 
 	tr->frame = table_create();
 	tr->board = table_create();
+
+	tr->variables = table_create();
 
 	tr->object = nullptr;
 	return tr;
@@ -487,15 +491,10 @@ thread_comma(thread_t *tr, iarray_t *c){
 	if (esp->type != OTP_PARAMS) {
 		validate_format(!!(obj = object_define(OTP_PARAMS, sizeof(table_t))), 
 			"unable to alloc memory!");
-
 		table_t *tbl = table_create();
-
 		table_rpush(tbl, (tbval_t)esp);
-
 		table_rpush(tbl, (tbval_t)tr->object);
-		
 		obj->ptr = tbl;
-
 		tr->object = obj;
 	} else {
 		table_rpush((table_t *)esp->ptr, (tbval_t)tr->object);
@@ -535,6 +534,7 @@ thread_imm(thread_t *tr, iarray_t *c) {
 		var = variable_define((char *)value);
 		var->object = object_define(OTP_NULL, sizeof(ptr_t));
 		table_rpush(tr->layout->variables, (tbval_t)var);
+		table_rpush(tr->variables, (tbval_t)var);
 		validate_format(!!(tr->object = variable_content(var)),
 			"[IMM] variable dont have content");
 		return c->next;
@@ -597,12 +597,31 @@ thread_sd(thread_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))), 
 		"save data, bad pop data");
-	if(esp->type != OTP_SCHEMA){
-		object_assign(esp, tr->object);
+	if(esp->type == OTP_SCHEMA){
+		return call(tr, (schema_t *)esp->ptr, c->next);
+	}
+	else if(esp->type == OTP_PARAMS){
+		validate_format((tr->object->type == OTP_PARAMS), 
+			"[SD] after assign operator must be use PARAMS type");
+		itable_t *a, *b;
+		table_t *ta, *tb;
+		ta = (table_t *)esp->ptr;
+		tb = (table_t *)tr->object->ptr;
+		for(a = ta->begin; a != ta->end; a = a->next){
+			for(b = tb->begin; b != tb->end; b = b->next){
+				variable_t *var = (variable_t *)b->value;
+				if((tbval_t)a->value == (tbval_t)var->object){
+					object_assign((object_t *)a->value, var->object);
+				}
+			}
+		}
 		tr->object = esp;
 		return c->next;
 	}
-	return call(tr, (schema_t *)esp->ptr, c->next);
+
+	object_assign(esp, tr->object);
+	tr->object = esp;
+	return c->next;
 }
 
 iarray_t *
