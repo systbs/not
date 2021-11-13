@@ -15,7 +15,7 @@ schame3: (schame1, schame2, def {
   c = "sample text 3";
   print("hello world");
   fn: def {
-    (i, j, k) = params;
+    [i, j, k] = params;
     return i+j+k;
   }
 });
@@ -26,6 +26,14 @@ print(schame.a);
 sum = schema.fn(1,2,3);
 // sum = schema.fn = (1,2,3);
 print(sum);
+//output: 6
+
+a = 1;
+b = 2;
+c = 3;
+(b, c, a) = (a, b, c);
+print(c);
+//output: 3
 ```
 
 # In the future
