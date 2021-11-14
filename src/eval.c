@@ -605,26 +605,37 @@ thread_sd(thread_t *tr, iarray_t *c) {
 			"[SD] after assign operator must be use PARAMS type");
 		itable_t *a, *b, *e, *d;
 		table_t *ta, *tb, *tc;
+		variable_t *var_a, *var_e;
 		ta = (table_t *)esp->ptr;
 		tb = (table_t *)tr->variables;
 		tc = (table_t *)tr->object->ptr;
 		for(a = ta->begin; a != ta->end; a = a->next){
 			for(b = tb->begin; b != tb->end; b = b->next){
-				variable_t *var = (variable_t *)b->value;
-				if((tbval_t)a->value == (tbval_t)var->object){
-					for(e = tc->begin; e != tc->end; e = e->next){
-						for(d = tb->begin; d != tb->end; d = d->next){
-							variable_t *var2 = (variable_t *)d->value;
-							if(((tbval_t)e->value == (tbval_t)var2->object)){
-								if(strncmp(var->identifier, var2->identifier, max(strlen(var->identifier), strlen(var2->identifier))) == 0){
-									object_assign((object_t *)a->value, (object_t *)e->value);
-								}
-							}
-						}
-					}
+				var_a = (variable_t *)b->value;
+				if((tbval_t)a->value == (tbval_t)var_a->object){
+					goto sd_find_object_a;
 				}
 			}
 		}
+		goto sd_find_end;
+
+		sd_find_object_a:
+		for(e = tc->begin; e != tc->end; e = e->next){
+			for(d = tb->begin; d != tb->end; d = d->next){
+				var_e = (variable_t *)d->value;
+				if(((tbval_t)e->value == (tbval_t)var_e->object)){
+					goto sd_find_object_e;
+				}
+			}
+		}
+		goto sd_find_end;
+
+		sd_find_object_e:
+		if(strncmp(var_a->identifier, var_e->identifier, max(strlen(var_a->identifier), strlen(var_e->identifier))) == 0){
+			object_assign((object_t *)a->value, (object_t *)e->value);
+		}
+
+		sd_find_end:
 		tr->object = esp;
 		return c->next;
 	}else {
