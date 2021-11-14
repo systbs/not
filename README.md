@@ -3,7 +3,7 @@ interpreter
 
 # syntax && code
 ```js
-(class3,class4) = import "file_path_name.q";
+(class4,class5) = import "test3.q";
 
 class1: def {
   a = "sample text 1";
