@@ -37,8 +37,8 @@ c = 3;
 print(c);
 //output: 3
 
-print("lorem text %n %s\n", 19, "amet direm");
-//output: lorem text 19 amet direm
+print("lorem text %n %s\n", 19, "amet direm %n", 13);
+//output: lorem text 19 amet direm 13
 ```
 
 # In the future
