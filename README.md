@@ -3,6 +3,8 @@ interpreter
 
 # syntax && code
 ```js
+(class3,class4) = import "file_path_name.q";
+
 class1: def {
   a = "sample text 1";
 }
@@ -40,8 +42,6 @@ print("lorem text %n %s\n", 19, "amet direm");
 ```
 
 # In the future
-## import
-(class1,class2) = import "file_path_name.q";
 ## memory management in parallel mode
 ## ...
 ## compile

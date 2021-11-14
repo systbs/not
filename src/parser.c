@@ -1193,6 +1193,16 @@ expression_eval(parser_t *prs, array_t *code){
     expression(prs, code);
 }
 
+void
+expression_import(parser_t *prs, array_t *code){
+    token_t *token = (token_t *)table_content(prs->c);
+    validate_format((token->identifier == TOKEN_IMPORT), 
+        "[IMPORT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+    token_next(prs);
+    expression(prs, code);
+    array_rpush(code, IMPORT);
+}
+
 
 void
 expression(parser_t *prs, array_t *code){
@@ -1326,6 +1336,9 @@ expression(parser_t *prs, array_t *code){
     } else if(token->identifier == TOKEN_EVAL){
         expression_eval(prs, code);
         return;
+    } else if(token->identifier == TOKEN_IMPORT){
+        expression_import(prs, code);
+        return;
     } else if(token->identifier == TOKEN_DOT){
         expression_dot(prs, code);
         return;
@@ -1445,6 +1458,8 @@ parse(table_t *tokens, array_t *code){
 
     statement(prs, code);
 
+    array_rpush(code, THIS);
+    array_rpush(code, RET);
     prs->schema->end = array_rpush(code, LEV);
 
     return prs;

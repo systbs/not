@@ -1,3 +1,8 @@
+(category4, 2) = import "test2.q";
+
+p = category4();
+print("%s\n", p.w);
+
 category1: def {
 	a = "simple text 1";
 };
@@ -19,7 +24,7 @@ category3: (category1, category2, def {
 d = category3();
 f = d.fn(1,2,3);
 
-print(d.c);
+print(d.a);
 print(f);
 
 print("\n");

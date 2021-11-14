@@ -601,54 +601,98 @@ thread_sd(thread_t *tr, iarray_t *c) {
 		return call(tr, (schema_t *)esp->ptr, c->next);
 	}
 	else if(esp->type == OTP_PARAMS){
-		validate_format((tr->object->type == OTP_PARAMS), 
+		validate_format((tr->object->type == OTP_PARAMS) || (tr->object->type == OTP_LAYOUT), 
 			"[SD] after assign operator must be use PARAMS type");
-		itable_t *a, *b, *e, *d;
-		table_t *ta, *tb, *tc;
-		variable_t *var_a, *var_e;
-		ta = (table_t *)esp->ptr;
-		tb = (table_t *)tr->variables;
-		tc = (table_t *)tr->object->ptr;
+		if(tr->object->type == OTP_LAYOUT){
 
-		a = ta->begin;
-		sd_step1:
-		for(; a != ta->end; a = a->next){
-			for(b = tb->begin; b != tb->end; b = b->next){
-				var_a = (variable_t *)b->value;
-				if((tbval_t)a->value == (tbval_t)var_a->object){
-					e = tc->begin;
-					goto sd_step2;
+			itable_t *a, *b, *e;
+			table_t *ta, *tb, *tc;
+			variable_t *var_a, *var_e;
+			ta = (table_t *)esp->ptr;
+			tb = tr->variables;
+
+			layout_t *layout;
+			layout= (layout_t *)tr->object->ptr;
+
+			tc = layout->variables;
+
+			a = ta->begin;
+			sd_step1_layout:
+			for(; a != ta->end; a = a->next){
+				for(b = tb->begin; b != tb->end; b = b->next){
+					var_a = (variable_t *)b->value;
+					if((tbval_t)a->value == (tbval_t)var_a->object){
+						goto sd_step2_layout;
+					}
 				}
 			}
-		}
-		goto sd_end;
+			goto sd_end_layout;
 
-		sd_step2:
-		for(; e != tc->end; e = e->next){
-			for(d = tb->begin; d != tb->end; d = d->next){
-				var_e = (variable_t *)d->value;
-				if(((tbval_t)e->value == (tbval_t)var_e->object)){
-					goto sd_step3;
+			sd_step2_layout:
+			for(e = tc->begin; e != tc->end; e = e->next){
+				var_e = (variable_t *)e->value;
+				if(strncmp(var_a->identifier, var_e->identifier, max(strlen(var_a->identifier), strlen(var_e->identifier))) == 0){
+					object_assign((object_t *)a->value, var_e->object);
+					a = a->next;
+					goto sd_step1_layout;
 				}
 			}
+
+			a = a->next;
+			goto sd_step1_layout;
+
+			sd_end_layout:
+			tr->object = esp;
+			return c->next;
 		}
+		else {
+			itable_t *a, *b, *e, *d;
+			table_t *ta, *tb, *tc;
+			variable_t *var_a, *var_e;
+			ta = (table_t *)esp->ptr;
+			tb = (table_t *)tr->variables;
+			tc = (table_t *)tr->object->ptr;
 
-		a = a->next;
-		goto sd_step1;
+			a = ta->begin;
+			sd_step1:
+			for(; a != ta->end; a = a->next){
+				for(b = tb->begin; b != tb->end; b = b->next){
+					var_a = (variable_t *)b->value;
+					if((tbval_t)a->value == (tbval_t)var_a->object){
+						e = tc->begin;
+						goto sd_step2;
+					}
+				}
+			}
+			goto sd_end;
 
-		sd_step3:
-		if(strncmp(var_a->identifier, var_e->identifier, max(strlen(var_a->identifier), strlen(var_e->identifier))) == 0){
-			object_assign((object_t *)a->value, (object_t *)e->value);
+			sd_step2:
+			for(; e != tc->end; e = e->next){
+				for(d = tb->begin; d != tb->end; d = d->next){
+					var_e = (variable_t *)d->value;
+					if(((tbval_t)e->value == (tbval_t)var_e->object)){
+						goto sd_step3;
+					}
+				}
+			}
+
 			a = a->next;
 			goto sd_step1;
+
+			sd_step3:
+			if(strncmp(var_a->identifier, var_e->identifier, max(strlen(var_a->identifier), strlen(var_e->identifier))) == 0){
+				object_assign((object_t *)a->value, (object_t *)e->value);
+				a = a->next;
+				goto sd_step1;
+			}
+
+			e = e->next;
+			goto sd_step2;
+
+			sd_end:
+			tr->object = esp;
+			return c->next;
 		}
-
-		e = e->next;
-		goto sd_step2;
-
-		sd_end:
-		tr->object = esp;
-		return c->next;
 	}else {
 		object_assign(esp, tr->object);
 		tr->object = esp;
@@ -1044,11 +1088,84 @@ thread_array(thread_t *tr, iarray_t *c){
 	return c->next;
 }
 
+iarray_t *
+decode(thread_t *tr, iarray_t *c);
+
+object_t *
+import(schema_t *schema, array_t *code)
+{
+	thread_t *tr = thread_create();
+	iarray_t *adrs = array_rpush(code, EXIT);
+
+	iarray_t *c = call(tr, schema, adrs);
+	
+	do {
+		c = decode(tr, c);
+	} while (c != code->end);
+
+	return tr->object;
+}
+
+iarray_t *
+thread_import(thread_t *tr, iarray_t *c){
+	validate_format(!!(tr->object->type == OTP_ARRAY), 
+		"[IMPORT] import function need to an array");
+
+	char *destination;
+	destination = data_to((table_t *)tr->object->ptr);
+
+    FILE *fd;
+	validate_format (!!(fd = fopen(destination, "rb")),
+		"[IMPORT] could not open(%s)\n", destination);
+
+    // Current position
+    long_t pos = ftell(fd);
+    // Go to end
+    fseek(fd, 0, SEEK_END);
+    // read the position which is the size
+    long_t chunk = ftell(fd);
+    // restore original position
+    fseek(fd, pos, SEEK_SET);
+
+    char *buf;
+
+    validate_format (!!(buf = malloc(chunk + 1)),
+		"could not malloc(%ld) for buf area\n", chunk);
+
+    // read the source file
+	long_t i = 0;
+    validate_format (!!((i = fread(buf, 1, chunk, fd)) >= chunk), 
+		"read returned %ld\n", i);
+
+    buf[i] = '\0';
+
+    fclose(fd);
+
+	table_t *tokens;
+	validate_format(!!(tokens = table_create()), 
+		"[IMPORT] tokens list not created");
+
+    lexer(tokens, buf);
+
+    qalam_free(buf);
+
+    array_t *code;
+	validate_format(!!(code = array_create()), 
+		"[IMPORT] code array not created");
+	
+    parser_t *parser;
+	validate_format(!!(parser = parse(tokens, code)), 
+		"[IMPORT] parser is aborted");
+
+    tr->object = import(parser->schema, code);
+
+	return c->next;
+}
 
 iarray_t *
 decode(thread_t *tr, iarray_t *c) {
 
-	//printf("thread %ld\n", c->value);
+	// printf("thread %ld\n", c->value);
 
 	switch (c->value) {
 		case NUL:
@@ -1187,6 +1304,9 @@ decode(thread_t *tr, iarray_t *c) {
 			break;
 		case ARRAY:
 			return thread_array(tr, c);
+			break;
+		case IMPORT:
+			return thread_import(tr, c);
 			break;
 
 		case EXIT:
