@@ -837,7 +837,7 @@ thread_extend(thread_t *tr, iarray_t *c){
 		int found = 0;
 		for(n = tr->layout->extends->begin; n != tr->layout->extends->end; n = n->next){
 			layout_t *layout = (layout_t *)n->value;
-			if(strncmp(layout->schema->identifier, layout->schema->identifier, max(strlen(layout->schema->identifier), strlen(layout->schema->identifier))) == 0){
+			if(strncmp(layout->schema->identifier, schema->identifier, max(strlen(layout->schema->identifier), strlen(schema->identifier))) == 0){
 				found = 1;
 				break;
 			}

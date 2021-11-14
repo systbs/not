@@ -24,7 +24,7 @@ category3: (category1, category2, def {
 d = category3();
 f = d.fn(1,2,3);
 
-print(d.a);
+print(d.b);
 print(f);
 
 print("\n");
