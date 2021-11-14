@@ -609,33 +609,44 @@ thread_sd(thread_t *tr, iarray_t *c) {
 		ta = (table_t *)esp->ptr;
 		tb = (table_t *)tr->variables;
 		tc = (table_t *)tr->object->ptr;
-		for(a = ta->begin; a != ta->end; a = a->next){
+
+		a = ta->begin;
+		sd_step1:
+		for(; a != ta->end; a = a->next){
 			for(b = tb->begin; b != tb->end; b = b->next){
 				var_a = (variable_t *)b->value;
 				if((tbval_t)a->value == (tbval_t)var_a->object){
-					goto sd_find_object_a;
+					e = tc->begin;
+					goto sd_step2;
 				}
 			}
 		}
-		goto sd_find_end;
+		goto sd_end;
 
-		sd_find_object_a:
-		for(e = tc->begin; e != tc->end; e = e->next){
+		sd_step2:
+		for(; e != tc->end; e = e->next){
 			for(d = tb->begin; d != tb->end; d = d->next){
 				var_e = (variable_t *)d->value;
 				if(((tbval_t)e->value == (tbval_t)var_e->object)){
-					goto sd_find_object_e;
+					goto sd_step3;
 				}
 			}
 		}
-		goto sd_find_end;
 
-		sd_find_object_e:
+		a = a->next;
+		goto sd_step1;
+
+		sd_step3:
 		if(strncmp(var_a->identifier, var_e->identifier, max(strlen(var_a->identifier), strlen(var_e->identifier))) == 0){
 			object_assign((object_t *)a->value, (object_t *)e->value);
+			a = a->next;
+			goto sd_step1;
 		}
+		
+		e = e->next;
+		goto sd_step2;
 
-		sd_find_end:
+		sd_end:
 		tr->object = esp;
 		return c->next;
 	}else {
