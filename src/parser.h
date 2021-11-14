@@ -60,6 +60,7 @@ typedef enum operator {
 	SIZEOF,
 	TYPEOF,
 	ARRAY,
+	PARAMS,
 	IMPORT,
 
 	EXIT,

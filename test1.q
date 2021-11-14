@@ -1,7 +1,7 @@
-(category4, 2) = import "test2.q";
+(category4) = import "test2.q";
 
-p = category4();
-print("%s\n", p.w);
+p = category4().w;
+print("%s\n", p);
 
 category1: def {
 	a = "simple text 1";

@@ -71,6 +71,23 @@ call(thread_t *tr, schema_t *schema, iarray_t *adrs) {
 	return (iarray_t *)schema->start;
 }
 
+iarray_t *
+decode(thread_t *tr, iarray_t *c);
+
+object_t *
+import(schema_t *schema, array_t *code)
+{
+	thread_t *tr = thread_create();
+	iarray_t *adrs = array_rpush(code, EXIT);
+
+	iarray_t *c = call(tr, schema, adrs);
+	
+	do {
+		c = decode(tr, c);
+	} while (c != code->end);
+
+	return tr->object;
+}
 
 
 iarray_t *
@@ -727,14 +744,52 @@ iarray_t *
 thread_jz(thread_t *tr, iarray_t *c) {
 	// jump if object is zero
 	c = c->next;
-	return (long_t)oget(tr->object) ? c->next : (iarray_t *)c->value;
+	long_t res = 1;
+	if(tr->object->type == OTP_PARAMS){
+		itable_t * a;
+		table_t *ta = tr->object->ptr;
+		for(a = ta->begin; a != ta->end; a = a->next){
+			object_t *obj = (object_t *)a->value;
+			if(object_isnum(obj)){
+				res = res && (!!oget(obj));
+			} else {
+				res = res && (!!obj->ptr);
+			}
+		}
+	}
+	else if(tr->object->type == OTP_LONG && tr->object->type == OTP_DOUBLE){
+		res = res && ((long_t)oget(tr->object));
+	}
+	else {
+		res = res && !!(tr->object->ptr);
+	}
+	return res ? c->next : (iarray_t *)c->value;
 }
 
 iarray_t *
 thread_jnz(thread_t *tr, iarray_t *c) {
 	// jump if object is not zero
 	c = c->next;
-	return (long_t)oget(tr->object) ? (iarray_t *)c->value : c->next;
+	long_t res = 1;
+	if(tr->object->type == OTP_PARAMS){
+		itable_t * a;
+		table_t *ta = tr->object->ptr;
+		for(a = ta->begin; a != ta->end; a = a->next){
+			object_t *obj = (object_t *)a->value;
+			if(object_isnum(obj)){
+				res = res && (!!oget(obj));
+			} else {
+				res = res && (!!obj->ptr);
+			}
+		}
+	}
+	else if(tr->object->type == OTP_LONG && tr->object->type == OTP_DOUBLE){
+		res = res && ((long_t)oget(tr->object));
+	}
+	else {
+		res = res && !!(tr->object->ptr);
+	}
+	return res ? (iarray_t *)c->value : c->next;
 }
 
 
@@ -1089,21 +1144,25 @@ thread_array(thread_t *tr, iarray_t *c){
 }
 
 iarray_t *
-decode(thread_t *tr, iarray_t *c);
-
-object_t *
-import(schema_t *schema, array_t *code)
-{
-	thread_t *tr = thread_create();
-	iarray_t *adrs = array_rpush(code, EXIT);
-
-	iarray_t *c = call(tr, schema, adrs);
-	
-	do {
-		c = decode(tr, c);
-	} while (c != code->end);
-
-	return tr->object;
+thread_params(thread_t *tr, iarray_t *c){
+	validate_format(!!tr->object,
+		"[PARAMS] object is required!");
+	object_t *obj;
+	validate_format(!!(obj = object_define(OTP_PARAMS, sizeof(table_t))), 
+		"unable to alloc memory!");
+	table_t *tbl = table_create();
+	if(tr->object->type == OTP_PARAMS){
+		table_t *tt = (table_t *)tr->object->ptr;
+		itable_t *a;
+		for(a = tt->begin; a != tt->end; a = a->next){
+			table_rpush(tbl, (tbval_t)a->value);
+		}
+	} else {
+		table_rpush(tbl, (tbval_t)tr->object);
+	}
+	obj->ptr = tbl;
+	tr->object = obj;
+	return c->next;
 }
 
 iarray_t *
@@ -1304,6 +1363,9 @@ decode(thread_t *tr, iarray_t *c) {
 			break;
 		case ARRAY:
 			return thread_array(tr, c);
+			break;
+		case PARAMS:
+			return thread_params(tr, c);
 			break;
 		case IMPORT:
 			return thread_import(tr, c);

@@ -210,7 +210,6 @@ expression_id(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids) || (prs->ub == 1)){
@@ -256,7 +255,6 @@ expression_super(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids) || (prs->ub == 1)){
@@ -301,7 +299,6 @@ expression_this(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids) || (prs->ub == 1)){
@@ -329,7 +326,6 @@ expression_data(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids) || (prs->ub == 1)){
@@ -357,7 +353,6 @@ expression_number(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids) || (prs->ub == 1)){
@@ -385,7 +380,6 @@ expression_null(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids) || (prs->ub == 1)){
@@ -491,7 +485,6 @@ expression_caret(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids)){
@@ -535,7 +528,6 @@ expression_mul(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids)){
@@ -580,7 +572,6 @@ expression_div(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids)){
@@ -625,7 +616,6 @@ expression_episode(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids)){
@@ -669,7 +659,6 @@ expression_mod(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids)){
@@ -713,7 +702,6 @@ expression_plus(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids)){
@@ -757,7 +745,6 @@ expression_minus(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids)){
@@ -840,7 +827,6 @@ expression_land(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids)){
@@ -879,7 +865,6 @@ expression_lor(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids)){
@@ -1084,12 +1069,7 @@ expression_lparen(parser_t *prs, array_t *code){
         token_next(prs);
         token = (token_t *)table_content(prs->c);
     } while (token->identifier != TOKEN_RPAREN);
-    
-    if(next_is(prs, TOKEN_CGT)){
-        token_next(prs);
-        expression(prs, code);
-        return;
-    }
+    array_rpush(code, PARAMS);
 }
 
 void
@@ -1182,7 +1162,6 @@ expression_eval(parser_t *prs, array_t *code){
         TOKEN_RBRACE, 
         TOKEN_RBRACKET, 
         TOKEN_RPAREN,
-        TOKEN_CGT,
         TOKEN_COLON
     };
     if(next_each(prs, ids) || (prs->ub == 1)){
