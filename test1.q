@@ -48,5 +48,4 @@ c = 3;
 
 (b,c,a) = (a, b, c);
 
-print("\n");
-print(b);
+print("%n \n", b);

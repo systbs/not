@@ -642,7 +642,7 @@ thread_sd(thread_t *tr, iarray_t *c) {
 			a = a->next;
 			goto sd_step1;
 		}
-		
+
 		e = e->next;
 		goto sd_step2;
 
@@ -926,7 +926,6 @@ thread_rel(thread_t *tr, iarray_t *c){
 
 iarray_t *
 thread_print(thread_t *tr, iarray_t *c) {
-	object_t *esp;
 	table_t *tbl;
 	if(tr->object->type == OTP_PARAMS){
 		tbl = (table_t *)tr->object->ptr;
@@ -935,19 +934,20 @@ thread_print(thread_t *tr, iarray_t *c) {
 		table_rpush(tbl, (tbval_t)tr->object);
 	}
 
-	while((esp = (object_t *)table_content(table_rpop(tbl)))){
-		if(esp->type == OTP_NULL){
-			printf("%s ", object_tas(esp));
+	object_t *eax;
+	while((eax = (object_t *)table_content(table_lpop(tbl)))){
+		if(eax->type == OTP_NULL){
+			printf("%s ", object_tas(eax));
 			continue;
 		}
-		else if(esp->type == OTP_CHAR){
-			printf("%d ", *(char_t *)esp->ptr);
+		else if(eax->type == OTP_CHAR){
+			printf("%d ", *(char_t *)eax->ptr);
 			continue;
 		}
-		else if(esp->type == OTP_ARRAY){
+		else if(eax->type == OTP_ARRAY){
 			table_t *formated;
 
-			formated = data_format((table_t *)esp->ptr, tbl);
+			formated = data_format((table_t *)eax->ptr, tbl);
 
 			itable_t *t;
 			while((t = table_lpop(formated))){
@@ -991,19 +991,19 @@ thread_print(thread_t *tr, iarray_t *c) {
 
 			continue;
 		}
-		else if(esp->type == OTP_LONG){
-			printf("%ld", *(long_t *)esp->ptr);
+		else if(eax->type == OTP_LONG){
+			printf("%ld", *(long_t *)eax->ptr);
 			continue;
 		}
-		else if(esp->type == OTP_DOUBLE){
-			printf("%.6f", *(double_t *)esp->ptr);
+		else if(eax->type == OTP_DOUBLE){
+			printf("%.6f", *(double_t *)eax->ptr);
 			continue;
 		}
-		else if(esp->type == OTP_SCHEMA) {
+		else if(eax->type == OTP_SCHEMA) {
 			printf("SCHEMA \n");
 		}
 		else {
-			printf("%ld", *(long_t *)esp->ptr);
+			printf("%ld", *(long_t *)eax->ptr);
 		}
 	}
 	return c->next;

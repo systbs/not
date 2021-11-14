@@ -104,7 +104,7 @@ data_format(table_t *tbl, table_t *format)
 				obj = (object_t *)t->value;
 
 				if(*(char_t *)obj->ptr == 's'){
-					validate_format(!!(f = table_rpop(format)), 
+					validate_format(!!(f = table_lpop(format)), 
 						"format, %%s require a string data!");
 					
 					obj = (object_t *)f->value;
@@ -116,8 +116,7 @@ data_format(table_t *tbl, table_t *format)
 					t = t->next;
 					continue;
 				}
-				else
-				if(*(char_t *)obj->ptr == '.'){
+				else if(*(char_t *)obj->ptr == '.'){
 					t = t->next;
 					obj = (object_t *)t->value;
 
@@ -135,7 +134,7 @@ data_format(table_t *tbl, table_t *format)
 
 				if(*(char_t *)obj->ptr == 'n'){
 
-					validate_format(!!(f = table_rpop(format)),
+					validate_format(!!(f = table_lpop(format)),
 						"format, %%n require a number!");
 
 					obj = (object_t *)f->value;
@@ -145,13 +144,13 @@ data_format(table_t *tbl, table_t *format)
 
 					char_t *str_num = qalam_malloc(sizeof(char_t) * 255);
 					if(((*(double_t *)obj->ptr - *(long_t *)obj->ptr) != 0) || (num > 0)){
-						sprintf(str_num, fmt, *(double_t *)obj->ptr);
+						sprintf(str_num, fmt, oget(obj));
 					}
 					else {
-						sprintf(str_num, "%ld", *(long_t *)obj->ptr);
+						sprintf(str_num, "%f", oget(obj));
 					}
 
-					qalam_free(fmt);
+					// qalam_free(fmt);
 
 					arval_t i;
 					for(i = 0; i < strlen(str_num); i++){
@@ -161,14 +160,14 @@ data_format(table_t *tbl, table_t *format)
 						table_rpush(deformed, (tbval_t)esp);
 					}
 
-					qalam_free(str_num);
+					// qalam_free(str_num);
 
 					t = t->next;
 					continue;
 				}
 				else
 				if(*(char_t *)obj->ptr == 'h'){
-					validate_format(!!(f = table_rpop(format)),
+					validate_format(!!(f = table_lpop(format)),
 						"format, %%n require a number!");
 
 					obj = (object_t *)f->value;
@@ -184,7 +183,7 @@ data_format(table_t *tbl, table_t *format)
 						sprintf(str_num, "%lx", *(long_t *)obj->ptr);
 					}
 
-					qalam_free(fmt);
+					// qalam_free(fmt);
 
 					arval_t i;
 					for(i = 0; i < strlen(str_num); i++){
@@ -194,14 +193,14 @@ data_format(table_t *tbl, table_t *format)
 						table_rpush(deformed, (tbval_t)esp);
 					}
 
-					qalam_free(str_num);
+					// qalam_free(str_num);
 
 					t = t->next;
 					continue;
 				}
 				else
 				if(*(char_t *)obj->ptr == 'H'){
-					if(!(f = table_rpop(format))){
+					if(!(f = table_lpop(format))){
 						printf("format, %%n require a number!\n");
 						exit(-1);
 					}
@@ -219,7 +218,7 @@ data_format(table_t *tbl, table_t *format)
 						sprintf(str_num, "%lx", *(long_t *)obj->ptr);
 					}
 
-					qalam_free(fmt);
+					// qalam_free(fmt);
 
 					arval_t i;
 					for(i = 0; i < strlen(str_num); i++){
@@ -229,7 +228,7 @@ data_format(table_t *tbl, table_t *format)
 						table_rpush(deformed, (tbval_t)esp);
 					}
 
-					qalam_free(str_num);
+					// qalam_free(str_num);
 
 					t = t->next;
 					continue;
@@ -266,7 +265,7 @@ data_format(table_t *tbl, table_t *format)
 				table_rpush(deformed, (tbval_t)esp);
 			}
 
-			qalam_free(str_num);
+			// qalam_free(str_num);
 
 			validate_format(!!(esp = object_define(OTP_CHAR, sizeof(char_t))),
 				"data from string, bad object malloc");
@@ -287,7 +286,7 @@ data_format(table_t *tbl, table_t *format)
 				table_rpush(deformed, (tbval_t)esp);
 			}
 
-			qalam_free(str_num);
+			// qalam_free(str_num);
 
 			validate_format(!!(esp = object_define(OTP_CHAR, sizeof(char_t))),
 				"data from string, bad object malloc");
