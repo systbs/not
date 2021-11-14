@@ -603,25 +603,35 @@ thread_sd(thread_t *tr, iarray_t *c) {
 	else if(esp->type == OTP_PARAMS){
 		validate_format((tr->object->type == OTP_PARAMS), 
 			"[SD] after assign operator must be use PARAMS type");
-		itable_t *a, *b;
-		table_t *ta, *tb;
+		itable_t *a, *b, *e, *d;
+		table_t *ta, *tb, *tc;
 		ta = (table_t *)esp->ptr;
-		tb = (table_t *)tr->object->ptr;
+		tb = (table_t *)tr->variables;
+		tc = (table_t *)tr->object->ptr;
 		for(a = ta->begin; a != ta->end; a = a->next){
 			for(b = tb->begin; b != tb->end; b = b->next){
 				variable_t *var = (variable_t *)b->value;
 				if((tbval_t)a->value == (tbval_t)var->object){
-					object_assign((object_t *)a->value, var->object);
+					for(e = tc->begin; e != tc->end; e = e->next){
+						for(d = tb->begin; d != tb->end; d = d->next){
+							variable_t *var2 = (variable_t *)d->value;
+							if(((tbval_t)e->value == (tbval_t)var2->object)){
+								if(strncmp(var->identifier, var2->identifier, max(strlen(var->identifier), strlen(var2->identifier))) == 0){
+									object_assign((object_t *)a->value, (object_t *)e->value);
+								}
+							}
+						}
+					}
 				}
 			}
 		}
 		tr->object = esp;
 		return c->next;
+	}else {
+		object_assign(esp, tr->object);
+		tr->object = esp;
+		return c->next;
 	}
-
-	object_assign(esp, tr->object);
-	tr->object = esp;
-	return c->next;
 }
 
 iarray_t *
