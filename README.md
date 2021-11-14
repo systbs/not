@@ -41,7 +41,7 @@ print("lorem text %n %s\n", 19, "amet direm %n", 13);
 //output: lorem text 19 amet direm 13
 ```
 # contribute
-improve libs, uuid, guid, add math lib, complate memory management ....
+improve or find bugs or fix them
 
 # In the future
 ## 1. Multi threading ...
