@@ -48,8 +48,7 @@ check_integer(char *str);
 void
 utils_combine(char* destination, const char* path1, const char* path2);
 
-char *
-uuid(int n);
+char_t *uuid();
 
 void
 validate_format(int __cond__, char *__format__, ...);

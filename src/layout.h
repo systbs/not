@@ -1,7 +1,7 @@
 #pragma once
 
 typedef struct layout {
-    char *identifier;
+    char_t *identifier;
 
     schema_t *schema;
 

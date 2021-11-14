@@ -326,20 +326,36 @@ utils_combine(char* destination, const char* path1, const char* path2)
     }
 }
 
-char *
-uuid(int n)
+void
+get_random_bytes(char *bytes, int n)
 {
-    char alphabet[53] = "abcdefghijklmnopqrstuvwxyz-ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     
-    char *res = qalam_malloc(sizeof(char) * (n + 1));
-    for (int i = 0; i < n; i++){
-      res[i] = alphabet[rand() % 53];
-    }
-
-    res[n] = '\0';
-     
-    return res;
 }
+
+char_t * 
+uuid()
+{
+  int n = 16;
+
+  char_t *bytes = (char_t *)qalam_malloc(sizeof(char_t) * (n + 1));
+
+	char alphabet[16] = {'1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+    
+  // srand (time (0));
+  for (int i = 0; i < n; i++){
+    bytes[i] = alphabet[rand() % 16];
+  }
+
+  bytes[n] = '\0';
+
+	/* Set UUID version to 4 --- truly random generation */
+	bytes[6] = (bytes[6] & 0x0F) | 0x40;
+	/* Set the UUID variant to DCE */
+	bytes[8] = (bytes[8] & 0x3F) | 0x80;
+  
+  return bytes;
+}
+
 
 void
 validate_format(int __cond__, char *__format__, ...){

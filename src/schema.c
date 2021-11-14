@@ -24,7 +24,7 @@ schema_t *
 schema_create(schema_t *parent){
     schema_t *schema = (schema_t *)qalam_malloc(sizeof(schema_t));
 
-    schema->identifier = uuid(32);
+    schema->identifier = uuid();
 
 	schema->branches = table_create();
 	schema->extends = table_create();

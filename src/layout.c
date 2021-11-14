@@ -26,7 +26,7 @@ layout_create(schema_t *schema)
 {
     layout_t *layout = (layout_t *)qalam_malloc(sizeof(layout_t));
 
-    layout->identifier = uuid(32);
+    layout->identifier = uuid();
 
     layout->schema = schema;
 

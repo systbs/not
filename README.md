@@ -40,6 +40,8 @@ print(c);
 print("lorem text %n %s\n", 19, "amet direm %n", 13);
 //output: lorem text 19 amet direm 13
 ```
+# contribute
+improve libs, uuid, guid, add math lib, complate memory management ....
 
 # In the future
 ## memory management in parallel mode

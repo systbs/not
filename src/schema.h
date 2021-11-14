@@ -1,7 +1,7 @@
 #pragma once
 
 typedef struct schema {
-	char *identifier;
+	char_t *identifier;
 
 	iarray_t *start;
 	iarray_t *end;
