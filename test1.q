@@ -49,3 +49,4 @@ c = 3;
 (b,c,a) = (a, b, c);
 
 print("%n \n", b);
+print("lorem text %n %s\n", 19, "amet direm");

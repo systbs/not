@@ -34,6 +34,9 @@ c = 3;
 (b, c, a) = (a, b, c);
 print(c);
 //output: 3
+
+print("lorem text %n %s\n", 19, "amet direm");
+//output: lorem text 19 amet direm
 ```
 
 # In the future
