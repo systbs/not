@@ -44,7 +44,10 @@ print("lorem text %n %s\n", 19, "amet direm %n", 13);
 improve libs, uuid, guid, add math lib, complate memory management ....
 
 # In the future
-## memory management in parallel mode
+## 1. Multi threading ...
+## 2. System functions
+## 3. Memory management
+## 4. Artificial intelligence  
 ## ...
-## compile
+## 6. compile as assembly code
 convert generated code to assembly code and then to machin code
