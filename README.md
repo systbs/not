@@ -37,4 +37,9 @@ print(c);
 ```
 
 # In the future
+## import
+(class1,class2) = import "file_path_name.q";
+## memory management in parallel mode
+## ...
+## compile
 convert generated code to assembly code and then to machin code
