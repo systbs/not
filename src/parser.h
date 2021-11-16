@@ -29,7 +29,7 @@ typedef enum operator {
 	RET,
 	SIM,
 	REL,
-	EXTND,
+	EXD,
 	FN,
 	AT, // @
 	CLS, // prototype

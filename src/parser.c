@@ -1105,11 +1105,6 @@ expression_def(parser_t *prs, array_t *code){
     validate_format((token->identifier == TOKEN_DEF), 
         "[DEF] bad expression [row:%ld col:%ld]\n", token->row, token->col);
 
-    token_next(prs);
-    token = (token_t *)table_content(prs->c);
-    validate_format((token->identifier == TOKEN_LBRACE), 
-        "[DEF] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
     array_rpush(code, JMP);
     iarray_t *region = array_rpush(code, 0);
 
@@ -1117,7 +1112,20 @@ expression_def(parser_t *prs, array_t *code){
     table_rpush(prs->schema->branches, (tbval_t)schema);
 
     schema->start = array_rpush(code, ENT);
-    array_rpush(code, EXTND);
+
+    if(!next_is(prs, TOKEN_LBRACE)){
+        array_rpush(code, PUSH);
+        token_next(prs);
+        expression(prs, code);
+        array_rpush(code, LD);
+    }
+
+    token_next(prs);
+    token = (token_t *)table_content(prs->c);
+    validate_format((token->identifier == TOKEN_LBRACE), 
+        "[DEF] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+
+    array_rpush(code, EXD);
 
     table_rpush(prs->schemas, (tbval_t)prs->schema);
     prs->schema = schema;
@@ -1352,10 +1360,8 @@ statement(parser_t *prs, array_t *code) {
     } while(!token_done(prs));
 }
 
-
-
-
-const char * const STRCODE[] = {
+const char * 
+const STRCODE[] = {
 	[NUL] = "NUL", 
 	[IMM] = "IMM",   
 	[VAR] = "VAR",
@@ -1382,7 +1388,7 @@ const char * const STRCODE[] = {
 	[RET] = "RET",
     [SIM] = "SIM",
     [REL] = "REL",
-	[EXTND] = "EXTND",
+	[EXD] = "EXD",
 	[FN] = "FN",
 	[AT] = "AT", 
 	[CLS] = "CLS", 

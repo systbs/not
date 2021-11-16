@@ -14,9 +14,7 @@ category2: def {
 category3: (category1, category2, def {
 	c = "simple text 3\n";
 	print("Hello World\n");
-	fn: def {
-		[i, j, k] = params;
-		print(params[1]);
+	fn: def (i, j ,k) {
 		return i + j + k;
 	}
 });

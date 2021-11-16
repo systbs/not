@@ -720,9 +720,35 @@ thread_sd(thread_t *tr, iarray_t *c) {
 iarray_t *
 thread_ld(thread_t *tr, iarray_t *c) {
 	object_t *esp;
-	validate_format(!(esp = (object_t *)table_content(table_rpop(tr->layout->parameters))),
-		"load data, bad pop data!");
-	object_assign(tr->object, esp);
+	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
+			"bad retrive parameters");
+	if(esp->type == OTP_PARAMS){
+		if(tr->object->type == OTP_PARAMS){
+			table_t *tt = (table_t *)tr->object->ptr;
+			table_t *ts = (table_t *)esp->ptr;
+			itable_t *a, *b;
+			for(a = tt->begin, b = ts->begin; a != tt->end; a = a->next){
+				if(b == ts->end){
+					break;
+				}
+				object_assign((object_t *)a->value, (object_t *)b->value);
+			}
+		} else {
+			object_t *object;
+			validate_format (!!(object = (object_t *)table_content(table_lpop((table_t *)esp->ptr))),
+				"bad retrive parameters");
+			object_assign(tr->object, object);
+		}
+	} else {
+		if(tr->object->type == OTP_PARAMS){
+			object_t *object;
+			validate_format (!!(object = (object_t *)table_content(table_lpop((table_t *)tr->object->ptr))),
+				"bad retrive parameters");
+			object_assign(object, esp);
+		} else {
+			object_assign(tr->object, esp);
+		}
+	}
 	return c->next;
 }
 
@@ -861,25 +887,6 @@ thread_ent(thread_t *tr, iarray_t *c) {
 	tr->layout = layout;
 
 	tr->layout->object = object_define(OTP_NULL, sizeof(ptr_t));
-
-	if(!!tr->object){
-		if(tr->object->type == OTP_PARAMS){
-			object_t *object;
-			while (!!(object = (object_t *)table_content(table_lpop((table_t *)tr->object->ptr)))) {
-				table_rpush(tr->layout->parameters, (tbval_t)object);
-			}
-			tr->object = nullptr;
-		} else {
-			table_rpush(tr->layout->parameters, (tbval_t)tr->object);
-			tr->object = nullptr;
-		}
-	}
-
-	variable_t *var;
-	var = variable_define("params");
-	var->object = object_define(OTP_PARAMS, sizeof(table_t));
-	table_rpush(tr->layout->variables, (tbval_t)var);
-	var->object->ptr = tr->layout->parameters;
 
 	return c->next;
 }
@@ -1332,7 +1339,7 @@ decode(thread_t *tr, iarray_t *c) {
 		case ENT:
 			return thread_ent(tr, c);
 			break;
-		case EXTND:
+		case EXD:
 			return thread_extend(tr, c);
 			break;
 		case LEV:
