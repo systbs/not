@@ -1116,8 +1116,12 @@ expression_def(parser_t *prs, array_t *code){
     if(!next_is(prs, TOKEN_LBRACE)){
         array_rpush(code, PUSH);
         token_next(prs);
-        expression(prs, code);
-        array_rpush(code, LD);
+        if(!next_is(prs, TOKEN_RPAREN)){
+            expression(prs, code);
+            array_rpush(code, LD);
+        }else{
+            token_next(prs);
+        }
     }
 
     token_next(prs);

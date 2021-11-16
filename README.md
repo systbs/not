@@ -16,8 +16,7 @@ class2: def {
 class3: (class1, class2, def {
   c = "sample text 3";
   print("hello world");
-  fn: def {
-    [i, j, k] = params;
+  fn: def (i,j,k) {
     return i+j+k;
   }
 });
