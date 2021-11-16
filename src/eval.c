@@ -757,7 +757,7 @@ thread_jz(thread_t *tr, iarray_t *c) {
 			}
 		}
 	}
-	else if(tr->object->type == OTP_LONG && tr->object->type == OTP_DOUBLE){
+	else if(tr->object->type == OTP_LONG || tr->object->type == OTP_DOUBLE){
 		res = res && ((long_t)oget(tr->object));
 	}
 	else {
@@ -783,7 +783,7 @@ thread_jnz(thread_t *tr, iarray_t *c) {
 			}
 		}
 	}
-	else if(tr->object->type == OTP_LONG && tr->object->type == OTP_DOUBLE){
+	else if(tr->object->type == OTP_LONG || tr->object->type == OTP_DOUBLE){
 		res = res && ((long_t)oget(tr->object));
 	}
 	else {
@@ -1192,9 +1192,8 @@ thread_import(thread_t *tr, iarray_t *c){
 		"could not malloc(%ld) for buf area\n", chunk);
 
     // read the source file
-	long_t i = 0;
-    validate_format (!!((i = fread(buf, 1, chunk, fd)) >= chunk), 
-		"read returned %ld\n", i);
+	long_t i = fread(buf, 1, chunk, fd);
+    validate_format (!!(i >= chunk), "read returned %ld\n", i);
 
     buf[i] = '\0';
 

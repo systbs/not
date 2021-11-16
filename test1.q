@@ -1,4 +1,4 @@
-(category4) = import "test2.q";
+{category4} = import "test2.q";
 
 p = category4().w;
 print("%s\n", p);

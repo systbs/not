@@ -1069,7 +1069,6 @@ expression_lparen(parser_t *prs, array_t *code){
         token_next(prs);
         token = (token_t *)table_content(prs->c);
     } while (token->identifier != TOKEN_RPAREN);
-    array_rpush(code, PARAMS);
 }
 
 void
@@ -1097,6 +1096,7 @@ expression_lbrace(parser_t *prs, array_t *code){
         token_next(prs);
         token = (token_t *)table_content(prs->c);
     } while (token->identifier != TOKEN_RBRACE);
+    array_rpush(code, PARAMS);
 }
 
 void
@@ -1122,7 +1122,12 @@ expression_def(parser_t *prs, array_t *code){
     table_rpush(prs->schemas, (tbval_t)prs->schema);
     prs->schema = schema;
 
-    expression(prs, code);
+    token_next(prs);
+    do {
+        expression(prs, code);
+        token_next(prs);
+        token = (token_t *)table_content(prs->c);
+    } while (token->identifier != TOKEN_RBRACE);
 
     prs->schema = (schema_t *)table_content(table_rpop(prs->schemas));
     
