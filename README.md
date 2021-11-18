@@ -19,6 +19,11 @@ class3: (class1, class2, def {
   fn: def (i,j,k) {
     return i+j+k;
   }
+
+  num = 2;
+  +: def (val) {
+    return this.num + val;
+  }
 });
 
 ca = class3();
@@ -28,6 +33,9 @@ sum = ca.fn(1,2,3);
 // sum = ca.fn = (1,2,3);
 print(sum);
 //output: 6
+
+print(ca + 3);
+//output: 5
 
 a = 1;
 b = 2;
