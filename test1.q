@@ -12,10 +12,14 @@ category2: def {
 };
 
 category3: (category1, category2, def {
+	num = 1;
 	c = "simple text 3\n";
 	print("Hello World\n");
 	fn: def (i, j ,k) {
 		return i + j + k;
+	}
+	+: def(it) {
+		return this.num + it;
 	}
 });
 
@@ -24,8 +28,11 @@ f = d.fn(1,2,3);
 
 print(d.b);
 print(f);
-
 print("\n");
+
+print("operator + called %n\n", d + 3);
+
+
 g = 2 * 3 + 3 * 2 * 4;
 print(g);
 

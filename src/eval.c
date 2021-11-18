@@ -96,6 +96,51 @@ thread_or(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 	
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "||")), 
+			"[OR] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[OR] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "||")), 
+			"[OR] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[OR] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
 		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 	
@@ -115,6 +160,51 @@ thread_lor(thread_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
+
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "|")), 
+			"[LOR] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[LOR] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "|")), 
+			"[LOR] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[LOR] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
 		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
@@ -137,6 +227,51 @@ thread_xor(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "^")), 
+			"[XOR] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[XOR] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "^")), 
+			"[XOR] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[XOR] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
 		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
@@ -158,6 +293,51 @@ thread_and(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "&&")), 
+			"[AND] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[AND] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "&&")), 
+			"[AND] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[AND] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
 		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
@@ -178,6 +358,51 @@ thread_land(thread_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
+
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "&")), 
+			"[LAND] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[LAND] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "&")), 
+			"[LAND] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[LAND] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
 		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
@@ -242,6 +467,51 @@ thread_lt(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "<")), 
+			"[LT] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[LT] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "<")), 
+			"[LT] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[LT] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
 		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
@@ -261,6 +531,51 @@ thread_le(thread_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
+
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "<=")), 
+			"[LE] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[LE] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "<=")), 
+			"[LE] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[LE] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
 		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
@@ -283,6 +598,51 @@ thread_gt(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, ">")), 
+			"[GT] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[GT] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, ">")), 
+			"[GT] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[GT] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
 		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
@@ -304,6 +664,51 @@ thread_ge(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, ">=")), 
+			"[GE] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[GE] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, ">=")), 
+			"[GE] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[GE] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
 		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
@@ -324,6 +729,51 @@ thread_lshift(thread_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
+
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "<<")), 
+			"[LSHIFT] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[LSHIFT] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "<<")), 
+			"[LSHIFT] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[LSHIFT] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
 
 	validate_format(!!((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)),
 		"in << operator used object %s && %s", 
@@ -348,6 +798,51 @@ thread_rshift(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, ">>")), 
+			"[RSHIFT] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[RSHIFT] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, ">>")), 
+			"[RSHIFT] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[RSHIFT] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
 	validate_format(!!((esp->type == OTP_LONG) && (tr->object->type == OTP_LONG)),
 		"in >> operator used object %s && %s", 
 		object_tas(esp), object_tas(tr->object)
@@ -370,6 +865,51 @@ thread_add(thread_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
+
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "+")), 
+			"[ADD] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[ADD] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "+")), 
+			"[ADD] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[ADD] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
 		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
@@ -397,6 +937,51 @@ thread_sub(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "-")), 
+			"[SUB] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[SUB] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "-")), 
+			"[SUB] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[SUB] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
 		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
@@ -422,6 +1007,51 @@ thread_mul(thread_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
+
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "*")), 
+			"[MUL] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[MUL] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "*")), 
+			"[MUL] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[MUL] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
 		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
@@ -449,6 +1079,51 @@ thread_div(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"frame is empty");
 
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "/")), 
+			"[DIV] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[DIV] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "/")), 
+			"[DIV] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[DIV] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
 		"wrong in object type %s && %s", object_tas(esp), object_tas(tr->object));
 
@@ -475,6 +1150,51 @@ thread_mod(thread_t *tr, iarray_t *c) {
 	if(!(esp = (object_t *)table_content(table_rpop(tr->layout->frame)))){
 		printf("[%%], you can use '%%' between two object!\n");
 		exit(-1);
+	}
+
+	if (esp->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)esp->ptr;
+
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "%")), 
+			"[MOD] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[MOD] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
+	}
+
+	else if (tr->object->type == OTP_LAYOUT) {
+		layout_t *layout = (layout_t *)tr->object->ptr;
+		
+		table_t *tbl = table_create();
+		table_rpush(tbl, (tbval_t)esp);
+
+		object_t *object = object_define(OTP_PARAMS, sizeof(table_t));
+		object->ptr = tbl;
+
+		tr->object = object;
+
+		variable_t *var;
+		validate_format(!!(var = layout_vwp(layout, "%")), 
+			"[MOD] operator not defined");
+
+		object = variable_content(var);
+
+		validate_format(!!(object->type == OTP_SCHEMA), 
+			"[MOD] operator is diffrent type of schema");
+
+		return call(tr, (schema_t *)object->ptr, c->next);
 	}
 
 	validate_format(!!(object_isnum(esp) && object_isnum(tr->object)),
@@ -749,6 +1469,7 @@ thread_ld(thread_t *tr, iarray_t *c) {
 			object_assign(tr->object, esp);
 		}
 	}
+	
 	return c->next;
 }
 
@@ -868,11 +1589,10 @@ iarray_t *
 thread_call(thread_t *tr, iarray_t *c) {
 	object_t *esp;
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
-			"bad call operation!");
+		"bad call operation!");
 
 	validate_format((esp->type == OTP_SCHEMA), 
-		"[CALL] for %s type, eval operator only use for SCHEMA type", 
-		object_tas(esp));
+		"[CALL] for %s type, eval operator only use for SCHEMA type", object_tas(esp));
 		
 	return call(tr, (schema_t *)esp->ptr, c->next);
 }
@@ -883,7 +1603,7 @@ thread_ent(thread_t *tr, iarray_t *c) {
 
 	layout_t *layout;
 	layout = (layout_t *)table_content(table_rpop(tr->board));
-	layout->parent = tr->layout;
+	layout->parent = (layout_t *)layout->schema->root;
 	tr->layout = layout;
 
 	tr->layout->object = object_define(OTP_NULL, sizeof(ptr_t));
@@ -951,8 +1671,21 @@ thread_scheming(thread_t *tr, iarray_t *c) {
 	validate_format(!!(esp = (object_t *)table_content(table_rpop(tr->layout->frame))),
 		"[CLS] missing object");
 
-	validate_format((esp->type == OTP_SCHEMA) || (esp->type == OTP_NULL), 
+	validate_format((esp->type == OTP_SCHEMA) || (esp->type == OTP_NULL) || (esp->type == OTP_ARRAY), 
 		"[CLS] scheming type use only for null or schema type, %s", object_tas(esp));
+
+	if((esp->type == OTP_ARRAY)){
+		char_t *schema_name = data_to((table_t *)esp->ptr);
+		
+		validate_format(!!(esp = object_redefine(esp, OTP_SCHEMA, sizeof(schema_t))), 
+			"[CLS] redefine object for type schema");
+
+		variable_t *var;
+		var = variable_define(schema_name);
+		var->object = esp;
+		table_rpush(tr->layout->variables, (tbval_t)var);
+		table_rpush(tr->variables, (tbval_t)var);
+	}
 
 	if((esp->type == OTP_NULL)){
 		validate_format(!!(esp = object_redefine(esp, OTP_SCHEMA, sizeof(schema_t))), 
@@ -968,10 +1701,13 @@ thread_scheming(thread_t *tr, iarray_t *c) {
 			esp->ptr = object->ptr;
 		} else {
 			validate_format((tr->object->type == OTP_SCHEMA), 
-				"[CLS] scheming type use only for schema type, %s", 
-				object_tas(tr->object)
+				"[CLS] scheming type use only for schema type, %s", object_tas(tr->object)
 			);
 			esp->ptr = tr->object->ptr;
+			schema_t *schema;
+			validate_format(!!(schema = (schema_t *)esp->ptr),
+				"[CLS] schema is null");
+			schema->root = tr->layout;
 			tr->object = esp;
 			return c->next;
 		}
@@ -980,6 +1716,8 @@ thread_scheming(thread_t *tr, iarray_t *c) {
 	schema_t *schema;
 	validate_format(!!(schema = (schema_t *)esp->ptr),
 		"[CLS] schema is null");
+
+	schema->root = tr->layout;
 
 	if(tr->object->type == OTP_PARAMS){
 		table_t *tbl = (table_t *)tr->object->ptr;

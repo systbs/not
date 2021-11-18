@@ -10,7 +10,7 @@ typedef long double double128_t;
 
 typedef void * ptr_t;
 typedef char * string_t;
-typedef void * void_t;
+typedef void void_t;
 
 typedef unsigned char 		 uchar_t;
 typedef unsigned short 		 ushort_t;

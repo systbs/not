@@ -11,6 +11,8 @@ typedef struct schema {
 	table_t *variables;
 	table_t *parameters;
 
+	void_t *root;
+
 	struct schema *parent;
 } schema_t;
 
