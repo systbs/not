@@ -82,8 +82,9 @@ typedef enum imm_type {
 typedef struct parser {
     schema_t *schema; 
     table_t *schemas; 
-	table_t *pool; 
+	table_t *frame; 
     table_t *tokens; 
+	array_t *stack; 
     itable_t *c;
 	long_t ub;
 } parser_t;

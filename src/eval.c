@@ -2135,6 +2135,8 @@ eval(schema_t *root, array_t *code)
 
 	iarray_t *adrs = array_rpush(code, EXIT);
 
+	root->root = tr->layout;
+
 	iarray_t *c = call(tr, root, adrs);
 
 	do {

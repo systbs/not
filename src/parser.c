@@ -36,13 +36,6 @@
     prs->c;\
 })
 
-int array_sizeof(int *arr) {
-    int count=0;
-    for(;*arr++;)
-        count++;
-    return count;
-}
-
 int
 next_n_is(parser_t *prs, long_t n, arval_t identifier){
     itable_t *b = prs->c;
@@ -64,18 +57,17 @@ next_is(parser_t *prs, arval_t identifier){
     return token->identifier == identifier;
 }
 
-int
-next_each(parser_t *prs, int *ids){
-    itable_t *b = prs->c;
-    token_t *token = (token_t *)table_content(b->next);
-    long_t i = 0;
-    int res = 0; 
-    long_t len = array_sizeof(ids);
-    for(i = 0; i < len; i++){
-        res = res || (token->identifier == ids[i]);
-    }
-    return res;
-}
+#define next_each(prs, ids)({\
+    itable_t *b = prs->c;\
+    token_t *token = (token_t *)table_content(b->next);\
+    long_t i = 0;\
+    int res = 0; \
+    long_t len = sizeof(ids) / sizeof(ids[0]);\
+    for(i = 0; i < len; i++){\
+        res = res || (token->identifier == ids[i]);\
+    }\
+    res;\
+})
 
 int
 prev_is(parser_t *prs, arval_t identifier){
@@ -110,18 +102,9 @@ next_isop(parser_t *prs){
 }
 
 
+void 
+statement(parser_t *prs, array_t *code);
 
-
-void
-expression_colon(parser_t *prs, array_t *code){
-    token_t *token = (token_t *)table_content(prs->c);
-    validate_format((token->identifier == TOKEN_COLON), 
-        "[COLON] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    array_rpush(code, PUSH);
-    token_next(prs);
-    expression(prs, code);
-    array_rpush(code, CLS);
-}
 
 void
 expression_comma(parser_t *prs, array_t *code){
@@ -171,7 +154,6 @@ expression_break(parser_t *prs, array_t *code){
 
 
 
-
 void
 expression_id(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
@@ -204,20 +186,35 @@ expression_id(parser_t *prs, array_t *code){
         array_rpush(code, CELL);
     }
 
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids) || (prs->ub == 1)){
+    if(prs->ub == 1){
         return;
     }
 
-    token_next(prs);
-    expression(prs, code);
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT,
+        TOKEN_DOT
+    };
+    if(next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -249,20 +246,34 @@ expression_super(parser_t *prs, array_t *code){
         array_rpush(code, CELL);
     }
 
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids) || (prs->ub == 1)){
+    if(prs->ub == 1){
         return;
     }
 
-    token_next(prs);
-    expression(prs, code);
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -293,20 +304,34 @@ expression_this(parser_t *prs, array_t *code){
         array_rpush(code, CELL);
     }
 
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids) || (prs->ub == 1)){
+    if(prs->ub == 1){
         return;
     }
 
-    token_next(prs);
-    expression(prs, code);
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -320,20 +345,34 @@ expression_data(parser_t *prs, array_t *code){
     array_rpush(code, token->value);
     array_rpush(code, TP_ARRAY);
 
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids) || (prs->ub == 1)){
+    if(prs->ub == 1){
         return;
     }
 
-    token_next(prs);
-    expression(prs, code);
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -347,20 +386,35 @@ expression_number(parser_t *prs, array_t *code){
     array_rpush(code, token->value);
     array_rpush(code, TP_NUMBER);
 
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids) || (prs->ub == 1)){
+    if(prs->ub == 1){
         return;
     }
 
-    token_next(prs);
-    expression(prs, code);
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+
+    if(next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -374,22 +428,35 @@ expression_null(parser_t *prs, array_t *code){
     array_rpush(code, token->value);
     array_rpush(code, TP_NULL);
 
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids) || (prs->ub == 1)){
+    if(prs->ub == 1){
         return;
     }
 
-    token_next(prs);
-    expression(prs, code);
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
-
 
 
 
@@ -488,21 +555,32 @@ expression_caret(parser_t *prs, array_t *code){
     }
     array_rpush(code, XOR);
 
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids)){
-        return;
-    }
-
-    token_next(prs);
     prs->ub = 0;
-    expression(prs, code);
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -522,6 +600,7 @@ expression_mul(parser_t *prs, array_t *code){
     token_next(prs);
     prs->ub = 1;
     expression(prs, code);
+    
     int ids1[] = {
         TOKEN_CARET,
         TOKEN_LAND,
@@ -533,25 +612,33 @@ expression_mul(parser_t *prs, array_t *code){
     };
     if(next_each(prs, ids1)){
         token_next(prs);
-        prs->ub = 1;
         expression(prs, code);
     }
     array_rpush(code, MUL);
 
     prs->ub = 0;
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids)){
-        return;
-    }
 
-    if(next_isop(prs)){
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(next_each(prs, ids_moreexp)){
         token_next(prs);
         expression(prs, code);
     }
@@ -591,19 +678,28 @@ expression_div(parser_t *prs, array_t *code){
     array_rpush(code, DIV);
 
     prs->ub = 0;
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids)){
-        return;
-    }
 
-    if(next_isop(prs)){
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
         token_next(prs);
         expression(prs, code);
     }
@@ -643,19 +739,28 @@ expression_episode(parser_t *prs, array_t *code){
     array_rpush(code, EPISODE);
 
     prs->ub = 0;
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids)){
-        return;
-    }
 
-    if(next_isop(prs)){
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
         token_next(prs);
         expression(prs, code);
     }
@@ -694,21 +799,32 @@ expression_mod(parser_t *prs, array_t *code){
     }
     array_rpush(code, MOD);
 
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids)){
-        return;
-    }
-
-    token_next(prs);
     prs->ub = 0;
-    expression(prs, code);
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -728,7 +844,7 @@ expression_plus(parser_t *prs, array_t *code){
     token_next(prs);
     prs->ub = 1;
     expression(prs, code);
-    int ids1[] = {
+    int ids_heighexp[] = {
         TOKEN_CARET,
         TOKEN_LAND,
         TOKEN_LOR,
@@ -737,27 +853,35 @@ expression_plus(parser_t *prs, array_t *code){
         TOKEN_PERCENT, 
         TOKEN_BACKSLASH
     };
-    if(next_each(prs, ids1)){
+    if(next_each(prs, ids_heighexp)){
         token_next(prs);
-        prs->ub = 1;
         expression(prs, code);
     }
     array_rpush(code, ADD);
 
     prs->ub = 0;
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids)){
-        return;
-    }
 
-    if(next_isop(prs)){
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(next_each(prs, ids_moreexp)){
         token_next(prs);
         expression(prs, code);
     }
@@ -780,6 +904,7 @@ expression_minus(parser_t *prs, array_t *code){
     token_next(prs);
     prs->ub = 1;
     expression(prs, code);
+
     int ids1[] = {
         TOKEN_CARET,
         TOKEN_LAND,
@@ -796,32 +921,70 @@ expression_minus(parser_t *prs, array_t *code){
     }
     array_rpush(code, SUB);
 
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids)){
-        return;
-    }
-
-    token_next(prs);
     prs->ub = 0;
-    expression(prs, code);
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
 expression_ee(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
-    validate_format((token->identifier == TOKEN_EQ), 
-        "[EQ] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+    validate_format((token->identifier == TOKEN_EQEQ), 
+        "[EQEQ] bad expression [row:%ld col:%ld]\n", token->row, token->col);
     array_rpush(code, PUSH);
     token_next(prs);
     expression(prs, code);
     array_rpush(code, EQ);
+
+    prs->ub = 0;
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -841,6 +1004,33 @@ expression_ne(parser_t *prs, array_t *code){
     token_next(prs);
     expression(prs, code);
     array_rpush(code, NE);
+
+    prs->ub = 0;
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -902,21 +1092,32 @@ expression_land(parser_t *prs, array_t *code){
     }
     array_rpush(code, LAND);
 
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids)){
-        return;
-    }
-
-    token_next(prs);
     prs->ub = 0;
-    expression(prs, code);
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -948,21 +1149,32 @@ expression_lor(parser_t *prs, array_t *code){
     }
     array_rpush(code, LOR);
 
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids)){
-        return;
-    }
-
-    token_next(prs);
     prs->ub = 0;
-    expression(prs, code);
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -982,6 +1194,33 @@ expression_and(parser_t *prs, array_t *code){
     token_next(prs);
     expression(prs, code);
     array_rpush(code, AND);
+
+    prs->ub = 0;
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -1001,6 +1240,33 @@ expression_or(parser_t *prs, array_t *code){
     token_next(prs);
     expression(prs, code);
     array_rpush(code, OR);
+
+    prs->ub = 0;
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -1020,6 +1286,33 @@ expression_lt(parser_t *prs, array_t *code){
     token_next(prs);
     expression(prs, code);
     array_rpush(code, LT);
+
+    prs->ub = 0;
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -1039,6 +1332,33 @@ expression_gt(parser_t *prs, array_t *code){
     token_next(prs);
     expression(prs, code);
     array_rpush(code, GT);
+
+    prs->ub = 0;
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -1058,6 +1378,33 @@ expression_lshift(parser_t *prs, array_t *code){
     token_next(prs);
     expression(prs, code);
     array_rpush(code, LSHIFT);
+
+    prs->ub = 0;
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -1077,6 +1424,33 @@ expression_rshift(parser_t *prs, array_t *code){
     token_next(prs);
     expression(prs, code);
     array_rpush(code, RSHIFT);
+
+    prs->ub = 0;
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
 }
 
 void
@@ -1200,12 +1574,15 @@ expression_lparen(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_LPAREN), 
         "[LPAREN] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+    array_rpush(prs->stack, prs->ub);
+    prs->ub = 0;
     token_next(prs);
     do {
         expression(prs, code);
         token_next(prs);
         token = (token_t *)table_content(prs->c);
     } while (token->identifier != TOKEN_RPAREN);
+    prs->ub = array_content(array_rpop(prs->stack));
 }
 
 void
@@ -1326,11 +1703,29 @@ expression_eval(parser_t *prs, array_t *code){
     expression(prs, code);
 }
 
+
+/*
+    expr : expr;
+*/
+void
+expression_colon(parser_t *prs, array_t *code){
+    token_t *token = (token_t *)table_content(prs->c);
+    validate_format((token->identifier == TOKEN_COLON), 
+        "[COLON] bad statement [row:%ld col:%ld]\n", token->row, token->col);
+    array_rpush(code, PUSH);
+    token_next(prs);
+    expression(prs, code);
+    array_rpush(code, CLS);
+}
+
+/*
+    import expr;
+*/
 void
 expression_import(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
     validate_format((token->identifier == TOKEN_IMPORT), 
-        "[IMPORT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+        "[IMPORT] bad statement [row:%ld col:%ld]\n", token->row, token->col);
     token_next(prs);
     expression(prs, code);
     array_rpush(code, IMPORT);
@@ -1341,10 +1736,14 @@ void
 expression(parser_t *prs, array_t *code){
     token_t *token = (token_t *)table_content(prs->c);
 
-    //printf(" %s ", (char *)token->symbol);
+    // printf(" %s ", (char *)token->symbol);
 
-    if(token->identifier == TOKEN_COLON) {
+    if(token->identifier == TOKEN_COLON){
         expression_colon(prs, code);
+        return;
+    }
+    else if (token->identifier == TOKEN_IMPORT){
+        expression_import(prs, code);
         return;
     } else if(token->identifier == TOKEN_COMMA){
         expression_comma(prs, code);
@@ -1469,9 +1868,6 @@ expression(parser_t *prs, array_t *code){
     } else if(token->identifier == TOKEN_EVAL){
         expression_eval(prs, code);
         return;
-    } else if(token->identifier == TOKEN_IMPORT){
-        expression_import(prs, code);
-        return;
     } else if(token->identifier == TOKEN_DOT){
         expression_dot(prs, code);
         return;
@@ -1491,13 +1887,15 @@ expression(parser_t *prs, array_t *code){
     return;
 }
 
+
 void 
 statement(parser_t *prs, array_t *code) {
     do {
+        token_t *token = (token_t *)table_content(prs->c);
+        //printf(" %s ", (char *)token->symbol);
         prs->ub = 0;
         expression(prs, code);
         token_next(prs);
-        //printf("\n");
     } while(!token_done(prs));
 }
 
@@ -1584,11 +1982,11 @@ parse(table_t *tokens, array_t *code){
     prs->tokens = tokens;
 
     prs->schemas = table_create();
+    prs->frame = table_create();
+    prs->stack = array_create();
 
     prs->c = tokens->begin;
-
     statement(prs, code);
-
     array_rpush(code, THIS);
     array_rpush(code, RET);
     prs->schema->end = array_rpush(code, LEV);
