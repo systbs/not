@@ -19,7 +19,7 @@ category3: (category1, category2, def {
 		return i + j + k;
 	}
 	+: def(it) {
-		return this.num + it;
+		return num + it;
 	}
 });
 

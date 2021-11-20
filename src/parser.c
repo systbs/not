@@ -268,7 +268,8 @@ expression_super(parser_t *prs, array_t *code){
         TOKEN_LT,
         TOKEN_GT,
         TOKEN_LTLT,
-        TOKEN_GTGT
+        TOKEN_GTGT,
+        TOKEN_DOT
     };
     if(!!next_each(prs, ids_moreexp)){
         token_next(prs);
@@ -326,7 +327,8 @@ expression_this(parser_t *prs, array_t *code){
         TOKEN_LT,
         TOKEN_GT,
         TOKEN_LTLT,
-        TOKEN_GTGT
+        TOKEN_GTGT,
+        TOKEN_DOT
     };
     if(!!next_each(prs, ids_moreexp)){
         token_next(prs);
