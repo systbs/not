@@ -58,7 +58,7 @@ enum
   TOKEN_RETURN,
   TOKEN_SUPER,
   TOKEN_THIS,
-  TOKEN_ID, // class, struct, function, enum, variable
+  TOKEN_ID, 
   TOKEN_WHILE,
   TOKEN_DELETE,
   TOKEN_INSERT,
@@ -78,7 +78,6 @@ enum
   TOKEN_SLEEP,
 
 
-  // system function
   TOKEN_FORMAT,
   TOKEN_PRINT,
 

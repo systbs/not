@@ -1,3 +1,58 @@
+/*
+    Created by YAS - 2021
+    
+    Lexer:
+    This part converts the program text to 
+    an understandable form for the parser.
+    
+    Every token contains:
+        arval_t identifier;     // --> Token type: TOKEN_EQ mean "="
+        arval_t value;          // if token from type string or char or number value set to pointer it
+        arval_t pos;            // posation of token in document
+        arval_t row;            // line token
+        arval_t col;            // column token
+        arval_t fileid;         // file identifier 
+        const char * symbol;    // name of symbol, for example "=" -> "EQ"
+
+    Tokens, which are a set of pre-commands, 
+    are later stored in a linked list(table_t) and then parsed 
+
+    example: [test.q]
+
+    category4: def {
+        w = "simple text 4";
+    };
+
+    #first token:
+    identifier: TOKEN_ID
+    value: (long_t)"category4"
+    pos: 1
+    row: 1
+    col: 1
+    fileid: (long_t)"test.q"
+    symbol: "ID"
+    
+    #next token
+    identifier: TOKEN_COLON
+    value: null
+    pos: 9
+    row: 1
+    col: 9
+    fileid: (long_t)"test.q"
+    symbol: "COLON"
+
+    #next token
+    identifier: TOKEN_DEF
+    value: null
+    pos: 11
+    row: 1
+    col: 11
+    fileid: (long_t)"test.q"
+    symbol: "DEF"
+
+    ...
+*/
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -14,6 +69,7 @@
 
 #include "lexer.h"
 
+// name of every token
 const char * const symbols[] = {
   [TOKEN_EOF]       = "EOF",
   [TOKEN_SPACE]     = "SPACE",
@@ -93,7 +149,7 @@ const char * const symbols[] = {
   [TOKEN_LINE]      = "LINE"
 };
 
-
+// A function to facilitate token creation 
 token_t *
 token_create(arval_t identifier, arval_t value, arval_t pos, arval_t row, arval_t col)
 {
@@ -107,20 +163,27 @@ token_create(arval_t identifier, arval_t value, arval_t pos, arval_t row, arval_
     return token;
 }
 
+// destroy a token from linked list (table_t) 
 arval_t
 token_destroy(itable_t *it)
 {
     token_t *token = (token_t *)it->value;
     if(token){
         if(token->value){
-            free((void *)token->value);
+            qalam_free((void *)token->value);
         }
-        free(token);
+        qalam_free(token);
     }
-    free(it);
+    qalam_free(it);
     return 1;
 }
 
+/*  Report an error contain 
+    ** pos: posation
+    ** row: row
+    ** col: colomn
+    ** str: error message
+*/
 void
 lexer_error(const char *source, arval_t pos, arval_t row, arval_t col, char *str){
     printf("lexer(%ld:%ld): %s!\n", row, col, str);
@@ -138,7 +201,11 @@ lexer_error(const char *source, arval_t pos, arval_t row, arval_t col, char *str
     exit(-1);
 }
 
+/* Main function for lexer part
+    ** ls: linked list for save of created token
+    ** source: buffer of program text
 
+*/
 void
 lexer(table_t *ls, const char *source)
 {
