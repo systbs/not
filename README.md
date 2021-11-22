@@ -40,7 +40,7 @@ print(ca + 3);
 a = 1;
 b = 2;
 c = 3;
-(b, c, a) = (a, b, c);
+{b,c,a} = {a, b, c};
 print(c);
 //output: 3
 
