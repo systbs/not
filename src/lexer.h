@@ -71,6 +71,11 @@ enum
   TOKEN_FN,
   TOKEN_ARG,
   TOKEN_DEF,
+  TOKEN_FORK,
+  TOKEN_WAIT,
+  TOKEN_GETPID,
+  TOKEN_EXIT,
+  TOKEN_SLEEP,
 
 
   // system function

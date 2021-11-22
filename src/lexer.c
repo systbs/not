@@ -693,6 +693,31 @@ lexer(table_t *ls, const char *source)
                     lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
                 }
                 continue;
+            } else if(strncmp(source + pos2, "fork", 4) == 0){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_FORK,0,pos2,row,col-(pos-pos2))) == nullptr){
+                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
+                }
+                continue;
+            } else if(strncmp(source + pos2, "wait", 4) == 0){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_WAIT,0,pos2,row,col-(pos-pos2))) == nullptr){
+                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
+                }
+                continue;
+            } else if(strncmp(source + pos2, "getpid", 6) == 0){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_GETPID,0,pos2,row,col-(pos-pos2))) == nullptr){
+                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
+                }
+                continue;
+            } else if(strncmp(source + pos2, "exit", 4) == 0){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_EXIT,0,pos2,row,col-(pos-pos2))) == nullptr){
+                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
+                }
+                continue;
+            } else if(strncmp(source + pos2, "sleep", 5) == 0){
+                if(table_rpush(ls, (tbval_t)token_create(TOKEN_SLEEP,0,pos2,row,col-(pos-pos2))) == nullptr){
+                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
+                }
+                continue;
             }
 
             char *var = malloc(sizeof(char) * (pos - pos2));

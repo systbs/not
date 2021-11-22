@@ -997,7 +997,7 @@ expression_ne(parser_t *prs, array_t *code){
     
     if(next_is(prs, TOKEN_COLON)){
         array_rpush(code, IMM);
-        array_rpush(code, (arval_t)"<=");
+        array_rpush(code, (arval_t)"!=");
         array_rpush(code, TP_VAR);
         return;
     }
@@ -1733,6 +1733,137 @@ expression_import(parser_t *prs, array_t *code){
     array_rpush(code, IMPORT);
 }
 
+void
+expression_fork(parser_t *prs, array_t *code){
+    token_t *token = (token_t *)table_content(prs->c);
+
+    validate_format((token->identifier == TOKEN_FORK), 
+        "[FORK] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+
+    array_rpush(code, FORK);
+    if(prs->ub == 1){
+        return;
+    }
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT,
+        TOKEN_DOT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
+}
+
+void
+expression_wait(parser_t *prs, array_t *code){
+    token_t *token = (token_t *)table_content(prs->c);
+    validate_format((token->identifier == TOKEN_WAIT), 
+        "[WAIT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+    array_rpush(code, WAIT);
+    if(prs->ub == 1){
+        return;
+    }
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT,
+        TOKEN_DOT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
+}
+
+void
+expression_sleep(parser_t *prs, array_t *code){
+    token_t *token = (token_t *)table_content(prs->c);
+    validate_format((token->identifier == TOKEN_SLEEP), 
+        "[SLEEP] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+    token_next(prs);
+    expression(prs, code);
+    array_rpush(code, SLEEP);
+}
+
+void
+expression_getpid(parser_t *prs, array_t *code){
+    token_t *token = (token_t *)table_content(prs->c);
+    validate_format((token->identifier == TOKEN_GETPID), 
+        "[GETPID] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+    array_rpush(code, GETPID);
+    
+    if(prs->ub == 1){
+        return;
+    }
+
+    int ids_moreexp[] = {
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_PERCENT,
+        TOKEN_EQEQ,
+        TOKEN_NEQ,
+        TOKEN_GTEQ,
+        TOKEN_LTEQ,
+        TOKEN_LAND,
+        TOKEN_LOR,
+        TOKEN_AND,
+        TOKEN_OR,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTLT,
+        TOKEN_GTGT,
+        TOKEN_DOT
+    };
+    if(!!next_each(prs, ids_moreexp)){
+        token_next(prs);
+        expression(prs, code);
+    }
+}
+
+void
+expression_exit(parser_t *prs, array_t *code){
+    token_t *token = (token_t *)table_content(prs->c);
+    validate_format((token->identifier == TOKEN_EXIT), 
+        "[EXIT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+    array_rpush(code, EXIT);
+}
 
 void
 expression(parser_t *prs, array_t *code){
@@ -1870,6 +2001,21 @@ expression(parser_t *prs, array_t *code){
     } else if(token->identifier == TOKEN_EVAL){
         expression_eval(prs, code);
         return;
+    } else if(token->identifier == TOKEN_FORK){
+        expression_fork(prs, code);
+        return;
+    } else if(token->identifier == TOKEN_GETPID){
+        expression_getpid(prs, code);
+        return;
+    } else if(token->identifier == TOKEN_WAIT){
+        expression_wait(prs, code);
+        return;
+    } else if(token->identifier == TOKEN_EXIT){
+        expression_exit(prs, code);
+        return;
+    } else if(token->identifier == TOKEN_SLEEP){
+        expression_sleep(prs, code);
+        return;
     } else if(token->identifier == TOKEN_DOT){
         expression_dot(prs, code);
         return;
@@ -1884,7 +2030,7 @@ expression(parser_t *prs, array_t *code){
     }
     
     validate_format(token_done(prs),
-        "bad expression [row:%ld col:%ld]\n", token->row, token->col);
+        "bad expression [row:%ld col:%ld] %ld\n", token->row, token->col, token->identifier);
 
     return;
 }

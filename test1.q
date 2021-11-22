@@ -1,4 +1,4 @@
-{category4} = import "test2.q";
+{category4, threading} = import "test2.q";
 
 p = category4().w;
 print("%s\n", p);
@@ -11,14 +11,15 @@ category2: def {
 	b = "simple text 2";
 };
 
+num = 3;
 category3: (category1, category2, def {
-	num = 1;
+	this.num = 1;
 	c = "simple text 3\n";
-	print("Hello World\n");
+	print("Hello World in this %n in super %n\n", this.num, super.num);
 	fn: def (i, j ,k) {
 		return i + j + k;
 	}
-	+: def(it) {
+	+: def (it) {
 		return num + it;
 	}
 });
@@ -34,7 +35,7 @@ print("operator + called %n\n", d + 3);
 
 
 g = 2 * 3 + 3 * 2 * 4;
-print(g);
+print(g + 3 + g);
 
 i = 1;
 while(i <= 5){

@@ -62,6 +62,10 @@ typedef enum operator {
 	ARRAY,
 	PARAMS,
 	IMPORT,
+	FORK,
+	WAIT,
+	GETPID,
+	SLEEP,
 
 	EXIT,
 	BSCP,

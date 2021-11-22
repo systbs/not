@@ -8,6 +8,8 @@
 #include <time.h>
 #include <dirent.h>
 #include <stdarg.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
 #ifdef WIN32
 	#include <conio.h>
@@ -36,6 +38,7 @@ typedef struct thread {
 	table_t *board;
 
 	table_t *variables;
+	long_t dotted;
 
 	object_t *object;
 } thread_t;
@@ -50,6 +53,7 @@ thread_create(){
 
 	tr->frame = table_create();
 	tr->board = table_create();
+	tr->dotted = 0;
 
 	tr->variables = table_create();
 
@@ -78,7 +82,7 @@ object_t *
 import(schema_t *schema, array_t *code)
 {
 	thread_t *tr = thread_create();
-	iarray_t *adrs = array_rpush(code, EXIT);
+	iarray_t *adrs = array_rpush(code, NUL);
 
 	iarray_t *c = call(tr, schema, adrs);
 	
@@ -432,7 +436,7 @@ thread_eq(thread_t *tr, iarray_t *c) {
 
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
-	
+
 	*(long_t *)object->ptr = oget(esp) == oget(tr->object);
 
 	tr->object = object;
@@ -454,7 +458,7 @@ thread_ne(thread_t *tr, iarray_t *c) {
 	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
 		"unable to alloc memory!");
 	
-	*(long_t *)object->ptr = oget(esp) != oget(tr->object);
+	*(long_t *)object->ptr = (oget(esp) != oget(tr->object));
 
 	tr->object = object;
 
@@ -1254,7 +1258,13 @@ thread_imm(thread_t *tr, iarray_t *c) {
 	
 	if (c->value == TP_VAR) {
 		variable_t *var;
-		if(!!(var = layout_variable(tr->layout, (char *)value))){
+		if(tr->dotted){
+			if(!!(var = layout_vwp(tr->layout, (char *)value))){
+				validate_format(!!(tr->object = variable_content(var)),
+					"[IMM] variable dont have content");
+				return c->next;
+			}
+		} else if(!!(var = layout_variable(tr->layout, (char *)value))){
 			validate_format(!!(tr->object = variable_content(var)),
 				"[IMM] variable dont have content");
 			return c->next;
@@ -1556,7 +1566,7 @@ thread_super(thread_t *tr, iarray_t *c) {
 	object_t *object;
 	validate_format(!!(object = object_define(OTP_LAYOUT, sizeof(layout_t))), 
 		"unable to alloc memory!");
-	object->ptr = (tbval_t)tr->layout->parent ? tr->layout->parent : tr->layout;
+	object->ptr = (tbval_t)(!!tr->layout->parent ? tr->layout->parent : tr->layout);
 	tr->object = object;
 	return c->next;
 }
@@ -1743,6 +1753,7 @@ iarray_t *
 thread_sim(thread_t *tr, iarray_t *c){
 	validate_format(!!((tr->object->type == OTP_SCHEMA) || (tr->object->type == OTP_LAYOUT)), 
 		"[SIM] object is empty");
+	tr->dotted = 1;
 	if(tr->object->type == OTP_SCHEMA){
 		schema_t *schema;
 		validate_format(!!(schema = (schema_t *)tr->object->ptr), 
@@ -1763,6 +1774,7 @@ thread_sim(thread_t *tr, iarray_t *c){
 
 iarray_t *
 thread_rel(thread_t *tr, iarray_t *c){
+	tr->dotted = 0;
 	validate_format(!!(tr->layout = (layout_t *)table_content(table_rpop(tr->frame))), 
 		"layout rel back frame is empty");
 	return c->next;
@@ -1966,6 +1978,72 @@ thread_import(thread_t *tr, iarray_t *c){
 }
 
 iarray_t *
+thread_fork(thread_t *tr, iarray_t *c) {
+	object_t *object;
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
+		"unable to alloc memory!");
+	*(long_t *)object->ptr = fork();
+	tr->object = object;
+	return c->next;
+}
+
+iarray_t *
+thread_getpid(thread_t *tr, iarray_t *c) {
+	object_t *object;
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
+		"unable to alloc memory!");
+	*(long_t *)object->ptr = (long_t)getpid();
+	tr->object = object;
+	return c->next;
+}
+
+iarray_t *
+thread_wait(thread_t *tr, iarray_t *c) {
+	object_t *object;
+	validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
+		"unable to alloc memory!");
+	*(long_t *)object->ptr = wait(nullptr);
+	tr->object = object;
+	return c->next;
+}
+
+iarray_t *
+thread_sleep(thread_t *tr, iarray_t *c) {
+	table_t *tbl;
+	if(tr->object->type == OTP_PARAMS){
+		tbl = (table_t *)tr->object->ptr;
+	} else {
+		tbl = table_create();
+		table_rpush(tbl, (tbval_t)tr->object);
+	}
+
+	table_t *tblresp;
+	tblresp = table_create();
+
+	object_t *eax;
+	while((eax = (object_t *)table_content(table_lpop(tbl)))){
+		validate_format((eax->type == OTP_LONG), "Not true validated");
+		object_t *object;
+		validate_format(!!(object = object_define(OTP_LONG, sizeof(long_t))), 
+			"unable to alloc memory!");
+		*(long_t *)object->ptr = (long_t)sleep((unsigned int)(*(long_t *)eax->ptr));
+		table_rpush(tblresp, (tbval_t)object);
+	}
+
+	if(table_count(tblresp) > 1){
+		object_t *object;
+		validate_format(!!(object = object_define(OTP_PARAMS, sizeof(table_t))), 
+			"unable to alloc memory!");
+		object->ptr = tblresp;
+		tr->object = object;
+	} else {
+		tr->object = (object_t *)table_content(table_rpop(tblresp));
+	}
+
+	return c->next;
+}
+
+iarray_t *
 decode(thread_t *tr, iarray_t *c) {
 
 	// printf("thread %ld\n", c->value);
@@ -2114,8 +2192,20 @@ decode(thread_t *tr, iarray_t *c) {
 		case IMPORT:
 			return thread_import(tr, c);
 			break;
-
+		case FORK:
+			return thread_fork(tr, c);
+			break;
+		case WAIT:
+			return thread_wait(tr, c);
+			break;
+		case GETPID:
+			return thread_getpid(tr, c);
+			break;
+		case SLEEP:
+			return thread_sleep(tr, c);
+			break;
 		case EXIT:
+			exit(0);
 			return c->next;
 			break;
 

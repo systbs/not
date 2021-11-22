@@ -24,7 +24,7 @@ object_tas(object_t *obj);
 #define oset(target, source) { \
 	validate_format((target->type == source->type), \
 		"[OBJECT SET] invalid type, %s, %s", \
-	object_tas(target), object_tas(source));\
+		object_tas(target), object_tas(source));\
 	if(source->type == OTP_CHAR){ \
 		*(char_t *)target->ptr = *(char_t *)source->ptr;\
 	}\

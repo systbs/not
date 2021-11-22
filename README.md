@@ -51,7 +51,6 @@ print("lorem text %n %s\n", 19, "amet direm %n", 13);
 improve or find bugs or fix them
 
 # In the future
-## 0. Override operators
 ## 1. Multi threading ...
 ## 2. System functions
 ## 3. Memory management
