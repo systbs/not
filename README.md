@@ -17,7 +17,7 @@ num2 = 2;
 class3: (class1, class2, def {
   c = "sample text 3";
   num2 = 3;
-  print("hello world, this.num2 %n, super.num2 %n\n");
+  print("hello world, this.num2 %n, super.num2 %n\n", this.num2, super.num2);
   fn: def (i,j,k) {
     return i+j+k;
   }
