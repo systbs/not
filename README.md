@@ -22,7 +22,7 @@ class3: (class1, class2, def {
 
   num = 2;
   +: def (val) {
-    return this.num + val;
+    return super.num + val;
   }
 });
 
