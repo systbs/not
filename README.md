@@ -13,9 +13,11 @@ class2: def {
   b = "sample text 2";
 }
 
+num2 = 2;
 class3: (class1, class2, def {
   c = "sample text 3";
-  print("hello world");
+  num2 = 3;
+  print("hello world, this.num2 %n, super.num2 %n\n");
   fn: def (i,j,k) {
     return i+j+k;
   }
