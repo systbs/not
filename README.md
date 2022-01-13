@@ -60,3 +60,7 @@ improve or find bugs or fix them
 ## ...
 ## 6. compile as assembly code
 convert generated code to assembly code and then to machin code
+
+## Support Us
+BTC bc1qy8zfvyymhtfh7t2ykuaf3ev6h3nq3r2zn64jv7
+
