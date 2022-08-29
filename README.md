@@ -49,17 +49,6 @@ print(c);
 print("lorem text %n %s\n", 19, "amet direm %n", 13);
 //output: lorem text 19 amet direm 13
 ```
-# contribute
-improve or find bugs or fix them
-
-# In the future
-## 1. Multi threading ...
-## 2. System functions
-## 3. Memory management
-## 4. Artificial intelligence  
-## ...
-## 6. compile as assembly code
-convert generated code to assembly code and then to machin code
 
 ## Support Us
 BTC bc1qy8zfvyymhtfh7t2ykuaf3ev6h3nq3r2zn64jv7
