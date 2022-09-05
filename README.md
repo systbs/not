@@ -50,6 +50,5 @@ print("lorem text %n %s\n", 19, "amet direm %n", 13);
 //output: lorem text 19 amet direm 13
 ```
 
-## Support Us
-BTC bc1qy8zfvyymhtfh7t2ykuaf3ev6h3nq3r2zn64jv7
+
 
