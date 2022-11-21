@@ -1,4 +1,6 @@
 #pragma once
+#ifndef __TYPES_H__
+#define __TYPES_H__
 
 typedef char 		char_t;
 typedef short 		short_t;
@@ -7,30 +9,29 @@ typedef long 		long_t;
 typedef float 		float_t;
 typedef double 		double_t;
 typedef long double	double128_t;
+typedef void 		void_t;
 
-typedef void * ptr_t;
-typedef char * string_t;
-typedef void void_t;
+typedef unsigned char 	uchar_t;
+typedef unsigned short 	ushort_t;
+typedef unsigned int 	uint_t;
+typedef unsigned long 	ulong_t;
+typedef unsigned long	size_t;
 
-typedef unsigned char 		 uchar_t;
-typedef unsigned short 		 ushort_t;
-typedef unsigned int 		 uint_t;
-typedef unsigned long 		 ulong_t;
+typedef short 	int16_t;
+typedef int 	int32_t;
+typedef long 	int64_t;
+
+typedef unsigned char 	uint8_t;
+typedef unsigned short 	uint16_t;
+typedef unsigned int 	uint32_t;
+typedef unsigned long 	uint64_t;
 
 typedef int bool_t;
 #define true 1
 #define false 0
 
 #ifndef NULL
-//Possible implementation
 #define NULL 0
-//since C++11
 #endif
 
-
-#define nullptr 0
-
-
-
-
-typedef double_t var_t;
+#endif /* __TYPES_H__ */

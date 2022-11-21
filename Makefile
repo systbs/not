@@ -1,8 +1,7 @@
-
 VERSION := 0.0.1
 CC      :=  gcc
-CFLAGS  := -Wall -O3 -g -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64 -ggdb -fno-omit-frame-pointer 
-LDFLAGS := 
+CFLAGS  := -pedantic -Wall -Wextra -Wno-unused-parameter
+LDFLAGS := -lm
 
 BUILDDIR := build
 SOURCEDIR := src
@@ -11,20 +10,53 @@ HEADERDIR := src
 NAME := qalam
 BINARY := qalam
 
-ECHO := echo
 RM := rm -rf
 MKDIR := mkdir
 INSTALL := install
+
+
+ifeq ($(OS),Windows_NT)
+	CC = gcc
+	CFLAGS += -DWINDOWS
+	LDFLAGS += -lws2_32 -lShlwapi
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		AR=gcc-ar
+		CFLAGS += -DLINUX -D_XOPEN_SOURCE=700 -D_GNU_SOURCE
+		LDFLAGS += -Wl,-rpath=./
+	endif
+	ifeq ($(UNAME_S),Darwin)
+		AR=ar
+		CFLAGS += -DDARWIN
+	endif
+
+	CFLAGS += -fPIC
+	LDFLAGS += -ldl
+endif
+
+DEBUG ?= 0
+ifeq ($(DEBUG),0)
+	CFLAGS += -O2 -flto -DNDEBUG
+else
+	CFLAGS += -g -DDEBUG
+endif
+
+ifeq ($(USE_MALLOC)),1)
+	CFLAGS += -DUSE_MALLOC
+endif
 
 SOURCES := $(shell find $(SOURCEDIR) -name '*.c')
 
 OBJECTS := $(addprefix $(BUILDDIR)/,$(SOURCES:$(SOURCEDIR)/%.c=%.o))
 
 $(BINARY): $(OBJECTS)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o $(BINARY)
+	@$(CC) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o $@
+	@echo CC LINK $@
 
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -I $(HEADERDIR) -I $(dir $<) -c $< -o $@
+	@$(CC) $(CFLAGS) -I $(HEADERDIR) -I $(dir $<) -c $< -o $@
+	@echo CC $<
 
 all: $(BINARY)
 
@@ -34,12 +66,6 @@ clean:
 setup: 
 	$(MKDIR) -p $(BUILDDIR)
 
-# Builder will call this to install the application before running.
-install:
-	echo "Installing ..."
-	sudo debuild -b -uc -us
-	sudo gdebi -n ../qalam_1.0.0-1_amd64.deb
-
 # Builder uses this target to run your application.
-run: $(BINARY)
-	./qalam test1.q
+test: $(BINARY)
+	./qalam ./test/test.q

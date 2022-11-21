@@ -1,24 +1,18 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <memory.h>
 #include <string.h>
-#include <fcntl.h>
-#include <assert.h>
-#include <time.h>
+#include <stdlib.h>
 
 #include "types.h"
 #include "list.h"
-#include "memory.h"
 
 list_t *
 list_apply(list_t *lst)
 {
     ilist_t *it;
 
-    if(!(it = (ilist_t *)qalam_malloc(sizeof(ilist_t)))) {
-        return 0;
+    if(!(it = (ilist_t *)malloc(sizeof(ilist_t)))) {
+        return NULL;
     }
+    memset(it, 0, sizeof(ilist_t));
 
     it->next = it->previous = it;
     lst->end = lst->begin = it;
@@ -31,14 +25,15 @@ list_create()
 {
     list_t *lst;
 
-    if(!(lst = (list_t *)qalam_malloc(sizeof(*lst)))) {
-        return 0;
+    if(!(lst = (list_t *)malloc(sizeof(*lst)))) {
+        return NULL;
     }
+    memset(lst, 0, sizeof(list_t));
 
     return list_apply(lst);
 }
 
-long_t
+int
 list_isempty(list_t *lst)
 {
     return (lst->begin == lst->end);
@@ -72,8 +67,8 @@ list_count(list_t *lst)
     return cnt;
 }
 
-long_t
-list_query(list_t *lst, long_t (*f)(ilist_t*))
+int
+list_query(list_t *lst, int (*f)(ilist_t*))
 {
     if (list_isempty(lst))
         return 0;
@@ -93,7 +88,20 @@ void
 list_destroy(list_t *lst)
 {
     list_clear(lst);
-    qalam_free (lst);
+    free (lst);
+}
+
+ilist_t *
+list_create_iterior(list_value_t value){
+	ilist_t *it;
+    if(!(it = (ilist_t *)malloc(sizeof(*it)))) {
+        return NULL;
+    }
+    memset(it, 0, sizeof(ilist_t));
+
+    it->value = value;
+    
+    return it;
 }
 
 ilist_t*
@@ -129,7 +137,7 @@ list_unlink(list_t *lst, ilist_t* it)
 }
 
 ilist_t*
-list_sort(list_t *lst, long_t (*f)(ilist_t *, ilist_t *))
+list_sort(list_t *lst, int (*f)(ilist_t *, ilist_t *))
 {
     ilist_t *b, *n;
     for(b = lst->begin; b != lst->end; b = n){
@@ -145,7 +153,7 @@ list_sort(list_t *lst, long_t (*f)(ilist_t *, ilist_t *))
 }
 
 ilist_t*
-list_remove(list_t *lst, long_t (*f)(ilist_t *))
+list_remove(list_t *lst, int (*f)(ilist_t *))
 {
     ilist_t *b, *n;
     for(b = lst->begin; b != lst->end; b = n){
@@ -164,7 +172,7 @@ list_clear(list_t *lst)
     for(b = lst->begin; b != lst->end; b = n){
         n = b->next;
         list_unlink(lst, b);
-        qalam_free(b);
+        free(b);
     }
     return lst;
 }
@@ -172,6 +180,9 @@ list_clear(list_t *lst)
 ilist_t*
 list_rpop(list_t *lst)
 {
+	if(list_isempty(lst)){
+		return NULL;
+	}
     return list_unlink(lst, lst->end->previous);
 }
 
@@ -179,9 +190,10 @@ ilist_t *
 list_rpush(list_t *lst, list_value_t value)
 {
     ilist_t *it;
-    if(!(it = (ilist_t *)qalam_malloc(sizeof(*it)))) {
-        return 0;
+    if(!(it = (ilist_t *)malloc(sizeof(*it)))) {
+        return NULL;
     }
+    memset(it, 0, sizeof(ilist_t));
 
     it->value = value;
 
@@ -199,26 +211,14 @@ list_lpush(list_t *lst, list_value_t value)
 {
     ilist_t *it;
 
-    if(!(it = (ilist_t *)qalam_malloc(sizeof(*it)))) {
-        return 0;
+    if(!(it = (ilist_t *)malloc(sizeof(*it)))) {
+        return NULL;
     }
+    memset(it, 0, sizeof(ilist_t));
 
     it->value = value;
 
     return list_link(lst, lst->begin, it);
-}
-
-ilist_t *
-list_insert(list_t *lst, ilist_t *current, list_value_t value){
-    ilist_t *it;
-
-    if(!(it = (ilist_t *)qalam_malloc(sizeof(*it)))) {
-        return 0;
-    }
-
-    it->value = value;
-
-    return list_link(lst, current, it);
 }
 
 ilist_t *
@@ -233,12 +233,12 @@ list_at(list_t *lst, list_key_t key)
     }
 
     if(b == lst->end){
-        return 0;
+        return NULL;
     }
 
     ilist_t *it;
-    if(!(it = (ilist_t *)qalam_malloc(sizeof(*it)))) {
-        return 0;
+    if(!(it = (ilist_t *)malloc(sizeof(*it)))) {
+        return NULL;
     }
 
     it->value = 0;
@@ -267,7 +267,7 @@ list_first(list_t *lst)
 {
     if(lst->begin != 0)
         return lst->begin;
-    return 0;
+    return NULL;
 }
 
 ilist_t *
@@ -275,48 +275,5 @@ list_last(list_t *lst)
 {
     if(lst->end->previous != 0 && lst->end->previous != lst->end)
         return lst->end->previous;
-    return 0;
-}
-
-ilist_t *
-list_first_or_default(list_t *lst, long_t (*f)(ilist_t *))
-{
-    ilist_t *b, *n;
-    for(b = lst->begin; b && (b != lst->end); b = n){
-        n = b->next;
-        if ((*f)(b)){
-            return b;
-        }
-    }
-    return 0;
-}
-
-ilist_t *
-list_last_or_default(list_t *lst, long_t (*f)(ilist_t *))
-{
-    ilist_t *b, *p;
-    for(b = lst->end->previous; b && (b != lst->end); b = p){
-        p = b->previous;
-        if ((*f)(b)){
-            return b;
-        }
-    }
-    return 0;
-}
-
-list_value_t
-list_aggregate(list_t *lst, list_value_t(*f)(list_value_t, list_value_t))
-{
-    if (list_isempty(lst))
-        return 0;
-
-    list_value_t result = 0;
-
-    ilist_t *b, *n;
-    for(b = lst->begin; b && (b != lst->end); b = n){
-        n = b->next;
-        result = (*f)(b->value, result);
-    }
-
-    return result;
+    return NULL;
 }

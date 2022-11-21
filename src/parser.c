@@ -1,2057 +1,4237 @@
 #include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <memory.h>
 #include <string.h>
-#include <fcntl.h>
-#include <assert.h>
-#include <time.h>
+#include <stdlib.h>
 #include <stdarg.h>
 
-
 #include "types.h"
-#include "utils.h"
-#include "list.h"
+#include "token.h"
 #include "lexer.h"
-#include "memory.h"
-#include "object.h"
-#include "variable.h"
-#include "schema.h"
+#include "list.h"
+#include "node.h"
 #include "parser.h"
-#include "data.h"
+#include "debug.h"
 
-#define token_done(prs) (prs->c == prs->tokens->end)
-#define token_begin(prs) (prs->c == prs->tokens->begin)
+static node_t *
+parser_expression(parser_t *parser);
 
-#define token_next(prs) ({\
-    assert_format(!token_done(prs), "[PARSER] call next token in end of list");\
-    prs->c = prs->c->next;\
-    prs->c;\
-})
+static node_t *
+parser_statement(parser_t *parser);
 
-#define token_prev(prs) ({\
-    assert_format(!token_begin(prs), "[PARSER] call next token in end of list");\
-    prs->c = prs->c->previous;\
-    prs->c;\
-})
+static node_t *
+parser_block_stmt(parser_t *parser);
 
-int
-next_n_is(parser_t *prs, long_t n, long_t identifier){
-    ilist_t *b = prs->c;
-    long_t i = 0;
-    for(i = 0; i < n; i++){
-        b = b->next;
-        if((b == prs->tokens->end)){
-            return 0;
-        }
-    }
-    token_t *token = (token_t *)list_content(b);
-    return token->identifier == identifier;
-}
+static node_t *
+parser_class_stmt(parser_t *parser);
 
-int
-next_is(parser_t *prs, long_t identifier){
-    ilist_t *b = prs->c;
-    token_t *token = (token_t *)list_content(b->next);
-    return token->identifier == identifier;
-}
+static node_t *
+parser_fn_stmt(parser_t *parser);
 
-#define next_each(prs, ids)({\
-    ilist_t *b = prs->c;\
-    token_t *token = (token_t *)list_content(b->next);\
-    long_t i = 0;\
-    int res = 0; \
-    long_t len = sizeof(ids) / sizeof(ids[0]);\
-    for(i = 0; i < len; i++){\
-        res = res || (token->identifier == ids[i]);\
-    }\
-    res;\
-})
+static node_t *
+parser_typing(parser_t *parser);
 
-int
-prev_is(parser_t *prs, long_t identifier){
-    ilist_t *b = prs->c;
-    token_t *token = (token_t *)list_content(b->previous);
-    return token->identifier == identifier;
-}
+static int32_t
+parser_typing_test(parser_t *parser);
 
-int
-next_isop(parser_t *prs){
-    int idsc[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    return next_each(prs, idsc);
-}
+static node_t *
+parser_bitwise_or(parser_t *parser);
 
+static node_t *
+parser_logical_and(parser_t *parser);
 
-void 
-statement(parser_t *prs, list_t *code);
-
-
-void
-expression_comma(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_COMMA), 
-        "[COMMA] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    list_rpush(code, PUSH);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, COMMA);
-}
-
-void
-expression_continue(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_CONTINUE), 
-        "[CONTINUE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    list_rpush(code, JMP);
-    ilist_t *b;
-    for(b = list_last(code); b != code->begin; b = b->previous){
-        if((b->value == BLP) && (b->next->value == ELP)){
-            list_rpush(code, (long_t)b);
-            return;
-        }
-    }
-    assert_format(!!(b != code->begin), 
-        "[CONTINUE] bad expression, can not find begin scope [row:%ld col:%ld]\n", 
-            token->row, token->col);
-}
-
-void
-expression_break(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_BREAK), 
-        "[BREAK] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    list_rpush(code, JMP);
-    ilist_t *b;
-    for(b = list_last(code); b != code->begin; b = b->previous){
-        if(b->value == ELP && b->previous->value == BLP){
-            list_rpush(code, (long_t)b);
-            return;
-        }
-    }
-    assert_format(!!(b != code->begin), 
-        "[BREAK] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-}
-
-void
-expression_id(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-
-    assert_format((token->identifier == TOKEN_ID), 
-        "[ID] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+static void
+parser_error(parser_t *parser, const char *format, ...)
+{
+	lexer_t *lexer;
+	token_t *token;
 	
-	list_rpush(code, IMM);
-    list_rpush(code, token->value);
-    list_rpush(code, TP_VAR);
-
-    if(next_is(prs, TOKEN_LPAREN)){
-        list_rpush(code, PUSH);
-        token_next(prs);
-        if(!next_is(prs, TOKEN_RPAREN)){
-            expression(prs, code);
-        }else{
-            token_next(prs);
-        }
-        list_rpush(code, CALL);
-    }
-    else if(next_is(prs, TOKEN_LBRACKET)){
-        list_rpush(code, PUSH);
-        token_next(prs);
-        if(!next_is(prs, TOKEN_RBRACKET)){
-            expression(prs, code);
-        }else{
-            token_next(prs);
-        }
-        list_rpush(code, CELL);
-    }
-
-    if(prs->ub == 1){
-        return;
-    }
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT,
-        TOKEN_DOT
-    };
-    if(next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_super(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-
-    assert_format((token->identifier == TOKEN_SUPER), 
-        "[SUPER] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    list_rpush(code, SUPER);
-    
-    if(next_is(prs, TOKEN_LPAREN)){
-        list_rpush(code, PUSH);
-        token_next(prs);
-        if(!next_is(prs, TOKEN_RPAREN)){
-            expression(prs, code);
-        }else{
-            token_next(prs);
-        }
-        list_rpush(code, CALL);
-    }
-    else if(next_is(prs, TOKEN_LBRACKET)){
-        list_rpush(code, PUSH);
-        token_next(prs);
-        if(!next_is(prs, TOKEN_RBRACKET)){
-            expression(prs, code);
-        }else{
-            token_next(prs);
-        }
-        list_rpush(code, CELL);
-    }
-
-    if(prs->ub == 1){
-        return;
-    }
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT,
-        TOKEN_DOT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_this(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_THIS), 
-        "[THIS] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    list_rpush(code, THIS);
-
-    if(next_is(prs, TOKEN_LPAREN)){
-        list_rpush(code, PUSH);
-        token_next(prs);
-        if(!next_is(prs, TOKEN_RPAREN)){
-            expression(prs, code);
-        }else{
-            token_next(prs);
-        }
-        list_rpush(code, CALL);
-    }
-    else if(next_is(prs, TOKEN_LBRACKET)){
-        list_rpush(code, PUSH);
-        token_next(prs);
-        if(!next_is(prs, TOKEN_RBRACKET)){
-            expression(prs, code);
-        }else{
-            token_next(prs);
-        }
-        list_rpush(code, CELL);
-    }
-
-    if(prs->ub == 1){
-        return;
-    }
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT,
-        TOKEN_DOT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_data(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-
-    assert_format((token->identifier == TOKEN_DATA), 
-        "[DATA] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    list_rpush(code, IMM);
-    list_rpush(code, token->value);
-    list_rpush(code, TP_ARRAY);
-
-    if(prs->ub == 1){
-        return;
-    }
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_number(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-
-    assert_format((token->identifier == TOKEN_NUMBER), 
-        "[NUMBER] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    list_rpush(code, IMM);
-    list_rpush(code, token->value);
-    list_rpush(code, TP_NUMBER);
-
-    if(prs->ub == 1){
-        return;
-    }
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-
-    if(next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_null(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-
-    assert_format((token->identifier == TOKEN_NULL), 
-        "[NULL] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    list_rpush(code, IMM);
-    list_rpush(code, token->value);
-    list_rpush(code, TP_NULL);
-
-    if(prs->ub == 1){
-        return;
-    }
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-
-
-void
-expression_eq(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_EQ), 
-        "[EQ] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    list_rpush(code, PUSH);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, SD);
-}
-
-void
-expression_not(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_NOT), 
-        "[NOT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, PUSH);
-    list_rpush(code, IMM);
-    list_rpush(code, 0);
-    list_rpush(code, TP_IMM);
-    list_rpush(code, EQ);
-}
-
-void
-expression_tilde(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_TILDE), 
-        "[TILDE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, PUSH);
-    list_rpush(code, IMM);
-    list_rpush(code, -1);
-    list_rpush(code, TP_IMM);
-    list_rpush(code, XOR);
-}
-
-void
-expression_question(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_QUESTION), 
-        "[QUESTION] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    list_rpush(code, JZ);
-    ilist_t *a = list_rpush(code, 0);
-    token_next(prs);
-    expression(prs, code);
-    token_next(prs);
-
-    token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_COLON), 
-        "[QUESTION] missing colon in conditional [row:%ld col:%ld]\n", token->row, token->col);
-    token_next(prs);
-
-    list_rpush(code, JMP);
-    ilist_t *b = list_rpush(code, 0);
-
-    expression(prs, code);
-
-    a->value = (long_t) b->next;
-    b->value = (long_t) list_rpush(code, NUL);
-}
-
-void
-expression_caret(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_CARET), 
-        "[CARET] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)"^");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    prs->ub = 1;
-    expression(prs, code);
-
-    int ids1[] = {
-        TOKEN_CARET,
-        TOKEN_LAND,
-        TOKEN_LOR
-    };
-    if(next_each(prs, ids1)){
-        prs->ub = 1;
-        token_next(prs);
-        expression(prs, code);
-    }
-    list_rpush(code, XOR);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_mul(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_STAR), 
-        "[STAR] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)"*");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    prs->ub = 1;
-    expression(prs, code);
-    
-    int ids1[] = {
-        TOKEN_CARET,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_STAR, 
-        TOKEN_SLASH, 
-        TOKEN_PERCENT, 
-        TOKEN_BACKSLASH
-    };
-    if(next_each(prs, ids1)){
-        token_next(prs);
-        expression(prs, code);
-    }
-    list_rpush(code, MUL);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_div(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_SLASH), 
-        "[SLASH] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)"/");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    prs->ub = 1;
-    expression(prs, code);
-    int ids1[] = {
-        TOKEN_CARET,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_STAR, 
-        TOKEN_SLASH, 
-        TOKEN_PERCENT, 
-        TOKEN_BACKSLASH
-    };
-    if(next_each(prs, ids1)){
-        prs->ub = 1;
-        token_next(prs);
-        expression(prs, code);
-    }
-    list_rpush(code, DIV);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_episode(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_BACKSLASH), 
-        "[BACKSLASH] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)"\\");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    prs->ub = 1;
-    expression(prs, code);
-    int ids1[] = {
-        TOKEN_CARET,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_STAR, 
-        TOKEN_SLASH, 
-        TOKEN_PERCENT, 
-        TOKEN_BACKSLASH
-    };
-    if(next_each(prs, ids1)){
-        prs->ub = 1;
-        token_next(prs);
-        expression(prs, code);
-    }
-    list_rpush(code, EPISODE);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_mod(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_PERCENT), 
-        "[PERCENT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)"%");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    prs->ub = 1;
-    expression(prs, code);
-    int ids1[] = {
-        TOKEN_CARET,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_STAR, 
-        TOKEN_SLASH, 
-        TOKEN_PERCENT, 
-        TOKEN_BACKSLASH
-    };
-    if(next_each(prs, ids1)){
-        prs->ub = 0;
-        token_next(prs);
-        expression(prs, code);
-    }
-    list_rpush(code, MOD);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_plus(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_PLUS), 
-        "[PLUS] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)"+");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    prs->ub = 1;
-    expression(prs, code);
-    int ids_heighexp[] = {
-        TOKEN_CARET,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_STAR, 
-        TOKEN_SLASH, 
-        TOKEN_PERCENT, 
-        TOKEN_BACKSLASH
-    };
-    if(next_each(prs, ids_heighexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-    list_rpush(code, ADD);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_minus(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_MINUS), 
-        "[MINUS] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)"-");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    prs->ub = 1;
-    expression(prs, code);
-
-    int ids1[] = {
-        TOKEN_CARET,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_STAR, 
-        TOKEN_SLASH, 
-        TOKEN_PERCENT, 
-        TOKEN_BACKSLASH
-    };
-    if(next_each(prs, ids1)){
-        prs->ub = 1;
-        token_next(prs);
-        expression(prs, code);
-    }
-    list_rpush(code, SUB);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_ee(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_EQEQ), 
-        "[EQEQ] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    list_rpush(code, PUSH);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, EQ);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_ne(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_NEQ), 
-        "[NE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)"!=");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, NE);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_ge(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_GTEQ), 
-        "[GE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)">=");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, GE);
-}
-
-void
-expression_le(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_LTEQ), 
-        "[LE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    list_rpush(code, PUSH);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, LE);
-}
-
-void
-expression_land(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_LAND), 
-        "[LAND] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)"&");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    prs->ub = 1;
-    expression(prs, code);
-    int ids1[] = {
-        TOKEN_CARET,
-        TOKEN_LAND,
-        TOKEN_LOR
-    };
-    if(next_each(prs, ids1)){
-        prs->ub = 1;
-        token_next(prs);
-        expression(prs, code);
-    }
-    list_rpush(code, LAND);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_lor(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_LOR), 
-        "[LOR] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)"|");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    prs->ub = 1;
-    expression(prs, code);
-    int ids1[] = {
-        TOKEN_CARET,
-        TOKEN_LAND,
-        TOKEN_LOR
-    };
-    if(next_each(prs, ids1)){
-        prs->ub = 1;
-        token_next(prs);
-        expression(prs, code);
-    }
-    list_rpush(code, LOR);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_and(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_AND), 
-        "[AND] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)"&&");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, AND);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_or(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_OR), 
-        "[OR] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)"||");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, OR);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_lt(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_LT), 
-        "[LT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)"<");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, LT);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_gt(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_GT), 
-        "[GT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)">");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, GT);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_lshift(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_LTLT), 
-        "[LSHIFT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)"<<");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, LSHIFT);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_rshift(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_GTGT), 
-        "[RSHIFT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    if(next_is(prs, TOKEN_COLON)){
-        list_rpush(code, IMM);
-        list_rpush(code, (long_t)">>");
-        list_rpush(code, TP_VAR);
-        return;
-    }
-
-    list_rpush(code, PUSH);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, RSHIFT);
-
-    prs->ub = 0;
-
-    int ids_moreexp[] = {
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_PERCENT,
-        TOKEN_EQEQ,
-        TOKEN_NEQ,
-        TOKEN_GTEQ,
-        TOKEN_LTEQ,
-        TOKEN_LAND,
-        TOKEN_LOR,
-        TOKEN_AND,
-        TOKEN_OR,
-        TOKEN_LT,
-        TOKEN_GT,
-        TOKEN_LTLT,
-        TOKEN_GTGT
-    };
-    if(!!next_each(prs, ids_moreexp)){
-        token_next(prs);
-        expression(prs, code);
-    }
-}
-
-void
-expression_if(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_IF), 
-        "[IF] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    /* if expr expr else expr */
-    token_next(prs);
-    expression(prs, code);
-
-    list_rpush(code, JZ);
-    ilist_t *a = list_rpush(code, 0);
-
-    if(next_is(prs, TOKEN_LBRACE)){
-        token_next(prs);
-        token_next(prs);
-        do {
-            expression(prs, code);
-            token_next(prs);
-            token = (token_t *)list_content(prs->c);
-        } while(token->identifier != TOKEN_RBRACE);
-    }
-    else {
-        expression(prs, code);
-    }
-
-    if(next_is(prs, TOKEN_ELSE)){
-        token_next(prs);
-
-        list_rpush(code, JMP);
-        ilist_t *b = list_rpush(code, NUL);
-
-        if(next_is(prs, TOKEN_IF)){
-            a->value = (long_t) list_rpush(code, NUL);
-            b->value = a->value;
-            return;
-        }
-
-        if(next_is(prs, TOKEN_LBRACE)){
-            token_next(prs);
-            token_next(prs);
-            do {
-                expression(prs, code);
-                token_next(prs);
-                token = (token_t *)list_content(prs->c);
-            } while(token->identifier != TOKEN_RBRACE);
-        }
-        else {
-            expression(prs, code);
-        }
-
-        a->value = (long_t) b->next;
-        a = b;
-    }
-
-    a->value = (long_t) list_rpush(code, NUL);
-}
-
-void
-expression_while(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_WHILE), 
-        "[WHILE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    /* while expr expr */
-    list_rpush(code, BSCP);
-
-    ilist_t *a = list_rpush(code, BLP);
-    ilist_t *c = list_rpush(code, ELP);
-
-    token_next(prs);
-    expression(prs, code);
-
-    list_rpush(code, JZ);
-    ilist_t *b = list_rpush(code, 0);
-
-    if(next_is(prs, TOKEN_LBRACE)){
-        token_next(prs);
-        token_next(prs);
-        do {
-            expression(prs, code);
-            token_next(prs);
-            token = (token_t *)list_content(prs->c);
-        } while (token->identifier != TOKEN_RBRACE);
-    } else {
-        expression(prs, code);
-    }
-
-    list_unlink(code, c);
-    list_rpush(code, JMP);
-    list_rpush(code, (long_t)a->next);
-    list_link(code, code->end, c);
-
-    b->value = (long_t) c;
-    list_rpush(code, ESCP);
-}
-
-void
-expression_return(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_RETURN), 
-        "[RETURN] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, RET);
-    list_rpush(code, LEV);
-}
-
-void
-expression_print(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_PRINT), 
-        "[PRINT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, PRTF);
-}
-
-void
-expression_lparen(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_LPAREN), 
-        "[LPAREN] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    list_rpush(prs->stack, prs->ub);
-    prs->ub = 0;
-    token_next(prs);
-    do {
-        expression(prs, code);
-        token_next(prs);
-        token = (token_t *)list_content(prs->c);
-    } while (token->identifier != TOKEN_RPAREN);
-    prs->ub = list_content(list_rpop(prs->stack));
-}
-
-void
-expression_lbracket(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_LBRACKET), 
-        "[LBRACKET] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    token_next(prs);
-    do {
-        expression(prs, code);
-        token_next(prs);
-        token = (token_t *)list_content(prs->c);
-    } while (token->identifier != TOKEN_RBRACKET);
-    list_rpush(code, ARRAY);
-}
-
-void
-expression_lbrace(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_LBRACE), 
-        "[LBRACE] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    token_next(prs);
-    do {
-        expression(prs, code);
-        token_next(prs);
-        token = (token_t *)list_content(prs->c);
-    } while (token->identifier != TOKEN_RBRACE);
-    list_rpush(code, TUPLE);
-}
-
-void
-expression_fn(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_FN), 
-        "[FN] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
 	
-	/*
-		fn (param1, param2, ...){
-		
+	char message[1024];
+    va_list arg;
+    if (format) {
+        va_start (arg, format);
+        vsnprintf(message, sizeof(message), format, arg);
+        va_end (arg);
+    }
+    
+	fprintf(stderr, "%s:%ld:%ld: error: %s",
+		lexer_get_path(lexer),
+		token_get_line(token),
+		token_get_column(token),
+		message);
+}
+
+static void
+parser_expected(parser_t *parser, int32_t type)
+{
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	fprintf(stderr,
+		"%s:%ld:%ld: error: "
+		"expected '%s' current is '%s'\n",
+		lexer_get_path(lexer),
+		token_get_line(token),
+		token_get_column(token),
+		token_get_name(type),
+		token_get_name(token_get_type(token)));
+}
+
+static int32_t
+parser_match(parser_t *parser, int32_t type){
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	if(token_get_type(token) == type){
+		lexer_get_next_token(lexer); 
+	} else {
+		parser_expected(parser, type);
+		return 0;
+	}
+	return 1;
+}
+
+static int32_t
+parser_match_test(parser_t *parser, int32_t type){
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	if(token_get_type(token) == type){
+		lexer_get_next_token(lexer); 
+	} else {
+		return 0;
+	}
+	return 1;
+}
+
+static node_t *
+parser_id(parser_t *parser){
+	node_t *node;
+	
+	lexer_t *lexer = parser->lexer;
+	token_t *token = lexer_get_token(lexer);
+	
+	node = node_make_id(token_get_value(token));
+	if(!(node)){
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_ID)){
+		return NULL;
+	}
+	return node;
+}
+
+static int32_t
+parser_id_test(parser_t *parser){
+	if(!parser_match_test(parser, TOKEN_ID)){
+		return 0;
+	}
+	return 1;
+}
+
+static node_t *
+parser_number(parser_t *parser){
+	node_t *node;
+	
+	lexer_t *lexer = parser->lexer;
+	token_t *token = lexer_get_token(lexer);
+	
+	node = node_make_number(token_get_value(token));
+	if(!(node)){
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_NUMBER)){
+		return NULL;
+	}
+	return node;
+}
+ 
+static node_t *
+parser_letters(parser_t *parser){
+	node_t *node;
+	
+	lexer_t *lexer = parser->lexer;
+	token_t *token = lexer_get_token(lexer);
+	
+	node = node_make_letters(token_get_value(token));
+	if(!(node)){
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_LETTERS)){
+		return NULL;
+	}
+	return node;
+}
+
+static node_t *
+parser_null(parser_t *parser){
+	node_t *node;
+	
+	node = node_make_null();
+	if(!(node)){
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_NULL)){
+		return NULL;
+	}
+	return node;
+}
+
+static node_t *
+parser_this(parser_t *parser){
+	node_t *node;
+	
+	node = node_make_this();
+	if(!(node)){
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_THIS)){
+		return NULL;
+	}
+	return node;
+}
+
+static node_t *
+parser_super(parser_t *parser){
+	node_t *node;
+	
+	node = node_make_super();
+	if(!(node)){
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_SUPER)){
+		return NULL;
+	}
+	return node;
+}
+
+static node_t *
+parser_list(parser_t *parser)
+{
+	node_t *expr;
+	list_t *expr_list;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!parser_match(parser, TOKEN_LBRACKET)){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	expr_list = list_create();
+	if(!expr_list){
+		return NULL;
+	}
+	
+	expr = NULL;
+	while (token_get_type(token) != TOKEN_RBRACKET) {
+		expr = parser_expression(parser);
+		if (!expr) {
+			return NULL;
 		}
-	*/
+
+		if(!list_rpush(expr_list, (list_value_t)expr)){
+			return NULL;
+		}
+
+		if (token_get_type(token) != TOKEN_COMMA) {
+			break;
+		}
+		if(!parser_match(parser, TOKEN_COMMA)){
+			return NULL;
+		}
+	}
+	if(!parser_match(parser, TOKEN_RBRACKET)){
+		return NULL;
+	}
+
+	return node_make_list(expr_list);
+}
+
+static node_t *
+parser_map(parser_t *parser)
+{
+	node_t *key;
+	node_t *value;
+	node_t *element;
+	list_t *element_list;
+
+	if(!parser_match(parser, TOKEN_LBRACE)){
+		return NULL;
+	}
 	
-    list_rpush(code, JMP);
-    ilist_t *region = list_rpush(code, 0);
+	lexer_t *lexer = parser->lexer;
+	token_t *token = lexer_get_token(lexer);
+	
+	element_list = list_create();
+	if(!element_list){
+		return NULL;
+	}
+	
+	element = NULL;
+	while (token_get_type(token) != TOKEN_RBRACE) {
+		key = parser_expression(parser);
+		if (!key) {
+			return NULL;
+		}
+		if(!parser_match(parser, TOKEN_COLON)){
+			return NULL;
+		}
 
-    schema_t *schema = schema_create(prs->schema);
-    list_rpush(prs->schema->branches, (list_value_t)schema);
+		value = parser_expression(parser);
+		if (!value) {
+			return NULL;
+		}
 
-    schema->start = list_rpush(code, ENT);
-    
-    if(next_is(prs, TOKEN_LPAREN)){
-        token_next(prs);
-        // if next token is ')' forward to next token
-        if(next_is(prs, TOKEN_RPAREN)){
-            token_next(prs);
-        }else{
-            expression(prs, code);
-            list_rpush(code, LD);
-        }
-    }
+		element = node_make_element(key, value);
+		if (!element) {
+			return NULL;
+		}
 
-    token_next(prs);
-    token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_LBRACE), 
-        "[DEF] bad expression [row:%ld col:%ld]\n", token->row, token->col);
+		if(!list_rpush(element_list, (list_value_t)element)){
+			return NULL;
+		}
 
-    list_rpush(prs->schemas, (list_value_t)prs->schema);
-    prs->schema = schema;
-    
-    if(!next_is(prs, TOKEN_RBRACE)){
-        token_next(prs);
-		do {
-		    expression(prs, code);
-		    token_next(prs);
-		    token = (token_t *)list_content(prs->c);
-		} while (token->identifier != TOKEN_RBRACE);
-    }
+		if (token_get_type(token) != TOKEN_COMMA) {
+			break;
+		}
+		if(!parser_match(parser, TOKEN_COMMA)){
+			return NULL;
+		}
+	}
+	if(!parser_match(parser, TOKEN_RBRACE)){
+		return NULL;
+	}
 
-    prs->schema = (schema_t *)list_content(list_rpop(prs->schemas));
-    
-    list_rpush(code, NUL);
-    list_rpush(code, RET);
-
-    schema->end = list_rpush(code, LEV);
-
-    region->value = (long_t)list_rpush(code, IMM);
-    list_rpush(code, (long_t)schema);
-    list_rpush(code, TP_SCHEMA);
+	return node_make_map(element_list);
 }
 
-void
-expression_class(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_CLASS), 
-        "[DEF] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    list_rpush(code, JMP);
-    ilist_t *region = list_rpush(code, 0);
-
-    schema_t *schema = schema_create(prs->schema);
-    list_rpush(prs->schema->branches, (list_value_t)schema);
-
-    schema->start = list_rpush(code, ENT);
-    list_rpush(code, EXD);
-    
-    token_next(prs);
-    token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_LBRACE), 
-        "[DEF] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-
-    list_rpush(prs->schemas, (list_value_t)prs->schema);
-    prs->schema = schema;
-    
-    if(!next_is(prs, TOKEN_RBRACE)){
-        token_next(prs);
-		do {
-		    expression(prs, code);
-		    token_next(prs);
-		    token = (token_t *)list_content(prs->c);
-		} while (token->identifier != TOKEN_RBRACE);
-    }
-
-    prs->schema = (schema_t *)list_content(list_rpop(prs->schemas));
-    
-    list_rpush(code, THIS);
-    list_rpush(code, RET);
-
-    schema->end = list_rpush(code, LEV);
-
-    region->value = (long_t)list_rpush(code, IMM);
-    list_rpush(code, (long_t)schema);
-    list_rpush(code, TP_SCHEMA);
+static node_t *
+parser_primary(parser_t *parser){
+	node_t *node;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	switch (token_get_type(token)){
+	case TOKEN_ID:
+		node = parser_id(parser);
+		break;
+	
+	case TOKEN_NUMBER:
+		node = parser_number(parser);
+		break;
+	
+	case TOKEN_LETTERS:
+		node = parser_letters(parser);
+		break;
+	
+	case TOKEN_NULL:
+		node = parser_null(parser);
+		break;
+	
+	case TOKEN_THIS:
+		node = parser_this(parser);
+		break;
+	
+	case TOKEN_SUPER:
+		node = parser_super(parser);
+		break;
+		
+	case TOKEN_LBRACKET:
+		node = parser_list(parser);
+		break;
+		
+	case TOKEN_LBRACE:
+		node = parser_map(parser);
+		break;
+		
+	case TOKEN_LPAREN:
+		if(!parser_match(parser, TOKEN_LPAREN)){
+			return NULL;
+		}
+		node = parser_expression(parser);
+		if(!node){
+			return NULL;
+		}
+		if(!parser_match(parser, TOKEN_RPAREN)){
+			return NULL;
+		}
+		break;
+		
+	default:
+		parser_error(parser, "unknown token\n");
+		return NULL;
+	}
+	
+	return node;
 }
 
-void
-expression_dot(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_DOT), 
-        "[DOT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    list_rpush(code, SIM);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, REL);
+static node_t *
+parser_char(parser_t *parser){
+	node_t *node;
+	
+	node = node_make_char();
+	if(!(node)){
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_CHAR)){
+		return NULL;
+	}
+	return node;
 }
 
-void
-expression_eval(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_EVAL), 
-        "[EVAL] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, EVAL);
+static int32_t
+parser_char_test(parser_t *parser){
+	if(!parser_match_test(parser, TOKEN_CHAR)){
+		return 0;
+	}
+	return 1;
+}
 
-    int ids[] = {
-        TOKEN_COMMA, 
-        TOKEN_SEMICOLON, 
-        TOKEN_RBRACE, 
-        TOKEN_RBRACKET, 
-        TOKEN_RPAREN,
-        TOKEN_COLON
-    };
-    if(next_each(prs, ids) || (prs->ub == 1)){
-        return;
-    }
+static node_t *
+parser_string(parser_t *parser){
+	node_t *node;
+	
+	node = node_make_string();
+	if(!(node)){
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_STRING)){
+		return NULL;
+	}
+	return node;
+}
 
-    token_next(prs);
-    expression(prs, code);
+static int32_t
+parser_string_test(parser_t *parser){
+	if(!parser_match_test(parser, TOKEN_STRING)){
+		return 0;
+	}
+	return 1;
+}
+
+static node_t *
+parser_int(parser_t *parser){
+	node_t *node;
+
+	node = node_make_int();
+	if(!(node)){
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_INT)){
+		return NULL;
+	}
+	return node;
+}
+
+static int32_t
+parser_int_test(parser_t *parser){
+	if(!parser_match_test(parser, TOKEN_INT)){
+		return 0;
+	}
+	return 1;
+}
+
+static node_t *
+parser_long(parser_t *parser){
+	node_t *node;
+
+	node = node_make_long();
+	if(!(node)){
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_LONG)){
+		return NULL;
+	}
+	return node;
+}
+
+static int32_t
+parser_long_test(parser_t *parser){
+	if(!parser_match_test(parser, TOKEN_LONG)){
+		return 0;
+	}
+	return 1;
+}
+
+static node_t *
+parser_float(parser_t *parser){
+	node_t *node;
+
+	node = node_make_float();
+	if(!(node)){
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_FLOAT)){
+		return NULL;
+	}
+	return node;
+}
+
+static int32_t
+parser_float_test(parser_t *parser){
+	if(!parser_match_test(parser, TOKEN_FLOAT)){
+		return 0;
+	}
+	return 1;
+}
+
+static node_t *
+parser_double(parser_t *parser){
+	node_t *node;
+
+	node = node_make_double();
+	if(!(node)){
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_DOUBLE)){
+		return NULL;
+	}
+	return node;
+}
+
+static int32_t
+parser_double_test(parser_t *parser){
+	if(!parser_match_test(parser, TOKEN_DOUBLE)){
+		return 0;
+	}
+	return 1;
+}
+
+static node_t *
+parser_any(parser_t *parser){
+	node_t *node;
+	
+	node = node_make_any();
+	if(!(node)){
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_ANY)){
+		return NULL;
+	}
+	return node;
+}
+
+static int32_t
+parser_any_test(parser_t *parser){
+	if(!parser_match_test(parser, TOKEN_ANY)){
+		return 0;
+	}
+	return 1;
+}
+
+static node_t *
+parser_tuple(parser_t *parser){
+	node_t *type;
+	list_t *type_list;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	if(!parser_match(parser, TOKEN_LBRACKET)){
+		return NULL;
+	}
+	
+	type_list = list_create();
+	if(!type_list){
+		return NULL;
+	}
+	
+	type = NULL;
+	while (token_get_type(token) != TOKEN_RBRACKET) {
+		type = parser_typing(parser);
+		if (!type) {
+			return NULL;
+		}
+
+		if(!list_rpush(type_list, (list_value_t)type)){
+			return NULL;
+		}
+
+		if (token_get_type(token) != TOKEN_COMMA) {
+			break;
+		}
+		if(!parser_match(parser, TOKEN_COMMA)){
+			return NULL;
+		}
+	}
+	if(!parser_match(parser, TOKEN_RBRACKET)){
+		return NULL;
+	}
+	
+	return node_make_tuple(type_list);
+}
+
+static int32_t
+parser_tuple_test(parser_t *parser){
+	int32_t type;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	if(!parser_match_test(parser, TOKEN_LBRACKET)){
+		return 0;
+	}
+	
+	while (token_get_type(token) != TOKEN_RBRACKET) {
+		type = parser_typing_test(parser);
+		if (!type) {
+			return 0;
+		}
+
+		if (token_get_type(token) != TOKEN_COMMA) {
+			break;
+		}
+		if(!parser_match_test(parser, TOKEN_COMMA)){
+			return 0;
+		}
+	}
+	if(!parser_match_test(parser, TOKEN_RBRACKET)){
+		return 0;
+	}
+	
+	return 1;
+}
+
+static node_t *
+parser_tag_list(parser_t *parser){
+	node_t *type;
+	list_t *type_list;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	type_list = list_create();
+	if(!type_list){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	type = NULL;
+	while (token_get_type(token) != TOKEN_GT) {
+		type = parser_typing(parser);
+		if (!type) {
+			return NULL;
+		}
+
+		if(!list_rpush(type_list, (list_value_t)type)){
+			return NULL;
+		}
+
+		if (token_get_type(token) != TOKEN_COMMA) {
+			break;
+		}
+		
+		if(!parser_match(parser, TOKEN_COMMA)){
+			return NULL;
+		}
+	}
+	
+	return node_make_tag_list(type_list);
+}
+
+static int32_t
+parser_tag_list_test(parser_t *parser){
+	int32_t type;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	while (token_get_type(token) != TOKEN_GT) {
+		type = parser_typing_test(parser);
+		if (!type) {
+			return 0;
+		}
+
+		if (token_get_type(token) != TOKEN_COMMA) {
+			break;
+		}
+		
+		if(!parser_match_test(parser, TOKEN_COMMA)){
+			return 0;
+		}
+	}
+	
+	return 1;
+}
+
+static node_t *
+parser_type(parser_t *parser){
+	node_t *node;
+	node_t *type_list;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	switch (token_get_type(token)){
+	case TOKEN_ID:
+		node = parser_id(parser);
+		if(!node){
+			return NULL;
+		}
+		if(token_get_type(token) == TOKEN_LT){
+			if(!parser_match(parser, TOKEN_LT)){
+				return NULL;
+			}
+			type_list = parser_tag_list(parser);
+			if(!type_list){
+				return NULL;
+			}
+			if(!parser_match(parser, TOKEN_GT)){
+				return NULL;
+			}
+			node = node_make_tag(node, type_list);
+		}
+		break;
+		
+	case TOKEN_CHAR:
+		node = parser_char(parser);
+		break;
+		
+	case TOKEN_STRING:
+		node = parser_string(parser);
+		break;
+	
+	case TOKEN_INT:
+		node = parser_int(parser);
+		break;
+	
+	case TOKEN_LONG:
+		node = parser_long(parser);
+		break;
+		
+	case TOKEN_FLOAT:
+		node = parser_float(parser);
+		break;
+		
+	case TOKEN_DOUBLE:
+		node = parser_double(parser);
+		break;
+		
+	case TOKEN_ANY:
+		node = parser_any(parser);
+		break;
+		
+	case TOKEN_LBRACKET:
+		node = parser_tuple(parser);
+		break;
+		
+	default:
+		parser_error(parser, "unknown type\n");
+		return NULL;
+	}
+	
+	return node;
+}
+
+static int32_t
+parser_type_test(parser_t *parser){
+	int32_t node;
+	int32_t type_list;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	node = 1;
+	switch (token_get_type(token)){
+	case TOKEN_ID:
+		node = parser_id_test(parser);
+		if(!node){
+			return 0;
+		}
+		if(token_get_type(token) == TOKEN_LT){
+			if(!parser_match_test(parser, TOKEN_LT)){
+				return 0;
+			}
+			type_list = parser_tag_list_test(parser);
+			if(!type_list){
+				return 0;
+			}
+			if(!parser_match_test(parser, TOKEN_GT)){
+				return 0;
+			}
+			node = 1;
+		}
+		break;
+		
+	case TOKEN_CHAR:
+		node = parser_char_test(parser);
+		break;
+		
+	case TOKEN_STRING:
+		node = parser_string_test(parser);
+		break;
+	
+	case TOKEN_INT:
+		node = parser_int_test(parser);
+		break;
+	
+	case TOKEN_LONG:
+		node = parser_long_test(parser);
+		break;
+		
+	case TOKEN_FLOAT:
+		node = parser_float_test(parser);
+		break;
+		
+	case TOKEN_DOUBLE:
+		node = parser_double_test(parser);
+		break;
+		
+	case TOKEN_ANY:
+		node = parser_any_test(parser);
+		break;
+		
+	case TOKEN_LBRACKET:
+		node = parser_tuple_test(parser);
+		break;
+		
+	default:
+		return 0;
+	}
+	
+	return node;
+}
+
+static node_t *
+parser_pointer(parser_t *parser)
+{
+	node_t *node;
+
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	node = parser_type(parser);
+	if(!node){
+		return node;
+	}
+	
+	while(node){
+		switch (token_get_type(token)) {
+		case TOKEN_STAR:
+			if(!parser_match(parser, TOKEN_STAR)){
+				return NULL;
+			}
+			
+			node = node_make_pointer(node);
+			break;
+
+		default:
+			return node;
+		}
+	}
+	
+	return node;
+}
+
+static int32_t
+parser_pointer_test(parser_t *parser)
+{
+	int32_t node;
+
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	node = parser_type_test(parser);
+	if(!node){
+		return node;
+	}
+	
+	while(node){
+		switch (token_get_type(token)) {
+		case TOKEN_STAR:
+			if(!parser_match_test(parser, TOKEN_STAR)){
+				return 0;
+			}
+			
+			node = 1;
+			break;
+
+		default:
+			return node;
+		}
+	}
+	
+	return node;
+}
+
+static node_t *
+parser_array(parser_t *parser)
+{
+	node_t *node;
+
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	node = parser_pointer(parser);
+	if(!node){
+		return node;
+	}
+	
+	while(node){
+		switch (token_get_type(token)) {
+		case TOKEN_LBRACKET:
+			if(!parser_match(parser, TOKEN_LBRACKET)){
+				return NULL;
+			}
+			if(!parser_match(parser, TOKEN_RBRACKET)){
+				return NULL;
+			}
+			
+			node = node_make_array(node);
+			break;
+
+		default:
+			return node;
+		}
+	}
+	
+	return node;
+}
+
+static int32_t
+parser_array_test(parser_t *parser)
+{
+	int32_t node;
+
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	node = parser_pointer_test(parser);
+	if(!node){
+		return 0;
+	}
+	
+	while(node){
+		switch (token_get_type(token)) {
+		case TOKEN_LBRACKET:
+			if(!parser_match_test(parser, TOKEN_LBRACKET)){
+				return 0;
+			}
+			if(!parser_match_test(parser, TOKEN_RBRACKET)){
+				return 0;
+			}
+			
+			node = 1;
+			break;
+
+		default:
+			return node;
+		}
+	}
+	
+	return node;
+}
+
+static node_t *
+parser_typing(parser_t *parser){
+	return parser_array(parser);
+}
+
+static int32_t
+parser_typing_test(parser_t *parser){
+	return parser_array_test(parser);
+}
+
+static node_t *
+parser_argument(parser_t *parser)
+{
+	node_t *node;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+		
+	switch (token_get_type(token)) {
+	case TOKEN_FN:
+		node = parser_fn_stmt(parser);
+		break;
+		
+	default:
+		node = parser_expression(parser);
+		break;
+	}
+	
+	return node;
+}
+
+static node_t *
+parser_argument_list(parser_t *parser){
+	node_t *node;
+	node_t *argument;
+	list_t *list;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	list = list_create();
+	if(!(list)){
+		return NULL;
+	}
+	
+	argument = parser_argument(parser);
+	if(!(argument)){
+		return NULL;
+	}
+	
+	if(!list_rpush(list, (list_value_t)argument)){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	if(token_get_type(token) == TOKEN_COMMA){
+		if(!parser_match(parser, TOKEN_COMMA)){
+			return NULL;
+		}
+		
+		while(token_get_type(token) != TOKEN_RPAREN){
+			argument = parser_argument(parser);
+			if(!(argument)){
+				return NULL;
+			}
+		
+			if(!list_rpush(list, (list_value_t)argument)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) != TOKEN_COMMA){
+				break;
+			}
+			
+			if(!parser_match(parser, TOKEN_COMMA)){
+				return NULL;
+			}
+		}
+	}
+	
+	if(!(node = node_make_argument(list))){
+		return NULL;
+	}
+	
+	return node;
+}
+
+static int32_t
+parser_is_tag_list_test(parser_t *parser){
+	int32_t is_tag_list;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	uint64_t position;
+	uint64_t line;
+	uint64_t column;
+	
+	token_t token_store;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	position = lexer_get_position(lexer);
+	line = lexer_get_line(lexer);
+	column = lexer_get_column(lexer);
+	
+	token_store = *token;
+	
+	if(!parser_match_test(parser, TOKEN_LT)){
+		is_tag_list = 0;
+		goto end_unit_test;
+	}
+	
+	if(token_get_type(token) != TOKEN_GT){
+		is_tag_list = parser_tag_list_test(parser);
+		if(!is_tag_list){
+			goto end_unit_test;
+		}
+	}
+				
+	if(!parser_match_test(parser, TOKEN_GT)){
+		is_tag_list = 0;
+		goto end_unit_test;
+	}
+	
+end_unit_test:	
+	lexer_set_token(lexer, token_store);
+	
+	lexer_set_position(lexer, position);
+	lexer_set_line(lexer, line);
+	lexer_set_column(lexer, column);
+	
+	return is_tag_list;
+}
+
+static node_t *
+parser_postfix(parser_t *parser){
+	node_t *node;
+	node_t *start;
+	node_t *step;
+	node_t *stop;
+	node_t *right;
+	node_t *argument_list;
+	node_t *tag_list;
+	
+	int32_t slice;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	node = parser_primary(parser);
+	if(!(node)){
+		return NULL;
+	}
+	
+	while(node){
+		lexer = parser->lexer;
+		token = lexer_get_token(lexer);
+		
+		switch(token_get_type(token)){
+		case TOKEN_LPAREN:
+		case TOKEN_LT:
+			tag_list = NULL;
+			if(token_get_type(token) == TOKEN_LT){
+				if(!parser_is_tag_list_test(parser)){
+					return node;
+				}
+				if(!parser_match(parser, TOKEN_LT)){
+					return NULL;
+				}
+				
+				tag_list = NULL;
+				if(token_get_type(token) != TOKEN_GT){
+					tag_list = parser_tag_list(parser);
+					if(!(tag_list)){
+						return NULL;
+					}
+				}
+				
+				if(!parser_match(parser, TOKEN_GT)){
+					return NULL;
+				}
+			}
+			
+			if(!parser_match(parser, TOKEN_LPAREN)){
+				return NULL;
+			}
+			
+			argument_list = NULL;
+			if(token_get_type(token) != TOKEN_RPAREN){
+				argument_list = parser_argument_list(parser);
+				if(!(argument_list)){
+					return NULL;
+				}
+			}
+			
+			if(!parser_match(parser, TOKEN_RPAREN)){
+				return NULL;
+			}
+			node = node_make_call(node, tag_list, argument_list);
+			break;
+		
+		case TOKEN_LBRACKET:
+			if(!parser_match(parser, TOKEN_LBRACKET)){
+				return NULL;
+			}
+			if (token_get_type(token) == TOKEN_COLON) {
+				if(!parser_match(parser, TOKEN_COLON)){
+					return NULL;
+				}
+				start = NULL;
+				slice = 1;
+			} else {
+				start = parser_expression(parser);
+				if (!start) {
+					return NULL;
+				}
+				if (token_get_type(token) == TOKEN_COLON) {
+					if(!parser_match(parser, TOKEN_COLON)){
+						return NULL;
+					}
+					slice = 1;
+				}
+			}
+			
+			stop = NULL;
+			if (token_get_type(token) == TOKEN_COLON) {
+				if(!parser_match(parser, TOKEN_COLON)){
+					return NULL;
+				}
+				stop = NULL;
+			} else if (slice) {
+				stop = NULL;
+				if (token_get_type(token) != TOKEN_RBRACKET) {
+					stop = parser_expression(parser);
+					if (!stop) {
+						return NULL;
+					}
+				}
+				if (token_get_type(token) == TOKEN_COLON) {
+					if(!parser_match(parser, TOKEN_COLON)){
+						return NULL;
+					}
+				}
+			}
+			
+			if (slice) {
+				step = NULL;
+				if (token_get_type(token) != TOKEN_RBRACKET) {
+					step = parser_expression(parser);
+					if (!step) {
+						return NULL;
+					}
+				}
+				if(!parser_match(parser, TOKEN_RBRACKET)){
+					return NULL;
+				}
+
+				node = node_make_get_slice(node, start, stop, step);
+			} else {
+				if(!parser_match(parser, TOKEN_RBRACKET)){
+					return NULL;
+				}
+				if (!start) {
+					return NULL;
+				}
+				node = node_make_get_item(node, start);
+			}
+			break;
+			
+		case TOKEN_DOT:
+			if(!parser_match(parser, TOKEN_DOT)){
+				return NULL;
+			}
+			
+			right = parser_id(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			if(!(node = node_make_get_attr(node, right))){
+				return NULL;
+			}
+			break;
+
+		default:
+			return node;
+			
+		}
+	}
+	
+	return node;
+}
+
+static node_t *
+parser_prefix(parser_t *parser)
+{
+	node_t *node;
+	node_t *left;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+		
+	switch (token_get_type(token)) {
+	case TOKEN_TILDE:
+		if(!parser_match(parser, TOKEN_TILDE)){
+			return NULL;
+		}
+		left = parser_prefix(parser);
+		if (!left) {
+			return NULL;
+		}
+		node = node_make_tilde(left);
+		break;
+
+	case TOKEN_NOT:
+		if(!parser_match(parser, TOKEN_NOT)){
+			return NULL;
+		}
+		left = parser_prefix(parser);
+		if (!left) {
+			return NULL;
+		}
+		node = node_make_not(left);
+		break;
+
+	case TOKEN_MINUS:
+		if(!parser_match(parser, TOKEN_MINUS)){
+			return NULL;
+		}
+		left = parser_prefix(parser);
+		if (!left) {
+			return NULL;
+		}
+		node = node_make_neg(left);
+		break;
+
+	case TOKEN_PLUS:
+		if(!parser_match(parser, TOKEN_PLUS)){
+			return NULL;
+		}
+		left = parser_prefix(parser);
+		if (!left) {
+			return NULL;
+		}
+		node = node_make_pos(left);
+		break;
+		
+	case TOKEN_STAR:
+		if(!parser_match(parser, TOKEN_STAR)){
+			return NULL;
+		}
+		left = parser_prefix(parser);
+		if (!left) {
+			return NULL;
+		}
+		node = node_make_get_value(left);
+		break;
+		
+	case TOKEN_AND:
+		if(!parser_match(parser, TOKEN_AND)){
+			return NULL;
+		}
+		left = parser_prefix(parser);
+		if (!left) {
+			return NULL;
+		}
+		node = node_make_get_address(left);
+		break;
+
+	default:
+		node = parser_postfix(parser);
+	}
+
+	return node;
+}
+
+static node_t *
+parser_as(parser_t *parser)
+{
+	node_t *node;
+	node_t *right;
+	
+	lexer_t *lexer;
+	token_t *token;
+
+	node = parser_prefix(parser);
+	if(!node){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	while (node) {
+		switch (token_get_type(token)) {
+		case TOKEN_AS:
+			if(!parser_match(parser, TOKEN_AS)){
+				return NULL;
+			}
+			
+			right = parser_typing(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_as(node, right);
+			break;
+
+		default:
+			return node;
+		}
+	}
+	
+	return node;
+}
+
+static node_t *
+parser_multiplicative(parser_t *parser)
+{
+	node_t *node;
+	node_t *right;
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!(node = parser_as(parser))){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	while (node) {
+		switch (token_get_type(token)) {
+		case TOKEN_STAR:
+			if(!parser_match(parser, TOKEN_STAR)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_expression(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_mul_assign(node, right);
+				break;
+			}
+			
+			right = parser_as(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_mul(node, right);
+			break;
+
+		case TOKEN_SLASH:
+			if(!parser_match(parser, TOKEN_SLASH)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_expression(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_div_assign(node, right);
+				break;
+			}
+			
+			right = parser_as(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_div(node, right);
+			break;
+
+		case TOKEN_PERCENT:
+			if(!parser_match(parser, TOKEN_PERCENT)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_expression(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_mod_assign(node, right);
+				break;
+			}
+			
+			right = parser_as(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_mod(node, right);
+			break;
+
+		default:
+			return node;
+		}
+	}
+	
+	return node;
+}
+
+static node_t *
+parser_addative(parser_t *parser)
+{
+	node_t *node;
+	node_t *right;
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!(node = parser_multiplicative(parser))){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	while (node) {
+		switch (token_get_type(token)) {
+		case TOKEN_PLUS:
+			if(!parser_match(parser, TOKEN_PLUS)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_expression(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_add_assign(node, right);
+				break;
+			}
+			
+			right = parser_multiplicative(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_plus(node, right);
+			break;
+
+		case TOKEN_MINUS:
+			if(!parser_match(parser, TOKEN_MINUS)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_expression(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_sub_assign(node, right);
+				break;
+			}
+			
+			right = parser_multiplicative(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_minus(node, right);
+			break;
+
+		default:
+			return node;
+		}
+	}
+	
+	return node;
+}
+
+static node_t *
+parser_shifting(parser_t *parser)
+{
+	node_t *node;
+	node_t *right;
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!(node = parser_addative(parser))){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	while (node) {
+		switch (token_get_type(token)) {
+		case TOKEN_LT:
+			if(!parser_match(parser, TOKEN_LT)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_LT){
+				if(!parser_match(parser, TOKEN_LT)){
+					return NULL;
+				}
+				
+				
+				if(token_get_type(token) == TOKEN_EQ){
+					if(!parser_match(parser, TOKEN_EQ)){
+						return NULL;
+					}
+					
+					right = parser_expression(parser);
+					if (!(right)) {
+						return NULL;
+					}
+					
+					node = node_make_shl_assign(node, right);
+					break;
+				}
+				
+				right = parser_addative(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_shl(node, right);
+				break;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_shifting(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_le(node, right);
+				break;
+			}
+			
+			right = parser_shifting(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_lt(node, right);
+			break;
+
+		case TOKEN_GT:
+			if(!parser_match(parser, TOKEN_GT)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_GT){
+				if(!parser_match(parser, TOKEN_GT)){
+					return NULL;
+				}
+				
+				if(token_get_type(token) == TOKEN_EQ){
+					if(!parser_match(parser, TOKEN_EQ)){
+						return NULL;
+					}
+					
+					right = parser_expression(parser);
+					if (!(right)) {
+						return NULL;
+					}
+					
+					node = node_make_shr_assign(node, right);
+					break;
+				}
+			
+				right = parser_addative(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_shr(node, right);
+				break;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_shifting(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_ge(node, right);
+				break;
+			}
+			
+			right = parser_shifting(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_gt(node, right);
+			break;
+
+		default:
+			return node;
+		}
+	}
+	
+	return node;
+}
+
+static node_t *
+parser_relational(parser_t *parser)
+{
+	node_t *node;
+	node_t *right;
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!(node = parser_shifting(parser))){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	while (node) {
+		switch (token_get_type(token)) {
+		case TOKEN_LT:
+			if(!parser_match(parser, TOKEN_LT)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_shifting(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_le(node, right);
+				break;
+			}
+			
+			right = parser_shifting(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_lt(node, right);
+			break;
+
+		case TOKEN_GT:
+			if(!parser_match(parser, TOKEN_GT)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_shifting(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_ge(node, right);
+				break;
+			}
+			
+			right = parser_shifting(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_gt(node, right);
+			break;
+
+		default:
+			return node;
+		}
+	}
+	
+	return node;
 }
 
 
-/*
-    expr : expr;
-*/
-void
-expression_colon(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_COLON), 
-        "[COLON] bad statement [row:%ld col:%ld]\n", token->row, token->col);
-    list_rpush(code, PUSH);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, CLS);
+static node_t *
+parser_equality(parser_t *parser)
+{
+	node_t *node;
+	node_t *right;
+	lexer_t *lexer;
+	token_t *token;
+	
+	node = parser_relational(parser);
+	if(!node){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	while (node) {
+		switch (token_get_type(token)) {
+		case TOKEN_EQ:
+			if(!parser_match(parser, TOKEN_EQ)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_relational(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_eq(node, right);
+				break;
+			}
+			
+			right = parser_expression(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_assign(node, right);
+			break;
+
+		case TOKEN_NOT:
+			if(!parser_match(parser, TOKEN_NOT)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+			
+				right = parser_relational(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_neq(node, right);
+				break;
+			}
+			
+			parser_error(parser, "'!' operator is not a binary operator\n");
+			return NULL;
+
+		default:
+			return node;
+		}
+	}
+	
+	return node;
 }
 
-/*
-    import expr;
-*/
-void
-expression_import(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_IMPORT), 
-        "[IMPORT] bad statement [row:%ld col:%ld]\n", token->row, token->col);
-    token_next(prs);
-    expression(prs, code);
-    list_rpush(code, IMPORT);
+static node_t *
+parser_bitwise_and(parser_t *parser)
+{
+	node_t *node;
+	node_t *right;
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!(node = parser_equality(parser))){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	while (node) {
+		switch (token_get_type(token)) {
+		case TOKEN_AND:
+			if(!parser_match(parser, TOKEN_AND)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_AND){
+				if(!parser_match(parser, TOKEN_AND)){
+					return NULL;
+				}
+				
+				right = parser_bitwise_or(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_land(node, right);
+				break;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_expression(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_and_assign(node, right);
+				break;
+			}
+			
+			right = parser_equality(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_and(node, right);
+			break;
+
+		default:
+			return node;
+		}
+	}
+	
+	return node;
 }
 
-void
-expression_exit(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
-    assert_format((token->identifier == TOKEN_EXIT), 
-        "[EXIT] bad expression [row:%ld col:%ld]\n", token->row, token->col);
-    list_rpush(code, EXIT);
+static node_t *
+parser_bitwise_xor(parser_t *parser)
+{
+	node_t *node;
+	node_t *right;
+	lexer_t *lexer;
+	token_t *token;
+
+	if(!(node = parser_bitwise_and(parser))){
+		return NULL;
+	}
+
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	while (node) {
+		switch (token_get_type(token)) {
+		case TOKEN_CARET:
+			if(!parser_match(parser, TOKEN_CARET)){
+				return NULL;
+			}
+			
+			right = parser_bitwise_and(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_xor(node, right);
+			break;
+
+		default:
+			return node;
+		}
+	}
+	
+	return node;
 }
 
-void
-expression(parser_t *prs, list_t *code){
-    token_t *token = (token_t *)list_content(prs->c);
+static node_t *
+parser_bitwise_or(parser_t *parser)
+{
+	node_t *node;
+	node_t *right;
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!(node = parser_bitwise_xor(parser))){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	while (node) {
+		switch (token_get_type(token)) {
+		case TOKEN_OR:
+			if(!parser_match(parser, TOKEN_OR)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_OR){
+				if(!parser_match(parser, TOKEN_OR)){
+					return NULL;
+				}
+				
+				right = parser_logical_and(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_lor(node, right);
+				break;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_expression(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_or_assign(node, right);
+				break;
+			}
+			
+			right = parser_bitwise_xor(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_or(node, right);
+			break;
 
-    //printf(" %s ", (char *)token->symbol);
-
-    if(token->identifier == TOKEN_COLON){
-        expression_colon(prs, code);
-        return;
-    }
-    else if (token->identifier == TOKEN_IMPORT){
-        expression_import(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_COMMA){
-        expression_comma(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_CONTINUE){
-        expression_continue(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_BREAK){
-        expression_break(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_ID){
-        expression_id(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_SUPER){
-        expression_super(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_THIS){
-        expression_this(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_NUMBER){
-        expression_number(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_DATA){
-        expression_data(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_NULL){
-        expression_null(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_EQ){
-        expression_eq(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_NOT){
-        expression_not(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_TILDE){
-        expression_tilde(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_QUESTION){
-        expression_question(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_CARET){
-        expression_caret(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_STAR){
-        expression_mul(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_SLASH){
-        expression_div(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_BACKSLASH){
-        expression_episode(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_PERCENT){
-        expression_mod(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_PLUS){
-        expression_plus(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_MINUS){
-        expression_minus(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_EQEQ){
-        expression_ee(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_NEQ){
-        expression_ne(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_GTEQ){
-        expression_ge(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_LTEQ){
-        expression_le(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_LAND){
-        expression_land(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_LOR){
-        expression_lor(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_AND){
-        expression_and(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_OR){
-        expression_or(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_LT){
-        expression_lt(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_GT){
-        expression_gt(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_LTLT){
-        expression_lshift(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_GTGT){
-        expression_rshift(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_IF){
-        expression_if(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_WHILE){
-        expression_while(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_RETURN){
-        expression_return(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_PRINT){
-        expression_print(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_LPAREN){
-        expression_lparen(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_LBRACKET){
-        expression_lbracket(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_LBRACE){
-        expression_lbrace(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_FN){
-        expression_fn(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_CLASS){
-        expression_class(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_EVAL){
-        expression_eval(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_EXIT){
-        expression_exit(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_DOT){
-        expression_dot(prs, code);
-        return;
-    } else if(token->identifier == TOKEN_RPAREN){
-        return;
-    } else if(token->identifier == TOKEN_RBRACKET){
-        return;
-    } else if(token->identifier == TOKEN_RBRACE){
-        return;
-    } else if(token->identifier == TOKEN_SEMICOLON){
-        return;
-    }
-    
-    assert_format(token_done(prs),
-        "bad expression [row:%ld col:%ld] %ld\n", token->row, token->col, token->identifier);
-
-    return;
+		default:
+			return node;
+		}
+	}
+	
+	return node;
 }
 
+static node_t *
+parser_logical_and(parser_t *parser)
+{
+	node_t *node;
+	node_t *right;
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!(node = parser_bitwise_or(parser))){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	while (node) {
+		switch (token_get_type(token)) {
+		case TOKEN_AND:
+			if(!parser_match(parser, TOKEN_AND)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_AND){
+				if(!parser_match(parser, TOKEN_AND)){
+					return NULL;
+				}
+				
+				right = parser_bitwise_or(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_land(node, right);
+				break;
+			}
+			
+			right = parser_equality(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_and(node, right);
+			break;
 
-void 
-statement(parser_t *prs, list_t *code) {
-    do {
-        //token_t *token = (token_t *)list_content(prs->c);
-        //printf(" %s ", (char *)token->symbol);
-        prs->ub = 0;
-        expression(prs, code);
-        token_next(prs);
-    } while(!token_done(prs));
+		default:
+			return node;
+		}
+	}
+	
+	return node;
 }
 
-const char * 
-const STRCODE[] = {
-	[NUL] = "NUL", 
-	[IMM] = "IMM",   
-	[VAR] = "VAR",
-	[DATA] = "DATA",
-	[SUPER] = "SUPER", 
-	[THIS] = "THIS", 
+static node_t *
+parser_logical_or(parser_t *parser)
+{
+	node_t *node;
+	node_t *right;
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!(node = parser_logical_and(parser))){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	while (node) {
+		switch (token_get_type(token)) {
+		case TOKEN_OR:
+			if(!parser_match(parser, TOKEN_OR)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_OR){
+				if(!parser_match(parser, TOKEN_OR)){
+					return NULL;
+				}
+				
+				right = parser_logical_and(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_lor(node, right);
+				break;
+			}
+			
+			right = parser_bitwise_xor(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_or(node, right);
+			break;
 
-	[ENT] = "ENT", 
-	[LEV] = "LEV",  
-	[PUSH] = "PUSH", 
-	[POP] = "POP", 
-	[CONTINUE] = "CONTINUE", 
-	[BREAK] = "BREAK",
-	[DOT] = "DOT", 
-	[CALL] = "CALL", 
-	[CELL] = "CELL",
+		default:
+			return node;
+		}
+	}
+	
+	return node;
+}
 
-	[JMP] = "JMP",  
-	[JZ] = "JZ",  	
-	[JNZ] = "JNZ",  
-	[LD] = "LD",  
-	[SD] = "SD",  
-	[HASH] = "HASH",
-	[RET] = "RET",
-    [SIM] = "SIM",
-    [REL] = "REL",
-	[EXD] = "EXD",
-	[FN] = "FN",
-	[AT] = "AT", 
-	[CLS] = "CLS", 
-	[COMMA] = "COMMA",
-	[BLP] = "BLP",
-	[ELP] = "ELP",
+static node_t *
+parser_conditional(parser_t *parser)
+{
+	node_t *node;
+	node_t *true_expr;
+	node_t *false_expr;
+	lexer_t *lexer;
+	token_t *token;
+		
+	if(!(node = parser_logical_or(parser))){
+		return NULL;
+	}
+	
+	if (node) {
+		lexer = parser->lexer;
+		token = lexer_get_token(lexer);
+	
+		switch (token_get_type(token)) {
+		case TOKEN_QUESTION:
+			if(!parser_match(parser, TOKEN_QUESTION)){
+				return NULL;
+			}
+			true_expr = NULL;
+			if (token_get_type(token) != TOKEN_COLON) {
+				true_expr = parser_logical_or(parser);
+				if (!true_expr) {
+					break;
+				}
+			}
+			if(!parser_match(parser, TOKEN_COLON)){
+				return NULL;
+			}
 
-	[OR] = "OR",
-	[LOR] = "LOR",
-	[XOR] = "XOR",
-	[AND] = "AND",
-	[LAND] = "LAND",
-	[EQ] = "EQ",
-	[NE] = "NE",
-	[LT] = "LT",
-	[GT] = "GT",
-	[LE] = "LE",
-	[GE] = "GE",
-	[LSHIFT] = "LSHIFT",
-	[RSHIFT] = "RSHIFT",
+			false_expr = parser_expression(parser);
+			if (!false_expr) {
+				break;
+			}
 
-	[ADD] = "ADD",
-	[SUB] = "SUB",
-	[MUL] = "MUL",
-	[DIV] = "DIV",
-	[MOD] = "MOD",
-	[EPISODE] = "EPISODE",
+			node = node_make_conditional(node, true_expr, false_expr);
+			break;
 
-	[PRTF] = "PRTF",  
-	[SIZEOF] = "SIZEOF",
-	[TYPEOF] = "TYPEOF",
+		default:
+			return node;
+		}
+	}
 
-	[EXIT] = "EXIT"
-};
+	return node;
+}
 
-const char *
-code_typeAsString(int tp){
-    return STRCODE[tp];
+static node_t *
+parser_expression(parser_t *parser)
+{
+	return parser_conditional(parser);
+}
+
+static node_t *
+parser_assign_stmt(parser_t *parser)
+{
+	node_t *node;
+	node_t *right;
+	list_t *list;
+	lexer_t *lexer;
+	token_t *token;
+		
+	node = parser_expression(parser);
+	if(!(node)){
+		return NULL;
+	}
+	
+	if (node) {
+		lexer = parser->lexer;
+		token = lexer_get_token(lexer);
+		
+		switch (token_get_type(token)) {
+		case TOKEN_COMMA:
+			list = list_create();
+			if(!list){
+				return NULL;
+			}
+			
+			if(!(list_rpush(list, (list_value_t)node))){
+				return NULL;
+			}
+			
+			while (token_get_type(token) == TOKEN_COMMA) {
+				if(!parser_match(parser, TOKEN_COMMA)){
+					return NULL;
+				}
+				
+				node = parser_expression(parser);
+				if (!(node)) {
+					break;
+				}
+				
+				if(!(list_rpush(list, (list_value_t)node))){
+					return NULL;
+				}
+			}
+			node = node_make_unpack(list);
+			break;
+
+		case TOKEN_EQ:
+			if(!parser_match(parser, TOKEN_EQ)){
+				return NULL;
+			}
+			
+			right = parser_expression(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_assign(node, right);
+			break;
+
+		case TOKEN_PLUS:
+			if(!parser_match(parser, TOKEN_PLUS)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_expression(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_add_assign(node, right);
+				break;
+			}
+			
+			right = parser_multiplicative(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_plus(node, right);
+			break;
+
+		case TOKEN_MINUS:
+			if(!parser_match(parser, TOKEN_MINUS)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_expression(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_sub_assign(node, right);
+				break;
+			}
+			
+			right = parser_multiplicative(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_minus(node, right);
+			break;
+
+		case TOKEN_STAR:
+			if(!parser_match(parser, TOKEN_STAR)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_expression(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_mul_assign(node, right);
+				break;
+			}
+			
+			right = parser_as(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_mul(node, right);
+			break;
+
+		case TOKEN_SLASH:
+			if(!parser_match(parser, TOKEN_SLASH)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_expression(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_div_assign(node, right);
+				break;
+			}
+			
+			right = parser_as(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_div(node, right);
+			break;
+
+		case TOKEN_PERCENT:
+			if(!parser_match(parser, TOKEN_PERCENT)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_expression(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_mod_assign(node, right);
+				break;
+			}
+			
+			right = parser_as(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_mod(node, right);
+			break;
+
+		case TOKEN_AND:
+			if(!parser_match(parser, TOKEN_AND)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_AND){
+				if(!parser_match(parser, TOKEN_AND)){
+					return NULL;
+				}
+				
+				right = parser_bitwise_or(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_land(node, right);
+				break;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_expression(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_and_assign(node, right);
+				break;
+			}
+			
+			right = parser_equality(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_and(node, right);
+			break;
+
+		case TOKEN_OR:
+			if(!parser_match(parser, TOKEN_OR)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_OR){
+				if(!parser_match(parser, TOKEN_OR)){
+					return NULL;
+				}
+				
+				right = parser_logical_and(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_lor(node, right);
+				break;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_expression(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_or_assign(node, right);
+				break;
+			}
+			
+			right = parser_bitwise_xor(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_or(node, right);
+			break;
+			
+		case TOKEN_LT:
+			if(!parser_match(parser, TOKEN_LT)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_LT){
+				if(!parser_match(parser, TOKEN_LT)){
+					return NULL;
+				}
+				
+				
+				if(token_get_type(token) == TOKEN_EQ){
+					if(!parser_match(parser, TOKEN_EQ)){
+						return NULL;
+					}
+					
+					right = parser_expression(parser);
+					if (!(right)) {
+						return NULL;
+					}
+					
+					node = node_make_shl_assign(node, right);
+					break;
+				}
+				
+				right = parser_addative(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_shl(node, right);
+				break;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_shifting(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_le(node, right);
+				break;
+			}
+			
+			right = parser_shifting(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_lt(node, right);
+			break;
+
+		case TOKEN_GT:
+			if(!parser_match(parser, TOKEN_GT)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_GT){
+				if(!parser_match(parser, TOKEN_GT)){
+					return NULL;
+				}
+				
+				if(token_get_type(token) == TOKEN_EQ){
+					if(!parser_match(parser, TOKEN_EQ)){
+						return NULL;
+					}
+					
+					right = parser_expression(parser);
+					if (!(right)) {
+						return NULL;
+					}
+					
+					node = node_make_shr_assign(node, right);
+					break;
+				}
+			
+				right = parser_addative(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_shr(node, right);
+				break;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				
+				right = parser_shifting(parser);
+				if (!(right)) {
+					return NULL;
+				}
+				
+				node = node_make_ge(node, right);
+				break;
+			}
+			
+			right = parser_shifting(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_gt(node, right);
+			break;
+
+		default:
+			return node;
+		}
+	}
+
+	return node;
+}
+
+static node_t *
+parser_if_stmt(parser_t *parser)
+{
+	node_t *expr;
+	node_t *then_block_stmt;
+	node_t *else_block_stmt;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!parser_match(parser, TOKEN_IF)){
+		return NULL;
+	}
+
+	if(!parser_match(parser, TOKEN_LPAREN)){
+		return NULL;
+	}
+	
+	expr = parser_expression(parser);
+	if (!expr) {
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_RPAREN)){
+		return NULL;
+	}
+
+	list_rpush(parser->scope_list, parser->scope_type);
+	parser->scope_type = PARSER_SCOPE_IF;
+	
+	then_block_stmt = parser_block_stmt(parser);
+	if (!then_block_stmt) {
+		return NULL;
+	}
+	
+	parser->scope_type = list_content(list_rpop(parser->scope_list));
+
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+		
+	else_block_stmt = NULL;
+	if (token_get_type(token) == TOKEN_ELSE) {
+		if(!parser_match(parser, TOKEN_ELSE)){
+			return NULL;
+		}
+	
+		if (token_get_type(token) == TOKEN_IF) {
+			else_block_stmt = parser_if_stmt(parser);
+		} else {
+			list_rpush(parser->scope_list, parser->scope_type);
+			parser->scope_type = PARSER_SCOPE_IF;
+		
+			else_block_stmt = parser_block_stmt(parser);
+			
+			parser->scope_type = list_content(list_rpop(parser->scope_list));
+		}
+
+		if (!else_block_stmt) {
+			return NULL;
+		}
+	}
+
+	return node_make_if(expr, then_block_stmt, else_block_stmt);
+}
+
+static node_t *
+parser_while_stmt(parser_t *parser)
+{
+	node_t *expr;
+	node_t *block_stmt;
+
+	if(!parser_match(parser, TOKEN_WHILE)){
+		return NULL;
+	}
+
+	if(!parser_match(parser, TOKEN_LPAREN)){
+		return NULL;
+	}
+	
+	expr = parser_expression(parser);
+	if (!expr) {
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_RPAREN)){
+		return NULL;
+	}
+	
+	list_rpush(parser->scope_list, parser->scope_type);
+	parser->scope_type = PARSER_SCOPE_WHILE;
+	
+	parser->loop_depth += 1;
+
+	block_stmt = parser_block_stmt(parser);
+	if (!block_stmt) {
+		return NULL;
+	}
+	
+	parser->loop_depth -= 1;
+	
+	parser->scope_type = list_content(list_rpop(parser->scope_list));
+
+	return node_make_while(expr, block_stmt);
+}
+
+static node_t *
+parser_break_stmt(parser_t *parser)
+{
+	if(parser->loop_depth <= 0){
+		parser_error(parser, "'break' is not within a loop\n");
+		return NULL;
+	}
+	if(!parser_match(parser, TOKEN_BREAK)){
+		return NULL;
+	}
+	if(!parser_match(parser, TOKEN_SEMICOLON)){
+		return NULL;
+	}
+
+	return node_make_break();
+}
+
+static node_t *
+parser_continue_stmt(parser_t *parser)
+{
+	if(parser->loop_depth <= 0){
+		parser_error(parser, "'continue' is not within a loop\n");
+		return NULL;
+	}
+	if(!parser_match(parser, TOKEN_CONTINUE)){
+		return NULL;
+	}
+	if(!parser_match(parser, TOKEN_SEMICOLON)){
+		return NULL;
+	}
+
+	return node_make_continue();
+}
+
+static node_t *
+parser_return_stmt(parser_t *parser)
+{
+	node_t *expr;
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!parser_match(parser, TOKEN_RETURN)){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	expr = NULL;
+	if (token_get_type(token) != TOKEN_SEMICOLON) {
+		expr = parser_expression(parser);
+		if (!expr) {
+			return NULL;
+		}
+	}
+	if(!parser_match(parser, TOKEN_SEMICOLON)){
+		return NULL;
+	}
+
+	return node_make_return(expr);
+}
+
+static node_t *
+parser_prototype(parser_t *parser)
+{
+	node_t *node;
+	node_t *right;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!(node = parser_id(parser))){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	while (node) {
+		switch (token_get_type(token)) {
+		case TOKEN_AS:
+			if(!parser_match(parser, TOKEN_AS)){
+				return NULL;
+			}
+			
+			right = parser_id(parser);
+			if (!(right)) {
+				return NULL;
+			}
+			
+			node = node_make_as(node, right);
+			break;
+
+		default:
+			return node;
+		}
+	}
+	
+	return node;
+}
+
+static node_t *
+parser_directory(parser_t *parser)
+{
+	node_t *node;
+	list_t *wise_list;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!parser_match(parser, TOKEN_LBRACE)){
+		return NULL;
+	}
+		
+	wise_list = list_create();
+	if(!wise_list){
+		return NULL;
+	}
+		
+	node = parser_prototype(parser);
+	if(!node){
+		return NULL;
+	}
+		
+	if(!list_rpush(wise_list, (list_value_t)node)){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+		
+	while(token_get_type(token) == TOKEN_COMMA){
+		if(!parser_match(parser, TOKEN_COMMA)){
+			return NULL;
+		}
+		node = parser_prototype(parser);
+		if(!node){
+			return NULL;
+		}
+			
+		if(!list_rpush(wise_list, (list_value_t)node)){
+			return NULL;
+		}
+	}
+		
+	if(!parser_match(parser, TOKEN_RBRACE)){
+		return NULL;
+	}
+	
+	return node_make_directory(wise_list);
+}
+
+static node_t *
+parser_var_stmt(parser_t *parser)
+{
+	node_t *name;
+	node_t *label;
+	node_t *expr;
+	node_t *node;
+	int32_t is_directory;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	is_directory = 0;
+	if (token_get_type(token) == TOKEN_LBRACE) {
+		name = parser_directory(parser);
+		is_directory = 1;
+	} else {
+		name = parser_id(parser);
+	}
+	
+	if(!name){
+		return NULL;
+	}
+
+	label = NULL;
+	if(!is_directory){
+		if (token_get_type(token) == TOKEN_COLON) {
+			if(!parser_match(parser, TOKEN_COLON)){
+				return NULL;
+			}
+			label = parser_typing(parser);
+			if (!label) {
+				return NULL;
+			}
+		}
+	}
+		
+	expr = NULL;
+	if (token_get_type(token) == TOKEN_EQ || is_directory) {
+		if(!parser_match(parser, TOKEN_EQ)){
+			return NULL;
+		}
+		expr = parser_expression(parser);
+		if (!expr) {
+			return NULL;
+		}
+	}
+
+	node = node_make_var(name, label, expr);
+		
+	return node;
+}
+
+static node_t *
+parser_var_list_stmt(parser_t *parser)
+{
+	node_t *node;
+	list_t *list;
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!parser_match(parser, TOKEN_VAR)){
+		return NULL;
+	}
+	
+	node = parser_var_stmt(parser);
+	if(!node){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	if(token_get_type(token) == TOKEN_COMMA){
+		list = list_create();
+		if(!list){
+			return NULL;
+		}
+		
+		if(!list_rpush(list, (list_value_t)node)){
+			return NULL;
+		}
+		
+		while(token_get_type(token) == TOKEN_COMMA){
+			if(!parser_match(parser, TOKEN_COMMA)){
+				return NULL;
+			}
+			node = parser_var_stmt(parser);
+			if(!node){
+				return NULL;
+			}
+			
+			if(!list_rpush(list, (list_value_t)node)){
+				return NULL;
+			}
+		}
+		
+		node = node_make_var_list(list);
+	}
+	
+	if(!parser_match(parser, TOKEN_SEMICOLON)){
+		return NULL;
+	}
+	
+	return node;
+}
+
+static node_t *
+parser_parameter(parser_t *parser)
+{
+	node_t *name;
+	node_t *label;
+	node_t *expr;
+	node_t *node;
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	if (token_get_type(token) == TOKEN_VAR) {
+		if(!parser_match(parser, TOKEN_VAR)){
+			return NULL;
+		}
+	}
+	
+	name = parser_id(parser);
+	
+	label = NULL;
+	if (token_get_type(token) == TOKEN_COLON) {
+		if(!parser_match(parser, TOKEN_COLON)){
+			return NULL;
+		}
+		label = parser_typing(parser);
+		if (!label) {
+			return NULL;
+		}
+	}
+	
+	expr = NULL;
+	if (token_get_type(token) == TOKEN_EQ) {
+		if(!parser_match(parser, TOKEN_EQ)){
+			return NULL;
+		}
+		expr = parser_expression(parser);
+		if (!expr) {
+			return NULL;
+		}
+	}
+
+	node = node_make_parameter(name, label, expr);
+
+	return node;
+}
+
+static node_t *
+parser_parameter_list(parser_t *parser)
+{
+	node_t *node;
+	node_t *parameter;
+	list_t *list;
+	lexer_t *lexer;
+	token_t *token;
+	
+	parameter = parser_parameter(parser);
+	if (!parameter) {
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	node = parameter;
+	if (token_get_type(token) == TOKEN_COMMA) {
+		if(!parser_match(parser, TOKEN_COMMA)){
+			return NULL;
+		}
+		
+		list = list_create();
+		while (token_get_type(token) != TOKEN_RPAREN) {
+			parameter = parser_parameter(parser);
+			if (!parameter) {
+				return NULL;
+			}
+
+			if(!list_rpush(list, (list_value_t)parameter)){
+				return NULL;
+			}
+
+			if (token_get_type(token) != TOKEN_COMMA) {
+				break;
+			}
+			if(!parser_match(parser, TOKEN_COMMA)){
+				return NULL;
+			}
+		}
+		node = node_make_parameter_list(list);
+	}
+
+	return node;
+}
+
+static node_t *
+parser_generic(parser_t *parser)
+{
+	node_t *name;
+	node_t *label;
+	node_t *default_value;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	name = parser_id(parser);
+	
+	label = NULL;
+	if (token_get_type(token) == TOKEN_COLON) {
+		if(!parser_match(parser, TOKEN_COLON)){
+			return NULL;
+		}
+		label = parser_typing(parser);
+		if (!label) {
+			return NULL;
+		}
+	}
+	
+	default_value = NULL;
+	if (token_get_type(token) == TOKEN_EQ) {
+		if(!parser_match(parser, TOKEN_EQ)){
+			return NULL;
+		}
+		default_value = parser_typing(parser);
+		if (!default_value) {
+			return NULL;
+		}
+	}
+
+	return node_make_generic(name, label, default_value);
+}
+
+static node_t *
+parser_generic_list(parser_t *parser)
+{
+	node_t *node;
+	node_t *generic;
+	list_t *generic_list;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	generic = parser_generic(parser);
+	if (!generic) {
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	node = generic;
+	if (token_get_type(token) == TOKEN_COMMA) {
+		if(!parser_match(parser, TOKEN_COMMA)){
+			return NULL;
+		}
+		
+		generic_list = list_create();
+		if(!generic_list){
+			return NULL;
+		}
+		
+		while (token_get_type(token) != TOKEN_GT) {
+			generic = parser_generic(parser);
+			if (!generic) {
+				return NULL;
+			}
+
+			if(!list_rpush(generic_list, (list_value_t)generic)){
+				return NULL;
+			}
+
+			if (token_get_type(token) != TOKEN_COMMA) {
+				break;
+			}
+			if(!parser_match(parser, TOKEN_COMMA)){
+				return NULL;
+			}
+		}
+		node = node_make_generic_list(generic_list);
+	}
+
+	return node;
+}
+
+static node_t *
+parser_fn_stmt(parser_t *parser)
+{
+	node_t *name;
+	node_t *parameter_list;
+	node_t *generic_list;
+	node_t *return_type;
+	node_t *block_stmt;
+	
+	int32_t is_overloading = 0;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!parser_match(parser, TOKEN_FN)){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+
+	name = NULL;
+	
+	if(parser->scope_type == PARSER_SCOPE_CLASS){
+	
+		switch(token_get_type(token)){
+		case TOKEN_PLUS:
+			if(!parser_match(parser, TOKEN_PLUS)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				name = node_make_id("+=");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			name = node_make_id("+");
+			if(!(name)){
+				return NULL;
+			}
+			is_overloading = 1;
+			break;
+		
+		case TOKEN_MINUS:
+			if(!parser_match(parser, TOKEN_MINUS)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				name = node_make_id("-=");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			name = node_make_id("-");
+			if(!(name)){
+				return NULL;
+			}
+			is_overloading = 1;
+			break;
+			
+		case TOKEN_STAR:
+			if(!parser_match(parser, TOKEN_STAR)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				name = node_make_id("*=");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			name = node_make_id("*");
+			if(!(name)){
+				return NULL;
+			}
+			is_overloading = 1;
+			break;
+			
+		case TOKEN_SLASH:
+			if(!parser_match(parser, TOKEN_SLASH)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				name = node_make_id("/=");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			name = node_make_id("/");
+			if(!(name)){
+				return NULL;
+			}
+			is_overloading = 1;
+			break;
+			
+		case TOKEN_PERCENT:
+			if(!parser_match(parser, TOKEN_PERCENT)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				name = node_make_id("%=");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			name = node_make_id("%");
+			if(!(name)){
+				return NULL;
+			}
+			is_overloading = 1;
+			break;
+			
+		case TOKEN_AND:
+			if(!parser_match(parser, TOKEN_AND)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_AND){
+				if(!parser_match(parser, TOKEN_AND)){
+					return NULL;
+				}
+				name = node_make_id("&&");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				name = node_make_id("&=");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			name = node_make_id("&");
+			if(!(name)){
+				return NULL;
+			}
+			is_overloading = 1;
+			break;
+			
+		case TOKEN_OR:
+			if(!parser_match(parser, TOKEN_OR)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_OR){
+				if(!parser_match(parser, TOKEN_OR)){
+					return NULL;
+				}
+				name = node_make_id("||");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				name = node_make_id("|=");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			name = node_make_id("|");
+			if(!(name)){
+				return NULL;
+			}
+			is_overloading = 1;
+			break;
+			
+		case TOKEN_CARET:
+			if(!parser_match(parser, TOKEN_CARET)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				name = node_make_id("^=");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			name = node_make_id("^");
+			if(!(name)){
+				return NULL;
+			}
+			is_overloading = 1;
+			break;
+			
+		case TOKEN_TILDE:
+			if(!parser_match(parser, TOKEN_TILDE)){
+				return NULL;
+			}
+			name = node_make_id("~");
+			if(!(name)){
+				return NULL;
+			}
+			is_overloading = 1;
+			break;
+			
+		case TOKEN_LT:
+			if(!parser_match(parser, TOKEN_LT)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_LT){
+				if(!parser_match(parser, TOKEN_LT)){
+					return NULL;
+				}
+				
+				if(token_get_type(token) == TOKEN_EQ){
+					if(!parser_match(parser, TOKEN_EQ)){
+						return NULL;
+					}
+					name = node_make_id("<<=");
+					if(!(name)){
+						return NULL;
+					}
+					is_overloading = 1;
+					break;
+				}
+			
+				name = node_make_id("<<");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				name = node_make_id("<=");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			name = node_make_id("<");
+			if(!(name)){
+				return NULL;
+			}
+			is_overloading = 1;
+			break;
+			
+		case TOKEN_GT:
+			if(!parser_match(parser, TOKEN_GT)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_GT){
+				if(!parser_match(parser, TOKEN_GT)){
+					return NULL;
+				}
+				
+				if(token_get_type(token) == TOKEN_EQ){
+					if(!parser_match(parser, TOKEN_EQ)){
+						return NULL;
+					}
+					name = node_make_id(">>=");
+					if(!(name)){
+						return NULL;
+					}
+					is_overloading = 1;
+					break;
+				}
+			
+				name = node_make_id(">>");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				name = node_make_id(">=");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			name = node_make_id(">");
+			if(!(name)){
+				return NULL;
+			}
+			is_overloading = 1;
+			break;
+			
+		case TOKEN_NOT:
+			if(!parser_match(parser, TOKEN_NOT)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				name = node_make_id("!=");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			name = node_make_id("!");
+			if(!(name)){
+				return NULL;
+			}
+			is_overloading = 1;
+			break;
+			
+		case TOKEN_EQ:
+			if(!parser_match(parser, TOKEN_EQ)){
+				return NULL;
+			}
+			
+			if(token_get_type(token) == TOKEN_EQ){
+				if(!parser_match(parser, TOKEN_EQ)){
+					return NULL;
+				}
+				name = node_make_id("==");
+				if(!(name)){
+					return NULL;
+				}
+				is_overloading = 1;
+				break;
+			}
+			
+			name = node_make_id("=");
+			if(!(name)){
+				return NULL;
+			}
+			is_overloading = 1;
+			break;
+			
+		case TOKEN_LBRACKET:
+			if(!parser_match(parser, TOKEN_LBRACKET)){
+				return NULL;
+			}
+			if(!parser_match(parser, TOKEN_RBRACKET)){
+				return NULL;
+			}
+			name = node_make_id("[]");
+			if(!(name)){
+				return NULL;
+			}
+			is_overloading = 1;
+			break;
+			
+		case TOKEN_ID:
+			name = parser_id(parser);
+			if (!name) {
+				return NULL;
+			}
+			break;
+			
+		default:
+			name = NULL;
+			break;
+		}
+	} else {
+		if(token_get_type(token) == TOKEN_ID){
+			name = parser_id(parser);
+			if (!name) {
+				return NULL;
+			}
+		}
+	}
+	
+	generic_list = NULL;
+	if(!is_overloading){
+		if (token_get_type(token) == TOKEN_LT) {
+			if(!parser_match(parser, TOKEN_LT)){
+				return NULL;
+			}
+			if (token_get_type(token) != TOKEN_GT) {
+				generic_list = parser_generic_list(parser);
+				if (!generic_list) {
+					return NULL;
+				}
+			}
+			if(!parser_match(parser, TOKEN_GT)){
+				return NULL;
+			}
+		}
+	}
+
+	parameter_list = NULL;
+	if (token_get_type(token) == TOKEN_LPAREN) {
+		if(!parser_match(parser, TOKEN_LPAREN)){
+			return NULL;
+		}		
+		if (token_get_type(token) != TOKEN_RPAREN) {
+			parameter_list = parser_parameter_list(parser);
+			if (!parameter_list) {
+				return NULL;
+			}
+		}
+		if(!parser_match(parser, TOKEN_RPAREN)){
+			return NULL;
+		}
+	}
+	
+	return_type = NULL;
+	if(token_get_type(token) == TOKEN_COLON){
+		if(!parser_match(parser, TOKEN_COLON)){
+			return NULL;
+		}
+		return_type = parser_typing(parser);
+		if(!return_type){
+			return NULL;
+		}
+	}
+	
+	block_stmt = NULL;
+	if (parser->scope_type == PARSER_SCOPE_MODULE){
+		if (token_get_type(token) == TOKEN_LBRACE) {
+			list_rpush(parser->scope_list, parser->scope_type);
+			parser->scope_type = PARSER_SCOPE_FN;
+			
+			block_stmt = parser_block_stmt(parser);
+			if (!block_stmt) {
+				return NULL;
+			}
+			
+			parser->scope_type = list_content(list_rpop(parser->scope_list));
+		} else {
+			if(!parser_match(parser, TOKEN_SEMICOLON)){
+				return NULL;
+			}
+		}
+	} else {
+		list_rpush(parser->scope_list, parser->scope_type);
+		parser->scope_type = PARSER_SCOPE_FN;
+			
+		block_stmt = parser_block_stmt(parser);
+		if (!block_stmt) {
+			return NULL;
+		}
+			
+		parser->scope_type = list_content(list_rpop(parser->scope_list));
+	}
+	return node_make_fn(name, generic_list, parameter_list, return_type, block_stmt);
+}
+
+static node_t *
+parser_enum_block_stmt(parser_t *parser)
+{
+	node_t *key;
+	node_t *value;
+	node_t *element;
+	list_t *enum_list;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	enum_list = list_create();
+	if(!enum_list){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	while(token_get_type(token) != TOKEN_RBRACE){
+		key = parser_id(parser);
+		if (!key) {
+			return NULL;
+		}
+		
+		value = NULL;
+		if(token_get_type(token) == TOKEN_EQ){
+			if(!parser_match(parser, TOKEN_EQ)){
+				return NULL;
+			}
+	
+			if(token_get_type(token) == TOKEN_LETTERS){
+				value = parser_letters(parser);
+				if (!value) {
+					return NULL;
+				}
+			} else {
+				value = parser_number(parser);
+				if (!value) {
+					return NULL;
+				}
+			}
+		}
+		
+		element = node_make_element(key, value);
+		if(!element){
+			return NULL;
+		}
+		
+		if(!list_rpush(enum_list, (list_value_t)element)){
+			return NULL;
+		}
+		
+		if(token_get_type(token) != TOKEN_COMMA){
+			break;
+		}
+		
+		if(!parser_match(parser, TOKEN_COMMA)){
+			return NULL;
+		}
+	}
+	
+	return node_make_enum_block(enum_list);
+}
+
+static node_t *
+parser_enum_stmt(parser_t *parser)
+{
+	node_t *name;
+	node_t *block_stmt;
+
+	if(!parser_match(parser, TOKEN_ENUM)){
+		return NULL;
+	}
+
+	name = parser_id(parser);
+	if (!name) {
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_LBRACE)){
+		return NULL;
+	}
+	
+	list_rpush(parser->scope_list, parser->scope_type);
+	parser->scope_type = PARSER_SCOPE_ENUM;
+	
+	block_stmt = parser_enum_block_stmt(parser);
+	if(!block_stmt){
+		return NULL;
+	}
+	
+	parser->scope_type = list_content(list_rpop(parser->scope_list));
+	
+	if(!parser_match(parser, TOKEN_RBRACE)){
+		return NULL;
+	}
+		
+	return node_make_enum(name, block_stmt);
+}
+
+static node_t *
+parser_class_super_list(parser_t *parser)
+{
+	node_t *name;
+	list_t *super_list;
+	lexer_t *lexer;
+	token_t *token;
+	
+	name = parser_postfix(parser);
+	if (!name) {
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	super_list = list_create();
+	if(!super_list){
+		return NULL;
+	}
+	
+	if(!list_rpush(super_list, (list_value_t)name)){
+		return NULL;
+	}
+	
+	while (token_get_type(token) != TOKEN_RPAREN) {
+		if(!parser_match(parser, TOKEN_COMMA)){
+			return NULL;
+		}
+
+		name = parser_postfix(parser);
+		if (!name) {
+			return NULL;
+		}
+
+		if(!list_rpush(super_list, (list_value_t)name)){
+			return NULL;
+		}
+	}
+
+	return node_make_super_list(super_list);
+}
+
+static node_t *
+parser_class_block_stmt(parser_t *parser)
+{
+	node_t *stmt;
+	list_t *block_list;
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!parser_match(parser, TOKEN_LBRACE)){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	block_list = list_create();
+	if(!block_list){
+		return NULL;
+	}
+	
+	while (token_get_type(token) != TOKEN_RBRACE) {
+		if (token_get_type(token) == TOKEN_VAR) {
+			stmt = parser_var_list_stmt(parser);
+		} else if (token_get_type(token) == TOKEN_CLASS) {
+			stmt = parser_class_stmt(parser);
+		} else if (token_get_type(token) == TOKEN_ENUM) {
+			stmt = parser_enum_stmt(parser);
+		} else if (token_get_type(token) == TOKEN_FN) {
+			stmt = parser_fn_stmt(parser);
+		} else {
+			parser_error(parser,
+			             "class accepts only var, enum, function "
+			             "and class declarations\n");
+
+			return NULL;
+		}
+
+		if (!stmt) {
+			return NULL;
+		}
+
+		if(!(list_rpush(block_list, (list_value_t)stmt))){
+			return NULL;
+		}
+	}
+	
+	if(!parser_match(parser, TOKEN_RBRACE)){
+		return NULL;
+	}
+	
+	return node_make_class_block(block_list);
+}
+
+static node_t *
+parser_class_stmt(parser_t *parser)
+{
+	node_t *name;
+	node_t *super_list;
+	node_t *block_stmt;
+	node_t *generic_list;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!parser_match(parser, TOKEN_CLASS)){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+
+	name = parser_id(parser);
+	if (!name) {
+		return NULL;
+	}
+	
+	generic_list = NULL;
+	if (token_get_type(token) == TOKEN_LT) {
+		if(!parser_match(parser, TOKEN_LT)){
+			return NULL;
+		}
+		if (token_get_type(token) != TOKEN_GT) {
+			generic_list = parser_generic_list(parser);
+			if (!generic_list) {
+				return NULL;
+			}
+		}
+		if(!parser_match(parser, TOKEN_GT)){
+			return NULL;
+		}
+	}
+
+	super_list = NULL;
+	if (token_get_type(token) == TOKEN_LPAREN) {
+		if(!parser_match(parser, TOKEN_LPAREN)){
+			return NULL;
+		}
+
+		if (token_get_type(token) == TOKEN_ID) {
+			super_list = parser_class_super_list(parser);
+			if (!super_list) {
+				return NULL;
+			}
+		}
+		
+		if(!parser_match(parser, TOKEN_RPAREN)){
+			return NULL;
+		}
+	}
+	
+	list_rpush(parser->scope_list, parser->scope_type);
+	parser->scope_type = PARSER_SCOPE_CLASS;
+
+	block_stmt = parser_class_block_stmt(parser);
+	if (!block_stmt) {
+		return NULL;
+	}
+	
+	parser->scope_type = list_content(list_rpop(parser->scope_list));
+
+	return node_make_class(name, generic_list, super_list, block_stmt);
+}
+
+static node_t *
+parser_block_stmt(parser_t *parser)
+{
+	node_t *stmt;
+	list_t *list;
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!parser_match(parser, TOKEN_LBRACE)){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	list = list_create();
+	if(!list){
+		return NULL;
+	}
+	
+	while (token_get_type(token) != TOKEN_RBRACE) {
+		/* empty stmt */
+		if (token_get_type(token) == TOKEN_SEMICOLON) {
+			if(!parser_match(parser, TOKEN_SEMICOLON)){
+				return NULL;
+			}
+
+			continue;
+		}
+
+		stmt = parser_statement(parser);
+		if (!stmt) {
+			return NULL;
+		}
+		
+		if(!list_rpush(list, (list_value_t)stmt)){
+			return NULL;
+		}
+	}
+	if(!parser_match(parser, TOKEN_RBRACE)){
+		return NULL;
+	}
+
+	return node_make_block(list);
+}
+
+static node_t *
+parser_statement(parser_t *parser)
+{
+	node_t *node;
+
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	switch (token_get_type(token)) {
+	case TOKEN_LBRACE:
+		node = parser_block_stmt(parser);
+		break;
+
+	case TOKEN_IF:
+		node = parser_if_stmt(parser);
+		break;
+
+	case TOKEN_WHILE:
+		node = parser_while_stmt(parser);
+		break;
+
+	case TOKEN_VAR:
+		node = parser_var_list_stmt(parser);
+		break;
+
+	case TOKEN_BREAK:
+		node = parser_break_stmt(parser);
+		break;
+
+	case TOKEN_CONTINUE:
+		node = parser_continue_stmt(parser);
+		break;
+
+	case TOKEN_RETURN:
+		node = parser_return_stmt(parser);
+		break;
+
+	default:
+		node = parser_assign_stmt(parser);
+		if (!node) {
+			break;
+		}
+
+		if (node->kind != NODE_KIND_CLASS && node->kind != NODE_KIND_FN)
+		{
+			if(!parser_match(parser, TOKEN_SEMICOLON)){
+				return NULL;
+			}
+		}
+		break;
+	}
+
+	return node;
+}
+
+static node_t *
+parser_import_stmt(parser_t *parser)
+{
+	node_t *from;
+	node_t *node;
+
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!parser_match(parser, TOKEN_IMPORT)){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	switch(token_get_type(token)){
+	case TOKEN_LBRACE:	
+		node = parser_directory(parser);
+		if(!node){
+			return NULL;
+		}
+		break;
+	
+	default:
+		node = parser_id(parser);
+		if(!node){
+			return NULL;
+		}
+		break;
+	}
+	
+	if(!parser_match(parser, TOKEN_FROM)){
+		return NULL;
+	}
+	
+	from = parser_letters(parser);
+	if (!from) {
+		return NULL;
+	}
+
+	return node_make_import(node, from);
+}
+
+static node_t *
+parser_extern_stmt(parser_t *parser)
+{
+	node_t *stmt;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	if(!parser_match(parser, TOKEN_EXTERN)){
+		return NULL;
+	}
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	switch(token_get_type(token)){
+	case TOKEN_VAR:
+		stmt = parser_var_list_stmt(parser);
+		break;
+	
+	case TOKEN_FN:
+		stmt = parser_fn_stmt(parser);
+		break;
+		
+	default:
+		parser_error(parser,
+			"extern accepts only var and function "
+			"declarations\n");
+		return NULL;
+	}
+	
+	if (!stmt) {
+		return NULL;
+	}
+
+	return node_make_extern(stmt);
+}
+
+node_t *
+parser_module(parser_t *parser)
+{
+	node_t *stmt;
+	list_t *stmt_list;
+	
+	lexer_t *lexer;
+	token_t *token;
+	
+	lexer = parser->lexer;
+	token = lexer_get_token(lexer);
+	
+	stmt_list = list_create();
+	if(!(stmt_list)){
+		return NULL;
+	}
+	
+	if(!parser_match(parser, TOKEN_EOF)){
+		return NULL;
+	}
+	
+	list_rpush(parser->scope_list, parser->scope_type);
+	parser->scope_type = PARSER_SCOPE_MODULE;
+	
+	while (token_get_type(token) != TOKEN_EOF) {
+		/* empty stmt */
+		if (token_get_type(token) == TOKEN_SEMICOLON) {
+			if(!parser_match(parser, TOKEN_SEMICOLON)){
+				return NULL;
+			}
+
+			continue;
+		}
+		
+		switch(token_get_type(token)){
+		case TOKEN_EXTERN:
+			stmt = parser_extern_stmt(parser);
+			break;
+			
+		case TOKEN_IMPORT:
+			stmt = parser_import_stmt(parser);
+			break;
+			
+		case TOKEN_CLASS:
+			stmt = parser_class_stmt(parser);
+			break;
+			
+		case TOKEN_ENUM:
+			stmt = parser_enum_stmt(parser);
+			break;
+			
+		case TOKEN_FN:
+			stmt = parser_fn_stmt(parser);
+			break;
+			
+		case TOKEN_VAR:
+			stmt = parser_var_list_stmt(parser);
+			break;
+			
+		default:
+			stmt = parser_assign_stmt(parser);
+			if (!stmt) {
+				return NULL;
+			}
+			if (stmt->kind != NODE_KIND_CLASS && stmt->kind != NODE_KIND_FN && stmt->kind != NODE_KIND_ENUM)
+			{
+				if(!parser_match(parser, TOKEN_SEMICOLON)){
+					return NULL;
+				}
+			}
+			break;
+		}
+
+		if (!stmt) {
+			return NULL;
+		}
+
+		if(!list_rpush(stmt_list, (list_value_t)stmt)){
+			return NULL;
+		}
+	}
+	
+	parser->scope_type = list_content(list_rpop(parser->scope_list));
+	
+	if(!parser_match(parser, TOKEN_EOF)){
+		return NULL;
+	}
+
+	return node_make_module(stmt_list);
 }
 
 parser_t *
-parse(list_t *tokens, list_t *code){
-    parser_t *prs;
-
-    assert_format(!!(prs = (parser_t *)qalam_malloc(sizeof(parser_t))),
-        "bad expression defination, alloc memory");
-
-    prs->schema = schema_create(nullptr);
-
-    prs->schema->start = list_rpush(code, ENT);
-
-    prs->tokens = tokens;
-
-    prs->schemas = list_create();
-    prs->frame = list_create();
-    prs->stack = list_create();
- 
-    prs->c = tokens->begin;
-    statement(prs, code);
-    list_rpush(code, THIS);
-    list_rpush(code, RET);
-    prs->schema->end = list_rpush(code, LEV);
-
-    return prs;
+parser_create(lexer_t *lexer){
+	parser_t *parser;
+	if(!(parser = (parser_t *)malloc(sizeof(parser_t)))){
+		fprintf(stderr, "unable to allocted a block of %zu bytes", sizeof(parser_t));
+		return NULL;
+	}
+	memset(parser, 0, sizeof(parser_t));
+	parser->lexer = lexer;
+	parser->loop_depth = 0;
+	
+	parser->scope_list = list_create();
+	if(!parser->scope_list){
+		return NULL;
+	}
+	
+	parser->scope_type = 0;
+	
+	return parser;
 }

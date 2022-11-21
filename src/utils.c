@@ -1,21 +1,8 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <memory.h>
 #include <string.h>
-#include <fcntl.h>
-#include <assert.h>
-#include <time.h>
-#include <dirent.h>
 #include <stdarg.h>
-
 
 #include "types.h"
 #include "utils.h"
-#include "list.h"
-#include "lexer.h"
-#include "memory.h"
-
 
 void
 utils_swap(char* a, char* b)
@@ -26,10 +13,10 @@ utils_swap(char* a, char* b)
 }
 
 void
-utils_reverse(char str[], int length)
+utils_reverse(char str[], int32_t length)
 {
-  int start = 0;
-  int end = length -1;
+  int32_t start = 0;
+  int32_t end = length -1;
   while (start < end)
   {
     utils_swap((str+start), (str+end));
@@ -39,9 +26,9 @@ utils_reverse(char str[], int length)
 }
 
 char *
-utils_itoa(int num, char* str, int base)
+utils_itoa(int32_t num, char* str, int32_t base)
 {
-  int i = 0;
+  int32_t i = 0;
   bool_t isNegative = false;
 
   /* Handle 0 explicitely, otherwise empty string is printed for 0 */
@@ -74,7 +61,7 @@ utils_itoa(int num, char* str, int base)
 
   str[i] = '\0'; // Append string terminator
 
-  // utils_reverse the string
+  // reverse the string
   utils_reverse(str, i);
 
   return str;
@@ -85,17 +72,17 @@ utils_pow(double a, double b)
 {
   union {
     double d;
-    int x[2];
+    int32_t x[2];
   } u = { a };
-  u.x[1] = (int)(b * (u.x[1] - 1072632447) + 1072632447);
+  u.x[1] = (int32_t)(b * (u.x[1] - 1072632447) + 1072632447);
   u.x[0] = 0;
   return u.d;
 }
 
 int
-utils_itos(int x, char str[], int d)
+utils_itos(int32_t x, char str[], int32_t d)
 {
-  int i = 0;
+  int32_t i = 0;
   while (x)
   {
     str[i++] = (x%10) + '0';
@@ -113,16 +100,16 @@ utils_itos(int x, char str[], int d)
 }
 
 char *
-utils_ftoa(double n, char *res, int afterpoint)
+utils_ftoa(double n, char *res, int32_t afterpoint)
 {
   // modulusct integer part
-  int ipart = (int)n;
+  int32_t ipart = (int32_t)n;
 
   // modulusct floating part
   double fpart = n - (double)ipart;
 
   // convert integer part to string
-  int i = utils_itos(ipart, res, 0);
+  int32_t i = utils_itos(ipart, res, 0);
 
   // check for display option after point
   if (afterpoint != 0)
@@ -134,7 +121,7 @@ utils_ftoa(double n, char *res, int afterpoint)
     // to handle cases like 233.007
     fpart = fpart * utils_pow(10, afterpoint);
 
-    utils_itos((int)fpart, res + i + 1, afterpoint);
+    utils_itos((int32_t)fpart, res + i + 1, afterpoint);
   }
   return res;
 }
@@ -142,12 +129,12 @@ utils_ftoa(double n, char *res, int afterpoint)
 double
 utils_atof (const char *p)
 {
-  int frac;
+  int32_t frac;
   double sign, value, scale;
 
   // Skip leading white space, if any.
 
-  while (white_space(*p) ) {
+  while (utils_white_space(*p) ) {
     p += 1;
   }
 
@@ -164,7 +151,7 @@ utils_atof (const char *p)
 
   // Get digits before decimal point or exponent, if any.
 
-  for (value = 0.0; valid_digit(*p); p += 1) {
+  for (value = 0.0; utils_isdigit(*p); p += 1) {
     value = value * 10.0 + (*p - '0');
   }
 
@@ -173,7 +160,7 @@ utils_atof (const char *p)
   if (*p == '.') {
     double pow10 = 10.0;
     p += 1;
-    while (valid_digit(*p)) {
+    while (utils_isdigit(*p)) {
       value += (*p - '0') / pow10;
       pow10 *= 10.0;
       p += 1;
@@ -185,7 +172,7 @@ utils_atof (const char *p)
   frac = 0;
   scale = 1.0;
   if ((*p == 'e') || (*p == 'E')) {
-    unsigned int expon;
+    uint32_t expon;
 
     // Get sign of exponent, if any.
 
@@ -200,7 +187,7 @@ utils_atof (const char *p)
 
     // Get digits of exponent, if any.
 
-    for (expon = 0; valid_digit(*p); p += 1) {
+    for (expon = 0; utils_isdigit(*p); p += 1) {
       expon = expon * 10 + (*p - '0');
     }
     if (expon > 308) expon = 308;
@@ -217,15 +204,15 @@ utils_atof (const char *p)
   return sign * (frac ? (value / scale) : (value * scale));
 }
 
-int
+int32_t
 utils_atoi(char *str)
 {
   if (*str == '\0')
     return 0;
 
-  int res = 0; // Initialize result
-  int sign = 1; // Initialize sign as positive
-  int i = 0; // Initialize index of first digit
+  int32_t res = 0; // Initialize result
+  int32_t sign = 1; // Initialize sign as positive
+  int32_t i = 0; // Initialize index of first digit
 
   // If number is negative, then update sign
   if (str[0] == '-')
@@ -237,7 +224,7 @@ utils_atoi(char *str)
   // Iterate through all digits of input string and update result
   for (; str[i] != '\0'; ++i)
   {
-    if (!valid_digit(str[i]))
+    if (!utils_isdigit(str[i]))
       return 0; // You may add some lines to write error message
           // to error stream
     res = res*10 + str[i] - '0';
@@ -248,25 +235,25 @@ utils_atoi(char *str)
 }
 
 
-long_t
-check_hexadecimal(char *str)
+int32_t
+utils_is_hexadecimal(char *str)
 {
-  long_t i;
+  size_t i;
   for(i = 0; i < strlen(str); i++){
     if(i == 1 && str[i] == 'x'){
       continue;
     }
-    if(!valid_hexadecimal(str[i])){
+    if(!utils_ishex(str[i])){
       return 0;
     }
   }
   return 1;
 }
 
-long_t
-check_double(char *str)
+int32_t
+utils_is_double(char *str)
 {
-  long_t i, rep = 0;
+  size_t i, rep = 0;
   for(i = 0; i < strlen(str); i++){
     if(str[i] == '.'){
       rep++;
@@ -275,19 +262,19 @@ check_double(char *str)
       }
       continue;
     }
-    if(!valid_digit(str[i])){
+    if(!utils_isdigit(str[i])){
       return 0;
     }
   }
   return 1;
 }
 
-long_t
-check_integer(char *str)
+int32_t
+utils_is_integer(char *str)
 {
-  long_t i;
+  size_t i;
   for(i = 0; i < strlen(str); i++){
-    if(!valid_digit(str[i])){
+    if(!utils_isdigit(str[i])){
       return 0;
     }
   }
@@ -295,7 +282,7 @@ check_integer(char *str)
 }
 
 void
-utils_combine(char* destination, const char* path1, const char* path2)
+utils_combine_path(char* destination, const char* path1, const char* path2)
 {
     if(path1 == NULL && path2 == NULL) {
         strcpy(destination, "");
@@ -314,7 +301,7 @@ utils_combine(char* destination, const char* path1, const char* path2)
         const char *last_char = path1;
         while(*last_char != '\0')
             last_char++;
-        int append_directory_separator = 0;
+        int32_t append_directory_separator = 0;
         if(strcmp(last_char, directory_separator) != 0) {
             append_directory_separator = 1;
         }
@@ -323,48 +310,4 @@ utils_combine(char* destination, const char* path1, const char* path2)
             strcat(destination, directory_separator);
         strcat(destination, path2);
     }
-}
-
-void
-get_random_bytes(char *bytes, int n)
-{
-    
-}
-
-char_t * 
-uuid()
-{
-  int n = 16;
-
-  char_t *bytes = (char_t *)qalam_malloc(sizeof(char_t) * (n + 1));
-
-	char alphabet[16] = {'1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
-    
-  // srand (time (0));
-  for (int i = 0; i < n; i++){
-    bytes[i] = alphabet[rand() % 16];
-  }
-
-  bytes[n] = '\0';
-
-	/* Set UUID version to 4 --- truly random generation */
-	bytes[6] = (bytes[6] & 0x0F) | 0x40;
-	/* Set the UUID variant to DCE */
-	bytes[8] = (bytes[8] & 0x3F) | 0x80;
-  
-  return bytes;
-}
-
-
-void
-assert_format(int __cond__, char *__format__, ...){
-	if(!__cond__){
-		va_list args;
-
-		va_start(args, __format__);
-		vprintf(__format__, args);
-		printf("\n");
-		va_end(args);
-		exit(-1);
-	}
 }

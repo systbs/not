@@ -1,788 +1,1043 @@
-/*
-    Created by YAS - 2021
-    
-    Lexer:
-    This part converts the program text to 
-    an understandable form for the parser.
-    
-    Every token contains:
-        long_t identifier;     // --> Token type: TOKEN_EQ mean "="
-        long_t value;          // if token from type string or char or number value set to pointer it
-        long_t pos;            // posation of token in document
-        long_t row;            // line token
-        long_t col;            // column token
-        long_t fileid;         // file identifier 
-        const char * symbol;    // name of symbol, for example "=" -> "EQ"
-
-    Tokens, which are a set of pre-commands, 
-    are later stored in a linked list(list_t) and then parsed 
-
-    example: [test.q]
-
-    category4: def {
-        w = "simple text 4";
-    };
-
-    #first token:
-    identifier: TOKEN_ID
-    value: (long_t)"category4"
-    pos: 1
-    row: 1
-    col: 1
-    fileid: (long_t)"test.q"
-    symbol: "ID"
-    
-    #next token
-    identifier: TOKEN_COLON
-    value: null
-    pos: 9
-    row: 1
-    col: 9
-    fileid: (long_t)"test.q"
-    symbol: "COLON"
-
-    #next token
-    identifier: TOKEN_DEF
-    value: null
-    pos: 11
-    row: 1
-    col: 11
-    fileid: (long_t)"test.q"
-    symbol: "DEF"
-
-    ...
-*/
-
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
-#include <memory.h>
 #include <string.h>
-#include <fcntl.h>
-#include <assert.h>
-#include <time.h>
+#include <unistd.h>
 
 #include "types.h"
 #include "utils.h"
-#include "list.h"
-
+#include "token.h"
 #include "lexer.h"
 
-// name of every token
-const char * const symbols[] = {
-  [TOKEN_EOF]       = "EOF",
-  [TOKEN_SPACE]     = "SPACE",
-  [TOKEN_NOT]       = "NOT",	
-  [TOKEN_QUTA]      = "QUTA",	
-  [TOKEN_HASH]      = "HASH",	
-  [TOKEN_DOLLER]    = "DOLLOR",
-  [TOKEN_PERCENT]   = "PRECENT",
-  [TOKEN_AND]       = "AND", 	
-  [TOKEN_PRIME]     = "PRIME",	
-  [TOKEN_LPAREN]    = "LPAREN",	
-  [TOKEN_RPAREN]    = "RPAREN",	
-  [TOKEN_STAR]      = "STAR",	 
-  [TOKEN_PLUS]      = "PLUS",	 
-  [TOKEN_COMMA]     = "COMMA",	
-  [TOKEN_MINUS]     = "MINUS",	
-  [TOKEN_DOT]       = "DOT",
-  [TOKEN_SLASH]     = "SLASH",
-  [TOKEN_COLON]     = "COLON",	
-  [TOKEN_SEMICOLON] = "SEMICOLON",
-  [TOKEN_LT]        = "LT",
-  [TOKEN_EQ]        = "EQ",	
-  [TOKEN_GT]        = "GT",	 
-  [TOKEN_QUESTION]  = "QUESTION", 
-  [TOKEN_AT]        = "AT",  
-  [TOKEN_LBRACKET]  = "LBRACKET", 
-  [TOKEN_BACKSLASH] = "BACKSLASH",
-  [TOKEN_RBRACKET]  = "RBRACKET", 
-  [TOKEN_CARET]     = "CARET",	 
-  [TOKEN_UNDERLINE] = "UNDERLINE",
-  [TOKEN_UPRIME]    = "UPRIME",	
-  [TOKEN_LBRACE]    = "LBRACE",	
-  [TOKEN_OR]        = "OR",	
-  [TOKEN_RBRACE]    = "RBRACE",	 
-  [TOKEN_TILDE]     = "TILDE",	
-        
-  [TOKEN_LTLT]      = "LTLT",     
-  [TOKEN_GTGT]      = "GTGT",      
-  [TOKEN_LOR]       = "LOR",       
-  [TOKEN_LAND]      = "LAND",    
-  [TOKEN_LTEQ]      = "LTEQ",      
-  [TOKEN_GTEQ]      = "GTEQ",   
-  [TOKEN_EQEQ]      = "EQEQ",   
-  [TOKEN_NEQ]       = "NEQ",   
-  [TOKEN_INC]       = "INC",     
-  [TOKEN_DEC]       = "DEC",  
+#define max(a,b) a > b ? a : b
 
-  [TOKEN_CONTINUE]  = "CONTINUE",
-  [TOKEN_BREAK]     = "BREAK",
-  [TOKEN_ELSE]      = "ELSE",
-  [TOKEN_IF]        = "IF",
-  [TOKEN_IMPORT]    = "IMPORT",
-  [TOKEN_RETURN]    = "RETURN",
-  [TOKEN_SUPER]     = "SUPER",
-  [TOKEN_THIS]      = "THIS",
-  [TOKEN_ID]        = "ID",
-  [TOKEN_WHILE]     = "WHILE",
-  [TOKEN_DELETE]    = "DELETE",
-  [TOKEN_INSERT]    = "INSERT",
-  [TOKEN_SIZEOF]    = "SIZEOF",
-  [TOKEN_TYPEOF]    = "TYPEOF",
-  [TOKEN_COUNT]     = "COUNT",
-  [TOKEN_NULL]      = "NULL",
-  [TOKEN_REF]       = "REF",
-  [TOKEN_EVAL]      = "EVAL",
-  [TOKEN_FN]        = "FN",
-  [TOKEN_ARG]       = "ARG",
-  [TOKEN_CLASS]     = "CLASS",
+char *
+lexer_load_file(char *path){
+	int64_t i;
+    FILE *fd;
 
-  // system function
-  [TOKEN_FORMAT]    = "FORMAT",
-  [TOKEN_PRINT]     = "PRINT",
+	char destination [ MAX_PATH ];
 
-  [TOKEN_CHAR]      = "CHAR",
-  [TOKEN_DATA]      = "DATA",
-  [TOKEN_NUMBER]    = "NUMBER",
+	if(*path != '/'){
+		char cwd[MAX_PATH];
+		if (getcwd(cwd, sizeof(cwd)) == NULL) {
+			perror("getcwd() error");
+			return NULL;
+		}
+		utils_combine_path ( destination, cwd, path );
+	} else {
+		strcpy(destination, path);
+	}
 
-  [TOKEN_LINE]      = "LINE"
-};
+    if (!(fd = fopen(destination, "rb"))) {
+        fprintf(stderr, "could not open(%s)\n", destination);
+        return NULL;
+    }
+    
+    // Current position
+    int64_t pos = ftell(fd);
+    // Go to end
+    fseek(fd, 0, SEEK_END);
+    // read the position which is the size
+    int64_t chunk = ftell(fd);
+    // restore original position
+    fseek(fd, pos, SEEK_SET);
 
-// A function to facilitate token creation 
+    char *buf;
+
+    if (!(buf = malloc(chunk + 1))) {
+    	fprintf(stderr, "unable to allocted a block of %zu bytes", chunk);
+        return NULL;
+    }
+
+    // read the source file
+    if ((i = fread(buf, 1, chunk, fd)) < chunk) {
+        fprintf(stderr, "read returned %ld\n", i);
+        return NULL;
+    }
+
+    buf[i] = '\0';
+
+    fclose(fd);
+    
+    return buf;
+}
+
 token_t *
-token_create(long_t identifier, long_t value, long_t pos, long_t row, long_t col)
-{
-    token_t *token = (token_t *)malloc(sizeof(token_t));
-    token->identifier = identifier;
-    token->value = value;
-    token->pos = pos;
-    token->row = row;
-    token->col = col;
-    token->symbol = symbols[identifier];
-    return token;
+lexer_get_token(lexer_t *lexer){
+	return &lexer->token;
 }
 
-// destroy a token from linked list (list_t) 
-long_t
-token_destroy(ilist_t *it)
-{
-    token_t *token = (token_t *)it->value;
-    if(token){
-        if(token->value){
-            qalam_free((void *)token->value);
-        }
-        qalam_free(token);
-    }
-    qalam_free(it);
-    return 1;
+char *
+lexer_get_path(lexer_t *lexer){
+	return lexer->path;
 }
 
-/*  Report an error contain 
-    ** pos: posation
-    ** row: row
-    ** col: colomn
-    ** str: error message
-*/
+char *
+lexer_get_source(lexer_t *lexer){
+	return lexer->source;
+}
+
+uint64_t
+lexer_get_position(lexer_t *lexer){
+	return lexer->position;
+}
+
+uint64_t
+lexer_get_line(lexer_t *lexer){
+	return lexer->line;
+}
+
+uint64_t
+lexer_get_column(lexer_t *lexer){
+	return lexer->column;
+}
+
+void 
+lexer_set_token(lexer_t *lexer, token_t token){
+	lexer->token = (token_t){ 
+		.type = token.type,
+		.value = token.value,
+		.position = token.position,
+		.line = token.line,
+		.column = token.column
+	};
+}
+
 void
-lexer_error(const char *source, long_t pos, long_t row, long_t col, char *str){
-    printf("lexer(%ld:%ld): %s!\n", row, col, str);
-    char c;
-    while((c = source[pos--])){
-        if(c == '\n'){
-            break;
-        }
-    }
-    while((c = source[pos++])){
-        if(c != '\n'){
-            printf("%c", c);
-        }
-    }
-    exit(-1);
+lexer_set_path(lexer_t *lexer, char *path){
+	lexer->path = path;
 }
 
-/* Main function for lexer part
-    ** ls: linked list for save of created token
-    ** source: buffer of program text
-
-*/
 void
-lexer(list_t *ls, const char *source)
-{
-    long_t c, a;
-    long_t pos = 0;
-    long_t row = 1;
-    long_t col = 1;
+lexer_set_source(lexer_t *lexer, char *source){
+	lexer->source = source;
+}
 
-    while ((c = source[pos])) {
+void
+lexer_set_position(lexer_t *lexer, uint64_t position){
+	lexer->position = position;
+}
+
+void
+lexer_set_line(lexer_t *lexer, uint64_t line){
+	lexer->line = line;
+}
+
+void
+lexer_set_column(lexer_t *lexer, uint64_t column){
+	lexer->column = column;
+}
+
+static void 
+lexer_set_token_unpack(lexer_t *lexer, int32_t type, char *value, 
+	uint64_t position, uint64_t line, uint64_t column){
+	lexer->token = (token_t){ 
+		.type = type,
+		.value = value,
+		.position = position,
+		.line = line,
+		.column = column
+	};
+}
+
+lexer_t *
+lexer_create(char *path, char *source){
+	lexer_t *lexer;
+	
+	if(!(lexer = (lexer_t *)malloc(sizeof(lexer_t)))){
+		fprintf(stderr, "unable to allocted a block of %zu bytes", sizeof(lexer_t));
+		return NULL;
+	}
+	memset(lexer, 0, sizeof(lexer_t));
+	
+	lexer->path = path;
+	lexer->source = source;
+	lexer->position = 0;
+    lexer->line = 1;
+    lexer->column = 1;
+    
+    lexer_set_token_unpack(lexer, TOKEN_EOF, NULL, 0, 0, 0);
+    
+	return lexer;
+}
+
+void
+lexer_destroy(lexer_t *lexer){
+	free(lexer);
+}
+
+int32_t
+lexer_get_next_token(lexer_t *lexer){
+	
+	int32_t c, a;
+    char *source = lexer->source;
+
+    while ((c = source[lexer->position])) {
         if(c == '\n' || c == '\v'){
-            row++;
-            pos++;
-            col = 1;
+            lexer->line++;
+            lexer->position++;
+            lexer->column = 1;
             continue;
         }
 
-        if(white_space(c)){
-            pos++;
-            col++;
+        if(utils_white_space(c)){
+            lexer->position++;
+            lexer->column++;
             continue;
         }
 
-        if(!valid_alpha(c) && !valid_digit(c) && c != '_'){
+        if(!utils_isalpha(c) && !utils_isdigit(c) && c != '_'){
             if(c == '"' || c == '\''){
                 // parse string literal, currently, the only supported escape
                 // character is '\n', store the string literal into data.
-                long_t pos2 = pos + 1;
-                pos++;
-                col++;
+                uint64_t start_position = lexer->position + 1;
+                lexer->position++;
+                lexer->column++;
 
-                while ((a = source[pos]) && a != c) {
-                    pos++;
-                    col++;
+                while ((a = source[lexer->position]) && a != c) {
+                    lexer->position++;
+                    lexer->column++;
                 }
 
-                char *data = malloc(sizeof(char) * (pos - pos2));
-                strncpy(data, source + pos2, pos - pos2 );
-                data[pos - pos2] = '\0';
-
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_DATA,(long_t)data,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
+                char *data;
+                if(!(data = malloc(sizeof(char) * (lexer->position - start_position)))){
+                	fprintf(stderr, "unable to allocted a block of %zu bytes", 
+                		sizeof(char) * (lexer->position - start_position));
+                	return 0;
                 }
+                strncpy(data, source + start_position, lexer->position - start_position );
+                data[lexer->position - start_position] = '\0';
+                
+                lexer_set_token(lexer, (token_t){ 
+					.type = TOKEN_LETTERS,
+					.value = data,
+					.position = start_position,
+					.line = lexer->line,
+					.column = lexer->column-(lexer->position -start_position)
+				});       
 
-                pos++;
-                col++;
-                continue;
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '('){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_LPAREN,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_LPAREN, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+            	
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == ')'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_RPAREN,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+                lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_RPAREN, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});;
+            		
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '['){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_LBRACKET,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_LBRACKET, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+            		
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == ']'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_RBRACKET,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_RBRACKET, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+            		
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '{'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_LBRACE,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_LBRACE, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+            		
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '}'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_RBRACE,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_RBRACE, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+            	
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '='){
-                if ((a = source[pos + 1]) && a == '=') {
-                    if(list_rpush(ls, (list_value_t)token_create(TOKEN_EQEQ,0,pos,row,col)) == nullptr){
-                        lexer_error(source, pos, row, col, "not append data!");
-                    }
-                    pos += 2;
-                    col += 2;
-                    continue;
-                }
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_EQ,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+                lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_EQ, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+		        	
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '?'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_QUESTION,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_QUESTION, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+		        
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '|'){
-                if ((a = source[pos + 1]) && a == '|') {
-                    if(list_rpush(ls, (list_value_t)token_create(TOKEN_LOR,0,pos,row,col)) == nullptr){
-                        lexer_error(source, pos, row, col, "not append data!");
-                    }
-                    pos += 2;
-                    col += 2;
-                    continue;
-                }
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_OR,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+                lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_OR, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+				    
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '&'){
-                if ((a = source[pos + 1]) && a == '&') {
-                    if(list_rpush(ls, (list_value_t)token_create(TOKEN_LAND,0,pos,row,col)) == nullptr){
-                        lexer_error(source, pos, row, col, "not append data!");
-                    }
-                    pos += 2;
-                    col += 2;
-                    continue;
-                }
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_AND,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+                lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_AND, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+				
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '^'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_CARET,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_CARET, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+				
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '!'){
-                if ((a = source[pos + 1]) && a == '=') {
-                    if(list_rpush(ls, (list_value_t)token_create(TOKEN_NEQ,0,pos,row,col)) == nullptr){
-                        lexer_error(source, pos, row, col, "not append data!");
-                    }
-                    pos += 2;
-                    col += 2;
-                    continue;
-                }
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_NOT,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+                lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_NOT, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+				
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '<'){
-                if ((a = source[pos + 1]) && a == '<') {
-                    if(list_rpush(ls, (list_value_t)token_create(TOKEN_LTLT,0,pos,row,col)) == nullptr){
-                        lexer_error(source, pos, row, col, "not append data!");
-                    }
-                    pos += 2;
-                    col += 2;
-                    continue;
-                }
-                if ((a = source[pos + 1]) && a == '=') {
-                    if(list_rpush(ls, (list_value_t)token_create(TOKEN_LTEQ,0,pos,row,col)) == nullptr){
-                        lexer_error(source, pos, row, col, "not append data!");
-                    }
-                    pos += 2;
-                    col += 2;
-                    continue;
-                }
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_LT,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+                lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_LT, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+					
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '>'){
-                if ((a = source[pos + 1]) && a == '>') {
-                    if(list_rpush(ls, (list_value_t)token_create(TOKEN_GTGT,0,pos,row,col)) == nullptr){
-                        lexer_error(source, pos, row, col, "not append data!");
-                    }
-                    pos += 2;
-                    col += 2;
-                    continue;
-                }
-                if ((a = source[pos + 1]) && a == '=') {
-                    if(list_rpush(ls, (list_value_t)token_create(TOKEN_GTEQ,0,pos,row,col)) == nullptr){
-                        lexer_error(source, pos, row, col, "not append data!");
-                    }
-                    pos += 2;
-                    col += 2;
-                    continue;
-                }
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_GT,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+                lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_GT, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+					
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '+'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_PLUS,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_PLUS, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+					
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '-'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_MINUS,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_MINUS, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+					
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '*'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_STAR,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_STAR, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+					
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '/'){
-                if ((a = source[pos + 1]) && a == '/') {
-                    while ((a = source[pos]) && a != '\n') {
-                        pos++;
-                        col++;
+                if ((a = source[lexer->position + 1]) && a == '/') {
+                    while ((a = source[lexer->position]) && a != '\n') {
+                        lexer->position++;
+                        lexer->column++;
                     }
-                    row++;
-                    continue;
+                    lexer->line++;
+                    return 1;
                 }
-                else if ((a = source[pos + 1]) && a == '*') {
-                    pos += 2;
-                    col += 2;
-                    long_t i = 0, p = 0;
-                    while ((a = source[pos])) {
+                else if ((a = source[lexer->position + 1]) && a == '*') {
+                    lexer->position += 2;
+                    lexer->column += 2;
+                    int64_t i = 0, p = 0;
+                    while ((a = source[lexer->position])) {
                         if(a == '*'){
-                            if ((a = source[pos + 1]) && a == '/' && i < 1) {
+                            if ((a = source[lexer->position + 1]) && a == '/' && i < 1) {
                                 break;
                             }
                             i--;
                         }
                         if(a == '\n'){
-                            row++;
+                            lexer->line++;
                         }
                         if(a == '/'){
-                            if ((p = source[pos + 1]) && p == '*') {
+                            if ((p = source[lexer->position + 1]) && p == '*') {
                                 i++;
                             }
                         }
-                        pos++;
-                        col++;
+                        lexer->position++;
+                        lexer->column++;
                     }
-                    continue;
+                    return 1;
+                } else {
+                	lexer_set_token(lexer, (token_t){
+		        		.type = TOKEN_SLASH, 
+		        		.value = NULL, 
+		        		.position = lexer->position,
+		        		.line = lexer->line,
+		        		.column = lexer->column
+		        	});
+						
+		            lexer->position++;
+		            lexer->column++;
+		            return 1;
                 }
-                else if(list_rpush(ls, (list_value_t)token_create(TOKEN_SLASH,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
             }
             else if(c == '%'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_PERCENT,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+				lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_PERCENT, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+            	
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '.'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_DOT,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_DOT, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+					
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == ','){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_COMMA,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_COMMA, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+					
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == ':'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_COLON,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_COLON, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+					
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == ';'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_SEMICOLON,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_SEMICOLON, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+				
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '~'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_TILDE,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_TILDE, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+					
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '#'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_HASH,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_HASH, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+					
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '_'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_UNDERLINE,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_UNDERLINE, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+				
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '@'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_AT,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_AT, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+					
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else if(c == '$'){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_DOLLER,0,pos,row,col)) == nullptr){
-                    lexer_error(source, pos, row, col, "not append data!");
-                }
-                pos++;
-                col++;
-                continue;
+            	lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_DOLLER, 
+            		.value = NULL, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column
+            	});
+					
+                lexer->position++;
+                lexer->column++;
+                return 1;
             }
             else {
-                if(c < 0){
-                    break;
-                }
-                lexer_error(source, pos, row, col, "bad token!");
+            	fprintf(stderr, "%s (%ld:%ld): error: unknown token", lexer->path, lexer->line, lexer->column);
+                return 0;
             }
         }
-        else if(valid_digit(c)) {
+        else if(utils_isdigit(c)) {
             // parse number, three kinds: dec(123) hex(0x123) oct(017)
-            long_t token_val = c - '0';
-            long_t pos2 = pos;
+            int64_t token_val = c - '0';
+            uint64_t start_position = lexer->position;
 
             if (token_val > 0) {
-                pos++;
-                col++;
+                lexer->position++;
+                lexer->column++;
 
                 // dec, starts with [1-9]
-                while ((a = source[pos]) && (valid_digit(a) || a == '.') && !white_space(a)) {
-                    pos++;
-                    col++;
+                while ((a = source[lexer->position]) && (utils_isdigit(a) || a == '.') && !utils_white_space(a)) {
+                    lexer->position++;
+                    lexer->column++;
                 }
 
-                char *data = malloc(sizeof(char) * (pos - pos2));
-                strncpy(data, source + pos2, pos - pos2 );
-                data[pos - pos2] = '\0';
-
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_NUMBER, (long_t)data,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
+                char *data;
+                if(!(data = malloc(sizeof(char) * (lexer->position - start_position)))){
+                	fprintf(stderr, "unable to allocted a block of %zu bytes", 
+                		sizeof(char) * (lexer->position - start_position));
+                	return 0;
                 }
-
-                continue;
+                strncpy(data, source + start_position, lexer->position - start_position );
+                data[lexer->position - start_position] = '\0';
+					
+				lexer_set_token(lexer, (token_t){
+            		.type = TOKEN_NUMBER, 
+            		.value = data, 
+            		.position = lexer->position,
+            		.line = lexer->line,
+            		.column = lexer->column-(lexer->position-start_position)
+            	});
+				
+                return 1;
             } else {
                 // starts with number 0
-                a = source[pos + 1];
+                a = source[lexer->position + 1];
                 if (a == 'x' || a == 'X') {
-                    pos+=2;
-                    col+=2;
+                    lexer->position+=2;
+                    lexer->column+=2;
                     //hex
-                    while ((a = source[pos]) && valid_hexadecimal(a)) {
+                    while ((a = source[lexer->position]) && utils_ishex(a)) {
                         token_val = token_val * 16 + (a & 15) + (a >= 'A' ? 9 : 0);
-                        pos++;
-                        col++;
+                        lexer->position++;
+                        lexer->column++;
                     }
 
-                    char *data = malloc(sizeof(char) * (pos - pos2));
-                    strncpy(data, source + pos2, pos - pos2 );
-                    data[pos - pos2] = '\0';
-
-                    if(list_rpush(ls, (list_value_t)token_create(TOKEN_NUMBER ,(long_t)data ,pos2 ,row ,col-(pos-pos2))) == nullptr){
-                        lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
+                    char *data;
+                    if(!(data = malloc(sizeof(char) * (lexer->position - start_position)))){
+                    	fprintf(stderr, "unable to allocted a block of %zu bytes", 
+                			sizeof(char) * (lexer->position - start_position));
+                    	return 0;
                     }
-                    continue;
-                } else if(valid_digit(a)){
+                    strncpy(data, source + start_position, lexer->position - start_position );
+                    data[lexer->position - start_position] = '\0';
+                    
+                    lexer_set_token(lexer, (token_t){
+		        		.type = TOKEN_NUMBER, 
+		        		.value = data, 
+		        		.position = lexer->position,
+		        		.line = lexer->line,
+		        		.column = lexer->column-(lexer->position-start_position)
+		        	});
+					
+                    return 1;
+                } else if(utils_isdigit(a)){
                     // oct
-                    while ((a = source[pos]) && valid_octal(a)) {
+                    while ((a = source[lexer->position]) && utils_isoctal(a)) {
                         token_val = token_val * 8 + a - '0';
-                        pos++;
-                        col++;
+                        lexer->position++;
+                        lexer->column++;
                     }
 
-                    char *data = malloc(sizeof(char) * (pos - pos2));
-                    strncpy(data, source + pos2, pos - pos2 );
-                    data[pos - pos2] = '\0';
-
-                    if(list_rpush(ls, (list_value_t)token_create(TOKEN_NUMBER, (long_t)data,pos2,row,col-(pos-pos2))) == nullptr){
-                        lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
+                    char *data;
+                    if(!(data = malloc(sizeof(char) * (lexer->position - start_position)))){
+                    	fprintf(stderr, "unable to allocted a block of %zu bytes", 
+                			sizeof(char) * (lexer->position - start_position));
+                    	return 0;
                     }
+                    strncpy(data, source + start_position, lexer->position - start_position );
+                    data[lexer->position - start_position] = '\0';
+                    
+                    lexer_set_token(lexer, (token_t){
+		        		.type = TOKEN_NUMBER, 
+		        		.value = data, 
+		        		.position = lexer->position,
+		        		.line = lexer->line,
+		        		.column = lexer->column-(lexer->position-start_position)
+		        	});
+					
                 } else {
-                    pos++;
-                    col++;
+                    lexer->position++;
+                    lexer->column++;
                 }
             }
 
-            char *data = malloc(sizeof(char) * (pos - pos2));
-            strncpy(data, source + pos2, pos - pos2 );
-            data[pos - pos2] = '\0';
-
-            if(list_rpush(ls, (list_value_t)token_create(TOKEN_NUMBER, (long_t)data,pos2,row,col-(pos-pos2))) == nullptr){
-                lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
+            char *data;
+            if(!(data = malloc(sizeof(char) * (lexer->position - start_position)))){
+            	fprintf(stderr, "unable to allocted a block of %zu bytes", 
+                	sizeof(char) * (lexer->position - start_position));
+            	return 0;
             }
-            continue;
+            strncpy(data, source + start_position, lexer->position - start_position );
+            data[lexer->position - start_position] = '\0';
+            
+            lexer_set_token(lexer, (token_t){
+            	.type = TOKEN_NUMBER, 
+            	.value = data, 
+            	.position = lexer->position,
+            	.line = lexer->line,
+            	.column = lexer->column-(lexer->position-start_position)
+            });
+				
+            return 1;
         }
         else {
             // parse identifier
-            long_t pos2 = pos;
-            long_t hash = 0;
-            while ((a = source[pos]) && ( valid_alpha(a) || valid_digit(a) || (a == '_'))) {
-                hash = hash * 147 + a;
-                pos++;
-                col++;
+            uint64_t start_position = lexer->position;
+            while ((a = source[lexer->position]) && ( utils_isalpha(a) || utils_isdigit(a) || (a == '_'))) {
+                lexer->position++;
+                lexer->column++;
+            }
+            uint32_t length = lexer->position - start_position;
+
+            if(strncmp(source + start_position, "while", max(length, 5)) == 0){
+				lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_WHILE, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+				
+                return 1;
+            } else if(strncmp(source + start_position, "class", max(length, 5)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_CLASS, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "if", max(length, 2)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_IF, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "else", max(length, 4)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_ELSE, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "break", max(length, 5)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_BREAK, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "continue", max(length, 8)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_CONTINUE, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "this", max(length, 4)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_THIS, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "super", max(length, 5)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_SUPER, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "return", max(length, 6)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_RETURN, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "import", max(length, 6)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_IMPORT, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "from", max(length, 4)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_FROM, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "as", max(length, 2)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_AS, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "sizeof", max(length, 6)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_SIZEOF, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "typeof", max(length, 6)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_TYPEOF, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "null", max(length, 4)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_NULL, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "fn", max(length, 2)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_FN, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "var", max(length, 3)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_VAR, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "enum", max(length, 4)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_ENUM, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "extern", max(length, 6)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_EXTERN, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "char", max(length, 4)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_CHAR, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "string", max(length, 6)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_STRING, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "int", max(length, 3)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_INT, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "long", max(length, 4)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_LONG, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "float", max(length, 5)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_FLOAT, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "double", max(length, 6)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_DOUBLE, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
+            } else if(strncmp(source + start_position, "any", max(length, 3)) == 0){
+            	lexer_set_token(lexer, (token_t){
+		        	.type = TOKEN_ANY, 
+		        	.value = NULL, 
+		        	.position = lexer->position,
+		        	.line = lexer->line,
+		        	.column = lexer->column-length
+		        });
+					
+                return 1;
             }
 
-            if(strncmp(source + pos2, "while", 5) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_WHILE,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "class", 5) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_CLASS,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "if", 2) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_IF,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "else", 4) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_ELSE,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "break", 5) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_BREAK,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "continue", 8) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_CONTINUE,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "this", 4) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_THIS,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "super", 5) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_SUPER,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "return", 6) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_RETURN,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "import", 6) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_IMPORT,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "sizeof", 6) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_SIZEOF,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "typeof", 6) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_TYPEOF,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "format", 6) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_FORMAT,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "print", 5) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_PRINT,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "delete", 6) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_DELETE,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "null", 4) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_NULL,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "count", 4) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_COUNT,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "insert", 6) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_INSERT,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "eval", 4) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_EVAL,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "fn", 2) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_FN,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } else if(strncmp(source + pos2, "exit", 4) == 0){
-                if(list_rpush(ls, (list_value_t)token_create(TOKEN_EXIT,0,pos2,row,col-(pos-pos2))) == nullptr){
-                    lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
-                }
-                continue;
-            } 
-
-            char *var = malloc(sizeof(char) * (pos - pos2));
-            strncpy(var, source + pos2, pos - pos2);
-            var[pos - pos2] = '\0';
-
-            if(list_rpush(ls, (list_value_t)token_create(TOKEN_ID,(long_t)var,pos2,row,col-(pos-pos2))) == nullptr){
-                lexer_error(source, pos, row, col-(pos-pos2), "not append data!");
+            char *data;
+            if(!(data = malloc(sizeof(char) * (length)))){
+            	fprintf(stderr, "unable to allocted a block of %zu bytes", 
+                	sizeof(char) * (length));
+            	return 0;
             }
-            continue;
+            strncpy(data, source + start_position, length);
+            data[length] = '\0';
+            
+			lexer_set_token(lexer, (token_t){
+		        .type = TOKEN_ID, 
+		        .value = data, 
+		        .position = lexer->position,
+		        .line = lexer->line,
+		        .column = lexer->column-length
+		    });
+					
+            return 1;
         }
 
-        pos++;
-        col++;
+        lexer->position++;
+        lexer->column++;
     }
+    
+    lexer_set_token(lexer, (token_t){
+		.type = TOKEN_EOF, 
+		.value = NULL, 
+		.position = lexer->position,
+		.line = lexer->line,
+		.column = lexer->column
+	});
+    
+    return 1;
 }
