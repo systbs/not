@@ -12,8 +12,6 @@ BINARY := qalam
 
 RM := rm -rf
 MKDIR := mkdir
-INSTALL := install
-
 
 ifeq ($(OS),Windows_NT)
 	CC = gcc
@@ -37,7 +35,7 @@ endif
 
 DEBUG ?= 0
 ifeq ($(DEBUG),0)
-	CFLAGS += -O2 -flto -DNDEBUG
+	CFLAGS += -O2 -DNDEBUG
 else
 	CFLAGS += -g -DDEBUG
 endif
@@ -47,14 +45,15 @@ ifeq ($(USE_MALLOC)),1)
 endif
 
 SOURCES := $(shell find $(SOURCEDIR) -name '*.c')
-
 OBJECTS := $(addprefix $(BUILDDIR)/,$(SOURCES:$(SOURCEDIR)/%.c=%.o))
 
 $(BINARY): $(OBJECTS)
+	@mkdir -p $(@D)
 	@$(CC) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o $@
 	@echo CC LINK $@
 
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
+	@mkdir -p $(@D)
 	@$(CC) $(CFLAGS) -I $(HEADERDIR) -I $(dir $<) -c $< -o $@
 	@echo CC $<
 

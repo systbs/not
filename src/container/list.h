@@ -2,20 +2,19 @@
 #ifndef __LIST_H__
 #define __LIST_H__
 
-typedef unsigned long list_key_t;
-typedef long list_value_t;
+typedef unsigned long long list_key_t;
+typedef intptr_t list_value_t;
 
-typedef struct itable {
-    struct itable *previous;
-    struct itable *next;
+typedef struct ilist {
+    struct ilist *previous;
+    struct ilist *next;
     list_value_t value;
 } ilist_t;
 
-typedef struct table {
+typedef struct list {
     ilist_t *begin;
     ilist_t *end;
 } list_t;
-
 
 list_t *
 list_apply(list_t *lst);

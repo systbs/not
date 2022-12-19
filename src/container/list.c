@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "types.h"
+#include "../types/types.h"
 #include "list.h"
 
 list_t *

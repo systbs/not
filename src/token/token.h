@@ -46,62 +46,54 @@ enum
   // Assignment =,+=,-=,*=,/=,%=,&=,|=,<<=,>>=
   TOKEN_EQ,	   		//	=
 
-  TOKEN_CONTINUE,
-  TOKEN_BREAK,
-  TOKEN_ELSE,
-  TOKEN_IF,
-  TOKEN_IMPORT,
-  TOKEN_FROM,
-  TOKEN_AS,
-  TOKEN_RETURN,
-  TOKEN_SUPER,
-  TOKEN_THIS,
-  TOKEN_ID, 
-  TOKEN_WHILE,
-  TOKEN_SIZEOF,
-  TOKEN_TYPEOF,
-  TOKEN_NULL,
-  TOKEN_FN,
-  TOKEN_CLASS,
-  TOKEN_VAR,
-  TOKEN_ENUM,
-  TOKEN_EXTERN,
-
+  TOKEN_ID,
   TOKEN_NUMBER,
-  TOKEN_LETTERS,
-  
   TOKEN_CHAR,
   TOKEN_STRING,
-  TOKEN_INT,
-  TOKEN_LONG,
-  TOKEN_FLOAT,
-  TOKEN_DOUBLE,
-  TOKEN_ANY
+
+  TOKEN_CONTINUE_KEYWORD,
+  TOKEN_BREAK_KEYWORD,
+  TOKEN_ELSE_KEYWORD,
+  TOKEN_IF_KEYWORD,
+  TOKEN_TRY_KEYWORD,
+  TOKEN_CATCH_KEYWORD,
+  TOKEN_THROW_KEYWORD,
+  TOKEN_IMPORT_KEYWORD,
+  TOKEN_FROM_KEYWORD,
+  TOKEN_RETURN_KEYWORD,
+  TOKEN_TRUE_KEYWORD, 
+  TOKEN_FALSE_KEYWORD, 
+  TOKEN_FOR_KEYWORD,
+  TOKEN_IN_KEYWORD,
+  TOKEN_SIZEOF_KEYWORD,
+  TOKEN_TYPEOF_KEYWORD,
+  TOKEN_NULL_KEYWORD,
+  TOKEN_FUNC_KEYWORD,
+  TOKEN_CLASS_KEYWORD,
+  TOKEN_EXTENDS_KEYWORD,
+  TOKEN_ASYNC_KEYWORD,
+  TOKEN_AWAIT_KEYWORD,
+  TOKEN_STATIC_KEYWORD,
+  TOKEN_PUBLIC_KEYWORD,
+  TOKEN_PRIVATE_KEYWORD,
+  TOKEN_PROTECTED_KEYWORD,
+  TOKEN_READONLY_KEYWORD,
+  TOKEN_VAR_KEYWORD,
+  TOKEN_CONST_KEYWORD,
+  TOKEN_TYPE_KEYWORD,
+  TOKEN_ENUM_KEYWORD,
+  TOKEN_NAMESPACE_KEYWORD,
+  TOKEN_EXPORT_KEYWORD
 };
 
-const char *
-token_get_name(int32_t tp);
 
 typedef struct token {
-	uint64_t position;
-	uint64_t line;
-	uint64_t column;
+	position_t position;
 	int32_t type;
 	char *value;
 } token_t;
 
-uint64_t
-token_get_line(token_t *token);
+const char *
+token_get_name(int32_t tp);
 
-uint64_t
-token_get_column(token_t *token);
-
-uint64_t
-token_get_position(token_t *token);
-
-int32_t
-token_get_type(token_t *token);
-
-char *
-token_get_value(token_t *token);
 #endif //__TOKEN_H__

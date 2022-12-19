@@ -1,0 +1,8 @@
+1. check grammer
+2. assign containers
+3. assign symbols
+4. detect not definition symbols
+5. detect duplicate definitions
+6. detect unused definitions
+7. check call/cast by type
+8. check types

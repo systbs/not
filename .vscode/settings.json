@@ -9,6 +9,21 @@
         "functional": "cpp",
         "tuple": "cpp",
         "utility": "cpp",
-        "algorithm": "c"
+        "algorithm": "c",
+        "token.h": "c",
+        "types.h": "c",
+        "stdarg.h": "c",
+        "lexer.h": "c",
+        "sketch.h": "c",
+        "list.h": "c",
+        "parser.h": "c",
+        "scanner.h": "c",
+        "diagnostic.h": "c",
+        "file.h": "c",
+        "stdlib.h": "c",
+        "program.h": "c",
+        "utils.h": "c",
+        "path.h": "c",
+        "symbol.h": "c"
     }
 }

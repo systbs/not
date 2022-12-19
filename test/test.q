@@ -1,40 +1,16 @@
-import {comment as test, note} from "./test.q";
+import {{a, b}:a.b} from "~/test/lib/";
 
-var {note, comment} = [["a", data],["b", variable]];
-t = t * 2;
+class A<T> extends (Edge , Got)
+{
+    func(a:A, e:Edge, g:*Got) constructor()
+    {
 
-class a<KeyT = int, ValueT = string>(b.c,c) {
-	fn sum(d:[double*, int][], e:Map<int, Map<int, string>>):int {
-		while(i < = 10){
-			if(i > 5){
-				break;
-			}
-		}
-		return &d + *e << 1;
-	}
-	
-	fn [](d:any[]){
-		sum(2, fn (b:double){
-		
-		});
-		
-		sum<string, int>();
-		
-		return d;
-	}
-	
-	class f {
-		enum symbols {
-			a,
-			b
-		}
-	}
+    }
 }
 
-enum symbols {
-	a = 1,
-	b
+type B<T> = int;
+
+func (b : B) toString(): string 
+{
+    return (string)(char)(b, a);
 }
-
-extern fn externfn();
-
