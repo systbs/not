@@ -54,26 +54,6 @@ forecast_match(parser_t *parser, int32_t type)
 
 
 static int32_t
-forecast_type_arguments(parser_t *parser)
-{
-	while (true) {
-		if (!forecast_expression(parser)) {
-			return 0;
-		}
-
-		if (parser->token->type != TOKEN_COMMA) {
-			break;
-		}
-		
-		if(!forecast_match(parser, TOKEN_COMMA)){
-			return 0;
-		}
-	}
-	
-	return 1;
-}
-
-static int32_t
 forecast_id(parser_t *parser)
 {
 	if(!forecast_match(parser, TOKEN_ID)){
@@ -287,6 +267,25 @@ forecast_primary(parser_t *parser)
 }
 
 
+static int32_t
+forecast_type_arguments(parser_t *parser)
+{
+	while (true) {
+		if (!forecast_expression(parser)) {
+			return 0;
+		}
+
+		if (parser->token->type != TOKEN_COMMA) {
+			break;
+		}
+		
+		if(!forecast_match(parser, TOKEN_COMMA)){
+			return 0;
+		}
+	}
+	
+	return 1;
+}
 
 static int32_t
 forecast_arguments(parser_t *parser)
@@ -318,44 +317,32 @@ forecast_postfix(parser_t *parser)
 {
 	int32_t test;
 	test = forecast_primary(parser);
-	if(!(test)){
+	if(!test)
+	{
 		return 0;
 	}
 	
-	int32_t use_composite = 0;
 	int32_t slice;
 	while(test)
 	{
 		switch(parser->token->type)
 		{
-		case TOKEN_LT:
-			if(use_composite)
-			{
-				return 1;
-			}
-			if(!forecast_is_type_argument(parser))
-			{
-				return 1;
-			}
-
+		case TOKEN_LBRACE:
 			if(!forecast_match(parser, TOKEN_LT))
 			{
 				return 0;
 			}
 			
-			if(parser->token->type != TOKEN_GT)
-			{
-				if(!(forecast_type_arguments(parser)))
-				{
-					return 0;
-				}
-			}
-
-			if(!forecast_match(parser, TOKEN_GT))
+			if(!(forecast_type_arguments(parser)))
 			{
 				return 0;
 			}
-			use_composite = 1;
+
+			if(!forecast_match(parser, TOKEN_RBRACE))
+			{
+				return 0;
+			}
+
 			test = 1;
 			break;
 
@@ -489,31 +476,6 @@ forecast_prefix(parser_t *parser)
 	int32_t test = 1;
 	switch (parser->token->type)
 	{
-	case TOKEN_LPAREN:
-		if (!forecast_is_casting(parser))
-		{
-			test = forecast_postfix(parser);
-			break;
-		}
-		if(!forecast_match(parser, TOKEN_LPAREN))
-		{
-			return 0;
-		}
-		if (!forecast_expression(parser))
-		{
-			return 0;
-		}
-		if(!forecast_match(parser, TOKEN_RPAREN))
-		{
-			return 0;
-		}
-		if (!forecast_prefix(parser))
-		{
-			return 0;
-		}
-		test = 1;
-		break;
-
 	case TOKEN_TILDE:
 		if(!forecast_match(parser, TOKEN_TILDE))
 		{
@@ -660,77 +622,38 @@ forecast_multiplicative(parser_t *parser)
 	while (test) {
 		switch (parser->token->type) {
 		case TOKEN_STAR:
-			if(!parser_save_state(parser)){
-				return 0;
-			}
 			if(!forecast_match(parser, TOKEN_STAR)){
 				return 0;
-			}
-			
-			if(parser->token->type == TOKEN_EQ){
-				if(!parser_restore_state(parser)){
-					return 0;
-				}
-				return test;
 			}
 			
 			if (!(forecast_prefix(parser))) {
 				return 0;
 			}
 			
-			if(!parser_release_state(parser)){
-				return 0;
-			}
 			test = 1;
 			break;
 
 		case TOKEN_SLASH:
-			if(!parser_save_state(parser)){
-				return 0;
-			}
 			if(!forecast_match(parser, TOKEN_SLASH)){
 				return 0;
 			}
 			
-			if(parser->token->type == TOKEN_EQ){
-				if(!parser_restore_state(parser)){
-					return 0;
-				}
-				return test;
-			}
-			
 			if (!forecast_prefix(parser)) {
 				return 0;
 			}
 
-			if(!parser_release_state(parser)){
-				return 0;
-			}
 			test = 1;
 			break;
 
 		case TOKEN_PERCENT:
-			if(!parser_save_state(parser)){
-				return 0;
-			}
 			if(!forecast_match(parser, TOKEN_PERCENT)){
 				return 0;
-			}
-			
-			if(parser->token->type == TOKEN_EQ){
-				if(!parser_restore_state(parser)){
-					return 0;
-				}
-				return test;
 			}
 			
 			if (!forecast_prefix(parser)) {
 				return 0;
 			}
-			
-			if(!parser_release_state(parser)){
-				return 0;
-			}
+
 			test = 1;
 			break;
 
@@ -754,52 +677,26 @@ forecast_addative(parser_t *parser)
 	while (test) {
 		switch (parser->token->type) {
 		case TOKEN_PLUS:
-			if(!parser_save_state(parser)){
-				return 0;
-			}
 			if(!forecast_match(parser, TOKEN_PLUS)){
 				return 0;
 			}
 			
-			if(parser->token->type == TOKEN_EQ){
-				if(!parser_restore_state(parser)){
-					return 0;
-				}
-				return test;
-			}
-			
 			if (!forecast_multiplicative(parser)) {
 				return 0;
 			}
 			
-			if(!parser_release_state(parser)){
-				return 0;
-			}
 			test = 1;
 			break;
 
 		case TOKEN_MINUS:
-			if(!parser_save_state(parser)){
-				return 0;
-			}
 			if(!forecast_match(parser, TOKEN_MINUS)){
 				return 0;
-			}
-			
-			if(parser->token->type == TOKEN_EQ){
-				if(!parser_restore_state(parser)){
-					return 0;
-				}
-				return test;
 			}
 			
 			if (!forecast_multiplicative(parser)) {
 				return 0;
 			}
 			
-			if(!parser_release_state(parser)){
-				return 0;
-			}
 			test = 1;
 			break;
 
@@ -822,77 +719,29 @@ forecast_shifting(parser_t *parser)
 	
 	while (test) {
 		switch (parser->token->type) {
-		case TOKEN_LT:
-			if(!parser_save_state(parser)){
-				return 0;
-			}
-			if(!forecast_match(parser, TOKEN_LT)){
+		case TOKEN_LT_LT:
+			if(!forecast_match(parser, TOKEN_LT_LT)){
 				return 0;
 			}
 			
-			if(parser->token->type == TOKEN_LT){
-				if(!forecast_match(parser, TOKEN_LT)){
-					return 0;
-				}
-				
-				if(parser->token->type == TOKEN_EQ){
-					if(!parser_restore_state(parser)){
-						return 0;
-					}
-					return test;
-				}
-				
-				if (!forecast_addative(parser)) {
-					return 0;
-				}
-				
-				if(!parser_release_state(parser)){
-					return 0;
-				}
-				test = 1;
-				break;
-			}
-			
-			if(!parser_restore_state(parser)){
+			if (!forecast_addative(parser)) {
 				return 0;
 			}
-			return test;
+			
+			test = 1;
+			break;
 
-		case TOKEN_GT:
-			if(!parser_save_state(parser)){
-				return 0;
-			}
-			if(!forecast_match(parser, TOKEN_GT)){
+		case TOKEN_GT_GT:
+			if(!forecast_match(parser, TOKEN_GT_GT)){
 				return 0;
 			}
 			
-			if(parser->token->type == TOKEN_GT){
-				if(!forecast_match(parser, TOKEN_GT)){
-					return 0;
-				}
-				
-				if(parser->token->type == TOKEN_EQ){
-					if(!parser_restore_state(parser)){
-						return 0;
-					}
-					return test;
-				}
-			
-				if (!forecast_addative(parser)) {
-					return 0;
-				}
-				
-				if(!parser_release_state(parser)){
-					return 0;
-				}
-				test = 1;
-				break;
-			}
-			
-			if(!parser_restore_state(parser)){
+			if (!forecast_addative(parser)) {
 				return 0;
 			}
-			return test;
+			
+			test = 1;
+			break;
 
 		default:
 			return test;
@@ -917,18 +766,16 @@ forecast_relational(parser_t *parser)
 			if(!forecast_match(parser, TOKEN_LT)){
 				return 0;
 			}
+			if (!forecast_shifting(parser)) {
+				return 0;
+			}
 			
-			if(parser->token->type == TOKEN_EQ){
-				if(!forecast_match(parser, TOKEN_EQ)){
-					return 0;
-				}
-				
-				if (!forecast_shifting(parser)) {
-					return 0;
-				}
-				
-				test = 1;
-				break;
+			test = 1;
+			break;
+
+		case TOKEN_LT_EQ:
+			if(!forecast_match(parser, TOKEN_LT_EQ)){
+				return 0;
 			}
 			
 			if (!forecast_shifting(parser)) {
@@ -942,18 +789,17 @@ forecast_relational(parser_t *parser)
 			if(!forecast_match(parser, TOKEN_GT)){
 				return 0;
 			}
+
+			if (!forecast_shifting(parser)) {
+				return 0;
+			}
 			
-			if(parser->token->type == TOKEN_EQ){
-				if(!forecast_match(parser, TOKEN_EQ)){
-					return 0;
-				}
-				
-				if (!forecast_shifting(parser)) {
-					return 0;
-				}
-				
-				test = 1;
-				break;
+			test = 1;
+			break;
+
+		case TOKEN_GT_EQ:
+			if(!forecast_match(parser, TOKEN_GT_EQ)){
+				return 0;
 			}
 			
 			if (!forecast_shifting(parser)) {
@@ -982,57 +828,44 @@ forecast_equality(parser_t *parser)
 	
 	while (test) {
 		switch (parser->token->type) {
-		case TOKEN_EQ:
-			if(!parser_save_state(parser)){
-				return 0;
-			}
-			if(!forecast_match(parser, TOKEN_EQ)){
+		case TOKEN_EQ_EQ:
+			if(!forecast_match(parser, TOKEN_EQ_EQ)){
 				return 0;
 			}
 			
-			if(parser->token->type == TOKEN_EQ){
-				if(!forecast_match(parser, TOKEN_EQ)){
-					return 0;
-				}
-				
-				if (!forecast_relational(parser)) {
-					return 0;
-				}
-				
-				if(!parser_release_state(parser)){
-					return 0;
-				}
-				test = 1;
-				break;
-			}
-			
-			if(!parser_restore_state(parser)){
+			if (!forecast_relational(parser)) {
 				return 0;
 			}
-			return test;
+			
+			test = 1;
+			break;
 
-		case TOKEN_NOT:
-			if(!forecast_match(parser, TOKEN_NOT)){
+		case TOKEN_NOT_EQ:
+			if(!forecast_match(parser, TOKEN_NOT_EQ)){
 				return 0;
 			}
 			
-			if(parser->token->type == TOKEN_EQ){
-				if(!forecast_match(parser, TOKEN_EQ)){
-					return 0;
-				}
-			
-				if (!forecast_relational(parser)) {
-					return 0;
-				}
-				
-				test = 1;
-				break;
+			if (!forecast_relational(parser)) {
+				return 0;
 			}
 			
-			return 0;
+			test = 1;
+			break;
 
 		case TOKEN_IN_KEYWORD:
 			if(!forecast_match(parser, TOKEN_IN_KEYWORD)){
+				return 0;
+			}
+			
+			if (!forecast_relational(parser)) {
+				return 0;
+			}
+			
+			test = 1;
+			break;
+
+		case TOKEN_EXTENDS_KEYWORD:
+			if(!forecast_match(parser, TOKEN_EXTENDS_KEYWORD)){
 				return 0;
 			}
 			
@@ -1063,34 +896,14 @@ forecast_bitwise_and(parser_t *parser)
 	while (test) {
 		switch (parser->token->type) {
 		case TOKEN_AND:
-			if(!parser_save_state(parser)){
-				return 0;
-			}
 			if(!forecast_match(parser, TOKEN_AND)){
 				return 0;
-			}
-			
-			if(parser->token->type == TOKEN_AND){
-				if(!parser_restore_state(parser)){
-					return 0;
-				}
-				return test;
-			}
-			
-			if(parser->token->type == TOKEN_EQ){
-				if(!parser_restore_state(parser)){
-					return 0;
-				}
-				return test;
 			}
 			
 			if (!forecast_equality(parser)) {
 				return 0;
 			}
 			
-			if(!parser_release_state(parser)){
-				return 0;
-			}
 			test = 1;
 			break;
 
@@ -1145,34 +958,14 @@ forecast_bitwise_or(parser_t *parser)
 	while (test) {
 		switch (parser->token->type) {
 		case TOKEN_OR:
-			if(!parser_save_state(parser)){
-				return 0;
-			}
 			if(!forecast_match(parser, TOKEN_OR)){
 				return 0;
-			}
-			
-			if(parser->token->type == TOKEN_OR){
-				if(!parser_restore_state(parser)){
-					return 0;
-				}
-				return test;
-			}
-			
-			if(parser->token->type == TOKEN_EQ){
-				if(!parser_restore_state(parser)){
-					return 0;
-				}
-				return test;
 			}
 			
 			if (!forecast_bitwise_xor(parser)) {
 				return 0;
 			}
 			
-			if(!parser_release_state(parser)){
-				return 0;
-			}
 			test = 1;
 			break;
 
@@ -1195,34 +988,17 @@ forecast_logical_and(parser_t *parser)
 
 	while (test) {
 		switch (parser->token->type) {
-		case TOKEN_AND:
-			if(!parser_save_state(parser)){
-				return 0;
-			}
-			if(!forecast_match(parser, TOKEN_AND)){
+		case TOKEN_AND_AND:
+			if(!forecast_match(parser, TOKEN_AND_AND)){
 				return 0;
 			}
 			
-			if(parser->token->type == TOKEN_AND){
-				if(!forecast_match(parser, TOKEN_AND)){
-					return 0;
-				}
-				
-				if (!forecast_bitwise_or(parser)) {
-					return 0;
-				}
-				
-				if(!parser_release_state(parser)){
-					return 0;
-				}
-				test = 1;
-				break;
-			}
-			
-			if(!parser_restore_state(parser)){
+			if (!forecast_bitwise_or(parser)) {
 				return 0;
 			}
-			return test;
+			
+			test = 1;
+			break;
 
 		default:
 			return test;
@@ -1243,34 +1019,17 @@ forecast_logical_or(parser_t *parser)
 	
 	while (test) {
 		switch (parser->token->type) {
-		case TOKEN_OR:
-			if(!parser_save_state(parser)){
-				return 0;
-			}
-			if(!forecast_match(parser, TOKEN_OR)){
+		case TOKEN_OR_OR:
+			if(!forecast_match(parser, TOKEN_OR_OR)){
 				return 0;
 			}
 			
-			if(parser->token->type == TOKEN_OR){
-				if(!forecast_match(parser, TOKEN_OR)){
-					return 0;
-				}
-				
-				if (!forecast_logical_and(parser)) {
-					return 0;
-				}
-				
-				if(!parser_release_state(parser)){
-					return 0;
-				}
-				test = 1;
-				break;
-			}
-			
-			if(!parser_restore_state(parser)){
+			if (!forecast_logical_and(parser)) {
 				return 0;
 			}
-			return test;
+			
+			test = 1;
+			break;
 
 		default:
 			return test;
@@ -1331,24 +1090,31 @@ forecast_expression(parser_t *parser)
 static int32_t
 forecast_parameter(parser_t *parser)
 {
-	if(!forecast_id(parser)){
+	if(!forecast_id(parser))
+	{
         return 0;
     }
 	
-	if (parser->token->type == TOKEN_COLON) {
-		if(!forecast_match(parser, TOKEN_COLON)){
+	if (parser->token->type == TOKEN_COLON)
+	{
+		if(!forecast_match(parser, TOKEN_COLON))
+		{
 			return 0;
 		}
-		if (!forecast_expression(parser)) {
+		if (!forecast_expression(parser))
+		{
 			return 0;
 		}
 	}
 	
-	if (parser->token->type == TOKEN_EQ) {
-		if(!forecast_match(parser, TOKEN_EQ)){
+	if (parser->token->type == TOKEN_EQ)
+	{
+		if(!forecast_match(parser, TOKEN_EQ))
+		{
 			return 0;
 		}
-		if (!forecast_expression(parser)) {
+		if (!forecast_expression(parser))
+		{
 			return 0;
 		}
 	}
@@ -1359,7 +1125,7 @@ forecast_parameter(parser_t *parser)
 static int32_t
 forecast_parameters(parser_t *parser)
 {
-	while (parser->token->type != TOKEN_RPAREN) {
+	while (true) {
 		if (!forecast_parameter(parser)) {
 			return 0;
 		}
@@ -1377,15 +1143,31 @@ forecast_parameters(parser_t *parser)
 static int32_t
 forecast_type_parameter(parser_t *parser)
 {
-    if(!forecast_id(parser)){
+    if(!forecast_id(parser))
+	{
 		return 0;
 	}
-	
-	if (parser->token->type == TOKEN_EQ) {
-		if(!forecast_match(parser, TOKEN_EQ)){
+
+	if(parser->token->type == TOKEN_EXTENDS_KEYWORD)
+	{
+		if(!forecast_match(parser, TOKEN_EXTENDS_KEYWORD))
+		{
 			return 0;
 		}
-		if (!forecast_expression(parser)) {
+		if(!forecast_expression(parser))
+		{
+			return 0;
+		}
+	}
+	
+	if (parser->token->type == TOKEN_EQ)
+	{
+		if(!forecast_match(parser, TOKEN_EQ))
+		{
+			return 0;
+		}
+		if (!forecast_expression(parser))
+		{
 			return 0;
 		}
 	}
@@ -1396,14 +1178,18 @@ forecast_type_parameter(parser_t *parser)
 static int32_t
 forecast_type_parameters(parser_t *parser)
 {
-	while (parser->token->type != TOKEN_GT) {
-		if (!forecast_type_parameter(parser)) {
+	while (true)
+	{
+		if (!forecast_type_parameter(parser))
+		{
 			return 0;
 		}
-		if (parser->token->type != TOKEN_COMMA) {
+		if (parser->token->type != TOKEN_COMMA)
+		{
 			break;
 		}
-		if(!forecast_match(parser, TOKEN_COMMA)){
+		if(!forecast_match(parser, TOKEN_COMMA))
+		{
 			return 0;
 		}
 	}
@@ -1424,68 +1210,89 @@ forecast_func(parser_t *parser)
 		}
 	}
 	
-	if (parser->token->type == TOKEN_LT) {
-		if(!forecast_match(parser, TOKEN_LT)){
+	if (parser->token->type == TOKEN_RBRACE)
+	{
+		if(!forecast_match(parser, TOKEN_RBRACE))
+		{
 			return 0;
 		}
-		if (parser->token->type != TOKEN_GT) {
-			if (!forecast_type_parameters(parser)) {
+		if (parser->token->type != TOKEN_RBRACE)
+		{
+			if (!forecast_type_parameters(parser))
+			{
 				return 0;
 			}
 		}
-		if(!forecast_match(parser, TOKEN_GT)){
+		if(!forecast_match(parser, TOKEN_RBRACE))
+		{
 			return 0;
 		}
 	}
 
-	if (parser->token->type == TOKEN_LPAREN) {
-		if(!forecast_match(parser, TOKEN_LPAREN)){
+	if(!forecast_match(parser, TOKEN_LPAREN))
+	{
+		return 0;
+	}		
+	if (parser->token->type != TOKEN_RPAREN)
+	{
+		if (!forecast_parameters(parser))
+		{
 			return 0;
-		}		
-		if (parser->token->type != TOKEN_RPAREN) {
-			if (!forecast_parameters(parser)) {
-				return 0;
-			}
 		}
-		if(!forecast_match(parser, TOKEN_RPAREN)){
+	}
+	if(!forecast_match(parser, TOKEN_RPAREN))
+	{
+		return 0;
+	}
+	
+	if(parser->token->type == TOKEN_COLON)
+	{
+		if(!forecast_match(parser, TOKEN_COLON))
+		{
+			return 0;
+		}
+		if(!forecast_expression(parser))
+		{
 			return 0;
 		}
 	}
 	
-	if(parser->token->type == TOKEN_COLON){
-		if(!forecast_match(parser, TOKEN_COLON)){
-			return 0;
-		}
-		if(!forecast_expression(parser)){
-			return 0;
-		}
-	}
-	
-	if (parser->token->type == TOKEN_LBRACE) {
-        if(!forecast_match(parser, TOKEN_LBRACE)){
+	if (parser->token->type == TOKEN_LBRACE)
+	{
+        if(!forecast_match(parser, TOKEN_LBRACE))
+		{
             return 0;
         }
         int32_t depth = 0;
-		while(parser->token->type != TOKEN_RBRACE){
-            if(parser->token->type == TOKEN_LBRACE){
+		while(parser->token->type != TOKEN_RBRACE)
+		{
+            if(parser->token->type == TOKEN_LBRACE)
+			{
                 depth++;
             }
-            if(parser->token->type == TOKEN_RBRACE){
+            if(parser->token->type == TOKEN_RBRACE)
+			{
                 depth--;
                 if(depth <= 0){
                     break;
                 }
             }
-            if(!forecast_match(parser, parser->token->type)){
+            if(!forecast_match(parser, parser->token->type))
+			{
                 return 0;
             }
         }
-        if(!forecast_match(parser, TOKEN_RBRACE)){
+        if(!forecast_match(parser, TOKEN_RBRACE))
+		{
             return 0;
         }
-	} else {
-		if(parser->token->type == TOKEN_SEMICOLON){
-			if(!forecast_match(parser, TOKEN_SEMICOLON)){
+	} 
+	else 
+	{
+		if(parser->token->type == TOKEN_SEMICOLON)
+		{
+			if(!forecast_match(parser, TOKEN_SEMICOLON))
+			{
 				return 0;
 			}
 		}
@@ -1495,26 +1302,32 @@ forecast_func(parser_t *parser)
 }
 
 int32_t
-forecast_is_type_argument(parser_t *parser)
+forecast_is_type_arguments(parser_t *parser)
 {
-    if(!parser_save_state(parser)){
+    if(!parser_save_state(parser))
+	{
 		return 0;
 	}
 
     int32_t test = 1;
-    if(!forecast_match(parser, TOKEN_LT)){
+    if(!forecast_match(parser, TOKEN_LBRACE))
+	{
 		test = 0;
         goto end_test;
 	}
 
-    if(parser->token->type != TOKEN_GT){
-        if(!forecast_type_arguments(parser)){
-            test = 0;
-            goto end_test;
-        }
+    if(parser->token->type == TOKEN_RBRACE)
+	{
+		test = 0;
+		goto end_test;
     }
 
-    if(!forecast_match(parser, TOKEN_GT)){
+	if(!forecast_type_arguments(parser)){
+		test = 0;
+		goto end_test;
+	}
+
+    if(!forecast_match(parser, TOKEN_RBRACE)){
 		test = 0;
         goto end_test;
 	}
@@ -1528,54 +1341,39 @@ forecast_is_type_argument(parser_t *parser)
 }
 
 int32_t
-forecast_is_object(parser_t *parser)
+forecast_is_type_parameters(parser_t *parser)
 {
-    if(!parser_save_state(parser)){
+    if(!parser_save_state(parser))
+	{
 		return 0;
 	}
 
     int32_t test = 1;
 
-    if(!forecast_object(parser)){
+	if(!forecast_match(parser, TOKEN_LBRACE))
+	{
+		return 0;
+	}
+
+	if(parser->token->type == TOKEN_RBRACE)
+	{
 		test = 0;
 		goto end_test;
+    }
+	
+    if(!forecast_type_parameters(parser))
+	{
+		test = 0;
+		goto end_test;
+	}
+	if(!forecast_match(parser, TOKEN_RBRACE))
+	{
+		return 0;
 	}
 
     end_test:
-    if(!parser_restore_state(parser)){
-		return 0;
-	}
-
-    return test;
-}
-
-int32_t
-forecast_is_casting(parser_t *parser)
-{
-    if(!parser_save_state(parser)){
-		return 0;
-	}
-
-    int32_t test = 1;
-
-	if(!forecast_match(parser, TOKEN_LPAREN)){
-		return 0;
-	}
-    if(!forecast_expression(parser)){
-		test = 0;
-		goto end_test;
-	}
-	if(!forecast_match(parser, TOKEN_RPAREN)){
-		return 0;
-	}
-
-	if(!forecast_prefix(parser)){
-		test = 0;
-		goto end_test;
-	}
-
-    end_test:
-    if(!parser_restore_state(parser)){
+    if(!parser_restore_state(parser))
+	{
 		return 0;
 	}
 

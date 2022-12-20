@@ -53,9 +53,6 @@ parser_parameter(parser_t *parser);
 static node_t *
 parser_parenthesis(parser_t *parser);
 
-static node_t *
-parser_async_stmt(parser_t *parser);
-
 static list_t *
 parser_heritages(parser_t *parser);
 
@@ -182,12 +179,29 @@ parser_expected(parser_t *parser, int32_t type)
 		return NULL;
 	}
 
-	sprintf(
-		message,
-		"expected '%s', got '%s'\n",
-		token_get_name(type),
-		parser->token->type == TOKEN_ID ? parser->token->value : token_get_name(parser->token->type)
-	);
+	switch(parser->token->type)
+	{
+	case TOKEN_ID:
+	case TOKEN_NUMBER:
+	case TOKEN_CHAR:
+	case TOKEN_STRING:
+		sprintf(
+			message,
+			"expected '%s', got '%s'\n",
+			token_get_name(type),
+			parser->token->value
+		);
+		break;
+
+	default:
+		sprintf(
+			message,
+			"expected '%s', got '%s'\n",
+			token_get_name(type),
+			token_get_name(parser->token->type)
+		);
+		break;
+	}
 
 	error_t * error;
 	error = error_create(parser->token->position, message);
@@ -533,10 +547,6 @@ parser_primary(parser_t *parser)
 		node = parser_func_stmt(parser);
 		break;
 
-	case TOKEN_ASYNC_KEYWORD:
-		node = parser_async_stmt(parser);
-		break;
-
 	case TOKEN_LPAREN:
 		node = parser_parenthesis(parser);
 		break;
@@ -552,34 +562,37 @@ parser_primary(parser_t *parser)
 
 
 
-
-
-
 static list_t *
 parser_type_arguments(parser_t *parser)
 {
 	list_t *type_arguments;
 	type_arguments = list_create();
-	if(!type_arguments){
+	if(!type_arguments)
+	{
 		return NULL;
 	}
 	
-	while (true) {
+	while (true)
+	{
 		node_t *argument;
 		argument = parser_expression(parser);
-		if (!argument) {
+		if (!argument)
+		{
 			return NULL;
 		}
 
-		if(!list_rpush(type_arguments, (list_value_t)argument)){
+		if(!list_rpush(type_arguments, (list_value_t)argument))
+		{
 			return NULL;
 		}
 
-		if (parser->token->type != TOKEN_COMMA) {
+		if (parser->token->type != TOKEN_COMMA)
+		{
 			break;
 		}
 		
-		if(!parser_match(parser, TOKEN_COMMA)){
+		if(!parser_match(parser, TOKEN_COMMA))
+		{
 			return NULL;
 		}
 	}
@@ -637,44 +650,34 @@ parser_postfix(parser_t *parser)
 	list_t *arguments;
 	node_t *right;
 	list_t *type_arguments;
-	int32_t use_composite = 0;
 	while(node)
 	{
 		position_t position = parser->token->position;
 
 		switch(parser->token->type)
 		{
-		case TOKEN_LT:
-			if(use_composite)
-			{
-				return node;
-			}
-			if(!forecast_is_type_argument(parser))
-			{
-				return node;
-			}
-		
-			if(!parser_match(parser, TOKEN_LT))
+		case TOKEN_LBRACE:
+			if(!parser_match(parser, TOKEN_LBRACE))
 			{
 				return NULL;
 			}
 
-			type_arguments = NULL;
-			if(parser->token->type != TOKEN_GT)
+			if(parser->token->type == TOKEN_RBRACE)
 			{
-				type_arguments = parser_type_arguments(parser);
-				if(!(type_arguments))
-				{
-					return NULL;
-				}
+				parser_error(parser, parser->token->position, "type arguments is empty");
 			}
 
-			if(!parser_match(parser, TOKEN_GT))
+			type_arguments = parser_type_arguments(parser);
+			if(!(type_arguments))
 			{
 				return NULL;
 			}
 
-			use_composite = 1;
+			if(!parser_match(parser, TOKEN_RBRACE))
+			{
+				return NULL;
+			}
+
 			node = node_make_composite(position, node, type_arguments);
 			break;
 
@@ -825,36 +828,9 @@ parser_prefix(parser_t *parser)
 	position_t position = parser->token->position;
 	
 	node_t *node = NULL;
-	node_t *right, *left;
+	node_t *right;
 	switch (parser->token->type)
 	{
-	case TOKEN_LPAREN:
-		if(!forecast_is_casting(parser))
-		{
-			node = parser_postfix(parser);
-			break;
-		}
-		if(!parser_match(parser, TOKEN_LPAREN))
-		{
-			return NULL;
-		}
-		left = parser_expression(parser);
-		if (!left)
-		{
-			return NULL;
-		}
-		if(!parser_match(parser, TOKEN_RPAREN))
-		{
-			return NULL;
-		}
-		right = parser_prefix(parser);
-		if (!right)
-		{
-			return NULL;
-		}
-		node = node_make_cast(position, left, right);
-		break;
-
 	case TOKEN_TILDE:
 		if(!parser_match(parser, TOKEN_TILDE))
 		{
@@ -939,40 +915,18 @@ parser_prefix(parser_t *parser)
 		node = node_make_get_address(position, right);
 		break;
 
-	case TOKEN_DOT:
-		if(!parser_match(parser, TOKEN_DOT))
+	case TOKEN_DOT_DOT:
+		if(!parser_match(parser, TOKEN_DOT_DOT))
 		{
 			return NULL;
 		}
-		if(parser->token->type == TOKEN_DOT)
+		right = parser_postfix(parser);
+		if (!right)
 		{
-			if(!parser_match(parser, TOKEN_DOT))
-			{
-				return NULL;
-			}
-			if(parser->token->type == TOKEN_DOT)
-			{
-				if(!parser_match(parser, TOKEN_DOT))
-				{
-					return NULL;
-				}
-				right = parser_postfix(parser);
-				if (!right)
-				{
-					return NULL;
-				}
-				node = node_make_ellipsis(position, right);
-				break;
-			}
-			else
-			{
-				parser_error(parser, position, "Declaration or statement expected\n");
-				return NULL;
-			}
+			return NULL;
 		}
-
-		parser_error(parser, position, "Declaration or statement expected\n");
-		return NULL;
+		node = node_make_ellipsis(position, right);
+		break;
 
 	case TOKEN_SIZEOF_KEYWORD:
 		if(!parser_match(parser, TOKEN_SIZEOF_KEYWORD))
@@ -1002,20 +956,6 @@ parser_prefix(parser_t *parser)
 		node = node_make_typeof(position, right);
 		break;
 
-	case TOKEN_AWAIT_KEYWORD:
-		if(!parser_match(parser, TOKEN_AWAIT_KEYWORD))
-		{
-			return NULL;
-		}
-		right = parser_prefix(parser);
-		if(!right)
-		{
-			return NULL;
-		}
-
-		node = node_make_await(position, right);
-		break;
-
 	default:
 		node = parser_postfix(parser);
 		break;
@@ -1041,98 +981,47 @@ parser_multiplicative(parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_STAR:
-			if(!parser_save_state(parser))
-			{
-				return NULL;
-			}
 			if(!parser_match(parser, TOKEN_STAR))
 			{
 				return NULL;
 			}
 			
-			if(parser->token->type == TOKEN_EQ)
-			{
-				if(!parser_restore_state(parser))
-				{
-					return NULL;
-				}
-				return node;
-			}
-			
 			right = parser_prefix(parser);
 			if (!right)
 			{
 				return NULL;
 			}
 			
-			if(!parser_release_state(parser))
-			{
-				return NULL;
-			}
 			node = node_make_mul(position, node, right);
 			break;
 
 		case TOKEN_SLASH:
-			if(!parser_save_state(parser))
-			{
-				return NULL;
-			}
 			if(!parser_match(parser, TOKEN_SLASH))
 			{
 				return NULL;
 			}
-			
-			if(parser->token->type == TOKEN_EQ)
-			{
-				if(!parser_restore_state(parser))
-				{
-					return NULL;
-				}
-				return node;
-			}
-			
+
 			right = parser_prefix(parser);
 			if (!right)
 			{
 				return NULL;
 			}
 			
-			if(!parser_release_state(parser))
-			{
-				return NULL;
-			}
 			node = node_make_div(position, node, right);
 			break;
 
 		case TOKEN_PERCENT:
-			if(!parser_save_state(parser))
-			{
-				return NULL;
-			}
 			if(!parser_match(parser, TOKEN_PERCENT))
 			{
 				return NULL;
 			}
 			
-			if(parser->token->type == TOKEN_EQ)
-			{
-				if(!parser_restore_state(parser))
-				{
-					return NULL;
-				}
-				return node;
-			}
-			
 			right = parser_prefix(parser);
 			if (!right)
 			{
 				return NULL;
 			}
 			
-			if(!parser_release_state(parser))
-			{
-				return NULL;
-			}
 			node = node_make_mod(position, node, right);
 			break;
 
@@ -1160,66 +1049,32 @@ parser_addative(parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_PLUS:
-			if(!parser_save_state(parser))
-			{
-				return NULL;
-			}
 			if(!parser_match(parser, TOKEN_PLUS))
 			{
 				return NULL;
 			}
-			
-			if(parser->token->type == TOKEN_EQ)
-			{
-				if(!parser_restore_state(parser))
-				{
-					return NULL;
-				}
-				return node;
-			}
-			
+
 			right = parser_multiplicative(parser);
 			if (!right)
 			{
 				return NULL;
 			}
-			
-			if(!parser_release_state(parser))
-			{
-				return NULL;
-			}
+
 			node = node_make_plus(position, node, right);
 			break;
 
 		case TOKEN_MINUS:
-			if(!parser_save_state(parser))
-			{
-				return NULL;
-			}
 			if(!parser_match(parser, TOKEN_MINUS))
 			{
 				return NULL;
 			}
 			
-			if(parser->token->type == TOKEN_EQ)
-			{
-				if(!parser_restore_state(parser))
-				{
-					return NULL;
-				}
-				return node;
-			}
-			
 			right = parser_multiplicative(parser);
 			if (!right)
 			{
 				return NULL;
 			}
 			
-			if(!parser_release_state(parser))
-			{
-				return NULL;
-			}
 			node = node_make_minus(position, node, right);
 			break;
 
@@ -1247,92 +1102,34 @@ parser_shifting(parser_t *parser)
 		position_t position = parser->token->position;
 		switch (parser->token->type)
 		{
-		case TOKEN_LT:
-			if(!parser_save_state(parser))
-			{
-				return NULL;
-			}
-			if(!parser_match(parser, TOKEN_LT))
+		case TOKEN_LT_LT:
+			if(!parser_match(parser, TOKEN_LT_LT))
 			{
 				return NULL;
 			}
 			
-			if(parser->token->type == TOKEN_LT)
-			{
-				if(!parser_match(parser, TOKEN_LT))
-				{
-					return NULL;
-				}
-				
-				if(parser->token->type == TOKEN_EQ)
-				{
-					if(!parser_restore_state(parser)){
-						return NULL;
-					}
-					return node;
-				}
-				
-				right = parser_addative(parser);
-				if (!right)
-				{
-					return NULL;
-				}
-				
-				if(!parser_release_state(parser))
-				{
-					return NULL;
-				}
-				node = node_make_shl(position, node, right);
-				break;
-			}
-			
-			if(!parser_restore_state(parser))
+			right = parser_addative(parser);
+			if (!right)
 			{
 				return NULL;
 			}
-			return node;
+			
+			node = node_make_shl(position, node, right);
 			break;
 
-		case TOKEN_GT:
-			if(!parser_save_state(parser))
-			{
-				return NULL;
-			}
-			if(!parser_match(parser, TOKEN_GT))
+		case TOKEN_GT_GT:
+			if(!parser_match(parser, TOKEN_GT_GT))
 			{
 				return NULL;
 			}
 			
-			if(parser->token->type == TOKEN_GT)
-			{
-				if(!parser_match(parser, TOKEN_GT)){
-					return NULL;
-				}
-				
-				if(parser->token->type == TOKEN_EQ){
-					if(!parser_restore_state(parser)){
-						return NULL;
-					}
-					return node;
-				}
-			
-				right = parser_addative(parser);
-				if (!(right)) {
-					return NULL;
-				}
-				
-				if(!parser_release_state(parser)){
-					return NULL;
-				}
-				node = node_make_shr(position, node, right);
-				break;
-			}
-			
-			if(!parser_restore_state(parser))
-			{
+			right = parser_addative(parser);
+			if (!right) {
 				return NULL;
 			}
-			return node;
+
+			node = node_make_shr(position, node, right);
+			break;
 
 		default:
 			return node;
@@ -1363,24 +1160,6 @@ parser_relational(parser_t *parser)
 			{
 				return NULL;
 			}
-			
-			if(parser->token->type == TOKEN_EQ)
-			{
-				if(!parser_match(parser, TOKEN_EQ))
-				{
-					return NULL;
-				}
-				
-				right = parser_shifting(parser);
-				if (!right)
-				{
-					return NULL;
-				}
-				
-				node = node_make_le(position, node, right);
-				break;
-			}
-			
 			right = parser_shifting(parser);
 			if (!right)
 			{
@@ -1390,27 +1169,10 @@ parser_relational(parser_t *parser)
 			node = node_make_lt(position, node, right);
 			break;
 
-		case TOKEN_GT:
-			if(!parser_match(parser, TOKEN_GT))
+		case TOKEN_LT_EQ:
+			if(!parser_match(parser, TOKEN_LT_EQ))
 			{
 				return NULL;
-			}
-			
-			if(parser->token->type == TOKEN_EQ)
-			{
-				if(!parser_match(parser, TOKEN_EQ))
-				{
-					return NULL;
-				}
-				
-				right = parser_shifting(parser);
-				if (!right)
-				{
-					return NULL;
-				}
-				
-				node = node_make_ge(position, node, right);
-				break;
 			}
 			
 			right = parser_shifting(parser);
@@ -1419,7 +1181,36 @@ parser_relational(parser_t *parser)
 				return NULL;
 			}
 			
+			node = node_make_le(position, node, right);
+			break;
+
+		case TOKEN_GT:
+			if(!parser_match(parser, TOKEN_GT))
+			{
+				return NULL;
+			}
+			right = parser_shifting(parser);
+			if (!right)
+			{
+				return NULL;
+			}
+			
 			node = node_make_gt(position, node, right);
+			break;
+
+		case TOKEN_GT_EQ:
+			if(!parser_match(parser, TOKEN_GT_EQ))
+			{
+				return NULL;
+			}
+			
+			right = parser_shifting(parser);
+			if (!right)
+			{
+				return NULL;
+			}
+			
+			node = node_make_ge(position, node, right);
 			break;
 
 		default:
@@ -1447,68 +1238,35 @@ parser_equality(parser_t *parser)
 
 		switch (parser->token->type)
 		{
-		case TOKEN_EQ:
-			if(!parser_save_state(parser))
-			{
-				return NULL;
-			}
-			if(!parser_match(parser, TOKEN_EQ))
+		case TOKEN_EQ_EQ:
+			if(!parser_match(parser, TOKEN_EQ_EQ))
 			{
 				return NULL;
 			}
 			
-			if(parser->token->type == TOKEN_EQ)
-			{
-				if(!parser_match(parser, TOKEN_EQ))
-				{
-					return NULL;
-				}
-				
-				right = parser_relational(parser);
-				if (!right)
-				{
-					return NULL;
-				}
-				
-				if(!parser_release_state(parser))
-				{
-					return NULL;
-				}
-				node = node_make_eq(position, node, right);
-				break;
-			}
-			
-			if(!parser_restore_state(parser))
+			right = parser_relational(parser);
+			if (!right)
 			{
 				return NULL;
 			}
-			return node;
+			
+			node = node_make_eq(position, node, right);
+			break;
 
-		case TOKEN_NOT:
-			if(!parser_match(parser, TOKEN_NOT))
+		case TOKEN_NOT_EQ:
+			if(!parser_match(parser, TOKEN_NOT_EQ))
 			{
 				return NULL;
 			}
 			
-			if(parser->token->type == TOKEN_EQ)
+			right = parser_relational(parser);
+			if (!right)
 			{
-				if(!parser_match(parser, TOKEN_EQ))
-				{
-					return NULL;
-				}
-			
-				right = parser_relational(parser);
-				if (!right)
-				{
-					return NULL;
-				}
-				
-				node = node_make_neq(position, node, right);
-				break;
+				return NULL;
 			}
 			
-			parser_error(parser, position, "'!' operator is not a binary operator\n");
-			return NULL;
+			node = node_make_neq(position, node, right);
+			break;
 
 		case TOKEN_IN_KEYWORD:
 			if(!parser_match(parser, TOKEN_IN_KEYWORD))
@@ -1522,6 +1280,20 @@ parser_equality(parser_t *parser)
 			}
 			
 			node = node_make_in(position, node, right);
+			break;
+
+		case TOKEN_EXTENDS_KEYWORD:
+			if(!parser_match(parser, TOKEN_EXTENDS_KEYWORD))
+			{
+				return NULL;
+			}
+			right = parser_relational(parser);
+			if (!right)
+			{
+				return NULL;
+			}
+			
+			node = node_make_extends(position, node, right);
 			break;
 
 		default:
@@ -1549,31 +1321,9 @@ parser_bitwise_and(parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_AND:
-			if(!parser_save_state(parser))
-			{
-				return NULL;
-			}
 			if(!parser_match(parser, TOKEN_AND))
 			{
 				return NULL;
-			}
-			
-			if(parser->token->type == TOKEN_AND)
-			{
-				if(!parser_restore_state(parser))
-				{
-					return NULL;
-				}
-				return node;
-			}
-			
-			if(parser->token->type == TOKEN_EQ)
-			{
-				if(!parser_restore_state(parser))
-				{
-					return NULL;
-				}
-				return node;
 			}
 			
 			right = parser_equality(parser);
@@ -1581,11 +1331,7 @@ parser_bitwise_and(parser_t *parser)
 			{
 				return NULL;
 			}
-			
-			if(!parser_release_state(parser))
-			{
-				return NULL;
-			}
+
 			node = node_make_and(position, node, right);
 			break;
 
@@ -1650,30 +1396,9 @@ parser_bitwise_or(parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_OR:
-			if(!parser_save_state(parser))
-			{
-				return NULL;
-			}
 			if(!parser_match(parser, TOKEN_OR))
 			{
 				return NULL;
-			}
-			
-			if(parser->token->type == TOKEN_OR)
-			{
-				if(!parser_restore_state(parser))
-				{
-					return NULL;
-				}
-				return node;
-			}
-			
-			if(parser->token->type == TOKEN_EQ)
-			{
-				if(!parser_restore_state(parser)){
-					return NULL;
-				}
-				return node;
 			}
 			
 			right = parser_bitwise_xor(parser);
@@ -1682,10 +1407,6 @@ parser_bitwise_or(parser_t *parser)
 				return NULL;
 			}
 			
-			if(!parser_release_state(parser))
-			{
-				return NULL;
-			}
 			node = node_make_or(position, node, right);
 			break;
 
@@ -1713,42 +1434,20 @@ parser_logical_and(parser_t *parser)
 		position_t position = parser->token->position;
 		switch (parser->token->type)
 		{
-		case TOKEN_AND:
-			if(!parser_save_state(parser))
-			{
-				return NULL;
-			}
-			if(!parser_match(parser, TOKEN_AND))
+		case TOKEN_AND_AND:
+			if(!parser_match(parser, TOKEN_AND_AND))
 			{
 				return NULL;
 			}
 			
-			if(parser->token->type == TOKEN_AND)
-			{
-				if(!parser_match(parser, TOKEN_AND))
-				{
-					return NULL;
-				}
-				
-				right = parser_bitwise_or(parser);
-				if (!right)
-				{
-					return NULL;
-				}
-				
-				if(!parser_release_state(parser))
-				{
-					return NULL;
-				}
-				node = node_make_land(position, node, right);
-				break;
-			}
-			
-			if(!parser_restore_state(parser))
+			right = parser_bitwise_or(parser);
+			if (!right)
 			{
 				return NULL;
 			}
-			return node;
+			
+			node = node_make_land(position, node, right);
+			break;
 
 		default:
 			return node;
@@ -1774,41 +1473,19 @@ parser_logical_or(parser_t *parser)
 		position_t position = parser->token->position;
 		switch (parser->token->type)
 		{
-		case TOKEN_OR:
-			if(!parser_save_state(parser))
-			{
-				return NULL;
-			}
-			if(!parser_match(parser, TOKEN_OR))
+		case TOKEN_OR_OR:
+			if(!parser_match(parser, TOKEN_OR_OR))
 			{
 				return NULL;
 			}
 			
-			if(parser->token->type == TOKEN_OR)
-			{
-				if(!parser_match(parser, TOKEN_OR))
-				{
-					return NULL;
-				}
-				
-				right = parser_logical_and(parser);
-				if (!right) {
-					return NULL;
-				}
-				
-				if(!parser_release_state(parser))
-				{
-					return NULL;
-				}
-				node = node_make_lor(position, node, right);
-				break;
-			}
-			
-			if(!parser_restore_state(parser))
-			{
+			right = parser_logical_and(parser);
+			if (!right) {
 				return NULL;
 			}
-			return node;
+			
+			node = node_make_lor(position, node, right);
+			break;
 
 		default:
 			return node;
@@ -1906,12 +1583,8 @@ parser_assign_stmt(parser_t *parser)
 		node = node_make_assign(position, node, right);
 		break;
 
-	case TOKEN_COLON:
-		if(!parser_match(parser, TOKEN_COLON))
-		{
-			return NULL;
-		}
-		if(!parser_match(parser, TOKEN_EQ))
+	case TOKEN_COLON_EQ:
+		if(!parser_match(parser, TOKEN_COLON_EQ))
 		{
 			return NULL;
 		}
@@ -1924,12 +1597,8 @@ parser_assign_stmt(parser_t *parser)
 		node = node_make_define(position, node, right);
 		break;
 
-	case TOKEN_PLUS:
-		if(!parser_match(parser, TOKEN_PLUS))
-		{
-			return NULL;
-		}
-		if(!parser_match(parser, TOKEN_EQ))
+	case TOKEN_PLUS_EQ:
+		if(!parser_match(parser, TOKEN_PLUS_EQ))
 		{
 			return NULL;
 		}
@@ -1942,15 +1611,11 @@ parser_assign_stmt(parser_t *parser)
 		node = node_make_add_assign(position, node, right);
 		break;
 
-	case TOKEN_MINUS:
-		if(!parser_match(parser, TOKEN_MINUS))
+	case TOKEN_MINUS_EQ:
+		if(!parser_match(parser, TOKEN_MINUS_EQ))
 		{
 			return NULL;
 		}	
-		if(!parser_match(parser, TOKEN_EQ))
-		{
-			return NULL;
-		}
 		right = parser_expression(parser);
 		if (!right)
 		{
@@ -1960,12 +1625,8 @@ parser_assign_stmt(parser_t *parser)
 		node = node_make_sub_assign(position, node, right);
 		break;
 
-	case TOKEN_STAR:
-		if(!parser_match(parser, TOKEN_STAR))
-		{
-			return NULL;
-		}
-		if(!parser_match(parser, TOKEN_EQ))
+	case TOKEN_STAR_EQ:
+		if(!parser_match(parser, TOKEN_STAR_EQ))
 		{
 			return NULL;
 		}
@@ -1978,12 +1639,8 @@ parser_assign_stmt(parser_t *parser)
 		node = node_make_mul_assign(position, node, right);
 		break;
 
-	case TOKEN_SLASH:
-		if(!parser_match(parser, TOKEN_SLASH))
-		{
-			return NULL;
-		}
-		if(!parser_match(parser, TOKEN_EQ))
+	case TOKEN_SLASH_EQ:
+		if(!parser_match(parser, TOKEN_SLASH_EQ))
 		{
 			return NULL;
 		}
@@ -1996,12 +1653,8 @@ parser_assign_stmt(parser_t *parser)
 		node = node_make_div_assign(position, node, right);
 		break;
 
-	case TOKEN_PERCENT:
-		if(!parser_match(parser, TOKEN_PERCENT))
-		{
-			return NULL;
-		}
-		if(!parser_match(parser, TOKEN_EQ))
+	case TOKEN_PERCENT_EQ:
+		if(!parser_match(parser, TOKEN_PERCENT_EQ))
 		{
 			return NULL;
 		}
@@ -2014,12 +1667,8 @@ parser_assign_stmt(parser_t *parser)
 		node = node_make_mod_assign(position, node, right);
 		break;
 
-	case TOKEN_AND:
-		if(!parser_match(parser, TOKEN_AND))
-		{
-			return NULL;
-		}
-		if(!parser_match(parser, TOKEN_EQ))
+	case TOKEN_AND_EQ:
+		if(!parser_match(parser, TOKEN_AND_EQ))
 		{
 			return NULL;
 		}
@@ -2032,12 +1681,8 @@ parser_assign_stmt(parser_t *parser)
 		node = node_make_and_assign(position, node, right);
 		break;
 
-	case TOKEN_OR:
-		if(!parser_match(parser, TOKEN_OR))
-		{
-			return NULL;
-		}	
-		if(!parser_match(parser, TOKEN_EQ))
+	case TOKEN_OR_EQ:
+		if(!parser_match(parser, TOKEN_OR_EQ))
 		{
 			return NULL;
 		}	
@@ -2050,16 +1695,8 @@ parser_assign_stmt(parser_t *parser)
 		node = node_make_or_assign(position, node, right);
 		break;
 		
-	case TOKEN_LT:
-		if(!parser_match(parser, TOKEN_LT)){
-			return NULL;
-		}
-		if(!parser_match(parser, TOKEN_LT))
-		{
-			return NULL;
-		}
-		if(!parser_match(parser, TOKEN_EQ))
-		{
+	case TOKEN_LT_LT_EQ:
+		if(!parser_match(parser, TOKEN_LT_LT_EQ)){
 			return NULL;
 		}
 		right = parser_expression(parser);
@@ -2071,16 +1708,8 @@ parser_assign_stmt(parser_t *parser)
 		node = node_make_shl_assign(position, node, right);
 		break;
 
-	case TOKEN_GT:
-		if(!parser_match(parser, TOKEN_GT))
-		{
-			return NULL;
-		}
-		if(!parser_match(parser, TOKEN_GT))
-		{
-			return NULL;
-		}
-		if(!parser_match(parser, TOKEN_EQ))
+	case TOKEN_GT_GT_EQ:
+		if(!parser_match(parser, TOKEN_GT_GT_EQ))
 		{
 			return NULL;
 		}
@@ -2105,52 +1734,56 @@ parser_if_stmt(parser_t *parser)
 {
 	position_t position = parser->token->position;
 	
-	if(!parser_match(parser, TOKEN_IF_KEYWORD)){
+	if(!parser_match(parser, TOKEN_IF_KEYWORD))
+	{
 		return NULL;
 	}
 
-	int32_t use_parenthesis = 0;
-	if(parser->token->type == TOKEN_LPAREN){
-		if(!parser_match(parser, TOKEN_LPAREN)){
-			return NULL;
-		}
-		use_parenthesis = 1;
+	if(!parser_match(parser, TOKEN_LPAREN))
+	{
+		return NULL;
 	}
 	
 	
 	node_t *expr;
 	expr = parser_expression(parser);
-	if (!expr) {
+	if (!expr)
+	{
 		return NULL;
 	}
 	
-	if(use_parenthesis){
-		if(!parser_match(parser, TOKEN_RPAREN)){
-			return NULL;
-		}
+	if(!parser_match(parser, TOKEN_RPAREN))
+	{
+		return NULL;
 	}
-	
 
 	node_t *then_block_stmt;
 	then_block_stmt = parser_block_stmt(parser);
-	if (!then_block_stmt) {
+	if (!then_block_stmt)
+	{
 		return NULL;
 	}
 
 	node_t *else_block_stmt;
 	else_block_stmt = NULL;
-	if (parser->token->type == TOKEN_ELSE_KEYWORD) {
-		if(!parser_match(parser, TOKEN_ELSE_KEYWORD)){
+	if (parser->token->type == TOKEN_ELSE_KEYWORD)
+	{
+		if(!parser_match(parser, TOKEN_ELSE_KEYWORD))
+		{
 			return NULL;
 		}
 	
-		if (parser->token->type == TOKEN_IF_KEYWORD) {
+		if (parser->token->type == TOKEN_IF_KEYWORD)
+		{
 			else_block_stmt = parser_if_stmt(parser);
-		} else {
+		}
+		else
+		{
 			else_block_stmt = parser_block_stmt(parser);
 		}
 
-		if (!else_block_stmt) {
+		if (!else_block_stmt)
+		{
 			return NULL;
 		}
 	}
@@ -2168,20 +1801,26 @@ parser_for_stmt(parser_t *parser)
 		return NULL;
 	}
 
-	int32_t use_parenthesis = 0;
-	if(parser->token->type == TOKEN_LPAREN)
+	int32_t use_brace = 0;
+	if(parser->token->type == TOKEN_LBRACE)
+	{
+		if(!parser_match(parser, TOKEN_LBRACE))
+		{
+			return NULL;
+		}
+		use_brace = 1;
+	}
+	else
 	{
 		if(!parser_match(parser, TOKEN_LPAREN))
 		{
 			return NULL;
 		}
-		use_parenthesis = 1;
 	}
 
-	if((use_parenthesis && parser->token->type == TOKEN_RPAREN) || 
-		(!use_parenthesis && parser->token->type == TOKEN_LBRACE))
-		{
-		if(use_parenthesis)
+	if((!use_brace && (parser->token->type == TOKEN_RPAREN)) || use_brace)
+	{
+		if(!use_brace)
 		{
 			if(!parser_match(parser, TOKEN_RPAREN))
 			{
@@ -2451,27 +2090,25 @@ parser_for_stmt(parser_t *parser)
 		
 		node_t *cond_expr = NULL;
 		node_t *step_expr = NULL;
-		if(!((use_parenthesis && parser->token->type == TOKEN_RPAREN) ||
-			(!use_parenthesis && parser->token->type == TOKEN_LBRACE)))
+		if(parser->token->type != TOKEN_RPAREN)
 		{
 			if(parser->token->type != TOKEN_SEMICOLON)
 			{
 				cond_expr = parser_expression(parser);
-				if (!cond_expr) {
+				if (!cond_expr)
+				{
 					return NULL;
 				}
 			}
 
-			if((use_parenthesis && parser->token->type != TOKEN_RPAREN) ||
-				(!use_parenthesis && parser->token->type != TOKEN_LBRACE))
+			if(parser->token->type != TOKEN_RPAREN)
 			{
 				if(!parser_match(parser, TOKEN_SEMICOLON))
 				{
 					return NULL;
 				}
 
-				if(!((use_parenthesis && parser->token->type == TOKEN_RPAREN) ||
-					(!use_parenthesis && parser->token->type == TOKEN_LBRACE)))
+				if(parser->token->type != TOKEN_RPAREN)
 				{
 					step_expr = parser_assign_stmt(parser);
 					if(!step_expr)
@@ -2519,12 +2156,9 @@ parser_for_stmt(parser_t *parser)
 			
 		}
 
-		if(use_parenthesis)
+		if(!parser_match(parser, TOKEN_RPAREN))
 		{
-			if(!parser_match(parser, TOKEN_RPAREN))
-			{
-				return NULL;
-			}
+			return NULL;
 		}
 		
 		parser->loop_depth += 1;
@@ -2544,7 +2178,9 @@ parser_for_stmt(parser_t *parser)
 		}
 
 		return node_make_for(position, init_expr, cond_expr, step_expr, body);
-	} else {
+	} 
+	else 
+	{
 		node_t *cond_expr = NULL;
 		if(use_init)
 		{
@@ -2560,19 +2196,18 @@ parser_for_stmt(parser_t *parser)
 			parser_error(parser, position, "variable or constant as the expression used in for loop");
 			return NULL;
 		}
-		if(use_parenthesis)
+		
+		if(!parser_match(parser, TOKEN_RPAREN))
 		{
-			if(!parser_match(parser, TOKEN_RPAREN))
-			{
-				return NULL;
-			}
+			return NULL;
 		}
 		
 		parser->loop_depth += 1;
 
 		node_t *body;
 		body = parser_block_stmt(parser);
-		if (!body) {
+		if (!body)
+		{
 			return NULL;
 		}
 
@@ -2594,12 +2229,9 @@ parser_for_stmt(parser_t *parser)
 		return NULL;
 	}
 	
-	if(use_parenthesis)
+	if(!parser_match(parser, TOKEN_RPAREN))
 	{
-		if(!parser_match(parser, TOKEN_RPAREN))
-		{
-			return NULL;
-		}
+		return NULL;
 	}
 	
 	parser->loop_depth += 1;
@@ -2970,10 +2602,16 @@ parser_type_stmt(parser_t *parser)
 	}
 
 	list_t *type_parameters = NULL;
-	if(parser->token->type == TOKEN_LT)
+	if(parser->token->type == TOKEN_LBRACE)
 	{
-		if(!parser_match(parser, TOKEN_LT))
+		if(!parser_match(parser, TOKEN_LBRACE))
 		{
+			return NULL;
+		}
+
+		if(parser->token->type == TOKEN_RBRACE)
+		{
+			parser_error(parser, parser->token->position, "type parameters is empty");
 			return NULL;
 		}
 
@@ -2983,7 +2621,7 @@ parser_type_stmt(parser_t *parser)
 			return NULL;
 		}
 
-		if(!parser_match(parser, TOKEN_GT))
+		if(!parser_match(parser, TOKEN_RBRACE))
 		{
 			return NULL;
 		}
@@ -3073,17 +2711,9 @@ parser_parameter(parser_t *parser)
 	position_t position = parser->token->position;
 	
 	int32_t use_ellipsis = 0;
-	if(parser->token->type == TOKEN_DOT)
+	if(parser->token->type == TOKEN_DOT_DOT)
 	{
-		if(!parser_match(parser, TOKEN_DOT))
-		{
-			return NULL;
-		}
-		if(!parser_match(parser, TOKEN_DOT))
-		{
-			return NULL;
-		}
-		if(!parser_match(parser, TOKEN_DOT))
+		if(!parser_match(parser, TOKEN_DOT_DOT))
 		{
 			return NULL;
 		}
@@ -3187,15 +2817,15 @@ parser_type_parameter(parser_t *parser)
 		return NULL;
 	}
 
-	node_t *heritage = NULL;
+	node_t *extends = NULL;
 	if (parser->token->type == TOKEN_EXTENDS_KEYWORD)
 	{
 		if(!parser_match(parser, TOKEN_EXTENDS_KEYWORD))
 		{
 			return NULL;
 		}
-		heritage = parser_expression(parser);
-		if (!heritage)
+		extends = parser_expression(parser);
+		if (!extends)
 		{
 			return NULL;
 		}
@@ -3215,7 +2845,7 @@ parser_type_parameter(parser_t *parser)
 		}
 	}
 
-	return node_make_type_parameter(position, name, heritage, value);
+	return node_make_type_parameter(position, name, extends, value);
 }
 
 static list_t *
@@ -3315,90 +2945,80 @@ parser_func_stmt(parser_t *parser)
 		return NULL;
 	}
 
-	int32_t use_field = 0;
 	node_t *field = NULL;
-	if(parser->token->type == TOKEN_LPAREN){
-		if(!parser_match(parser, TOKEN_LPAREN)){
+	if(parser->token->type == TOKEN_LPAREN)
+	{
+		if(!parser_match(parser, TOKEN_LPAREN))
+		{
 			return NULL;
 		}		
-		if (parser->token->type != TOKEN_RPAREN) {
-			field = parser_field(parser);
-			if (!field) {
-				return NULL;
-			}
-			use_field = 1;
+		if (parser->token->type == TOKEN_RPAREN)
+		{
+			parser_error(parser, parser->token->position, "fields is empty");
+			return NULL;
 		}
-		if(!parser_match(parser, TOKEN_RPAREN)){
+
+		field = parser_field(parser);
+		if (!field)
+		{
+			return NULL;
+		}
+
+		if(!parser_match(parser, TOKEN_RPAREN))
+		{
 			return NULL;
 		}
 	}
 
-	node_t *name = NULL;
-	if(use_field)
+	node_t *name;
+	name = parser_id(parser);
+	if (!name)
 	{
-		name = parser_id(parser);
-		if (!name)
-		{
-			return NULL;
-		}
-	}
-	else
-	{
-		switch(parser->token->type)
-		{
-		case TOKEN_ID:
-			name = parser_id(parser);
-			if (!name)
-			{
-				return NULL;
-			}
-			break;
-		default:
-			name = NULL;
-			break;
-		}
+		return NULL;
 	}
 	
 	list_t *type_parameters = NULL;
-	if (parser->token->type == TOKEN_LT)
+	if (parser->token->type == TOKEN_LBRACE)
 	{
-		if(!parser_match(parser, TOKEN_LT))
+		if(!parser_match(parser, TOKEN_LBRACE))
 		{
 			return NULL;
 		}
-		if (parser->token->type != TOKEN_GT)
+		
+		if(parser->token->type == TOKEN_RBRACE)
 		{
-			type_parameters = parser_type_parameters(parser);
-			if (!type_parameters)
-			{
-				return NULL;
-			}
+			parser_error(parser, parser->token->position, "type parameters is empty");
+			return NULL;
 		}
-		if(!parser_match(parser, TOKEN_GT))
+
+		type_parameters = parser_type_parameters(parser);
+		if (!type_parameters)
+		{
+			return NULL;
+		}
+		
+		if(!parser_match(parser, TOKEN_RBRACE))
 		{
 			return NULL;
 		}
 	}
 
 	list_t *parameters = NULL;
-	if (parser->token->type == TOKEN_LPAREN)
+	if(!parser_match(parser, TOKEN_LPAREN))
 	{
-		if(!parser_match(parser, TOKEN_LPAREN))
+		return NULL;
+	}
+	if (parser->token->type != TOKEN_RPAREN)
+	{
+		parameters = parser_parameters(parser);
+		if (!parameters)
 		{
 			return NULL;
 		}
-		if (parser->token->type != TOKEN_RPAREN)
-		{
-			parameters = parser_parameters(parser);
-			if (!parameters)
-			{
-				return NULL;
-			}
-		}
-		if(!parser_match(parser, TOKEN_RPAREN))
-		{
-			return NULL;
-		}
+	}
+	if(!parser_match(parser, TOKEN_RPAREN))
+	{
+		return NULL;
 	}
 	
 	node_t *return_type;
@@ -3416,6 +3036,11 @@ parser_func_stmt(parser_t *parser)
 		}
 	}
 	
+	if(!parser_match(parser, TOKEN_MINUS_GT))
+	{
+		return NULL;
+	}
+
 	node_t *body = NULL;
 	body = parser_block_stmt(parser);
 	if (!body)
@@ -3424,36 +3049,6 @@ parser_func_stmt(parser_t *parser)
 	}
 
 	return node_make_func(position, field, name, type_parameters, parameters, return_type, body);
-}
-
-static node_t *
-parser_async_stmt(parser_t *parser)
-{
-	position_t position = parser->token->position;
-
-	if(!parser_match(parser, TOKEN_ASYNC_KEYWORD))
-	{
-		return NULL;
-	}
-
-	node_t *node = NULL;
-	switch (parser->token->type)
-	{
-	case TOKEN_FUNC_KEYWORD:
-		node = parser_func_stmt(parser);
-		break;
-	
-	default:
-		parser_error(parser, position, "after the async keyword, the function is defined");
-		break;
-	}
-
-	if(!node)
-	{
-		return NULL;
-	}
-
-	return node_make_async(position, node);
 }
 
 static node_t *
@@ -3516,10 +3111,6 @@ parser_statement(parser_t *parser)
 
 	case TOKEN_FUNC_KEYWORD:
 		node = parser_func_stmt(parser);
-		break;
-
-	case TOKEN_ASYNC_KEYWORD:
-		node = parser_async_stmt(parser);
 		break;
 
 	default:
@@ -3640,23 +3231,30 @@ parser_class_func(parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 	
-	if(!parser_match(parser, TOKEN_FUNC_KEYWORD)){
+	if(!parser_match(parser, TOKEN_FUNC_KEYWORD))
+	{
 		return NULL;
 	}
 
 	list_t *fields = NULL;
-	if((flag & PARSER_MODIFIER_STATIC) != PARSER_MODIFIER_STATIC){
-		if(parser->token->type == TOKEN_LPAREN){
-			if(!parser_match(parser, TOKEN_LPAREN)){
+	if((flag & PARSER_MODIFIER_STATIC) != PARSER_MODIFIER_STATIC)
+	{
+		if(parser->token->type == TOKEN_LPAREN)
+		{
+			if(!parser_match(parser, TOKEN_LPAREN))
+			{
 				return NULL;
 			}		
-			if (parser->token->type != TOKEN_RPAREN) {
+			if (parser->token->type != TOKEN_RPAREN)
+			{
 				fields = parser_fields(parser);
-				if (!fields) {
+				if (!fields)
+				{
 					return NULL;
 				}
 			}
-			if(!parser_match(parser, TOKEN_RPAREN)){
+			if(!parser_match(parser, TOKEN_RPAREN))
+			{
 				return NULL;
 			}
 		}
@@ -3668,69 +3266,76 @@ parser_class_func(parser_t *parser, uint64_t flag)
 	{
 		return NULL;
 	}
-
-	int32_t is_constructor = 0;
-	node_basic_t *node_name;
-	node_name = (node_basic_t *)name->value;
-	if(strcmp(node_name->value, "constructor") == 0)
-	{
-		is_constructor = 1;
-	}
 	
 	list_t *type_parameters = NULL;
-	if(!is_constructor)
+	if (parser->token->type == TOKEN_LBRACE)
 	{
-		if (parser->token->type == TOKEN_LT)
+		if(!parser_match(parser, TOKEN_LBRACE))
 		{
-			if(!parser_match(parser, TOKEN_LT))
-			{
-				return NULL;
-			}
-			if (parser->token->type != TOKEN_GT)
-			{
-				type_parameters = parser_type_parameters(parser);
-				if (!type_parameters)
-				{
-					return NULL;
-				}
-			}
-			if(!parser_match(parser, TOKEN_GT))
-			{
-				return NULL;
-			}
+			return NULL;
+		}
+
+		if(parser->token->type == TOKEN_RBRACE)
+		{
+			parser_error(parser, parser->token->position, "type parameters is empty");
+			return NULL;
+		}
+		type_parameters = parser_type_parameters(parser);
+		if (!type_parameters)
+		{
+			return NULL;
+		}
+		
+		if(!parser_match(parser, TOKEN_RBRACE))
+		{
+			return NULL;
 		}
 	}
 	
 	list_t *parameters = NULL;
-	if (parser->token->type == TOKEN_LPAREN) {
-		if(!parser_match(parser, TOKEN_LPAREN)){
+	if (parser->token->type == TOKEN_LPAREN)
+	{
+		if(!parser_match(parser, TOKEN_LPAREN))
+		{
 			return NULL;
 		}
-		if (parser->token->type != TOKEN_RPAREN) {
+		if (parser->token->type != TOKEN_RPAREN)
+		{
 			parameters = parser_parameters(parser);
-			if (!parameters) {
+			if (!parameters)
+			{
 				return NULL;
 			}
 		}
-		if(!parser_match(parser, TOKEN_RPAREN)){
+		if(!parser_match(parser, TOKEN_RPAREN))
+		{
 			return NULL;
 		}
 	}
 	
 	node_t *return_type = NULL;
-	if(parser->token->type == TOKEN_COLON){
-		if(!parser_match(parser, TOKEN_COLON)){
+	if(parser->token->type == TOKEN_COLON)
+	{
+		if(!parser_match(parser, TOKEN_COLON))
+		{
 			return NULL;
 		}
 		return_type = parser_expression(parser);
-		if(!return_type){
+		if(!return_type)
+		{
 			return NULL;
 		}
 	}
 	
+	if(!parser_match(parser, TOKEN_MINUS_GT))
+	{
+		return NULL;
+	}
+
 	node_t *body = NULL;
 	body = parser_block_stmt(parser);
-	if (!body) {
+	if (!body)
+	{
 		return NULL;
 	}
 
@@ -3783,36 +3388,6 @@ parser_class_property(parser_t *parser, uint64_t flag)
 	}
 
 	return node_make_property(position, flag, name, type, value);
-}
-
-static node_t *
-parser_class_async(parser_t *parser, uint64_t flag)
-{
-	position_t position = parser->token->position;
-
-	if(!parser_match(parser, TOKEN_ASYNC_KEYWORD))
-	{
-		return NULL;
-	}
-
-	node_t *node = NULL;
-	switch (parser->token->type)
-	{
-	case TOKEN_FUNC_KEYWORD:
-		node = parser_class_func(parser, flag);
-		break;
-	
-	default:
-		parser_error(parser, position, "after the async keyword, the function is defined");
-		break;
-	}
-	
-	if(!node)
-	{
-		return NULL;
-	}
-
-	return node_make_async(position, node);
 }
 
 static node_t *
@@ -3869,10 +3444,6 @@ parser_class_static(parser_t *parser, uint64_t flag)
 		node = parser_class_func(parser, flag);
 		break;
 
-	case TOKEN_ASYNC_KEYWORD:
-		node = parser_class_async(parser, flag);
-		break;
-
 	case TOKEN_CLASS_KEYWORD:
 		node = parser_class(parser, flag);
 		break;
@@ -3925,10 +3496,6 @@ parser_class_public(parser_t *parser, uint64_t flag)
 
 	case TOKEN_FUNC_KEYWORD:
 		node = parser_class_func(parser, flag);
-		break;
-
-	case TOKEN_ASYNC_KEYWORD:
-		node = parser_class_async(parser, flag);
 		break;
 
 	case TOKEN_CLASS_KEYWORD:
@@ -3985,10 +3552,6 @@ parser_class_private(parser_t *parser, uint64_t flag)
 		node = parser_class_func(parser, flag);
 		break;
 
-	case TOKEN_ASYNC_KEYWORD:
-		node = parser_class_async(parser, flag);
-		break;
-
 	case TOKEN_CLASS_KEYWORD:
 		node = parser_class(parser, flag);
 		break;
@@ -4040,10 +3603,6 @@ parser_class_protected(parser_t *parser, uint64_t flag)
 
 	case TOKEN_FUNC_KEYWORD:
 		node = parser_class_func(parser, flag);
-		break;
-
-	case TOKEN_ASYNC_KEYWORD:
-		node = parser_class_async(parser, flag);
 		break;
 
 	case TOKEN_CLASS_KEYWORD:
@@ -4225,18 +3784,26 @@ parser_class(parser_t *parser, uint64_t flag)
 	}
 	
 	list_t *type_parameters = NULL;
-	if (parser->token->type == TOKEN_LT) 
+	if (parser->token->type == TOKEN_LBRACE) 
 	{
-		if(!parser_match(parser, TOKEN_LT))
+		if(!parser_match(parser, TOKEN_LBRACE))
 		{
 			return NULL;
 		}
+
+		if(parser->token->type == TOKEN_RBRACE)
+		{
+			parser_error(parser, parser->token->position, "type parameters is empty");
+			return NULL;
+		}
+
 		type_parameters = parser_type_parameters(parser);
 		if (!type_parameters)
 		{
 			return NULL;
 		}
-		if(!parser_match(parser, TOKEN_GT))
+
+		if(!parser_match(parser, TOKEN_RBRACE))
 		{
 			return NULL;
 		}
@@ -4254,6 +3821,11 @@ parser_class(parser_t *parser, uint64_t flag)
 		{
 			return NULL;
 		}
+	}
+
+	if(!parser_match(parser, TOKEN_MINUS_GT))
+	{
+		return NULL;
 	}
 
 	list_t *body;
@@ -4421,10 +3993,6 @@ parser_namespace_block(parser_t *parser)
 		case TOKEN_FUNC_KEYWORD:
 			decl = parser_func_stmt(parser);
 			break;
-
-		case TOKEN_ASYNC_KEYWORD:
-			decl = parser_async_stmt(parser);
-			break;
 			
 		case TOKEN_VAR_KEYWORD:
 			decl = parser_var_stmt(parser);
@@ -4517,10 +4085,6 @@ parser_export(parser_t *parser)
 	case TOKEN_FUNC_KEYWORD:
 		node = parser_func_stmt(parser);
 		break;
-
-	case TOKEN_ASYNC_KEYWORD:
-		node = parser_async_stmt(parser);
-		break;
 		
 	case TOKEN_VAR_KEYWORD:
 		node = parser_var_stmt(parser);
@@ -4598,10 +4162,6 @@ parser_module(parser_t *parser)
 			
 		case TOKEN_FUNC_KEYWORD:
 			decl = parser_func_stmt(parser);
-			break;
-
-		case TOKEN_ASYNC_KEYWORD:
-			decl = parser_async_stmt(parser);
 			break;
 			
 		case TOKEN_VAR_KEYWORD:

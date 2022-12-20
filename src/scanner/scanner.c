@@ -165,10 +165,10 @@ scanner_peek(scanner_t *scanner)
 	return 0;
 }
 
-int32_t
-scanner_advance(scanner_t *scanner)
+static void
+scanner_skip_trivial(scanner_t *scanner)
 {
-    while (scanner->ch != eof) 
+	while (scanner->ch != eof) 
 	{
 		if(scanner->ch == '\n' || scanner->ch == '\v' || scanner->ch == '\r')
 		{
@@ -183,11 +183,25 @@ scanner_advance(scanner_t *scanner)
 			continue;
 		}
 
-        if(scanner->ch == '\t' || isspace(scanner->ch))
+		if(scanner->ch == '\t' || isspace(scanner->ch))
 		{
-            scanner_next(scanner);
-            continue;
-        }
+			scanner_next(scanner);
+			continue;
+		}
+		break;
+	}
+}
+
+int32_t
+scanner_advance(scanner_t *scanner)
+{
+    while (scanner->ch != eof) 
+	{
+		scanner_skip_trivial(scanner);
+		if(scanner->ch == eof)
+		{
+			break;
+		}
 
         if(!isalpha(scanner->ch) && !isdigit(scanner->ch) && scanner->ch != '_')
 		{
@@ -394,6 +408,40 @@ scanner_advance(scanner_t *scanner)
                 scanner_next(scanner);
                 return 1;
             }
+            else if(scanner->ch == '#')
+			{
+            	scanner_set_token(scanner, (token_t)
+				{
+            		.type = TOKEN_HASH, 
+            		.value = NULL, 
+            		.position = {
+						.path = scanner->file_source->path,
+						.offset = scanner->offset,
+						.column = scanner->column,
+						.line = scanner->line
+					}
+            	});
+					
+                scanner_next(scanner);
+                return 1;
+            }
+            else if(scanner->ch == '$')
+			{
+            	scanner_set_token(scanner, (token_t)
+				{
+            		.type = TOKEN_DOLLER, 
+            		.value = NULL, 
+            		.position = {
+						.path = scanner->file_source->path,
+						.offset = scanner->offset,
+						.column = scanner->column,
+						.line = scanner->line
+					}
+            	});
+					
+                scanner_next(scanner);
+                return 1;
+            }
             else if(scanner->ch == '(')
 			{
             	scanner_set_token(scanner, (token_t)
@@ -496,11 +544,11 @@ scanner_advance(scanner_t *scanner)
                 scanner_next(scanner);
                 return 1;
             }
-            else if(scanner->ch == '=')
+            else if(scanner->ch == ',')
 			{
-                scanner_set_token(scanner, (token_t)
+            	scanner_set_token(scanner, (token_t)
 				{
-            		.type = TOKEN_EQ, 
+            		.type = TOKEN_COMMA, 
             		.value = NULL, 
             		.position = {
 						.path = scanner->file_source->path,
@@ -509,11 +557,120 @@ scanner_advance(scanner_t *scanner)
 						.line = scanner->line
 					}
             	});
-		        	
+					
                 scanner_next(scanner);
                 return 1;
             }
-            else if(scanner->ch == '?')
+            else if(scanner->ch == '.')
+			{
+				uint64_t offset = scanner->offset;
+				uint64_t column = scanner->column;
+				uint64_t line = scanner->line;
+
+            	scanner_set_token(scanner, (token_t)
+				{
+            		.type = TOKEN_DOT, 
+            		.value = NULL, 
+            		.position = {
+						.path = scanner->file_source->path,
+						.offset = scanner->offset,
+						.column = scanner->column,
+						.line = scanner->line
+					}
+            	});
+					
+                scanner_next(scanner);
+
+				scanner_skip_trivial(scanner);
+				if(scanner->ch == eof)
+				{
+					break;
+				}
+
+				if(scanner->ch == '.')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_DOT_DOT, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+
+					scanner_next(scanner);
+					return 1;
+				}
+
+                return 1;
+            }
+            else if(scanner->ch == ':')
+			{
+				uint64_t offset = scanner->offset;
+				uint64_t column = scanner->column;
+				uint64_t line = scanner->line;
+
+            	scanner_set_token(scanner, (token_t)
+				{
+            		.type = TOKEN_COLON, 
+            		.value = NULL, 
+            		.position = {
+						.path = scanner->file_source->path,
+						.offset = scanner->offset,
+						.column = scanner->column,
+						.line = scanner->line
+					}
+            	});
+					
+                scanner_next(scanner);
+
+				scanner_skip_trivial(scanner);
+				if(scanner->ch == eof)
+				{
+					break;
+				}
+
+				if(scanner->ch == '=')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_COLON_EQ, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+
+					scanner_next(scanner);
+					return 1;
+				}
+
+                return 1;
+            }
+            else if(scanner->ch == ';')
+			{
+            	scanner_set_token(scanner, (token_t)
+				{
+            		.type = TOKEN_SEMICOLON, 
+            		.value = NULL, 
+            		.position = {
+						.path = scanner->file_source->path,
+						.offset = scanner->offset,
+						.column = scanner->column,
+						.line = scanner->line
+					}
+            	});
+				
+                scanner_next(scanner);
+                return 1;
+            }
+			else if(scanner->ch == '?')
 			{
             	scanner_set_token(scanner, (token_t)
 				{
@@ -530,79 +687,11 @@ scanner_advance(scanner_t *scanner)
                 scanner_next(scanner);
                 return 1;
             }
-            else if(scanner->ch == '|')
-			{
-                scanner_set_token(scanner, (token_t)
-				{
-            		.type = TOKEN_OR, 
-            		.value = NULL, 
-            		.position = {
-						.path = scanner->file_source->path,
-						.offset = scanner->offset,
-						.column = scanner->column,
-						.line = scanner->line
-					}
-            	});
-				    
-                scanner_next(scanner);
-                return 1;
-            }
-            else if(scanner->ch == '&')
-			{
-                scanner_set_token(scanner, (token_t)
-				{
-            		.type = TOKEN_AND, 
-            		.value = NULL, 
-            		.position = {
-						.path = scanner->file_source->path,
-						.offset = scanner->offset,
-						.column = scanner->column,
-						.line = scanner->line
-					}
-            	});
-				
-                scanner_next(scanner);
-                return 1;
-            }
-            else if(scanner->ch == '^')
+            else if(scanner->ch == '@')
 			{
             	scanner_set_token(scanner, (token_t)
 				{
-            		.type = TOKEN_CARET, 
-            		.value = NULL, 
-            		.position = {
-						.path = scanner->file_source->path,
-						.offset = scanner->offset,
-						.column = scanner->column,
-						.line = scanner->line
-					}
-            	});
-				
-                scanner_next(scanner);
-                return 1;
-            }
-            else if(scanner->ch == '!')
-			{
-                scanner_set_token(scanner, (token_t)
-				{
-            		.type = TOKEN_NOT, 
-            		.value = NULL, 
-            		.position = {
-						.path = scanner->file_source->path,
-						.offset = scanner->offset,
-						.column = scanner->column,
-						.line = scanner->line
-					}
-            	});
-				
-                scanner_next(scanner);
-                return 1;
-            }
-            else if(scanner->ch == '<')
-			{
-                scanner_set_token(scanner, (token_t)
-				{
-            		.type = TOKEN_LT, 
+            		.type = TOKEN_AT, 
             		.value = NULL, 
             		.position = {
 						.path = scanner->file_source->path,
@@ -615,11 +704,11 @@ scanner_advance(scanner_t *scanner)
                 scanner_next(scanner);
                 return 1;
             }
-            else if(scanner->ch == '>')
+            else if(scanner->ch == '\\')
 			{
-                scanner_set_token(scanner, (token_t)
+            	scanner_set_token(scanner, (token_t)
 				{
-            		.type = TOKEN_GT, 
+            		.type = TOKEN_BACKSLASH, 
             		.value = NULL, 
             		.position = {
 						.path = scanner->file_source->path,
@@ -628,12 +717,33 @@ scanner_advance(scanner_t *scanner)
 						.line = scanner->line
 					}
             	});
-					
+				
+                scanner_next(scanner);
+                return 1;
+            }
+            else if(scanner->ch == '_')
+			{
+            	scanner_set_token(scanner, (token_t)
+				{
+            		.type = TOKEN_UNDERLINE, 
+            		.value = NULL, 
+            		.position = {
+						.path = scanner->file_source->path,
+						.offset = scanner->offset,
+						.column = scanner->column,
+						.line = scanner->line
+					}
+            	});
+				
                 scanner_next(scanner);
                 return 1;
             }
             else if(scanner->ch == '+')
 			{
+				uint64_t offset = scanner->offset;
+				uint64_t column = scanner->column;
+				uint64_t line = scanner->line;
+
             	scanner_set_token(scanner, (token_t)
 				{
             		.type = TOKEN_PLUS, 
@@ -647,10 +757,39 @@ scanner_advance(scanner_t *scanner)
             	});
 					
                 scanner_next(scanner);
+
+				scanner_skip_trivial(scanner);
+				if(scanner->ch == eof)
+				{
+					break;
+				}
+
+				if(scanner->ch == '=')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_PLUS_EQ, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+
+					scanner_next(scanner);
+					return 1;
+				}
+
                 return 1;
             }
             else if(scanner->ch == '-')
 			{
+				uint64_t offset = scanner->offset;
+				uint64_t column = scanner->column;
+				uint64_t line = scanner->line;
+
             	scanner_set_token(scanner, (token_t)
 				{
             		.type = TOKEN_MINUS, 
@@ -664,10 +803,57 @@ scanner_advance(scanner_t *scanner)
             	});
 					
                 scanner_next(scanner);
+
+				scanner_skip_trivial(scanner);
+				if(scanner->ch == eof)
+				{
+					break;
+				}
+
+				if(scanner->ch == '=')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_MINUS_EQ, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+
+					scanner_next(scanner);
+					return 1;
+				}
+
+				if(scanner->ch == '>')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_MINUS_GT, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+
+					scanner_next(scanner);
+					return 1;
+				}
+
                 return 1;
             }
             else if(scanner->ch == '*')
 			{
+				uint64_t offset = scanner->offset;
+				uint64_t column = scanner->column;
+				uint64_t line = scanner->line;
+
             	scanner_set_token(scanner, (token_t)
 				{
             		.type = TOKEN_STAR, 
@@ -681,6 +867,30 @@ scanner_advance(scanner_t *scanner)
             	});
 					
                 scanner_next(scanner);
+
+				scanner_skip_trivial(scanner);
+				if(scanner->ch == eof)
+				{
+					break;
+				}
+
+				if(scanner->ch == '=')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_STAR_EQ, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+
+					scanner_next(scanner);
+					return 1;
+				}
                 return 1;
             }
             else if(scanner->ch == '/')
@@ -736,6 +946,10 @@ scanner_advance(scanner_t *scanner)
                 } 
 				else 
 				{
+					uint64_t offset = scanner->offset;
+					uint64_t column = scanner->column;
+					uint64_t line = scanner->line;
+
                 	scanner_set_token(scanner, (token_t)
 					{
 		        		.type = TOKEN_SLASH, 
@@ -749,11 +963,40 @@ scanner_advance(scanner_t *scanner)
 		        	});
 						
 		            scanner_next(scanner);
+
+					scanner_skip_trivial(scanner);
+					if(scanner->ch == eof)
+					{
+						break;
+					}
+
+					if(scanner->ch == '=')
+					{
+						scanner_set_token(scanner, (token_t)
+						{
+							.type = TOKEN_SLASH_EQ, 
+							.value = NULL, 
+							.position = {
+								.path = scanner->file_source->path,
+								.offset = offset,
+								.column = column,
+								.line = line
+							}
+						});
+
+						scanner_next(scanner);
+						return 1;
+					}
+
 		            return 1;
                 }
             }
             else if(scanner->ch == '%')
 			{
+				uint64_t offset = scanner->offset;
+				uint64_t column = scanner->column;
+				uint64_t line = scanner->line;
+
 				scanner_set_token(scanner, (token_t)
 				{
             		.type = TOKEN_PERCENT, 
@@ -767,13 +1010,41 @@ scanner_advance(scanner_t *scanner)
             	});
             	
                 scanner_next(scanner);
+
+				scanner_skip_trivial(scanner);
+				if(scanner->ch == eof)
+				{
+					break;
+				}
+
+				if(scanner->ch == '=')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_PERCENT_EQ, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+
+					scanner_next(scanner);
+					return 1;
+				}
                 return 1;
             }
-            else if(scanner->ch == '.')
+            else if(scanner->ch == '&')
 			{
-            	scanner_set_token(scanner, (token_t)
+				uint64_t offset = scanner->offset;
+				uint64_t column = scanner->column;
+				uint64_t line = scanner->line;
+
+                scanner_set_token(scanner, (token_t)
 				{
-            		.type = TOKEN_DOT, 
+            		.type = TOKEN_AND, 
             		.value = NULL, 
             		.position = {
 						.path = scanner->file_source->path,
@@ -782,15 +1053,62 @@ scanner_advance(scanner_t *scanner)
 						.line = scanner->line
 					}
             	});
-					
+				
                 scanner_next(scanner);
+
+				scanner_skip_trivial(scanner);
+				if(scanner->ch == eof)
+				{
+					break;
+				}
+
+				if(scanner->ch == '&')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_AND_AND, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+
+					scanner_next(scanner);
+					return 1;
+				}
+
+				if(scanner->ch == '=')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_AND_EQ, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+
+					scanner_next(scanner);
+					return 1;
+				}
+
                 return 1;
             }
-            else if(scanner->ch == ',')
+            else if(scanner->ch == '|')
 			{
-            	scanner_set_token(scanner, (token_t)
+				uint64_t offset = scanner->offset;
+				uint64_t column = scanner->column;
+				uint64_t line = scanner->line;
+
+                scanner_set_token(scanner, (token_t)
 				{
-            		.type = TOKEN_COMMA, 
+            		.type = TOKEN_OR, 
             		.value = NULL, 
             		.position = {
 						.path = scanner->file_source->path,
@@ -799,32 +1117,57 @@ scanner_advance(scanner_t *scanner)
 						.line = scanner->line
 					}
             	});
-					
+				    
                 scanner_next(scanner);
+
+				scanner_skip_trivial(scanner);
+				if(scanner->ch == eof)
+				{
+					break;
+				}
+
+				if(scanner->ch == '|')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_OR_OR, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+
+					scanner_next(scanner);
+					return 1;
+				}
+
+				if(scanner->ch == '=')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_OR_EQ, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+
+					scanner_next(scanner);
+					return 1;
+				}
                 return 1;
             }
-            else if(scanner->ch == ':')
+            else if(scanner->ch == '^')
 			{
             	scanner_set_token(scanner, (token_t)
 				{
-            		.type = TOKEN_COLON, 
-            		.value = NULL, 
-            		.position = {
-						.path = scanner->file_source->path,
-						.offset = scanner->offset,
-						.column = scanner->column,
-						.line = scanner->line
-					}
-            	});
-					
-                scanner_next(scanner);
-                return 1;
-            }
-            else if(scanner->ch == ';')
-			{
-            	scanner_set_token(scanner, (token_t)
-				{
-            		.type = TOKEN_SEMICOLON, 
+            		.type = TOKEN_CARET, 
             		.value = NULL, 
             		.position = {
 						.path = scanner->file_source->path,
@@ -854,11 +1197,101 @@ scanner_advance(scanner_t *scanner)
                 scanner_next(scanner);
                 return 1;
             }
-            else if(scanner->ch == '#')
+            else if(scanner->ch == '<')
 			{
-            	scanner_set_token(scanner, (token_t)
+				uint64_t offset = scanner->offset;
+				uint64_t column = scanner->column;
+				uint64_t line = scanner->line;
+
+                scanner_set_token(scanner, (token_t)
 				{
-            		.type = TOKEN_HASH, 
+            		.type = TOKEN_LT, 
+            		.value = NULL, 
+            		.position = {
+						.path = scanner->file_source->path,
+						.offset = scanner->offset,
+						.column = scanner->column,
+						.line = scanner->line
+					}
+            	});
+
+                scanner_next(scanner);
+
+				scanner_skip_trivial(scanner);
+				if(scanner->ch == eof)
+				{
+					break;
+				}
+
+				if(scanner->ch == '<')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_LT_LT, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+						
+					scanner_next(scanner);
+
+					scanner_skip_trivial(scanner);
+					if(scanner->ch == eof)
+					{
+						break;
+					}
+
+					if(scanner->ch == '=')
+					{
+						scanner_set_token(scanner, (token_t)
+						{
+							.type = TOKEN_LT_LT_EQ, 
+							.value = NULL, 
+							.position = {
+								.path = scanner->file_source->path,
+								.offset = offset,
+								.column = column,
+								.line = line
+							}
+						});
+
+						scanner_next(scanner);
+					}
+
+					return 1;
+				}
+                
+				if(scanner->ch == '=')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_LT_EQ, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+
+					scanner_next(scanner);
+				}
+				return 1;
+            }
+            else if(scanner->ch == '>')
+			{
+				uint64_t offset = scanner->offset;
+				uint64_t column = scanner->column;
+				uint64_t line = scanner->line;
+
+                scanner_set_token(scanner, (token_t)
+				{
+            		.type = TOKEN_GT, 
             		.value = NULL, 
             		.position = {
 						.path = scanner->file_source->path,
@@ -869,13 +1302,83 @@ scanner_advance(scanner_t *scanner)
             	});
 					
                 scanner_next(scanner);
+
+				scanner_skip_trivial(scanner);
+				if(scanner->ch == eof)
+				{
+					break;
+				}
+
+				if(scanner->ch == '>')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_GT_GT, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+						
+					scanner_next(scanner);
+
+					scanner_skip_trivial(scanner);
+					if(scanner->ch == eof)
+					{
+						break;
+					}
+
+					if(scanner->ch == '=')
+					{
+						scanner_set_token(scanner, (token_t)
+						{
+							.type = TOKEN_GT_GT_EQ, 
+							.value = NULL, 
+							.position = {
+								.path = scanner->file_source->path,
+								.offset = offset,
+								.column = column,
+								.line = line
+							}
+						});
+
+						scanner_next(scanner);
+					}
+
+					return 1;
+				}
+
+				if(scanner->ch == '=')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_GT_EQ, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+
+					scanner_next(scanner);
+				}
+
                 return 1;
             }
-            else if(scanner->ch == '_')
+            else if(scanner->ch == '!')
 			{
-            	scanner_set_token(scanner, (token_t)
+				uint64_t offset = scanner->offset;
+				uint64_t column = scanner->column;
+				uint64_t line = scanner->line;
+
+                scanner_set_token(scanner, (token_t)
 				{
-            		.type = TOKEN_UNDERLINE, 
+            		.type = TOKEN_NOT, 
             		.value = NULL, 
             		.position = {
 						.path = scanner->file_source->path,
@@ -886,13 +1389,40 @@ scanner_advance(scanner_t *scanner)
             	});
 				
                 scanner_next(scanner);
+
+				scanner_skip_trivial(scanner);
+				if(scanner->ch == eof)
+				{
+					break;
+				}
+
+				if(scanner->ch == '=')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_NOT_EQ, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+					
+					scanner_next(scanner);
+				}
                 return 1;
             }
-            else if(scanner->ch == '@')
+            else if(scanner->ch == '=')
 			{
-            	scanner_set_token(scanner, (token_t)
+				uint64_t offset = scanner->offset;
+				uint64_t column = scanner->column;
+				uint64_t line = scanner->line;
+
+                scanner_set_token(scanner, (token_t)
 				{
-            		.type = TOKEN_AT, 
+            		.type = TOKEN_EQ, 
             		.value = NULL, 
             		.position = {
 						.path = scanner->file_source->path,
@@ -901,25 +1431,31 @@ scanner_advance(scanner_t *scanner)
 						.line = scanner->line
 					}
             	});
-					
+		        	
                 scanner_next(scanner);
-                return 1;
-            }
-            else if(scanner->ch == '$')
-			{
-            	scanner_set_token(scanner, (token_t)
+
+				scanner_skip_trivial(scanner);
+				if(scanner->ch == eof)
 				{
-            		.type = TOKEN_DOLLER, 
-            		.value = NULL, 
-            		.position = {
-						.path = scanner->file_source->path,
-						.offset = scanner->offset,
-						.column = scanner->column,
-						.line = scanner->line
-					}
-            	});
-					
-                scanner_next(scanner);
+					break;
+				}
+
+				if(scanner->ch == '=')
+				{
+					scanner_set_token(scanner, (token_t)
+					{
+						.type = TOKEN_EQ_EQ, 
+						.value = NULL, 
+						.position = {
+							.path = scanner->file_source->path,
+							.offset = offset,
+							.column = column,
+							.line = line
+						}
+					});
+						
+					scanner_next(scanner);
+				}
                 return 1;
             }
             else {
@@ -1316,38 +1852,6 @@ scanner_advance(scanner_t *scanner)
             	scanner_set_token(scanner, (token_t)
 				{
 		        	.type = TOKEN_EXTENDS_KEYWORD, 
-		        	.value = NULL, 
-		        	.position = {
-						.path = scanner->file_source->path,
-						.offset = scanner->offset-length,
-						.column = scanner->column - (scanner->offset - start_offset),
-						.line = scanner->line
-					}
-		        });
-					
-                return 1;
-            } 
-			else if(strncmp(scanner->source + start_offset, "async", max(length, 5)) == 0)
-			{
-            	scanner_set_token(scanner, (token_t)
-				{
-		        	.type = TOKEN_ASYNC_KEYWORD, 
-		        	.value = NULL, 
-		        	.position = {
-						.path = scanner->file_source->path,
-						.offset = scanner->offset-length,
-						.column = scanner->column - (scanner->offset - start_offset),
-						.line = scanner->line
-					}
-		        });
-					
-                return 1;
-            } 
-			else if(strncmp(scanner->source + start_offset, "await", max(length, 5)) == 0)
-			{
-            	scanner_set_token(scanner, (token_t)
-				{
-		        	.type = TOKEN_AWAIT_KEYWORD, 
 		        	.value = NULL, 
 		        	.position = {
 						.path = scanner->file_source->path,

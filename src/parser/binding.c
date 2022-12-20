@@ -398,24 +398,6 @@ binding_grammatical_parenthesis(binding_t *binding, node_t *parent, node_t *node
 }
 
 static int32_t
-binding_grammatical_async(binding_t *binding, node_t *parent, node_t *node)
-{
-    node->parent = parent;
-
-    node_modifier_t *node_modifier;
-    node_modifier = (node_modifier_t *)node->value;
-
-    int32_t result;
-    result = binding_grammatical_func(binding, node, node_modifier->x);
-    if(!result)
-    {
-        return 0;
-    }
-
-    return 1;
-}
-
-static int32_t
 binding_grammatical_object_property(binding_t *binding, node_t *parent, node_t *node)
 {
     node->parent = parent;
@@ -506,10 +488,6 @@ binding_grammatical_primary(binding_t *binding, node_t *parent, node_t *node)
 
     case NODE_KIND_OBJECT:
         result = binding_grammatical_object(binding, parent, node);
-        break;
-
-    case NODE_KIND_ASYNC:
-        result = binding_grammatical_async(binding, parent, node);
         break;
 
     case NODE_KIND_FUNC:
@@ -1969,10 +1947,6 @@ binding_grammatical_statement(binding_t *binding, node_t *parent, node_t *node)
     case NODE_KIND_FUNC:
         result = binding_grammatical_func(binding, parent, node);
         break;
-
-    case NODE_KIND_ASYNC:
-        result = binding_grammatical_async(binding, parent, node);
-        break;
     
     default:
         result = binding_grammatical_assign(binding, parent, node);
@@ -2027,9 +2001,9 @@ binding_grammatical_type_parameter(binding_t *binding, node_t *parent, node_t *n
         return 0;
     }
 
-    if(node_type_parameter->heritage)
+    if(node_type_parameter->extends)
     {
-        result = binding_grammatical_expression(binding, node, node_type_parameter->heritage);
+        result = binding_grammatical_expression(binding, node, node_type_parameter->extends);
         if(!result)
         {
             return 0;
@@ -2765,10 +2739,6 @@ binding_grammatical_namespace(binding_t *binding, node_t *parent, node_t *node)
             result = binding_grammatical_func(binding, node, temp);
             break;
 
-        case NODE_KIND_ASYNC:
-            result = binding_grammatical_async(binding, node, temp);
-            break;
-
         case NODE_KIND_VAR:
             result = binding_grammatical_var(binding, node, temp);
             break;
@@ -2863,10 +2833,6 @@ binding_grammatical_export(binding_t *binding, node_t *parent, node_t *node)
 
     case NODE_KIND_FUNC:
         result = binding_grammatical_func(binding, node, node_export->x);
-        break;
-
-    case NODE_KIND_ASYNC:
-        result = binding_grammatical_async(binding, node, node_export->x);
         break;
 
     case NODE_KIND_VAR:
@@ -3053,10 +3019,6 @@ binding_grammatical_module(binding_t *binding, node_t *node)
 
         case NODE_KIND_FUNC:
             result = binding_grammatical_func(binding, node, temp);
-            break;
-
-        case NODE_KIND_ASYNC:
-            result = binding_grammatical_async(binding, node, temp);
             break;
 
         case NODE_KIND_VAR:

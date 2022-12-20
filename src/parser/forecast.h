@@ -3,12 +3,9 @@
 #define __GENERIC_TEST_H__
 
 int32_t
-forecast_is_type_argument(parser_t *parser);
+forecast_is_type_arguments(parser_t *parser);
 
 int32_t
-forecast_is_object(parser_t *parser);
-
-int32_t
-forecast_is_casting(parser_t *parser);
+forecast_is_type_parameters(parser_t *parser);
 
 #endif

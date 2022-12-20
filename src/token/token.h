@@ -8,43 +8,66 @@ enum
 {
   TOKEN_EOF = 0,
   TOKEN_SPACE,
-  TOKEN_QUTA,	 	//	"
-  TOKEN_HASH,	 	//	#
-  TOKEN_DOLLER,		//	$
-  TOKEN_PRIME,	 	//	'
-  TOKEN_LPAREN,		//	(
-  TOKEN_RPAREN,		//	)
-  TOKEN_COMMA,	 	//	,
-  TOKEN_DOT,	   	//	.
-  TOKEN_COLON,	 	//	:
+  TOKEN_QUTA,	 	    //	"
+  TOKEN_PRIME,	 	  //	'
+  TOKEN_UPRIME,		  //	`
+  TOKEN_HASH,	 	    //	#
+  TOKEN_DOLLER,		  //	$
+  TOKEN_LPAREN,		  //	(
+  TOKEN_RPAREN,		  //	)
+  TOKEN_LBRACKET, 	//	[
+  TOKEN_RBRACKET, 	//	]
+  TOKEN_LBRACE,		  //	{
+  TOKEN_RBRACE,		  //	}
+  TOKEN_COMMA,	 	  //	,
+  TOKEN_DOT,	   	  //	.
+  TOKEN_COLON,	 	  //	:
   TOKEN_SEMICOLON,	//	;
   TOKEN_QUESTION, 	//	?
-  TOKEN_AT,  	 	//	@
-  TOKEN_LBRACKET, 	//	[
+  TOKEN_AT,  	 	    //	@
   TOKEN_BACKSLASH,	//	
-  TOKEN_RBRACKET, 	//	]
   TOKEN_UNDERLINE,	//	_
-  TOKEN_UPRIME,		//	`
-  TOKEN_LBRACE,		//	{
-  TOKEN_RBRACE,		//	}
   // Binary Arithmetic 
-  TOKEN_PLUS,	 	//	+
+  TOKEN_PLUS,	 	  //	+
   TOKEN_MINUS,	 	//	-
-  TOKEN_STAR,	 	//	*
+  TOKEN_STAR,	 	  //	*
   TOKEN_SLASH,	 	//	/
   TOKEN_PERCENT,	//	%
   // Bit-Wise	&,|,^,~,<<,>>
-  TOKEN_AND, 	 	// &
-  TOKEN_OR,			// |
+  TOKEN_AND, 	 	  // &
+  TOKEN_OR,			  // |
   TOKEN_CARET,		// ^
   TOKEN_TILDE,		// ~
+  TOKEN_LT_LT,
+  TOKEN_GT_GT,
+
   // Relational <,>,<=,>=,==,!=
   TOKEN_LT,	   		//	<
   TOKEN_GT,	   		//	>
+  TOKEN_LT_EQ,
+  TOKEN_GT_EQ,
+  TOKEN_EQ_EQ,
+  TOKEN_NOT_EQ,
+
   // Logical &&,||,!
   TOKEN_NOT,	   	//	!
+  TOKEN_AND_AND,
+  TOKEN_OR_OR,
   // Assignment =,+=,-=,*=,/=,%=,&=,|=,<<=,>>=
   TOKEN_EQ,	   		//	=
+  TOKEN_PLUS_EQ,
+  TOKEN_MINUS_EQ,
+  TOKEN_STAR_EQ,
+  TOKEN_SLASH_EQ,
+  TOKEN_PERCENT_EQ,
+  TOKEN_AND_EQ,
+  TOKEN_OR_EQ,
+  TOKEN_LT_LT_EQ,
+  TOKEN_GT_GT_EQ,
+
+  TOKEN_DOT_DOT,
+  TOKEN_COLON_EQ,
+  TOKEN_MINUS_GT,
 
   TOKEN_ID,
   TOKEN_NUMBER,
@@ -71,8 +94,6 @@ enum
   TOKEN_FUNC_KEYWORD,
   TOKEN_CLASS_KEYWORD,
   TOKEN_EXTENDS_KEYWORD,
-  TOKEN_ASYNC_KEYWORD,
-  TOKEN_AWAIT_KEYWORD,
   TOKEN_STATIC_KEYWORD,
   TOKEN_PUBLIC_KEYWORD,
   TOKEN_PRIVATE_KEYWORD,

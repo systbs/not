@@ -72,6 +72,7 @@ typedef enum node_kind {
 	
 	NODE_KIND_EQ,
 	NODE_KIND_NEQ,
+	NODE_KIND_EXTENDS,
 	
 	NODE_KIND_AND,
 	NODE_KIND_XOR,
@@ -80,7 +81,6 @@ typedef enum node_kind {
 	NODE_KIND_LOR,
 	
 	NODE_KIND_CONDITIONAL,
-	NODE_KIND_ITERATION,
 	
 	NODE_KIND_ASSIGN,
 	NODE_KIND_DEFINE,
@@ -118,7 +118,6 @@ typedef enum node_kind {
 	NODE_KIND_PRIVATE,
 	NODE_KIND_PROTECTED,
 	NODE_KIND_READONLY,
-	NODE_KIND_ASYNC,
 	NODE_KIND_PROPERTY,
 	NODE_KIND_METHOD,
 	NODE_KIND_CLASS,
@@ -215,12 +214,6 @@ typedef struct node_conditional {
 	node_t *false_expression;
 } node_conditional_t;
 
-typedef struct node_iteration {
-	node_t *start_expression;
-	node_t *step_expression;
-	node_t *stop_expression;
-} node_iteration_t;
-
 
 
 
@@ -309,7 +302,7 @@ typedef struct node_field {
 
 typedef struct node_type_parameter {
 	node_t *name;
-	node_t *heritage;
+	node_t *extends;
 	node_t *value;
 } node_type_parameter_t;
 
@@ -408,73 +401,6 @@ node_make_object(position_t position, list_t *property_list);
 
 node_t *
 node_make_composite(position_t position, node_t *base, list_t *type_arguments);
-
-node_t *
-node_make_notation_func(position_t position, list_t *type_parameters, list_t *parameters, node_t *return_type);
-
-
-
-
-
-node_t *
-node_make_notation_id(position_t position, char *value);
-
-node_t *
-node_make_notation_number(position_t position, char *value);
-
-node_t *
-node_make_notation_char(position_t position, char *value);
-
-node_t *
-node_make_notation_string(position_t position, char *value);
-
-node_t *
-node_make_notation_null(position_t position);
-
-node_t *
-node_make_notation_array(position_t position, node_t *type, node_t *size);
-
-node_t *
-node_make_notation_tuple(position_t position, list_t *type_list);
-
-node_t *
-node_make_notation_object_property(position_t position, node_t *name, node_t *type);
-
-node_t *
-node_make_notation_object(position_t position, list_t *property_list);
-
-node_t *
-node_make_notation_composite(position_t position, node_t *base, list_t *arguments);
-
-node_t *
-node_make_notation_pointer(position_t position, node_t *type);
-
-node_t *
-node_make_notation_refrence(position_t position, node_t *right);
-
-node_t *
-node_make_notation_and(position_t position, node_t *left, node_t *right);
-
-node_t *
-node_make_notation_or(position_t position, node_t *left, node_t *right);
-
-node_t *
-node_make_notation_get_attr(position_t position, node_t *left, node_t *right);
-
-node_t *
-node_make_notation_extends(position_t position, node_t *left, node_t *right);
-
-node_t *
-node_make_notation_typeof(position_t position, node_t *right);
-
-node_t *
-node_make_notation_parenthesis(position_t position, node_t *value);
-
-node_t *
-node_make_notation_conditional(position_t position, node_t *condition, node_t *true_expression, node_t *false_expression);
-
-
-
 
 
 node_t *
@@ -597,6 +523,9 @@ node_make_eq(position_t position, node_t *left, node_t *right);
 
 node_t *
 node_make_neq(position_t position, node_t *left, node_t *right);
+
+node_t *
+node_make_extends(position_t position, node_t *left, node_t *right);
 
 node_t *
 node_make_and(position_t position, node_t *left, node_t *right);
