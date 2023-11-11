@@ -14,9 +14,13 @@ RM := rm -rf
 MKDIR := mkdir
 
 ifeq ($(OS),Windows_NT)
-	CC = gcc
-	CFLAGS += -DWINDOWS
-	LDFLAGS += -lws2_32 -lShlwapi
+	ifeq ($(ARCH), ARM64)
+		CC = arm-none-eabi-gcc
+	else
+		CC = gcc
+		CFLAGS += -DWINDOWS
+		LDFLAGS += -lws2_32 -lShlwapi
+	endif
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
@@ -28,7 +32,6 @@ else
 		AR=ar
 		CFLAGS += -DDARWIN
 	endif
-
 	CFLAGS += -fPIC
 	LDFLAGS += -ldl
 endif

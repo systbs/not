@@ -11,7 +11,6 @@ typedef struct node {
 	position_t position;
 	list_t *locals;
 
-	struct node *container;
 	struct node *parent;
 } node_t;
 
@@ -44,7 +43,6 @@ typedef enum node_kind {
 	NODE_KIND_GET_ITEM,
 	NODE_KIND_GET_ATTR,
 	NODE_KIND_GET_SLICE,
-	NODE_KIND_COMPOUND,
 	
 	NODE_KIND_CAST,
 	NODE_KIND_TILDE,
@@ -121,6 +119,7 @@ typedef enum node_kind {
 	NODE_KIND_PROPERTY,
 	NODE_KIND_METHOD,
 	NODE_KIND_CLASS,
+	NODE_KIND_HERITAGE,
 	NODE_KIND_ENUM_MEMBER,
 	NODE_KIND_ENUM_BLOCK,
 	NODE_KIND_ENUM,
@@ -185,19 +184,6 @@ typedef struct node_get_attr {
 	node_t *right;
 } node_get_attr_t;
 
-typedef struct node_compound {
-	node_t *left;
-	node_t *right;
-} node_compound_t;
-
-
-
-
-
-typedef struct node_cast {
-	node_t *cast;
-	node_t *castable;
-} node_cast_t;
 
 typedef struct node_unary {
 	node_t *right;
@@ -228,8 +214,8 @@ typedef struct node_enumerable {
 
 typedef struct node_if {
 	node_t *condition;
-	node_t *then_statement;
-	node_t *else_statement;
+	node_t *then_body;
+	node_t *else_body;
 } node_if_t;
 
 typedef struct node_for {
@@ -300,6 +286,12 @@ typedef struct node_field {
 	node_t *value;
 } node_field_t;
 
+typedef struct node_heritage {
+	node_t *name;
+	node_t *type;
+	node_t *value;
+} node_heritage_t;
+
 typedef struct node_type_parameter {
 	node_t *name;
 	node_t *extends;
@@ -307,21 +299,18 @@ typedef struct node_type_parameter {
 } node_type_parameter_t;
 
 typedef struct node_func {
-	node_t *field;
-	node_t *name;
+	list_t *fields;
 	list_t *type_parameters;
+	node_t *name;
 	list_t *parameters;
-	node_t *return_type;
 	node_t *body;
 } node_func_t;
 
 typedef struct node_method {
 	uint64_t flag;
-	list_t *fields;
 	node_t *name;
 	list_t *type_parameters;
 	list_t *parameters;
-	node_t *return_type;
 	node_t *body;
 } node_method_t;
 
@@ -357,8 +346,8 @@ typedef struct node_namespace {
 } node_namespace_t;
 
 typedef struct node_import {
-	node_t *field;
-	list_t *paths;
+	node_t *path;
+	list_t *fields;
 } node_import_t;
 
 typedef struct node_module {
@@ -419,9 +408,6 @@ node_t *
 node_make_sizeof(position_t position, node_t *right);
 
 node_t *
-node_make_await(position_t position, node_t *right);
-
-node_t *
 node_make_parenthesis(position_t position, node_t *right);
 
 
@@ -447,9 +433,6 @@ node_make_get_item(position_t position, node_t *name, node_t *index);
 
 node_t *
 node_make_get_attr(position_t position, node_t *left, node_t *right);
-
-node_t *
-node_make_compound(position_t position, node_t *left, node_t *right);
 
 node_t *
 node_make_get_address(position_t position, node_t *right);
@@ -545,8 +528,6 @@ node_make_lor(position_t position, node_t *left, node_t *right);
 node_t *
 node_make_conditional(position_t position, node_t *condition, node_t *true_expression, node_t *false_expression);
 
-node_t *
-node_make_iteration(position_t position, node_t *start_expression, node_t *step_expression, node_t *stop_expression);
 
 
 
@@ -587,10 +568,7 @@ node_t *
 node_make_shr_assign(position_t position, node_t *left, node_t *right);
 
 node_t *
-node_make_if(position_t position, node_t *expr, node_t *then_block_stmt, node_t *else_block_stmt);
-
-node_t *
-node_make_while(position_t position, node_t *expr, node_t *block_stmt);
+node_make_if(position_t position, node_t *condition, node_t *then_body, node_t *else_body);
 
 node_t *
 node_make_for_init_list(position_t position, list_t *init_list);
@@ -626,10 +604,10 @@ node_t *
 node_make_type_arguments(position_t position, list_t *list);
 
 node_t *
-node_make_var(position_t position, node_t *name, node_t *label, node_t *expr);
+node_make_var(position_t position, node_t *name, node_t *type, node_t *value);
 
 node_t *
-node_make_const(position_t position, node_t *name, node_t *label, node_t *expr);
+node_make_const(position_t position, node_t *name, node_t *type, node_t *value);
 
 node_t *
 node_make_type(position_t position, node_t *name, list_t *type_parameters, list_t *heritages, node_t *body);
@@ -647,23 +625,19 @@ node_t *
 node_make_type_parameter(position_t position, node_t *name, node_t *heritage, node_t *value);
 
 node_t *
-node_make_type_parameters(position_t position, list_t *type_parameters);
-
-node_t *
 node_make_func(
 	position_t position, 
-	node_t *field,
-	node_t *name, 
+	list_t *fields,
 	list_t *type_parameters, 
+	node_t *name, 
 	list_t *parameters, 
-	node_t *return_type, 
 	node_t *block_stmt);
 
 node_t *
-node_make_heritages(position_t position, list_t *heritage_list);
+node_make_heritage(position_t position, node_t *name, node_t *type);
 
 node_t *
-node_make_method(position_t position, uint64_t flag, list_t *fields, node_t *name, list_t *type_parameters, list_t *parameters, node_t *return_type, node_t *body);
+node_make_method(position_t position, uint64_t flag, node_t *name, list_t *type_parameters, list_t *parameters, node_t *body);
 
 node_t *
 node_make_property(position_t position, uint64_t flag, node_t *name, node_t *type, node_t *value);
@@ -681,9 +655,6 @@ node_t *
 node_make_enum_member(position_t position, node_t *name, node_t *value);
 
 node_t *
-node_make_enum_block(position_t position, list_t *property_list);
-
-node_t *
 node_make_enum(position_t position, uint64_t flag, node_t *name, list_t *body);
 
 node_t *
@@ -693,13 +664,7 @@ node_t *
 node_make_import_paths(position_t position, list_t *list);
 
 node_t *
-node_make_import(position_t position, node_t *field, list_t *paths);
-
-node_t *
-node_make_async(position_t position, node_t *right);
-
-node_t *
-node_make_namespace(position_t position, node_t *name, list_t *body);
+node_make_import(position_t position, node_t *path, list_t *fields);
 
 node_t *
 node_make_export_block(position_t position, list_t *list);

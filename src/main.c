@@ -67,6 +67,7 @@ main(int argc, char **argv)
     	return -1;
     }
 
+    /*
     binding_t *binding;
     binding = binding_create(&program, errors);
     if(!binding)
@@ -84,6 +85,7 @@ main(int argc, char **argv)
         }
     	return -1;
     }
+    */
 
     return 0;
 

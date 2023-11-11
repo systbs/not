@@ -1,16 +1,37 @@
-import {{a, b}:a.b} from "~/test/lib/";
+import ("~/lib/", ar:array, map)
 
-class A{T} extends (Edge , Got) ->
+export class (T,R) A extends (a:ar{T}, m:map{T,R})
 {
-    func(a:A, e:Edge{string}, g:*Got) constructor() ->
-    {
+  export b:int;
 
-    }
+  func init {
+    a();
+    m();
+    b = a.b + m.b;
+  } 
+
+  export func set (a2:ar{T}) {
+
+  }
+
+  export static func (S) get() {
+
+  }
 }
 
-type B{T} = int;
+export type (T) G extends (t:T) : {
 
-func (b : B) toString(): string ->
-{
-    b(*string)(*int);
+}
+
+export type (T) Y extends (t:T) : {
+
+}
+
+func (g:G{T}, y:Y{T}, T extends T = T) get {
+
+}
+
+export type (T) U extends (g:G{T}, y:Y{T}) : {
+  a1:string,
+  a2:int
 }

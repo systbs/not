@@ -27,19 +27,10 @@ scanner_create(program_t *program, file_source_t *file_source, list_t *errors);
 void
 scanner_destroy(scanner_t *scanner);
 
-char *
-scanner_load_file(char *path);
-
 void 
 scanner_set_token(scanner_t *scanner, token_t token);
 
 int32_t
 scanner_advance(scanner_t *scanner);
-
-int32_t
-scanner_rescan_lt(scanner_t *scanner);
-
-int32_t
-scanner_rescan_gt(scanner_t *scanner);
 
 #endif // __scanner_H__

@@ -4,12 +4,10 @@
 
 typedef enum parser_modifier 
 {
-	PARSER_MODIFIER_NONE 		= 1 << 0,
-	PARSER_MODIFIER_PUBLIC 		= 1 << 1,
-	PARSER_MODIFIER_PRIVATE 	= 1 << 2,
-	PARSER_MODIFIER_PROTECTED 	= 1 << 3,
-	PARSER_MODIFIER_READONLY 	= 1 << 4,
-	PARSER_MODIFIER_STATIC 		= 1 << 5
+	PARSER_MODIFIER_NONE 			= 1 << 0,
+	PARSER_MODIFIER_EXPORT 		= 1 << 1,
+	PARSER_MODIFIER_READONLY 	= 1 << 2,
+	PARSER_MODIFIER_STATIC 		= 1 << 3
 } Parser_modifier_t;
 
 typedef struct parser 
@@ -21,11 +19,13 @@ typedef struct parser
 	program_t *program;
 	token_t *token;
 	int32_t loop_depth;
+	int32_t nouse_composite;
 } parser_t;
 
 typedef struct parser_state
 {
 	int32_t loop_depth;
+	int32_t nouse_composite;
 	int32_t ch;
 	uint64_t offset;
 	uint64_t reading_offset;

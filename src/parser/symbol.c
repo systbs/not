@@ -22,7 +22,7 @@
 uint64_t symbol_counter = 0;
 
 symbol_t *
-symbol_create(symbol_t *parent, node_t *declaration, char *name, uint64_t flags)
+symbol_create(char *name, uint64_t flags, node_t *declaration)
 {
     symbol_t *symbol;
     symbol = (symbol_t *)malloc(sizeof(symbol_t));
@@ -33,15 +33,32 @@ symbol_create(symbol_t *parent, node_t *declaration, char *name, uint64_t flags)
     }
     symbol->escaped_name = name;
     symbol->flags = flags;
-    symbol->parent = parent;
     symbol->declaration = declaration;
     symbol->id = symbol_counter++;
-    
-    symbol->members = list_create();
-    if(!symbol->members)
-    {
-        return NULL;
-    }
 
     return symbol;
+}
+
+int32_t
+symbol_check_flag(symbol_t *symbol, uint64_t flag)
+{
+    return ((symbol->flags & flag) == flag);
+}
+
+void
+symbol_clear_flag(symbol_t *symbol, uint64_t flag)
+{
+    symbol->flags &= ~flag;
+}
+
+void
+symbol_set_flag(symbol_t *symbol, uint64_t flag)
+{
+    symbol->flags |= flag;
+}
+
+void
+symbol_toggle_flag(symbol_t *symbol, uint64_t flag)
+{
+    symbol->flags ^= flag;
 }
