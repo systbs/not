@@ -1,0 +1,1367 @@
+
+
+static symbol_t *
+binding_create_symbol_from_id(binding_t *binding, node_t *node, uint64_t flags, node_t *declaration)
+{
+	node_basic_t *node_basic;
+	node_basic = (node_basic_t *)node->value;
+
+	return symbol_create(node_basic->value, flags, declaration);
+}
+
+static node_t *
+binding_get_container(binding_t *binding, node_t *node)
+{
+	node_t *parent;
+	parent = node->parent;
+
+	while(parent)
+	{
+		switch(parent->kind)
+		{
+		case NODE_KIND_OBJECT:
+		case NODE_KIND_TYPE:
+		case NODE_KIND_FOR:
+		case NODE_KIND_FORIN:
+		case NODE_KIND_IF:
+		case NODE_KIND_TRY:
+		case NODE_KIND_FUNC:
+		case NODE_KIND_CLASS:
+		case NODE_KIND_METHOD:
+		case NODE_KIND_ENUM:
+		case NODE_KIND_MODULE:
+			return parent;
+
+		case NODE_KIND_BLOCK:
+			if((parent->parent->kind == NODE_KIND_FUNC) || (parent->parent->kind == NODE_KIND_METHOD))
+			{
+				return parent->parent;
+			}
+			return parent;
+		
+		default:
+			parent = parent->parent;
+			break;
+		}
+	}
+
+	return NULL;
+}
+
+static node_t *
+binding_get_scoped_container(binding_t *binding, node_t *node)
+{
+	node_t *parent;
+	parent = node->parent;
+
+	while(parent)
+	{
+		switch(parent->kind)
+		{
+		case NODE_KIND_TYPE:
+		case NODE_KIND_FOR:
+		case NODE_KIND_FORIN:
+		case NODE_KIND_IF:
+		case NODE_KIND_TRY:
+		case NODE_KIND_FUNC:
+		case NODE_KIND_CLASS:
+		case NODE_KIND_METHOD:
+		case NODE_KIND_ENUM:
+		case NODE_KIND_MODULE:
+			return parent;
+
+		case NODE_KIND_BLOCK:
+			if((parent->parent->kind == NODE_KIND_FUNC) || (parent->parent->kind == NODE_KIND_METHOD))
+			{
+				return parent->parent;
+			}
+			return parent;
+		
+		default:
+			parent = parent->parent;
+			break;
+		}
+	}
+
+	return NULL;
+}
+
+static symbol_t *
+binding_check_is_duplicated_symbol(binding_t *binding, node_t *container, symbol_t *symbol)
+{
+
+	while(container)
+	{
+		ilist_t *a;
+		for(a = container->locals->begin; a != container->locals->end; a = a->next)
+		{
+			symbol_t *symbol2;
+			symbol2 = (symbol_t *)a->value;
+
+			if(strcmp(symbol->escaped_name, symbol2->escaped_name) == 0)
+			{
+				if(symbol_check_flag(symbol, SYMBOL_FLAG_FUNCTION))
+				{
+					
+				}
+
+				if(symbol_check_flag(symbol2, SYMBOL_FLAG_FUNCTION))
+				{
+
+				}
+				return symbol2;
+			}
+		}
+
+		container = binding_get_container(binding, container);
+	}
+
+	return NULL;
+}
+
+static int32_t 
+binding_global_symbolization_parameter_by_object_and_array(binding_t *binding, node_t *node);
+
+static int32_t 
+binding_global_symbolization_parameter_object_property(binding_t *binding, node_t *node)
+{
+	node_object_property_t *node_object_property;
+	node_object_property = (node_object_property_t *)node->value;
+
+	int32_t result;
+	result = binding_global_symbolization_parameter_by_object_and_array(binding, node_object_property->name);
+	if (!result)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t 
+binding_global_symbolization_parameter_object(binding_t *binding, node_t *node)
+{
+	node_object_t *node_object;
+	node_object = (node_object_t *)node->value;
+
+	int32_t result;
+	ilist_t *a;
+	for (a = node_object->list->begin; a != node_object->list->end; a = a->next)
+	{
+		node_t *temp;
+		temp = (node_t *)a->value;
+
+		result = binding_global_symbolization_parameter_object_property(binding, temp);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+
+static int32_t 
+binding_global_symbolization_parameter_array(binding_t *binding, node_t *node)
+{
+	node_array_t *node_array;
+	node_array = (node_array_t *)node->value;
+
+	int32_t result;
+	ilist_t *a;
+	for (a = node_array->list->begin; a != node_array->list->end; a = a->next)
+	{
+		node_t *temp;
+		temp = (node_t *)a->value;
+
+		result = binding_global_symbolization_parameter_by_object_and_array(binding, temp);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+
+static int32_t 
+binding_global_symbolization_parameter_ellipsis(binding_t *binding, node_t *node)
+{
+	node_unary_t *node_unary;
+	node_unary = (node_unary_t *)node->value;
+
+	int32_t result;
+	result = binding_global_symbolization_parameter_by_object_and_array(binding, node_unary->right);
+	if (!result)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t 
+binding_global_symbolization_parameter_by_object_and_array(binding_t *binding, node_t *node)
+{
+	if(node->kind == NODE_KIND_OBJECT)
+	{
+		binding_global_symbolization_parameter_object(binding, node);
+	}
+	else if(node->kind == NODE_KIND_ARRAY)
+	{
+		binding_global_symbolization_parameter_array(binding, node);
+	}
+	else if(node->kind == NODE_KIND_ELLIPSIS)
+	{
+		binding_global_symbolization_parameter_ellipsis(binding, node);
+	}
+	else if(node->kind == NODE_KIND_ID)
+	{
+		symbol_t *symbol;
+		symbol = binding_create_symbol_from_id(binding, node, SYMBOL_FLAG_PARAMETER, node);
+		if(symbol)
+		{
+			node_t *container;
+			container = binding_get_scoped_container(binding, node);
+			if(container)
+			{
+				symbol_t *previous_symbol;
+				if((previous_symbol = binding_check_is_duplicated_symbol(binding, container, symbol)))
+				{
+					binding_error(binding, node->position, "duplicate definition of '%s'", symbol->escaped_name);
+				}
+				else
+				{
+					if(!list_rpush(container->locals, (list_value_t)symbol))
+					{
+						return 0;
+					}
+				}
+			}
+			else
+			{
+				binding_error(binding, node->position, "empty container");
+				return 0;
+			}
+		}
+		else
+		{
+			binding_error(binding, node->position, "empty symbol");
+			return 0;
+		}
+	}
+	else 
+	{
+		binding_error(binding, node->position, "expected parameter name");
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_parameter(binding_t *binding, node_t *node)
+{
+	node_parameter_t *node_parameter;
+	node_parameter = (node_parameter_t *)node->value;
+
+	int32_t result;
+	result = binding_global_symbolization_parameter_by_object_and_array(binding, node_parameter->name);
+	if (!result)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_type_parameter(binding_t *binding, node_t *node)
+{
+	node_type_parameter_t *node_type_parameter;
+	node_type_parameter = (node_type_parameter_t *)node->value;
+
+	symbol_t *symbol;
+	symbol = binding_create_symbol_from_id(binding, node_type_parameter->name, SYMBOL_FLAG_TYPE_PARAMETER, node);
+	if(symbol)
+	{
+		node_t *container;
+		container = binding_get_container(binding, node);
+		if(container)
+		{
+			symbol_t *previous_symbol;
+			if((previous_symbol = binding_check_is_duplicated_symbol(binding, container, symbol)))
+			{
+				binding_error(binding, node->position, "duplicate definition of '%s'", symbol->escaped_name);
+			}
+			else
+			{
+				if(!list_rpush(container->locals, (list_value_t)symbol))
+				{
+					return 0;
+				}
+			}
+		}
+		else
+		{
+			binding_error(binding, node->position, "empty container");
+			return 0;
+		}
+	}
+	else
+	{
+		binding_error(binding, node_type_parameter->name->position, "empty symbol");
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_field(binding_t *binding, node_t *node)
+{
+	node_field_t *node_field;
+	node_field = (node_field_t *)node->value;
+
+	symbol_t *symbol;
+	symbol = binding_create_symbol_from_id(binding, node_field->name, SYMBOL_FLAG_FIELD, node);
+	if(symbol)
+	{
+		node_t *container;
+		container = binding_get_container(binding, node);
+		if(container)
+		{
+			symbol_t *previous_symbol;
+			if((previous_symbol = binding_check_is_duplicated_symbol(binding, container, symbol)))
+			{
+				binding_error(binding, node->position, "duplicate definition of '%s'", symbol->escaped_name);
+			}
+			else
+			{
+				if(!list_rpush(container->locals, (list_value_t)symbol))
+				{
+					return 0;
+				}
+			}
+		}
+		else
+		{
+			binding_error(binding, node->position, "empty container");
+			return 0;
+		}
+	}
+	else
+	{
+		binding_error(binding, node_field->name->position, "empty symbol");
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_method(binding_t *binding, node_t *node)
+{
+	node_method_t *node_method;
+	node_method = (node_method_t *)node->value;
+
+	symbol_t *symbol;
+	symbol = binding_create_symbol_from_id(binding, node_method->name, SYMBOL_FLAG_METHOD, node);
+	if(symbol)
+	{
+		node_t *container;
+		container = binding_get_container(binding, node);
+		if(container)
+		{
+			symbol_t *previous_symbol;
+			if((previous_symbol = binding_check_is_duplicated_symbol(binding, container, symbol)))
+			{
+				binding_error(binding, node->position, "duplicate definition of '%s'", symbol->escaped_name);
+			}
+			else
+			{
+				if(!list_rpush(container->locals, (list_value_t)symbol))
+				{
+					return 0;
+				}
+			}
+		}
+		else
+		{
+			binding_error(binding, node->position, "empty container");
+			return 0;
+		}
+	}
+	else
+	{
+		binding_error(binding, node_method->name->position, "empty symbol");
+		return 0;
+	}
+
+	int32_t result;
+
+	ilist_t *a;
+	if (node_method->type_parameters)
+	{
+		for (a = node_method->type_parameters->begin; a != node_method->type_parameters->end; a = a->next)
+		{
+			node_t *temp;
+			temp = (node_t *)a->value;
+
+			result = binding_global_symbolization_type_parameter(binding, temp);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	if (node_method->parameters)
+	{
+		for (a = node_method->parameters->begin; a != node_method->parameters->end; a = a->next)
+		{
+			node_t *temp;
+			temp = (node_t *)a->value;
+
+			result = binding_global_symbolization_parameter(binding, temp);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_func(binding_t *binding, node_t *node)
+{
+	node_func_t *node_func;
+	node_func = (node_func_t *)node->value;
+
+	int32_t result;
+	if (node_func->name)
+	{
+		symbol_t *symbol;
+		symbol = binding_create_symbol_from_id(binding, node_func->name, SYMBOL_FLAG_METHOD, node);
+		if(symbol)
+		{
+			node_t *container;
+			container = binding_get_container(binding, node);
+			if(container)
+			{
+				symbol_t *previous_symbol;
+				if((previous_symbol = binding_check_is_duplicated_symbol(binding, container, symbol)))
+				{
+					binding_error(binding, node->position, "duplicate definition of '%s'", symbol->escaped_name);
+				}
+				else
+				{
+					if(!list_rpush(container->locals, (list_value_t)symbol))
+					{
+						return 0;
+					}
+				}
+			}
+			else
+			{
+				binding_error(binding, node->position, "empty container");
+				return 0;
+			}
+		}
+		else
+		{
+			binding_error(binding, node_func->name->position, "empty symbol");
+			return 0;
+		}
+	}
+
+	if (node_func->fields)
+	{
+		ilist_t *a;
+		for (a = node_func->fields->begin; a != node_func->fields->end; a = a->next)
+		{
+			node_t *temp;
+			temp = (node_t *)a->value;
+			result = binding_global_symbolization_field(binding, temp);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	if (node_func->type_parameters)
+	{
+		ilist_t *a;
+		for (a = node_func->type_parameters->begin; a != node_func->type_parameters->end; a = a->next)
+		{
+			node_t *temp;
+			temp = (node_t *)a->value;
+
+			result = binding_global_symbolization_type_parameter(binding, temp);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	if (node_func->parameters)
+	{
+		ilist_t *a;
+		for (a = node_func->parameters->begin; a != node_func->parameters->end; a = a->next)
+		{
+			node_t *temp;
+			temp = (node_t *)a->value;
+
+			result = binding_global_symbolization_parameter(binding, temp);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_property(binding_t *binding, node_t *node)
+{
+	node_field_t *node_field;
+	node_field = (node_field_t *)node->value;
+
+	symbol_t *symbol;
+	symbol = binding_create_symbol_from_id(binding, node_field->name, SYMBOL_FLAG_PROPERTY, node);
+	if(symbol)
+	{
+		node_t *container;
+		container = binding_get_container(binding, node);
+		if(container)
+		{
+			symbol_t *previous_symbol;
+			if((previous_symbol = binding_check_is_duplicated_symbol(binding, container, symbol)))
+			{
+				binding_error(binding, node->position, "duplicate definition of '%s'", symbol->escaped_name);
+			}
+			else
+			{
+				if(!list_rpush(container->locals, (list_value_t)symbol))
+				{
+					return 0;
+				}
+			}
+		}
+		else
+		{
+			binding_error(binding, node->position, "empty container");
+			return 0;
+		}
+	}
+	else
+	{
+		binding_error(binding, node_field->name->position, "empty symbol");
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_enum_member(binding_t *binding, node_t *node)
+{
+	node_enum_member_t *node_enum_member;
+	node_enum_member = (node_enum_member_t *)node->value;
+
+	symbol_t *symbol;
+	symbol = binding_create_symbol_from_id(binding, node_enum_member->name, SYMBOL_FLAG_ENUM_MEMBER, node);
+	if(symbol)
+	{
+		node_t *container;
+		container = binding_get_container(binding, node);
+		if(container)
+		{
+			symbol_t *previous_symbol;
+			if((previous_symbol = binding_check_is_duplicated_symbol(binding, container, symbol)))
+			{
+				binding_error(binding, node->position, "duplicate definition of '%s'", symbol->escaped_name);
+			}
+			else
+			{
+				if(!list_rpush(container->locals, (list_value_t)symbol))
+				{
+					return 0;
+				}
+			}
+		}
+		else
+		{
+			binding_error(binding, node->position, "empty container");
+			return 0;
+		}
+	}
+	else
+	{
+		binding_error(binding, node_enum_member->name->position, "empty symbol");
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_enum(binding_t *binding, node_t *node)
+{
+	node_enum_t *node_enum;
+	node_enum = (node_enum_t *)node->value;
+
+	symbol_t *symbol;
+	symbol = binding_create_symbol_from_id(binding, node_enum->name, SYMBOL_FLAG_ENUM, node);
+	if(symbol)
+	{
+		node_t *container;
+		container = binding_get_container(binding, node);
+		if(container)
+		{
+			symbol_t *previous_symbol;
+			if((previous_symbol = binding_check_is_duplicated_symbol(binding, container, symbol)))
+			{
+				binding_error(binding, node->position, "duplicate definition of '%s'", symbol->escaped_name);
+			}
+			else
+			{
+				if(!list_rpush(container->locals, (list_value_t)symbol))
+				{
+					return 0;
+				}
+			}
+		}
+		else
+		{
+			binding_error(binding, node->position, "empty container");
+			return 0;
+		}
+	}
+	else
+	{
+		binding_error(binding, node_enum->name->position, "empty symbol");
+		return 0;
+	}
+
+	int32_t result;
+
+	ilist_t *a;
+	for (a = node_enum->body->begin; a != node_enum->body->end; a = a->next)
+	{
+		node_t *temp;
+		temp = (node_t *)a->value;
+
+		result = binding_global_symbolization_enum_member(binding, temp);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_class(binding_t *binding, node_t *node)
+{
+	node_class_t *node_class;
+	node_class = (node_class_t *)node->value;
+
+	symbol_t *symbol;
+	symbol = binding_create_symbol_from_id(binding, node_class->name, SYMBOL_FLAG_CLASS, node);
+	if(symbol)
+	{
+		node_t *container;
+		container = binding_get_container(binding, node);
+		if(container)
+		{
+			symbol_t *previous_symbol;
+			if((previous_symbol = binding_check_is_duplicated_symbol(binding, container, symbol)))
+			{
+				binding_error(binding, node->position, "duplicate definition of '%s'", symbol->escaped_name);
+			}
+			else
+			{
+				if(!list_rpush(container->locals, (list_value_t)symbol))
+				{
+					return 0;
+				}
+			}
+		}
+		else
+		{
+			binding_error(binding, node->position, "empty container");
+			return 0;
+		}
+	}
+	else
+	{
+		binding_error(binding, node_class->name->position, "empty symbol");
+		return 0;
+	}
+
+	int32_t result;
+
+	ilist_t *a;
+	if (node_class->type_parameters)
+	{
+		for (a = node_class->type_parameters->begin; a != node_class->type_parameters->end; a = a->next)
+		{
+			node_t *temp;
+			temp = (node_t *)a->value;
+
+			result = binding_global_symbolization_type_parameter(binding, temp);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	for (a = node_class->body->begin; a != node_class->body->end; a = a->next)
+	{
+		node_t *temp;
+		temp = (node_t *)a->value;
+
+		switch (temp->kind)
+		{
+		case NODE_KIND_CLASS:
+			result = binding_global_symbolization_class(binding, temp);
+			if (!result)
+			{
+				return 0;
+			}
+			break;
+
+		case NODE_KIND_ENUM:
+			result = binding_global_symbolization_enum(binding, temp);
+			if (!result)
+			{
+				return 0;
+			}
+			break;
+
+		case NODE_KIND_PROPERTY:
+			result = binding_global_symbolization_property(binding, temp);
+			if (!result)
+			{
+				return 0;
+			}
+			break;
+
+		case NODE_KIND_METHOD:
+			result = binding_global_symbolization_method(binding, temp);
+			if (!result)
+			{
+				return 0;
+			}
+			break;
+
+		default:
+			binding_error(binding, node->position, "unknown node body decalaration");
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+
+static int32_t 
+binding_global_symbolization_variable_by_object_and_array(binding_t *binding, node_t *node);
+
+static int32_t 
+binding_global_symbolization_variable_object_property(binding_t *binding, node_t *node)
+{
+	node_object_property_t *node_object_property;
+	node_object_property = (node_object_property_t *)node->value;
+
+	int32_t result;
+	result = binding_global_symbolization_variable_by_object_and_array(binding, node_object_property->name);
+	if (!result)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t 
+binding_global_symbolization_variable_object(binding_t *binding, node_t *node)
+{
+	node_object_t *node_object;
+	node_object = (node_object_t *)node->value;
+
+	int32_t result;
+	ilist_t *a;
+	for (a = node_object->list->begin; a != node_object->list->end; a = a->next)
+	{
+		node_t *temp;
+		temp = (node_t *)a->value;
+
+		result = binding_global_symbolization_variable_object_property(binding, temp);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+
+static int32_t 
+binding_global_symbolization_variable_array(binding_t *binding, node_t *node)
+{
+	node_array_t *node_array;
+	node_array = (node_array_t *)node->value;
+
+	int32_t result;
+	ilist_t *a;
+	for (a = node_array->list->begin; a != node_array->list->end; a = a->next)
+	{
+		node_t *temp;
+		temp = (node_t *)a->value;
+
+		result = binding_global_symbolization_variable_by_object_and_array(binding, temp);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+
+static int32_t 
+binding_global_symbolization_variable_ellipsis(binding_t *binding, node_t *node)
+{
+	node_unary_t *node_unary;
+	node_unary = (node_unary_t *)node->value;
+
+	int32_t result;
+	result = binding_global_symbolization_variable_by_object_and_array(binding, node_unary->right);
+	if (!result)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t 
+binding_global_symbolization_variable_by_object_and_array(binding_t *binding, node_t *node)
+{
+	if(node->kind == NODE_KIND_OBJECT)
+	{
+		binding_global_symbolization_variable_object(binding, node);
+	}
+	else if(node->kind == NODE_KIND_ARRAY)
+	{
+		binding_global_symbolization_variable_array(binding, node);
+	}
+	else if(node->kind == NODE_KIND_ELLIPSIS)
+	{
+		binding_global_symbolization_variable_ellipsis(binding, node);
+	}
+	else if(node->kind == NODE_KIND_ID)
+	{
+		symbol_t *symbol;
+		symbol = binding_create_symbol_from_id(binding, node, SYMBOL_FLAG_VARIABLE, node);
+		if(symbol)
+		{
+			node_t *container;
+			container = binding_get_scoped_container(binding, node);
+			if(container)
+			{
+				symbol_t *previous_symbol;
+				if((previous_symbol = binding_check_is_duplicated_symbol(binding, container, symbol)))
+				{
+					binding_error(binding, node->position, "duplicate definition of '%s'", symbol->escaped_name);
+				}
+				else
+				{
+					if(!list_rpush(container->locals, (list_value_t)symbol))
+					{
+						return 0;
+					}
+				}
+			}
+			else
+			{
+				binding_error(binding, node->position, "empty container");
+				return 0;
+			}
+		}
+		else
+		{
+			binding_error(binding, node->position, "empty symbol");
+			return 0;
+		}
+	}
+	else 
+	{
+		binding_error(binding, node->position, "expected parameter name");
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_var(binding_t *binding, node_t *node)
+{
+	node_var_t *node_var;
+	node_var = (node_var_t *)node->value;
+
+	int32_t result;
+	result = binding_global_symbolization_variable_by_object_and_array(binding, node_var->name);
+	if (!result)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t 
+binding_global_symbolization_constant_by_object_and_array(binding_t *binding, node_t *node);
+
+static int32_t 
+binding_global_symbolization_constant_object_property(binding_t *binding, node_t *node)
+{
+	node_object_property_t *node_object_property;
+	node_object_property = (node_object_property_t *)node->value;
+
+	int32_t result;
+	result = binding_global_symbolization_constant_by_object_and_array(binding, node_object_property->name);
+	if (!result)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t 
+binding_global_symbolization_constant_object(binding_t *binding, node_t *node)
+{
+	node_object_t *node_object;
+	node_object = (node_object_t *)node->value;
+
+	int32_t result;
+	ilist_t *a;
+	for (a = node_object->list->begin; a != node_object->list->end; a = a->next)
+	{
+		node_t *temp;
+		temp = (node_t *)a->value;
+
+		result = binding_global_symbolization_constant_object_property(binding, temp);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+
+static int32_t 
+binding_global_symbolization_constant_array(binding_t *binding, node_t *node)
+{
+	node_array_t *node_array;
+	node_array = (node_array_t *)node->value;
+
+	int32_t result;
+	ilist_t *a;
+	for (a = node_array->list->begin; a != node_array->list->end; a = a->next)
+	{
+		node_t *temp;
+		temp = (node_t *)a->value;
+
+		result = binding_global_symbolization_constant_by_object_and_array(binding, temp);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+
+static int32_t 
+binding_global_symbolization_constant_ellipsis(binding_t *binding, node_t *node)
+{
+	node_unary_t *node_unary;
+	node_unary = (node_unary_t *)node->value;
+
+	int32_t result;
+	result = binding_global_symbolization_constant_by_object_and_array(binding, node_unary->right);
+	if (!result)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t 
+binding_global_symbolization_constant_by_object_and_array(binding_t *binding, node_t *node)
+{
+	if(node->kind == NODE_KIND_OBJECT)
+	{
+		binding_global_symbolization_constant_object(binding, node);
+	}
+	else if(node->kind == NODE_KIND_ARRAY)
+	{
+		binding_global_symbolization_constant_array(binding, node);
+	}
+	else if(node->kind == NODE_KIND_ELLIPSIS)
+	{
+		binding_global_symbolization_constant_ellipsis(binding, node);
+	}
+	else if(node->kind == NODE_KIND_ID)
+	{
+		symbol_t *symbol;
+		symbol = binding_create_symbol_from_id(binding, node, SYMBOL_FLAG_CONST, node);
+		if(symbol)
+		{
+			node_t *container;
+			container = binding_get_scoped_container(binding, node);
+			if(container)
+			{
+				symbol_t *previous_symbol;
+				if((previous_symbol = binding_check_is_duplicated_symbol(binding, container, symbol)))
+				{
+					binding_error(binding, node->position, "duplicate definition of '%s'", symbol->escaped_name);
+				}
+				else
+				{
+					if(!list_rpush(container->locals, (list_value_t)symbol))
+					{
+						return 0;
+					}
+				}
+			}
+			else
+			{
+				binding_error(binding, node->position, "empty container");
+				return 0;
+			}
+		}
+		else
+		{
+			binding_error(binding, node->position, "empty symbol");
+			return 0;
+		}
+	}
+	else 
+	{
+		binding_error(binding, node->position, "expected parameter name");
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_const(binding_t *binding, node_t *node)
+{
+	node_const_t *node_const;
+	node_const = (node_const_t *)node->value;
+
+	int32_t result;
+	result = binding_global_symbolization_constant_by_object_and_array(binding, node_const->name);
+	if (!result)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_type(binding_t *binding, node_t *node)
+{
+	node_type_t *node_type;
+	node_type = (node_type_t *)node->value;
+
+	symbol_t *symbol;
+	symbol = binding_create_symbol_from_id(binding, node_type->name, SYMBOL_FLAG_TYPE, node);
+	if(symbol)
+	{
+		node_t *container;
+		container = binding_get_container(binding, node);
+		if(container)
+		{
+			symbol_t *previous_symbol;
+			if((previous_symbol = binding_check_is_duplicated_symbol(binding, container, symbol)))
+			{
+				binding_error(binding, node->position, "duplicate definition of '%s'", symbol->escaped_name);
+			}
+			else
+			{
+				if(!list_rpush(container->locals, (list_value_t)symbol))
+				{
+					return 0;
+				}
+			}
+		}
+		else
+		{
+			binding_error(binding, node->position, "empty container");
+			return 0;
+		}
+	}
+	else
+	{
+		binding_error(binding, node_type->name->position, "empty symbol");
+		return 0;
+	}
+
+	int32_t result;
+
+	ilist_t *a;
+	if (node_type->type_parameters)
+	{
+		for (a = node_type->type_parameters->begin; a != node_type->type_parameters->end; a = a->next)
+		{
+			node_t *temp;
+			temp = (node_t *)a->value;
+
+			result = binding_global_symbolization_type_parameter(binding, temp);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_export_by_object(binding_t *binding, node_t *node);
+
+static int32_t 
+binding_global_symbolization_export_object_property(binding_t *binding, node_t *node)
+{
+	node_object_property_t *node_object_property;
+	node_object_property = (node_object_property_t *)node->value;
+
+	int32_t result;
+	result = binding_global_symbolization_export_by_object(binding, node_object_property->name);
+	if (!result)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_export_object(binding_t *binding, node_t *node)
+{
+	node_object_t *node_object;
+	node_object = (node_object_t *)node->value;
+
+	int32_t result;
+	ilist_t *a;
+	for (a = node_object->list->begin; a != node_object->list->end; a = a->next)
+	{
+		node_t *temp;
+		temp = (node_t *)a->value;
+
+		result = binding_global_symbolization_export_object_property(binding, temp);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_export_by_object(binding_t *binding, node_t *node)
+{
+	if(node->kind == NODE_KIND_OBJECT)
+	{
+		int32_t result;
+		result = binding_global_symbolization_export_object(binding, node);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+	else if(node->kind == NODE_KIND_ID)
+	{
+		symbol_t *symbol;
+		symbol = binding_create_symbol_from_id(binding, node, SYMBOL_FLAG_EXPORT, node);
+		if(symbol)
+		{
+			node_t *container;
+			container = binding_get_container(binding, node);
+			if(container)
+			{
+				symbol_t *previous_symbol;
+				if((previous_symbol = binding_check_is_duplicated_symbol(binding, container, symbol)))
+				{
+					binding_error(binding, node->position, "duplicate definition of '%s'", symbol->escaped_name);
+				}
+				else
+				{
+					if(!list_rpush(container->locals, (list_value_t)symbol))
+					{
+						return 0;
+					}
+				}
+			}
+			else
+			{
+				binding_error(binding, node->position, "empty container");
+				return 0;
+			}
+		}
+		else
+		{
+			binding_error(binding, node->position, "empty symbol");
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_export(binding_t *binding, node_t *node)
+{
+	node_modifier_t *node_export;
+	node_export = (node_modifier_t *)node->value;
+
+	int32_t result = 0;
+	switch (node_export->x->kind)
+	{
+	case NODE_KIND_CLASS:
+		result = binding_global_symbolization_class(binding, node_export->x);
+		break;
+
+	case NODE_KIND_ENUM:
+		result = binding_global_symbolization_enum(binding, node_export->x);
+		break;
+
+	case NODE_KIND_FUNC:
+		result = binding_global_symbolization_func(binding, node_export->x);
+		break;
+
+	case NODE_KIND_VAR:
+		result = binding_global_symbolization_var(binding, node_export->x);
+		break;
+
+	case NODE_KIND_CONST:
+		result = binding_global_symbolization_const(binding, node_export->x);
+		break;
+
+	case NODE_KIND_TYPE:
+		result = binding_global_symbolization_type(binding, node_export->x);
+		break;
+
+	case NODE_KIND_OBJECT:
+		result = binding_global_symbolization_export_by_object(binding, node_export->x);
+		break;
+
+	default:
+		binding_error(binding, node->position, "unknown export declaration");
+		return 0;
+	}
+
+	if (!result)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_import(binding_t *binding, node_t *node)
+{
+	node_import_t *node_import;
+	node_import = (node_import_t *)node->value;
+
+	int32_t result;
+	ilist_t *a;
+	for (a = node_import->fields->begin; a != node_import->fields->end; a = a->next)
+	{
+		node_t *temp;
+		temp = (node_t *)a->value;
+
+		result = binding_global_symbolization_field(binding, temp);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+binding_global_symbolization_module(binding_t *binding, node_t *node)
+{
+	node_module_t *node_module;
+	node_module = (node_module_t *)node->value;
+
+	int32_t result = 0;
+
+	ilist_t *a;
+	for (a = node_module->members->begin; a != node_module->members->end; a = a->next)
+	{
+		node_t *temp;
+		temp = (node_t *)a->value;
+		switch (temp->kind)
+		{
+		case NODE_KIND_EXPORT:
+			result = binding_global_symbolization_export(binding, temp);
+			break;
+
+		case NODE_KIND_IMPORT:
+			result = binding_global_symbolization_import(binding, temp);
+			break;
+
+		case NODE_KIND_CLASS:
+			result = binding_global_symbolization_class(binding, temp);
+			break;
+
+		case NODE_KIND_ENUM:
+			result = binding_global_symbolization_enum(binding, temp);
+			break;
+
+		case NODE_KIND_FUNC:
+			result = binding_global_symbolization_func(binding, temp);
+			break;
+
+		case NODE_KIND_VAR:
+			result = binding_global_symbolization_var(binding, temp);
+			break;
+
+		case NODE_KIND_CONST:
+			result = binding_global_symbolization_const(binding, temp);
+			break;
+
+		case NODE_KIND_TYPE:
+			result = binding_global_symbolization_type(binding, temp);
+			break;
+
+		default:
+			binding_error(binding, node->position, "unknown module member");
+			return 0;
+		}
+		if (!result)
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}

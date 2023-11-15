@@ -112,9 +112,6 @@ typedef enum node_kind {
 	NODE_KIND_FIELD,
 	NODE_KIND_TYPE_PARAMETER,
 	NODE_KIND_FUNC,
-	NODE_KIND_PUBLIC,
-	NODE_KIND_PRIVATE,
-	NODE_KIND_PROTECTED,
 	NODE_KIND_READONLY,
 	NODE_KIND_PROPERTY,
 	NODE_KIND_METHOD,
@@ -124,9 +121,7 @@ typedef enum node_kind {
 	NODE_KIND_ENUM_BLOCK,
 	NODE_KIND_ENUM,
 	NODE_KIND_BLOCK,
-	NODE_KIND_IMPORT_PATHS,
 	NODE_KIND_IMPORT,
-	NODE_KIND_NAMESPACE,
 	NODE_KIND_EXPORT_BLOCK,
 	NODE_KIND_EXPORT,
 	NODE_KIND_MODULE,
@@ -283,13 +278,11 @@ typedef struct node_parameter {
 typedef struct node_field {
 	node_t *name;
 	node_t *type;
-	node_t *value;
 } node_field_t;
 
 typedef struct node_heritage {
 	node_t *name;
 	node_t *type;
-	node_t *value;
 } node_heritage_t;
 
 typedef struct node_type_parameter {
@@ -339,11 +332,6 @@ typedef struct node_enum {
 	node_t *name;
 	list_t *body;
 } node_enum_t;
-
-typedef struct node_namespace {
-	node_t *name;
-	list_t *body;
-} node_namespace_t;
 
 typedef struct node_import {
 	node_t *path;

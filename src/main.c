@@ -13,7 +13,7 @@
 #include "ast/node.h"
 #include "parser/parser.h"
 #include "parser/error.h"
-#include "parser/binding.h"
+#include "parser/syntax.h"
 #include "utils/utils.h"
 #include "utils/path.h"
 
@@ -67,17 +67,17 @@ main(int argc, char **argv)
     	return -1;
     }
 
-    /*
-    binding_t *binding;
-    binding = binding_create(&program, errors);
-    if(!binding)
+    
+    syntax_t *syntax;
+    syntax = syntax_create(&program, errors);
+    if(!syntax)
     {
         return -1;
     }
 
-    int32_t binding_result;
-    binding_result = binding_run(binding, root);
-    if(!binding_result)
+    int32_t syntax_result;
+    syntax_result = syntax_run(syntax, root);
+    if(!syntax_result)
     {
         if(list_count(errors) > 0)
         {
@@ -85,8 +85,8 @@ main(int argc, char **argv)
         }
     	return -1;
     }
-    */
-
+    
+    
     return 0;
 
     ilist_t *a;

@@ -1,4 +1,4 @@
-@ {array} : "./array.q";
+import ("./array.q", array)
 
-export type pair{K, V} : [K, V];
-export type map{K, V} : array{pair{K, V}};
+export type (K, V) pair : [K, V];
+export type (K, V) map : array{pair{K, V}};

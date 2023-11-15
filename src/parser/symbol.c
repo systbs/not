@@ -14,9 +14,8 @@
 #include "../utils/utils.h"
 #include "../utils/path.h"
 #include "parser.h"
-#include "forecast.h"
 #include "error.h"
-#include "binding.h"
+#include "syntax.h"
 #include "symbol.h"
 
 uint64_t symbol_counter = 0;

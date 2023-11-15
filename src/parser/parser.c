@@ -3607,12 +3607,12 @@ parser_heritage(parser_t *parser)
 		return NULL;
 	}
 
-	node_t *type = NULL;
 	if (!parser_match(parser, TOKEN_COLON))
 	{
 		return NULL;
 	}
 
+	node_t *type = NULL;
 	type = parser_expression(parser);
 	if (!type)
 	{
