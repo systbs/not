@@ -24,6 +24,9 @@
         "program.h": "c",
         "utils.h": "c",
         "path.h": "c",
-        "symbol.h": "c"
+        "symbol.h": "c",
+        "stdio.h": "c",
+        "node.h": "c",
+        "error.h": "c"
     }
 }

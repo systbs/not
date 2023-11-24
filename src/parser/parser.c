@@ -3680,7 +3680,7 @@ parser_class(parser_t *parser, uint64_t flag)
 
 		if (parser->token->type == TOKEN_RPAREN)
 		{
-			parser_error(parser, parser->token->position, "type parameters is empty");
+			parser_error(parser, parser->token->position, "type parameters");
 			return NULL;
 		}
 

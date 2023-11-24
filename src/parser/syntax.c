@@ -26,6 +26,8 @@
 #include "syntax.h"
 #include "symbol.h"
 
+int32_t debug = 0;
+
 static error_t *
 syntax_error(syntax_t *syntax, position_t position, const char *format, ...)
 {
@@ -298,6 +300,11 @@ syntax_check_is_name(syntax_t *syntax, node_t *node);
 static int32_t
 syntax_id(syntax_t *syntax, node_t *parent, node_t *node)
 {
+	if(debug)
+	{
+		printf("syntax 1 %d\n", 1);
+	}
+	
 	node->parent = parent;
 	return 1;
 }
@@ -306,6 +313,10 @@ static int32_t
 syntax_number(syntax_t *syntax, node_t *parent, node_t *node)
 {
 	node->parent = parent;
+	if(debug)
+	{
+		printf("syntax 2 %d\n", 1);
+	}
 	return 1;
 }
 
@@ -313,6 +324,10 @@ static int32_t
 syntax_string(syntax_t *syntax, node_t *parent, node_t *node)
 {
 	node->parent = parent;
+	if(debug)
+	{
+		printf("syntax 3 %d\n", 1);
+	}
 	return 1;
 }
 
@@ -320,6 +335,10 @@ static int32_t
 syntax_char(syntax_t *syntax, node_t *parent, node_t *node)
 {
 	node->parent = parent;
+	if(debug)
+	{
+		printf("syntax 4 %d\n", 1);
+	}
 	return 1;
 }
 
@@ -327,6 +346,10 @@ static int32_t
 syntax_null(syntax_t *syntax, node_t *parent, node_t *node)
 {
 	node->parent = parent;
+	if(debug)
+	{
+		printf("syntax 5 %d\n", 1);
+	}
 	return 1;
 }
 
@@ -334,6 +357,10 @@ static int32_t
 syntax_true(syntax_t *syntax, node_t *parent, node_t *node)
 {
 	node->parent = parent;
+	if(debug)
+	{
+		printf("syntax 6 %d\n", 1);
+	}
 	return 1;
 }
 
@@ -341,6 +368,10 @@ static int32_t
 syntax_false(syntax_t *syntax, node_t *parent, node_t *node)
 {
 	node->parent = parent;
+	if(debug)
+	{
+		printf("syntax 7 %d\n", 1);
+	}
 	return 1;
 }
 
@@ -352,20 +383,23 @@ syntax_array(syntax_t *syntax, node_t *parent, node_t *node)
 	node_array_t *node_array;
 	node_array = (node_array_t *)node->value;
 
-	int32_t result;
+	int32_t result = 1;
+
 	ilist_t *a;
 	for (a = node_array->list->begin; a != node_array->list->end; a = a->next)
 	{
 		node_t *temp;
 		temp = (node_t *)a->value;
 
-		result = syntax_expression(syntax, node, temp);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, temp);
 	}
-	return 1;
+	
+	if(debug)
+	{
+		printf("syntax 8 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -378,12 +412,12 @@ syntax_parenthesis(syntax_t *syntax, node_t *parent, node_t *node)
 
 	int32_t result;
 	result = syntax_expression(syntax, node, node_unary->right);
-	if (!result)
+	if(debug)
 	{
-		return 0;
+		printf("syntax 9 %d\n", result);
 	}
 
-	return 1;
+	return result;
 }
 
 static int32_t
@@ -396,21 +430,18 @@ syntax_object_property(syntax_t *syntax, node_t *parent, node_t *node)
 
 	int32_t result;
 	result = syntax_expression(syntax, node, node_object_property->name);
-	if (!result)
-	{
-		return 0;
-	}
 
 	if (node_object_property->value)
 	{
-		result = syntax_expression(syntax, node, node_object_property->value);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, node_object_property->value);
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 10 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -421,70 +452,72 @@ syntax_object(syntax_t *syntax, node_t *parent, node_t *node)
 	node_object_t *node_object;
 	node_object = (node_object_t *)node->value;
 
-	int32_t result;
+	int32_t result = 1;
 	ilist_t *a;
 	for (a = node_object->list->begin; a != node_object->list->end; a = a->next)
 	{
 		node_t *temp;
 		temp = (node_t *)a->value;
 
-		result = syntax_object_property(syntax, node, temp);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_object_property(syntax, node, temp);
 	}
-	return 1;
+	
+	if(debug)
+	{
+		printf("syntax 11 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
 syntax_primary(syntax_t *syntax, node_t *parent, node_t *node)
 {
-	int32_t result;
+	int32_t result = 1;
 	switch (node->kind)
 	{
 	case NODE_KIND_ID:
-		result = syntax_id(syntax, parent, node);
+		result &= syntax_id(syntax, parent, node);
 		break;
 
 	case NODE_KIND_NUMBER:
-		result = syntax_number(syntax, parent, node);
+		result &= syntax_number(syntax, parent, node);
 		break;
 
 	case NODE_KIND_STRING:
-		result = syntax_string(syntax, parent, node);
+		result &= syntax_string(syntax, parent, node);
 		break;
 
 	case NODE_KIND_CHAR:
-		result = syntax_char(syntax, parent, node);
+		result &= syntax_char(syntax, parent, node);
 		break;
 
 	case NODE_KIND_NULL:
-		result = syntax_null(syntax, parent, node);
+		result &= syntax_null(syntax, parent, node);
 		break;
 
 	case NODE_KIND_TRUE:
-		result = syntax_true(syntax, parent, node);
+		result &= syntax_true(syntax, parent, node);
 		break;
 
 	case NODE_KIND_FALSE:
-		result = syntax_false(syntax, parent, node);
+		result &= syntax_false(syntax, parent, node);
 		break;
 
 	case NODE_KIND_ARRAY:
-		result = syntax_array(syntax, parent, node);
+		result &= syntax_array(syntax, parent, node);
 		break;
 
 	case NODE_KIND_OBJECT:
-		result = syntax_object(syntax, parent, node);
+		result &= syntax_object(syntax, parent, node);
 		break;
 
 	case NODE_KIND_FUNC:
-		result = syntax_func(syntax, parent, node);
+		result &= syntax_func(syntax, parent, node);
 		break;
 
 	case NODE_KIND_PARENTHESIS:
-		result = syntax_parenthesis(syntax, parent, node);
+		result &= syntax_parenthesis(syntax, parent, node);
 		break;
 
 	default:
@@ -492,12 +525,12 @@ syntax_primary(syntax_t *syntax, node_t *parent, node_t *node)
 		return 0;
 	}
 
-	if (!result)
+	if(debug)
 	{
-		return 0;
+		printf("syntax 12 %d\n", result);
 	}
 
-	return 1;
+	return result;
 }
 
 static int32_t
@@ -512,6 +545,12 @@ syntax_check_cannot_followed_by_composite(syntax_t *syntax, node_t *node)
 									"A slice has no signatures for which the type argument list is applicable");
 		return 0;
 	}
+
+	if(debug)
+	{
+		printf("syntax 13 %d\n", 1);
+	}
+
 	return 1;
 }
 
@@ -527,10 +566,6 @@ syntax_composite(syntax_t *syntax, node_t *parent, node_t *node)
 
 	int32_t result;
 	result = syntax_postfix(syntax, node, node_composite->base);
-	if (!result)
-	{
-		return 0;
-	}
 
 	if (node_composite->type_arguments)
 	{
@@ -540,15 +575,16 @@ syntax_composite(syntax_t *syntax, node_t *parent, node_t *node)
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = syntax_expression(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_expression(syntax, node, temp);
 		}
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 14 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -562,6 +598,12 @@ syntax_check_cannot_followed_by_call(syntax_t *syntax, node_t *node)
 		syntax_error(syntax, node->position, "A slice cannot be called");
 		return 0;
 	}
+
+	if(debug)
+	{
+		printf("syntax 15 %d\n", 1);
+	}
+
 	return 1;
 }
 
@@ -570,17 +612,14 @@ syntax_call(syntax_t *syntax, node_t *parent, node_t *node)
 {
 	node->parent = parent;
 
-	syntax_check_cannot_followed_by_call(syntax, node);
+	int32_t result;
+	result = syntax_check_cannot_followed_by_call(syntax, node);
 
 	node_call_t *node_call;
 	node_call = (node_call_t *)node->value;
 
-	int32_t result;
-	result = syntax_postfix(syntax, node, node_call->callable);
-	if (!result)
-	{
-		return 0;
-	}
+	
+	result &= syntax_postfix(syntax, node, node_call->callable);
 
 	if (node_call->arguments)
 	{
@@ -590,12 +629,13 @@ syntax_call(syntax_t *syntax, node_t *parent, node_t *node)
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = syntax_expression(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_expression(syntax, node, temp);
 		}
+	}
+
+	if(debug)
+	{
+		printf("syntax 16 %d\n", result);
 	}
 
 	return 1;
@@ -612,6 +652,12 @@ syntax_check_cannot_followed_by_get_slice(syntax_t *syntax, node_t *node)
 		syntax_error(syntax, node->position, "An instantiation expression cannot be followed by a property access");
 		return 0;
 	}
+
+	if(debug)
+	{
+		printf("syntax 17 %d\n", 1);
+	}
+
 	return 1;
 }
 
@@ -620,46 +666,35 @@ syntax_get_slice(syntax_t *syntax, node_t *parent, node_t *node)
 {
 	node->parent = parent;
 
-	syntax_check_cannot_followed_by_get_slice(syntax, node);
+	int32_t result;
+	result = syntax_check_cannot_followed_by_get_slice(syntax, node);
 
 	node_get_slice_t *node_get_slice;
 	node_get_slice = (node_get_slice_t *)node->value;
 
-	int32_t result;
-	result = syntax_postfix(syntax, node, node_get_slice->name);
-	if (!result)
-	{
-		return 0;
-	}
+	result &= syntax_postfix(syntax, node, node_get_slice->name);
 
 	if (node_get_slice->start)
 	{
-		result = syntax_expression(syntax, node, node_get_slice->start);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, node_get_slice->start);
 	}
 
 	if (node_get_slice->step)
 	{
-		result = syntax_expression(syntax, node, node_get_slice->step);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, node_get_slice->step);
 	}
 
 	if (node_get_slice->stop)
 	{
-		result = syntax_expression(syntax, node, node_get_slice->stop);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, node_get_slice->stop);
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 18 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -673,6 +708,12 @@ syntax_check_cannot_followed_by_get_item(syntax_t *syntax, node_t *node)
 		syntax_error(syntax, node->position, "An instantiation expression cannot be followed by a property access");
 		return 0;
 	}
+
+	if(debug)
+	{
+		printf("syntax 19 %d\n", 1);
+	}
+
 	return 1;
 }
 
@@ -681,26 +722,24 @@ syntax_get_item(syntax_t *syntax, node_t *parent, node_t *node)
 {
 	node->parent = parent;
 
-	syntax_check_cannot_followed_by_get_item(syntax, node);
+	int32_t result;
+	result = syntax_check_cannot_followed_by_get_item(syntax, node);
 
 	node_get_item_t *node_get_item;
 	node_get_item = (node_get_item_t *)node->value;
 
-	int32_t result;
-	result = syntax_postfix(syntax, node, node_get_item->name);
-	if (!result)
-	{
-		return 0;
-	}
+	result &= syntax_postfix(syntax, node, node_get_item->name);
 
 	if (node_get_item->index)
 	{
-		result = syntax_expression(syntax, node, node_get_item->index);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, node_get_item->index);
 	}
+
+	if(debug)
+	{
+		printf("syntax 20 %d\n", result);
+	}
+
 	return 1;
 }
 
@@ -715,6 +754,12 @@ syntax_check_cannot_followed_by_get_attr(syntax_t *syntax, node_t *node)
 		syntax_error(syntax, node->position, "A slice cannot be followed by a property access");
 		return 0;
 	}
+
+	if(debug)
+	{
+		printf("syntax 21 %d\n", 1);
+	}
+
 	return 1;
 }
 
@@ -723,87 +768,69 @@ syntax_get_attr(syntax_t *syntax, node_t *parent, node_t *node)
 {
 	node->parent = parent;
 
-	syntax_check_cannot_followed_by_get_attr(syntax, node);
+	int32_t result;
+	result = syntax_check_cannot_followed_by_get_attr(syntax, node);
 
 	node_get_attr_t *node_get_attr;
 	node_get_attr = (node_get_attr_t *)node->value;
+	
+	result &= syntax_postfix(syntax, node, node_get_attr->left);
 
-	int32_t result;
-	result = syntax_postfix(syntax, node, node_get_attr->left);
-	if (!result)
+	result &= syntax_id(syntax, node, node_get_attr->right);
+	
+	if(debug)
 	{
-		return 0;
+		printf("syntax 22 %d\n", result);
 	}
 
-	result = syntax_id(syntax, node, node_get_attr->right);
-	if (!result)
-	{
-		return 0;
-	}
 	return 1;
 }
 
 static int32_t
 syntax_postfix(syntax_t *syntax, node_t *parent, node_t *node)
 {
-	int32_t result;
+	int32_t result = 1;
+
 	switch (node->kind)
 	{
 	case NODE_KIND_COMPOSITE:
-		result = syntax_composite(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_composite(syntax, parent, node);
 		break;
 
 	case NODE_KIND_CALL:
-		result = syntax_call(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_call(syntax, parent, node);
 		break;
 
 	case NODE_KIND_GET_SLICE:
-		result = syntax_get_slice(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_get_slice(syntax, parent, node);
 		break;
 
 	case NODE_KIND_GET_ITEM:
-		result = syntax_get_item(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_get_item(syntax, parent, node);
 		break;
 
 	case NODE_KIND_GET_ATTR:
-		result = syntax_get_attr(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_get_attr(syntax, parent, node);
 		break;
 
 	default:
-		result = syntax_primary(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_primary(syntax, parent, node);
 		break;
 	}
-	return 1;
+
+	if(debug)
+	{
+		printf("syntax 23 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
 syntax_prefix(syntax_t *syntax, node_t *parent, node_t *node)
 {
-	int32_t result;
+	int32_t result = 1;
+
 	node_unary_t *node_unary;
 	switch (node->kind)
 	{
@@ -821,102 +848,64 @@ syntax_prefix(syntax_t *syntax, node_t *parent, node_t *node)
 		node_unary = (node_unary_t *)node->value;
 		if (node_unary->right->kind == NODE_KIND_TILDE)
 		{
-			result = syntax_prefix(syntax, node, node_unary->right);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_prefix(syntax, node, node_unary->right);
 		}
 		else if (node_unary->right->kind == NODE_KIND_NOT)
 		{
-			result = syntax_prefix(syntax, node, node_unary->right);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_prefix(syntax, node, node_unary->right);
 		}
 		else if (node_unary->right->kind == NODE_KIND_POS)
 		{
-			result = syntax_prefix(syntax, node, node_unary->right);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_prefix(syntax, node, node_unary->right);
 		}
 		else if (node_unary->right->kind == NODE_KIND_NEG)
 		{
-			result = syntax_prefix(syntax, node, node_unary->right);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_prefix(syntax, node, node_unary->right);
 		}
 		else if (node_unary->right->kind == NODE_KIND_GET_VALUE)
 		{
-			result = syntax_prefix(syntax, node, node_unary->right);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_prefix(syntax, node, node_unary->right);
 		}
 		else if (node_unary->right->kind == NODE_KIND_GET_ADDRESS)
 		{
-			result = syntax_prefix(syntax, node, node_unary->right);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_prefix(syntax, node, node_unary->right);
 		}
 		else if (node_unary->right->kind == NODE_KIND_AWAIT)
 		{
-			result = syntax_prefix(syntax, node, node_unary->right);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_prefix(syntax, node, node_unary->right);
 		}
 		else if (node_unary->right->kind == NODE_KIND_SIZEOF)
 		{
-			result = syntax_prefix(syntax, node, node_unary->right);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_prefix(syntax, node, node_unary->right);
 		}
 		else if (node_unary->right->kind == NODE_KIND_TYPEOF)
 		{
-			result = syntax_prefix(syntax, node, node_unary->right);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_prefix(syntax, node, node_unary->right);
 		}
 		else
 		{
-			result = syntax_postfix(syntax, node, node_unary->right);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_postfix(syntax, node, node_unary->right);
 		}
 		break;
 
 	default:
-		result = syntax_postfix(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_postfix(syntax, parent, node);
 		break;
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 24 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
 syntax_multiplicative(syntax_t *syntax, node_t *parent, node_t *node)
 {
-	int32_t result;
+	int32_t result = 1;
+
 	node_binary_t *node_binary;
 	switch (node->kind)
 	{
@@ -927,60 +916,41 @@ syntax_multiplicative(syntax_t *syntax, node_t *parent, node_t *node)
 		node_binary = (node_binary_t *)node->value;
 		if (node_binary->left->kind == NODE_KIND_MUL)
 		{
-			result = syntax_multiplicative(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_multiplicative(syntax, node, node_binary->left);
 		}
 		else if (node_binary->left->kind == NODE_KIND_DIV)
 		{
-			result = syntax_multiplicative(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_multiplicative(syntax, node, node_binary->left);
 		}
 		else if (node_binary->left->kind == NODE_KIND_MOD)
 		{
-			result = syntax_multiplicative(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_multiplicative(syntax, node, node_binary->left);
 		}
 		else
 		{
-			result = syntax_prefix(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_prefix(syntax, node, node_binary->left);
 		}
 
-		result = syntax_prefix(syntax, node, node_binary->right);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_prefix(syntax, node, node_binary->right);
 		break;
 
 	default:
-		result = syntax_prefix(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_prefix(syntax, parent, node);
 		break;
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 25 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
 syntax_addative(syntax_t *syntax, node_t *parent, node_t *node)
 {
-	int32_t result;
+	int32_t result = 1;
 	node_binary_t *node_binary;
 	switch (node->kind)
 	{
@@ -990,52 +960,37 @@ syntax_addative(syntax_t *syntax, node_t *parent, node_t *node)
 		node_binary = (node_binary_t *)node->value;
 		if (node_binary->left->kind == NODE_KIND_PLUS)
 		{
-			result = syntax_addative(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_addative(syntax, node, node_binary->left);
 		}
 		else if (node_binary->left->kind == NODE_KIND_MINUS)
 		{
-			result = syntax_addative(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_addative(syntax, node, node_binary->left);
 		}
 		else
 		{
-			result = syntax_multiplicative(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_multiplicative(syntax, node, node_binary->left);
 		}
 
-		result = syntax_multiplicative(syntax, node, node_binary->right);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_multiplicative(syntax, node, node_binary->right);
 		break;
 
 	default:
-		result = syntax_multiplicative(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_multiplicative(syntax, parent, node);
 		break;
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 26 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
 syntax_shifting(syntax_t *syntax, node_t *parent, node_t *node)
 {
-	int32_t result;
+	int32_t result = 1;
 	node_binary_t *node_binary;
 	switch (node->kind)
 	{
@@ -1045,52 +1000,37 @@ syntax_shifting(syntax_t *syntax, node_t *parent, node_t *node)
 		node_binary = (node_binary_t *)node->value;
 		if (node_binary->left->kind == NODE_KIND_SHL)
 		{
-			result = syntax_shifting(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_shifting(syntax, node, node_binary->left);
 		}
 		else if (node_binary->left->kind == NODE_KIND_SHR)
 		{
-			result = syntax_shifting(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_shifting(syntax, node, node_binary->left);
 		}
 		else
 		{
-			result = syntax_addative(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_addative(syntax, node, node_binary->left);
 		}
 
-		result = syntax_addative(syntax, node, node_binary->right);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_addative(syntax, node, node_binary->right);
 		break;
 
 	default:
-		result = syntax_addative(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_addative(syntax, parent, node);
 		break;
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 27 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
 syntax_relational(syntax_t *syntax, node_t *parent, node_t *node)
 {
-	int32_t result;
+	int32_t result = 1;
 	node_binary_t *node_binary;
 	switch (node->kind)
 	{
@@ -1102,68 +1042,45 @@ syntax_relational(syntax_t *syntax, node_t *parent, node_t *node)
 		node_binary = (node_binary_t *)node->value;
 		if (node_binary->left->kind == NODE_KIND_LT)
 		{
-			result = syntax_relational(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_relational(syntax, node, node_binary->left);
 		}
 		else if (node_binary->left->kind == NODE_KIND_LE)
 		{
-			result = syntax_relational(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_relational(syntax, node, node_binary->left);
 		}
 		else if (node_binary->left->kind == NODE_KIND_GT)
 		{
-			result = syntax_relational(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_relational(syntax, node, node_binary->left);
 		}
 		else if (node_binary->left->kind == NODE_KIND_GE)
 		{
-			result = syntax_relational(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_relational(syntax, node, node_binary->left);
 		}
 		else
 		{
-			result = syntax_shifting(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_shifting(syntax, node, node_binary->left);
 		}
 
-		result = syntax_shifting(syntax, node, node_binary->right);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_shifting(syntax, node, node_binary->right);
 		break;
 
 	default:
-		result = syntax_shifting(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_shifting(syntax, parent, node);
 		break;
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 28 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
 syntax_equality(syntax_t *syntax, node_t *parent, node_t *node)
 {
-	int32_t result;
+	int32_t result = 1;
 	node_binary_t *node_binary;
 	switch (node->kind)
 	{
@@ -1175,60 +1092,41 @@ syntax_equality(syntax_t *syntax, node_t *parent, node_t *node)
 		node_binary = (node_binary_t *)node->value;
 		if (node_binary->left->kind == NODE_KIND_IN)
 		{
-			result = syntax_equality(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_equality(syntax, node, node_binary->left);
 		}
 		else if (node_binary->left->kind == NODE_KIND_EQ)
 		{
-			result = syntax_equality(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_equality(syntax, node, node_binary->left);
 		}
 		else if (node_binary->left->kind == NODE_KIND_NEQ)
 		{
-			result = syntax_equality(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_equality(syntax, node, node_binary->left);
 		}
 		else
 		{
-			result = syntax_relational(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_relational(syntax, node, node_binary->left);
 		}
 
-		result = syntax_relational(syntax, node, node_binary->right);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_relational(syntax, node, node_binary->right);
 		break;
 
 	default:
-		result = syntax_relational(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_relational(syntax, parent, node);
 		break;
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 29 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
 syntax_bitwise_and(syntax_t *syntax, node_t *parent, node_t *node)
 {
-	int32_t result;
+	int32_t result = 1;
 	node_binary_t *node_binary;
 	switch (node->kind)
 	{
@@ -1237,44 +1135,33 @@ syntax_bitwise_and(syntax_t *syntax, node_t *parent, node_t *node)
 		node_binary = (node_binary_t *)node->value;
 		if (node_binary->left->kind == NODE_KIND_AND)
 		{
-			result = syntax_bitwise_and(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_bitwise_and(syntax, node, node_binary->left);
 		}
 		else
 		{
-			result = syntax_equality(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_equality(syntax, node, node_binary->left);
 		}
 
-		result = syntax_equality(syntax, node, node_binary->right);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_equality(syntax, node, node_binary->right);
 		break;
 
 	default:
-		result = syntax_equality(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_equality(syntax, parent, node);
 		break;
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 30 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
 syntax_bitwise_xor(syntax_t *syntax, node_t *parent, node_t *node)
 {
-	int32_t result;
+	int32_t result = 1;
 	node_binary_t *node_binary;
 	switch (node->kind)
 	{
@@ -1283,44 +1170,33 @@ syntax_bitwise_xor(syntax_t *syntax, node_t *parent, node_t *node)
 		node_binary = (node_binary_t *)node->value;
 		if (node_binary->left->kind == NODE_KIND_XOR)
 		{
-			result = syntax_bitwise_xor(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_bitwise_xor(syntax, node, node_binary->left);
 		}
 		else
 		{
-			result = syntax_bitwise_and(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_bitwise_and(syntax, node, node_binary->left);
 		}
 
-		result = syntax_bitwise_and(syntax, node, node_binary->right);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_bitwise_and(syntax, node, node_binary->right);
 		break;
 
 	default:
-		result = syntax_bitwise_and(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_bitwise_and(syntax, parent, node);
 		break;
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 31 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
 syntax_bitwise_or(syntax_t *syntax, node_t *parent, node_t *node)
 {
-	int32_t result;
+	int32_t result = 1;
 	node_binary_t *node_binary;
 	switch (node->kind)
 	{
@@ -1329,44 +1205,33 @@ syntax_bitwise_or(syntax_t *syntax, node_t *parent, node_t *node)
 		node_binary = (node_binary_t *)node->value;
 		if (node_binary->left->kind == NODE_KIND_OR)
 		{
-			result = syntax_bitwise_or(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_bitwise_or(syntax, node, node_binary->left);
 		}
 		else
 		{
-			result = syntax_bitwise_xor(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_bitwise_xor(syntax, node, node_binary->left);
 		}
 
-		result = syntax_bitwise_xor(syntax, node, node_binary->right);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_bitwise_xor(syntax, node, node_binary->right);
 		break;
 
 	default:
-		result = syntax_bitwise_xor(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_bitwise_xor(syntax, parent, node);
 		break;
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 32 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
 syntax_logical_and(syntax_t *syntax, node_t *parent, node_t *node)
 {
-	int32_t result;
+	int32_t result = 1;
 	node_binary_t *node_binary;
 	switch (node->kind)
 	{
@@ -1375,44 +1240,33 @@ syntax_logical_and(syntax_t *syntax, node_t *parent, node_t *node)
 		node_binary = (node_binary_t *)node->value;
 		if (node_binary->left->kind == NODE_KIND_LAND)
 		{
-			result = syntax_logical_and(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_logical_and(syntax, node, node_binary->left);
 		}
 		else
 		{
-			result = syntax_bitwise_or(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_bitwise_or(syntax, node, node_binary->left);
 		}
 
-		result = syntax_bitwise_or(syntax, node, node_binary->right);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_bitwise_or(syntax, node, node_binary->right);
 		break;
 
 	default:
-		result = syntax_bitwise_or(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_bitwise_or(syntax, parent, node);
 		break;
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 33 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
 syntax_logical_or(syntax_t *syntax, node_t *parent, node_t *node)
 {
-	int32_t result;
+	int32_t result = 1;
 	node_binary_t *node_binary;
 	switch (node->kind)
 	{
@@ -1421,77 +1275,56 @@ syntax_logical_or(syntax_t *syntax, node_t *parent, node_t *node)
 		node_binary = (node_binary_t *)node->value;
 		if (node_binary->left->kind == NODE_KIND_LOR)
 		{
-			result = syntax_logical_or(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_logical_or(syntax, node, node_binary->left);
 		}
 		else
 		{
-			result = syntax_logical_and(syntax, node, node_binary->left);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_logical_and(syntax, node, node_binary->left);
 		}
 
-		result = syntax_logical_and(syntax, node, node_binary->right);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_logical_and(syntax, node, node_binary->right);
 		break;
 
 	default:
-		result = syntax_logical_and(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_logical_and(syntax, parent, node);
 		break;
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 34 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
 syntax_conditional(syntax_t *syntax, node_t *parent, node_t *node)
 {
-	int32_t result;
+	int32_t result = 1;
+
 	node_conditional_t *node_conditional;
 	switch (node->kind)
 	{
 	case NODE_KIND_CONDITIONAL:
 		node->parent = parent;
 		node_conditional = (node_conditional_t *)node->value;
-		result = syntax_logical_or(syntax, node, node_conditional->condition);
-		if (!result)
-		{
-			return 0;
-		}
-		result = syntax_conditional(syntax, node, node_conditional->true_expression);
-		if (!result)
-		{
-			return 0;
-		}
-		result = syntax_conditional(syntax, node, node_conditional->false_expression);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_logical_or(syntax, node, node_conditional->condition);
+		result &= syntax_conditional(syntax, node, node_conditional->true_expression);
+		result &= syntax_conditional(syntax, node, node_conditional->false_expression);
 		break;
 
 	default:
-		result = syntax_logical_or(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_logical_or(syntax, parent, node);
 		break;
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 35 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -1503,6 +1336,8 @@ syntax_expression(syntax_t *syntax, node_t *parent, node_t *node)
 static int32_t
 syntax_assign(syntax_t *syntax, node_t *parent, node_t *node)
 {
+	int32_t result = 1;
+
 	node->parent = parent;
 
 	node_binary_t *node_binary;
@@ -1522,30 +1357,21 @@ syntax_assign(syntax_t *syntax, node_t *parent, node_t *node)
 	case NODE_KIND_SHR_ASSIGN:
 		node_binary = (node_binary_t *)node->value;
 
-		int32_t result;
-		result = syntax_expression(syntax, node, node_binary->left);
-		if (!result)
-		{
-			return 0;
-		}
-
-		result = syntax_expression(syntax, node, node_binary->right);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, node_binary->left);
+		result &= syntax_expression(syntax, node, node_binary->right);
 		break;
 
 	default:
-		result = syntax_expression(syntax, parent, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, parent, node);
 		break;
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 36 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -1556,38 +1382,30 @@ syntax_if(syntax_t *syntax, node_t *parent, node_t *node)
 	node_if_t *node_if;
 	node_if = (node_if_t *)node->value;
 
-	int32_t result;
-	result = syntax_expression(syntax, node, node_if->condition);
-	if (!result)
-	{
-		return 0;
-	}
-
-	result = syntax_block(syntax, node, node_if->then_body);
-	if (!result)
-	{
-		return 0;
-	}
+	int32_t result = 1;
+	result &= syntax_expression(syntax, node, node_if->condition);
+	result &= syntax_block(syntax, node, node_if->then_body);
 
 	if (node_if->else_body)
 	{
 		switch (node_if->else_body->kind)
 		{
 		case NODE_KIND_IF:
-			result = syntax_if(syntax, node, node_if->else_body);
+			result &= syntax_if(syntax, node, node_if->else_body);
 			break;
 
 		default:
-			result = syntax_block(syntax, node, node_if->else_body);
+			result &= syntax_block(syntax, node, node_if->else_body);
 			break;
-		}
-		if (!result)
-		{
-			return 0;
 		}
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 37 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -1598,23 +1416,20 @@ syntax_catch(syntax_t *syntax, node_t *parent, node_t *node)
 	node_catch_t *node_catch;
 	node_catch = (node_catch_t *)node->value;
 
-	int32_t result;
+	int32_t result = 1;
 	if (node_catch->parameter)
 	{
-		result = syntax_parameter(syntax, node, node_catch->parameter);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_parameter(syntax, node, node_catch->parameter);
 	}
 
-	result = syntax_block(syntax, node, node_catch->body);
-	if (!result)
+	result &= syntax_block(syntax, node, node_catch->body);
+
+	if(debug)
 	{
-		return 0;
+		printf("syntax 38 %d\n", result);
 	}
 
-	return 1;
+	return result;
 }
 
 static int32_t
@@ -1625,26 +1440,23 @@ syntax_try(syntax_t *syntax, node_t *parent, node_t *node)
 	node_try_t *node_try;
 	node_try = (node_try_t *)node->value;
 
-	int32_t result;
-	result = syntax_block(syntax, node, node_try->body);
-	if (!result)
-	{
-		return 0;
-	}
+	int32_t result = 1;
+	result &= syntax_block(syntax, node, node_try->body);
 
 	ilist_t *a;
 	for (a = node_try->catchs->begin; a != node_try->catchs->end; a = a->next)
 	{
 		node_t *temp;
 		temp = (node_t *)a->value;
-		result = syntax_catch(syntax, node, temp);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_catch(syntax, node, temp);
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 39 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -1655,7 +1467,7 @@ syntax_for_init(syntax_t *syntax, node_t *parent, node_t *node)
 	node_enumerable_t *node_enumerable;
 	node_enumerable = (node_enumerable_t *)node->value;
 
-	int32_t result;
+	int32_t result = 1;
 	ilist_t *a;
 	for (a = node_enumerable->list->begin; a != node_enumerable->list->end; a = a->next)
 	{
@@ -1665,25 +1477,25 @@ syntax_for_init(syntax_t *syntax, node_t *parent, node_t *node)
 		switch (temp->kind)
 		{
 		case NODE_KIND_VAR:
-			result = syntax_var(syntax, node, temp);
+			result &= syntax_var(syntax, node, temp);
 			break;
 
 		case NODE_KIND_CONST:
-			result = syntax_const(syntax, node, temp);
+			result &= syntax_const(syntax, node, temp);
 			break;
 
 		default:
-			result = syntax_assign(syntax, node, temp);
+			result &= syntax_assign(syntax, node, temp);
 			break;
-		}
-
-		if (!result)
-		{
-			return 0;
 		}
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 40 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -1694,21 +1506,22 @@ syntax_for_step(syntax_t *syntax, node_t *parent, node_t *node)
 	node_enumerable_t *node_enumerable;
 	node_enumerable = (node_enumerable_t *)node->value;
 
-	int32_t result;
+	int32_t result = 1;
 	ilist_t *a;
 	for (a = node_enumerable->list->begin; a != node_enumerable->list->end; a = a->next)
 	{
 		node_t *temp;
 		temp = (node_t *)a->value;
 
-		result = syntax_assign(syntax, node, temp);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_assign(syntax, node, temp);
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 41 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -1719,36 +1532,32 @@ syntax_for(syntax_t *syntax, node_t *parent, node_t *node)
 	node_for_t *node_for;
 	node_for = (node_for_t *)node->value;
 
-	int32_t result;
+	int32_t result = 1;
 	if (node_for->initializer)
 	{
 		switch (node_for->initializer->kind)
 		{
 		case NODE_KIND_FOR_INIT_LIST:
-			result = syntax_for_init(syntax, node, node_for->initializer);
+			result &= syntax_for_init(syntax, node, node_for->initializer);
 			break;
 
 		case NODE_KIND_VAR:
-			result = syntax_var(syntax, node, node_for->initializer);
+			result &= syntax_var(syntax, node, node_for->initializer);
 			break;
 
 		case NODE_KIND_CONST:
-			result = syntax_const(syntax, node, node_for->initializer);
+			result &= syntax_const(syntax, node, node_for->initializer);
 			break;
 
 		default:
-			result = syntax_assign(syntax, node, node_for->initializer);
+			result &= syntax_assign(syntax, node, node_for->initializer);
 			break;
 		}
 	}
 
 	if (node_for->condition)
 	{
-		result = syntax_expression(syntax, node, node_for->condition);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, node_for->condition);
 	}
 
 	if (node_for->incrementor)
@@ -1756,27 +1565,23 @@ syntax_for(syntax_t *syntax, node_t *parent, node_t *node)
 		switch (node_for->incrementor->kind)
 		{
 		case NODE_KIND_FOR_STEP_LIST:
-			result = syntax_for_step(syntax, node, node_for->incrementor);
+			result &= syntax_for_step(syntax, node, node_for->incrementor);
 			break;
 
 		default:
-			result = syntax_assign(syntax, node, node_for->incrementor);
+			result &= syntax_assign(syntax, node, node_for->incrementor);
 			break;
 		}
-
-		if (!result)
-		{
-			return 0;
-		}
 	}
 
-	result = syntax_block(syntax, node, node_for->body);
-	if (!result)
+	result &= syntax_block(syntax, node, node_for->body);
+
+	if(debug)
 	{
-		return 0;
+		printf("syntax 42 %d\n", result);
 	}
 
-	return 1;
+	return result;
 }
 
 static int32_t
@@ -1787,45 +1592,44 @@ syntax_forin(syntax_t *syntax, node_t *parent, node_t *node)
 	node_forin_t *node_forin;
 	node_forin = (node_forin_t *)node->value;
 
-	int32_t result;
+	int32_t result = 1;
+
 	switch (node_forin->initializer->kind)
 	{
 	case NODE_KIND_VAR:
-		result = syntax_var(syntax, node, node_forin->initializer);
+		result &= syntax_var(syntax, node, node_forin->initializer);
 		break;
 
 	case NODE_KIND_CONST:
-		result = syntax_const(syntax, node, node_forin->initializer);
+		result &= syntax_const(syntax, node, node_forin->initializer);
 		break;
 
 	default:
 		syntax_error(syntax, node->position, "unknown initializer for..in loop");
 		return 0;
 	}
-	if (!result)
+
+	result &= syntax_expression(syntax, node, node_forin->expression);
+	result &= syntax_block(syntax, node, node_forin->body);
+
+	if(debug)
 	{
-		return 0;
+		printf("syntax 43 %d\n", result);
 	}
 
-	result = syntax_expression(syntax, node, node_forin->expression);
-	if (!result)
-	{
-		return 0;
-	}
-
-	result = syntax_block(syntax, node, node_forin->body);
-	if (!result)
-	{
-		return 0;
-	}
-
-	return 1;
+	return result;
 }
 
 static int32_t
 syntax_break(syntax_t *syntax, node_t *parent, node_t *node)
 {
 	node->parent = parent;
+
+	if(debug)
+	{
+		printf("syntax 44 %d\n", 1);
+	}
+
 	return 1;
 }
 
@@ -1833,6 +1637,12 @@ static int32_t
 syntax_continue(syntax_t *syntax, node_t *parent, node_t *node)
 {
 	node->parent = parent;
+
+	if(debug)
+	{
+		printf("syntax 45 %d\n", 1);
+	}
+
 	return 1;
 }
 
@@ -1845,12 +1655,13 @@ syntax_return(syntax_t *syntax, node_t *parent, node_t *node)
 	node_return = (node_return_t *)node->value;
 
 	int32_t result = syntax_expression(syntax, node, node_return->expression);
-	if (!result)
+
+	if(debug)
 	{
-		return 0;
+		printf("syntax 46 %d\n", result);
 	}
 
-	return 1;
+	return result;
 }
 
 static int32_t
@@ -1862,83 +1673,85 @@ syntax_throw(syntax_t *syntax, node_t *parent, node_t *node)
 	node_throw = (node_throw_t *)node->value;
 
 	int32_t result = syntax_expression(syntax, node, node_throw->expression);
-	if (!result)
+
+	if(debug)
 	{
-		return 0;
+		printf("syntax 47 %d\n", result);
 	}
 
-	return 1;
+	return result;
 }
 
 static int32_t
 syntax_statement(syntax_t *syntax, node_t *parent, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
+
 	switch (node->kind)
 	{
 	case NODE_KIND_BLOCK:
-		result = syntax_block(syntax, parent, node);
+		result &= syntax_block(syntax, parent, node);
 		break;
 
 	case NODE_KIND_IF:
-		result = syntax_if(syntax, parent, node);
+		result &= syntax_if(syntax, parent, node);
 		break;
 
 	case NODE_KIND_TRY:
-		result = syntax_try(syntax, parent, node);
+		result &= syntax_try(syntax, parent, node);
 		break;
 
 	case NODE_KIND_FOR:
-		result = syntax_for(syntax, parent, node);
+		result &= syntax_for(syntax, parent, node);
 		break;
 
 	case NODE_KIND_FORIN:
-		result = syntax_forin(syntax, parent, node);
+		result &= syntax_forin(syntax, parent, node);
 		break;
 
 	case NODE_KIND_VAR:
-		result = syntax_var(syntax, parent, node);
+		result &= syntax_var(syntax, parent, node);
 		break;
 
 	case NODE_KIND_CONST:
-		result = syntax_const(syntax, parent, node);
+		result &= syntax_const(syntax, parent, node);
 		break;
 
 	case NODE_KIND_TYPE:
-		result = syntax_type(syntax, parent, node);
+		result &= syntax_type(syntax, parent, node);
 		break;
 
 	case NODE_KIND_BREAK:
-		result = syntax_break(syntax, parent, node);
+		result &= syntax_break(syntax, parent, node);
 		break;
 
 	case NODE_KIND_CONTINUE:
-		result = syntax_continue(syntax, parent, node);
+		result &= syntax_continue(syntax, parent, node);
 		break;
 
 	case NODE_KIND_RETURN:
-		result = syntax_return(syntax, parent, node);
+		result &= syntax_return(syntax, parent, node);
 		break;
 
 	case NODE_KIND_THROW:
-		result = syntax_throw(syntax, parent, node);
+		result &= syntax_throw(syntax, parent, node);
 		break;
 
 	case NODE_KIND_FUNC:
-		result = syntax_func(syntax, parent, node);
+		result &= syntax_func(syntax, parent, node);
 		break;
 
 	default:
-		result = syntax_assign(syntax, parent, node);
+		result &= syntax_assign(syntax, parent, node);
 		break;
 	}
 
-	if (!result)
+	if(debug)
 	{
-		return 0;
+		printf("syntax 48 %d\n", result);
 	}
 
-	return 1;
+	return result;
 }
 
 static int32_t
@@ -1949,21 +1762,22 @@ syntax_block(syntax_t *syntax, node_t *parent, node_t *node)
 	node_block_t *node_block;
 	node_block = (node_block_t *)node->value;
 
-	int32_t result;
+	int32_t result = 1;
 	ilist_t *a;
 	for (a = node_block->list->begin; a != node_block->list->end; a = a->next)
 	{
 		node_t *temp;
 		temp = (node_t *)a->value;
 
-		result = syntax_statement(syntax, node, temp);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_statement(syntax, node, temp);
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 49 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -1977,36 +1791,27 @@ syntax_type_parameter(syntax_t *syntax, node_t *parent, node_t *node)
 	node_type_parameter_t *node_type_parameter;
 	node_type_parameter = (node_type_parameter_t *)node->value;
 
-	int32_t result;
-	result = syntax_id(syntax, node, node_type_parameter->name);
-	if (!result)
-	{
-		return 0;
-	}
+	int32_t result = 1;
+	result &= syntax_id(syntax, node, node_type_parameter->name);
 
 	if (node_type_parameter->extends)
 	{
-		syntax_check_is_type(syntax, node_type_parameter->extends);
-
-		result = syntax_expression(syntax, node, node_type_parameter->extends);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_check_is_type(syntax, node_type_parameter->extends);
+		result &= syntax_expression(syntax, node, node_type_parameter->extends);
 	}
 
 	if (node_type_parameter->value)
 	{
-		syntax_check_is_type(syntax, node_type_parameter->value);
-
-		result = syntax_expression(syntax, node, node_type_parameter->value);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_check_is_type(syntax, node_type_parameter->value);
+		result &= syntax_expression(syntax, node, node_type_parameter->value);
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 50 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -2017,23 +1822,20 @@ syntax_enum_member(syntax_t *syntax, node_t *parent, node_t *node)
 	node_enum_member_t *node_enum_member;
 	node_enum_member = (node_enum_member_t *)node->value;
 
-	int32_t result;
-	result = syntax_id(syntax, node, node_enum_member->name);
-	if (!result)
-	{
-		return 0;
-	}
+	int32_t result = 1;
+	result &= syntax_id(syntax, node, node_enum_member->name);
 
 	if (node_enum_member->value)
 	{
-		result = syntax_expression(syntax, node, node_enum_member->value);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, node_enum_member->value);
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 51 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -2046,10 +1848,6 @@ syntax_enum(syntax_t *syntax, node_t *parent, node_t *node)
 
 	int32_t result;
 	result = syntax_id(syntax, node, node_enum->name);
-	if (!result)
-	{
-		return 0;
-	}
 
 	ilist_t *a;
 	for (a = node_enum->body->begin; a != node_enum->body->end; a = a->next)
@@ -2057,14 +1855,15 @@ syntax_enum(syntax_t *syntax, node_t *parent, node_t *node)
 		node_t *temp;
 		temp = (node_t *)a->value;
 
-		result = syntax_enum_member(syntax, node, temp);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_enum_member(syntax, node, temp);
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 52 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -2075,32 +1874,25 @@ syntax_property(syntax_t *syntax, node_t *parent, node_t *node)
 	node_property_t *node_property;
 	node_property = (node_property_t *)node->value;
 
-	int32_t result;
-	result = syntax_id(syntax, node, node_property->name);
-	if (!result)
-	{
-		return 0;
-	}
+	int32_t result = 1;
+	result &= syntax_id(syntax, node, node_property->name);
 
 	if (node_property->type)
 	{
-		result = syntax_expression(syntax, node, node_property->type);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, node_property->type);
 	}
 
 	if (node_property->value)
 	{
-		result = syntax_expression(syntax, node, node_property->value);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, node_property->value);
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 53 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -2109,15 +1901,15 @@ syntax_check_is_object_variable(syntax_t *syntax, node_t *node);
 static int32_t
 syntax_check_is_get_attr(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	if (node->kind == NODE_KIND_GET_ATTR)
 	{
 		node_get_attr_t *node_get_attr;
 		node_get_attr = (node_get_attr_t *)node->value;
 
-		result |= syntax_check_is_get_attr(syntax, node_get_attr->left);
-		result |= syntax_check_is_get_attr(syntax, node_get_attr->right);
+		result &= syntax_check_is_get_attr(syntax, node_get_attr->left);
+		result &= syntax_check_is_get_attr(syntax, node_get_attr->right);
 	}
 	else if (node->kind != NODE_KIND_ID)
 	{
@@ -2125,24 +1917,26 @@ syntax_check_is_get_attr(syntax_t *syntax, node_t *node)
 		return 0;
 	}
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 54 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
 syntax_check_is_object_variable_value(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	if (node->kind == NODE_KIND_OBJECT)
 	{
-		result |= syntax_check_is_object_variable(syntax, node);
+		result &= syntax_check_is_object_variable(syntax, node);
 	}
 	else if (node->kind == NODE_KIND_GET_ATTR)
 	{
-		result |= syntax_check_is_get_attr(syntax, node);
+		result &= syntax_check_is_get_attr(syntax, node);
 	}
 	else if (node->kind != NODE_KIND_ID)
 	{
@@ -2150,17 +1944,22 @@ syntax_check_is_object_variable_value(syntax_t *syntax, node_t *node)
 		return 0;
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 55 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
 syntax_check_is_object_variable_name(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	if (node->kind == NODE_KIND_OBJECT)
 	{
-		result |= syntax_check_is_object_variable(syntax, node);
+		result &= syntax_check_is_object_variable(syntax, node);
 	}
 	else if (node->kind != NODE_KIND_ID)
 	{
@@ -2168,40 +1967,44 @@ syntax_check_is_object_variable_name(syntax_t *syntax, node_t *node)
 		return 0;
 	}
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 56 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
 syntax_check_is_object_property_variable(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	node_object_property_t *node_object_property;
 	node_object_property = (node_object_property_t *)node->value;
 
 	if (node_object_property->name)
 	{
-		result |= syntax_check_is_object_variable_name(syntax, node_object_property->name);
+		result &= syntax_check_is_object_variable_name(syntax, node_object_property->name);
 	}
 
 	if (node_object_property->value)
 	{
-		result |= syntax_check_is_object_variable_value(syntax, node_object_property->value);
+		result &= syntax_check_is_object_variable_value(syntax, node_object_property->value);
 	}
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 57 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
 syntax_check_is_object_variable(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	node_object_t *node_object;
 	node_object = (node_object_t *)node->value;
@@ -2211,13 +2014,15 @@ syntax_check_is_object_variable(syntax_t *syntax, node_t *node)
 	{
 		node_t *temp;
 		temp = (node_t *)a->value;
-		result |= syntax_check_is_object_property_variable(syntax, temp);
+		result &= syntax_check_is_object_property_variable(syntax, temp);
 	}
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 58 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
@@ -2228,13 +2033,19 @@ syntax_check_is_variable_name(syntax_t *syntax, node_t *node)
 		syntax_error(syntax, node->position, "expected variable name");
 		return 0;
 	}
+
+	if(debug)
+	{
+		printf("syntax 59 %d\n", 1);
+	}
+
 	return 1;
 }
 
 static int32_t
 syntax_check_is_array_variable(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	node_array_t *node_array;
 	node_array = (node_array_t *)node->value;
@@ -2245,23 +2056,25 @@ syntax_check_is_array_variable(syntax_t *syntax, node_t *node)
 		node_t *temp;
 		temp = (node_t *)a->value;
 
-		result |= syntax_check_is_variable_name(syntax, temp);
+		result &= syntax_check_is_variable_name(syntax, temp);
 	}
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 60 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
 syntax_check_is_ellipsisiable(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	if (node->kind == NODE_KIND_ARRAY)
 	{
-		result |= syntax_check_is_array_variable(syntax, node);
+		result &= syntax_check_is_array_variable(syntax, node);
 	}
 	else if (node->kind != NODE_KIND_ID)
 	{
@@ -2269,44 +2082,48 @@ syntax_check_is_ellipsisiable(syntax_t *syntax, node_t *node)
 		return 0;
 	}
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 61 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
 syntax_check_is_parameter_ellipsis(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	node_unary_t *node_unary;
 	node_unary = (node_unary_t *)node->value;
 
-	result |= syntax_check_is_ellipsisiable(syntax, node_unary->right);
+	result &= syntax_check_is_ellipsisiable(syntax, node_unary->right);
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 62 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
 syntax_check_is_parameter_name(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	if (node->kind == NODE_KIND_OBJECT)
 	{
-		result |= syntax_check_is_object_variable(syntax, node);
+		result &= syntax_check_is_object_variable(syntax, node);
 	}
 	else if (node->kind == NODE_KIND_ARRAY)
 	{
-		result |= syntax_check_is_array_variable(syntax, node);
+		result &= syntax_check_is_array_variable(syntax, node);
 	}
 	else if (node->kind == NODE_KIND_ELLIPSIS)
 	{
-		result |= syntax_check_is_parameter_ellipsis(syntax, node);
+		result &= syntax_check_is_parameter_ellipsis(syntax, node);
 	}
 	else if (node->kind != NODE_KIND_ID)
 	{
@@ -2314,16 +2131,18 @@ syntax_check_is_parameter_name(syntax_t *syntax, node_t *node)
 		return 0;
 	}
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 63 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
 syntax_check_is_type_array(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	node_array_t *node_array;
 	node_array = (node_array_t *)node->value;
@@ -2334,13 +2153,15 @@ syntax_check_is_type_array(syntax_t *syntax, node_t *node)
 		node_t *temp;
 		temp = (node_t *)a->value;
 
-		result |= syntax_check_is_type(syntax, temp);
+		result &= syntax_check_is_type(syntax, temp);
 	}
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 64 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
@@ -2356,34 +2177,41 @@ syntax_check_is_type_object_key(syntax_t *syntax, node_t *node)
 		return 0;
 	}
 
+	if(debug)
+	{
+		printf("syntax 65 %d\n", 1);
+	}
+
 	return 1;
 }
 
 static int32_t
 syntax_check_is_type_object_property(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	node_object_property_t *node_object_property;
 	node_object_property = (node_object_property_t *)node->value;
 
-	result |= syntax_check_is_type_object_key(syntax, node_object_property->name);
+	result &= syntax_check_is_type_object_key(syntax, node_object_property->name);
 
 	if (node_object_property->value)
 	{
-		result |= syntax_check_is_type(syntax, node_object_property->value);
+		result &= syntax_check_is_type(syntax, node_object_property->value);
 	}
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 66 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
 syntax_check_is_type_object(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	node_object_t *node_object;
 	node_object = (node_object_t *)node->value;
@@ -2394,13 +2222,15 @@ syntax_check_is_type_object(syntax_t *syntax, node_t *node)
 		node_t *temp;
 		temp = (node_t *)a->value;
 
-		result |= syntax_check_is_type_object_property(syntax, temp);
+		result &= syntax_check_is_type_object_property(syntax, temp);
 	}
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 67 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
@@ -2425,29 +2255,36 @@ syntax_check_is_type_func(syntax_t *syntax, node_t *node)
 		return 0;
 	}
 
+	if(debug)
+	{
+		printf("syntax 68 %d\n", 1);
+	}
+
 	return 1;
 }
 
 static int32_t
 syntax_check_is_type_parenthesis(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	node_unary_t *node_unary;
 	node_unary = (node_unary_t *)node->value;
 
-	result |= syntax_check_is_type(syntax, node_unary->right);
+	result &= syntax_check_is_type(syntax, node_unary->right);
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 69 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
 syntax_check_is_type_primary(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 	switch (node->kind)
 	{
 	case NODE_KIND_ID:
@@ -2460,41 +2297,44 @@ syntax_check_is_type_primary(syntax_t *syntax, node_t *node)
 		break;
 
 	case NODE_KIND_ARRAY:
-		result |= syntax_check_is_type_array(syntax, node);
+		result &= syntax_check_is_type_array(syntax, node);
 		break;
 
 	case NODE_KIND_OBJECT:
-		result |= syntax_check_is_type_object(syntax, node);
+		result &= syntax_check_is_type_object(syntax, node);
 		break;
 
 	case NODE_KIND_FUNC:
-		result |= syntax_check_is_type_func(syntax, node);
+		result &= syntax_check_is_type_func(syntax, node);
 		break;
 
 	case NODE_KIND_PARENTHESIS:
-		result |= syntax_check_is_type_parenthesis(syntax, node);
+		result &= syntax_check_is_type_parenthesis(syntax, node);
 		break;
 
 	default:
 		syntax_error(syntax, node->position, "expected type");
+		result = 0;
 		break;
 	}
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 70 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
 syntax_check_is_type_composite(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	node_composite_t *node_composite;
 	node_composite = (node_composite_t *)node->value;
 
-	result |= syntax_check_is_name(syntax, node_composite->base);
+	result = syntax_check_is_name(syntax, node_composite->base);
 
 	if (node_composite->type_arguments)
 	{
@@ -2503,26 +2343,27 @@ syntax_check_is_type_composite(syntax_t *syntax, node_t *node)
 		{
 			node_t *temp;
 			temp = (node_t *)a->value;
-
-			result |= syntax_check_is_type(syntax, temp);
+			result &= syntax_check_is_type(syntax, temp);
 		}
 	}
-
-	if(result == 0){
-		return 0;
+	
+	if(debug)
+	{
+		printf("syntax 71 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
 syntax_check_is_type_postfix(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	switch (node->kind)
 	{
 	case NODE_KIND_COMPOSITE:
-		result |= syntax_check_is_type_composite(syntax, node);
+		result &= syntax_check_is_type_composite(syntax, node);
 		break;
 
 	case NODE_KIND_CALL:
@@ -2535,20 +2376,22 @@ syntax_check_is_type_postfix(syntax_t *syntax, node_t *node)
 		break;
 
 	default:
-		result |= syntax_check_is_type_primary(syntax, node);
+		result &= syntax_check_is_type_primary(syntax, node);
 		break;
 	}
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 72 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
 syntax_check_is_type_unary(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 
 	node_unary_t *node_unary;
 	switch (node->kind)
@@ -2557,7 +2400,7 @@ syntax_check_is_type_unary(syntax_t *syntax, node_t *node)
 	case NODE_KIND_GET_VALUE:
 	case NODE_KIND_GET_ADDRESS:
 		node_unary = (node_unary_t *)node->value;
-		result |= syntax_check_is_type_unary(syntax, node_unary->right);
+		result &= syntax_check_is_type_unary(syntax, node_unary->right);
 		break;
 
 	case NODE_KIND_TILDE:
@@ -2570,22 +2413,23 @@ syntax_check_is_type_unary(syntax_t *syntax, node_t *node)
 		return 0;
 
 	default:
-		result |= syntax_check_is_type_postfix(syntax, node);
+		result &= syntax_check_is_type_postfix(syntax, node);
 		break;
 	}
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 73 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
 syntax_check_is_type_binary(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 	node_binary_t *node_binary;
-
 	switch (node->kind)
 	{
 	case NODE_KIND_LOR:
@@ -2612,43 +2456,47 @@ syntax_check_is_type_binary(syntax_t *syntax, node_t *node)
 	case NODE_KIND_EQ:
 	case NODE_KIND_EXTENDS:
 		node_binary = (node_binary_t *)node->value;
-		result |= syntax_check_is_type_binary(syntax, node_binary->left);
-		result |= syntax_check_is_type_binary(syntax, node_binary->right);
+		result &= syntax_check_is_type_binary(syntax, node_binary->left);
+		result &= syntax_check_is_type_binary(syntax, node_binary->right);
 		break;
 
 	default:
-		result |= syntax_check_is_type_unary(syntax, node);
+		result &= syntax_check_is_type_unary(syntax, node);
 		break;
 	}
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 74 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
 syntax_check_is_type_conditional(syntax_t *syntax, node_t *node)
 {
-	int32_t result = 0;
+	int32_t result = 1;
 	if (node->kind == NODE_KIND_CONDITIONAL)
 	{
 		node_conditional_t *node_conditional;
 		node_conditional = (node_conditional_t *)node->value;
 
-		result |= syntax_check_is_type_binary(syntax, node_conditional->condition);
-		result |= syntax_check_is_type_conditional(syntax, node_conditional->true_expression);
-		result |= syntax_check_is_type_conditional(syntax, node_conditional->false_expression);
+		result &= syntax_check_is_type_binary(syntax, node_conditional->condition);
+		result &= syntax_check_is_type_conditional(syntax, node_conditional->true_expression);
+		result &= syntax_check_is_type_conditional(syntax, node_conditional->false_expression);
 	}
 	else
 	{
-		result |= syntax_check_is_type_binary(syntax, node);
+		result &= syntax_check_is_type_binary(syntax, node);
 	}
 
-	if(result == 0){
-		return 0;
+	if(debug)
+	{
+		printf("syntax 75 %d\n", result);
 	}
-	return 1;
+
+	return result;
 }
 
 static int32_t
@@ -2665,38 +2513,29 @@ syntax_parameter(syntax_t *syntax, node_t *parent, node_t *node)
 	node_parameter_t *node_parameter;
 	node_parameter = (node_parameter_t *)node->value;
 
-	syntax_check_is_parameter_name(syntax, node_parameter->name);
-
 	int32_t result;
-	result = syntax_expression(syntax, node, node_parameter->name);
-	if (!result)
-	{
-		return 0;
-	}
+	result = syntax_check_is_parameter_name(syntax, node_parameter->name);
+
+	result &= syntax_expression(syntax, node, node_parameter->name);
 
 	if (node_parameter->type)
 	{
-		syntax_check_is_type(syntax, node_parameter->type);
-
-		result = syntax_expression(syntax, node, node_parameter->type);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_check_is_type(syntax, node_parameter->type);
+		result &= syntax_expression(syntax, node, node_parameter->type);
 	}
 
 	if (node_parameter->value)
 	{
-		syntax_check_is_type(syntax, node_parameter->value);
-
-		result = syntax_expression(syntax, node, node_parameter->value);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_check_is_type(syntax, node_parameter->value);
+		result &= syntax_expression(syntax, node, node_parameter->value);
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 76 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -2706,32 +2545,12 @@ syntax_check_is_name(syntax_t *syntax, node_t *node)
 	{
 		return 0;
 	}
-	return 1;
-}
 
-static int32_t
-syntax_check_is_hierarchy_name(syntax_t *syntax, node_t *node)
-{
-	int32_t result;
-	if (node->kind == NODE_KIND_GET_ATTR)
+	if(debug)
 	{
-		node_get_attr_t *node_get_attr;
-		node_get_attr = (node_get_attr_t *)node->value;
-		result = syntax_check_is_hierarchy_name(syntax, node_get_attr->left);
-		if (!result)
-		{
-			return 0;
-		}
-		result = syntax_check_is_name(syntax, node_get_attr->right);
-		if (!result)
-		{
-			return 0;
-		}
+		printf("syntax 77 %d\n", 1);
 	}
-	else if (node->kind != NODE_KIND_ID)
-	{
-		return 0;
-	}
+
 	return 1;
 }
 
@@ -2745,24 +2564,19 @@ syntax_field(syntax_t *syntax, node_t *parent, node_t *node)
 
 	int32_t result;
 	result = syntax_id(syntax, node, node_field->name);
-	if (!result)
-	{
-		return 0;
-	}
 
 	if(node_field->type)
 	{
-			syntax_check_is_type(syntax, node_field->type);
-			syntax_check_is_hierarchy_name(syntax, node_field->type);
-
-			result = syntax_expression(syntax, node, node_field->type);
-			if (!result)
-			{
-				return 0;
-			}
+		result &= syntax_check_is_type(syntax, node_field->type);
+		result &= syntax_expression(syntax, node, node_field->type);
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 79 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -2775,10 +2589,6 @@ syntax_method(syntax_t *syntax, node_t *parent, node_t *node)
 
 	int32_t result;
 	result = syntax_id(syntax, node, node_method->name);
-	if (!result)
-	{
-		return 0;
-	}
 
 	ilist_t *a;
 	if (node_method->parameters)
@@ -2788,11 +2598,7 @@ syntax_method(syntax_t *syntax, node_t *parent, node_t *node)
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = syntax_parameter(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_parameter(syntax, node, temp);
 		}
 	}
 
@@ -2803,11 +2609,7 @@ syntax_method(syntax_t *syntax, node_t *parent, node_t *node)
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = syntax_type_parameter(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_type_parameter(syntax, node, temp);
 		}
 	}
 
@@ -2815,17 +2617,17 @@ syntax_method(syntax_t *syntax, node_t *parent, node_t *node)
 	{
 		if(node_method->body->kind == NODE_KIND_BLOCK)
 		{
-			result = syntax_block(syntax, node, node_method->body);
+			result &= syntax_block(syntax, node, node_method->body);
 		}
 		else
 		{
-			result = syntax_expression(syntax, node, node_method->body);
+			result &= syntax_expression(syntax, node, node_method->body);
 		}
 	}
 	
-	if (!result)
+	if(debug)
 	{
-		return 0;
+		printf("syntax 80 %d\n", result);
 	}
 
 	return 1;
@@ -2834,47 +2636,37 @@ syntax_method(syntax_t *syntax, node_t *parent, node_t *node)
 static int32_t
 syntax_check_is_hierarchy_attribute(syntax_t *syntax, node_t *node)
 {
-	int32_t result;
+	int32_t result = 1;
 	if (node->kind == NODE_KIND_GET_ATTR)
 	{
 		node_get_attr_t *node_get_attr;
 		node_get_attr = (node_get_attr_t *)node->value;
 
-		result = syntax_check_is_hierarchy_attribute(syntax, node_get_attr->left);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_check_is_hierarchy_attribute(syntax, node_get_attr->left);
 
 		if(node_get_attr->right->kind == NODE_KIND_COMPOSITE)
 		{
-			result = syntax_check_is_type_composite(syntax, node_get_attr->right);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_check_is_type_composite(syntax, node_get_attr->right);
 		}
 		else
 		{
-			result = syntax_check_is_name(syntax, node_get_attr->right);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_check_is_name(syntax, node_get_attr->right);
 		}
 	}
 	if (node->kind == NODE_KIND_COMPOSITE)
 	{
-		result = syntax_check_is_type_composite(syntax, node);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_check_is_type_composite(syntax, node);
 	}
 	else if (node->kind != NODE_KIND_ID)
 	{
-		return 0;
+		result = 0;
 	}
+
+	if(debug)
+	{
+		printf("syntax 81 %d\n", result);
+	}
+
 	return 1;
 }
 
@@ -2888,26 +2680,19 @@ syntax_heritage(syntax_t *syntax, node_t *parent, node_t *node)
 
 	int32_t result;
 	result = syntax_id(syntax, node, node_heritage->name);
-	if (!result)
-	{
-		return 0;
-	}
 
 	if(node_heritage->type)
 	{
-		result = syntax_expression(syntax, node, node_heritage->type);
-		if (!result)
-		{
-			return 0;
-		}
-		result = syntax_check_is_hierarchy_attribute(syntax, node_heritage->type);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, node_heritage->type);
+		result &= syntax_check_is_hierarchy_attribute(syntax, node_heritage->type);
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 82 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -2918,11 +2703,10 @@ syntax_class(syntax_t *syntax, node_t *parent, node_t *node)
 	node_class_t *node_class;
 	node_class = (node_class_t *)node->value;
 
-	int32_t result;
-	result = syntax_id(syntax, node, node_class->name);
-	if (!result)
+	int32_t result = 1;
+	if (node_class->name)
 	{
-		return 0;
+		result &= syntax_id(syntax, node, node_class->name);
 	}
 
 	ilist_t *a;
@@ -2933,11 +2717,7 @@ syntax_class(syntax_t *syntax, node_t *parent, node_t *node)
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = syntax_heritage(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_heritage(syntax, node, temp);
 		}
 	}
 
@@ -2948,11 +2728,7 @@ syntax_class(syntax_t *syntax, node_t *parent, node_t *node)
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = syntax_type_parameter(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_type_parameter(syntax, node, temp);
 		}
 	}
 
@@ -2964,52 +2740,37 @@ syntax_class(syntax_t *syntax, node_t *parent, node_t *node)
 		switch (temp->kind)
 		{
 		case NODE_KIND_EXPORT:
-			result = syntax_export(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_export(syntax, node, temp);
 			break;
 
 		case NODE_KIND_CLASS:
-			result = syntax_class(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_class(syntax, node, temp);
 			break;
 
 		case NODE_KIND_ENUM:
-			result = syntax_enum(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_enum(syntax, node, temp);
 			break;
 
 		case NODE_KIND_PROPERTY:
-			result = syntax_property(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_property(syntax, node, temp);
 			break;
 
 		case NODE_KIND_METHOD:
-			result = syntax_method(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_method(syntax, node, temp);
 			break;
 
 		default:
 			syntax_error(syntax, node->position, "unknown node body decalaration");
-			return 0;
+			result = 0;
 		}
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 83 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -3020,14 +2781,10 @@ syntax_func(syntax_t *syntax, node_t *parent, node_t *node)
 	node_func_t *node_func;
 	node_func = (node_func_t *)node->value;
 
-	int32_t result;
+	int32_t result = 1;
 	if (node_func->name)
 	{
-		result = syntax_id(syntax, node, node_func->name);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_id(syntax, node, node_func->name);
 	}
 
 	ilist_t *a;
@@ -3038,11 +2795,7 @@ syntax_func(syntax_t *syntax, node_t *parent, node_t *node)
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = syntax_parameter(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_parameter(syntax, node, temp);
 		}
 	}
 
@@ -3053,11 +2806,7 @@ syntax_func(syntax_t *syntax, node_t *parent, node_t *node)
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = syntax_type_parameter(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_type_parameter(syntax, node, temp);
 		}
 	}
 
@@ -3068,11 +2817,7 @@ syntax_func(syntax_t *syntax, node_t *parent, node_t *node)
 		{
 			node_t *temp;
 			temp = (node_t *)a->value;
-			result = syntax_field(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_field(syntax, node, temp);
 		}
 	}
 
@@ -3080,29 +2825,29 @@ syntax_func(syntax_t *syntax, node_t *parent, node_t *node)
 	{
 		if(node_func->body->kind == NODE_KIND_BLOCK)
 		{
-			result = syntax_block(syntax, node, node_func->body);
+			result &= syntax_block(syntax, node, node_func->body);
 		}
 		else
 		{
-			result = syntax_expression(syntax, node, node_func->body);
-		}
-		
-		if (!result)
-		{
-			return 0;
+			result &= syntax_expression(syntax, node, node_func->body);
 		}
 	}
 
-	return 1;
+	if(debug)
+	{
+		printf("syntax 84 %d\n", result);
+	}
+
+	return result;
 }
 
-static void
+static int32_t
 syntax_check_is_var_object_property(syntax_t *syntax, node_t *node)
 {
 	node_object_property_t *node_object_property;
 	node_object_property = (node_object_property_t *)node->value;
 
-	int32_t result;
+	int32_t result = 1;
 	result = syntax_check_is_name(syntax, node_object_property->name);
 	if (!result)
 	{
@@ -3110,27 +2855,22 @@ syntax_check_is_var_object_property(syntax_t *syntax, node_t *node)
 		{
 			syntax_error(syntax, node_object_property->name->position,
 										"The name must be an identifier");
+			return 0;
 		}
 		else
 		{
 			syntax_error(syntax, node_object_property->name->position,
 										"Valuation must be with field name of object or nested object");
+			return 0;
 		}
 	}
-	if (node_object_property->value)
-	{
-		result = syntax_check_is_hierarchy_name(syntax, node_object_property->value);
-		if (!result)
-		{
-			syntax_error(syntax, node_object_property->value->position,
-										"Valuation must be with identifier of object or nested object");
-		}
-	}
+	return 1;
 }
 
-static void
+static int32_t
 syntax_check_is_var_object(syntax_t *syntax, node_t *node)
 {
+	int32_t result = 1;
 	node_object_t *node_object;
 	node_object = (node_object_t *)node->value;
 
@@ -3140,11 +2880,18 @@ syntax_check_is_var_object(syntax_t *syntax, node_t *node)
 		node_t *temp;
 		temp = (node_t *)a->value;
 
-		syntax_check_is_var_object_property(syntax, temp);
+		result &= syntax_check_is_var_object_property(syntax, temp);
 	}
+	
+	if(debug)
+	{
+		printf("syntax 85 %d\n", result);
+	}
+
+	return result;
 }
 
-static void
+static int32_t
 syntax_check_is_var_array(syntax_t *syntax, node_t *node)
 {
 	node_array_t *node_array;
@@ -3162,8 +2909,10 @@ syntax_check_is_var_array(syntax_t *syntax, node_t *node)
 		{
 			syntax_error(syntax, temp->position,
 										"In valuing by array, the fields must include the variable name");
+			return 0;
 		}
 	}
+	return 1;
 }
 
 static int32_t
@@ -3174,51 +2923,37 @@ syntax_var(syntax_t *syntax, node_t *parent, node_t *node)
 	node_var_t *node_var;
 	node_var = (node_var_t *)node->value;
 
-	int32_t result;
+	int32_t result = 1;
 	if (node_var->name->kind == NODE_KIND_OBJECT)
 	{
-		syntax_check_is_var_object(syntax, node_var->name);
-		result = syntax_object(syntax, node, node_var->name);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_check_is_var_object(syntax, node_var->name);
+		result &= syntax_object(syntax, node, node_var->name);
 	}
 	else if (node_var->name->kind == NODE_KIND_ARRAY)
 	{
-		syntax_check_is_var_array(syntax, node_var->name);
-		result = syntax_array(syntax, node, node_var->name);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_check_is_var_array(syntax, node_var->name);
+		result &= syntax_array(syntax, node, node_var->name);
 	}
 	else
 	{
-		result = syntax_id(syntax, node, node_var->name);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_id(syntax, node, node_var->name);
 	}
 
 	if (node_var->type)
 	{
-		result = syntax_expression(syntax, node, node_var->type);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, node_var->type);
 	}
 	if (node_var->value)
 	{
-		result = syntax_expression(syntax, node, node_var->value);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, node_var->value);
 	}
-	return 1;
+
+	if(debug)
+	{
+		printf("syntax 86 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -3229,51 +2964,37 @@ syntax_const(syntax_t *syntax, node_t *parent, node_t *node)
 	node_const_t *node_const;
 	node_const = (node_const_t *)node->value;
 
-	int32_t result;
+	int32_t result = 1;
 	if (node_const->name->kind == NODE_KIND_OBJECT)
 	{
-		syntax_check_is_var_object(syntax, node_const->name);
-		result = syntax_object(syntax, node, node_const->name);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_check_is_var_object(syntax, node_const->name);
+		result &= syntax_object(syntax, node, node_const->name);
 	}
 	else if (node_const->name->kind == NODE_KIND_ARRAY)
 	{
-		syntax_check_is_var_array(syntax, node_const->name);
-		result = syntax_array(syntax, node, node_const->name);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_check_is_var_array(syntax, node_const->name);
+		result &= syntax_array(syntax, node, node_const->name);
 	}
 	else
 	{
-		result = syntax_id(syntax, node, node_const->name);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_id(syntax, node, node_const->name);
 	}
 
 	if (node_const->type)
 	{
-		result = syntax_expression(syntax, node, node_const->type);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, node_const->type);
 	}
 	if (node_const->value)
 	{
-		result = syntax_expression(syntax, node, node_const->value);
-		if (!result)
-		{
-			return 0;
-		}
+		result &= syntax_expression(syntax, node, node_const->value);
 	}
-	return 1;
+
+	if(debug)
+	{
+		printf("syntax 87 %d\n", result);
+	}
+
+	return result;
 }
 
 static int32_t
@@ -3284,12 +3005,8 @@ syntax_type(syntax_t *syntax, node_t *parent, node_t *node)
 	node_type_t *node_type;
 	node_type = (node_type_t *)node->value;
 
-	int32_t result;
-	result = syntax_id(syntax, node, node_type->name);
-	if (!result)
-	{
-		return 0;
-	}
+	int32_t result = 1;
+	result &= syntax_id(syntax, node, node_type->name);
 
 	ilist_t *a;
 	if (node_type->type_parameters)
@@ -3299,11 +3016,7 @@ syntax_type(syntax_t *syntax, node_t *parent, node_t *node)
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = syntax_type_parameter(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_type_parameter(syntax, node, temp);
 		}
 	}
 
@@ -3314,52 +3027,55 @@ syntax_type(syntax_t *syntax, node_t *parent, node_t *node)
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = syntax_heritage(syntax, node, temp);
-			if (!result)
-			{
-				return 0;
-			}
+			result &= syntax_heritage(syntax, node, temp);
 		}
 	}
 
-	result = syntax_expression(syntax, node, node_type->body);
-	if (!result)
+	result &= syntax_expression(syntax, node, node_type->body);
+
+	if(debug)
 	{
-		return 0;
+		printf("syntax 88 %d\n", result);
 	}
 
-	return 1;
+	return result;
 }
 
-static void
+static int32_t
 syntax_check_export_object(syntax_t *syntax, node_t *node);
 
-static void
+static int32_t
 syntax_check_is_export_object_key(syntax_t *syntax, node_t *node)
 {
+	int32_t result = 1;
 	if (node->kind == NODE_KIND_OBJECT)
 	{
-		syntax_check_export_object(syntax, node);
+		result &= syntax_check_export_object(syntax, node);
 	}
 	else if (node->kind != NODE_KIND_ID)
 	{
 		syntax_error(syntax, node->position,
 									"The key of the export object must be of the identifier type or an object");
+		return 0;
 	}
+
+	return result;
 }
 
-static void
+static int32_t
 syntax_check_is_export_object_property(syntax_t *syntax, node_t *node)
 {
 	node_object_property_t *node_object_property;
 	node_object_property = (node_object_property_t *)node->value;
 
-	syntax_check_is_export_object_key(syntax, node_object_property->name);
+	return syntax_check_is_export_object_key(syntax, node_object_property->name);
 }
 
-static void
+static int32_t
 syntax_check_export_object(syntax_t *syntax, node_t *node)
 {
+	int32_t result = 0;
+
 	node_object_t *node_object;
 	node_object = (node_object_t *)node->value;
 
@@ -3369,8 +3085,9 @@ syntax_check_export_object(syntax_t *syntax, node_t *node)
 		node_t *temp;
 		temp = (node_t *)a->value;
 
-		syntax_check_is_export_object_property(syntax, temp);
+		result |= syntax_check_is_export_object_property(syntax, temp);
 	}
+	return result;
 }
 
 static int32_t
@@ -3381,36 +3098,36 @@ syntax_export(syntax_t *syntax, node_t *parent, node_t *node)
 	node_modifier_t *node_export;
 	node_export = (node_modifier_t *)node->value;
 
-	int32_t result = 0;
+	int32_t result = 1;
 	switch (node_export->x->kind)
 	{
 	case NODE_KIND_CLASS:
-		result = syntax_class(syntax, node, node_export->x);
+		result &= syntax_class(syntax, node, node_export->x);
 		break;
 
 	case NODE_KIND_ENUM:
-		result = syntax_enum(syntax, node, node_export->x);
+		result &= syntax_enum(syntax, node, node_export->x);
 		break;
 
 	case NODE_KIND_FUNC:
-		result = syntax_func(syntax, node, node_export->x);
+		result &= syntax_func(syntax, node, node_export->x);
 		break;
 
 	case NODE_KIND_VAR:
-		result = syntax_var(syntax, node, node_export->x);
+		result &= syntax_var(syntax, node, node_export->x);
 		break;
 
 	case NODE_KIND_CONST:
-		result = syntax_const(syntax, node, node_export->x);
+		result &= syntax_const(syntax, node, node_export->x);
 		break;
 
 	case NODE_KIND_TYPE:
-		result = syntax_type(syntax, node, node_export->x);
+		result &= syntax_type(syntax, node, node_export->x);
 		break;
 
 	case NODE_KIND_OBJECT:
-		syntax_check_export_object(syntax, node_export->x);
-		result = syntax_object(syntax, node, node_export->x);
+		result &= syntax_check_export_object(syntax, node_export->x);
+		result &= syntax_object(syntax, node, node_export->x);
 		break;
 
 	default:
@@ -3418,12 +3135,12 @@ syntax_export(syntax_t *syntax, node_t *parent, node_t *node)
 		return 0;
 	}
 
-	if (!result)
+	if(debug)
 	{
-		return 0;
+		printf("syntax 89 %d\n", result);
 	}
 
-	return 1;
+	return result;
 }
 
 static int32_t
@@ -3540,26 +3257,6 @@ syntax_run(syntax_t *syntax, node_t *node)
 	{
 		return 0;
 	}
-	/*
-	ilist_t *a;
-	for(a = syntax->modules->begin; a != syntax->modules->end; a = a->next)
-	{
-		node_t *temp;
-		temp = (node_t *)a->value;
-
-		result = syntax_global_symbolization_module(syntax, temp);
-		if(!result)
-		{
-			return 0;
-		}
-	}
-
-	if (list_count(syntax->errors) > 0)
-	{
-		return 0;
-	}
-	*/
-
 	return 1;
 }
 
@@ -3579,9 +3276,11 @@ syntax_create(program_t *program, list_t *errors)
 	syntax->errors = errors;
 
 	syntax->modules = list_create();
+
 	if (!syntax->modules)
 	{
 		return NULL;
 	}
+
 	return syntax;
 }
