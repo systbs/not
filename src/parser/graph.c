@@ -2743,7 +2743,7 @@ graph_field(symbol_t *parent, node_t *node)
 	if (node_field->type)
 	{
 		symbol_t *symbol_type;
-		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_FIELD_TYPE, node_field->type);
+		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_TYPE_EXPRESSION, node_field->type);
 		if(!symbol_type)
 		{
 			return 0;
@@ -3463,7 +3463,6 @@ graph_module(symbol_t *parent, node_t *node)
 
 		default:
 			return 0;
-
 		}
 	}
 
@@ -3633,31 +3632,31 @@ static node_t *
 graph_return_node_contain_array_by_name(symbol_t *current, char *name)
 {
 	symbol_t *a;
-	for(a = current->begin; a != current->end; a = a->next)
+	for (a = current->begin; a != current->end; a = a->next)
 	{
-		if(symbol_check_flag(a, SYMBOL_FLAG_OBJECT))
+		if (symbol_check_flag(a, SYMBOL_FLAG_OBJECT))
 		{
 			node_t *node;
 			node = graph_return_node_contain_object_by_name(a, name);
-			if(node)
+			if (node)
 			{
 				return node;
 			}
 		}
-		else if(symbol_check_flag(a, SYMBOL_FLAG_ARRAY))
+		else if (symbol_check_flag(a, SYMBOL_FLAG_ARRAY))
 		{
 			node_t *node;
 			node = graph_return_node_contain_array_by_name(a, name);
-			if(node)
+			if (node)
 			{
 				return node;
 			}
 		}
-		else if(symbol_check_flag(a, SYMBOL_FLAG_ID))
+		else if (symbol_check_flag(a, SYMBOL_FLAG_ID))
 		{
 			node_t *node;
 			node = graph_return_node_if_symbol_equal_by_name(a, name);
-			if(node)
+			if (node)
 			{
 				return node;
 			}
@@ -3670,13 +3669,13 @@ static symbol_t *
 graph_return_symbol_contain_flag_by_name(symbol_t *current, uint64_t flag, char *name)
 {
 	symbol_t *a;
-	for(a = current->begin; a != current->end; a = a->next)
+	for (a = current->begin; a != current->end; a = a->next)
 	{
-		if(symbol_check_flag(a, flag))
+		if (symbol_check_flag(a, flag))
 		{
 			node_t *node;
 			node = graph_return_node_contain_name_by_name(a, name);
-			if(node)
+			if (node)
 			{
 				return a;
 			}
@@ -3685,7 +3684,200 @@ graph_return_symbol_contain_flag_by_name(symbol_t *current, uint64_t flag, char 
 	return NULL;
 }
 
+static int32_t
+graph_analysis_check_flag(uint64_t flag, uint64_t carrier)
+{
+	return ((flag & carrier) == carrier);
+}
 
+static error_t *
+graph_error(graph_t *graph, symbol_t *current, const char *format, ...)
+{
+	char *message;
+	message = malloc(1024);
+	if (!message)
+	{
+		return NULL;
+	}
+
+	va_list arg;
+	if (format)
+	{
+		va_start(arg, format);
+		vsprintf(message, format, arg);
+		va_end(arg);
+	}
+
+	node_t *node;
+	node = current->declaration;
+
+	error_t *error;
+	error = error_create(node->position, message);
+	if (!error)
+	{
+		return NULL;
+	}
+
+	if (list_rpush(graph->errors, (list_value_t)error))
+	{
+		return NULL;
+	}
+
+	return error;
+}
+
+static symbol_t *
+graph_analysis_extract_id_from_name(graph_t *graph, symbol_t *current)
+{
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if (graph_analysis_check_flag(a->flags, SYMBOL_FLAG_ID))
+		{
+			return a;
+		}
+	}
+
+	return NULL;
+}
+
+static symbol_t *
+graph_analysis_extract_id_from_field(graph_t *graph, symbol_t *current)
+{
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if (graph_analysis_check_flag(a->flags, SYMBOL_FLAG_NAME))
+		{
+			return graph_analysis_extract_id_from_name(graph, a);
+		}
+	}
+
+	return NULL;
+}
+
+static int32_t
+graph_analysis_comparison_symbol_name(symbol_t *destination, symbol_t *target)
+{
+	node_t *node_destination = destination->declaration;
+	node_basic_t *node_basic_destination;
+	node_basic_destination = (node_basic_t *)node_destination->value;
+
+	node_t *node_target = target->declaration;
+	node_basic_t *node_basic_target;
+	node_basic_target = (node_basic_t *)node_target->value;
+
+	return (strncmp(node_basic_target->value, node_basic_destination->value, 
+		max(strlen(node_basic_destination->value), strlen(node_basic_target->value))) == 0);
+}
+
+static symbol_t *
+graph_analysis_symbol_is_duplicated_in_import(graph_t *graph, symbol_t *current, symbol_t *target)
+{
+	symbol_t *symbol_id;
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if (graph_analysis_check_flag(a->flags, SYMBOL_FLAG_FIELD))
+		{
+			symbol_id = graph_analysis_extract_id_from_field(graph, a);
+			if(target->id != symbol_id->id)
+			{
+				if (graph_analysis_comparison_symbol_name(target, symbol_id))
+				{
+					return symbol_id;
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
+static int32_t
+graph_analysis_symbol_is_duplicated_in_previous(graph_t *graph, symbol_t *current, symbol_t *target)
+{
+	if (!graph_analysis_check_flag(target->flags, SYMBOL_FLAG_ID))
+	{
+		graph_error(graph, target, "duplicated symbol(%d): target not valid symbol id\n", target->flags);
+		return 0;
+	}
+	
+	symbol_t *symbol_id;
+	symbol_t *a;
+	for(a = current; a != current->parent->end; a = a->previous)
+	{
+		if (graph_analysis_check_flag(a->flags, SYMBOL_FLAG_IMPORT))
+		{
+			symbol_id = graph_analysis_symbol_is_duplicated_in_import(graph, a, target);
+			if (symbol_id)
+			{
+				graph_error(graph, symbol_id, "duplicated symbol(%d)\n", symbol_id->flags);
+				return 0;
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+graph_analysis_import(graph_t *graph, symbol_t *current)
+{
+	int32_t result = 1;
+
+	symbol_t *symbol_id;
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if (graph_analysis_check_flag(a->flags, SYMBOL_FLAG_FIELD))
+		{
+			symbol_id = graph_analysis_extract_id_from_field(graph, a);
+			if(symbol_id)
+			{
+				result &= graph_analysis_symbol_is_duplicated_in_previous(graph, current, symbol_id);
+			}
+		}
+	}
+
+	return result;
+}
+
+static int32_t
+graph_analysis_module(graph_t *graph, symbol_t *current)
+{
+	int32_t result = 1;
+
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if (graph_analysis_check_flag(a->flags, SYMBOL_FLAG_IMPORT))
+		{
+			result &= graph_analysis_import(graph, a);
+		}
+	}
+
+	return result;
+}
+
+int32_t
+graph_analysis(graph_t *graph)
+{
+	symbol_t *symbol;
+	symbol = (symbol_t *)graph->symbol;
+
+	int32_t result = 1;
+
+	symbol_t *a;
+	for(a = symbol->begin; a != symbol->end; a = a->next)
+	{
+		if (graph_analysis_check_flag(a->flags, SYMBOL_FLAG_MODULE))
+		{
+			result &= graph_analysis_module(graph, a);
+		}
+	}
+
+	return result;
+}
 
 
 

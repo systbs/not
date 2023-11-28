@@ -38,7 +38,8 @@ symbol_create(uint64_t flags, node_t *declaration)
         return NULL;
     }
     memset(sym, 0, sizeof(symbol_t));
-
+    
+    sym->parent = sym;
     sym->flags = flags;
     sym->declaration = declaration;
     sym->id = symbol_counter++;
@@ -210,6 +211,7 @@ symbol_rpush(symbol_t *sym, uint64_t flags, node_t *declaration)
 
     symbol_apply(it);
 
+    it->parent = sym;
     it->flags = flags;
     it->declaration = declaration;
     it->id = symbol_counter++;
@@ -235,6 +237,7 @@ symbol_lpush(symbol_t *sym, uint64_t flags, node_t *declaration)
 
     symbol_apply(it);
     
+    it->parent = sym;
     it->flags = flags;
     it->declaration = declaration;
     it->id = symbol_counter++;

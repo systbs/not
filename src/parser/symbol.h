@@ -24,7 +24,7 @@ typedef enum symbol_flag {
     SYMBOL_FLAG_PARAMETER_TYPE,
     SYMBOL_FLAG_PARAMETER_VALUE,
     SYMBOL_FLAG_FIELD,
-    SYMBOL_FLAG_FIELD_TYPE,
+    SYMBOL_FLAG_TYPE_EXPRESSION,
     SYMBOL_FLAG_EXPORT,
     SYMBOL_FLAG_IMPORT,
     SYMBOL_FLAG_PATH,
@@ -98,7 +98,9 @@ typedef struct symbol {
     uint64_t id;
     uint64_t flags;
 	
+    // node
 	node_t *declaration;
+    node_t *reference;
 
     // list
     struct symbol *previous;

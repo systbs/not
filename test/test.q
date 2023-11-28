@@ -1,10 +1,11 @@
-import ("~/lib/", ar:array.array, map)
+import ("~/lib/", ar:array.array, ar)
 
 export class (T = string, R) A extends (a: ar{T}.ar, m: map{T,R})
 {
   export b:int;
 
-  func init {
+  func init 
+  {
     a();
     m();
     b = a.b + m.b;
@@ -15,7 +16,7 @@ export class (T = string, R) A extends (a: ar{T}.ar, m: map{T,R})
 
   }
 
-  export static func (S) get()
+  export static func (S) get ()
   {
 
   }
@@ -31,7 +32,8 @@ export type (T) Y extends (t:T) :
 
 }
 
-func (g:G{T}, y:Y{T}, T extends T = T) get {
+func (g:G{T}, y:Y{T}, T extends T = T) get 
+{
 
 }
 

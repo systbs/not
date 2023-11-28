@@ -106,6 +106,16 @@ main(int argc, char **argv)
     	return -1;
     }
 
+    graph_result = graph_analysis(graph);
+    if(!graph_result)
+    {
+        if(list_count(errors) > 0)
+        {
+            goto print_error;
+        }
+    	return -1;
+    }
+
     return 0;
 
     ilist_t *a;
