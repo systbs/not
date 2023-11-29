@@ -1,4 +1,8 @@
-import ("~/lib/", ar:array.array, ar)
+
+var ar = 1;
+import ("~/lib/", ar:array.array, map)
+
+
 
 export class (T = string, R) A extends (a: ar{T}.ar, m: map{T,R})
 {

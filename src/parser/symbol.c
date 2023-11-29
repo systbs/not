@@ -39,7 +39,7 @@ symbol_create(uint64_t flags, node_t *declaration)
     }
     memset(sym, 0, sizeof(symbol_t));
     
-    sym->parent = sym;
+    sym->parent = NULL;
     sym->flags = flags;
     sym->declaration = declaration;
     sym->id = symbol_counter++;
@@ -307,7 +307,7 @@ symbol_last(symbol_t *sym)
 int32_t
 symbol_check_flag(symbol_t *symbol, uint64_t flag)
 {
-    return ((symbol->flags & flag) == flag);
+    return (symbol->flags == flag);
 }
 
 void
