@@ -3092,7 +3092,7 @@ graph_var(symbol_t *parent, node_t *node)
 	node_var = (node_var_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_VARIABLE, node);
+	symbol = symbol_rpush(parent, SYMBOL_FLAG_VAR, node);
 	if(!symbol)
 	{
 		return 0;
@@ -3696,20 +3696,33 @@ graph_analysis_symbol_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *ta
 		return 0;
 	}
 
+	int32_t result = 1;
 	symbol_t *a;
-	for(a = root; a && !symbol_check_flag(a, 0) ; a = a->previous)
+	for(a = root->next; a && !symbol_check_flag(a, 0) ; a = a->previous)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_IMPORT))
 		{
-			return graph_analysis_symbol_is_duplicated_in_import(graph, a, target);
+			result = graph_analysis_symbol_is_duplicated_in_import(graph, a, target);
+			if(!result)
+			{
+				return 0;
+			} 
 		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_VARIABLE))
+		else if (symbol_check_flag(a, SYMBOL_FLAG_VAR))
 		{
-			return graph_analysis_same_symbol_contain_name_struct(graph, a, target);
+			result = graph_analysis_same_symbol_contain_name_struct(graph, a, target);
+			if(!result)
+			{
+				return 0;
+			} 
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_CONST))
 		{
-			return graph_analysis_same_symbol_contain_name_struct(graph, a, target);
+			result = graph_analysis_same_symbol_contain_name_struct(graph, a, target);
+			if(!result)
+			{
+				return 0;
+			} 
 		}
 	}
 
