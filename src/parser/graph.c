@@ -3594,7 +3594,7 @@ graph_analysis_same_symbol_in_name_struct(graph_t *graph, symbol_t *current, sym
 			}
 			if(graph_analysis_compare_symbol_string_id(graph, a, target))
 			{
-				graph_error(graph, a, "duplicated symbol(%d) previous at %lld:%lld\n", a->flags, 
+				graph_error(graph, a, "duplicated symbol(%d) in %lld:%lld\n", a->flags, 
 					target->declaration->position.line, target->declaration->position.column);
 				return 0;
 			}
@@ -3649,7 +3649,7 @@ graph_analysis_symbol_in_array_struct(graph_t *graph, symbol_t *current, symbol_
 		{
 			if(graph_analysis_compare_symbol_string_id(graph, a, target))
 			{
-				graph_error(graph, a, "duplicated symbol(%d) previous at %lld:%lld\n", a->flags, 
+				graph_error(graph, a, "duplicated symbol(%d) in %lld:%lld\n", a->flags, 
 					target->declaration->position.line, target->declaration->position.column);
 				return 0;
 			}
@@ -3719,6 +3719,46 @@ graph_analysis_symbol_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *ta
 		else if (symbol_check_flag(a, SYMBOL_FLAG_CONST))
 		{
 			result = graph_analysis_same_symbol_contain_name_struct(graph, a, target);
+			if(!result)
+			{
+				return 0;
+			} 
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
+		{
+			result = graph_analysis_same_symbol_contain_name_struct(graph, a, target);
+			if(!result)
+			{
+				return 0;
+			} 
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_FUNCTION))
+		{
+			result = graph_analysis_same_symbol_contain_name_struct(graph, a, target);
+			if(!result)
+			{
+				return 0;
+			} 
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_TYPE))
+		{
+			result = graph_analysis_same_symbol_contain_name_struct(graph, a, target);
+			if(!result)
+			{
+				return 0;
+			} 
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
+		{
+			result = graph_analysis_same_symbol_contain_name_struct(graph, a, target);
+			if(!result)
+			{
+				return 0;
+			} 
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_EXPORT))
+		{
+			result = graph_analysis_same_symbol_contain_name_struct(graph, a->begin, target);
 			if(!result)
 			{
 				return 0;
