@@ -1,6 +1,6 @@
 import ("~/lib/", ar:array.array, map)
 
-class (T = string, R) ar extends (a: ar{T}.ar, m: map{T,R})
+export class (T = string, R) ar extends (a: ar{T}.ar, m: map{T,R})
 {
   export b:int;
 

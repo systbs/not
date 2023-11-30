@@ -3874,6 +3874,8 @@ graph_analysis_contain_name(graph_t *graph, symbol_t *root, symbol_t *sub, symbo
 	return result;
 }
 
+
+
 static int32_t
 graph_analysis_import(graph_t *graph, symbol_t *root , symbol_t *current)
 {
@@ -3922,6 +3924,133 @@ graph_analysis_class(graph_t *graph, symbol_t *root, symbol_t *current)
 }
 
 static int32_t
+graph_analysis_enum(graph_t *graph, symbol_t *root, symbol_t *current)
+{
+	int32_t result = 1;
+
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			result &= graph_analysis_name(graph, root, current, a);
+			if(!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	return result;
+}
+
+static int32_t
+graph_analysis_var(graph_t *graph, symbol_t *root, symbol_t *current)
+{
+	int32_t result = 1;
+
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			result &= graph_analysis_name(graph, root, current, a);
+			if(!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	return result;
+}
+
+static int32_t
+graph_analysis_const(graph_t *graph, symbol_t *root, symbol_t *current)
+{
+	int32_t result = 1;
+
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			result &= graph_analysis_name(graph, root, current, a);
+			if(!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	return result;
+}
+
+static int32_t
+graph_analysis_func(graph_t *graph, symbol_t *root, symbol_t *current)
+{
+	int32_t result = 1;
+
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			result &= graph_analysis_name(graph, root, current, a);
+			if(!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	return result;
+}
+
+static int32_t
+graph_analysis_export(graph_t *graph, symbol_t *root, symbol_t *current)
+{
+	int32_t result = 1;
+
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_IMPORT))
+		{
+			result &= graph_analysis_import(graph, root, a);
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
+		{
+			result &= graph_analysis_class(graph, root, a);
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
+		{
+			result &= graph_analysis_enum(graph, root, a);
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_VAR))
+		{
+			result &= graph_analysis_var(graph, root, a);
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_CONST))
+		{
+			result &= graph_analysis_const(graph, root, a);
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_FUNCTION))
+		{
+			result &= graph_analysis_func(graph, root, a);
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_EXPORT))
+		{
+			result &= graph_analysis_export(graph, root, a);
+		}
+	}
+
+	return result;
+}
+
+
+
+static int32_t
 graph_analysis_module(graph_t *graph, symbol_t *current)
 {
 	int32_t result = 1;
@@ -3936,6 +4065,26 @@ graph_analysis_module(graph_t *graph, symbol_t *current)
 		else if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
 		{
 			result &= graph_analysis_class(graph, current, a);
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
+		{
+			result &= graph_analysis_enum(graph, current, a);
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_VAR))
+		{
+			result &= graph_analysis_var(graph, current, a);
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_CONST))
+		{
+			result &= graph_analysis_const(graph, current, a);
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_FUNCTION))
+		{
+			result &= graph_analysis_func(graph, current, a);
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_EXPORT))
+		{
+			result &= graph_analysis_export(graph, current, a);
 		}
 	}
 
