@@ -3551,11 +3551,17 @@ graph_error(graph_t *graph, symbol_t *current, const char *format, ...)
 	return error;
 }
 
+
+
+
 static int32_t
 graph_analysis_symbol_in_object_struct(graph_t *graph, symbol_t *current, symbol_t *target);
 
 static int32_t
 graph_analysis_symbol_in_array_struct(graph_t *graph, symbol_t *current, symbol_t *target);
+
+
+
 
 static int32_t
 graph_analysis_compare_symbol_string_id(graph_t *graph, symbol_t *current, symbol_t *target)
@@ -3688,21 +3694,23 @@ graph_analysis_symbol_is_duplicated_in_import(graph_t *graph, symbol_t *current,
 }
 
 static int32_t
-graph_analysis_symbol_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *target)
+graph_analysis_symbol_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *target)
 {
-	if (!symbol_check_flag(target, SYMBOL_FLAG_ID))
-	{
-		graph_error(graph, target, "duplicated symbol(%d): target not valid symbol id\n", target->flags);
-		return 0;
-	}
-
 	int32_t result = 1;
 	symbol_t *a;
-	for(a = root->next; a && !symbol_check_flag(a, 0) ; a = a->previous)
+	for(a = root->begin; a && (a != sub) && (a != root->end); a = a->next)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_IMPORT))
 		{
 			result = graph_analysis_symbol_is_duplicated_in_import(graph, a, target);
+			if(!result)
+			{
+				return 0;
+			} 
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_FIELD))
+		{
+			result = graph_analysis_same_symbol_contain_name_struct(graph, a, target);
 			if(!result)
 			{
 				return 0;
@@ -3766,109 +3774,108 @@ graph_analysis_symbol_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *ta
 		}
 	}
 
-	if(root->parent)
-	{
-		return graph_analysis_symbol_is_duplicated(graph, root->parent, target);
-	}
-
 	return 1;
 }
 
 
-static int32_t
-graph_analysis_object(graph_t *graph, symbol_t *root, symbol_t *current);
 
 static int32_t
-graph_analysis_array(graph_t *graph, symbol_t *root, symbol_t *current);
+graph_analysis_object(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *current);
 
 static int32_t
-graph_analysis_name(graph_t *graph, symbol_t *root, symbol_t *current)
+graph_analysis_array(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *current);
+
+
+
+static int32_t
+graph_analysis_name(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *current)
 {
 	symbol_t *a;
 	for(a = current->begin; a != current->end; a = a->next)
 	{
 		if(symbol_check_flag(a, SYMBOL_FLAG_OBJECT))
 		{
-			return graph_analysis_object(graph, root, a);
+			return graph_analysis_object(graph, root, sub, a);
 		}
 		else if(symbol_check_flag(a, SYMBOL_FLAG_ARRAY))
 		{
-			return graph_analysis_array(graph, root, a);
+			return graph_analysis_array(graph, root, sub, a);
 		}
 		else if(symbol_check_flag(a, SYMBOL_FLAG_ID))
 		{
-			return graph_analysis_symbol_is_duplicated(graph, root, a);
+			return graph_analysis_symbol_is_duplicated(graph, root, sub, a);
 		}
 	}
 	return 0;
 }
 
 static int32_t
-graph_analysis_object_property(graph_t *graph, symbol_t *root, symbol_t *current)
+graph_analysis_object_property(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *current)
 {
 	symbol_t *a;
 	for(a = current->begin; a != current->end; a = a->next)
 	{
 		if(symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			return graph_analysis_name(graph, root, a);
+			return graph_analysis_name(graph, root, sub, a);
 		}
 	}
 	return 0;
 }
 
 static int32_t
-graph_analysis_object(graph_t *graph, symbol_t *root, symbol_t *current)
+graph_analysis_object(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *current)
 {
 	symbol_t *a;
 	for(a = current->begin; a != current->end; a = a->next)
 	{
 		if(symbol_check_flag(a, SYMBOL_FLAG_OBJECT_PROPERTY))
 		{
-			return graph_analysis_object_property(graph, root, a);
+			return graph_analysis_object_property(graph, root, sub, a);
 		}
 	}
 	return 0;
 }
 
 static int32_t
-graph_analysis_array(graph_t *graph, symbol_t *root, symbol_t *current)
+graph_analysis_array(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *current)
 {
 	symbol_t *a;
 	for (a = current->begin; a != current->end; a = a->next)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_OBJECT))
 		{
-			return graph_analysis_object(graph, root, a);
+			return graph_analysis_object(graph, root, sub, a);
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_ARRAY))
 		{
-			return graph_analysis_array(graph, root, a);
+			return graph_analysis_array(graph, root, sub, a);
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_ID))
 		{
-			return graph_analysis_symbol_is_duplicated(graph, root, a);
+			return graph_analysis_symbol_is_duplicated(graph, root, sub, a);
 		}
 	}
 	return 0;
 }
 
 static int32_t
-graph_analysis_contain_name(graph_t *graph, symbol_t *root, symbol_t *current)
+graph_analysis_contain_name(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *current)
 {
+	int32_t result = 1;
 	symbol_t *a;
 	for(a = current->begin; a != current->end; a = a->next)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			return graph_analysis_name(graph, root, a);
+			result &= graph_analysis_name(graph, root, sub, a);
 		}
 	}
-	return 0;
+	return result;
 }
 
 static int32_t
-graph_analysis_import(graph_t *graph, symbol_t *current)
+graph_analysis_import(graph_t *graph, symbol_t *root , symbol_t *current)
 {
 	int32_t result = 1;
 
@@ -3877,7 +3884,37 @@ graph_analysis_import(graph_t *graph, symbol_t *current)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_FIELD))
 		{
-			result &= graph_analysis_contain_name(graph, a, a);
+			result &= graph_analysis_contain_name(graph, current, a, a);
+			if(!result)
+			{
+				return 0;
+			}
+			result &= graph_analysis_contain_name(graph, root, current, a);
+			if(!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	return result;
+}
+
+static int32_t
+graph_analysis_class(graph_t *graph, symbol_t *root, symbol_t *current)
+{
+	int32_t result = 1;
+
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			result &= graph_analysis_name(graph, root, current, a);
+			if(!result)
+			{
+				return 0;
+			}
 		}
 	}
 
@@ -3894,7 +3931,11 @@ graph_analysis_module(graph_t *graph, symbol_t *current)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_IMPORT))
 		{
-			result &= graph_analysis_import(graph, a);
+			result &= graph_analysis_import(graph, current, a);
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
+		{
+			result &= graph_analysis_class(graph, current, a);
 		}
 	}
 
