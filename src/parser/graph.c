@@ -2455,7 +2455,7 @@ graph_type_parameter(symbol_t *parent, node_t *node)
 	if (node_type_parameter->extends)
 	{
 		symbol_t *symbol_extends;
-		symbol_extends = symbol_rpush(symbol, SYMBOL_FLAG_TYPE_PARAMETER_EXTENDS, node_type_parameter->extends);
+		symbol_extends = symbol_rpush(symbol, SYMBOL_FLAG_TYPE_PARAMETER_TYPE, node_type_parameter->extends);
 		if(!symbol_extends)
 		{
 			return 0;
@@ -3573,7 +3573,7 @@ graph_analysis_compare_symbol_string_id(graph_t *graph, symbol_t *current, symbo
 	node_t *node_target = target->declaration;
 	node_basic_t *node_basic_target;
 	node_basic_target = (node_basic_t *)node_target->value;
-	
+
 	return (strncmp(node_basic_target->value, node_basic_current->value, 
 		max(strlen(node_basic_current->value), strlen(node_basic_target->value))) == 0);
 }
@@ -3680,20 +3680,6 @@ graph_analysis_same_symbol_contain_name_struct(graph_t *graph, symbol_t *current
 }
 
 static int32_t
-graph_analysis_symbol_is_duplicated_in_import(graph_t *graph, symbol_t *current, symbol_t *target)
-{
-	symbol_t *a;
-	for(a = current->begin; a != current->end; a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_FIELD))
-		{
-			return graph_analysis_same_symbol_contain_name_struct(graph, a, target);
-		}
-	}
-	return 1;
-}
-
-static int32_t
 graph_analysis_symbol_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *target)
 {
 	int32_t result = 1;
@@ -3702,13 +3688,36 @@ graph_analysis_symbol_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *su
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_IMPORT))
 		{
-			result = graph_analysis_symbol_is_duplicated_in_import(graph, a, target);
+			symbol_t *b;
+			for(b = a->begin; b != a->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_FIELD))
+				{
+					return graph_analysis_same_symbol_contain_name_struct(graph, b, target);
+				}
+			}
+			if(!result)
+			{
+				return 0;
+			}
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_FIELD))
+		{
+			result = graph_analysis_same_symbol_contain_name_struct(graph, a, target);
 			if(!result)
 			{
 				return 0;
 			} 
 		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_FIELD))
+		else if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
+		{
+			result = graph_analysis_same_symbol_contain_name_struct(graph, a, target);
+			if(!result)
+			{
+				return 0;
+			} 
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
 		{
 			result = graph_analysis_same_symbol_contain_name_struct(graph, a, target);
 			if(!result)
@@ -3764,13 +3773,33 @@ graph_analysis_symbol_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *su
 				return 0;
 			} 
 		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_EXPORT))
+		else if (symbol_check_flag(a, SYMBOL_FLAG_PROPERTY))
 		{
-			result = graph_analysis_same_symbol_contain_name_struct(graph, a->begin, target);
+			result = graph_analysis_same_symbol_contain_name_struct(graph, a, target);
 			if(!result)
 			{
 				return 0;
-			} 
+			}
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
+		{
+			result = graph_analysis_same_symbol_contain_name_struct(graph, a, target);
+			if(!result)
+			{
+				return 0;
+			}
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_EXPORT))
+		{
+			symbol_t *b;
+			for(b = a->begin; b && (b != a->end); b = b->next)
+			{
+				result = graph_analysis_symbol_is_duplicated(graph, root, a, target);
+				if(!result)
+				{
+					return 0;
+				}
+			}
 		}
 	}
 
@@ -3778,13 +3807,11 @@ graph_analysis_symbol_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *su
 }
 
 
-
 static int32_t
 graph_analysis_object(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *current);
 
 static int32_t
 graph_analysis_array(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *current);
-
 
 
 static int32_t
@@ -3903,7 +3930,7 @@ graph_analysis_import(graph_t *graph, symbol_t *root , symbol_t *current)
 }
 
 static int32_t
-graph_analysis_class(graph_t *graph, symbol_t *root, symbol_t *current)
+graph_analysis_type_parameter(graph_t *graph, symbol_t *root , symbol_t *current)
 {
 	int32_t result = 1;
 
@@ -3912,10 +3939,189 @@ graph_analysis_class(graph_t *graph, symbol_t *root, symbol_t *current)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
+			result &= graph_analysis_name(graph, root, a, a);
+			if(!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	return result;
+}
+
+static int32_t
+graph_analysis_heritage(graph_t *graph, symbol_t *root, symbol_t *current)
+{
+	int32_t result = 1;
+
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			result &= graph_analysis_name(graph, root, a, a);
+			if(!result)
+			{
+				return 0;
+			}
+			symbol_t *b;
+			for(b = root->begin; b != root->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_TYPE_PARAMETER))
+				{
+					result &= graph_analysis_contain_name(graph, root, b, b);
+					if(!result)
+					{
+						return result;
+					}
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+static int32_t
+graph_analysis_class(graph_t *graph, symbol_t *root, symbol_t *current)
+{
+	int32_t result = 1;
+
+	symbol_t *a;
+	for (a = current->begin; a != current->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
 			result &= graph_analysis_name(graph, root, current, a);
 			if(!result)
 			{
 				return 0;
+			}
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
+		{
+			result &= graph_analysis_heritage(graph, current, a);
+			if(!result)
+			{
+				return 0;
+			}
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
+		{
+			result &= graph_analysis_type_parameter(graph, current, a);
+			if(!result)
+			{
+				return 0;
+			}
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
+		{
+			symbol_t *b;
+			for(b = current->begin; b != current->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_TYPE_PARAMETER))
+				{
+					result &= graph_analysis_contain_name(graph, current, b, a);
+					if(!result)
+					{
+						return result;
+					}
+				}
+				if (symbol_check_flag(b, SYMBOL_FLAG_HERITAGE))
+				{
+					result &= graph_analysis_contain_name(graph, current, b, a);
+					if(!result)
+					{
+						return result;
+					}
+				}
+			}
+			result &= graph_analysis_class(graph, current, a);
+			if(!result)
+			{
+				return 0;
+			}
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
+		{
+			symbol_t *b;
+			for(b = current->begin; b != current->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_TYPE_PARAMETER))
+				{
+					result &= graph_analysis_contain_name(graph, current, b, a);
+					if(!result)
+					{
+						return result;
+					}
+				}
+				if (symbol_check_flag(b, SYMBOL_FLAG_HERITAGE))
+				{
+					result &= graph_analysis_contain_name(graph, current, b, a);
+					if(!result)
+					{
+						return result;
+					}
+				}
+			}
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
+		{
+			symbol_t *b;
+			for(b = current->begin; b != current->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_TYPE_PARAMETER))
+				{
+					result &= graph_analysis_contain_name(graph, current, b, a);
+					if(!result)
+					{
+						return result;
+					}
+				}
+				if (symbol_check_flag(b, SYMBOL_FLAG_HERITAGE))
+				{
+					result &= graph_analysis_contain_name(graph, current, b, a);
+					if(!result)
+					{
+						return result;
+					}
+				}
+			}
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_PROPERTY))
+		{
+			symbol_t *b;
+			for(b = current->begin; b != current->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_TYPE_PARAMETER))
+				{
+					result &= graph_analysis_contain_name(graph, current, b, a);
+					if(!result)
+					{
+						return result;
+					}
+				}
+				if (symbol_check_flag(b, SYMBOL_FLAG_HERITAGE))
+				{
+					result &= graph_analysis_contain_name(graph, current, b, a);
+					if(!result)
+					{
+						return result;
+					}
+				}
+			}
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_EXPORT))
+		{
+			symbol_t *b;
+			for (b = a->begin; b != a->end; b = b->next)
+			{
+				result &= graph_analysis_class(graph, root, b);
+				if (!result)
+				{
+					return result;
+				}
 			}
 		}
 	}
