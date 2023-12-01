@@ -695,7 +695,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 
 	if(node->kind == NODE_KIND_TILDE)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_TILDE, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_TILDE, node);
 		if(!symbol)
 		{
 			return 0;
@@ -703,7 +703,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_NOT)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_NOT, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_NOT, node);
 		if(!symbol)
 		{
 			return 0;
@@ -711,7 +711,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_NEG)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_NEG, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_NEG, node);
 		if(!symbol)
 		{
 			return 0;
@@ -719,7 +719,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_POS)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_POS, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_POS, node);
 		if(!symbol)
 		{
 			return 0;
@@ -727,7 +727,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_GET_VALUE)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_GET_VALUE, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_GET_VALUE, node);
 		if(!symbol)
 		{
 			return 0;
@@ -735,7 +735,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_GET_ADDRESS)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_GET_ADDRESS, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_GET_ADDRESS, node);
 		if(!symbol)
 		{
 			return 0;
@@ -743,7 +743,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_AWAIT)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_AWAIT, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_AWAIT, node);
 		if(!symbol)
 		{
 			return 0;
@@ -751,7 +751,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_SIZEOF)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_SIZEOF, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_SIZEOF, node);
 		if(!symbol)
 		{
 			return 0;
@@ -759,7 +759,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_TYPEOF)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_TYPEOF, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_TYPEOF, node);
 		if(!symbol)
 		{
 			return 0;
@@ -767,7 +767,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_ELLIPSIS)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_ELLIPSIS, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_ELLIPSIS, node);
 		if(!symbol)
 		{
 			return 0;
@@ -3578,6 +3578,9 @@ graph_analysis_compare_symbol_string_id(graph_t *graph, symbol_t *current, symbo
 		max(strlen(node_basic_current->value), strlen(node_basic_target->value))) == 0);
 }
 
+
+
+
 static int32_t
 graph_analysis_same_symbol_in_name_struct(graph_t *graph, symbol_t *current, symbol_t *target)
 {
@@ -3886,6 +3889,9 @@ graph_analysis_array(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *cu
 	return 0;
 }
 
+
+
+
 static int32_t
 graph_analysis_contain_name(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *current)
 {
@@ -3900,6 +3906,273 @@ graph_analysis_contain_name(graph_t *graph, symbol_t *root, symbol_t *sub, symbo
 	}
 	return result;
 }
+
+
+
+
+static int32_t
+graph_analysis_contain_value_struct(symbol_t *refrence)
+{
+	symbol_t *a;
+	for (a = refrence->begin; a != refrence->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER_VALUE))
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static int32_t
+graph_analysis_parameter_contain_type_struct_of_type(symbol_t *refrence, uint64_t flag)
+{
+	symbol_t *a;
+	for (a = refrence->begin; a != refrence->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER_TYPE))
+		{
+			if (symbol_check_flag(a, flag))
+			{
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+
+static int32_t
+graph_analysis_is_same_type_parameter(symbol_t *refrence, symbol_t *target)
+{
+	uint64_t refrence_counter = 0;
+	uint64_t refrence_counter_by_value = 0;
+	symbol_t *a;
+	for (a = refrence->begin; a != refrence->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
+		{
+			if(graph_analysis_contain_value_struct(a))
+			{
+				refrence_counter_by_value += 1;
+			}
+			refrence_counter += 1;
+		}
+	}
+
+	uint64_t target_counter = 0;
+	uint64_t target_counter_by_value = 0;
+
+	for (a = target->begin; a != target->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
+		{
+			if(graph_analysis_contain_value_struct(a))
+			{
+				target_counter_by_value += 1;
+			}
+			target_counter += 1;
+		}
+	}
+
+	if ((refrence_counter - refrence_counter_by_value) == (target_counter - target_counter_by_value))
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
+static int32_t
+graph_analysis_subset_of_symbol_type(symbol_t *refrence, symbol_t *target)
+{
+	return 1;
+}
+
+static int32_t
+graph_analysis_subset_of_symbol_parameter(symbol_t *refrence, symbol_t *target)
+{
+	uint64_t refrence_parameter_counter = 0;  
+	symbol_t *a;
+	for (a = refrence->begin; a != refrence->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_PARAMETER))
+		{
+			if (graph_analysis_parameter_contain_type_struct_of_type(a, SYMBOL_FLAG_ELLIPSIS))
+			{
+				goto subset;
+			}
+
+			refrence_parameter_counter += 1;
+			int32_t target_founded = 0;
+			uint64_t target_parameter_counter = 0;
+			symbol_t *b;
+			for (b = target->begin; b != target->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_PARAMETER))
+				{
+					target_parameter_counter += 1;
+					if (target_parameter_counter < refrence_parameter_counter)
+					{
+						continue;
+					}
+					target_founded = 1;
+
+					if (graph_analysis_parameter_contain_type_struct_of_type(b, SYMBOL_FLAG_ELLIPSIS))
+					{
+						goto subset;
+					}
+
+					if (!graph_analysis_subset_of_symbol_type(a, b))
+					{
+						goto not_subset;
+					}
+				}
+			}
+			
+			if (!target_founded)
+			{
+				if (graph_analysis_contain_value_struct(a))
+				{
+					continue;
+				}
+				goto not_subset;
+			}
+		}
+	}
+
+	uint64_t target_parameter_counter = 0;
+	for (a = target->begin; a != target->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_PARAMETER))
+		{
+			target_parameter_counter += 1;
+			if (target_parameter_counter <= refrence_parameter_counter)
+			{
+				continue;
+			}
+
+			if (graph_analysis_parameter_contain_type_struct_of_type(a, SYMBOL_FLAG_ELLIPSIS))
+			{
+				goto subset;
+			}
+			
+			if (!graph_analysis_contain_value_struct(a))
+			{
+				goto not_subset;
+			}
+		}
+	}
+
+	subset:
+	return 1;
+
+	not_subset:
+	return 0;
+}
+
+static int32_t
+graph_analysis_same_symbol_method_in_name_struct(graph_t *graph, symbol_t *current, symbol_t *refrence, symbol_t *target_refrence, symbol_t *target)
+{
+	int32_t result = 1;
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if(symbol_check_flag(a, SYMBOL_FLAG_ID))
+		{
+			if(a->id == target->id)
+			{
+				break;
+			}
+			if(graph_analysis_compare_symbol_string_id(graph, a, target))
+			{
+				result = graph_analysis_is_same_type_parameter(refrence, target_refrence);
+				if(result)
+				{
+					result = graph_analysis_subset_of_symbol_parameter(refrence, target_refrence);
+					if(result)
+					{
+						goto error;
+					}
+					result = graph_analysis_subset_of_symbol_parameter(target_refrence, refrence);
+					if(result)
+					{
+						goto error;
+					}
+				}
+				return 1;
+
+				error:
+				graph_error(graph, a, "duplicated symbol(%d) in %lld:%lld\n", a->flags, 
+					target->declaration->position.line, target->declaration->position.column);
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
+static int32_t
+graph_analysis_same_symbol_method_contain_name_struct(graph_t *graph, symbol_t *current, symbol_t *refrence, symbol_t *target_refrence, symbol_t *target)
+{
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			return graph_analysis_same_symbol_method_in_name_struct(graph, a, refrence, target_refrence, target);
+		}
+	}
+	return 1;
+}
+
+static int32_t
+graph_analysis_symbol_method_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *refrence, symbol_t *target)
+{
+	int32_t result = 1;
+	symbol_t *a;
+	for (a = root->begin; a && (a != sub) && (a != root->end); a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
+		{
+			result = graph_analysis_same_symbol_method_contain_name_struct(graph, a, refrence, a, target);
+			if(!result)
+			{
+				return 0;
+			}
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_EXPORT))
+		{
+			symbol_t *b;
+			for (b = a->begin; b && (b != a->end); b = b->next)
+			{
+				result = graph_analysis_symbol_method_is_duplicated(graph, root, a, refrence, target);
+				if (!result)
+				{
+					return 0;
+				}
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+graph_analysis_method_name(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *refrence, symbol_t *current)
+{
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if(symbol_check_flag(a, SYMBOL_FLAG_ID))
+		{
+			return graph_analysis_symbol_method_is_duplicated(graph, root, sub, refrence, a);
+		}
+	}
+	return 0;
+}
+
+
 
 
 
@@ -3984,6 +4257,27 @@ graph_analysis_heritage(graph_t *graph, symbol_t *root, symbol_t *current)
 }
 
 static int32_t
+graph_analysis_method(graph_t *graph, symbol_t *root, symbol_t *current)
+{
+	int32_t result = 1;
+
+	symbol_t *a;
+	for (a = current->begin; a != current->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			result &= graph_analysis_method_name(graph, root, current, current, a);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	return result;
+}
+
+static int32_t
 graph_analysis_class(graph_t *graph, symbol_t *root, symbol_t *current)
 {
 	int32_t result = 1;
@@ -4042,11 +4336,19 @@ graph_analysis_class(graph_t *graph, symbol_t *root, symbol_t *current)
 			{
 				return 0;
 			}
+			if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+			{
+				result &= graph_analysis_name(graph, current, a, a);
+				if(!result)
+				{
+					return 0;
+				}
+			}
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
 		{
 			symbol_t *b;
-			for(b = current->begin; b != current->end; b = b->next)
+			for (b = current->begin; b != current->end; b = b->next)
 			{
 				if (symbol_check_flag(b, SYMBOL_FLAG_TYPE_PARAMETER))
 				{
@@ -4064,6 +4366,11 @@ graph_analysis_class(graph_t *graph, symbol_t *root, symbol_t *current)
 						return result;
 					}
 				}
+			}
+			result &= graph_analysis_method(graph, current, a);
+			if (!result)
+			{
+				return 0;
 			}
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
@@ -4088,6 +4395,14 @@ graph_analysis_class(graph_t *graph, symbol_t *root, symbol_t *current)
 					}
 				}
 			}
+			if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+			{
+				result &= graph_analysis_name(graph, current, a, a);
+				if(!result)
+				{
+					return 0;
+				}
+			}
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_PROPERTY))
 		{
@@ -4109,6 +4424,14 @@ graph_analysis_class(graph_t *graph, symbol_t *root, symbol_t *current)
 					{
 						return result;
 					}
+				}
+			}
+			if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+			{
+				result &= graph_analysis_name(graph, current, a, a);
+				if(!result)
+				{
+					return 0;
 				}
 			}
 		}
