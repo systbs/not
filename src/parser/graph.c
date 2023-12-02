@@ -3924,28 +3924,6 @@ graph_analysis_contain_symbol_by_flag(symbol_t *refrence, uint64_t flag)
 }
 
 static int32_t
-graph_analysis_parameter_is_ellipsis(symbol_t *refrence)
-{
-	symbol_t *a;
-	for (a = refrence->begin; a != refrence->end; a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
-		{
-			symbol_t *b;
-			for (b = a->begin; b != a->end; b = b->next)
-			{
-				if (symbol_check_flag(b, SYMBOL_FLAG_ELLIPSIS))
-				{
-					return 1;
-				}
-			}
-		}
-	}
-	return 0;
-}
-
-
-static int32_t
 graph_analysis_is_same_type_parameter(symbol_t *refrence, symbol_t *target)
 {
 	uint64_t refrence_counter = 0;
@@ -4072,6 +4050,73 @@ graph_analysis_subset_of_parameter_type(symbol_t *refrence, symbol_t *target)
 }
 
 static int32_t
+graph_analysis_parameter_is_ellipsis(symbol_t *refrence)
+{
+	symbol_t *a;
+	for (a = refrence->begin; a != refrence->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			symbol_t *b;
+			for (b = a->begin; b != a->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_ELLIPSIS))
+				{
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+static int32_t
+graph_analysis_subset_of_array_type(symbol_t *refrence, symbol_t *target)
+{
+	symbol_t *a;
+	for (a = target->begin; a != target->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_GET_ITEM))
+		{
+			symbol_t *b;
+			for (b = a->begin; b != a->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_NAME))
+				{
+					if(graph_analysis_subset_of_symbol_type(refrence, b))
+					{
+						return 1;
+					}
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+static int32_t
+graph_analysis_subset_of_ellipsis_type(symbol_t *refrence, symbol_t *target)
+{
+	symbol_t *a;
+	for (a = refrence->begin; a != refrence->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_PARAMETER_TYPE))
+		{
+			symbol_t *b;
+			for (b = target->begin; b != target->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_PARAMETER_TYPE))
+				{
+					return graph_analysis_subset_of_array_type(a, b);
+				}
+			}
+		}
+	}
+	return 1;
+}
+
+
+static int32_t
 graph_analysis_subset_of_parameter(symbol_t *refrence, symbol_t *target)
 {
 	uint64_t refrence_parameter_counter = 0;  
@@ -4080,10 +4125,6 @@ graph_analysis_subset_of_parameter(symbol_t *refrence, symbol_t *target)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_PARAMETER))
 		{
-			if (graph_analysis_parameter_is_ellipsis(a))
-			{
-				goto subset;
-			}
 			if (graph_analysis_contain_symbol_by_flag(a, SYMBOL_FLAG_PARAMETER_VALUE))
 			{
 				continue;
@@ -4104,8 +4145,21 @@ graph_analysis_subset_of_parameter(symbol_t *refrence, symbol_t *target)
 					}
 					target_founded = 1;
 
+					if (graph_analysis_parameter_is_ellipsis(a))
+					{
+						if (!graph_analysis_subset_of_ellipsis_type(b, a))
+						{
+							goto not_subset;
+						}
+						goto subset;
+					}
+
 					if (graph_analysis_parameter_is_ellipsis(b))
 					{
+						if (!graph_analysis_subset_of_ellipsis_type(a, b))
+						{
+							goto not_subset;
+						}
 						goto subset;
 					}
 
