@@ -3553,7 +3553,6 @@ graph_error(graph_t *graph, symbol_t *current, const char *format, ...)
 
 
 
-
 static int32_t
 graph_analysis_symbol_in_object_struct(graph_t *graph, symbol_t *current, symbol_t *target);
 
@@ -3903,12 +3902,12 @@ graph_analysis_contain_name(graph_t *graph, symbol_t *root, symbol_t *sub, symbo
 
 
 static int32_t
-graph_analysis_contain_value_struct(symbol_t *refrence)
+graph_analysis_contain_symbol_by_flag(symbol_t *refrence, uint64_t flag)
 {
 	symbol_t *a;
 	for (a = refrence->begin; a != refrence->end; a = a->next)
 	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER_VALUE))
+		if (symbol_check_flag(a, flag))
 		{
 			return 1;
 		}
@@ -3917,16 +3916,20 @@ graph_analysis_contain_value_struct(symbol_t *refrence)
 }
 
 static int32_t
-graph_analysis_parameter_contain_type_struct_of_type(symbol_t *refrence, uint64_t flag)
+graph_analysis_parameter_is_ellipsis(symbol_t *refrence)
 {
 	symbol_t *a;
 	for (a = refrence->begin; a != refrence->end; a = a->next)
 	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER_TYPE))
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			if (symbol_check_flag(a, flag))
+			symbol_t *b;
+			for (b = a->begin; b != a->end; b = b->next)
 			{
-				return 1;
+				if (symbol_check_flag(b, SYMBOL_FLAG_ELLIPSIS))
+				{
+					return 1;
+				}
 			}
 		}
 	}
@@ -3944,7 +3947,7 @@ graph_analysis_is_same_type_parameter(symbol_t *refrence, symbol_t *target)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
 		{
-			if(graph_analysis_contain_value_struct(a))
+			if (graph_analysis_contain_symbol_by_flag(a, SYMBOL_FLAG_TYPE_PARAMETER_VALUE))
 			{
 				refrence_counter_by_value += 1;
 			}
@@ -3959,7 +3962,7 @@ graph_analysis_is_same_type_parameter(symbol_t *refrence, symbol_t *target)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
 		{
-			if(graph_analysis_contain_value_struct(a))
+			if (graph_analysis_contain_symbol_by_flag(a, SYMBOL_FLAG_TYPE_PARAMETER_VALUE))
 			{
 				target_counter_by_value += 1;
 			}
@@ -4069,9 +4072,13 @@ graph_analysis_subset_of_parameter(symbol_t *refrence, symbol_t *target)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_PARAMETER))
 		{
-			if (graph_analysis_parameter_contain_type_struct_of_type(a, SYMBOL_FLAG_ELLIPSIS))
+			if (graph_analysis_parameter_is_ellipsis(a))
 			{
 				goto subset;
+			}
+			if (graph_analysis_contain_symbol_by_flag(a, SYMBOL_FLAG_PARAMETER_VALUE))
+			{
+				continue;
 			}
 
 			refrence_parameter_counter += 1;
@@ -4089,7 +4096,7 @@ graph_analysis_subset_of_parameter(symbol_t *refrence, symbol_t *target)
 					}
 					target_founded = 1;
 
-					if (graph_analysis_parameter_contain_type_struct_of_type(b, SYMBOL_FLAG_ELLIPSIS))
+					if (graph_analysis_parameter_is_ellipsis(b))
 					{
 						goto subset;
 					}
@@ -4104,7 +4111,7 @@ graph_analysis_subset_of_parameter(symbol_t *refrence, symbol_t *target)
 			
 			if (!target_founded)
 			{
-				if (graph_analysis_contain_value_struct(a))
+				if (graph_analysis_contain_symbol_by_flag(a, SYMBOL_FLAG_PARAMETER_VALUE))
 				{
 					continue;
 				}
@@ -4124,12 +4131,12 @@ graph_analysis_subset_of_parameter(symbol_t *refrence, symbol_t *target)
 				continue;
 			}
 
-			if (graph_analysis_parameter_contain_type_struct_of_type(a, SYMBOL_FLAG_ELLIPSIS))
+			if (graph_analysis_parameter_is_ellipsis(a))
 			{
 				goto subset;
 			}
 			
-			if (!graph_analysis_contain_value_struct(a))
+			if (!graph_analysis_contain_symbol_by_flag(a, SYMBOL_FLAG_PARAMETER_VALUE))
 			{
 				goto not_subset;
 			}
