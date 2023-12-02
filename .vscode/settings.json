@@ -27,6 +27,7 @@
         "symbol.h": "c",
         "stdio.h": "c",
         "node.h": "c",
-        "error.h": "c"
+        "error.h": "c",
+        "syntax.h": "c"
     }
 }

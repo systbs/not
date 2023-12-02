@@ -13,7 +13,8 @@ export class (T = string, R) A extends (a: ar{T}.ar, m: map{T,R})
 
   export func get (a1:int, ..a2:int[])
   {
-
+    var b:int = 1;
+    var b:int = 1;
   }
 
   export func get (a1:int, a2:int)

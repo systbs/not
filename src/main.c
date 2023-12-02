@@ -13,9 +13,9 @@
 #include "ast/node.h"
 #include "parser/parser.h"
 #include "parser/error.h"
-#include "parser/syntax.h"
 #include "parser/symbol.h"
 #include "parser/graph.h"
+#include "parser/syntax.h"
 #include "utils/utils.h"
 #include "utils/path.h"
 
@@ -69,25 +69,6 @@ main(int argc, char **argv)
     	return -1;
     }
 
-    
-    syntax_t *syntax;
-    syntax = syntax_create(&program, errors);
-    if(!syntax)
-    {
-        return -1;
-    }
-
-    int32_t syntax_result;
-    syntax_result = syntax_run(syntax, root);
-    if(!syntax_result)
-    {
-        if(list_count(errors) > 0)
-        {
-            goto print_error;
-        }
-    	return -1;
-    }
-
     graph_t *graph;
     graph = graph_create(&program, errors);
     if(!graph)
@@ -96,7 +77,7 @@ main(int argc, char **argv)
     }
 
     int32_t graph_result;
-    graph_result = graph_run(graph, syntax);
+    graph_result = graph_run(graph, root);
     if(!graph_result)
     {
         if(list_count(errors) > 0)
@@ -106,7 +87,7 @@ main(int argc, char **argv)
     	return -1;
     }
 
-    graph_result = graph_analysis(graph);
+    graph_result = syntax_run(graph);
     if(!graph_result)
     {
         if(list_count(errors) > 0)
