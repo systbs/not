@@ -690,7 +690,7 @@ graph_postfix(symbol_t *parent, node_t *node)
 static int32_t
 graph_prefix(symbol_t *parent, node_t *node)
 {
-	symbol_t *symbol;
+	symbol_t *symbol = NULL;
 	symbol_t *symbol_right;
 
 	if(node->kind == NODE_KIND_TILDE)
@@ -2668,7 +2668,15 @@ graph_parameter(symbol_t *parent, node_t *node)
 			return 0;
 		}
 		
-		result = graph_id(symbol_name, node_parameter->name);
+		if (node_parameter->name->kind == NODE_KIND_ID)
+		{
+			result = graph_id(symbol_name, node_parameter->name);
+		}
+		else
+		{
+			result = graph_expression(symbol_name, node_parameter->name);
+		}
+		
 		if (!result)
 		{
 			return 0;

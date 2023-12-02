@@ -2783,6 +2783,7 @@ parser_parameter(parser_t *parser)
 		{
 			return NULL;
 		}
+
 		value = parser_expression(parser);
 		if (!value)
 		{
