@@ -310,6 +310,12 @@ symbol_check_flag(symbol_t *symbol, uint64_t flag)
     return (symbol->flags == flag);
 }
 
+int32_t
+symbol_equal_flag(symbol_t *symbol1, symbol_t *symbol2)
+{
+    return (symbol1->flags == symbol2->flags);
+}
+
 void
 symbol_clear_flag(symbol_t *symbol, uint64_t flag)
 {

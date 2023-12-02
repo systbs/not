@@ -3561,10 +3561,8 @@ static int32_t
 graph_analysis_symbol_in_array_struct(graph_t *graph, symbol_t *current, symbol_t *target);
 
 
-
-
 static int32_t
-graph_analysis_compare_symbol_string_id(graph_t *graph, symbol_t *current, symbol_t *target)
+graph_analysis_compare_symbol_id(symbol_t *current, symbol_t *target)
 {
 	node_t *node_current = current->declaration;
 	node_basic_t *node_basic_current;
@@ -3577,8 +3575,6 @@ graph_analysis_compare_symbol_string_id(graph_t *graph, symbol_t *current, symbo
 	return (strncmp(node_basic_target->value, node_basic_current->value, 
 		max(strlen(node_basic_current->value), strlen(node_basic_target->value))) == 0);
 }
-
-
 
 
 static int32_t
@@ -3601,7 +3597,7 @@ graph_analysis_same_symbol_in_name_struct(graph_t *graph, symbol_t *current, sym
 			{
 				break;
 			}
-			if(graph_analysis_compare_symbol_string_id(graph, a, target))
+			if(graph_analysis_compare_symbol_id(a, target))
 			{
 				graph_error(graph, a, "duplicated symbol(%d) in %lld:%lld\n", a->flags, 
 					target->declaration->position.line, target->declaration->position.column);
@@ -3656,7 +3652,7 @@ graph_analysis_symbol_in_array_struct(graph_t *graph, symbol_t *current, symbol_
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_ID))
 		{
-			if(graph_analysis_compare_symbol_string_id(graph, a, target))
+			if(graph_analysis_compare_symbol_id(a, target))
 			{
 				graph_error(graph, a, "duplicated symbol(%d) in %lld:%lld\n", a->flags, 
 					target->declaration->position.line, target->declaration->position.column);
@@ -3890,8 +3886,6 @@ graph_analysis_array(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *cu
 }
 
 
-
-
 static int32_t
 graph_analysis_contain_name(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *current)
 {
@@ -3906,8 +3900,6 @@ graph_analysis_contain_name(graph_t *graph, symbol_t *root, symbol_t *sub, symbo
 	}
 	return result;
 }
-
-
 
 
 static int32_t
@@ -3986,11 +3978,90 @@ graph_analysis_is_same_type_parameter(symbol_t *refrence, symbol_t *target)
 static int32_t
 graph_analysis_subset_of_symbol_type(symbol_t *refrence, symbol_t *target)
 {
+	uint64_t refrence_counter = 0;
+	symbol_t *a;
+	for (a = refrence->begin; a != refrence->end; a = a->next)
+	{
+		refrence_counter += 1;
+		int32_t founded = 0;
+		uint64_t target_counter = 0;
+		symbol_t *b;
+		for (b = target->begin; b != target->end; b = b->next)
+		{
+			target_counter += 1;
+			if(target_counter < refrence_counter)
+			{
+				continue;
+			}
+
+			founded = 1;
+
+			if (!symbol_equal_flag(a, b))
+			{
+				return 0;
+			}
+			if (symbol_check_flag(a, SYMBOL_FLAG_ID))
+			{
+				if (!graph_analysis_compare_symbol_id(a, b))
+				{
+					return 0;
+				}
+			}
+			if (!graph_analysis_subset_of_symbol_type(a, b))
+			{
+				return 0;
+			}
+			break;
+		}
+		if (!founded)
+		{
+			return 0;
+		}
+	}
 	return 1;
 }
 
 static int32_t
-graph_analysis_subset_of_symbol_parameter(symbol_t *refrence, symbol_t *target)
+graph_analysis_subset_of_parameter_type(symbol_t *refrence, symbol_t *target)
+{
+	uint64_t refrence_counter = 0;
+	symbol_t *a;
+	for (a = refrence->begin; a != refrence->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_PARAMETER_TYPE))
+		{
+			refrence_counter += 1;
+			int32_t founded = 0;
+			uint64_t target_counter = 0;
+			symbol_t *b;
+			for (b = target->begin; b != target->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_PARAMETER_TYPE))
+				{
+					target_counter += 1;
+					if(target_counter < refrence_counter)
+					{
+						continue;
+					}
+					founded = 1;
+					if(!graph_analysis_subset_of_symbol_type(a, b))
+					{
+						return 0;
+					}
+					break;
+				}
+			}
+			if(!founded)
+			{
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
+static int32_t
+graph_analysis_subset_of_parameter(symbol_t *refrence, symbol_t *target)
 {
 	uint64_t refrence_parameter_counter = 0;  
 	symbol_t *a;
@@ -4023,10 +4094,11 @@ graph_analysis_subset_of_symbol_parameter(symbol_t *refrence, symbol_t *target)
 						goto subset;
 					}
 
-					if (!graph_analysis_subset_of_symbol_type(a, b))
+					if (!graph_analysis_subset_of_parameter_type(a, b))
 					{
 						goto not_subset;
 					}
+					break;
 				}
 			}
 			
@@ -4072,7 +4144,7 @@ graph_analysis_subset_of_symbol_parameter(symbol_t *refrence, symbol_t *target)
 }
 
 static int32_t
-graph_analysis_same_symbol_method_in_name_struct(graph_t *graph, symbol_t *current, symbol_t *refrence, symbol_t *target_refrence, symbol_t *target)
+graph_analysis_method_on_name_struct(graph_t *graph, symbol_t *current, symbol_t *refrence, symbol_t *target_refrence, symbol_t *target)
 {
 	int32_t result = 1;
 	symbol_t *a;
@@ -4084,17 +4156,17 @@ graph_analysis_same_symbol_method_in_name_struct(graph_t *graph, symbol_t *curre
 			{
 				break;
 			}
-			if(graph_analysis_compare_symbol_string_id(graph, a, target))
+			if(graph_analysis_compare_symbol_id(a, target))
 			{
 				result = graph_analysis_is_same_type_parameter(refrence, target_refrence);
 				if(result)
 				{
-					result = graph_analysis_subset_of_symbol_parameter(refrence, target_refrence);
+					result = graph_analysis_subset_of_parameter(refrence, target_refrence);
 					if(result)
 					{
 						goto error;
 					}
-					result = graph_analysis_subset_of_symbol_parameter(target_refrence, refrence);
+					result = graph_analysis_subset_of_parameter(target_refrence, refrence);
 					if(result)
 					{
 						goto error;
@@ -4113,21 +4185,21 @@ graph_analysis_same_symbol_method_in_name_struct(graph_t *graph, symbol_t *curre
 }
 
 static int32_t
-graph_analysis_same_symbol_method_contain_name_struct(graph_t *graph, symbol_t *current, symbol_t *refrence, symbol_t *target_refrence, symbol_t *target)
+graph_analysis_method_contain_name_struct(graph_t *graph, symbol_t *current, symbol_t *refrence, symbol_t *target_refrence, symbol_t *target)
 {
 	symbol_t *a;
 	for(a = current->begin; a != current->end; a = a->next)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			return graph_analysis_same_symbol_method_in_name_struct(graph, a, refrence, target_refrence, target);
+			return graph_analysis_method_on_name_struct(graph, a, refrence, target_refrence, target);
 		}
 	}
 	return 1;
 }
 
 static int32_t
-graph_analysis_symbol_method_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *refrence, symbol_t *target)
+graph_analysis_method_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *refrence, symbol_t *target)
 {
 	int32_t result = 1;
 	symbol_t *a;
@@ -4135,7 +4207,7 @@ graph_analysis_symbol_method_is_duplicated(graph_t *graph, symbol_t *root, symbo
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
 		{
-			result = graph_analysis_same_symbol_method_contain_name_struct(graph, a, refrence, a, target);
+			result = graph_analysis_method_contain_name_struct(graph, a, refrence, a, target);
 			if(!result)
 			{
 				return 0;
@@ -4146,7 +4218,7 @@ graph_analysis_symbol_method_is_duplicated(graph_t *graph, symbol_t *root, symbo
 			symbol_t *b;
 			for (b = a->begin; b && (b != a->end); b = b->next)
 			{
-				result = graph_analysis_symbol_method_is_duplicated(graph, root, a, refrence, target);
+				result = graph_analysis_method_is_duplicated(graph, root, a, refrence, target);
 				if (!result)
 				{
 					return 0;
@@ -4154,7 +4226,6 @@ graph_analysis_symbol_method_is_duplicated(graph_t *graph, symbol_t *root, symbo
 			}
 		}
 	}
-
 	return 1;
 }
 
@@ -4166,7 +4237,7 @@ graph_analysis_method_name(graph_t *graph, symbol_t *root, symbol_t *sub, symbol
 	{
 		if(symbol_check_flag(a, SYMBOL_FLAG_ID))
 		{
-			return graph_analysis_symbol_method_is_duplicated(graph, root, sub, refrence, a);
+			return graph_analysis_method_is_duplicated(graph, root, sub, refrence, a);
 		}
 	}
 	return 0;

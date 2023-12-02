@@ -184,6 +184,9 @@ symbol_t *
 symbol_last(symbol_t *sym);
 
 int32_t
+symbol_equal_flag(symbol_t *symbol1, symbol_t *symbol2);
+
+int32_t
 symbol_check_flag(symbol_t *symbol, uint64_t flag);
 
 void

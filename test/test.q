@@ -11,7 +11,7 @@ export class (T = string, R) A extends (a: ar{T}.ar, m: map{T,R})
     b = a.b + m.b;
   }
 
-  export func get (a1:int, a2:string, a3:int)
+  export func get (a1:int, a2:int)
   {
 
   }
