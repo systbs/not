@@ -1,6 +1,6 @@
 import ("~/lib/", ar:array.array, map)
 
-export class (T extends string, R) A extends (a: ar{T}.ar, m: map{T,R})
+export class (T extends string, R) A extends (a: ar{T}.ar, m: T)
 {
   export b:int;
 
@@ -11,7 +11,7 @@ export class (T extends string, R) A extends (a: ar{T}.ar, m: map{T,R})
     b = a.b + m.b;
   }
 
-  export func get (a1:int, a2:T)
+  export func get (a1:int, a2:m)
   {
     var b:int = 1;
     var b:int = 1;
