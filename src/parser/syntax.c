@@ -28,7 +28,7 @@
 #include "syntax.h"
 
 static error_t *
-graph_error(graph_t *graph, symbol_t *current, const char *format, ...)
+syntax_error(graph_t *graph, symbol_t *current, const char *format, ...)
 {
 	char *message;
 	message = malloc(1024);
@@ -110,7 +110,7 @@ syntax_same_symbol_in_name_struct(graph_t *graph, symbol_t *current, symbol_t *t
 			}
 			if(syntax_compare_symbol_id(a, target))
 			{
-				graph_error(graph, a, "duplicated symbol(%d) in %lld:%lld\n", a->flags, 
+				syntax_error(graph, a, "duplicated symbol(%d) in %lld:%lld\n", a->flags, 
 					target->declaration->position.line, target->declaration->position.column);
 				return 0;
 			}
@@ -165,7 +165,7 @@ syntax_symbol_in_array_struct(graph_t *graph, symbol_t *current, symbol_t *targe
 		{
 			if(syntax_compare_symbol_id(a, target))
 			{
-				graph_error(graph, a, "duplicated symbol(%d) in %lld:%lld\n", a->flags, 
+				syntax_error(graph, a, "duplicated symbol(%d) in %lld:%lld\n", a->flags, 
 					target->declaration->position.line, target->declaration->position.column);
 				return 0;
 			}
@@ -412,7 +412,6 @@ syntax_contain_name(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *cur
 	return result;
 }
 
-
 static int32_t
 syntax_contain_symbol_by_flag(symbol_t *refrence, uint64_t flag)
 {
@@ -468,21 +467,41 @@ syntax_is_same_type_parameter(symbol_t *refrence, symbol_t *target)
 	return 0;
 }
 
+
+
+static symbol_t *
+syntax_get_prototype_of_type(symbol_t *root, symbol_t *sub, symbol_t *target);
+
 static int32_t
-syntax_subset_of_symbol_type(symbol_t *refrence, symbol_t *target)
+syntax_equal_of_type(symbol_t *refrence, symbol_t *target)
 {
+	if (!symbol_equal_flag(refrence, target))
+	{
+		return 0;
+	}
+
+	if (symbol_check_flag(refrence, SYMBOL_FLAG_ID))
+	{
+		if (!syntax_compare_symbol_id(refrence, target))
+		{
+			return 0;
+		}
+		return 1;
+	}
+
 	uint64_t refrence_counter = 0;
 	symbol_t *a;
 	for (a = refrence->begin; a != refrence->end; a = a->next)
 	{
 		refrence_counter += 1;
+
 		int32_t founded = 0;
 		uint64_t target_counter = 0;
 		symbol_t *b;
-		for (b = target->begin; b != target->end; b = b->next)
+		for (b = target->begin;b != target->end;b = b->next)
 		{
 			target_counter += 1;
-			if(target_counter < refrence_counter)
+			if (target_counter < refrence_counter)
 			{
 				continue;
 			}
@@ -493,6 +512,7 @@ syntax_subset_of_symbol_type(symbol_t *refrence, symbol_t *target)
 			{
 				return 0;
 			}
+
 			if (symbol_check_flag(a, SYMBOL_FLAG_ID))
 			{
 				if (!syntax_compare_symbol_id(a, b))
@@ -500,7 +520,199 @@ syntax_subset_of_symbol_type(symbol_t *refrence, symbol_t *target)
 					return 0;
 				}
 			}
-			if (!syntax_subset_of_symbol_type(a, b))
+			if (!syntax_equal_of_type(a, b))
+			{
+				return 0;
+			}
+			break;
+		}
+		if (!founded)
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+
+static symbol_t *
+syntax_get_prototype_of_type_in_type_parameter(symbol_t *root, symbol_t *sub, symbol_t *refrence, symbol_t *target)
+{
+	symbol_t *a;
+	for (a = refrence->begin;a != refrence->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			symbol_t *b;
+			for (b = a->begin;b != a->end; b = b->next)
+			{
+				if(syntax_equal_of_type(b, target))
+				{
+					symbol_t *c;
+					for (c = refrence->begin;c != refrence->end; c = c->next)
+					{
+						if (symbol_check_flag(c, SYMBOL_FLAG_TYPE_PARAMETER_TYPE))
+						{
+							symbol_t *d;
+							for (d = c->begin;d != c->end; d = d->next)
+							{
+								symbol_t *e;
+								e = syntax_get_prototype_of_type(root, a, d);
+								if (e)
+								{
+									return e;
+								}
+								return d;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
+static symbol_t *
+syntax_get_prototype_of_type(symbol_t *root, symbol_t *sub, symbol_t *target)
+{
+	if (symbol_check_flag(root, SYMBOL_FLAG_CLASS))
+	{
+		symbol_t *a;
+		for (a = root->begin;(a != sub) && (a != root->end); a = a->next)
+		{
+			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
+			{
+				symbol_t *b;
+				b = syntax_get_prototype_of_type_in_type_parameter(root, sub, a, target);
+				if (b)
+				{
+					return b;
+				}
+			}
+			else if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
+			{
+				symbol_t *b = NULL;
+				//b = syntax_get_prototype_of_type_in_heritage(root, sub, a, target);
+				if (b)
+				{
+					return b;
+				}
+			}
+		}
+		if(root->parent)
+		{
+			return syntax_get_prototype_of_type(root->parent, root, target);
+		}
+	}
+	else if (symbol_check_flag(root, SYMBOL_FLAG_METHOD))
+	{
+		symbol_t *a;
+		for (a = root->begin;(a != sub) && (a != root->end); a = a->next)
+		{
+			
+		}
+
+		if(root->parent)
+		{
+			return syntax_get_prototype_of_type(root->parent, root, target);
+		}
+	}
+	else if (symbol_check_flag(root, SYMBOL_FLAG_FUNCTION))
+	{
+		symbol_t *a;
+		for (a = root->begin;(a != sub) && (a != root->end); a = a->next)
+		{
+			
+		}
+
+		if(root->parent)
+		{
+			return syntax_get_prototype_of_type(root->parent, root, target);
+		}
+	}
+	else if (symbol_check_flag(root, SYMBOL_FLAG_MODULE)) 
+	{
+		symbol_t *a;
+		for (a = root->begin;(a != sub) && (a != root->end); a = a->next)
+		{
+			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE))
+			{
+				symbol_t *b = NULL;
+				//b = syntax_get_prototype_of_type_in_type(a, NULL, target);
+				if (b)
+				{
+					return b;
+				}
+			}
+			else if (symbol_check_flag(a, SYMBOL_FLAG_IMPORT))
+			{
+				symbol_t *b = NULL;
+				//b = syntax_get_prototype_of_type_in_import(a, NULL, target);
+				if (b)
+				{
+					return b;
+				}
+			}
+		}
+	}
+
+	if (root->parent)
+	{
+		return syntax_get_prototype_of_type(root->parent, root, target);
+	}
+
+	return NULL;
+}
+
+static int32_t
+syntax_subset_of_type(symbol_t *refrence, symbol_t *target)
+{
+	uint64_t refrence_counter = 0;
+	symbol_t *a;
+	for (a = refrence->begin; a != refrence->end; a = a->next)
+	{
+		refrence_counter += 1;
+
+		symbol_t *c;
+		c = syntax_get_prototype_of_type(refrence, a, a);
+		if(!c)
+		{
+			c = a;
+		}
+
+		int32_t founded = 0;
+		uint64_t target_counter = 0;
+		symbol_t *b;
+		for (b = target->begin;b != target->end;b = b->next)
+		{
+			target_counter += 1;
+			if (target_counter < refrence_counter)
+			{
+				continue;
+			}
+
+			founded = 1;
+
+			symbol_t *d;
+			d = syntax_get_prototype_of_type(target, b, b);
+			if(!d)
+			{
+				d = b;
+			}
+			
+			if (!symbol_equal_flag(c, d))
+			{
+				return 0;
+			}
+
+			if (symbol_check_flag(c, SYMBOL_FLAG_ID))
+			{
+				if (!syntax_compare_symbol_id(c, d))
+				{
+					return 0;
+				}
+			}
+			if (!syntax_subset_of_type(c, d))
 			{
 				return 0;
 			}
@@ -537,7 +749,7 @@ syntax_subset_of_parameter_type(symbol_t *refrence, symbol_t *target)
 						continue;
 					}
 					founded = 1;
-					if(!syntax_subset_of_symbol_type(a, b))
+					if(!syntax_subset_of_type(a, b))
 					{
 						return 0;
 					}
@@ -587,7 +799,7 @@ syntax_subset_of_array_type(symbol_t *refrence, symbol_t *target)
 			{
 				if (symbol_check_flag(b, SYMBOL_FLAG_NAME))
 				{
-					if(syntax_subset_of_symbol_type(refrence, b))
+					if(syntax_subset_of_type(refrence, b))
 					{
 						return 1;
 					}
@@ -618,7 +830,6 @@ syntax_subset_of_ellipsis_type(symbol_t *refrence, symbol_t *target)
 	}
 	return 1;
 }
-
 
 static int32_t
 syntax_subset_of_parameter(symbol_t *refrence, symbol_t *target)
@@ -748,7 +959,7 @@ syntax_method_on_name_struct(graph_t *graph, symbol_t *current, symbol_t *refren
 				return 1;
 
 				error:
-				graph_error(graph, a, "duplicated symbol(%d) in %lld:%lld\n", a->flags, 
+				syntax_error(graph, a, "duplicated symbol(%d) in %lld:%lld\n", a->flags, 
 					target->declaration->position.line, target->declaration->position.column);
 				return 0;
 			}
@@ -1220,6 +1431,9 @@ syntax_export(graph_t *graph, symbol_t *root, symbol_t *current)
 
 	return result;
 }
+
+
+
 
 
 
