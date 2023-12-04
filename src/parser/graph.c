@@ -2789,7 +2789,6 @@ graph_method(symbol_t *parent, node_t *node)
 		{
 			return 0;
 		}
-
 		result = graph_id(symbol_name, node_method->name);
 		if (!result)
 		{

@@ -610,7 +610,46 @@ syntax_get_prototype_of_type_in_heritage(symbol_t *root, symbol_t *sub, symbol_t
 	return NULL;
 }
 
+static symbol_t *
+syntax_get_prototype_of_type_in_parameter(symbol_t *root, symbol_t *sub, symbol_t *refrence, symbol_t *target)
+{
+	symbol_t *a;
+	for (a = refrence->begin;a != refrence->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			symbol_t *b;
+			for (b = a->begin;b != a->end; b = b->next)
+			{
+				if(syntax_equal_of_type(b, target))
+				{
+					symbol_t *c;
+					for (c = refrence->begin;c != refrence->end; c = c->next)
+					{
+						if (symbol_check_flag(c, SYMBOL_FLAG_TYPE_PARAMETER_TYPE))
+						{
+							symbol_t *d;
+							for (d = c->begin;d != c->end;d = d->next)
+							{
+								symbol_t *e;
+								e = syntax_get_prototype_of_type(root, a, d);
+								if (e)
+								{
+									return e;
+								}
+								return d;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return NULL;
+}
 
+
+// work
 static symbol_t *
 syntax_get_prototype_of_type(symbol_t *root, symbol_t *sub, symbol_t *target)
 {
@@ -648,9 +687,16 @@ syntax_get_prototype_of_type(symbol_t *root, symbol_t *sub, symbol_t *target)
 		symbol_t *a;
 		for (a = root->begin;(a != sub) && (a != root->end); a = a->next)
 		{
-			
+			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
+			{
+				symbol_t *b;
+				b = syntax_get_prototype_of_type_in_type_parameter(root, sub, a, target);
+				if (b)
+				{
+					return b;
+				}
+			}
 		}
-
 		if(root->parent)
 		{
 			return syntax_get_prototype_of_type(root->parent, root, target);
@@ -661,7 +707,15 @@ syntax_get_prototype_of_type(symbol_t *root, symbol_t *sub, symbol_t *target)
 		symbol_t *a;
 		for (a = root->begin;(a != sub) && (a != root->end); a = a->next)
 		{
-			
+			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
+			{
+				symbol_t *b;
+				b = syntax_get_prototype_of_type_in_type_parameter(root, sub, a, target);
+				if (b)
+				{
+					return b;
+				}
+			}
 		}
 
 		if(root->parent)
@@ -669,29 +723,33 @@ syntax_get_prototype_of_type(symbol_t *root, symbol_t *sub, symbol_t *target)
 			return syntax_get_prototype_of_type(root->parent, root, target);
 		}
 	}
-	else if (symbol_check_flag(root, SYMBOL_FLAG_MODULE)) 
+	else if (symbol_check_flag(root, SYMBOL_FLAG_TYPE))
 	{
 		symbol_t *a;
 		for (a = root->begin;(a != sub) && (a != root->end); a = a->next)
 		{
-			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE))
+			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
 			{
-				symbol_t *b = NULL;
-				//b = syntax_get_prototype_of_type_in_type(a, NULL, target);
+				symbol_t *b;
+				b = syntax_get_prototype_of_type_in_type_parameter(root, sub, a, target);
 				if (b)
 				{
 					return b;
 				}
 			}
-			else if (symbol_check_flag(a, SYMBOL_FLAG_IMPORT))
+			else if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
 			{
 				symbol_t *b = NULL;
-				//b = syntax_get_prototype_of_type_in_import(a, NULL, target);
+				b = syntax_get_prototype_of_type_in_heritage(root, sub, a, target);
 				if (b)
 				{
 					return b;
 				}
 			}
+		}
+		if(root->parent)
+		{
+			return syntax_get_prototype_of_type(root->parent, root, target);
 		}
 	}
 
