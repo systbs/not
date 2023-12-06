@@ -160,7 +160,7 @@ graph_array(symbol_t *parent, node_t *node)
 	{
 		return 0;
 	}
-
+	
 	node_array_t *node_array;
 	node_array = (node_array_t *)node->value;
 
@@ -348,7 +348,7 @@ graph_composite(symbol_t *parent, node_t *node)
 	symbol_t *symbol_base;
 	symbol_t *symbol_type_argument;
 
-	symbol = symbol_rpush(parent, NODE_KIND_COMPOSITE, node);
+	symbol = symbol_rpush(parent, SYMBOL_FLAG_COMPOSITE, node);
 	if(!symbol)
 	{
 		return 0;
@@ -899,7 +899,7 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 
 	if(node->kind == NODE_KIND_MUL)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_MUL, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_MUL, node);
 		if(!symbol)
 		{
 			return 0;
@@ -907,7 +907,7 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_DIV)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_DIV, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_DIV, node);
 		if(!symbol)
 		{
 			return 0;
@@ -915,7 +915,7 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_MOD)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_MOD, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_MOD, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1005,7 +1005,7 @@ graph_addative(symbol_t *parent, node_t *node)
 
 	if(node->kind == NODE_KIND_PLUS)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_SHL, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_PLUS, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1013,7 +1013,7 @@ graph_addative(symbol_t *parent, node_t *node)
 	}
 	if(node->kind == NODE_KIND_MINUS)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_SHL, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_MINUS, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1094,7 +1094,7 @@ graph_shifting(symbol_t *parent, node_t *node)
 
 	if(node->kind == NODE_KIND_SHL)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_SHL, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_SHL, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1102,7 +1102,7 @@ graph_shifting(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_SHR)
 	{
-		symbol = symbol_rpush(parent, NODE_KIND_SHR, node);
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_SHR, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1771,7 +1771,7 @@ graph_conditional(symbol_t *parent, node_t *node)
 			return 0;
 		}
 
-		symbol_condition = symbol_rpush(symbol, SYMBOL_FLAG_CONDITION, node);
+		symbol_condition = symbol_rpush(symbol, SYMBOL_FLAG_CONDITION, node_conditional->condition);
 		if(!symbol_condition)
 		{
 			return 0;
@@ -1783,7 +1783,7 @@ graph_conditional(symbol_t *parent, node_t *node)
 			return 0;
 		}
 
-		symbol_true = symbol_rpush(symbol, SYMBOL_FLAG_TRUE, node);
+		symbol_true = symbol_rpush(symbol, SYMBOL_FLAG_TRUE, node_conditional->true_expression);
 		if(!symbol_true)
 		{
 			return 0;
@@ -1794,7 +1794,7 @@ graph_conditional(symbol_t *parent, node_t *node)
 			return 0;
 		}
 
-		symbol_false = symbol_rpush(symbol, SYMBOL_FLAG_FALSE, node);
+		symbol_false = symbol_rpush(symbol, SYMBOL_FLAG_FALSE, node_conditional->false_expression);
 		if(!symbol_false)
 		{
 			return 0;
@@ -1964,7 +1964,7 @@ graph_catch(symbol_t *parent, node_t *node)
 	node_catch = (node_catch_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_TRY, node);
+	symbol = symbol_rpush(parent, SYMBOL_FLAG_CATCH, node);
 	if(!symbol)
 	{
 		return 0;
