@@ -2876,7 +2876,7 @@ syntax_block(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curren
 {
 	int32_t result = 1;
 
-	result &= syntax_analysis_block(graph, root, subroot, current);
+	result &= syntax_analysis_block(graph, subroot, current, current);
 	if (!result)
 	{
 		return 0;
