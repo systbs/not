@@ -100,6 +100,8 @@ syntax_compare_symbol_id(symbol_t *current, symbol_t *target)
 	node_basic_t *node_basic_target;
 	node_basic_target = (node_basic_t *)node_target->value;
 
+	//printf("%s   %s\n", node_basic_target->value, node_basic_current->value);
+
 	return (strncmp(node_basic_target->value, node_basic_current->value, 
 		max(strlen(node_basic_current->value), strlen(node_basic_target->value))) == 0);
 }
@@ -1363,12 +1365,25 @@ static int32_t
 syntax_already_defined(symbol_t *root, symbol_t *subroot, symbol_t *target)
 {
 	int32_t result = 0;
+	result |= syntax_already_defined_name(root, target);
+	if (result)
+	{
+		return 1;
+	}
 
 	symbol_t *a;
 	for (a = root->begin; (a != subroot) && (a != root->end);a = a->next)
 	{
-
 		if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
+		{
+			result |= syntax_already_defined_name(a, target);
+			if (result)
+			{
+				return 1;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
 		{
 			result |= syntax_already_defined_name(a, target);
 			if (result)
@@ -1449,6 +1464,33 @@ syntax_already_defined(symbol_t *root, symbol_t *subroot, symbol_t *target)
 			}
 		}
 
+		if (symbol_check_flag(a, SYMBOL_FLAG_IF))
+		{
+			result |= syntax_already_defined_name(a, target);
+			if (result)
+			{
+				return 1;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_FOR))
+		{
+			result |= syntax_already_defined_name(a, target);
+			if (result)
+			{
+				return 1;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_FORIN))
+		{
+			result |= syntax_already_defined_name(a, target);
+			if (result)
+			{
+				return 1;
+			}
+		}
+
 		if (symbol_check_flag(a, SYMBOL_FLAG_EXPORT))
 		{
 			symbol_t *b;
@@ -1497,13 +1539,14 @@ syntax_analysis_function(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 static int32_t
 syntax_analysis_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
-	int32_t result = 1;
-	result &= syntax_already_defined(root, subroot, current);
+	int32_t result;
+	result = syntax_already_defined(root, subroot, current);
 	if (!result)
 	{
 		syntax_error(graph, current, "symbol(%d) already not defined\n", current->flags);
+		return 0;
 	}
-	return result;
+	return 1;
 }
 
 static int32_t
@@ -2283,6 +2326,38 @@ syntax_analysis_return(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
 		result &= syntax_analysis_expression(graph, root, subroot, a);
+		if(!result)
+		{
+			return result;
+		}
+	}
+
+	return result;
+}
+
+static int32_t
+syntax_analysis_continue(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+{
+	int32_t result = 1;
+
+	symbol_t *a;
+	for (a = current->begin;(a != current->end); a = a->next)
+	{
+		result &= syntax_analysis_expression(graph, root, subroot, a);
+	}
+
+	return result;
+}
+
+static int32_t
+syntax_analysis_break(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+{
+	int32_t result = 1;
+
+	symbol_t *a;
+	for (a = current->begin;(a != current->end); a = a->next)
+	{
+		result &= syntax_analysis_expression(graph, root, subroot, a);
 	}
 
 	return result;
@@ -2312,7 +2387,7 @@ syntax_analysis_if(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
 		{
-			result &= syntax_analysis_block(graph, root, subroot, a);
+			result &= syntax_analysis_block(graph, a, a->end, a);
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_ELSE))
 		{
@@ -2325,7 +2400,7 @@ syntax_analysis_if(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *
 				}
 				else
 				{
-					result &= syntax_analysis_block(graph, root, subroot, a);
+					result &= syntax_analysis_block(graph, a, a->end, a);
 				}
 			}
 		}
@@ -2344,7 +2419,7 @@ syntax_analysis_catch(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
 		{
-			result &= syntax_analysis_block(graph, root, subroot, a);
+			result &= syntax_analysis_block(graph, a, a->end, a);
 		}
 	}
 
@@ -2365,7 +2440,7 @@ syntax_analysis_try(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t 
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
 		{
-			result &= syntax_analysis_block(graph, root, subroot, a);
+			result &= syntax_analysis_block(graph, a, a->end, a);
 		}
 	}
 
@@ -2414,7 +2489,7 @@ syntax_analysis_for(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t 
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
 		{
-			result &= syntax_analysis_block(graph, root, subroot, a);
+			result &= syntax_analysis_block(graph, a, a->end, a);
 		}
 	}
 
@@ -2435,7 +2510,7 @@ syntax_analysis_forin(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
 		{
-			result &= syntax_analysis_block(graph, root, subroot, a);
+			result &= syntax_analysis_block(graph, a, a->end, a);
 		}
 	}
 
@@ -2452,7 +2527,7 @@ syntax_analysis_function(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
 		{
-			result &= syntax_analysis_block(graph, root, subroot, a);
+			result &= syntax_analysis_block(graph, a, a->end, a);
 		}
 	}
 
@@ -2488,14 +2563,26 @@ syntax_analysis_statement(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 	{
 		result &= syntax_analysis_function(graph, root, subroot, current);
 	}
+	else if (symbol_check_flag(current, SYMBOL_FLAG_CONTINUE))
+	{
+		result &= syntax_analysis_continue(graph, root, subroot, current);
+	}
+	else if (symbol_check_flag(current, SYMBOL_FLAG_BREAK))
+	{
+		result &= syntax_analysis_break(graph, root, subroot, current);
+	}
+	else if (symbol_check_flag(current, SYMBOL_FLAG_RETURN))
+	{
+		result &= syntax_analysis_return(graph, root, subroot, current);
+	}
+	else if (symbol_check_flag(current, SYMBOL_FLAG_THROW))
+	{
+		result &= syntax_analysis_throw(graph, root, subroot, current);
+	}
 	else if (
 		!(symbol_check_flag(current, SYMBOL_FLAG_VAR) || 
 		symbol_check_flag(current, SYMBOL_FLAG_CONST) || 
-		symbol_check_flag(current, SYMBOL_FLAG_TYPE) ||
-		symbol_check_flag(current, SYMBOL_FLAG_BREAK) ||
-		symbol_check_flag(current, SYMBOL_FLAG_CONTINUE) ||
-		symbol_check_flag(current, SYMBOL_FLAG_RETURN) ||
-		symbol_check_flag(current, SYMBOL_FLAG_THROW))
+		symbol_check_flag(current, SYMBOL_FLAG_TYPE))
 		)
 	{
 		result &= syntax_analysis_assign(graph, root, subroot, current);

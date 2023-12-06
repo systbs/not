@@ -1929,6 +1929,21 @@ graph_if(symbol_t *parent, node_t *node)
 	}
 
 	int32_t result;
+	if (node_if->name)
+	{
+		symbol_t *symbol_name;
+		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_if->name);
+		if(!symbol_name)
+		{
+			return 0;
+		}
+		result = graph_id(symbol_name, node_if->name);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+
 	if (node_if->condition)
 	{
 		symbol_t *symbol_condition;
@@ -2137,6 +2152,21 @@ graph_for(symbol_t *parent, node_t *node)
 	}
 
 	int32_t result;
+	if (node_for->name)
+	{
+		symbol_t *symbol_name;
+		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_for->name);
+		if(!symbol_name)
+		{
+			return 0;
+		}
+		result = graph_id(symbol_name, node_for->name);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+
 	if (node_for->initializer)
 	{
 		symbol_t *symbol_initializer;
@@ -2230,7 +2260,22 @@ graph_forin(symbol_t *parent, node_t *node)
 		return 0;
 	}
 
-	int32_t result = 0;
+	int32_t result;
+	if (node_forin->name)
+	{
+		symbol_t *symbol_name;
+		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_forin->name);
+		if(!symbol_name)
+		{
+			return 0;
+		}
+		result = graph_id(symbol_name, node_forin->name);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+
 	if (node_forin->initializer)
 	{
 		symbol_t *symbol_initializer;
@@ -2284,32 +2329,52 @@ graph_forin(symbol_t *parent, node_t *node)
 static int32_t
 graph_break(symbol_t *parent, node_t *node)
 {
+	node_unary_t *node_unary;
+	node_unary = (node_unary_t *)node->value;
+
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_FLAG_BREAK, node);
 	if(!symbol)
 	{
 		return 0;
 	}
+
+	int32_t result = graph_expression(symbol, node_unary->right);
+	if (!result)
+	{
+		return 0;
+	}
+
 	return 1;
 }
 
 static int32_t
 graph_continue(symbol_t *parent, node_t *node)
 {
+	node_unary_t *node_unary;
+	node_unary = (node_unary_t *)node->value;
+
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_FLAG_CONTINUE, node);
 	if(!symbol)
 	{
 		return 0;
 	}
+
+	int32_t result = graph_expression(symbol, node_unary->right);
+	if (!result)
+	{
+		return 0;
+	}
+
 	return 1;
 }
 
 static int32_t
 graph_return(symbol_t *parent, node_t *node)
 {
-	node_return_t *node_return;
-	node_return = (node_return_t *)node->value;
+	node_unary_t *node_unary;
+	node_unary = (node_unary_t *)node->value;
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_FLAG_RETURN, node);
@@ -2318,7 +2383,7 @@ graph_return(symbol_t *parent, node_t *node)
 		return 0;
 	}
 
-	int32_t result = graph_expression(symbol, node_return->expression);
+	int32_t result = graph_expression(symbol, node_unary->right);
 	if (!result)
 	{
 		return 0;
@@ -2330,8 +2395,8 @@ graph_return(symbol_t *parent, node_t *node)
 static int32_t
 graph_throw(symbol_t *parent, node_t *node)
 {
-	node_throw_t *node_throw;
-	node_throw = (node_throw_t *)node->value;
+	node_unary_t *node_throw;
+	node_throw = (node_unary_t *)node->value;
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_FLAG_THROW, node);
@@ -2340,7 +2405,7 @@ graph_throw(symbol_t *parent, node_t *node)
 		return 0;
 	}
 
-	int32_t result = graph_expression(symbol, node_throw->expression);
+	int32_t result = graph_expression(symbol, node_throw->right);
 	if (!result)
 	{
 		return 0;
@@ -3354,41 +3419,41 @@ graph_type(symbol_t *parent, node_t *node)
 static int32_t
 graph_export(symbol_t *parent, node_t *node)
 {
-	node_modifier_t *node_export;
-	node_export = (node_modifier_t *)node->value;
+	node_unary_t *node_export;
+	node_export = (node_unary_t *)node->value;
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_FLAG_EXPORT, node);
 
 	int32_t result = 1;
-	switch (node_export->x->kind)
+	switch (node_export->right->kind)
 	{
 	case NODE_KIND_CLASS:
-		result = graph_class(symbol, node_export->x);
+		result = graph_class(symbol, node_export->right);
 		break;
 
 	case NODE_KIND_ENUM:
-		result = graph_enum(symbol, node_export->x);
+		result = graph_enum(symbol, node_export->right);
 		break;
 
 	case NODE_KIND_FUNC:
-		result = graph_func(symbol, node_export->x);
+		result = graph_func(symbol, node_export->right);
 		break;
 
 	case NODE_KIND_VAR:
-		result = graph_var(symbol, node_export->x);
+		result = graph_var(symbol, node_export->right);
 		break;
 
 	case NODE_KIND_CONST:
-		result = graph_const(symbol, node_export->x);
+		result = graph_const(symbol, node_export->right);
 		break;
 
 	case NODE_KIND_TYPE:
-		result = graph_type(symbol, node_export->x);
+		result = graph_type(symbol, node_export->right);
 		break;
 
 	case NODE_KIND_OBJECT:
-		result = graph_object(symbol, node_export->x);
+		result = graph_object(symbol, node_export->right);
 		break;
 
 	default:

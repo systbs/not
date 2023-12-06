@@ -208,12 +208,14 @@ typedef struct node_enumerable {
 } node_enumerable_t;
 
 typedef struct node_if {
+	node_t *name;
 	node_t *condition;
 	node_t *then_body;
 	node_t *else_body;
 } node_if_t;
 
 typedef struct node_for {
+	node_t *name;
 	node_t *initializer;
 	node_t *condition;
 	node_t *incrementor;
@@ -221,11 +223,11 @@ typedef struct node_for {
 } node_for_t;
 
 typedef struct node_forin {
+	node_t *name;
 	node_t *initializer;
 	node_t *expression;
 	node_t *body;
 } node_forin_t;
-
 
 typedef struct node_catch {
 	node_t *parameter;
@@ -237,18 +239,6 @@ typedef struct node_try {
 	list_t *catchs;
 } node_try_t;
 
-
-typedef struct node_return {
-	node_t *expression;
-} node_return_t;
-
-typedef struct node_throw {
-	node_t *expression;
-} node_throw_t;
-
-typedef struct node_modifier {
-	node_t *x;
-} node_modifier_t;
 
 typedef struct node_var {
 	node_t *name;
@@ -384,12 +374,6 @@ node_t *
 node_make_in(position_t position, node_t *left, node_t *right);
 
 node_t *
-node_make_as(position_t position, node_t *left, node_t *right);
-
-node_t *
-node_make_mutation(position_t position, node_t *left, node_t *right);
-
-node_t *
 node_make_typeof(position_t position, node_t *right);
 
 node_t *
@@ -403,12 +387,6 @@ node_make_parenthesis(position_t position, node_t *right);
 
 node_t *
 node_make_argument(position_t position, list_t *value);
-
-node_t *
-node_make_body_property(position_t position, node_t *name, node_t *value);
-
-node_t *
-node_make_body(position_t position, list_t *list);
 
 node_t *
 node_make_call(position_t position, node_t *callable, list_t *arguments);
@@ -427,10 +405,6 @@ node_make_get_address(position_t position, node_t *right);
 
 
 
-
-
-node_t *
-node_make_cast(position_t position, node_t *cast, node_t *castable);
 
 node_t *
 node_make_tilde(position_t position, node_t *right);
@@ -556,7 +530,7 @@ node_t *
 node_make_shr_assign(position_t position, node_t *left, node_t *right);
 
 node_t *
-node_make_if(position_t position, node_t *condition, node_t *then_body, node_t *else_body);
+node_make_if(position_t position, node_t *name, node_t *condition, node_t *then_body, node_t *else_body);
 
 node_t *
 node_make_for_init_list(position_t position, list_t *init_list);
@@ -565,16 +539,16 @@ node_t *
 node_make_for_step_list(position_t position, list_t *init_list);
 
 node_t *
-node_make_for(position_t position, node_t *initializer, node_t *condition, node_t *incrementor, node_t *body);
+node_make_for(position_t position, node_t *name, node_t *initializer, node_t *condition, node_t *incrementor, node_t *body);
 
 node_t *
-node_make_forin(position_t position, node_t *initializer, node_t *expression, node_t *body);
+node_make_forin(position_t position, node_t *name, node_t *initializer, node_t *expression, node_t *body);
 
 node_t *
-node_make_break(position_t position);
+node_make_break(position_t position, node_t *expression);
 
 node_t *
-node_make_continue(position_t position);
+node_make_continue(position_t position, node_t *expression);
 
 node_t *
 node_make_catch(position_t position, node_t *parameter, node_t *body);
@@ -658,7 +632,7 @@ node_t *
 node_make_export_block(position_t position, list_t *list);
 
 node_t *
-node_make_export(position_t position, node_t *right);
+node_make_export(position_t position, node_t *value);
 
 node_t *
 node_make_module(position_t position, char *path, list_t *members);

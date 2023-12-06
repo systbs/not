@@ -847,7 +847,7 @@ node_make_shr_assign(position_t position, node_t *left, node_t *right){
 
 
 node_t *
-node_make_if(position_t position, node_t *condition, node_t *then_body, node_t *else_body)
+node_make_if(position_t position, node_t *name, node_t *condition, node_t *then_body, node_t *else_body)
 {
 	node_if_t *node_if;
 	if(!(node_if = (node_if_t *)malloc(sizeof(node_if_t))))
@@ -855,7 +855,10 @@ node_make_if(position_t position, node_t *condition, node_t *then_body, node_t *
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_if_t));
 		return NULL;
 	}
+
 	memset(node_if, 0, sizeof(node_if_t));
+	
+	node_if->name = name;
 	node_if->condition = condition;
 	node_if->then_body = then_body;
 	node_if->else_body = else_body;
@@ -892,14 +895,17 @@ node_make_for_step_list(position_t position, list_t *list){
 }
 
 node_t *
-node_make_for(position_t position, node_t *initializer, node_t *condition, node_t *incrementor, node_t *body)
+node_make_for(position_t position, node_t *name, node_t *initializer, node_t *condition, node_t *incrementor, node_t *body)
 {
 	node_for_t *node_for;
 	if(!(node_for = (node_for_t *)malloc(sizeof(node_for_t)))){
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_for_t));
 		return NULL;
 	}
+	
 	memset(node_for, 0, sizeof(node_for_t));
+
+	node_for->name = name;
 	node_for->initializer = initializer;
 	node_for->condition = condition;
 	node_for->incrementor = incrementor;
@@ -909,7 +915,7 @@ node_make_for(position_t position, node_t *initializer, node_t *condition, node_
 }
 
 node_t *
-node_make_forin(position_t position, node_t *initializer, node_t *expression, node_t *body)
+node_make_forin(position_t position, node_t *name, node_t *initializer, node_t *expression, node_t *body)
 {
 	node_forin_t *node_forin;
 	if(!(node_forin = (node_forin_t *)malloc(sizeof(node_forin_t))))
@@ -918,6 +924,8 @@ node_make_forin(position_t position, node_t *initializer, node_t *expression, no
 		return NULL;
 	}
 	memset(node_forin, 0, sizeof(node_forin_t));
+	
+	node_forin->name = name;
 	node_forin->initializer = initializer;
 	node_forin->expression = expression;
 	node_forin->body = body;
@@ -926,13 +934,31 @@ node_make_forin(position_t position, node_t *initializer, node_t *expression, no
 }
 
 node_t *
-node_make_break(position_t position){
-	return node_make_node(position, NODE_KIND_BREAK, NULL);
+node_make_break(position_t position, node_t *expression)
+{
+	node_unary_t *node_unary;
+	if(!(node_unary = (node_unary_t *)malloc(sizeof(node_unary_t)))){
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_unary_t));
+		return NULL;
+	}
+	memset(node_unary, 0, sizeof(node_unary_t));
+	node_unary->right = expression;
+
+	return node_make_node(position, NODE_KIND_BREAK, node_unary);
 }
 
 node_t *
-node_make_continue(position_t position){
-	return node_make_node(position, NODE_KIND_CONTINUE, NULL);
+node_make_continue(position_t position, node_t *expression)
+{
+	node_unary_t *node_unary;
+	if(!(node_unary = (node_unary_t *)malloc(sizeof(node_unary_t)))){
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_unary_t));
+		return NULL;
+	}
+	memset(node_unary, 0, sizeof(node_unary_t));
+	node_unary->right = expression;
+
+	return node_make_node(position, NODE_KIND_CONTINUE, node_unary);
 }
 
 node_t *
@@ -970,31 +996,29 @@ node_make_try(position_t position, node_t *body, list_t *catchs)
 node_t *
 node_make_return(position_t position, node_t *expression)
 {
-	node_return_t *node_return;
-	if(!(node_return = (node_return_t *)malloc(sizeof(node_return_t))))
-	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_return_t));
+	node_unary_t *node_unary;
+	if(!(node_unary = (node_unary_t *)malloc(sizeof(node_unary_t)))){
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_unary_t));
 		return NULL;
 	}
-	memset(node_return, 0, sizeof(node_return_t));
-	node_return->expression = expression;
+	memset(node_unary, 0, sizeof(node_unary_t));
+	node_unary->right = expression;
 	
-	return node_make_node(position, NODE_KIND_RETURN, node_return);
+	return node_make_node(position, NODE_KIND_RETURN, node_unary);
 }
 
 node_t *
 node_make_throw(position_t position, node_t *expression)
 {
-	node_throw_t *node_throw;
-	if(!(node_throw = (node_throw_t *)malloc(sizeof(node_throw_t))))
-	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_throw_t));
+	node_unary_t *node_unary;
+	if(!(node_unary = (node_unary_t *)malloc(sizeof(node_unary_t)))){
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_unary_t));
 		return NULL;
 	}
-	memset(node_throw, 0, sizeof(node_throw_t));
-	node_throw->expression = expression;
+	memset(node_unary, 0, sizeof(node_unary_t));
+	node_unary->right = expression;
 	
-	return node_make_node(position, NODE_KIND_THROW, node_throw);
+	return node_make_node(position, NODE_KIND_THROW, node_unary);
 }
 
 
@@ -1279,18 +1303,17 @@ node_make_export_block(position_t position, list_t *list)
 }
 
 node_t *
-node_make_export(position_t position, node_t *x)
+node_make_export(position_t position, node_t *value)
 {
-	node_modifier_t *node_modifier;
-	if(!(node_modifier = (node_modifier_t *)malloc(sizeof(node_modifier_t))))
-	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_modifier_t));
+	node_unary_t *node_unary;
+	if(!(node_unary = (node_unary_t *)malloc(sizeof(node_unary_t)))){
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_unary_t));
 		return NULL;
 	}
-	memset(node_modifier, 0, sizeof(node_modifier_t));
-	node_modifier->x = x;
+	memset(node_unary, 0, sizeof(node_unary_t));
+	node_unary->right = value;
 	
-	return node_make_node(position, NODE_KIND_EXPORT, node_modifier);
+	return node_make_node(position, NODE_KIND_EXPORT, node_unary);
 }
 
 node_t *

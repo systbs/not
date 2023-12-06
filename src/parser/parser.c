@@ -1762,6 +1762,16 @@ parser_if_stmt(parser_t *parser)
 		return NULL;
 	}
 
+	node_t *name = NULL;
+	if (parser->token->type == TOKEN_ID)
+	{
+		name = parser_id(parser);
+		if (!name)
+		{
+			return NULL;
+		}
+	}
+
 	if (!parser_match(parser, TOKEN_LPAREN))
 	{
 		return NULL;
@@ -1810,7 +1820,7 @@ parser_if_stmt(parser_t *parser)
 		}
 	}
 
-	return node_make_if(position, condition, then_body, else_body);
+	return node_make_if(position, name, condition, then_body, else_body);
 }
 
 static node_t *
@@ -1821,6 +1831,16 @@ parser_for_stmt(parser_t *parser)
 	if (!parser_match(parser, TOKEN_FOR_KEYWORD))
 	{
 		return NULL;
+	}
+
+	node_t *name = NULL;
+	if (parser->token->type == TOKEN_ID)
+	{
+		name = parser_id(parser);
+		if (!name)
+		{
+			return NULL;
+		}
 	}
 
 	if (parser->token->type == TOKEN_LBRACE)
@@ -1836,7 +1856,7 @@ parser_for_stmt(parser_t *parser)
 
 		parser->loop_depth -= 1;
 
-		return node_make_for(position, NULL, NULL, NULL, body);
+		return node_make_for(position, name, NULL, NULL, NULL, body);
 	}
 
 	if (!parser_match(parser, TOKEN_LPAREN))
@@ -2248,7 +2268,7 @@ finish:
 
 	parser->loop_depth -= 1;
 
-	return node_make_for(position, init, condition, step, body);
+	return node_make_for(position, name, init, condition, step, body);
 
 forin_structure:
 
@@ -2279,7 +2299,7 @@ forin_structure:
 
 	parser->loop_depth -= 1;
 
-	return node_make_forin(position, init, iterator, body);
+	return node_make_forin(position, name, init, iterator, body);
 }
 
 static node_t *
@@ -2287,21 +2307,27 @@ parser_break_stmt(parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	if (parser->loop_depth <= 0)
-	{
-		parser_error(parser, position, "'break' is not within a loop\n");
-		return NULL;
-	}
 	if (!parser_match(parser, TOKEN_BREAK_KEYWORD))
 	{
 		return NULL;
 	}
+
+	node_t *expr = NULL;
+	if (parser->token->type != TOKEN_SEMICOLON)
+	{
+		expr = parser_expression(parser);
+		if (!expr)
+		{
+			return NULL;
+		}
+	}
+
 	if (!parser_match(parser, TOKEN_SEMICOLON))
 	{
 		return NULL;
 	}
 
-	return node_make_break(position);
+	return node_make_break(position, expr);
 }
 
 static node_t *
@@ -2309,21 +2335,27 @@ parser_continue_stmt(parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	if (parser->loop_depth <= 0)
-	{
-		parser_error(parser, position, "'continue' is not within a loop\n");
-		return NULL;
-	}
 	if (!parser_match(parser, TOKEN_CONTINUE_KEYWORD))
 	{
 		return NULL;
 	}
+
+	node_t *expr = NULL;
+	if (parser->token->type != TOKEN_SEMICOLON)
+	{
+		expr = parser_expression(parser);
+		if (!expr)
+		{
+			return NULL;
+		}
+	}
+
 	if (!parser_match(parser, TOKEN_SEMICOLON))
 	{
 		return NULL;
 	}
 
-	return node_make_continue(position);
+	return node_make_continue(position, expr);
 }
 
 static node_t *
@@ -2442,8 +2474,7 @@ parser_return_stmt(parser_t *parser)
 		return NULL;
 	}
 
-	node_t *expr;
-	expr = NULL;
+	node_t *expr = NULL;
 	if (parser->token->type != TOKEN_SEMICOLON)
 	{
 		expr = parser_expression(parser);
@@ -2452,6 +2483,7 @@ parser_return_stmt(parser_t *parser)
 			return NULL;
 		}
 	}
+
 	if (!parser_match(parser, TOKEN_SEMICOLON))
 	{
 		return NULL;
