@@ -13,13 +13,19 @@ export class (T extends string & int, R) A extends (a: ar{T}.ar, m: T)
 
   export func get (a1:int, a2:m)
   {
-    var b3333:int = 1;
+    var b2int = 1;
 
     // loop by if
-    if name (b2222) {
+    if name (b3) {
+      if name2 (b4) {
+        if name3 (b5) {
 
-      continue name;
+          continue name2;
+        }
+        break name; // goto end of name
+      }
     }
+
 
   }
 
