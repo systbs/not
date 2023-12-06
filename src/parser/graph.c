@@ -1829,14 +1829,43 @@ graph_assign(symbol_t *parent, node_t *node)
 {
 	node_binary_t *node_binary;
 
-	symbol_t *symbol;
+	symbol_t *symbol = NULL;
 	symbol_t *symbol_left;
 	symbol_t *symbol_right;
 
+	if(node->kind == NODE_KIND_DEFINE)
+	{
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_DEFINE, node);
+		if(!symbol)
+		{
+			return 0;
+		}
+	}
+
+	else if (
+		(node->kind == NODE_KIND_ASSIGN) ||
+		(node->kind == NODE_KIND_ADD_ASSIGN) ||
+		(node->kind == NODE_KIND_SUB_ASSIGN) ||
+		(node->kind == NODE_KIND_DIV_ASSIGN) ||
+		(node->kind == NODE_KIND_MUL_ASSIGN) ||
+		(node->kind == NODE_KIND_MOD_ASSIGN) ||
+		(node->kind == NODE_KIND_AND_ASSIGN) ||
+		(node->kind == NODE_KIND_OR_ASSIGN) ||
+		(node->kind == NODE_KIND_SHL_ASSIGN) ||
+		(node->kind == NODE_KIND_SHR_ASSIGN)
+		)
+	{
+		symbol = symbol_rpush(parent, SYMBOL_FLAG_ASSIGN, node);
+		if(!symbol)
+		{
+			return 0;
+		}
+	}
+
 	switch (node->kind)
 	{
-	case NODE_KIND_ASSIGN:
 	case NODE_KIND_DEFINE:
+	case NODE_KIND_ASSIGN:
 	case NODE_KIND_ADD_ASSIGN:
 	case NODE_KIND_SUB_ASSIGN:
 	case NODE_KIND_DIV_ASSIGN:
@@ -1847,14 +1876,8 @@ graph_assign(symbol_t *parent, node_t *node)
 	case NODE_KIND_SHL_ASSIGN:
 	case NODE_KIND_SHR_ASSIGN:
 		node_binary = (node_binary_t *)node->value;
-		
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_ASSIGN, node);
-		if(!symbol)
-		{
-			return 0;
-		}
 
-		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_ASSIGN_LEFT, node_binary->left);
+		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_LEFT, node_binary->left);
 		if(!symbol_left)
 		{
 			return 0;
@@ -1867,7 +1890,7 @@ graph_assign(symbol_t *parent, node_t *node)
 			return 0;
 		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_ASSIGN_RIGHT, node_binary->right);
+		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_RIGHT, node_binary->right);
 		if(!symbol_right)
 		{
 			return 0;

@@ -2,7 +2,7 @@ import ("~/lib/", ar:array.array, map)
 
 export class (T extends string & int, R) A extends (a: ar{T}.ar, m: T)
 {
-  export b:int;
+  b:int;
 
   func init 
   {
@@ -13,7 +13,6 @@ export class (T extends string & int, R) A extends (a: ar{T}.ar, m: T)
 
   export func get (a1:int, a2:m)
   {
-    var b:int = 1;
     var b:int = 1;
   }
 
