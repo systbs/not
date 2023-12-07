@@ -28,7 +28,7 @@ static node_t *
 parser_class(parser_t *parser, uint64_t flag);
 
 static node_t *
-parser_func_stmt(parser_t *parser);
+parser_func_stmt(parser_t *parser, uint64_t flag);
 
 static list_t *
 parser_parameters(parser_t *parser);
@@ -52,7 +52,7 @@ static node_t *
 parser_prefix(parser_t *parser);
 
 static node_t *
-parser_object(parser_t *parser);
+parser_object(parser_t *parser, uint64_t flag);
 
 static node_t *
 parser_export(parser_t *parser);
@@ -435,7 +435,7 @@ parser_object_property(parser_t *parser)
 }
 
 static node_t *
-parser_object(parser_t *parser)
+parser_object(parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
@@ -483,7 +483,7 @@ parser_object(parser_t *parser)
 		return NULL;
 	}
 
-	return node_make_object(position, property_list);
+	return node_make_object(position, flag, property_list);
 }
 
 static node_t *
@@ -546,11 +546,11 @@ parser_primary(parser_t *parser)
 		break;
 
 	case TOKEN_LBRACE:
-		node = parser_object(parser);
+		node = parser_object(parser, PARSER_MODIFIER_NONE);
 		break;
 
 	case TOKEN_FUNC_KEYWORD:
-		node = parser_func_stmt(parser);
+		node = parser_func_stmt(parser, PARSER_MODIFIER_NONE);
 		break;
 
 	case TOKEN_LPAREN:
@@ -1896,7 +1896,7 @@ parser_for_stmt(parser_t *parser)
 		node_t *name;
 		if (parser->token->type == TOKEN_LBRACE)
 		{
-			name = parser_object(parser);
+			name = parser_object(parser, PARSER_MODIFIER_NONE);
 		}
 		else if (parser->token->type == TOKEN_LBRACKET)
 		{
@@ -1916,14 +1916,14 @@ parser_for_stmt(parser_t *parser)
 		{
 			if (use_const)
 			{
-				init = node_make_const(init_position, name, NULL, NULL);
+				init = node_make_const(init_position, PARSER_MODIFIER_NONE, name, NULL, NULL);
 				if (!init)
 				{
 					return NULL;
 				}
 				goto forin_structure;
 			}
-			init = node_make_var(init_position, name, NULL, NULL);
+			init = node_make_var(init_position, PARSER_MODIFIER_NONE, name, NULL, NULL);
 			if (!init)
 			{
 				return NULL;
@@ -1962,7 +1962,7 @@ parser_for_stmt(parser_t *parser)
 
 		if (use_const)
 		{
-			init = node_make_const(init_position, name, type, value);
+			init = node_make_const(init_position, PARSER_MODIFIER_NONE, name, type, value);
 			if (!init)
 			{
 				return NULL;
@@ -1970,7 +1970,7 @@ parser_for_stmt(parser_t *parser)
 			goto init_continue;
 		}
 
-		init = node_make_var(init_position, name, type, value);
+		init = node_make_var(init_position, PARSER_MODIFIER_NONE, name, type, value);
 		if (!init)
 		{
 			return NULL;
@@ -2097,7 +2097,7 @@ init_comma_continue:
 		node_t *name;
 		if (parser->token->type == TOKEN_LBRACE)
 		{
-			name = parser_object(parser);
+			name = parser_object(parser, PARSER_MODIFIER_NONE);
 		}
 		else if (parser->token->type == TOKEN_LBRACKET)
 		{
@@ -2144,7 +2144,7 @@ init_comma_continue:
 
 		if (use_const)
 		{
-			init = node_make_const(init_position, name, type, value);
+			init = node_make_const(init_position, PARSER_MODIFIER_NONE, name, type, value);
 			if (!init)
 			{
 				return NULL;
@@ -2152,7 +2152,7 @@ init_comma_continue:
 			goto init_comma_continue;
 		}
 
-		init = node_make_var(init_position, name, type, value);
+		init = node_make_var(init_position, PARSER_MODIFIER_NONE, name, type, value);
 		if (!init)
 		{
 			return NULL;
@@ -2521,7 +2521,7 @@ parser_throw_stmt(parser_t *parser)
 }
 
 static node_t *
-parser_var_stmt(parser_t *parser)
+parser_var_stmt(parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
@@ -2571,11 +2571,11 @@ parser_var_stmt(parser_t *parser)
 		return NULL;
 	}
 
-	return node_make_var(position, name, type, value);
+	return node_make_var(position, flag, name, type, value);
 }
 
 static node_t *
-parser_const_stmt(parser_t *parser)
+parser_const_stmt(parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
@@ -2625,11 +2625,11 @@ parser_const_stmt(parser_t *parser)
 		return NULL;
 	}
 
-	return node_make_const(position, name, type, value);
+	return node_make_const(position, flag, name, type, value);
 }
 
 static node_t *
-parser_type_stmt(parser_t *parser)
+parser_type_stmt(parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
@@ -2727,7 +2727,7 @@ parser_type_stmt(parser_t *parser)
 		}
 	}
 
-	return node_make_type(position, name, type_parameters, heritages, type);
+	return node_make_type(position, flag, name, type_parameters, heritages, type);
 }
 
 static node_t *
@@ -2944,7 +2944,7 @@ parser_type_parameters(parser_t *parser)
 }
 
 static node_t *
-parser_func_stmt(parser_t *parser)
+parser_func_stmt(parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
@@ -3106,7 +3106,7 @@ parser_func_stmt(parser_t *parser)
 		return NULL;
 	}
 
-	return node_make_func(position, fields, type_parameters, name, parameters, body);
+	return node_make_func(position, flag, fields, type_parameters, name, parameters, body);
 }
 
 static node_t *
@@ -3140,15 +3140,15 @@ parser_statement(parser_t *parser)
 		break;
 
 	case TOKEN_VAR_KEYWORD:
-		node = parser_var_stmt(parser);
+		node = parser_var_stmt(parser, PARSER_MODIFIER_NONE);
 		break;
 
 	case TOKEN_CONST_KEYWORD:
-		node = parser_const_stmt(parser);
+		node = parser_const_stmt(parser, PARSER_MODIFIER_NONE);
 		break;
 
 	case TOKEN_TYPE_KEYWORD:
-		node = parser_type_stmt(parser);
+		node = parser_type_stmt(parser, PARSER_MODIFIER_NONE);
 		break;
 
 	case TOKEN_BREAK_KEYWORD:
@@ -3168,7 +3168,7 @@ parser_statement(parser_t *parser)
 		break;
 
 	case TOKEN_FUNC_KEYWORD:
-		node = parser_func_stmt(parser);
+		node = parser_func_stmt(parser, PARSER_MODIFIER_NONE);
 		break;
 
 	default:
@@ -3797,6 +3797,7 @@ parser_field(parser_t *parser)
 		{
 			return NULL;
 		}
+
 		type = parser_expression(parser);
 		if (!type)
 		{
@@ -3897,47 +3898,47 @@ parser_export(parser_t *parser)
 		return NULL;
 	}
 
+	uint64_t flag = PARSER_MODIFIER_EXPORT;
+
 	node_t *node = NULL;
 	switch (parser->token->type)
 	{
 	case TOKEN_CLASS_KEYWORD:
-		node = parser_class(parser, PARSER_MODIFIER_NONE);
+		node = parser_class(parser, flag);
 		break;
 
 	case TOKEN_ENUM_KEYWORD:
-		node = parser_enum(parser, PARSER_MODIFIER_NONE);
+		node = parser_enum(parser, flag);
 		break;
 
 	case TOKEN_FUNC_KEYWORD:
-		node = parser_func_stmt(parser);
+		node = parser_func_stmt(parser, flag);
 		break;
 
 	case TOKEN_VAR_KEYWORD:
-		node = parser_var_stmt(parser);
+		node = parser_var_stmt(parser, flag);
 		break;
 
 	case TOKEN_CONST_KEYWORD:
-		node = parser_const_stmt(parser);
+		node = parser_const_stmt(parser, flag);
 		break;
 
 	case TOKEN_TYPE_KEYWORD:
-		node = parser_type_stmt(parser);
+		node = parser_type_stmt(parser, flag);
 		break;
 
 	case TOKEN_LBRACE:
-		node = parser_object(parser);
+		node = parser_object(parser, flag);
 		break;
 
 	default:
 		parser_error(parser, position, "illegal declaration");
 		break;
 	}
-	if (!node)
-	{
-		return NULL;
-	}
 
-	return node_make_export(position, node);
+	flag &= ~PARSER_MODIFIER_EXPORT;
+
+	return node;
 }
 
 node_t *
@@ -3984,19 +3985,19 @@ parser_module(parser_t *parser)
 			break;
 
 		case TOKEN_FUNC_KEYWORD:
-			decl = parser_func_stmt(parser);
+			decl = parser_func_stmt(parser, PARSER_MODIFIER_NONE);
 			break;
 
 		case TOKEN_VAR_KEYWORD:
-			decl = parser_var_stmt(parser);
+			decl = parser_var_stmt(parser, PARSER_MODIFIER_NONE);
 			break;
 
 		case TOKEN_CONST_KEYWORD:
-			decl = parser_const_stmt(parser);
+			decl = parser_const_stmt(parser, PARSER_MODIFIER_NONE);
 			break;
 
 		case TOKEN_TYPE_KEYWORD:
-			decl = parser_type_stmt(parser);
+			decl = parser_type_stmt(parser, PARSER_MODIFIER_NONE);
 			break;
 
 		default:

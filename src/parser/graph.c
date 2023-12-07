@@ -54,10 +54,6 @@ graph_type(symbol_t *parent, node_t *node);
 static int32_t
 graph_prefix(symbol_t *parent, node_t *node);
 
-static int32_t
-graph_export(symbol_t *parent, node_t *node);
-
-
 
 static int32_t
 graph_id(symbol_t *parent, node_t *node)
@@ -3044,10 +3040,6 @@ graph_class(symbol_t *parent, node_t *node)
 		
 		switch (temp->kind)
 		{
-		case NODE_KIND_EXPORT:
-			result = graph_export(symbol, temp);
-			break;
-
 		case NODE_KIND_CLASS:
 			result = graph_class(symbol, temp);
 			break;
@@ -3417,53 +3409,6 @@ graph_type(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_export(symbol_t *parent, node_t *node)
-{
-	node_unary_t *node_export;
-	node_export = (node_unary_t *)node->value;
-
-	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_EXPORT, node);
-
-	int32_t result = 1;
-	switch (node_export->right->kind)
-	{
-	case NODE_KIND_CLASS:
-		result = graph_class(symbol, node_export->right);
-		break;
-
-	case NODE_KIND_ENUM:
-		result = graph_enum(symbol, node_export->right);
-		break;
-
-	case NODE_KIND_FUNC:
-		result = graph_func(symbol, node_export->right);
-		break;
-
-	case NODE_KIND_VAR:
-		result = graph_var(symbol, node_export->right);
-		break;
-
-	case NODE_KIND_CONST:
-		result = graph_const(symbol, node_export->right);
-		break;
-
-	case NODE_KIND_TYPE:
-		result = graph_type(symbol, node_export->right);
-		break;
-
-	case NODE_KIND_OBJECT:
-		result = graph_object(symbol, node_export->right);
-		break;
-
-	default:
-		return 0;
-	}
-
-	return result;
-}
-
-static int32_t
 graph_import(symbol_t *parent, node_t *node)
 {
 	node_import_t *node_import;
@@ -3524,10 +3469,6 @@ graph_module(symbol_t *parent, node_t *node)
 
 		switch (temp->kind)
 		{
-		case NODE_KIND_EXPORT:
-			result = graph_export(symbol, temp);
-			break;
-
 		case NODE_KIND_IMPORT:
 			result = graph_import(symbol, temp);
 			break;

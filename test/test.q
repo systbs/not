@@ -2,30 +2,17 @@ import ("~/lib/", ar:array.array, map)
 
 export class (T extends string & int, R) A extends (a: ar{T}.ar, m: T)
 {
-  b:int;
+  b2:int;
 
   func init 
   {
     a();
     m();
-    b = a.b + m.b;
+    b3 = a.b + m.b;
   }
 
   export func get (a1:int, a2:m)
   {
-    var b2int = 1;
-
-    // loop by if
-    if name (b3) {
-      if name2 (b4) {
-        if name3 (b5) {
-
-          continue name2;
-        }
-        break name; // goto end of name
-      }
-    }
-
 
   }
 

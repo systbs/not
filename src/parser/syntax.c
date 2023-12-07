@@ -1491,18 +1491,6 @@ syntax_already_defined(symbol_t *root, symbol_t *subroot, symbol_t *target)
 			}
 		}
 
-		if (symbol_check_flag(a, SYMBOL_FLAG_EXPORT))
-		{
-			symbol_t *b;
-			for (b = a->begin;(b != a->end);b = b->next)
-			{
-				result |= syntax_already_defined(b, subroot, target);
-				if (result)
-				{
-					return 1;
-				}
-			}
-		}
 	}
 	
 	if(root->parent)
@@ -3212,18 +3200,6 @@ syntax_class(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curren
 			}
 		}
 		
-		if (symbol_check_flag(a, SYMBOL_FLAG_EXPORT))
-		{
-			symbol_t *b;
-			for (b = a->begin; b != a->end; b = b->next)
-			{
-				result &= syntax_class(graph, root, a, b);
-				if (!result)
-				{
-					return result;
-				}
-			}
-		}
 	}
 
 	return result;
@@ -3279,46 +3255,6 @@ syntax_func(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current
 	return result;
 }
 
-static int32_t
-syntax_export(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
-{
-	int32_t result = 1;
-
-	symbol_t *a;
-	for(a = current->begin; a != current->end; a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
-		{
-			result &= syntax_class(graph, root, subroot, a);
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
-		{
-			result &= syntax_enum(graph, root, subroot, a);
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_TYPE))
-		{
-			result &= syntax_type(graph, root, subroot, a);
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_VAR))
-		{
-			result &= syntax_var(graph, root, subroot, a);
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_CONST))
-		{
-			result &= syntax_const(graph, root, subroot, a);
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_FUNCTION))
-		{
-			result &= syntax_func(graph, root, subroot, a);
-		}
-	}
-
-	return result;
-}
-
-
-
-
 
 
 static int32_t
@@ -3352,10 +3288,6 @@ syntax_module(graph_t *graph, symbol_t *current)
 		else if (symbol_check_flag(a, SYMBOL_FLAG_FUNCTION))
 		{
 			result &= syntax_func(graph, current, current, a);
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_EXPORT))
-		{
-			result &= syntax_export(graph, current, current, a);
 		}
 	}
 

@@ -134,13 +134,14 @@ node_make_object_property(position_t position, node_t *name, node_t *value){
 }
 
 node_t *
-node_make_object(position_t position, list_t *list){
+node_make_object(position_t position, uint64_t flag, list_t *list){
 	node_object_t *node_object;
 	if(!(node_object = (node_object_t *)malloc(sizeof(node_object_t)))){
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_object_t));
 		return NULL;
 	}
 	memset(node_object, 0, sizeof(node_object_t));
+	node_object->flag = flag;
 	node_object->list = list;
 	
 	return node_make_node(position, NODE_KIND_OBJECT, node_object);
@@ -1037,13 +1038,14 @@ node_make_type_arguments(position_t position, list_t *list){
 }
 
 node_t *
-node_make_var(position_t position, node_t *name, node_t *type, node_t *value){
+node_make_var(position_t position, uint64_t flag, node_t *name, node_t *type, node_t *value){
 	node_var_t *node_var;
 	if(!(node_var = (node_var_t *)malloc(sizeof(node_var_t)))){
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_var_t));
 		return NULL;
 	}
 	memset(node_var, 0, sizeof(node_var_t));
+	node_var->flag = flag;
 	node_var->name = name;
 	node_var->type = type;
 	node_var->value = value;
@@ -1052,13 +1054,14 @@ node_make_var(position_t position, node_t *name, node_t *type, node_t *value){
 }
 
 node_t *
-node_make_const(position_t position, node_t *name, node_t *type, node_t *value){
+node_make_const(position_t position, uint64_t flag, node_t *name, node_t *type, node_t *value){
 	node_const_t *node_const;
 	if(!(node_const = (node_const_t *)malloc(sizeof(node_const_t)))){
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_const_t));
 		return NULL;
 	}
 	memset(node_const, 0, sizeof(node_const_t));
+	node_const->flag = flag;
 	node_const->name = name;
 	node_const->type = type;
 	node_const->value = value;
@@ -1067,7 +1070,7 @@ node_make_const(position_t position, node_t *name, node_t *type, node_t *value){
 }
 
 node_t *
-node_make_type(position_t position, node_t *name, list_t *type_parameters, list_t *heritages, node_t *body)
+node_make_type(position_t position, uint64_t flag, node_t *name, list_t *type_parameters, list_t *heritages, node_t *body)
 {
 	node_type_t *node_type;
 	if(!(node_type = (node_type_t *)malloc(sizeof(node_type_t))))
@@ -1076,6 +1079,7 @@ node_make_type(position_t position, node_t *name, list_t *type_parameters, list_
 		return NULL;
 	}
 	memset(node_type, 0, sizeof(node_type_t));
+	node_type->flag = flag;
 	node_type->name = name;
 	node_type->type_parameters = type_parameters;
 	node_type->body = body;
@@ -1136,7 +1140,7 @@ node_make_type_parameter(position_t position, node_t *name, node_t *extends, nod
 }
 
 node_t *
-node_make_func(position_t position, list_t *fields, list_t *type_parameters, node_t *name, list_t *parameters, node_t *body)
+node_make_func(position_t position, uint64_t flag, list_t *fields, list_t *type_parameters, node_t *name, list_t *parameters, node_t *body)
 {
 	node_func_t *node_func;
 	if(!(node_func = (node_func_t *)malloc(sizeof(node_func_t))))
@@ -1145,6 +1149,7 @@ node_make_func(position_t position, list_t *fields, list_t *type_parameters, nod
 		return NULL;
 	}
 	memset(node_func, 0, sizeof(node_func_t));
+	node_func->flag = flag;
 	node_func->fields = fields;
 	node_func->type_parameters = type_parameters;
 	node_func->name = name;
@@ -1285,35 +1290,6 @@ node_make_import(position_t position, node_t *path, list_t *fields)
 	node_import->fields = fields;
 	
 	return node_make_node(position, NODE_KIND_IMPORT, node_import);
-}
-
-node_t *
-node_make_export_block(position_t position, list_t *list)
-{
-	node_block_t *node_block;
-	if(!(node_block = (node_block_t *)malloc(sizeof(node_block_t))))
-	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_block_t));
-		return NULL;
-	}
-	memset(node_block, 0, sizeof(node_block_t));
-	node_block->list = list;
-	
-	return node_make_node(position, NODE_KIND_EXPORT_BLOCK, node_block);
-}
-
-node_t *
-node_make_export(position_t position, node_t *value)
-{
-	node_unary_t *node_unary;
-	if(!(node_unary = (node_unary_t *)malloc(sizeof(node_unary_t)))){
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_unary_t));
-		return NULL;
-	}
-	memset(node_unary, 0, sizeof(node_unary_t));
-	node_unary->right = value;
-	
-	return node_make_node(position, NODE_KIND_EXPORT, node_unary);
 }
 
 node_t *
