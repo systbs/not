@@ -1858,9 +1858,9 @@ graph_assign(symbol_t *parent, node_t *node)
 		}
 	}
 
+	int32_t result;
 	switch (node->kind)
 	{
-	case NODE_KIND_DEFINE:
 	case NODE_KIND_ASSIGN:
 	case NODE_KIND_ADD_ASSIGN:
 	case NODE_KIND_SUB_ASSIGN:
@@ -1879,7 +1879,6 @@ graph_assign(symbol_t *parent, node_t *node)
 			return 0;
 		}
 
-		int32_t result;
 		result = graph_expression(symbol_left, node_binary->left);
 		if (!result)
 		{
@@ -1887,6 +1886,34 @@ graph_assign(symbol_t *parent, node_t *node)
 		}
 
 		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_RIGHT, node_binary->right);
+		if(!symbol_right)
+		{
+			return 0;
+		}
+
+		result = graph_expression(symbol_right, node_binary->right);
+		if (!result)
+		{
+			return 0;
+		}
+		break;
+
+	case NODE_KIND_DEFINE:
+		node_binary = (node_binary_t *)node->value;
+
+		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_binary->left);
+		if(!symbol_left)
+		{
+			return 0;
+		}
+
+		result = graph_expression(symbol_left, node_binary->left);
+		if (!result)
+		{
+			return 0;
+		}
+
+		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_VALUE, node_binary->right);
 		if(!symbol_right)
 		{
 			return 0;
