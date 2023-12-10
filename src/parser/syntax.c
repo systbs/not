@@ -64,16 +64,6 @@ syntax_error(graph_t *graph, symbol_t *current, const char *format, ...)
 }
 
 
-static int32_t
-syntax_method_symbol_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *refrence, symbol_t *target);
-
-
-static int32_t
-syntax_symbol_in_object_struct(graph_t *graph, symbol_t *current, symbol_t *target);
-
-static int32_t
-syntax_symbol_in_array_struct(graph_t *graph, symbol_t *current, symbol_t *target);
-
 
 static int32_t
 syntax_symbol_contain_flag(symbol_t *refrence, uint64_t flag)
@@ -89,133 +79,216 @@ syntax_symbol_contain_flag(symbol_t *refrence, uint64_t flag)
 	return 0;
 }
 
+
+static symbol_t *
+syntax_subset_of_object(symbol_t *refrence, symbol_t *target);
+
+static symbol_t *
+syntax_subset_of_array(symbol_t *refrence, symbol_t *target);
+
 static int32_t
-syntax_compare_symbol_id(symbol_t *current, symbol_t *target)
+syntax_subset_compare_id(symbol_t *refrence, symbol_t *target)
 {
-	node_t *node_current = current->declaration;
-	node_basic_t *node_basic_current;
-	node_basic_current = (node_basic_t *)node_current->value;
+	node_t *node_refrence = refrence->declaration;
+	node_basic_t *node_basic_refrence;
+	node_basic_refrence = (node_basic_t *)node_refrence->value;
 
 	node_t *node_target = target->declaration;
 	node_basic_t *node_basic_target;
 	node_basic_target = (node_basic_t *)node_target->value;
 
-	//printf("%s   %s\n", node_basic_target->value, node_basic_current->value);
-
-	return (strncmp(node_basic_target->value, node_basic_current->value, 
-		max(strlen(node_basic_current->value), strlen(node_basic_target->value))) == 0);
+	return (strncmp(node_basic_target->value, node_basic_refrence->value, 
+		max(strlen(node_basic_refrence->value), strlen(node_basic_target->value))) == 0);
 }
 
-
-
-static int32_t
-syntax_same_symbol_in_name_struct(graph_t *graph, symbol_t *current, symbol_t *target)
+static symbol_t *
+syntax_subset_exist_in_set(symbol_t *refrence, symbol_t *target)
 {
 	symbol_t *a;
-	for(a = current->begin; a != current->end; a = a->next)
+	for (a = refrence->begin;(a != refrence->end); a = a->next)
 	{
-		if(symbol_check_flag(a, SYMBOL_FLAG_OBJECT))
+		if (symbol_check_flag(a, SYMBOL_FLAG_ID))
 		{
-			return syntax_symbol_in_object_struct(graph, a, target);
+			int32_t result;
+			result = syntax_subset_compare_id(a, target);
+			if(result)
+			{
+				return a;
+			}
+		}
+		else if(symbol_check_flag(a, SYMBOL_FLAG_OBJECT))
+		{
+			return syntax_subset_of_object(a, target);
 		}
 		else if(symbol_check_flag(a, SYMBOL_FLAG_ARRAY))
 		{
-			return syntax_symbol_in_array_struct(graph, a, target);
-		}
-		else if(symbol_check_flag(a, SYMBOL_FLAG_ID))
-		{
-			if(a->id == target->id)
-			{
-				break;
-			}
-			if(syntax_compare_symbol_id(a, target))
-			{
-				syntax_error(graph, a, "duplicated symbol(%d) in %lld:%lld\n", a->flags, 
-					target->declaration->position.line, target->declaration->position.column);
-				return 0;
-			}
+			return syntax_subset_of_array(a, target);
 		}
 	}
-	return 1;
+	return NULL;
 }
 
-static int32_t
-syntax_symbol_in_object_property_struct(graph_t *graph, symbol_t *current, symbol_t *target)
+static symbol_t *
+syntax_subset_of_object_property(symbol_t *refrence, symbol_t *target)
 {
 	symbol_t *a;
-	for(a = current->begin; a != current->end; a = a->next)
+	for(a = refrence->begin; a != refrence->end; a = a->next)
 	{
 		if(symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			return syntax_same_symbol_in_name_struct(graph, a, target);
+			return syntax_subset_exist_in_set(a, target);
 		}
 	}
-	return 1;
+	return 0;
 }
 
-static int32_t
-syntax_symbol_in_object_struct(graph_t *graph, symbol_t *current, symbol_t *target)
+static symbol_t *
+syntax_subset_of_object(symbol_t *refrence, symbol_t *target)
 {
 	symbol_t *a;
-	for(a = current->begin; a != current->end; a = a->next)
+	for(a = refrence->begin; a != refrence->end; a = a->next)
 	{
 		if(symbol_check_flag(a, SYMBOL_FLAG_OBJECT_PROPERTY))
 		{
-			return syntax_symbol_in_object_property_struct(graph, a, target);
+			return syntax_subset_of_object_property(a, target);
 		}
 	}
-	return 1;
+	return NULL;
 }
 
-static int32_t
-syntax_symbol_in_array_struct(graph_t *graph, symbol_t *current, symbol_t *target)
+static symbol_t *
+syntax_subset_of_array(symbol_t *refrence, symbol_t *target)
 {
 	symbol_t *a;
-	for (a = current->begin; a != current->end; a = a->next)
+	for (a = refrence->begin; a != refrence->end; a = a->next)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_OBJECT))
 		{
-			return syntax_symbol_in_object_struct(graph, a, target);
+			return syntax_subset_of_object(a, target);
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_ARRAY))
 		{
-			return syntax_symbol_in_array_struct(graph, a, target);
+			return syntax_subset_of_array(a, target);
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_ID))
 		{
-			if(syntax_compare_symbol_id(a, target))
+			int32_t result;
+			result = syntax_subset_compare_id(a, target);
+			if (result)
 			{
-				syntax_error(graph, a, "duplicated symbol(%d) in %lld:%lld\n", a->flags, 
-					target->declaration->position.line, target->declaration->position.column);
-				return 0;
+				return a;
 			}
 		}
 	}
-	return 1;
+	return NULL;
 }
 
-static int32_t
-syntax_same_symbol_contain_name_struct(graph_t *graph, symbol_t *current, symbol_t *target)
+static symbol_t *
+syntax_subset_exist_in_flag(symbol_t *refrence, symbol_t *target, uint64_t flag)
 {
 	symbol_t *a;
-	for(a = current->begin; a != current->end; a = a->next)
+	for (a = refrence->begin;(a != refrence->end); a = a->next)
 	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		if (symbol_check_flag(a, flag))
 		{
-			return syntax_same_symbol_in_name_struct(graph, a, target);
+			symbol_t *result;
+			result = syntax_subset_exist_in_set(a, target);
+			if(result)
+			{
+				return result;
+			}
 		}
 	}
-
-	return 1;
+	return NULL;
 }
 
+
 static int32_t
-syntax_duplicate_symbol(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *target)
+syntax_duplicated(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target)
 {
-	int32_t result = 1;
 	symbol_t *a;
-	for(a = root->begin; a && (a != sub) && (a != root->end); a = a->next)
-	{
+	for(a = root->begin; a && (a != root->end); a = a->next)
+	{	
+		if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			} 
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			} 
+		}
+		
+		if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			}
+		}
+	
+		if (symbol_check_flag(a, SYMBOL_FLAG_PROPERTY))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			}
+		}
+		
+		if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			}
+		}
+
+		if (symbol_check_flag(root, SYMBOL_FLAG_CLASS))
+		{
+			if (a == subroot)
+			{
+				continue;
+			}
+		}
+
 		if (symbol_check_flag(a, SYMBOL_FLAG_IMPORT))
 		{
 			symbol_t *b;
@@ -223,112 +296,87 @@ syntax_duplicate_symbol(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t 
 			{
 				if (symbol_check_flag(b, SYMBOL_FLAG_FIELD))
 				{
-					return syntax_same_symbol_contain_name_struct(graph, b, target);
+					symbol_t *result;
+					result = syntax_subset_exist_in_flag(b, target, SYMBOL_FLAG_NAME);
+					if(result && (result->id != target->id))
+					{
+						syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+							result->declaration->position.line, result->declaration->position.column);
+						return 0;
+					}
 				}
 			}
-			if(!result)
+		}
+		
+		if (symbol_check_flag(a, SYMBOL_FLAG_FIELD))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
 			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
 				return 0;
 			}
 		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_FIELD))
+		
+		if (symbol_check_flag(a, SYMBOL_FLAG_VAR))
 		{
-			result = syntax_same_symbol_contain_name_struct(graph, a, target);
-			if(!result)
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
 			{
-				return 0;
-			} 
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
-		{
-			result = syntax_same_symbol_contain_name_struct(graph, a, target);
-			if(!result)
-			{
-				return 0;
-			} 
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
-		{
-			result = syntax_same_symbol_contain_name_struct(graph, a, target);
-			if(!result)
-			{
-				return 0;
-			} 
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_VAR))
-		{
-			result = syntax_same_symbol_contain_name_struct(graph, a, target);
-			if(!result)
-			{
-				return 0;
-			} 
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_CONST))
-		{
-			result = syntax_same_symbol_contain_name_struct(graph, a, target);
-			if(!result)
-			{
-				return 0;
-			} 
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
-		{
-			result = syntax_same_symbol_contain_name_struct(graph, a, target);
-			if(!result)
-			{
-				return 0;
-			} 
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_FUNCTION))
-		{
-			result = syntax_same_symbol_contain_name_struct(graph, a, target);
-			if(!result)
-			{
-				return 0;
-			} 
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_TYPE))
-		{
-			result = syntax_same_symbol_contain_name_struct(graph, a, target);
-			if(!result)
-			{
-				return 0;
-			} 
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
-		{
-			result = syntax_same_symbol_contain_name_struct(graph, a, target);
-			if(!result)
-			{
-				return 0;
-			} 
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_PROPERTY))
-		{
-			result = syntax_same_symbol_contain_name_struct(graph, a, target);
-			if(!result)
-			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
 				return 0;
 			}
 		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
+		
+		if (symbol_check_flag(a, SYMBOL_FLAG_CONST))
 		{
-			result = syntax_same_symbol_contain_name_struct(graph, a, target);
-			if(!result)
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
 			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
 				return 0;
 			}
 		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_EXPORT))
+		
+		if (symbol_check_flag(a, SYMBOL_FLAG_DEFINE))
 		{
-			symbol_t *b;
-			for(b = a->begin; b && (b != a->end); b = b->next)
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
 			{
-				result = syntax_duplicate_symbol(graph, root, a, target);
-				if(!result)
-				{
-					return 0;
-				}
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			}
+		}
+		
+		if (symbol_check_flag(a, SYMBOL_FLAG_FUNCTION))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			}
+		}
+		
+		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
 			}
 		}
 	}
@@ -337,6 +385,9 @@ syntax_duplicate_symbol(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t 
 }
 
 
+
+static int32_t
+syntax_method_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *refrence, symbol_t *target);
 
 static int32_t
 syntax_is_duplicated_object(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *current);
@@ -345,7 +396,7 @@ static int32_t
 syntax_is_duplicated_array(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *current);
 
 static int32_t
-syntax_is_duplicated_name(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_duplicated_in_set(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	symbol_t *a;
 	for(a = current->begin; a != current->end; a = a->next)
@@ -362,9 +413,9 @@ syntax_is_duplicated_name(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 		{
 			if(symbol_check_flag(subroot, SYMBOL_FLAG_METHOD))
 			{
-				return syntax_method_symbol_is_duplicated(graph, root, subroot, subroot, a);
+				return syntax_method_is_duplicated(graph, root, subroot, subroot, a);
 			}
-			return syntax_duplicate_symbol(graph, root, subroot, a);
+			return syntax_duplicated(graph, root, subroot, a);
 		}
 	}
 	return 0;
@@ -378,7 +429,7 @@ syntax_is_duplicated_object_property(graph_t *graph, symbol_t *root, symbol_t *s
 	{
 		if(symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			return syntax_is_duplicated_name(graph, root, subroot, a);
+			return syntax_duplicated_in_set(graph, root, subroot, a);
 		}
 	}
 	return 0;
@@ -414,14 +465,14 @@ syntax_is_duplicated_array(graph_t *graph, symbol_t *root, symbol_t *subroot, sy
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_ID))
 		{
-			return syntax_duplicate_symbol(graph, root, subroot, a);
+			return syntax_duplicated(graph, root, subroot, a);
 		}
 	}
 	return 0;
 }
 
 static int32_t
-syntax_is_duplicated_name_struct(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_duplicated_in_name(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	symbol_t *a;
@@ -429,7 +480,7 @@ syntax_is_duplicated_name_struct(graph_t *graph, symbol_t *root, symbol_t *subro
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			result &= syntax_is_duplicated_name(graph, root, subroot, a);
+			result &= syntax_duplicated_in_set(graph, root, subroot, a);
 		}
 	}
 	return result;
@@ -437,8 +488,11 @@ syntax_is_duplicated_name_struct(graph_t *graph, symbol_t *root, symbol_t *subro
 
 
 
+static symbol_t *
+syntax_get_prototype_of_type(symbol_t *root, symbol_t *subroot, symbol_t *target);
+
 static int32_t
-syntax_is_same_type_parameter(symbol_t *refrence, symbol_t *target)
+syntax_subset_is_same_type_parameter(symbol_t *refrence, symbol_t *target)
 {
 	uint64_t refrence_counter = 0;
 	uint64_t refrence_counter_by_value = 0;
@@ -477,11 +531,6 @@ syntax_is_same_type_parameter(symbol_t *refrence, symbol_t *target)
 
 	return 0;
 }
-
-
-
-static symbol_t *
-syntax_get_prototype_of_type(symbol_t *root, symbol_t *subroot, symbol_t *target);
 
 static int32_t
 syntax_subset_of_component_type(symbol_t *refrence, symbol_t *target)
@@ -567,7 +616,7 @@ syntax_subset_of_component_type(symbol_t *refrence, symbol_t *target)
 				}
 				if (symbol_check_flag(a, SYMBOL_FLAG_ID) || symbol_check_flag(a, SYMBOL_FLAG_NUMBER) || symbol_check_flag(a, SYMBOL_FLAG_CHAR))
 				{
-					if (!syntax_compare_symbol_id(a, target))
+					if (!syntax_subset_compare_id(a, target))
 					{
 						return 0;
 					}
@@ -623,7 +672,7 @@ syntax_subset_of_component_type(symbol_t *refrence, symbol_t *target)
 				}
 				if (symbol_check_flag(a, SYMBOL_FLAG_ID) || symbol_check_flag(a, SYMBOL_FLAG_NUMBER) || symbol_check_flag(a, SYMBOL_FLAG_CHAR))
 				{
-					if (!syntax_compare_symbol_id(a, target))
+					if (!syntax_subset_compare_id(a, target))
 					{
 						return 0;
 					}
@@ -640,7 +689,7 @@ syntax_subset_of_component_type(symbol_t *refrence, symbol_t *target)
 
 	if (symbol_check_flag(refrence, SYMBOL_FLAG_ID) || symbol_check_flag(refrence, SYMBOL_FLAG_NUMBER) || symbol_check_flag(refrence, SYMBOL_FLAG_CHAR))
 	{
-		if (!syntax_compare_symbol_id(refrence, target))
+		if (!syntax_subset_compare_id(refrence, target))
 		{
 			return 0;
 		}
@@ -664,7 +713,7 @@ syntax_subset_of_type(symbol_t *refrence, symbol_t *target)
 
 	if (symbol_check_flag(refrence, SYMBOL_FLAG_ID) || symbol_check_flag(refrence, SYMBOL_FLAG_NUMBER) || symbol_check_flag(refrence, SYMBOL_FLAG_CHAR))
 	{
-		if (!syntax_compare_symbol_id(refrence, target))
+		if (!syntax_subset_compare_id(refrence, target))
 		{
 			return 0;
 		}
@@ -716,7 +765,7 @@ syntax_subset_of_type(symbol_t *refrence, symbol_t *target)
 
 			if (symbol_check_flag(c, SYMBOL_FLAG_ID))
 			{
-				if (!syntax_compare_symbol_id(c, d))
+				if (!syntax_subset_compare_id(c, d))
 				{
 					return 0;
 				}
@@ -793,7 +842,7 @@ syntax_get_prototype_of_type_in_heritage(symbol_t *root, symbol_t *subroot, symb
 					symbol_t *c;
 					for (c = refrence->begin;c != refrence->end;c = c->next)
 					{
-						if (symbol_check_flag(c, SYMBOL_FLAG_HERITAGE_TYPE))
+						if (symbol_check_flag(c, SYMBOL_FLAG_TYPE))
 						{
 							symbol_t *d;
 							for (d = c->begin;d != c->end;d = d->next)
@@ -872,7 +921,8 @@ syntax_get_prototype_of_type(symbol_t *root, symbol_t *sub, symbol_t *target)
 					return b;
 				}
 			}
-			else if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
+
+			if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
 			{
 				symbol_t *b = NULL;
 				b = syntax_get_prototype_of_type_in_heritage(root, sub, a, target);
@@ -882,32 +932,14 @@ syntax_get_prototype_of_type(symbol_t *root, symbol_t *sub, symbol_t *target)
 				}
 			}
 		}
+
 		if(root->parent)
 		{
 			return syntax_get_prototype_of_type(root->parent, root, target);
 		}
 	}
-	else if (symbol_check_flag(root, SYMBOL_FLAG_METHOD))
-	{
-		symbol_t *a;
-		for (a = root->begin;(a != sub) && (a != root->end); a = a->next)
-		{
-			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
-			{
-				symbol_t *b;
-				b = syntax_get_prototype_of_type_in_type_parameter(root, sub, a, target);
-				if (b)
-				{
-					return b;
-				}
-			}
-		}
-		if(root->parent)
-		{
-			return syntax_get_prototype_of_type(root->parent, root, target);
-		}
-	}
-	else if (symbol_check_flag(root, SYMBOL_FLAG_FUNCTION))
+	
+	if (symbol_check_flag(root, SYMBOL_FLAG_METHOD))
 	{
 		symbol_t *a;
 		for (a = root->begin;(a != sub) && (a != root->end); a = a->next)
@@ -928,7 +960,8 @@ syntax_get_prototype_of_type(symbol_t *root, symbol_t *sub, symbol_t *target)
 			return syntax_get_prototype_of_type(root->parent, root, target);
 		}
 	}
-	else if (symbol_check_flag(root, SYMBOL_FLAG_TYPE))
+	
+	if (symbol_check_flag(root, SYMBOL_FLAG_FUNCTION))
 	{
 		symbol_t *a;
 		for (a = root->begin;(a != sub) && (a != root->end); a = a->next)
@@ -942,7 +975,29 @@ syntax_get_prototype_of_type(symbol_t *root, symbol_t *sub, symbol_t *target)
 					return b;
 				}
 			}
-			else if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
+		}
+
+		if(root->parent)
+		{
+			return syntax_get_prototype_of_type(root->parent, root, target);
+		}
+	}
+	
+	if (symbol_check_flag(root, SYMBOL_FLAG_TYPE))
+	{
+		symbol_t *a;
+		for (a = root->begin;(a != sub) && (a != root->end); a = a->next)
+		{
+			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
+			{
+				symbol_t *b;
+				b = syntax_get_prototype_of_type_in_type_parameter(root, sub, a, target);
+				if (b)
+				{
+					return b;
+				}
+			}
+			if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
 			{
 				symbol_t *b = NULL;
 				b = syntax_get_prototype_of_type_in_heritage(root, sub, a, target);
@@ -1167,9 +1222,8 @@ syntax_subset_of_parameter(symbol_t *refrence, symbol_t *target)
 	return 0;
 }
 
-
 static int32_t
-syntax_method_symbol_is_duplicated_within_name_struct(graph_t *graph, symbol_t *current, symbol_t *refrence, symbol_t *target_refrence, symbol_t *target)
+syntax_method_exist_in_set(graph_t *graph, symbol_t *current, symbol_t *refrence, symbol_t *target_refrence, symbol_t *target)
 {
 	int32_t result = 1;
 	symbol_t *a;
@@ -1181,9 +1235,9 @@ syntax_method_symbol_is_duplicated_within_name_struct(graph_t *graph, symbol_t *
 			{
 				break;
 			}
-			if(syntax_compare_symbol_id(a, target))
+			if(syntax_subset_compare_id(a, target))
 			{
-				result = syntax_is_same_type_parameter(refrence, target_refrence);
+				result = syntax_subset_is_same_type_parameter(refrence, target_refrence);
 				if(result)
 				{
 					result = syntax_subset_of_parameter(refrence, target_refrence);
@@ -1210,165 +1264,49 @@ syntax_method_symbol_is_duplicated_within_name_struct(graph_t *graph, symbol_t *
 }
 
 static int32_t
-syntax_method_symbol_is_duplicated_name_struct(graph_t *graph, symbol_t *current, symbol_t *refrence, symbol_t *target_refrence, symbol_t *target)
+syntax_method_exist_in_flag(graph_t *graph, symbol_t *current, symbol_t *refrence, symbol_t *target_refrence, symbol_t *target)
 {
 	symbol_t *a;
 	for(a = current->begin; a != current->end; a = a->next)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			return syntax_method_symbol_is_duplicated_within_name_struct(graph, a, refrence, target_refrence, target);
+			return syntax_method_exist_in_set(graph, a, refrence, target_refrence, target);
 		}
 	}
 	return 1;
 }
 
 static int32_t
-syntax_method_symbol_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *refrence, symbol_t *target)
+syntax_method_is_duplicated(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *refrence, symbol_t *target)
 {
 	int32_t result = 1;
 	symbol_t *a;
-	for (a = root->begin; a && (a != sub) && (a != root->end); a = a->next)
+	for (a = root->begin; a && (a != subroot) && (a != root->end); a = a->next)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
 		{
-			result = syntax_method_symbol_is_duplicated_name_struct(graph, a, refrence, a, target);
+			result = syntax_method_exist_in_flag(graph, a, refrence, a, target);
 			if(!result)
 			{
 				return 0;
 			}
 		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_EXPORT))
-		{
-			symbol_t *b;
-			for (b = a->begin; b && (b != a->end); b = b->next)
-			{
-				result = syntax_method_symbol_is_duplicated(graph, root, a, refrence, target);
-				if (!result)
-				{
-					return 0;
-				}
-			}
-		}
 	}
 	return 1;
 }
 
 
-static int32_t
-syntax_already_defined_object(symbol_t *refrence, symbol_t *target);
-
-static int32_t
-syntax_already_defined_array(symbol_t *refrence, symbol_t *target);
-
-static int32_t
-syntax_already_defined_name(symbol_t *refrence, symbol_t *target);
 
 
-static int32_t
-syntax_already_defined_id(symbol_t *refrence, symbol_t *target)
-{
-	int32_t result = 0;
-	symbol_t *a;
-	for (a = refrence->begin;(a != refrence->end); a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_ID))
-		{
-			result |= syntax_compare_symbol_id(a, target);
-			if(result)
-			{
-				return 1;
-			}
-		}
-		else if(symbol_check_flag(a, SYMBOL_FLAG_OBJECT))
-		{
-			return syntax_already_defined_object(a, target);
-		}
-		else if(symbol_check_flag(a, SYMBOL_FLAG_ARRAY))
-		{
-			return syntax_already_defined_array(a, target);
-		}
-	}
-	return result;
-}
-
-static int32_t
-syntax_already_defined_object_property(symbol_t *refrence, symbol_t *target)
-{
-	symbol_t *a;
-	for(a = refrence->begin; a != refrence->end; a = a->next)
-	{
-		if(symbol_check_flag(a, SYMBOL_FLAG_NAME))
-		{
-			return syntax_already_defined_name(a, target);
-		}
-	}
-	return 0;
-}
-
-static int32_t
-syntax_already_defined_object(symbol_t *refrence, symbol_t *target)
-{
-	symbol_t *a;
-	for(a = refrence->begin; a != refrence->end; a = a->next)
-	{
-		if(symbol_check_flag(a, SYMBOL_FLAG_OBJECT_PROPERTY))
-		{
-			return syntax_already_defined_object_property(a, target);
-		}
-	}
-	return 0;
-}
-
-static int32_t
-syntax_already_defined_array(symbol_t *refrence, symbol_t *target)
-{
-	symbol_t *a;
-	for (a = refrence->begin; a != refrence->end; a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_OBJECT))
-		{
-			return syntax_already_defined_object(a, target);
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_ARRAY))
-		{
-			return syntax_already_defined_array(a, target);
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_ID))
-		{
-			return syntax_compare_symbol_id(a, target);
-		}
-	}
-	return 0;
-}
-
-static int32_t
-syntax_already_defined_name(symbol_t *refrence, symbol_t *target)
-{
-	int32_t result = 0;
-	symbol_t *a;
-	for (a = refrence->begin;(a != refrence->end); a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
-		{
-			result |= syntax_already_defined_id(a, target);
-			if(result)
-			{
-				return 1;
-			}
-		}
-	}
-	return result;
-}
-
-static int32_t
+static symbol_t *
 syntax_already_defined(symbol_t *root, symbol_t *subroot, symbol_t *target)
 {
-	int32_t result = 0;
-	result |= syntax_already_defined_name(root, target);
+	symbol_t *result;
+	result = syntax_subset_exist_in_flag(root, target, SYMBOL_FLAG_NAME);
 	if (result)
 	{
-		return 1;
+		return result;
 	}
 
 	symbol_t *a;
@@ -1376,133 +1314,134 @@ syntax_already_defined(symbol_t *root, symbol_t *subroot, symbol_t *target)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
 		{
-			result |= syntax_already_defined_name(a, target);
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result)
 			{
-				return 1;
+				return result;
 			}
 		}
 
 		if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
 		{
-			result |= syntax_already_defined_name(a, target);
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result)
 			{
-				return 1;
+				return result;
 			}
 		}
 
 		if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
 		{
-			result |= syntax_already_defined_name(a, target);
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result)
 			{
-				return 1;
+				return result;
 			}
 		}
 
 		if (symbol_check_flag(a, SYMBOL_FLAG_VAR))
 		{
-			result |= syntax_already_defined_name(a, target);
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result)
 			{
-				return 1;
+				return result;
 			}
 		}
 		
 		if (symbol_check_flag(a, SYMBOL_FLAG_CONST))
 		{
-			result |= syntax_already_defined_name(a, target);
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result)
 			{
-				return 1;
+				return result;
 			}
 		}
 
 		if (symbol_check_flag(a, SYMBOL_FLAG_PROPERTY))
 		{
-			result |= syntax_already_defined_name(a, target);
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result)
 			{
-				return 1;
+				return result;
 			}
 		}
 
 		if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
 		{
-			result |= syntax_already_defined_name(a, target);
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result)
 			{
-				return 1;
+				return result;
 			}
 		}
 
 		if (symbol_check_flag(a, SYMBOL_FLAG_FIELD))
 		{
-			result |= syntax_already_defined_name(a, target);
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result)
 			{
-				return 1;
+				return result;
 			}
 		}
 
 		if (symbol_check_flag(a, SYMBOL_FLAG_PARAMETER))
 		{
-			result |= syntax_already_defined_name(a, target);
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result)
 			{
-				return 1;
+				return result;
 			}
 		}
 
 		if (symbol_check_flag(a, SYMBOL_FLAG_DEFINE))
 		{
-			result |= syntax_already_defined_name(a, target);
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result)
 			{
-				return 1;
+				return result;
 			}
 		}
 
 		if (symbol_check_flag(a, SYMBOL_FLAG_IF))
 		{
-			result |= syntax_already_defined_name(a, target);
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result)
 			{
-				return 1;
+				return result;
 			}
 		}
 
 		if (symbol_check_flag(a, SYMBOL_FLAG_FOR))
 		{
-			result |= syntax_already_defined_name(a, target);
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result)
 			{
-				return 1;
+				return result;
 			}
 		}
 
 		if (symbol_check_flag(a, SYMBOL_FLAG_FORIN))
 		{
-			result |= syntax_already_defined_name(a, target);
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result)
 			{
-				return 1;
+				return result;
 			}
 		}
 	}
 	
 	if(root->parent)
 	{
-		result |= syntax_already_defined(root->parent, root, target);
+		result = syntax_already_defined(root->parent, root, target);
 		if(result)
 		{
-			return 1;
+			return result;
 		}
 	}
 
-	return result;
+	return NULL;
 }
+
 
 
 
@@ -1521,12 +1460,10 @@ syntax_analysis_block(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_
 static int32_t
 syntax_analysis_function(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current);
 
-
-
 static int32_t
 syntax_analysis_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
-	int32_t result;
+	symbol_t * result;
 	result = syntax_already_defined(root, subroot, current);
 	if (!result)
 	{
@@ -1648,11 +1585,11 @@ syntax_analysis_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_BASE))
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
 			result &= syntax_analysis_postfix(graph, current, a, a);
 		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_ARGUMENT))
+		else if (symbol_check_flag(a, SYMBOL_FLAG_ARGUMENT))
 		{
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
@@ -1671,7 +1608,7 @@ syntax_analysis_call(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_CALLABLE))
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
@@ -1679,7 +1616,7 @@ syntax_analysis_call(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t
 				result &= syntax_analysis_postfix(graph, a, b, b);
 			}
 		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_ARGUMENT))
+		else if (symbol_check_flag(a, SYMBOL_FLAG_ARGUMENT))
 		{
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
@@ -1774,14 +1711,18 @@ syntax_analysis_get_attr(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
 				result &= syntax_analysis_postfix(graph, a, b, b);
-			}
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_RIGHT))
-		{
-			symbol_t *b;
-			for (b = a->begin;(b != a->end); b = b->next)
-			{
-				result &= syntax_analysis_id(graph, a, b, b);
+				if (symbol_check_flag(a, SYMBOL_FLAG_RIGHT))
+				{
+					symbol_t *c;
+					for (c = a->begin;(c != a->end); c = c->next)
+					{
+						//result &= syntax_subset_of(c, b);
+						if(!result)
+						{
+							return 0;
+						}
+					}
+				}
 			}
 		}
 	}
@@ -2683,7 +2624,7 @@ syntax_var(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			result &= syntax_is_duplicated_name(graph, root, subroot, a);
+			result &= syntax_duplicated_in_set(graph, root, subroot, a);
 			if(!result)
 			{
 				return 0;
@@ -2704,7 +2645,7 @@ syntax_const(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curren
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			result &= syntax_is_duplicated_name(graph, root, subroot, a);
+			result &= syntax_duplicated_in_set(graph, root, subroot, a);
 			if(!result)
 			{
 				return 0;
@@ -2757,7 +2698,7 @@ syntax_parameter(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cu
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			result &= syntax_is_duplicated_name(graph, root, subroot, a);
+			result &= syntax_duplicated_in_set(graph, root, subroot, a);
 			if(!result)
 			{
 				return 0;
@@ -2962,12 +2903,12 @@ syntax_import(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curre
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_FIELD))
 		{
-			result &= syntax_is_duplicated_name_struct(graph, current, a, a);
+			result &= syntax_duplicated_in_name(graph, current, a, a);
 			if(!result)
 			{
 				return 0;
 			}
-			result &= syntax_is_duplicated_name_struct(graph, root, current, a);
+			result &= syntax_duplicated_in_name(graph, root, current, a);
 			if(!result)
 			{
 				return 0;
@@ -2988,7 +2929,7 @@ syntax_type_parameter(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			result &= syntax_is_duplicated_name(graph, root, a, a);
+			result &= syntax_duplicated_in_set(graph, root, a, a);
 			if(!result)
 			{
 				return 0;
@@ -3009,7 +2950,7 @@ syntax_heritage(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cur
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			result &= syntax_is_duplicated_name(graph, root, a, a);
+			result &= syntax_duplicated_in_set(graph, root, a, a);
 			if(!result)
 			{
 				return 0;
@@ -3019,7 +2960,7 @@ syntax_heritage(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cur
 			{
 				if (symbol_check_flag(b, SYMBOL_FLAG_TYPE_PARAMETER))
 				{
-					result &= syntax_is_duplicated_name_struct(graph, root, b, b);
+					result &= syntax_duplicated_in_name(graph, root, b, b);
 					if(!result)
 					{
 						return result;
@@ -3042,7 +2983,7 @@ syntax_method(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curre
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
 		{
-			result &= syntax_is_duplicated_name_struct(graph, root, a, current);
+			result &= syntax_duplicated_in_name(graph, root, a, current);
 			if(!result)
 			{
 				return result;
@@ -3051,7 +2992,7 @@ syntax_method(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curre
 		
 		if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
 		{
-			result &= syntax_is_duplicated_name_struct(graph, root, a, current);
+			result &= syntax_duplicated_in_name(graph, root, a, current);
 			if(!result)
 			{
 				return result;
@@ -3063,7 +3004,7 @@ syntax_method(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curre
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			result &= syntax_is_duplicated_name(graph, root, subroot, a);
+			result &= syntax_duplicated_in_set(graph, root, subroot, a);
 			if (!result)
 			{
 				return 0;
@@ -3095,7 +3036,7 @@ syntax_enum(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current
 		{
 			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
 			{
-				result &= syntax_is_duplicated_name_struct(graph, root, a, current);
+				result &= syntax_duplicated_in_name(graph, root, a, current);
 				if(!result)
 				{
 					return result;
@@ -3104,7 +3045,7 @@ syntax_enum(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current
 			
 			if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
 			{
-				result &= syntax_is_duplicated_name_struct(graph, root, a, current);
+				result &= syntax_duplicated_in_name(graph, root, a, current);
 				if(!result)
 				{
 					return result;
@@ -3118,7 +3059,7 @@ syntax_enum(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			result &= syntax_is_duplicated_name(graph, root, subroot, a);
+			result &= syntax_duplicated_in_set(graph, root, subroot, a);
 			if(!result)
 			{
 				return 0;
@@ -3141,7 +3082,7 @@ syntax_property(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cur
 		{
 			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
 			{
-				result &= syntax_is_duplicated_name_struct(graph, root, a, current);
+				result &= syntax_duplicated_in_name(graph, root, a, current);
 				if(!result)
 				{
 					return result;
@@ -3150,7 +3091,7 @@ syntax_property(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cur
 			
 			if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
 			{
-				result &= syntax_is_duplicated_name_struct(graph, root, a, current);
+				result &= syntax_duplicated_in_name(graph, root, a, current);
 				if(!result)
 				{
 					return result;
@@ -3164,7 +3105,7 @@ syntax_property(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cur
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			result &= syntax_is_duplicated_name(graph, root, subroot, a);
+			result &= syntax_duplicated_in_set(graph, root, subroot, a);
 			if(!result)
 			{
 				return 0;
@@ -3187,7 +3128,7 @@ syntax_class(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curren
 		{
 			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
 			{
-				result &= syntax_is_duplicated_name_struct(graph, root, a, current);
+				result &= syntax_duplicated_in_name(graph, root, a, current);
 				if(!result)
 				{
 					return result;
@@ -3196,7 +3137,7 @@ syntax_class(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curren
 			
 			if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
 			{
-				result &= syntax_is_duplicated_name_struct(graph, root, a, current);
+				result &= syntax_duplicated_in_name(graph, root, a, current);
 				if(!result)
 				{
 					return result;
@@ -3211,7 +3152,7 @@ syntax_class(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curren
 		// attribute
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			result &= syntax_is_duplicated_name(graph, root, subroot, a);
+			result &= syntax_duplicated_in_set(graph, root, subroot, a);
 			if (!result)
 			{
 				return 0;
@@ -3288,7 +3229,7 @@ syntax_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			result &= syntax_is_duplicated_name(graph, root, subroot, a);
+			result &= syntax_duplicated_in_set(graph, root, subroot, a);
 			if(!result)
 			{
 				return 0;
@@ -3309,7 +3250,7 @@ syntax_func(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			result &= syntax_is_duplicated_name(graph, root, subroot, a);
+			result &= syntax_duplicated_in_set(graph, root, subroot, a);
 			if (!result)
 			{
 				return 0;

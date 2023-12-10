@@ -356,7 +356,7 @@ graph_composite(symbol_t *parent, node_t *node)
 	int32_t result;
 	if(node_composite->base)
 	{
-		symbol_base = symbol_rpush(symbol, SYMBOL_FLAG_BASE, node);
+		symbol_base = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node);
 		if(!symbol_base)
 		{
 			return 0;
@@ -371,7 +371,7 @@ graph_composite(symbol_t *parent, node_t *node)
 
 	if (node_composite->type_arguments)
 	{
-		symbol_type_argument = symbol_rpush(symbol, SYMBOL_FLAG_TYPE_ARGUMENT, node);
+		symbol_type_argument = symbol_rpush(symbol, SYMBOL_FLAG_ARGUMENT, node);
 		if(!symbol_type_argument)
 		{
 			return 0;
@@ -410,7 +410,7 @@ graph_call(symbol_t *parent, node_t *node)
 	node_call_t *node_call;
 	node_call = (node_call_t *)node->value;
 
-	symbol_callable = symbol_rpush(symbol, SYMBOL_FLAG_CALLABLE, node);
+	symbol_callable = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node);
 	if(!symbol_callable)
 	{
 		return 0;
@@ -425,7 +425,7 @@ graph_call(symbol_t *parent, node_t *node)
 
 	if (node_call->arguments)
 	{
-		symbol_argument = symbol_rpush(symbol, SYMBOL_FLAG_TYPE_ARGUMENT, node);
+		symbol_argument = symbol_rpush(symbol, SYMBOL_FLAG_ARGUMENT, node);
 		if(!symbol_argument)
 		{
 			return 0;
@@ -2862,7 +2862,7 @@ graph_field(symbol_t *parent, node_t *node)
 	if (node_field->type)
 	{
 		symbol_t *symbol_type;
-		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_TYPE_EXPRESSION, node_field->type);
+		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_TYPE, node_field->type);
 		if(!symbol_type)
 		{
 			return 0;
@@ -2983,7 +2983,7 @@ graph_heritage(symbol_t *parent, node_t *node)
 	if (node_heritage->type)
 	{
 		symbol_t *symbol_type;
-		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_HERITAGE_TYPE, node);
+		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_TYPE, node);
 		if(!symbol_type)
 		{
 			return 0;
