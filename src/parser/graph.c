@@ -1970,7 +1970,7 @@ graph_if(symbol_t *parent, node_t *node)
 	if (node_if->condition)
 	{
 		symbol_t *symbol_condition;
-		symbol_condition = symbol_rpush(symbol, SYMBOL_FLAG_IF_CONDITION, node_if->condition);
+		symbol_condition = symbol_rpush(symbol, SYMBOL_FLAG_CONDITION, node_if->condition);
 		if(!symbol_condition)
 		{
 			return 0;
@@ -2193,7 +2193,7 @@ graph_for(symbol_t *parent, node_t *node)
 	if (node_for->initializer)
 	{
 		symbol_t *symbol_initializer;
-		symbol_initializer = symbol_rpush(symbol, SYMBOL_FLAG_FOR_INITIALIZER, node_for->initializer);
+		symbol_initializer = symbol_rpush(symbol, SYMBOL_FLAG_INITIALIZER, node_for->initializer);
 		if(!symbol_initializer)
 		{
 			return 0;
@@ -2222,7 +2222,7 @@ graph_for(symbol_t *parent, node_t *node)
 	if (node_for->condition)
 	{
 		symbol_t *symbol_condition;
-		symbol_condition = symbol_rpush(symbol, SYMBOL_FLAG_FOR_CONDITION, node);
+		symbol_condition = symbol_rpush(symbol, SYMBOL_FLAG_CONDITION, node);
 		if(!symbol_condition)
 		{
 			return 0;
@@ -2238,7 +2238,7 @@ graph_for(symbol_t *parent, node_t *node)
 	if (node_for->incrementor)
 	{
 		symbol_t *symbol_incrementor;
-		symbol_incrementor = symbol_rpush(symbol, SYMBOL_FLAG_FOR_INCREMENTOR, node);
+		symbol_incrementor = symbol_rpush(symbol, SYMBOL_FLAG_INCREMENTOR, node);
 		if(!symbol_incrementor)
 		{
 			return 0;
@@ -2302,7 +2302,7 @@ graph_forin(symbol_t *parent, node_t *node)
 	if (node_forin->initializer)
 	{
 		symbol_t *symbol_initializer;
-		symbol_initializer = symbol_rpush(symbol, SYMBOL_FLAG_FORIN_INITIALIZER, node);
+		symbol_initializer = symbol_rpush(symbol, SYMBOL_FLAG_INITIALIZER, node);
 		if(!symbol_initializer)
 		{
 			return 0;
@@ -2324,7 +2324,7 @@ graph_forin(symbol_t *parent, node_t *node)
 	if (node_forin->expression)
 	{
 		symbol_t *symbol_expression;
-		symbol_expression = symbol_rpush(symbol, SYMBOL_FLAG_FORIN_EXPRESSION, node);
+		symbol_expression = symbol_rpush(symbol, SYMBOL_FLAG_EXPRESSION, node);
 		if(!symbol_expression)
 		{
 			return 0;

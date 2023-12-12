@@ -328,7 +328,55 @@ syntax_duplicated(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *t
 			}
 		}
 
-		if (symbol_check_flag(root, SYMBOL_FLAG_CLASS))
+		if (symbol_check_flag(a, SYMBOL_FLAG_IF))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_FOR))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_FORIN))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_set(a, target);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			}
+		}
+
+		if (!symbol_check_flag(root, SYMBOL_FLAG_CLASS) && !symbol_check_flag(root, SYMBOL_FLAG_MODULE))
 		{
 			if (a == subroot)
 			{
@@ -406,6 +454,14 @@ syntax_duplicated(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *t
 					result->declaration->position.line, result->declaration->position.column);
 				return 0;
 			}
+		}
+	}
+
+	if (root->parent)
+	{
+		if (symbol_check_flag(root, SYMBOL_FLAG_BLOCK))
+		{
+			return syntax_duplicated(graph, root->parent, root, target);
 		}
 	}
 
@@ -2386,23 +2442,24 @@ syntax_type_of(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *targ
 
 
 static int32_t
-syntax_analysis_expression(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current);
+syntax_expression(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current);
 
 static int32_t
-syntax_analysis_postfix(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current);
+syntax_postfix(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current);
 
 static int32_t
-syntax_analysis_bitwise_or(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current);
+syntax_bitwise_or(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current);
 
 static int32_t
-syntax_analysis_block(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current);
+syntax_block(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current);
 
 static int32_t
-syntax_analysis_function(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current);
+syntax_function(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current);
 
 static int32_t
-syntax_analysis_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
+	/*
 	symbol_t * result;
 	result = syntax_already_defined(root, subroot, current);
 	if (!result)
@@ -2410,17 +2467,18 @@ syntax_analysis_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *
 		syntax_error(graph, current, "symbol(%d) already not defined\n", current->flags);
 		return 0;
 	}
+	*/
 	return 1;
 }
 
 static int32_t
-syntax_analysis_parenthesis(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_parenthesis(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
-		result &= syntax_analysis_expression(graph, current, a, a);
+		result &= syntax_expression(graph, current, a, a);
 		if(!result)
 		{
 			return 0;
@@ -2430,13 +2488,13 @@ syntax_analysis_parenthesis(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 }
 
 static int32_t
-syntax_analysis_array(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_array(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
-		result &= syntax_analysis_expression(graph, current, a, a);
+		result &= syntax_expression(graph, current, a, a);
 		if(!result)
 		{
 			return 0;
@@ -2446,7 +2504,7 @@ syntax_analysis_array(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_
 }
 
 static int32_t
-syntax_analysis_object_property(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_object_property(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	symbol_t *a;
@@ -2457,7 +2515,7 @@ syntax_analysis_object_property(graph_t *graph, symbol_t *root, symbol_t *subroo
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
-				result &= syntax_analysis_expression(graph, a, b, b);
+				result &= syntax_expression(graph, a, b, b);
 			}
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_VALUE))
@@ -2465,7 +2523,7 @@ syntax_analysis_object_property(graph_t *graph, symbol_t *root, symbol_t *subroo
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
-				result &= syntax_analysis_expression(graph, a, b, b);
+				result &= syntax_expression(graph, a, b, b);
 			}
 		}
 	}
@@ -2473,7 +2531,7 @@ syntax_analysis_object_property(graph_t *graph, symbol_t *root, symbol_t *subroo
 }
 
 static int32_t
-syntax_analysis_object(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_object(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	symbol_t *a;
@@ -2484,7 +2542,7 @@ syntax_analysis_object(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
-				result &= syntax_analysis_object_property(graph, a, b, b);
+				result &= syntax_object_property(graph, a, b, b);
 			}
 		}
 	}
@@ -2492,34 +2550,34 @@ syntax_analysis_object(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 }
 
 static int32_t
-syntax_analysis_primary(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_primary(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	if (symbol_check_flag(current, SYMBOL_FLAG_ID))
 	{
-		result &= syntax_analysis_id(graph, root, subroot, current);
+		result &= syntax_id(graph, root, subroot, current);
 	}
 	else if (symbol_check_flag(current, SYMBOL_FLAG_ARRAY))
 	{
-		result &= syntax_analysis_array(graph, root, subroot, current);
+		result &= syntax_array(graph, root, subroot, current);
 	}
 	else if (symbol_check_flag(current, SYMBOL_FLAG_OBJECT))
 	{
-		result &= syntax_analysis_object(graph, root, subroot, current);
+		result &= syntax_object(graph, root, subroot, current);
 	}
 	else if (symbol_check_flag(current, SYMBOL_FLAG_PARENTHESIS))
 	{
-		result &= syntax_analysis_parenthesis(graph, root, subroot, current);
+		result &= syntax_parenthesis(graph, root, subroot, current);
 	}
 	else if (symbol_check_flag(current, SYMBOL_FLAG_FUNCTION))
 	{
-		result &= syntax_analysis_function(graph, root, subroot, current);
+		result &= syntax_function(graph, root, subroot, current);
 	}
 	return result;
 }
 
 static int32_t
-syntax_analysis_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	symbol_t *a;
@@ -2530,7 +2588,7 @@ syntax_analysis_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
-				result &= syntax_analysis_postfix(graph, a, b, b);
+				result &= syntax_postfix(graph, a, b, b);
 			}
 		}
 		if (symbol_check_flag(a, SYMBOL_FLAG_ARGUMENT))
@@ -2538,7 +2596,7 @@ syntax_analysis_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
-				result &= syntax_analysis_expression(graph, a, b, b);
+				result &= syntax_expression(graph, a, b, b);
 			}
 		}
 	}
@@ -2546,7 +2604,7 @@ syntax_analysis_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 }
 
 static int32_t
-syntax_analysis_call(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_call(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	symbol_t *a;
@@ -2557,7 +2615,7 @@ syntax_analysis_call(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
-				result &= syntax_analysis_postfix(graph, a, b, b);
+				result &= syntax_postfix(graph, a, b, b);
 			}
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_ARGUMENT))
@@ -2565,7 +2623,7 @@ syntax_analysis_call(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
-				result &= syntax_analysis_expression(graph, a, b, b);
+				result &= syntax_expression(graph, a, b, b);
 			}
 		}
 	}
@@ -2573,7 +2631,7 @@ syntax_analysis_call(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t
 }
 
 static int32_t
-syntax_analysis_get_slice(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_get_slice(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	symbol_t *a;
@@ -2584,7 +2642,7 @@ syntax_analysis_get_slice(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
-				result &= syntax_analysis_postfix(graph, a, b, b);
+				result &= syntax_postfix(graph, a, b, b);
 			}
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_GET_START))
@@ -2592,7 +2650,7 @@ syntax_analysis_get_slice(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
-				result &= syntax_analysis_expression(graph, a, b, b);
+				result &= syntax_expression(graph, a, b, b);
 			}
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_GET_STEP))
@@ -2600,7 +2658,7 @@ syntax_analysis_get_slice(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
-				result &= syntax_analysis_expression(graph, a, b, b);
+				result &= syntax_expression(graph, a, b, b);
 			}
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_GET_STOP))
@@ -2608,7 +2666,7 @@ syntax_analysis_get_slice(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
-				result &= syntax_analysis_expression(graph, a, b, b);
+				result &= syntax_expression(graph, a, b, b);
 			}
 		}
 	}
@@ -2616,7 +2674,7 @@ syntax_analysis_get_slice(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 }
 
 static int32_t
-syntax_analysis_get_item(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_get_item(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	symbol_t *a;
@@ -2627,7 +2685,7 @@ syntax_analysis_get_item(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
-				result &= syntax_analysis_postfix(graph, a, b, b);
+				result &= syntax_postfix(graph, a, b, b);
 			}
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_INDEX))
@@ -2635,7 +2693,7 @@ syntax_analysis_get_item(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
-				result &= syntax_analysis_expression(graph, a, b, b);
+				result &= syntax_expression(graph, a, b, b);
 			}
 		}
 	}
@@ -2643,15 +2701,8 @@ syntax_analysis_get_item(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 }
 
 static int32_t
-syntax_analysis_get_attr(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_get_attr(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
-	symbol_t *b;
-	b = syntax_type_of(graph, root, subroot, current, SYNTAX_TYPE_OF_NONE);
-	if (!b)
-	{
-		return 0;
-	}
-
 	int32_t result = 1;
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
@@ -2661,7 +2712,7 @@ syntax_analysis_get_attr(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
-				result &= syntax_analysis_postfix(graph, a, b, b);
+				result &= syntax_postfix(graph, a, b, b);
 			}
 		}
 		if (symbol_check_flag(a, SYMBOL_FLAG_RIGHT))
@@ -2669,7 +2720,7 @@ syntax_analysis_get_attr(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
 			{
-				result &= syntax_analysis_id(graph, a, b, b);
+				result &= syntax_id(graph, a, b, b);
 			}
 		}
 	}
@@ -2677,38 +2728,38 @@ syntax_analysis_get_attr(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 }
 
 static int32_t
-syntax_analysis_postfix(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_postfix(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	if (symbol_check_flag(current, SYMBOL_FLAG_COMPOSITE))
 	{
-		result &= syntax_analysis_composite(graph, root, subroot, current);
+		result &= syntax_composite(graph, root, subroot, current);
 	}
 	else if (symbol_check_flag(current, SYMBOL_FLAG_CALL))
 	{
-		result &= syntax_analysis_call(graph, root, subroot, current);
+		result &= syntax_call(graph, root, subroot, current);
 	}
 	else if (symbol_check_flag(current, SYMBOL_FLAG_SLICE))
 	{
-		result &= syntax_analysis_get_slice(graph, root, subroot, current);
+		result &= syntax_get_slice(graph, root, subroot, current);
 	}
 	else if (symbol_check_flag(current, SYMBOL_FLAG_ITEM))
 	{
-		result &= syntax_analysis_get_item(graph, root, subroot, current);
+		result &= syntax_get_item(graph, root, subroot, current);
 	}
 	else if (symbol_check_flag(current, SYMBOL_FLAG_ATTR))
 	{
-		result &= syntax_analysis_get_attr(graph, root, subroot, current);
+		result &= syntax_get_attr(graph, root, subroot, current);
 	}
 	else
 	{
-		result &= syntax_analysis_primary(graph, root, subroot, current);
+		result &= syntax_primary(graph, root, subroot, current);
 	}
 	return result;
 }
 
 static int32_t
-syntax_analysis_prefix(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_prefix(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	if (
@@ -2743,11 +2794,11 @@ syntax_analysis_prefix(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 						symbol_check_flag(c, SYMBOL_FLAG_TYPEOF) ||
 						symbol_check_flag(c, SYMBOL_FLAG_ELLIPSIS))
 					{
-						result &= syntax_analysis_prefix(graph, a, c, c);
+						result &= syntax_prefix(graph, a, c, c);
 					}
 					else
 					{
-						result &= syntax_analysis_postfix(graph, a, c, c);
+						result &= syntax_postfix(graph, a, c, c);
 					}
 				}
 			}
@@ -2756,20 +2807,20 @@ syntax_analysis_prefix(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_postfix(graph, a, b, b);
+					result &= syntax_postfix(graph, a, b, b);
 				}
 			}
 		}
 	}
 	else
 	{
-		result &= syntax_analysis_postfix(graph, root, subroot, current);
+		result &= syntax_postfix(graph, root, subroot, current);
 	}
 	return result;
 }
 
 static int32_t
-syntax_analysis_multiplicative(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_multiplicative(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	if (
@@ -2790,11 +2841,11 @@ syntax_analysis_multiplicative(graph_t *graph, symbol_t *root, symbol_t *subroot
 						symbol_check_flag(b, SYMBOL_FLAG_DIV) ||
 						symbol_check_flag(b, SYMBOL_FLAG_MOD))
 					{
-						result &= syntax_analysis_multiplicative(graph, a, b, b);
+						result &= syntax_multiplicative(graph, a, b, b);
 					}
 					else
 					{
-						result &= syntax_analysis_prefix(graph, a, b, b);
+						result &= syntax_prefix(graph, a, b, b);
 					}
 				}
 			}
@@ -2803,20 +2854,20 @@ syntax_analysis_multiplicative(graph_t *graph, symbol_t *root, symbol_t *subroot
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_prefix(graph, a, b, b);
+					result &= syntax_prefix(graph, a, b, b);
 				}
 			}
 		}
 	}
 	else
 	{
-		result &= syntax_analysis_prefix(graph, root, subroot, current);
+		result &= syntax_prefix(graph, root, subroot, current);
 	}
 	return result;
 }
 
 static int32_t
-syntax_analysis_addative(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_addative(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	if (
@@ -2835,11 +2886,11 @@ syntax_analysis_addative(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 						symbol_check_flag(b, SYMBOL_FLAG_PLUS) || 
 						symbol_check_flag(b, SYMBOL_FLAG_MINUS))
 					{
-						result &= syntax_analysis_addative(graph, a, b, b);
+						result &= syntax_addative(graph, a, b, b);
 					}
 					else
 					{
-						result &= syntax_analysis_multiplicative(graph, a, b, b);
+						result &= syntax_multiplicative(graph, a, b, b);
 					}
 				}
 			}
@@ -2848,20 +2899,20 @@ syntax_analysis_addative(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_multiplicative(graph, a, b, b);
+					result &= syntax_multiplicative(graph, a, b, b);
 				}
 			}
 		}
 	}
 	else
 	{
-		result &= syntax_analysis_multiplicative(graph, root, subroot, current);
+		result &= syntax_multiplicative(graph, root, subroot, current);
 	}
 	return result;
 }
 
 static int32_t
-syntax_analysis_shifting(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_shifting(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	if (
@@ -2880,11 +2931,11 @@ syntax_analysis_shifting(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 						symbol_check_flag(b, SYMBOL_FLAG_SHL) || 
 						symbol_check_flag(b, SYMBOL_FLAG_SHR))
 					{
-						result &= syntax_analysis_shifting(graph, a, b, b);
+						result &= syntax_shifting(graph, a, b, b);
 					}
 					else
 					{
-						result &= syntax_analysis_addative(graph, a, b, b);
+						result &= syntax_addative(graph, a, b, b);
 					}
 				}
 			}
@@ -2893,18 +2944,18 @@ syntax_analysis_shifting(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_addative(graph, a, b, b);
+					result &= syntax_addative(graph, a, b, b);
 				}
 			}
 		}
 	} else {
-		result &= syntax_analysis_addative(graph, root, subroot, current);
+		result &= syntax_addative(graph, root, subroot, current);
 	}
 	return result;
 }
 
 static int32_t
-syntax_analysis_relational(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_relational(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	if (
@@ -2927,11 +2978,11 @@ syntax_analysis_relational(graph_t *graph, symbol_t *root, symbol_t *subroot, sy
 						symbol_check_flag(b, SYMBOL_FLAG_LE) ||
 						symbol_check_flag(b, SYMBOL_FLAG_GE))
 					{
-						result &= syntax_analysis_relational(graph, a, b, b);
+						result &= syntax_relational(graph, a, b, b);
 					}
 					else
 					{
-						result &= syntax_analysis_shifting(graph, a, b, b);
+						result &= syntax_shifting(graph, a, b, b);
 					}
 				}
 			}
@@ -2940,18 +2991,18 @@ syntax_analysis_relational(graph_t *graph, symbol_t *root, symbol_t *subroot, sy
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_shifting(graph, a, b, b);
+					result &= syntax_shifting(graph, a, b, b);
 				}
 			}
 		}
 	} else {
-		result &= syntax_analysis_shifting(graph, root, subroot, current);
+		result &= syntax_shifting(graph, root, subroot, current);
 	}
 	return result;
 }
 
 static int32_t
-syntax_analysis_equality(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_equality(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	if (
@@ -2973,11 +3024,11 @@ syntax_analysis_equality(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 						symbol_check_flag(b, SYMBOL_FLAG_IN) || 
 						symbol_check_flag(b, SYMBOL_FLAG_NEQ))
 					{
-						result &= syntax_analysis_equality(graph, a, b, b);
+						result &= syntax_equality(graph, a, b, b);
 					}
 					else
 					{
-						result &= syntax_analysis_relational(graph, a, b, b);
+						result &= syntax_relational(graph, a, b, b);
 					}
 				}
 			}
@@ -2986,20 +3037,20 @@ syntax_analysis_equality(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_relational(graph, a, b, b);
+					result &= syntax_relational(graph, a, b, b);
 				}
 			}
 		}
 	}
 	else
 	{
-		result &= syntax_analysis_relational(graph, root, subroot, current);
+		result &= syntax_relational(graph, root, subroot, current);
 	}
 	return result;
 }
 
 static int32_t
-syntax_analysis_bitwise_and(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_bitwise_and(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	if (symbol_check_flag(current, SYMBOL_FLAG_AND))
@@ -3014,11 +3065,11 @@ syntax_analysis_bitwise_and(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 				{
 					if (symbol_check_flag(b, SYMBOL_FLAG_AND))
 					{
-						result &= syntax_analysis_bitwise_and(graph, a, b, b);
+						result &= syntax_bitwise_and(graph, a, b, b);
 					}
 					else
 					{
-						result &= syntax_analysis_equality(graph, a, b, b);
+						result &= syntax_equality(graph, a, b, b);
 					}
 				}
 			}
@@ -3027,20 +3078,20 @@ syntax_analysis_bitwise_and(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_equality(graph, a, b, b);
+					result &= syntax_equality(graph, a, b, b);
 				}
 			}
 		}
 	}
 	else
 	{
-		result &= syntax_analysis_equality(graph, root, subroot, current);
+		result &= syntax_equality(graph, root, subroot, current);
 	}
 	return result;
 }
 
 static int32_t
-syntax_analysis_bitwise_xor(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_bitwise_xor(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	if (symbol_check_flag(current, SYMBOL_FLAG_XOR))
@@ -3055,11 +3106,11 @@ syntax_analysis_bitwise_xor(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 				{
 					if (symbol_check_flag(b, SYMBOL_FLAG_XOR))
 					{
-						result &= syntax_analysis_bitwise_xor(graph, a, b, b);
+						result &= syntax_bitwise_xor(graph, a, b, b);
 					}
 					else
 					{
-						result &= syntax_analysis_bitwise_and(graph, a, b, b);
+						result &= syntax_bitwise_and(graph, a, b, b);
 					}
 				}
 			}
@@ -3068,20 +3119,20 @@ syntax_analysis_bitwise_xor(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_bitwise_and(graph, a, b, b);
+					result &= syntax_bitwise_and(graph, a, b, b);
 				}
 			}	
 		}
 	}
 	else
 	{
-		result &= syntax_analysis_bitwise_and(graph, root, subroot, current);
+		result &= syntax_bitwise_and(graph, root, subroot, current);
 	}
 	return result;
 }
 
 static int32_t
-syntax_analysis_bitwise_or(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_bitwise_or(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	if (symbol_check_flag(current, SYMBOL_FLAG_OR))
@@ -3096,11 +3147,11 @@ syntax_analysis_bitwise_or(graph_t *graph, symbol_t *root, symbol_t *subroot, sy
 				{
 					if (symbol_check_flag(b, SYMBOL_FLAG_OR))
 					{
-						result &= syntax_analysis_bitwise_or(graph, a, b, b);
+						result &= syntax_bitwise_or(graph, a, b, b);
 					}
 					else
 					{
-						result &= syntax_analysis_bitwise_xor(graph, a, b, b);
+						result &= syntax_bitwise_xor(graph, a, b, b);
 					}
 				}
 			}
@@ -3109,18 +3160,18 @@ syntax_analysis_bitwise_or(graph_t *graph, symbol_t *root, symbol_t *subroot, sy
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_bitwise_xor(graph, a, b, b);
+					result &= syntax_bitwise_xor(graph, a, b, b);
 				}
 			}
 		}
 	}	else {
-		result &= syntax_analysis_bitwise_xor(graph, root, subroot, current);
+		result &= syntax_bitwise_xor(graph, root, subroot, current);
 	}
 	return result;
 }
 
 static int32_t
-syntax_analysis_logical_and(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_logical_and(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	if (symbol_check_flag(current, SYMBOL_FLAG_LAND))
@@ -3133,7 +3184,7 @@ syntax_analysis_logical_and(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_bitwise_or(graph, a, b, b);
+					result &= syntax_bitwise_or(graph, a, b, b);
 				}
 			}
 			if (symbol_check_flag(a, SYMBOL_FLAG_RIGHT))
@@ -3141,20 +3192,20 @@ syntax_analysis_logical_and(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_bitwise_or(graph, a, b, b);
+					result &= syntax_bitwise_or(graph, a, b, b);
 				}
 			}
 		}
 	}
 	else
 	{
-		result &= syntax_analysis_bitwise_or(graph, root, subroot, current);
+		result &= syntax_bitwise_or(graph, root, subroot, current);
 	}
 	return result;
 }
 
 static int32_t
-syntax_analysis_logical_or(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_logical_or(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	if (symbol_check_flag(current, SYMBOL_FLAG_LOR))
@@ -3167,7 +3218,7 @@ syntax_analysis_logical_or(graph_t *graph, symbol_t *root, symbol_t *subroot, sy
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_logical_and(graph, a, b, b);
+					result &= syntax_logical_and(graph, a, b, b);
 				}
 			}
 			if (symbol_check_flag(a, SYMBOL_FLAG_RIGHT))
@@ -3175,20 +3226,20 @@ syntax_analysis_logical_or(graph_t *graph, symbol_t *root, symbol_t *subroot, sy
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_logical_and(graph, a, b, b);
+					result &= syntax_logical_and(graph, a, b, b);
 				}
 			}
 		}
 	}
 	else
 	{
-		result &= syntax_analysis_logical_and(graph, root, subroot, current);
+		result &= syntax_logical_and(graph, root, subroot, current);
 	}
 	return result;
 }
 
 static int32_t
-syntax_analysis_expression(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_expression(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	if (symbol_check_flag(current, SYMBOL_FLAG_CONDITIONAL))
@@ -3201,7 +3252,7 @@ syntax_analysis_expression(graph_t *graph, symbol_t *root, symbol_t *subroot, sy
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_logical_or(graph, a, b, b);
+					result &= syntax_logical_or(graph, a, b, b);
 				}
 			}
 			else if (symbol_check_flag(a, SYMBOL_FLAG_TRUE))
@@ -3209,7 +3260,7 @@ syntax_analysis_expression(graph_t *graph, symbol_t *root, symbol_t *subroot, sy
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_expression(graph, a, b, b);
+					result &= syntax_expression(graph, a, b, b);
 				}
 			}
 			else if (symbol_check_flag(a, SYMBOL_FLAG_FALSE))
@@ -3217,20 +3268,20 @@ syntax_analysis_expression(graph_t *graph, symbol_t *root, symbol_t *subroot, sy
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_expression(graph, a, b, b);
+					result &= syntax_expression(graph, a, b, b);
 				}
 			}
 		}
 	}
 	else
 	{
-		result &= syntax_analysis_logical_or(graph, root, subroot, current);
+		result &= syntax_logical_or(graph, root, subroot, current);
 	}
 	return result;
 }
 
 static int32_t
-syntax_analysis_assign(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_assign(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 	
@@ -3245,7 +3296,7 @@ syntax_analysis_assign(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_expression(graph, a, b, b);
+					result &= syntax_expression(graph, a, b, b);
 				}
 			}
 		
@@ -3254,27 +3305,27 @@ syntax_analysis_assign(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 				symbol_t *b;
 				for (b = a->begin;(b != a->end); b = b->next)
 				{
-					result &= syntax_analysis_expression(graph, a, b, b);
+					result &= syntax_expression(graph, a, b, b);
 				}
 			}
 		}
 	}
 	else if (!symbol_check_flag(current, SYMBOL_FLAG_DEFINE))
 	{
-		result &= syntax_analysis_expression(graph, root, subroot, current);
+		result &= syntax_expression(graph, root, subroot, current);
 	}
 	return result;
 }
 
 static int32_t
-syntax_analysis_return(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_return(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
-		result &= syntax_analysis_expression(graph, current, a, a);
+		result &= syntax_expression(graph, current, a, a);
 		if(!result)
 		{
 			return result;
@@ -3285,281 +3336,46 @@ syntax_analysis_return(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 }
 
 static int32_t
-syntax_analysis_continue(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_continue(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
-		result &= syntax_analysis_expression(graph, current, a, a);
+		result &= syntax_expression(graph, current, a, a);
 	}
 
 	return result;
 }
 
 static int32_t
-syntax_analysis_break(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_break(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
-		result &= syntax_analysis_expression(graph, current, a, a);
+		result &= syntax_expression(graph, current, a, a);
 	}
 
 	return result;
 }
 
 static int32_t
-syntax_analysis_throw(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_throw(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
-		result &= syntax_analysis_expression(graph, current, a, a);
+		result &= syntax_expression(graph, current, a, a);
 	}
 
 	return result;
 }
-
-static int32_t
-syntax_analysis_if(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
-{
-	int32_t result = 1;
-
-	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
-		{
-			result &= syntax_analysis_block(graph, current, a, a);
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_ELSE))
-		{
-			symbol_t *b;
-			for (b = a->begin;(b != a->end); b = b->next)
-			{
-				if (symbol_check_flag(b, SYMBOL_FLAG_IF))
-				{
-					result &= syntax_analysis_if(graph, current, a, a);
-				}
-				else
-				{
-					result &= syntax_analysis_block(graph, current, a, a);
-				}
-			}
-		}
-	}
-
-	return result;
-}
-
-static int32_t
-syntax_analysis_catch(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
-{
-	int32_t result = 1;
-
-	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
-		{
-			result &= syntax_analysis_block(graph, current, a, a);
-		}
-	}
-
-	return result;
-}
-
-static int32_t
-syntax_analysis_try(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
-{
-	int32_t result = 1;
-
-	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_CATCH))
-		{
-			result &= syntax_analysis_catch(graph, current, a, a);
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
-		{
-			result &= syntax_analysis_block(graph, current, a, a);
-		}
-	}
-
-	return result;
-}
-
-static int32_t
-syntax_analysis_for_init(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
-{
-	int32_t result = 1;
-
-	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_ASSIGN))
-		{
-			result &= syntax_analysis_assign(graph, current, a, a);
-		}
-	}
-
-	return result;
-}
-
-static int32_t
-syntax_analysis_for(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
-{
-	int32_t result = 1;
-
-	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_FOR_INITIALIZER))
-		{
-			symbol_t *b;
-			for (b = a->begin;(b != a->end); b = b->next)
-			{
-				if (symbol_check_flag(a, SYMBOL_FLAG_FOR_INIT))
-				{
-					result &= syntax_analysis_for_init(graph, a, b, b);
-				}
-				else if (symbol_check_flag(a, SYMBOL_FLAG_ASSIGN))
-				{
-					result &= syntax_analysis_assign(graph, a, b, b);
-				}
-			}
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
-		{
-			result &= syntax_analysis_block(graph, current, a, a);
-		}
-	}
-
-	return result;
-}
-
-static int32_t
-syntax_analysis_forin(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
-{
-	int32_t result = 1;
-
-	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_FORIN_EXPRESSION))
-		{
-			result &= syntax_analysis_expression(graph, current, a, a);
-		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
-		{
-			result &= syntax_analysis_block(graph, current, a, a);
-		}
-	}
-
-	return result;
-}
-
-static int32_t
-syntax_analysis_function(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
-{
-	int32_t result = 1;
-
-	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
-		{
-			result &= syntax_analysis_block(graph, current, a, a);
-		}
-	}
-
-	return result;
-}
-
-static int32_t
-syntax_analysis_statement(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
-{
-	int32_t result = 1;
-
-	if (symbol_check_flag(current, SYMBOL_FLAG_BLOCK))
-	{
-		result &= syntax_analysis_block(graph, root, subroot, current);
-	}
-	else if (symbol_check_flag(current, SYMBOL_FLAG_IF))
-	{
-		result &= syntax_analysis_if(graph, root, subroot, current);
-	}
-	else if (symbol_check_flag(current, SYMBOL_FLAG_TRY))
-	{
-		result &= syntax_analysis_try(graph, root, subroot, current);
-	}
-	else if (symbol_check_flag(current, SYMBOL_FLAG_FOR))
-	{
-		result &= syntax_analysis_for(graph, root, subroot, current);
-	}
-	else if (symbol_check_flag(current, SYMBOL_FLAG_FORIN))
-	{
-		result &= syntax_analysis_forin(graph, root, subroot, current);
-	}
-	else if (symbol_check_flag(current, SYMBOL_FLAG_FUNCTION))
-	{
-		result &= syntax_analysis_function(graph, root, subroot, current);
-	}
-	else if (symbol_check_flag(current, SYMBOL_FLAG_CONTINUE))
-	{
-		result &= syntax_analysis_continue(graph, root, subroot, current);
-	}
-	else if (symbol_check_flag(current, SYMBOL_FLAG_BREAK))
-	{
-		result &= syntax_analysis_break(graph, root, subroot, current);
-	}
-	else if (symbol_check_flag(current, SYMBOL_FLAG_RETURN))
-	{
-		result &= syntax_analysis_return(graph, root, subroot, current);
-	}
-	else if (symbol_check_flag(current, SYMBOL_FLAG_THROW))
-	{
-		result &= syntax_analysis_throw(graph, root, subroot, current);
-	}
-	else if (
-		!(symbol_check_flag(current, SYMBOL_FLAG_VAR) || 
-		symbol_check_flag(current, SYMBOL_FLAG_CONST) || 
-		symbol_check_flag(current, SYMBOL_FLAG_TYPE))
-		)
-	{
-		result &= syntax_analysis_assign(graph, root, subroot, current);
-	}
-
-	return result;
-}
-
-static int32_t
-syntax_analysis_block(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
-{
-	int32_t result = 1;
-
-	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
-	{
-		result &= syntax_analysis_statement(graph, current, a, a);
-	}
-
-	return result;
-}
-
-
-
-
-
-static int32_t
-syntax_block(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current);
 
 static int32_t
 syntax_var(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
@@ -3607,11 +3423,22 @@ static int32_t
 syntax_if(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
-
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			result &= syntax_duplicated_in_set(graph, root, subroot, a);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_CONDITION))
+		{
+			result &= syntax_block(graph, root, subroot, a);
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
 		{
 			result &= syntax_block(graph, root, subroot, a);
 		}
@@ -3666,7 +3493,7 @@ syntax_catch(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curren
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
 		{
-			result &= syntax_block(graph, subroot, a, a);
+			result &= syntax_block(graph, current, a, a);
 		}
 	}
 
@@ -3683,11 +3510,11 @@ syntax_try(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_CATCH))
 		{
-			result &= syntax_catch(graph, subroot, a, a);
+			result &= syntax_catch(graph, current, a, a);
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
 		{
-			result &= syntax_block(graph, subroot, a, a);
+			result &= syntax_block(graph, current, a, a);
 		}
 	}
 
@@ -3710,6 +3537,27 @@ syntax_for_init(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cur
 		{
 			result &= syntax_const(graph, current, a, a);
 		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_ASSIGN))
+		{
+			result &= syntax_assign(graph, current, a, a);
+		}
+	}
+
+	return result;
+}
+
+static int32_t
+syntax_for_step(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+{
+	int32_t result = 1;
+
+	symbol_t *a;
+	for (a = current->begin;(a != current->end); a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_ASSIGN))
+		{
+			result &= syntax_assign(graph, current, a, a);
+		}
 	}
 
 	return result;
@@ -3723,7 +3571,15 @@ syntax_for(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_FOR_INITIALIZER))
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			result &= syntax_duplicated_in_set(graph, root, subroot, a);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_INITIALIZER))
 		{
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
@@ -3740,11 +3596,30 @@ syntax_for(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 				{
 					result &= syntax_const(graph, a, b, b);
 				}
+				else if (symbol_check_flag(a, SYMBOL_FLAG_ASSIGN))
+				{
+					result &= syntax_assign(graph, a, b, b);
+				}
+			}
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_INCREMENTOR))
+		{
+			symbol_t *b;
+			for (b = a->begin;(b != a->end); b = b->next)
+			{
+				if (symbol_check_flag(a, SYMBOL_FLAG_FOR_STEP))
+				{
+					result &= syntax_for_step(graph, a, b, b);
+				}
+				else if (symbol_check_flag(a, SYMBOL_FLAG_ASSIGN))
+				{
+					result &= syntax_assign(graph, a, b, b);
+				}
 			}
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
 		{
-			result &= syntax_block(graph, subroot, a, a);
+			result &= syntax_block(graph, current, a, a);
 		}
 	}
 
@@ -3759,7 +3634,15 @@ syntax_forin(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curren
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_FORIN_INITIALIZER))
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			result &= syntax_duplicated_in_set(graph, root, subroot, a);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_INITIALIZER))
 		{
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
@@ -3774,9 +3657,13 @@ syntax_forin(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curren
 				}
 			}
 		}
+		else if (symbol_check_flag(a, SYMBOL_FLAG_EXPRESSION))
+		{
+			result &= syntax_expression(graph, current, a, a);
+		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
 		{
-			result &= syntax_block(graph, subroot, a, a);
+			result &= syntax_block(graph, current, a, a);
 		}
 	}
 
@@ -3808,6 +3695,26 @@ syntax_statement(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cu
 	{
 		result &= syntax_forin(graph, root, subroot, current);
 	}
+	else if (symbol_check_flag(current, SYMBOL_FLAG_FUNCTION))
+	{
+		result &= syntax_function(graph, root, subroot, current);
+	}
+	else if (symbol_check_flag(current, SYMBOL_FLAG_CONTINUE))
+	{
+		result &= syntax_continue(graph, root, subroot, current);
+	}
+	else if (symbol_check_flag(current, SYMBOL_FLAG_BREAK))
+	{
+		result &= syntax_break(graph, root, subroot, current);
+	}
+	else if (symbol_check_flag(current, SYMBOL_FLAG_RETURN))
+	{
+		result &= syntax_return(graph, root, subroot, current);
+	}
+	else if (symbol_check_flag(current, SYMBOL_FLAG_THROW))
+	{
+		result &= syntax_throw(graph, root, subroot, current);
+	}
 	else if (symbol_check_flag(current, SYMBOL_FLAG_VAR))
 	{
 		result &= syntax_var(graph, root, subroot, current);
@@ -3815,6 +3722,10 @@ syntax_statement(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cu
 	else if (symbol_check_flag(current, SYMBOL_FLAG_CONST))
 	{
 		result &= syntax_const(graph, root, subroot, current);
+	}
+	else
+	{
+		result &= syntax_assign(graph, root, subroot, current);
 	}
 
 	return result;
@@ -3824,17 +3735,11 @@ static int32_t
 syntax_block(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
-	
-	result &= syntax_analysis_block(graph, root, subroot, current);
-	if (!result)
-	{
-		return 0;
-	}
-	
+
 	symbol_t *a;
 	for (a = current->begin;(a != current->end);a = a->next)
 	{
-		result &= syntax_statement(graph, subroot, a, a);
+		result &= syntax_statement(graph, current, a, a);
 	}
 
 	return result;
@@ -4163,7 +4068,7 @@ syntax_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current
 }
 
 static int32_t
-syntax_func(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+syntax_function(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	int32_t result = 1;
 
@@ -4180,7 +4085,7 @@ syntax_func(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
 		{
-			result &= syntax_block(graph, root, subroot, a);
+			result &= syntax_block(graph, current, a, a);
 			if (!result)
 			{
 				return 0;
@@ -4223,7 +4128,7 @@ syntax_module(graph_t *graph, symbol_t *current)
 		}
 		else if (symbol_check_flag(a, SYMBOL_FLAG_FUNCTION))
 		{
-			result &= syntax_func(graph, current, current, a);
+			result &= syntax_function(graph, current, current, a);
 		}
 	}
 
