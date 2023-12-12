@@ -237,86 +237,6 @@ syntax_duplicated(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *t
 	symbol_t *a;
 	for(a = root->begin; a && (a != root->end); a = a->next)
 	{	
-		if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
-		{
-			symbol_t *result;
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if(result && (result->id != target->id))
-			{
-				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
-					result->declaration->position.line, result->declaration->position.column);
-				return 0;
-			} 
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
-		{
-			symbol_t *result;
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if(result && (result->id != target->id))
-			{
-				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
-					result->declaration->position.line, result->declaration->position.column);
-				return 0;
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
-		{
-			symbol_t *result;
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if(result && (result->id != target->id))
-			{
-				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
-					result->declaration->position.line, result->declaration->position.column);
-				return 0;
-			} 
-		}
-		
-		if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
-		{
-			symbol_t *result;
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if(result && (result->id != target->id))
-			{
-				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
-					result->declaration->position.line, result->declaration->position.column);
-				return 0;
-			}
-		}
-	
-		if (symbol_check_flag(a, SYMBOL_FLAG_PROPERTY))
-		{
-			symbol_t *result;
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if(result && (result->id != target->id))
-			{
-				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
-					result->declaration->position.line, result->declaration->position.column);
-				return 0;
-			}
-		}
-		
-		if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
-		{
-			symbol_t *result;
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if(result && (result->id != target->id))
-			{
-				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
-					result->declaration->position.line, result->declaration->position.column);
-				return 0;
-			}
-		}
-
-		if (symbol_check_flag(root, SYMBOL_FLAG_CLASS))
-		{
-			if (a == subroot)
-			{
-				continue;
-			}
-		}
-
 		if (symbol_check_flag(a, SYMBOL_FLAG_IMPORT))
 		{
 			symbol_t *b;
@@ -397,6 +317,86 @@ syntax_duplicated(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *t
 		}
 		
 		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			}
+		}
+
+		if (symbol_check_flag(root, SYMBOL_FLAG_CLASS))
+		{
+			if (a == subroot)
+			{
+				break;
+			}
+		}
+		
+		if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			} 
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			} 
+		}
+		
+		if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			}
+		}
+	
+		if (symbol_check_flag(a, SYMBOL_FLAG_PROPERTY))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if(result && (result->id != target->id))
+			{
+				syntax_error(graph, target, "symbol is duplicated, previous symbol in (%lld:%lld)\n", 
+					result->declaration->position.line, result->declaration->position.column);
+				return 0;
+			}
+		}
+		
+		if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
 		{
 			symbol_t *result;
 			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
@@ -4068,31 +4068,6 @@ syntax_class(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curren
 {
 	int32_t result = 1;
 
-	if (symbol_check_flag(root, SYMBOL_FLAG_CLASS))
-	{
-		symbol_t *a;
-		for(a = root->begin; a != root->end; a = a->next)
-		{
-			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
-			{
-				result &= syntax_duplicated_in_name(graph, root, a, current);
-				if(!result)
-				{
-					return result;
-				}
-			}
-			
-			if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
-			{
-				result &= syntax_duplicated_in_name(graph, root, a, current);
-				if(!result)
-				{
-					return result;
-				}
-			}
-		}
-	}
-
 	symbol_t *a;
 	for (a = current->begin;a != current->end;a = a->next)
 	{
@@ -4108,7 +4083,7 @@ syntax_class(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curren
 		
 		if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
 		{
-			result &= syntax_heritage(graph, root, subroot, a);
+			result &= syntax_heritage(graph, current, a, a);
 			if (!result)
 			{
 				return 0;
@@ -4117,7 +4092,7 @@ syntax_class(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curren
 
 		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
 		{
-			result &= syntax_type_parameter(graph, root, subroot, a);
+			result &= syntax_type_parameter(graph, current, a, a);
 			if(!result)
 			{
 				return 0;
