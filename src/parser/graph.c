@@ -457,7 +457,7 @@ graph_get_slice(symbol_t *parent, node_t *node)
 	symbol_t *symbol_step;
 	symbol_t *symbol_stop;
 
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_GET_SLICE, node);
+	symbol = symbol_rpush(parent, SYMBOL_FLAG_SLICE, node);
 	if(!symbol)
 	{
 		return 0;
@@ -534,7 +534,7 @@ graph_get_item(symbol_t *parent, node_t *node)
 	symbol_t *symbol_name;
 	symbol_t *symbol_index;
 
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_GET_ITEM, node);
+	symbol = symbol_rpush(parent, SYMBOL_FLAG_ITEM, node);
 	if(!symbol)
 	{
 		return 0;
@@ -2566,7 +2566,7 @@ graph_type_parameter(symbol_t *parent, node_t *node)
 	if (node_type_parameter->extends)
 	{
 		symbol_t *symbol_extends;
-		symbol_extends = symbol_rpush(symbol, SYMBOL_FLAG_TYPE_PARAMETER_TYPE, node_type_parameter->extends);
+		symbol_extends = symbol_rpush(symbol, SYMBOL_FLAG_TYPE, node_type_parameter->extends);
 		if(!symbol_extends)
 		{
 			return 0;
@@ -2582,7 +2582,7 @@ graph_type_parameter(symbol_t *parent, node_t *node)
 	if (node_type_parameter->value)
 	{
 		symbol_t *symbol_value;
-		symbol_value = symbol_rpush(symbol, SYMBOL_FLAG_TYPE_PARAMETER_VALUE, node_type_parameter->value);
+		symbol_value = symbol_rpush(symbol, SYMBOL_FLAG_VALUE, node_type_parameter->value);
 		if(!symbol_value)
 		{
 			return 0;
@@ -2724,7 +2724,7 @@ graph_property(symbol_t *parent, node_t *node)
 	if (node_property->type)
 	{
 		symbol_t *symbol_type;
-		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_PROPERTY_TYPE, node_property->type);
+		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_TYPE, node_property->type);
 		if(!symbol_type)
 		{
 			return 0;
@@ -2740,7 +2740,7 @@ graph_property(symbol_t *parent, node_t *node)
 	if (node_property->value)
 	{
 		symbol_t *symbol_value;
-		symbol_value = symbol_rpush(symbol, SYMBOL_FLAG_PROPERTY_VALUE, node_property->value);
+		symbol_value = symbol_rpush(symbol, SYMBOL_FLAG_VALUE, node_property->value);
 		if(!symbol_value)
 		{
 			return 0;
@@ -2797,7 +2797,7 @@ graph_parameter(symbol_t *parent, node_t *node)
 	if (node_parameter->type)
 	{
 		symbol_t *symbol_type;
-		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_PARAMETER_TYPE, node_parameter->type);
+		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_TYPE, node_parameter->type);
 		if(!symbol_type)
 		{
 			return 0;
@@ -2813,7 +2813,7 @@ graph_parameter(symbol_t *parent, node_t *node)
 	if (node_parameter->value)
 	{
 		symbol_t *symbol_value;
-		symbol_value = symbol_rpush(symbol, SYMBOL_FLAG_PARAMETER_VALUE, node_parameter->value);
+		symbol_value = symbol_rpush(symbol, SYMBOL_FLAG_VALUE, node_parameter->value);
 		if(!symbol_value)
 		{
 			return 0;
