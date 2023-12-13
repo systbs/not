@@ -1669,11 +1669,20 @@ syntax_subset_of_type_by_type_parameter(graph_t *graph, symbol_t *root, symbol_t
 		return 1;
 	}
 
-	symbol_t *type_parameter_type;
-	type_parameter_type = syntax_extract_by_flag(type2, SYMBOL_FLAG_TYPE);
-	if (type_parameter_type)
+	symbol_t *type2_type;
+	type2_type = syntax_extract_by_flag(type2, SYMBOL_FLAG_TYPE);
+	if (type2_type)
 	{
-		return syntax_subset_of_type_by_component(graph, root, subroot, type1, type_parameter_type);
+		if (symbol_check_flag(type1, SYMBOL_FLAG_TYPE_PARAMETER))
+		{
+			symbol_t *type1_type;
+			type1_type = syntax_extract_by_flag(type1, SYMBOL_FLAG_TYPE);
+			if (type1_type)
+			{
+				return syntax_subset_of_type_by_component(graph, root, subroot, type1_type, type2_type);
+			}
+		}
+		return syntax_subset_of_type_by_component(graph, root, subroot, type1, type2_type);
 	}
 
 	if (symbol_check_flag(type1, SYMBOL_FLAG_TYPE_PARAMETER))
