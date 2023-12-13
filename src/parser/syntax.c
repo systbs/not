@@ -483,10 +483,6 @@ syntax_duplicated_in_set(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 		}
 		else if(symbol_check_flag(a, SYMBOL_FLAG_ID))
 		{
-			if(symbol_check_flag(subroot, SYMBOL_FLAG_METHOD))
-			{
-				return syntax_duplicated_by_parameter(graph, root, subroot, subroot, a);
-			}
 			return syntax_duplicated(graph, root, subroot, a);
 		}
 	}
@@ -1540,224 +1536,21 @@ syntax_locate(symbol_t *root, symbol_t *subroot, symbol_t *target)
 }
 
 
-static symbol_t *
-syntax_type_of(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target, uint64_t flag);
 
 static symbol_t *
-syntax_equivalent_of(graph_t *graph, symbol_t *left, symbol_t *right, symbol_t *target);
+syntax_find_connectable(symbol_t *root, symbol_t *target);
 
-static symbol_t *
-syntax_equivalent_of_object(graph_t *graph, symbol_t *left, symbol_t *right, symbol_t *target);
-
-static symbol_t *
-syntax_equivalent_of_array(graph_t *graph, symbol_t *left, symbol_t *right, symbol_t *target);
-
-static symbol_t *
-syntax_object_property_extract_value_by_name(graph_t *graph, symbol_t *refrence, symbol_t *target)
+static int32_t
+syntax_prototype_of_ellipsis_by_type(symbol_t *refrence, symbol_t *target)
 {
-	symbol_t *name;
-	name = syntax_extract_unary(refrence, SYMBOL_FLAG_NAME);
-
-	if (symbol_check_flag(name, SYMBOL_FLAG_ID))
+	symbol_t *type;
+	type = syntax_extract_unary(target, SYMBOL_FLAG_TYPE);
+	if (!type)
 	{
-		if (syntax_subset_compare_id(name, target))
-		{
-			symbol_t *value;
-			value = syntax_extract_unary(refrence, SYMBOL_FLAG_VALUE);
-			if (!value)
-			{
-				syntax_error(graph, name, "object property without a value\n");
-				return NULL;
-			}
-			return value;
-		}
+		return 0;
 	}
 
-	return NULL;
-}
-
-static symbol_t *
-syntax_object_extract_value_by_name(graph_t *graph, symbol_t *refrence, symbol_t *target)
-{
-	symbol_t *a;
-	for (a = refrence->begin;a != refrence->end;a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_OBJECT_PROPERTY))
-		{
-			symbol_t *result;
-			result = syntax_object_property_extract_value_by_name(graph, a, target);
-			if (!result)
-			{
-				return result;
-			}
-		}
-	}
-	return NULL;
-}
-
-static symbol_t *
-syntax_equivalent_of_object_property(graph_t *graph, symbol_t *left, symbol_t *right, symbol_t *target)
-{
-	symbol_t *name_left;
-	name_left = syntax_extract_unary(left, SYMBOL_FLAG_NAME);
-
-	if (symbol_check_flag(name_left, SYMBOL_FLAG_OBJECT))
-	{
-		symbol_t *value_left;
-		value_left = syntax_extract_unary(left, SYMBOL_FLAG_VALUE);
-		if (!value_left)
-		{
-			syntax_error(graph, name_left, "object property without a name\n");
-			return NULL;
-		}
-
-		if (!symbol_check_flag(value_left, SYMBOL_FLAG_ID))
-		{
-			syntax_error(graph, value_left, "object property value must be a name\n");
-			return NULL;
-		}
-
-		if (syntax_subset_compare_id(value_left, target))
-		{
-			return NULL;
-		}
-
-		symbol_t *value_right;
-		value_right = syntax_object_extract_value_by_name(graph, right, value_left);
-		if (!value_right)
-		{
-			syntax_error(graph, name_left, "no any name in right object equivalnet by left object property name\n");
-			return NULL;
-		}
-
-		return syntax_equivalent_of_object(graph, name_left, value_right, target);
-	}
-
-	if (symbol_check_flag(name_left, SYMBOL_FLAG_ID))
-	{
-		if (syntax_subset_compare_id(name_left, target))
-		{
-			symbol_t *value_right;
-			value_right = syntax_object_extract_value_by_name(graph, right, name_left);
-			if (!value_right)
-			{
-				syntax_error(graph, name_left, "no any name in right object equivalnet by left object property name\n");
-				return NULL;
-			}
-			return value_right;
-		}
-	}
-
-	return NULL;
-}
-
-static symbol_t *
-syntax_equivalent_of_object(graph_t *graph, symbol_t *left, symbol_t *right, symbol_t *target)
-{
-	if (symbol_check_flag(right, SYMBOL_FLAG_OBJECT))
-	{
-		symbol_t *a;
-		for (a = left->begin;(a != left->end);a = a->next)
-		{
-			if(symbol_check_flag(a, SYMBOL_FLAG_OBJECT_PROPERTY))
-			{
-				symbol_t *b;
-				for (b = right->begin;(b != right->end);b = b->next)
-				{
-					if(symbol_check_flag(b, SYMBOL_FLAG_OBJECT_PROPERTY))
-					{
-						symbol_t *result;
-						result = syntax_equivalent_of_object_property(graph, a, b, target);
-						if(result)
-						{
-							return result;
-						}
-					}
-				}
-			}
-		}
-		return NULL;
-	}
-
-	if (symbol_check_flag(right, SYMBOL_FLAG_ARRAY))
-	{
-		syntax_error(graph, right, "rhs of in equivalent of object could not be an array\n");
-		return NULL;
-	}
-
-	return right;
-}
-
-static symbol_t *
-syntax_equivalent_of_array(graph_t *graph, symbol_t *left, symbol_t *right, symbol_t *target)
-{
-	if (symbol_check_flag(right, SYMBOL_FLAG_ARRAY))
-	{
-		symbol_t *a,*b;
-		for (a = left->begin,b = right->begin;(a != left->end);a = a->next,b = b->next)
-		{
-			if (symbol_check_flag(a, SYMBOL_FLAG_OBJECT))
-			{
-				if (b == right->end)
-				{
-					syntax_error(graph, a, "rhs of in equivalent of array could not be null\n");
-					return NULL;
-				}
-				return syntax_equivalent_of(graph, a, b, target);
-			}
-			if (symbol_check_flag(a, SYMBOL_FLAG_ARRAY))
-			{
-				if (b == right->end)
-				{
-					syntax_error(graph, a, "rhs of in equivalent of array could not be null\n");
-					return NULL;
-				}
-				return syntax_equivalent_of(graph, a, b, target);
-			}
-			if (symbol_check_flag(a, SYMBOL_FLAG_ID))
-			{
-				if (syntax_subset_compare_id(a, target))
-				{
-					return b;
-				}
-			}
-			else
-			{
-				syntax_error(graph, a, "array element name\n");
-				return NULL;
-			}
-		}
-		return NULL;
-	}
-
-	if (symbol_check_flag(right, SYMBOL_FLAG_OBJECT))
-	{
-		syntax_error(graph, right, "rhs of in equivalent of array could not be an object\n");
-		return NULL;
-	}
-
-	return right;
-}
-
-static symbol_t *
-syntax_equivalent_of(graph_t *graph, symbol_t *left, symbol_t *right, symbol_t *target)
-{
-	if (symbol_check_flag(left, SYMBOL_FLAG_OBJECT))
-	{
-		return syntax_equivalent_of_object(graph, left, right, target);
-	}
-	if (symbol_check_flag(left, SYMBOL_FLAG_ARRAY))
-	{
-		return syntax_equivalent_of_array(graph, left, right, target);
-	}
-	if (symbol_check_flag(left, SYMBOL_FLAG_ID))
-	{
-		if (syntax_subset_compare_id(left, target))
-		{
-			return right;
-		}
-	}
-	return NULL;
+	return syntax_prototype_of_array(refrence, type);
 }
 
 static int32_t
@@ -1781,7 +1574,7 @@ syntax_equivalent_type_parameter_by_argument(symbol_t *refrence, symbol_t *targe
 }
 
 static int32_t
-syntax_type_match_composite(symbol_t *refrence, symbol_t *target)
+syntax_find_connectable_match_composite(symbol_t *refrence, symbol_t *target)
 {
 	uint64_t ref_counter = 0;
 	uint64_t tar_counter = 0;
@@ -1837,184 +1630,111 @@ syntax_type_match_composite(symbol_t *refrence, symbol_t *target)
 	return 1;
 }
 
-static int32_t
-syntax_method_is_init(symbol_t *refrence)
+static symbol_t *
+syntax_find_connectable_by_id(symbol_t *root, symbol_t *target)
 {
-	symbol_t *name;
-	name = syntax_extract_unary(refrence, SYMBOL_FLAG_NAME);
-	return syntax_subset_compare_string(name, "init");
-}
-
-static int32_t
-syntax_prototype_of_ellipsis_by_type(symbol_t *refrence, symbol_t *target)
-{
-	symbol_t *type;
-	type = syntax_extract_unary(target, SYMBOL_FLAG_TYPE);
-	if (!type)
+	if (symbol_check_flag(root, SYMBOL_FLAG_CLASS))
 	{
-		return 0;
+		symbol_t *result;
+		result = syntax_subset_exist_in_flag(root, target, SYMBOL_FLAG_NAME);
+		if (result)
+		{
+			return root;
+		}
 	}
 
-	return syntax_prototype_of_array(refrence, type);
-}
-
-static int32_t
-syntax_arguments_typeof_parameters(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *refrence, symbol_t *target)
-{
-	uint64_t ref_counter = 0;
-	uint64_t tar_counter = 0;
-	uint64_t tar_counter_num = 0;
-	symbol_t *a;
-	for (a = refrence->begin;a != refrence->end;a = a->next)
+	if (symbol_check_flag(root, SYMBOL_FLAG_TYPE))
 	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_ARGUMENT))
+		symbol_t *result;
+		result = syntax_subset_exist_in_flag(root, target, SYMBOL_FLAG_NAME);
+		if (result)
 		{
-			int32_t found = 0;
-			ref_counter += 1;
+			return root;
+		}
+	}
 
+	symbol_t *a;
+	for (a = root->begin;(a != root->end);a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_IMPORT))
+		{
 			symbol_t *b;
-			for (b = target->begin;b != target->end;b = b->next)
+			for(b = a->begin; b != a->end; b = b->next)
 			{
-				if (symbol_check_flag(b, SYMBOL_FLAG_PARAMETER))
+				if (symbol_check_flag(b, SYMBOL_FLAG_FIELD))
 				{
-					tar_counter += 1;
-					if (ref_counter > tar_counter)
+					symbol_t *result;
+					result = syntax_subset_exist_in_flag(b, target, SYMBOL_FLAG_NAME);
+					if(result && (result->id != target->id))
 					{
-						continue;
+						return b;
 					}
-					found = 1;
-					
-					symbol_t *c;
-					for (c = a->begin;c != a->end;c = c->next)
-					{
-						symbol_t *type;
-						type = syntax_type_of(graph, root, subroot, c, SYNTAX_TYPE_OF_NONE);
-						if (!type)
-						{
-							return 0;
-						}
-						
-						if (syntax_prototype_parameter_is_ellipsis(b))
-						{
-							if (!syntax_prototype_of_ellipsis(type, b))
-							{
-								return 0;
-							}
-							return 1;
-						}
-
-						if (!syntax_prototype_of_parameter_type(type, b))
-						{
-							return 0;
-						}
-
-					}
-					
-					tar_counter_num += 1;
-					break;
-				}
-			}
-			if (tar_counter_num > ref_counter)
-			{
-				return 0;
-			}
-			if (!found)
-			{
-				symbol_t *value;
-				value = syntax_extract_unary(a, SYMBOL_FLAG_VALUE);
-				if (!value)
-				{
-					return 0;
 				}
 			}
 		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				return a;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				return a;
+			}
+		}
 	}
-	return 1;
+	
+	if(root->parent)
+	{
+		symbol_t *result;
+		result = syntax_find_connectable_by_id(root->parent, target);
+		if(result)
+		{
+			return result;
+		}
+	}
+
+	return NULL;
 }
 
 static symbol_t *
-syntax_type_of_attribute(symbol_t *refrence, symbol_t *target)
+syntax_find_connectable_by_attribute(symbol_t *root, symbol_t *target)
 {
-	if (symbol_check_flag(refrence, SYMBOL_FLAG_CLASS))
+	symbol_t *direct;
+	direct = syntax_extract_unary(target, SYMBOL_FLAG_LEFT);
+
+	symbol_t *origin;
+	origin = syntax_find_connectable(root, direct);
+	if(!origin)
 	{
-		symbol_t *a;
-		for (a = refrence->begin;a != refrence->end;a = a->next)
-		{
-			if (symbol_check_flag(a, SYMBOL_FLAG_PROPERTY))
-			{
-				symbol_t *name;
-				name = syntax_extract_unary(a, SYMBOL_FLAG_NAME);
-
-				if (syntax_subset_compare_id(name, target))
-				{
-					return a;
-				}
-			}
-			if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
-			{
-				symbol_t *name;
-				name = syntax_extract_unary(a, SYMBOL_FLAG_NAME);
-
-				if (syntax_subset_compare_id(name, target))
-				{
-					return a;
-				}
-			}
-			if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
-			{
-				symbol_t *name;
-				name = syntax_extract_unary(a, SYMBOL_FLAG_NAME);
-
-				if (syntax_subset_compare_id(name, target))
-				{
-					return a;
-				}
-			}
-			if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
-			{
-				symbol_t *name;
-				name = syntax_extract_unary(a, SYMBOL_FLAG_NAME);
-
-				if (syntax_subset_compare_id(name, target))
-				{
-					return a;
-				}
-			}
-		}
+		return NULL;
 	}
 
-	if (symbol_check_flag(refrence, SYMBOL_FLAG_ENUM))
+	symbol_t *name;
+	name = syntax_extract_unary(target, SYMBOL_FLAG_RIGHT);
+
+	if(symbol_check_flag(origin, SYMBOL_FLAG_CLASS))
 	{
 		symbol_t *a;
-		for (a = refrence->begin;a != refrence->end;a = a->next)
+		for(a = origin->begin; a != origin->end; a = a->next)
 		{
-			if (symbol_check_flag(a, SYMBOL_FLAG_ENUM_MEMBER))
+			if(symbol_check_flag(a, SYMBOL_FLAG_CLASS))
 			{
-				symbol_t *name;
-				name = syntax_extract_unary(a, SYMBOL_FLAG_NAME);
-
-				if (syntax_subset_compare_id(name, target))
+				if (syntax_subset_exist_in_flag(a, name, SYMBOL_FLAG_NAME))
 				{
-					return a;
-				}
-			}
-		}
-	}
-
-	if (symbol_check_flag(refrence, SYMBOL_FLAG_TYPE))
-	{
-		symbol_t *value;
-		value = syntax_extract_unary(refrence, SYMBOL_FLAG_VALUE);
-		if (symbol_check_flag(value, SYMBOL_FLAG_OBJECT))
-		{
-			symbol_t *a;
-			for (a = value->begin;a != value->end;a = a->next)
-			{
-				if (symbol_check_flag(a, SYMBOL_FLAG_OBJECT_PROPERTY))
-				{
-					symbol_t *name;
-					name = syntax_extract_unary(refrence, SYMBOL_FLAG_NAME);
-					if (syntax_subset_compare_id(name, target))
+					node_t *node = a->declaration;
+					node_class_t *node_class = (node_class_t *)node->value;
+					if ((node_class->flag & PARSER_MODIFIER_EXPORT) == PARSER_MODIFIER_EXPORT)
 					{
 						return a;
 					}
@@ -2023,409 +1743,54 @@ syntax_type_of_attribute(symbol_t *refrence, symbol_t *target)
 		}
 	}
 
-	if (symbol_check_flag(refrence, SYMBOL_FLAG_OBJECT))
-	{
-		symbol_t *a;
-		for (a = refrence->begin;a != refrence->end;a = a->next)
-		{
-			if (symbol_check_flag(a, SYMBOL_FLAG_OBJECT_PROPERTY))
-			{
-				symbol_t *name;
-				name = syntax_extract_unary(refrence, SYMBOL_FLAG_NAME);
-				if (syntax_subset_compare_id(name, target))
-				{
-					return a;
-				}
-			}
-		}
-	}
-
 	return NULL;
 }
 
 static symbol_t *
-syntax_type_of(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target, uint64_t flag)
+syntax_find_connectable_by_composite(symbol_t *root, symbol_t *target)
+{
+	symbol_t *direct;
+	direct = syntax_extract_unary(target, SYMBOL_FLAG_NAME);
+
+	symbol_t *origin;
+	origin = syntax_find_connectable(root, direct);
+	if(!origin)
+	{
+		return NULL;
+	}
+
+	if (symbol_check_flag(origin, SYMBOL_FLAG_CLASS))
+	{
+		if (syntax_find_connectable_match_composite(origin, target))
+		{
+			return origin;
+		}
+	}
+	
+	return NULL;
+}
+
+static symbol_t *
+syntax_find_connectable(symbol_t *root, symbol_t *target)
 {
 	if (symbol_check_flag(target, SYMBOL_FLAG_COMPOSITE))
 	{
-		symbol_t *a;
-		for (a = target->begin;a != target->end;a = a->next)
-		{
-			if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
-			{
-				symbol_t *b;
-				for (b = a->begin;b != a->end;b = b->next)
-				{
-					symbol_t *response;
-					response = syntax_type_of(graph, root, subroot, b, SYNTAX_TYPE_OF_REFRENCE);
-					if (response)
-					{
-						if (symbol_check_flag(response, SYMBOL_FLAG_CLASS))
-						{
-							if (!syntax_type_match_composite(response, target))
-							{
-								return NULL;
-							}
-						}
-						if (symbol_check_flag(response, SYMBOL_FLAG_METHOD))
-						{
-							if (!syntax_type_match_composite(response, target))
-							{
-								return NULL;
-							}
-						}
-						if (symbol_check_flag(response, SYMBOL_FLAG_TYPE))
-						{
-							if (!syntax_type_match_composite(response, target))
-							{
-								return NULL;
-							}
-						}
-						if (symbol_check_flag(response, SYMBOL_FLAG_FUNCTION))
-						{
-							if (!syntax_type_match_composite(response, target))
-							{
-								return NULL;
-							}
-						}
-						
-						if (flag == SYNTAX_TYPE_OF_REFRENCE)
-						{
-							return response;
-						}
-
-						symbol_t *name;
-						name = syntax_extract_unary(response, SYMBOL_FLAG_NAME);
-						return name;
-					}
-					syntax_error(graph, b, "refrence of composite not found\n");
-					return NULL;
-				}
-			}
-		}
-		return NULL;
+		return syntax_find_connectable_by_composite(root, target);
 	}
 
 	if (symbol_check_flag(target, SYMBOL_FLAG_ATTR))
 	{
-		symbol_t *left;
-		left = syntax_extract_unary(target, SYMBOL_FLAG_LEFT);
-		if (left)
-		{
-			symbol_t *response;
-			response = syntax_type_of(graph, root, subroot, left, SYNTAX_TYPE_OF_REFRENCE);
-			if (response)
-			{
-				symbol_t *right;
-				right = syntax_extract_unary(target, SYMBOL_FLAG_RIGHT);
-				if (right)
-				{
-					symbol_t *result;
-					result = syntax_type_of_attribute(response, right);
-					if (result)
-					{
-						if (flag == SYNTAX_TYPE_OF_REFRENCE)
-						{
-							return result;
-						}
-						symbol_t *name;
-						name = syntax_extract_unary(result, SYMBOL_FLAG_NAME);
-						if (name)
-						{
-							return name;
-						}
-						return result;
-					}
-				}
-			}
-			syntax_error(graph, left, "refrence not found\n");
-			return NULL;
-		}
-		return NULL;
-	}
-	
-	if (symbol_check_flag(target, SYMBOL_FLAG_CALL))
-	{
-		symbol_t *a;
-		for (a = target->begin;a != target->end;a = a->next)
-		{
-			if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
-			{
-				symbol_t *b;
-				for (b = a->begin;b != a->end;b = b->next)
-				{
-					symbol_t *response;
-					response = syntax_type_of(graph, root, subroot, b, SYNTAX_TYPE_OF_REFRENCE);
-					if (response)
-					{
-						if (symbol_check_flag(response, SYMBOL_FLAG_CLASS))
-						{
-							symbol_t *c;
-							for (c = response->begin;c != response->end;c = c->next)
-							{
-								if (symbol_check_flag(c, SYMBOL_FLAG_METHOD))
-								{
-									if (syntax_method_is_init(c))
-									{
-										if (syntax_arguments_typeof_parameters(graph, root, subroot, target, c))
-										{
-											// delete parameters and return after
-											symbol_t *name;
-											name = syntax_extract_unary(response, SYMBOL_FLAG_NAME);
-											return name;
-										}
-									}
-								}
-							}
-							// delete parameters
-						}
-						if (symbol_check_flag(response, SYMBOL_FLAG_METHOD))
-						{
-							if (syntax_arguments_typeof_parameters(graph, root, subroot, target, response))
-							{
-								// delete parameters and return after
-								if (flag == SYNTAX_TYPE_OF_REFRENCE)
-								{
-									return response;
-								}
-								symbol_t *name;
-								name = syntax_extract_unary(response, SYMBOL_FLAG_NAME);
-								return name;
-							}
-							// delete parameters
-						}
-						if (symbol_check_flag(response, SYMBOL_FLAG_FUNCTION))
-						{
-							if (syntax_arguments_typeof_parameters(graph, root, subroot, target, response))
-							{
-								// delete parameters and return after
-								if (flag == SYNTAX_TYPE_OF_REFRENCE)
-								{
-									return response;
-								}
-								symbol_t *name;
-								name = syntax_extract_unary(response, SYMBOL_FLAG_NAME);
-								return name;
-							}
-							// delete parameters
-						}
-						syntax_error(graph, response, "missing match of arguments by (%lld:%lld)\n", 
-							target->declaration->position.line, target->declaration->position.column);
-						return NULL;
-					}
-					syntax_error(graph, b, "callable not defined\n");
-					return NULL;
-				}
-			}
-		}
-		return NULL;
+		return syntax_find_connectable_by_attribute(root, target);
 	}
 
-	if (!symbol_check_flag(target, SYMBOL_FLAG_ID))
+	if (symbol_check_flag(target, SYMBOL_FLAG_ID))
 	{
-		syntax_error(graph, target, "target not an id %lld\n", target->flags);
-		return NULL;
-	}
-
-	symbol_t *a;
-	for (a = root->begin;(a != root->end);a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_PROPERTY))
-		{
-			symbol_t *result;
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if(result && (result->id != target->id))
-			{
-				symbol_t *left;
-				left = syntax_extract_unary(a, SYMBOL_FLAG_NAME);
-
-				symbol_t *right;
-				right = syntax_extract_unary(a, SYMBOL_FLAG_VALUE);
-
-				if(!right)
-				{
-					symbol_t *type;
-					type = syntax_extract_unary(a, SYMBOL_FLAG_TYPE);
-					if (!type)
-					{
-						syntax_error(graph, a, "missing type of property");
-						return NULL;
-					}
-					return type;
-				}
-
-				symbol_t *result;
-				result = syntax_equivalent_of(graph, left, right, target);
-				if (result && (result->id != target->id))
-				{
-					return syntax_type_of(graph, root, subroot, result, flag);
-				}
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
-		{
-			symbol_t *result;
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if(result && (result->id != target->id))
-			{
-				if (flag == SYNTAX_TYPE_OF_REFRENCE)
-				{
-					return a;
-				}
-				symbol_t *name;
-				name = syntax_extract_unary(a, SYMBOL_FLAG_NAME);
-				return name;
-			} 
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
-		{
-			symbol_t *result;
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if(result && (result->id != target->id))
-			{
-				if (flag == SYNTAX_TYPE_OF_REFRENCE)
-				{
-					return a;
-				}
-				symbol_t *name;
-				name = syntax_extract_unary(a, SYMBOL_FLAG_NAME);
-				return name;
-			} 
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
-		{
-			symbol_t *result;
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if(result && (result->id != target->id))
-			{
-				if (flag == SYNTAX_TYPE_OF_REFRENCE)
-				{
-					return a;
-				}
-				symbol_t *name;
-				name = syntax_extract_unary(a, SYMBOL_FLAG_NAME);
-				return name;
-			} 
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE))
-		{
-			symbol_t *result;
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if(result && (result->id != target->id))
-			{
-				if (flag == SYNTAX_TYPE_OF_REFRENCE)
-				{
-					return a;
-				}
-				symbol_t *name;
-				name = syntax_extract_unary(a, SYMBOL_FLAG_NAME);
-				return name;
-			} 
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_FUNCTION))
-		{
-			symbol_t *result;
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if(result && (result->id != target->id))
-			{
-				symbol_t *result2;
-				result2 = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_HERITAGE);
-				if(result2)
-				{
-					continue;
-				}
-				if (flag == SYNTAX_TYPE_OF_REFRENCE)
-				{
-					return a;
-				}
-				symbol_t *name;
-				name = syntax_extract_unary(a, SYMBOL_FLAG_NAME);
-				return name;
-			}
-		}
-
-		if (symbol_check_flag(root, SYMBOL_FLAG_CLASS))
-		{
-			if (a == subroot)
-			{
-				continue;
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_ASSIGN))
-		{
-			symbol_t *left;
-			left = syntax_extract_unary(a, SYMBOL_FLAG_LEFT);
-
-			symbol_t *right;
-			right = syntax_extract_unary(a, SYMBOL_FLAG_RIGHT);
-
-			symbol_t *result;
-			result = syntax_equivalent_of(graph, left, right, target);
-			if (result && (result->id != target->id))
-			{
-				return syntax_type_of(graph, root, subroot, result, flag);
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_DEFINE))
-		{
-			symbol_t *left;
-			left = syntax_extract_unary(a, SYMBOL_FLAG_NAME);
-
-			symbol_t *right;
-			right = syntax_extract_unary(a, SYMBOL_FLAG_VALUE);
-
-			symbol_t *result;
-			result = syntax_equivalent_of(graph, left, right, target);
-			if (result && (result->id != target->id))
-			{
-				return syntax_type_of(graph, root, subroot, result, flag);
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_VAR))
-		{
-			symbol_t *left;
-			left = syntax_extract_unary(a, SYMBOL_FLAG_NAME);
-
-			symbol_t *right;
-			right = syntax_extract_unary(a, SYMBOL_FLAG_VALUE);
-
-			if(!right)
-			{
-				symbol_t *type;
-				type = syntax_extract_unary(a, SYMBOL_FLAG_TYPE);
-				if (!type)
-				{
-					syntax_error(graph, a, "missing type of var");
-					return NULL;
-				}
-				return type;
-			}
-
-			symbol_t *result;
-			result = syntax_equivalent_of(graph, left, right, target);
-			if (result && (result->id != target->id))
-			{
-				return syntax_type_of(graph, root, subroot, result, flag);
-			}
-		}
-
-	}
-
-	if (root->parent)
-	{
-		return syntax_type_of(graph, root->parent, root, target, flag);
+		return syntax_find_connectable_by_id(root, target);
 	}
 
 	return NULL;
 }
+
 
 
 
@@ -4432,6 +3797,40 @@ syntax_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current
 }
 
 static symbol_t *
+syntax_field(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+{
+	symbol_t *a;
+	for(a = current->begin; a != current->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			int32_t result;
+			result = syntax_duplicated_in_set(graph, root, a, a);
+			if(!result)
+			{
+				return 0;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE))
+		{
+			symbol_t *b;
+			for(b = a->begin; b != a->end; b = b->next)
+			{
+				symbol_t *result;
+				result = syntax_find_connectable(a, b);
+				if (!result)
+				{
+					syntax_error(graph, a, "type not found\n");
+					return NULL;
+				}
+			}
+		}
+	}
+	return current;
+}
+
+static symbol_t *
 syntax_function(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
 	symbol_t *a;
@@ -4445,8 +3844,50 @@ syntax_function(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cur
 			{
 				return NULL;
 			}
+			symbol_t *b;
+			for(b = current->begin; b != current->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_FIELD))
+				{
+					result = syntax_duplicated_in_name(graph, current, b, b);
+					if(!result)
+					{
+						return NULL;
+					}
+				}
+
+				if (symbol_check_flag(b, SYMBOL_FLAG_TYPE_PARAMETER))
+				{
+					result = syntax_duplicated_in_name(graph, current, b, b);
+					if(!result)
+					{
+						return NULL;
+					}
+				}
+			}
 		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_FIELD))
+		{
+			symbol_t *result;
+			result = syntax_field(graph, current, a, a);
+			if(!result)
+			{
+				return NULL;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
+		{
+			symbol_t *result;
+			result = syntax_type_parameter(graph, current, a, a);
+			if(!result)
+			{
+				return NULL;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_BLOCK))
 		{
 			symbol_t *result;
 			result = syntax_block(graph, current, a, a);
@@ -4465,14 +3906,15 @@ syntax_function(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cur
 static symbol_t *
 syntax_module(graph_t *graph, symbol_t *current)
 {
-
+	int32_t found = 0;
 	symbol_t *a;
 	for(a = current->begin; a != current->end; a = a->next)
 	{
+		/*
 		if (symbol_check_flag(a, SYMBOL_FLAG_IMPORT))
 		{
 			symbol_t *result;
-			result = syntax_import(graph, current, current, a);
+			result = syntax_import(graph, current, a, a);
 			if(!result)
 			{
 				return NULL;
@@ -4481,7 +3923,7 @@ syntax_module(graph_t *graph, symbol_t *current)
 		else if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
 		{
 			symbol_t *result;
-			result = syntax_class(graph, current, current, a);
+			result = syntax_class(graph, current, a, a);
 			if(!result)
 			{
 				return NULL;
@@ -4490,7 +3932,7 @@ syntax_module(graph_t *graph, symbol_t *current)
 		else if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
 		{
 			symbol_t *result;
-			result = syntax_enum(graph, current, current, a);
+			result = syntax_enum(graph, current, a, a);
 			if(!result)
 			{
 				return NULL;
@@ -4499,21 +3941,56 @@ syntax_module(graph_t *graph, symbol_t *current)
 		else if (symbol_check_flag(a, SYMBOL_FLAG_VAR))
 		{
 			symbol_t *result;
-			result = syntax_var(graph, current, current, a);
+			result = syntax_var(graph, current, a, a);
 			if(!result)
 			{
 				return NULL;
 			}
 		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_FUNCTION))
+		else 
+		*/
+		if (symbol_check_flag(a, SYMBOL_FLAG_FUNCTION))
 		{
+			symbol_t *b;
+			for (b = a->begin;b != a->end;b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_NAME))
+				{
+					symbol_t *c;
+					for (c = b->begin;c != b->end;c = c->next)
+					{
+						if (syntax_subset_compare_string(c, "init"))
+						{
+							found += 1;
+						}
+					}
+				}
+
+				if (symbol_check_flag(b, SYMBOL_FLAG_FIELD))
+				{
+					found = 0;
+				}
+			}
+
+			if (found < 1)
+			{
+				found = 0;
+				//continue;
+			}
+
 			symbol_t *result;
-			result = syntax_function(graph, current, current, a);
+			result = syntax_function(graph, current, a, a);
 			if(!result)
 			{
 				return NULL;
 			}
 		}
+	}
+
+	if (found < 1)
+	{
+		//syntax_error(graph, current, "missing init\n");
+		//return NULL;
 	}
 
 	return current;

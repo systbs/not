@@ -3134,7 +3134,7 @@ graph_func(symbol_t *parent, node_t *node)
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = graph_parameter(parent, temp);
+			result = graph_parameter(symbol, temp);
 			if (!result)
 			{
 				return 0;
@@ -3149,7 +3149,7 @@ graph_func(symbol_t *parent, node_t *node)
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = graph_type_parameter(parent, temp);
+			result = graph_type_parameter(symbol, temp);
 			if (!result)
 			{
 				return 0;
@@ -3164,7 +3164,8 @@ graph_func(symbol_t *parent, node_t *node)
 		{
 			node_t *temp;
 			temp = (node_t *)a->value;
-			result = graph_field(parent, temp);
+
+			result = graph_field(symbol, temp);
 			if (!result)
 			{
 				return 0;

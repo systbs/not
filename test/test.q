@@ -6,8 +6,13 @@ export class (T extends int) task
   func init {
 
   }
+
+  export class (R extends int) task1
+  {
+
+  }
 }
 
-export func init {
+export func (a:task.task1) init {
   var t:task{int} = task();
 }
