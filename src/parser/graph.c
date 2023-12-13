@@ -3127,21 +3127,6 @@ graph_func(symbol_t *parent, node_t *node)
 	}
 
 	ilist_t *a;
-	if (node_func->parameters)
-	{
-		for (a = node_func->parameters->begin; a != node_func->parameters->end; a = a->next)
-		{
-			node_t *temp;
-			temp = (node_t *)a->value;
-
-			result = graph_parameter(symbol, temp);
-			if (!result)
-			{
-				return 0;
-			}
-		}
-	}
-
 	if (node_func->type_parameters)
 	{
 		for (a = node_func->type_parameters->begin; a != node_func->type_parameters->end; a = a->next)
@@ -3166,6 +3151,21 @@ graph_func(symbol_t *parent, node_t *node)
 			temp = (node_t *)a->value;
 
 			result = graph_field(symbol, temp);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	if (node_func->parameters)
+	{
+		for (a = node_func->parameters->begin; a != node_func->parameters->end; a = a->next)
+		{
+			node_t *temp;
+			temp = (node_t *)a->value;
+
+			result = graph_parameter(symbol, temp);
 			if (!result)
 			{
 				return 0;
