@@ -1879,15 +1879,10 @@ parser_for_stmt(parser_t *parser)
 	}
 
 	int32_t use_save = 0;
-	if ((parser->token->type == TOKEN_CONST_KEYWORD) || (parser->token->type == TOKEN_VAR_KEYWORD))
+	if ((parser->token->type == TOKEN_VAR_KEYWORD))
 	{
 		position_t init_position = parser->token->position;
 
-		int32_t use_const = 0;
-		if (parser->token->type == TOKEN_CONST_KEYWORD)
-		{
-			use_const = 1;
-		}
 		if (!parser_next(parser))
 		{
 			return NULL;
@@ -1914,15 +1909,6 @@ parser_for_stmt(parser_t *parser)
 
 		if (parser->token->type == TOKEN_IN_KEYWORD)
 		{
-			if (use_const)
-			{
-				init = node_make_const(init_position, PARSER_MODIFIER_NONE, name, NULL, NULL);
-				if (!init)
-				{
-					return NULL;
-				}
-				goto forin_structure;
-			}
 			init = node_make_var(init_position, PARSER_MODIFIER_NONE, name, NULL, NULL);
 			if (!init)
 			{
@@ -1958,16 +1944,6 @@ parser_for_stmt(parser_t *parser)
 			{
 				return NULL;
 			}
-		}
-
-		if (use_const)
-		{
-			init = node_make_const(init_position, PARSER_MODIFIER_NONE, name, type, value);
-			if (!init)
-			{
-				return NULL;
-			}
-			goto init_continue;
 		}
 
 		init = node_make_var(init_position, PARSER_MODIFIER_NONE, name, type, value);
@@ -2080,15 +2056,10 @@ init_comma_continue:
 		return NULL;
 	}
 
-	if ((parser->token->type == TOKEN_CONST_KEYWORD) || (parser->token->type == TOKEN_VAR_KEYWORD))
+	if ((parser->token->type == TOKEN_VAR_KEYWORD))
 	{
 		position_t init_position = parser->token->position;
 
-		int32_t use_const = 0;
-		if (parser->token->type == TOKEN_CONST_KEYWORD)
-		{
-			use_const = 1;
-		}
 		if (!parser_next(parser))
 		{
 			return NULL;
@@ -2140,16 +2111,6 @@ init_comma_continue:
 			{
 				return NULL;
 			}
-		}
-
-		if (use_const)
-		{
-			init = node_make_const(init_position, PARSER_MODIFIER_NONE, name, type, value);
-			if (!init)
-			{
-				return NULL;
-			}
-			goto init_comma_continue;
 		}
 
 		init = node_make_var(init_position, PARSER_MODIFIER_NONE, name, type, value);
@@ -2572,60 +2533,6 @@ parser_var_stmt(parser_t *parser, uint64_t flag)
 	}
 
 	return node_make_var(position, flag, name, type, value);
-}
-
-static node_t *
-parser_const_stmt(parser_t *parser, uint64_t flag)
-{
-	position_t position = parser->token->position;
-
-	if (!parser_match(parser, TOKEN_CONST_KEYWORD))
-	{
-		return NULL;
-	}
-
-	node_t *name;
-	name = parser_expression(parser);
-	if (!name)
-	{
-		return NULL;
-	}
-
-	node_t *type = NULL;
-	if (parser->token->type == TOKEN_COLON)
-	{
-		if (!parser_next(parser))
-		{
-			return NULL;
-		}
-		type = parser_expression(parser);
-		if (!type)
-		{
-			return NULL;
-		}
-	}
-
-	node_t *value = NULL;
-	if (parser->token->type == TOKEN_EQ)
-	{
-		if (!parser_next(parser))
-		{
-			return NULL;
-		}
-
-		value = parser_expression(parser);
-		if (!value)
-		{
-			return NULL;
-		}
-	}
-
-	if (!parser_match(parser, TOKEN_SEMICOLON))
-	{
-		return NULL;
-	}
-
-	return node_make_const(position, flag, name, type, value);
 }
 
 static node_t *
@@ -3110,6 +3017,40 @@ parser_func_stmt(parser_t *parser, uint64_t flag)
 }
 
 static node_t *
+parser_readonly_stmt(parser_t *parser, uint64_t flag)
+{
+	position_t position = parser->token->position;
+
+	if (!parser_match(parser, TOKEN_READONLY_KEYWORD))
+	{
+		return NULL;
+	}
+
+	flag |= PARSER_MODIFIER_READONLY;
+
+	node_t *node = NULL;
+	switch (parser->token->type)
+	{
+	case TOKEN_VAR_KEYWORD:
+		node = parser_var_stmt(parser, flag);
+		break;
+
+	default:
+		parser_error(parser, position, "incorrect use of modifier 'readonly'");
+		break;
+	}
+
+	flag &= ~PARSER_MODIFIER_READONLY;
+
+	if (!node)
+	{
+		return NULL;
+	}
+
+	return node;
+}
+
+static node_t *
 parser_statement(parser_t *parser)
 {
 	node_t *node = NULL;
@@ -3143,8 +3084,8 @@ parser_statement(parser_t *parser)
 		node = parser_var_stmt(parser, PARSER_MODIFIER_NONE);
 		break;
 
-	case TOKEN_CONST_KEYWORD:
-		node = parser_const_stmt(parser, PARSER_MODIFIER_NONE);
+	case TOKEN_READONLY_KEYWORD:
+		node = parser_readonly_stmt(parser, PARSER_MODIFIER_NONE);
 		break;
 
 	case TOKEN_TYPE_KEYWORD:
@@ -3919,8 +3860,8 @@ parser_export(parser_t *parser)
 		node = parser_var_stmt(parser, flag);
 		break;
 
-	case TOKEN_CONST_KEYWORD:
-		node = parser_const_stmt(parser, flag);
+	case TOKEN_READONLY_KEYWORD:
+		node = parser_readonly_stmt(parser, flag);
 		break;
 
 	case TOKEN_TYPE_KEYWORD:
@@ -3992,8 +3933,8 @@ parser_module(parser_t *parser)
 			decl = parser_var_stmt(parser, PARSER_MODIFIER_NONE);
 			break;
 
-		case TOKEN_CONST_KEYWORD:
-			decl = parser_const_stmt(parser, PARSER_MODIFIER_NONE);
+		case TOKEN_READONLY_KEYWORD:
+			decl = parser_readonly_stmt(parser, PARSER_MODIFIER_NONE);
 			break;
 
 		case TOKEN_TYPE_KEYWORD:

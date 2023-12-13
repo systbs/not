@@ -1,21 +1,13 @@
-export class (T extends string & int) task1
+export class (T extends int) task
 {
-  export class (R extends string & int) task2
-  {
-    
+  export a:int;
+  export static b:int = 1;
+
+  func init {
+
   }
 }
 
-
-export class (T extends string, R) A
-{
-  a:int;
-  func init {
-    a = task1{T}.task2{R};
-
-    var b:int = 1;
-    if init (1){
-
-    }
-  }
+export func init {
+  var t:task{int} = task();
 }

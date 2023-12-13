@@ -11,7 +11,7 @@
 #include "../ast/node.h"
 #include "symbol.h"
 
-uint64_t symbol_counter = 0;
+uint64_t symbol_counter = 1000;
 
 symbol_t *
 symbol_apply(symbol_t *sym)
@@ -40,9 +40,11 @@ symbol_create(uint64_t flags, node_t *declaration)
     memset(sym, 0, sizeof(symbol_t));
     
     sym->parent = NULL;
+    sym->refrence = NULL;
     sym->flags = flags;
     sym->declaration = declaration;
     sym->id = symbol_counter++;
+    sym->types = list_create();
 
     return symbol_apply(sym);
 }

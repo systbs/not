@@ -100,6 +100,13 @@ typedef enum symbol_flag {
     SYMBOL_FLAG_ID
 } symbol_flag_t;
 
+typedef enum symbol_type {
+    SYMBOL_TYPE_CHAR = 1,
+    SYMBOL_TYPE_STRING,
+    SYMBOL_TYPE_NUMBER,
+    SYMBOL_TYPE_BOOLEAN
+} symbol_type_t;
+
 typedef struct symbol {
     uint64_t id;
     uint64_t flags;
@@ -107,6 +114,12 @@ typedef struct symbol {
     // node
 	node_t *declaration;
     node_t *reference;
+
+    // types
+    list_t *types;
+
+    // refrence
+    struct symbol *refrence;
 
     // list
     struct symbol *previous;
