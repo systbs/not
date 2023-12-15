@@ -371,18 +371,18 @@ graph_composite(symbol_t *parent, node_t *node)
 
 	if (node_composite->type_arguments)
 	{
-		symbol_type_argument = symbol_rpush(symbol, SYMBOL_FLAG_ARGUMENT, node);
-		if(!symbol_type_argument)
-		{
-			return 0;
-		}
-
 		ilist_t *a;
 		for (a = node_composite->type_arguments->begin; a != node_composite->type_arguments->end; a = a->next)
 		{
 			node_t *temp;
 			temp = (node_t *)a->value;
 
+			symbol_type_argument = symbol_rpush(symbol, SYMBOL_FLAG_ARGUMENT, node);
+			if(!symbol_type_argument)
+			{
+				return 0;
+			}
+			
 			result = graph_expression(symbol_type_argument, temp);
 			if (!result)
 			{

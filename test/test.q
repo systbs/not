@@ -1,3 +1,8 @@
+export class (W, R) task 
+{
+
+}
+
 export class (T) task
 {
   export class (R) task1
@@ -6,6 +11,6 @@ export class (T) task
   }
 }
 
-export func (R, T, a:task{R}.task1{T}) init {
-  var t:task{int} = task{int}();
+export func (R, T, a:task{R, T}.task1{T}, b:T[]) init {
+  
 }
