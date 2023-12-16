@@ -382,7 +382,7 @@ graph_composite(symbol_t *parent, node_t *node)
 			{
 				return 0;
 			}
-			
+
 			result = graph_expression(symbol_type_argument, temp);
 			if (!result)
 			{

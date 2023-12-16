@@ -11,6 +11,6 @@ export class (T) task
   }
 }
 
-export func (R, T, a:task{R, T}.task1{T}, b:T[]) init {
-  
+export func (R, T, a:task{R}.task1{T}, b:T[]) init {
+  readonly var t:task{T} = task{int}();
 }

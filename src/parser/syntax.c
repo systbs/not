@@ -66,10 +66,10 @@ syntax_error(graph_t *graph, symbol_t *current, const char *format, ...)
 
 
 static int32_t
-syntax_symbol_contain_flag(symbol_t *refrence, uint64_t flag)
+syntax_symbol_contain_flag(symbol_t *reference, uint64_t flag)
 {
 	symbol_t *a;
-	for (a = refrence->begin; a != refrence->end; a = a->next)
+	for (a = reference->begin; a != reference->end; a = a->next)
 	{
 		if (symbol_check_flag(a, flag))
 		{
@@ -111,47 +111,45 @@ syntax_extract(symbol_t *target)
 
 
 
-
+static symbol_t *
+syntax_subset_of_object(symbol_t *reference, symbol_t *target);
 
 static symbol_t *
-syntax_subset_of_object(symbol_t *refrence, symbol_t *target);
-
-static symbol_t *
-syntax_subset_of_array(symbol_t *refrence, symbol_t *target);
+syntax_subset_of_array(symbol_t *reference, symbol_t *target);
 
 static int32_t
-syntax_subset_compare_string(symbol_t *refrence, char *name)
+syntax_subset_compare_string(symbol_t *reference, char *name)
 {
-	node_t *node_refrence = refrence->declaration;
-	node_basic_t *node_basic_refrence;
-	node_basic_refrence = (node_basic_t *)node_refrence->value;
+	node_t *node_reference = reference->declaration;
+	node_basic_t *node_basic_reference;
+	node_basic_reference = (node_basic_t *)node_reference->value;
 
-	return (strncmp(name, node_basic_refrence->value, 
-		max(strlen(node_basic_refrence->value), strlen(name))) == 0);
+	return (strncmp(name, node_basic_reference->value, 
+		max(strlen(node_basic_reference->value), strlen(name))) == 0);
 }
 
 static int32_t
-syntax_subset_compare_id(symbol_t *refrence, symbol_t *target)
+syntax_subset_compare_id(symbol_t *reference, symbol_t *target)
 {
-	node_t *node_refrence = refrence->declaration;
-	node_basic_t *node_basic_refrence;
-	node_basic_refrence = (node_basic_t *)node_refrence->value;
+	node_t *node_reference = reference->declaration;
+	node_basic_t *node_basic_reference;
+	node_basic_reference = (node_basic_t *)node_reference->value;
 
 	node_t *node_target = target->declaration;
 	node_basic_t *node_basic_target;
 	node_basic_target = (node_basic_t *)node_target->value;
 
-	//printf("%s %s\n", node_basic_target->value, node_basic_refrence->value);
+	//printf("%s %s\n", node_basic_target->value, node_basic_reference->value);
 
-	return (strncmp(node_basic_target->value, node_basic_refrence->value, 
-		max(strlen(node_basic_refrence->value), strlen(node_basic_target->value))) == 0);
+	return (strncmp(node_basic_target->value, node_basic_reference->value, 
+		max(strlen(node_basic_reference->value), strlen(node_basic_target->value))) == 0);
 }
 
 static symbol_t *
-syntax_subset_exist_in_set(symbol_t *refrence, symbol_t *target)
+syntax_subset_exist_in_set(symbol_t *reference, symbol_t *target)
 {
 	symbol_t *a;
-	for (a = refrence->begin;(a != refrence->end); a = a->next)
+	for (a = reference->begin;(a != reference->end); a = a->next)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_ID))
 		{
@@ -175,10 +173,10 @@ syntax_subset_exist_in_set(symbol_t *refrence, symbol_t *target)
 }
 
 static symbol_t *
-syntax_subset_of_object_property(symbol_t *refrence, symbol_t *target)
+syntax_subset_of_object_property(symbol_t *reference, symbol_t *target)
 {
 	symbol_t *a;
-	for(a = refrence->begin; a != refrence->end; a = a->next)
+	for(a = reference->begin; a != reference->end; a = a->next)
 	{
 		if(symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
@@ -189,10 +187,10 @@ syntax_subset_of_object_property(symbol_t *refrence, symbol_t *target)
 }
 
 static symbol_t *
-syntax_subset_of_object(symbol_t *refrence, symbol_t *target)
+syntax_subset_of_object(symbol_t *reference, symbol_t *target)
 {
 	symbol_t *a;
-	for(a = refrence->begin; a != refrence->end; a = a->next)
+	for(a = reference->begin; a != reference->end; a = a->next)
 	{
 		if(symbol_check_flag(a, SYMBOL_FLAG_OBJECT_PROPERTY))
 		{
@@ -203,10 +201,10 @@ syntax_subset_of_object(symbol_t *refrence, symbol_t *target)
 }
 
 static symbol_t *
-syntax_subset_of_array(symbol_t *refrence, symbol_t *target)
+syntax_subset_of_array(symbol_t *reference, symbol_t *target)
 {
 	symbol_t *a;
-	for (a = refrence->begin; a != refrence->end; a = a->next)
+	for (a = reference->begin; a != reference->end; a = a->next)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_OBJECT))
 		{
@@ -230,10 +228,10 @@ syntax_subset_of_array(symbol_t *refrence, symbol_t *target)
 }
 
 static symbol_t *
-syntax_subset_exist_in_flag(symbol_t *refrence, symbol_t *target, uint64_t flag)
+syntax_subset_exist_in_flag(symbol_t *reference, symbol_t *target, uint64_t flag)
 {
 	symbol_t *a;
-	for (a = refrence->begin;(a != refrence->end); a = a->next)
+	for (a = reference->begin;(a != reference->end); a = a->next)
 	{
 		if (symbol_check_flag(a, flag))
 		{
@@ -477,9 +475,6 @@ syntax_duplicated(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *t
 
 
 static int32_t
-syntax_duplicated_by_parameter(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *refrence, symbol_t *target);
-
-static int32_t
 syntax_duplicated_object(graph_t *graph, symbol_t *root, symbol_t *sub, symbol_t *current);
 
 static int32_t
@@ -502,20 +497,6 @@ syntax_duplicated_in_set(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 		else if(symbol_check_flag(a, SYMBOL_FLAG_ID))
 		{
 			return syntax_duplicated(graph, root, subroot, a);
-		}
-	}
-	return 0;
-}
-
-static int32_t
-syntax_duplicated_in_set_by_parameter(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
-{
-	symbol_t *a;
-	for(a = current->begin; a != current->end; a = a->next)
-	{
-		if(symbol_check_flag(a, SYMBOL_FLAG_ID))
-		{
-			return syntax_duplicated_by_parameter(graph, root, subroot, subroot, a);
 		}
 	}
 	return 0;
@@ -589,27 +570,27 @@ syntax_duplicated_in_name(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 
 
 static symbol_t *
-syntax_prototype_of_type(symbol_t *root, symbol_t *subroot, symbol_t *target);
+syntax_subset_of_reference_type(symbol_t *root, symbol_t *subroot, symbol_t *target);
 
 static int32_t
-syntax_prototype_subset_of_type_parameter(symbol_t *refrence, symbol_t *target)
+syntax_prototype_subset_of_type_parameter(symbol_t *reference, symbol_t *target)
 {
-	uint64_t refrence_counter = 0;
-	uint64_t refrence_counter_by_value = 0;
+	uint64_t ref_counter = 0;
+	uint64_t reference_counter_by_value = 0;
 	symbol_t *a;
-	for (a = refrence->begin; a != refrence->end; a = a->next)
+	for (a = reference->begin; a != reference->end; a = a->next)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
 		{
 			if (syntax_symbol_contain_flag(a, SYMBOL_FLAG_VALUE))
 			{
-				refrence_counter_by_value += 1;
+				reference_counter_by_value += 1;
 			}
-			refrence_counter += 1;
+			ref_counter += 1;
 		}
 	}
 
-	uint64_t target_counter = 0;
+	uint64_t tar_counter = 0;
 	uint64_t target_counter_by_value = 0;
 
 	for (a = target->begin; a != target->end; a = a->next)
@@ -620,11 +601,11 @@ syntax_prototype_subset_of_type_parameter(symbol_t *refrence, symbol_t *target)
 			{
 				target_counter_by_value += 1;
 			}
-			target_counter += 1;
+			tar_counter += 1;
 		}
 	}
 
-	if ((refrence_counter - refrence_counter_by_value) == (target_counter - target_counter_by_value))
+	if ((ref_counter - reference_counter_by_value) == (tar_counter - target_counter_by_value))
 	{
 		return 1;
 	}
@@ -633,13 +614,13 @@ syntax_prototype_subset_of_type_parameter(symbol_t *refrence, symbol_t *target)
 }
 
 static int32_t
-syntax_prototype_subset_of_component_type(symbol_t *refrence, symbol_t *target)
+syntax_prototype_subset_of_component_type(symbol_t *reference, symbol_t *target)
 {
-	if(symbol_check_flag(refrence, SYMBOL_FLAG_OR))
+	if(symbol_check_flag(reference, SYMBOL_FLAG_OR))
 	{
 		int32_t result = 1;
 		symbol_t *a;
-		for (a = refrence->begin; a != refrence->end; a = a->next)
+		for (a = reference->begin; a != reference->end; a = a->next)
 		{
 			if (symbol_check_flag(a, SYMBOL_FLAG_LEFT))
 			{
@@ -652,11 +633,11 @@ syntax_prototype_subset_of_component_type(symbol_t *refrence, symbol_t *target)
 		}
 		return result;
 	}
-	else if(symbol_check_flag(refrence, SYMBOL_FLAG_AND))
+	else if(symbol_check_flag(reference, SYMBOL_FLAG_AND))
 	{
 		int32_t result = 1;
 		symbol_t *a;
-		for (a = refrence->begin; a != refrence->end; a = a->next)
+		for (a = reference->begin; a != reference->end; a = a->next)
 		{
 			if (symbol_check_flag(a, SYMBOL_FLAG_LEFT))
 			{
@@ -669,7 +650,7 @@ syntax_prototype_subset_of_component_type(symbol_t *refrence, symbol_t *target)
 		}
 		return result;
 	}
-	else if (symbol_check_flag(refrence, SYMBOL_FLAG_LEFT))
+	else if (symbol_check_flag(reference, SYMBOL_FLAG_LEFT))
 	{
 		if(symbol_check_flag(target, SYMBOL_FLAG_OR))
 		{
@@ -679,11 +660,11 @@ syntax_prototype_subset_of_component_type(symbol_t *refrence, symbol_t *target)
 			{
 				if (symbol_check_flag(a, SYMBOL_FLAG_LEFT))
 				{
-					result |= syntax_prototype_subset_of_component_type(a, refrence);
+					result |= syntax_prototype_subset_of_component_type(a, reference);
 				}
 				else if (symbol_check_flag(a, SYMBOL_FLAG_RIGHT))
 				{
-					result |= syntax_prototype_subset_of_component_type(a, refrence);
+					result |= syntax_prototype_subset_of_component_type(a, reference);
 				}
 			}
 			return result;
@@ -696,11 +677,11 @@ syntax_prototype_subset_of_component_type(symbol_t *refrence, symbol_t *target)
 			{
 				if (symbol_check_flag(a, SYMBOL_FLAG_LEFT))
 				{
-					result &= syntax_prototype_subset_of_component_type(a, refrence);
+					result &= syntax_prototype_subset_of_component_type(a, reference);
 				}
 				else if (symbol_check_flag(a, SYMBOL_FLAG_RIGHT))
 				{
-					result &= syntax_prototype_subset_of_component_type(a, refrence);
+					result &= syntax_prototype_subset_of_component_type(a, reference);
 				}
 			}
 			return result;
@@ -708,7 +689,7 @@ syntax_prototype_subset_of_component_type(symbol_t *refrence, symbol_t *target)
 		else
 		{
 			symbol_t *a;
-			for (a = refrence->begin; a != refrence->end; a = a->next)
+			for (a = reference->begin; a != reference->end; a = a->next)
 			{
 				if (!symbol_equal_flag(a, target))
 				{
@@ -725,7 +706,7 @@ syntax_prototype_subset_of_component_type(symbol_t *refrence, symbol_t *target)
 			}
 		}
 	}
-	else if (symbol_check_flag(refrence, SYMBOL_FLAG_RIGHT))
+	else if (symbol_check_flag(reference, SYMBOL_FLAG_RIGHT))
 	{
 		if(symbol_check_flag(target, SYMBOL_FLAG_OR))
 		{
@@ -735,11 +716,11 @@ syntax_prototype_subset_of_component_type(symbol_t *refrence, symbol_t *target)
 			{
 				if (symbol_check_flag(a, SYMBOL_FLAG_LEFT))
 				{
-					result |= syntax_prototype_subset_of_component_type(a, refrence);
+					result |= syntax_prototype_subset_of_component_type(a, reference);
 				}
 				else if (symbol_check_flag(a, SYMBOL_FLAG_RIGHT))
 				{
-					result |= syntax_prototype_subset_of_component_type(a, refrence);
+					result |= syntax_prototype_subset_of_component_type(a, reference);
 				}
 			}
 			return result;
@@ -752,11 +733,11 @@ syntax_prototype_subset_of_component_type(symbol_t *refrence, symbol_t *target)
 			{
 				if (symbol_check_flag(a, SYMBOL_FLAG_LEFT))
 				{
-					result &= syntax_prototype_subset_of_component_type(a, refrence);
+					result &= syntax_prototype_subset_of_component_type(a, reference);
 				}
 				else if (symbol_check_flag(a, SYMBOL_FLAG_RIGHT))
 				{
-					result &= syntax_prototype_subset_of_component_type(a, refrence);
+					result &= syntax_prototype_subset_of_component_type(a, reference);
 				}
 			}
 			return result;
@@ -764,7 +745,7 @@ syntax_prototype_subset_of_component_type(symbol_t *refrence, symbol_t *target)
 		else
 		{
 			symbol_t *a;
-			for (a = refrence->begin; a != refrence->end; a = a->next)
+			for (a = reference->begin; a != reference->end; a = a->next)
 			{
 				if (!symbol_equal_flag(a, target))
 				{
@@ -782,14 +763,14 @@ syntax_prototype_subset_of_component_type(symbol_t *refrence, symbol_t *target)
 		}
 	}
 
-	if (!symbol_equal_flag(refrence, target))
+	if (!symbol_equal_flag(reference, target))
 	{
 		return 0;
 	}
 
-	if (symbol_check_flag(refrence, SYMBOL_FLAG_ID) || symbol_check_flag(refrence, SYMBOL_FLAG_NUMBER) || symbol_check_flag(refrence, SYMBOL_FLAG_CHAR))
+	if (symbol_check_flag(reference, SYMBOL_FLAG_ID) || symbol_check_flag(reference, SYMBOL_FLAG_NUMBER) || symbol_check_flag(reference, SYMBOL_FLAG_CHAR))
 	{
-		if (!syntax_subset_compare_id(refrence, target))
+		if (!syntax_subset_compare_id(reference, target))
 		{
 			return 0;
 		}
@@ -800,47 +781,47 @@ syntax_prototype_subset_of_component_type(symbol_t *refrence, symbol_t *target)
 }
 
 static int32_t
-syntax_prototype_subset_of_type(symbol_t *refrence, symbol_t *target)
+syntax_prototype_subset_of_type(symbol_t *reference, symbol_t *target)
 {
-	if (!symbol_equal_flag(refrence, target))
+	if (!symbol_equal_flag(reference, target))
 	{
-		if (!syntax_prototype_subset_of_component_type(refrence, target))
+		if (!syntax_prototype_subset_of_component_type(reference, target))
 		{
 			return 0;
 		}
 		return 1;
 	}
 
-	if (symbol_check_flag(refrence, SYMBOL_FLAG_ID) || symbol_check_flag(refrence, SYMBOL_FLAG_NUMBER) || symbol_check_flag(refrence, SYMBOL_FLAG_CHAR))
+	if (symbol_check_flag(reference, SYMBOL_FLAG_ID) || symbol_check_flag(reference, SYMBOL_FLAG_NUMBER) || symbol_check_flag(reference, SYMBOL_FLAG_CHAR))
 	{
-		if (!syntax_subset_compare_id(refrence, target))
+		if (!syntax_subset_compare_id(reference, target))
 		{
 			return 0;
 		}
 		return 1;
 	}
 	
-	uint64_t refrence_counter = 0;
+	uint64_t ref_counter = 0;
 	symbol_t *a;
-	for (a = refrence->begin; a != refrence->end; a = a->next)
+	for (a = reference->begin; a != reference->end; a = a->next)
 	{
-		refrence_counter += 1;
+		ref_counter += 1;
 
 		symbol_t *c;
-		c = syntax_prototype_of_type(refrence, a, a);
+		c = syntax_subset_of_reference_type(reference, a, a);
 		if(!c)
 		{
 			c = a;
 		}
 
 		int32_t founded = 0;
-		uint64_t target_counter = 0;
+		uint64_t tar_counter = 0;
 		symbol_t *b;
 		for (b = target->begin;b != target->end;b = b->next)
 		{
-			target_counter += 1;
+			tar_counter += 1;
 
-			if (target_counter < refrence_counter)
+			if (tar_counter < ref_counter)
 			{
 				continue;
 			}
@@ -848,7 +829,7 @@ syntax_prototype_subset_of_type(symbol_t *refrence, symbol_t *target)
 			founded = 1;
 
 			symbol_t *d;
-			d = syntax_prototype_of_type(target, b, b);
+			d = syntax_subset_of_reference_type(target, b, b);
 			if(!d)
 			{
 				d = b;
@@ -889,10 +870,10 @@ syntax_prototype_subset_of_type(symbol_t *refrence, symbol_t *target)
 }
 
 static symbol_t *
-syntax_prototype_of_type_in_type_parameter(symbol_t *root, symbol_t *subroot, symbol_t *refrence, symbol_t *target)
+syntax_subset_of_reference_type_in_type_parameter(symbol_t *root, symbol_t *subroot, symbol_t *reference, symbol_t *target)
 {
 	symbol_t *a;
-	for (a = refrence->begin;a != refrence->end; a = a->next)
+	for (a = reference->begin;a != reference->end; a = a->next)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
@@ -902,7 +883,7 @@ syntax_prototype_of_type_in_type_parameter(symbol_t *root, symbol_t *subroot, sy
 				if(syntax_prototype_subset_of_type(b, target))
 				{
 					symbol_t *c;
-					for (c = refrence->begin;c != refrence->end; c = c->next)
+					for (c = reference->begin;c != reference->end; c = c->next)
 					{
 						if (symbol_check_flag(c, SYMBOL_FLAG_TYPE))
 						{
@@ -910,7 +891,7 @@ syntax_prototype_of_type_in_type_parameter(symbol_t *root, symbol_t *subroot, sy
 							for (d = c->begin;d != c->end;d = d->next)
 							{
 								symbol_t *e;
-								e = syntax_prototype_of_type(root, a, d);
+								e = syntax_subset_of_reference_type(root, a, d);
 								if (e)
 								{
 									return e;
@@ -927,10 +908,10 @@ syntax_prototype_of_type_in_type_parameter(symbol_t *root, symbol_t *subroot, sy
 }
 
 static symbol_t *
-syntax_prototype_of_type_in_heritage(symbol_t *root, symbol_t *subroot, symbol_t *refrence, symbol_t *target)
+syntax_subset_of_reference_type_in_heritage(symbol_t *root, symbol_t *subroot, symbol_t *reference, symbol_t *target)
 {
 	symbol_t *a;
-	for (a = refrence->begin;a != refrence->end; a = a->next)
+	for (a = reference->begin;a != reference->end; a = a->next)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
@@ -940,7 +921,7 @@ syntax_prototype_of_type_in_heritage(symbol_t *root, symbol_t *subroot, symbol_t
 				if(syntax_prototype_subset_of_type(b, target))
 				{
 					symbol_t *c;
-					for (c = refrence->begin;c != refrence->end;c = c->next)
+					for (c = reference->begin;c != reference->end;c = c->next)
 					{
 						if (symbol_check_flag(c, SYMBOL_FLAG_TYPE))
 						{
@@ -948,7 +929,7 @@ syntax_prototype_of_type_in_heritage(symbol_t *root, symbol_t *subroot, symbol_t
 							for (d = c->begin;d != c->end;d = d->next)
 							{
 								symbol_t *e;
-								e = syntax_prototype_of_type(root, a, d);
+								e = syntax_subset_of_reference_type(root, a, d);
 								if (e)
 								{
 									return e;
@@ -965,10 +946,10 @@ syntax_prototype_of_type_in_heritage(symbol_t *root, symbol_t *subroot, symbol_t
 }
 
 static symbol_t *
-syntax_prototype_of_type_in_parameter(symbol_t *root, symbol_t *subroot, symbol_t *refrence, symbol_t *target)
+syntax_subset_of_reference_type_in_parameter(symbol_t *root, symbol_t *subroot, symbol_t *reference, symbol_t *target)
 {
 	symbol_t *a;
-	for (a = refrence->begin;a != refrence->end; a = a->next)
+	for (a = reference->begin;a != reference->end; a = a->next)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
@@ -978,7 +959,7 @@ syntax_prototype_of_type_in_parameter(symbol_t *root, symbol_t *subroot, symbol_
 				if(syntax_prototype_subset_of_type(b, target))
 				{
 					symbol_t *c;
-					for (c = refrence->begin;c != refrence->end; c = c->next)
+					for (c = reference->begin;c != reference->end; c = c->next)
 					{
 						if (symbol_check_flag(c, SYMBOL_FLAG_TYPE))
 						{
@@ -986,7 +967,7 @@ syntax_prototype_of_type_in_parameter(symbol_t *root, symbol_t *subroot, symbol_
 							for (d = c->begin;d != c->end;d = d->next)
 							{
 								symbol_t *e;
-								e = syntax_prototype_of_type(root, a, d);
+								e = syntax_subset_of_reference_type(root, a, d);
 								if (e)
 								{
 									return e;
@@ -1003,7 +984,7 @@ syntax_prototype_of_type_in_parameter(symbol_t *root, symbol_t *subroot, symbol_
 }
 
 static symbol_t *
-syntax_prototype_of_type(symbol_t *root, symbol_t *subset, symbol_t *target)
+syntax_subset_of_reference_type(symbol_t *root, symbol_t *subset, symbol_t *target)
 {
 	if (symbol_check_flag(root, SYMBOL_FLAG_CLASS))
 	{
@@ -1013,7 +994,7 @@ syntax_prototype_of_type(symbol_t *root, symbol_t *subset, symbol_t *target)
 			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
 			{
 				symbol_t *b;
-				b = syntax_prototype_of_type_in_type_parameter(root, subset, a, target);
+				b = syntax_subset_of_reference_type_in_type_parameter(root, subset, a, target);
 				if (b)
 				{
 					return b;
@@ -1023,7 +1004,7 @@ syntax_prototype_of_type(symbol_t *root, symbol_t *subset, symbol_t *target)
 			if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
 			{
 				symbol_t *b = NULL;
-				b = syntax_prototype_of_type_in_heritage(root, subset, a, target);
+				b = syntax_subset_of_reference_type_in_heritage(root, subset, a, target);
 				if (b)
 				{
 					return b;
@@ -1033,7 +1014,7 @@ syntax_prototype_of_type(symbol_t *root, symbol_t *subset, symbol_t *target)
 
 		if(root->parent)
 		{
-			return syntax_prototype_of_type(root->parent, root, target);
+			return syntax_subset_of_reference_type(root->parent, root, target);
 		}
 	}
 	
@@ -1045,7 +1026,7 @@ syntax_prototype_of_type(symbol_t *root, symbol_t *subset, symbol_t *target)
 			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
 			{
 				symbol_t *b;
-				b = syntax_prototype_of_type_in_type_parameter(root, subset, a, target);
+				b = syntax_subset_of_reference_type_in_type_parameter(root, subset, a, target);
 				if (b)
 				{
 					return b;
@@ -1055,7 +1036,7 @@ syntax_prototype_of_type(symbol_t *root, symbol_t *subset, symbol_t *target)
 
 		if(root->parent)
 		{
-			return syntax_prototype_of_type(root->parent, root, target);
+			return syntax_subset_of_reference_type(root->parent, root, target);
 		}
 	}
 	
@@ -1067,7 +1048,7 @@ syntax_prototype_of_type(symbol_t *root, symbol_t *subset, symbol_t *target)
 			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
 			{
 				symbol_t *b;
-				b = syntax_prototype_of_type_in_type_parameter(root, subset, a, target);
+				b = syntax_subset_of_reference_type_in_type_parameter(root, subset, a, target);
 				if (b)
 				{
 					return b;
@@ -1077,7 +1058,7 @@ syntax_prototype_of_type(symbol_t *root, symbol_t *subset, symbol_t *target)
 
 		if(root->parent)
 		{
-			return syntax_prototype_of_type(root->parent, root, target);
+			return syntax_subset_of_reference_type(root->parent, root, target);
 		}
 	}
 	
@@ -1089,7 +1070,7 @@ syntax_prototype_of_type(symbol_t *root, symbol_t *subset, symbol_t *target)
 			if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
 			{
 				symbol_t *b;
-				b = syntax_prototype_of_type_in_type_parameter(root, subset, a, target);
+				b = syntax_subset_of_reference_type_in_type_parameter(root, subset, a, target);
 				if (b)
 				{
 					return b;
@@ -1098,7 +1079,7 @@ syntax_prototype_of_type(symbol_t *root, symbol_t *subset, symbol_t *target)
 			if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
 			{
 				symbol_t *b = NULL;
-				b = syntax_prototype_of_type_in_heritage(root, subset, a, target);
+				b = syntax_subset_of_reference_type_in_heritage(root, subset, a, target);
 				if (b)
 				{
 					return b;
@@ -1107,291 +1088,18 @@ syntax_prototype_of_type(symbol_t *root, symbol_t *subset, symbol_t *target)
 		}
 		if(root->parent)
 		{
-			return syntax_prototype_of_type(root->parent, root, target);
+			return syntax_subset_of_reference_type(root->parent, root, target);
 		}
 	}
 
 	if (root->parent)
 	{
-		return syntax_prototype_of_type(root->parent, root, target);
+		return syntax_subset_of_reference_type(root->parent, root, target);
 	}
 
 	return NULL;
 }
 
-
-
-
-static int32_t
-syntax_prototype_of_parameter_type(symbol_t *refrence, symbol_t *target)
-{
-	uint64_t refrence_counter = 0;
-	symbol_t *a;
-	for (a = refrence->begin; a != refrence->end; a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE))
-		{
-			refrence_counter += 1;
-			int32_t founded = 0;
-			uint64_t target_counter = 0;
-			symbol_t *b;
-			for (b = target->begin; b != target->end; b = b->next)
-			{
-				if (symbol_check_flag(b, SYMBOL_FLAG_TYPE))
-				{
-					target_counter += 1;
-					if(target_counter < refrence_counter)
-					{
-						continue;
-					}
-					founded = 1;
-					if(!syntax_prototype_subset_of_type(a, b))
-					{
-						return 0;
-					}
-					break;
-				}
-			}
-			if(!founded)
-			{
-				return 0;
-			}
-		}
-	}
-	return 1;
-}
-
-static int32_t
-syntax_prototype_parameter_is_ellipsis(symbol_t *refrence)
-{
-	symbol_t *a;
-	for (a = refrence->begin; a != refrence->end; a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
-		{
-			symbol_t *b;
-			for (b = a->begin; b != a->end; b = b->next)
-			{
-				if (symbol_check_flag(b, SYMBOL_FLAG_ELLIPSIS))
-				{
-					return 1;
-				}
-			}
-		}
-	}
-	return 0;
-}
-
-static int32_t
-syntax_prototype_of_array(symbol_t *refrence, symbol_t *target)
-{
-	if (symbol_check_flag(target, SYMBOL_FLAG_ITEM))
-	{
-		symbol_t *a;
-		for (a = target->begin; a != target->end; a = a->next)
-		{
-			if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
-			{
-				if(syntax_prototype_subset_of_type(refrence, a))
-				{
-					return 1;
-				}
-			}
-		}
-	}
-
-	return 0;
-}
-
-static int32_t
-syntax_prototype_of_ellipsis(symbol_t *refrence, symbol_t *target)
-{
-	symbol_t *a;
-	a = syntax_extract_by_flag(refrence, SYMBOL_FLAG_TYPE);
-	if (!a)
-	{
-		return 0;
-	}
-
-	symbol_t *b;
-	b = syntax_extract_by_flag(target, SYMBOL_FLAG_TYPE);
-	if (!b)
-	{
-		return 0;
-	}
-
-	return syntax_prototype_of_array(a, b);
-}
-
-static int32_t
-syntax_prototype_of_parameter(symbol_t *refrence, symbol_t *target)
-{
-	uint64_t refrence_parameter_counter = 0;  
-	symbol_t *a;
-	for (a = refrence->begin; a != refrence->end; a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_PARAMETER))
-		{
-			if (syntax_symbol_contain_flag(a, SYMBOL_FLAG_VALUE))
-			{
-				continue;
-			}
-
-			refrence_parameter_counter += 1;
-			int32_t target_founded = 0;
-			uint64_t target_parameter_counter = 0;
-			symbol_t *b;
-			for (b = target->begin; b != target->end; b = b->next)
-			{
-				if (symbol_check_flag(b, SYMBOL_FLAG_PARAMETER))
-				{
-					target_parameter_counter += 1;
-					if (target_parameter_counter < refrence_parameter_counter)
-					{
-						continue;
-					}
-					target_founded = 1;
-
-					if (syntax_prototype_parameter_is_ellipsis(a))
-					{
-						if (!syntax_prototype_of_ellipsis(b, a))
-						{
-							goto not_subset;
-						}
-						goto subset;
-					}
-
-					if (syntax_prototype_parameter_is_ellipsis(b))
-					{
-						if (!syntax_prototype_of_ellipsis(a, b))
-						{
-							goto not_subset;
-						}
-						goto subset;
-					}
-
-					if (!syntax_prototype_of_parameter_type(a, b))
-					{
-						goto not_subset;
-					}
-					break;
-				}
-			}
-			
-			if (!target_founded)
-			{
-				if (syntax_symbol_contain_flag(a, SYMBOL_FLAG_VALUE))
-				{
-					continue;
-				}
-				goto not_subset;
-			}
-		}
-	}
-
-	uint64_t target_parameter_counter = 0;
-	for (a = target->begin; a != target->end; a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_PARAMETER))
-		{
-			target_parameter_counter += 1;
-			if (target_parameter_counter <= refrence_parameter_counter)
-			{
-				continue;
-			}
-
-			if (syntax_prototype_parameter_is_ellipsis(a))
-			{
-				goto subset;
-			}
-			
-			if (!syntax_symbol_contain_flag(a, SYMBOL_FLAG_VALUE))
-			{
-				goto not_subset;
-			}
-		}
-	}
-
-	subset:
-	return 1;
-
-	not_subset:
-	return 0;
-}
-
-static int32_t
-syntax_method_exist_in_set(graph_t *graph, symbol_t *current, symbol_t *refrence, symbol_t *target_refrence, symbol_t *target)
-{
-	int32_t result = 1;
-	symbol_t *a;
-	for(a = current->begin; a != current->end; a = a->next)
-	{
-		if(symbol_check_flag(a, SYMBOL_FLAG_ID))
-		{
-			if(a->id == target->id)
-			{
-				break;
-			}
-			if(syntax_subset_compare_id(a, target))
-			{
-				result = syntax_prototype_subset_of_type_parameter(refrence, target_refrence);
-				if(result)
-				{
-					result = syntax_prototype_of_parameter(refrence, target_refrence);
-					if(result)
-					{
-						goto error;
-					}
-					result = syntax_prototype_of_parameter(target_refrence, refrence);
-					if(result)
-					{
-						goto error;
-					}
-				}
-				return 1;
-
-				error:
-				syntax_error(graph, a, "duplicated symbol(%d) in %lld:%lld\n", a->flags, 
-					target->declaration->position.line, target->declaration->position.column);
-				return 0;
-			}
-		}
-	}
-	return 1;
-}
-
-static int32_t
-syntax_method_exist_in_flag(graph_t *graph, symbol_t *current, symbol_t *refrence, symbol_t *target_refrence, symbol_t *target)
-{
-	symbol_t *a;
-	for(a = current->begin; a != current->end; a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
-		{
-			return syntax_method_exist_in_set(graph, a, refrence, target_refrence, target);
-		}
-	}
-	return 1;
-}
-
-static int32_t
-syntax_duplicated_by_parameter(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *refrence, symbol_t *target)
-{
-	int32_t result = 1;
-	symbol_t *a;
-	for (a = root->begin; a && (a != subroot) && (a != root->end); a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
-		{
-			result = syntax_method_exist_in_flag(graph, a, refrence, a, target);
-			if(!result)
-			{
-				return 0;
-			}
-		}
-	}
-	return 1;
-}
 
 
 static symbol_t *
@@ -1555,23 +1263,9 @@ syntax_locate(symbol_t *root, symbol_t *subroot, symbol_t *target)
 
 
 
-static int32_t
-syntax_prototype_of_ellipsis_by_type(symbol_t *refrence, symbol_t *target)
-{
-	symbol_t *type;
-	type = syntax_extract_by_flag(target, SYMBOL_FLAG_TYPE);
-	if (!type)
-	{
-		return 0;
-	}
-
-	return syntax_prototype_of_array(refrence, type);
-}
-
-
 
 static symbol_t *
-syntax_find_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target, symbol_t *arguments);
+syntax_find_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments);
 
 static int32_t
 syntax_equivalent_of_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *type1, symbol_t *type2);
@@ -1593,10 +1287,10 @@ syntax_subset_of_type_by_heritage(graph_t *graph, symbol_t *root, symbol_t *subr
 			type = syntax_extract_by_flag(a, SYMBOL_FLAG_TYPE);
 
 			symbol_t *origin;
-			origin = syntax_find_type(graph, type2, a, type, NULL);
+			origin = syntax_find_type(graph, type2, a, type2, type, NULL);
 			if (!origin)
 			{
-				syntax_error(graph, type, "refrence of type not found");
+				syntax_error(graph, type, "reference of type not found");
 				return 0;
 			}
 
@@ -1652,10 +1346,10 @@ syntax_subset_of_type_by_component(graph_t *graph, symbol_t *root, symbol_t *sub
 	}
 
 	symbol_t *origin;
-	origin = syntax_find_type(graph, root, subroot, type2, NULL);
+	origin = syntax_find_type(graph, root, subroot, root, type2, NULL);
 	if (!origin)
 	{
-		syntax_error(graph, type2, "refrence of type not found");
+		syntax_error(graph, type2, "reference of type not found");
 		return 0;
 	}
 
@@ -1718,7 +1412,7 @@ syntax_equivalent_of_type(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 
 
 static int32_t
-syntax_match_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *refrence, symbol_t *target)
+syntax_match_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *reference, symbol_t *target)
 {
 	uint64_t ref_counter = 0;
 	uint64_t tar_counter = 0;
@@ -1726,7 +1420,7 @@ syntax_match_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 	int32_t use_found = 0;
 
 	symbol_t *a;
-	for (a = refrence->begin;a != refrence->end;a = a->next)
+	for (a = reference->begin;a != reference->end;a = a->next)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE_PARAMETER))
 		{
@@ -1749,18 +1443,18 @@ syntax_match_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 					}
 
 					symbol_t *origin;
-					origin = syntax_find_type(graph, target, b, syntax_extract(b), NULL);
+					origin = syntax_find_type(graph, target, b, target, syntax_extract(b), NULL);
 					if (!origin)
 					{
-						syntax_error(graph, b, "refrence of type not found");
+						syntax_error(graph, b, "reference of type not found");
 						return 0;
 					}
 
-					if (syntax_equivalent_of_type(graph, refrence, a, origin, a))
+					if (syntax_equivalent_of_type(graph, reference, a, origin, a))
 					{
 						break;
 					}
-					syntax_error(graph, b, "refrence of type not found");
+					syntax_error(graph, b, "reference of type not found");
 					return 0;
 				}
 			}
@@ -1797,7 +1491,7 @@ syntax_match_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 }
 
 static symbol_t *
-syntax_find_type_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target, symbol_t *arguments)
+syntax_find_type_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments)
 {
 	symbol_t *a;
 	for (a = root->begin;(a != root->end);a = a->next)
@@ -1851,7 +1545,7 @@ syntax_find_type_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result && (result->id != target->id))
 			{
-				if (symbol_check_flag(root, SYMBOL_FLAG_CLASS))
+				if (symbol_check_flag(root, SYMBOL_FLAG_CLASS) && (root != applicant))
 				{
 					node_t *node = a->declaration;
 					node_class_t *node_class = (node_class_t *)node->value;
@@ -1878,11 +1572,11 @@ syntax_find_type_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result && (result->id != target->id))
 			{
-				if (symbol_check_flag(root, SYMBOL_FLAG_CLASS))
+				if (symbol_check_flag(root, SYMBOL_FLAG_CLASS) && (root != applicant))
 				{
 					node_t *node = a->declaration;
-					node_class_t *node_class = (node_class_t *)node->value;
-					if ((node_class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					node_type_t *node_type = (node_type_t *)node->value;
+					if ((node_type->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
 					{
 						continue;
 					}
@@ -1904,7 +1598,7 @@ syntax_find_type_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 	if(root->parent)
 	{
 		symbol_t *result;
-		result = syntax_find_type_by_id(graph, root->parent, root, target, arguments);
+		result = syntax_find_type_by_id(graph, root->parent, root, applicant, target, arguments);
 		if(result)
 		{
 			return result;
@@ -1921,7 +1615,7 @@ syntax_find_type_by_array(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 	direct = syntax_extract_by_flag(target, SYMBOL_FLAG_NAME);
 
 	symbol_t *origin;
-	origin = syntax_find_type(graph, root, subroot, direct, NULL);
+	origin = syntax_find_type(graph, root, subroot, root, direct, NULL);
 	if(!origin)
 	{
 		syntax_error(graph, direct, "direct type not found in array type, symbol(%lld)", direct->flags);
@@ -1949,7 +1643,7 @@ syntax_find_type_by_tuple(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 	for (a = target->begin;(a != target->end);a = a->next)
 	{
 		symbol_t *origin;
-		origin = syntax_find_type(graph, target, a, a, NULL);
+		origin = syntax_find_type(graph, target, a, target, a, NULL);
 		if(!origin)
 		{
 			syntax_error(graph, a, "type not found in tuple type, symbol(%lld)", a->flags);
@@ -1974,7 +1668,7 @@ syntax_find_type_by_object(graph_t *graph, symbol_t *root, symbol_t *subroot, sy
 		}
 
 		symbol_t *origin;
-		origin = syntax_find_type(graph, target, a, value, NULL);
+		origin = syntax_find_type(graph, target, a, target, value, NULL);
 		if(!origin)
 		{
 			syntax_error(graph, a, "type not found in tuple type, symbol(%lld)", a->flags);
@@ -1991,7 +1685,7 @@ syntax_find_type_by_composite(graph_t *graph, symbol_t *root, symbol_t *subroot,
 	left = syntax_extract_by_flag(target, SYMBOL_FLAG_NAME);
 
 	symbol_t *origin;
-	origin = syntax_find_type(graph, root, subroot, left, target);
+	origin = syntax_find_type(graph, root, subroot, root, left, target);
 
 	if(!origin)
 	{
@@ -2009,7 +1703,7 @@ syntax_find_type_by_attribute(graph_t *graph, symbol_t *root, symbol_t *subroot,
 	left = syntax_extract_by_flag(target, SYMBOL_FLAG_LEFT);
 
 	symbol_t *origin;
-	origin = syntax_find_type(graph, root, subroot, left, NULL);
+	origin = syntax_find_type(graph, root, subroot, root, left, NULL);
 	if (!origin)
 	{
 		syntax_error(graph, left, "lhs type not found in attribute type, symbol(%lld)", left->flags);
@@ -2020,7 +1714,7 @@ syntax_find_type_by_attribute(graph_t *graph, symbol_t *root, symbol_t *subroot,
 	right = syntax_extract_by_flag(target, SYMBOL_FLAG_RIGHT);
 
 	symbol_t *result;
-	result = syntax_find_type(graph, origin, origin->end, right, arguments);
+	result = syntax_find_type(graph, origin, origin->end, origin, right, arguments);
 	if (!result)
 	{
 		syntax_error(graph, right, "rhs type not found in attribute type, symbol(%lld)", right->flags);
@@ -2031,7 +1725,7 @@ syntax_find_type_by_attribute(graph_t *graph, symbol_t *root, symbol_t *subroot,
 }
 
 static symbol_t *
-syntax_find_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target, symbol_t *arguments)
+syntax_find_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments)
 {
 	if (symbol_check_flag(target, SYMBOL_FLAG_COMPOSITE))
 	{
@@ -2060,11 +1754,524 @@ syntax_find_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *ta
 
 	if (symbol_check_flag(target, SYMBOL_FLAG_ID))
 	{
-		return syntax_find_type_by_id(graph, root, subroot, target, arguments);
+		return syntax_find_type_by_id(graph, root, subroot, applicant, target, arguments);
 	}
 
 	return NULL;
 }
+
+
+
+static symbol_t *
+syntax_find_reference(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters);
+
+static symbol_t *
+syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters);
+
+static symbol_t *
+syntax_subset_of_above(symbol_t *root, symbol_t *applicant)
+{
+	if (root->id == applicant->id)
+	{
+		return root;
+	}
+
+	if(root->parent)
+	{
+		symbol_t *result;
+		result = syntax_subset_of_above(root->parent, applicant);
+		if(result)
+		{
+			return result;
+		}
+	}
+	return NULL;
+}
+
+static int32_t
+syntax_subset_of_ellipsis(symbol_t *reference)
+{
+	symbol_t *a;
+	for (a = reference->begin; a != reference->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
+		{
+			symbol_t *b;
+			for (b = a->begin; b != a->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_ELLIPSIS))
+				{
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+static int32_t
+syntax_match_parameters(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *reference, symbol_t *target)
+{
+	uint64_t ref_counter = 0;  
+	symbol_t *a;
+	for (a = reference->begin; a != reference->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_PARAMETER))
+		{
+			symbol_t *value;
+			value = syntax_extract_by_flag(a, SYMBOL_FLAG_VALUE);
+			if (value)
+			{
+				continue;
+			}
+
+			ref_counter += 1;
+			uint64_t tar_counter = 0;
+			symbol_t *b;
+			for (b = target->begin; b != target->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_PARAMETER))
+				{
+					tar_counter += 1;
+					if (tar_counter < ref_counter)
+					{
+						continue;
+					}
+
+					if (syntax_subset_of_ellipsis(b))
+					{
+						return 1;
+					}
+
+					if (!syntax_equivalent_of_type(graph, target, b, a, b))
+					{
+						return 0;
+					}
+					break;
+				}
+			}
+			
+			if (tar_counter != ref_counter)
+			{
+				symbol_t *value;
+				value = syntax_extract_by_flag(a, SYMBOL_FLAG_VALUE);
+				if (value) {
+					continue;
+				}
+				return 0;
+			}
+		}
+	}
+
+	uint64_t tar_counter = 0;
+	for (a = target->begin; a != target->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_PARAMETER))
+		{
+			tar_counter += 1;
+			if (tar_counter <= ref_counter)
+			{
+				continue;
+			}
+
+			if (syntax_subset_of_ellipsis(a))
+			{
+				return 1;
+			}
+			
+			symbol_t *value;
+			value = syntax_extract_by_flag(a, SYMBOL_FLAG_VALUE);
+			if (!value) {
+				return 0;
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_match_fields(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *reference, symbol_t *target)
+{
+	uint64_t ref_counter = 0;
+	uint64_t tar_counter = 0;
+
+	symbol_t *a;
+	for (a = reference->begin; a != reference->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
+		{
+			symbol_t *ref_type;
+			ref_type = syntax_extract_by_flag(a, SYMBOL_FLAG_TYPE);
+
+			symbol_t *ref_origin;
+			ref_origin = syntax_find_type(graph, reference, a, reference, ref_type, NULL);
+			if (ref_origin)
+			{
+				syntax_error(graph, a, "reference of type not found");
+				return 0;
+			}
+
+			ref_counter += 1;
+			symbol_t *b;
+			for (b = target->begin; b != target->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_FIELD))
+				{
+					symbol_t *tar_type;
+					tar_type = syntax_extract_by_flag(b, SYMBOL_FLAG_TYPE);
+
+					symbol_t *tar_origin;
+					tar_origin = syntax_find_type(graph, target, a, target, tar_type, NULL);
+					if (tar_origin)
+					{
+						syntax_error(graph, a, "reference of type not found");
+						return 0;
+					}
+
+					if (syntax_equivalent_of_type(graph, target, b, ref_origin, tar_origin))
+					{
+						return 0;
+					}
+					tar_counter += 1;
+					break;
+				}
+			}
+		}
+	}
+	
+	symbol_t *b;
+	for (b = target->begin; b != target->end; b = b->next)
+	{
+		if (symbol_check_flag(b, SYMBOL_FLAG_FIELD))
+		{
+			symbol_t *tar_type;
+			tar_type = syntax_extract_by_flag(b, SYMBOL_FLAG_TYPE);
+
+			symbol_t *tar_origin;
+			tar_origin = syntax_find_type(graph, target, a, target, tar_type, NULL);
+			if (tar_origin)
+			{
+				syntax_error(graph, a, "reference of type not found");
+				return 0;
+			}
+
+			if (syntax_equivalent_of_type(graph, target, b, reference, tar_origin))
+			{
+				return 0;
+			}
+			tar_counter += 1;
+			break;
+		}
+	}
+
+	if (ref_counter != tar_counter)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static symbol_t *
+syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters)
+{
+	symbol_t *a;
+	for (a = root->begin;(a != root->end);a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				symbol_t *type;
+				type = syntax_extract_by_flag(target, SYMBOL_FLAG_TYPE);
+
+				return syntax_find_type(graph, root, a, root, type, NULL);
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_FIELD))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				symbol_t *type;
+				type = syntax_extract_by_flag(target, SYMBOL_FLAG_TYPE);
+
+				return syntax_find_type(graph, root, a, root, type, NULL);
+			}
+		}
+
+		if (!symbol_check_flag(root, SYMBOL_FLAG_CLASS) && !symbol_check_flag(root, SYMBOL_FLAG_MODULE))
+		{
+			if (a == subroot)
+			{
+				break;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_IMPORT))
+		{
+			symbol_t *b;
+			for (b = a->begin; b != a->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_FIELD))
+				{
+					symbol_t *result;
+					result = syntax_subset_exist_in_flag(b, target, SYMBOL_FLAG_NAME);
+					if (result && (result->id != target->id))
+					{
+						if (!!arguments)
+						{
+							if (syntax_match_composite(graph, root, subroot, b, arguments))
+							{
+								return b;
+							}
+							continue;
+						}
+						return b;
+					}
+				}
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (symbol_check_flag(root, SYMBOL_FLAG_CLASS) && (root != applicant))
+				{
+					node_t *node = a->declaration;
+					node_class_t *node_class = (node_class_t *)node->value;
+					if ((node_class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
+				}
+				if (!!arguments)
+				{
+					if (syntax_match_composite(graph, root, subroot, a, arguments))
+					{
+						return a;
+					}
+					continue;
+				}
+				return a;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (symbol_check_flag(root, SYMBOL_FLAG_MODULE) && (root != applicant))
+				{
+					node_t *node = a->declaration;
+					node_type_t *node_class = (node_type_t *)node->value;
+					if ((node_class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
+				}
+				if (!!arguments)
+				{
+					if (syntax_match_composite(graph, root, subroot, a, arguments))
+					{
+						return a;
+					}
+					continue;
+				}
+				return a;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_FUNCTION))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (symbol_check_flag(root, SYMBOL_FLAG_MODULE) && (root != applicant))
+				{
+					node_t *node = a->declaration;
+					node_func_t *node_func = (node_func_t *)node->value;
+					if ((node_func->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
+				}
+
+				symbol_t *field;
+				field = syntax_extract_by_flag(a, SYMBOL_FLAG_FIELD);
+				if (!!field)
+				{
+					continue;
+				}
+
+				if (!!arguments)
+				{
+					if (!syntax_match_composite(graph, root, subroot, a, arguments))
+					{
+						continue;
+					}
+				}
+
+				if (!!parameters)
+				{
+					if (!syntax_match_parameters(graph, root, subroot, a, parameters))
+					{
+						continue;
+					}
+				}
+				
+				return a;
+			}
+		}
+
+	}
+
+	if (symbol_check_flag(root, SYMBOL_FLAG_TYPE))
+	{
+		symbol_t *parent = root->parent;
+		symbol_t *a;
+		for (a = parent->begin;(a != parent->end);a = a->next)
+		{
+			if (a == subroot)
+			{
+				break;
+			}
+
+			if (symbol_check_flag(a, SYMBOL_FLAG_FUNCTION))
+			{
+				symbol_t *result;
+				result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+				if (result && (result->id != target->id))
+				{
+					if (!syntax_subset_of_above(root, applicant))
+					{
+						node_t *node = a->declaration;
+						node_func_t *node_func = (node_func_t *)node->value;
+						if ((node_func->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+						{
+							continue;
+						}
+					}
+
+					if (!syntax_match_fields(graph, root, subroot, root, a))
+					{
+						continue;
+					}
+
+					if (!!arguments)
+					{
+						if (!syntax_match_composite(graph, root, subroot, a, arguments))
+						{
+							continue;
+						}
+					}
+
+					if (!!parameters)
+					{
+						if (!syntax_match_parameters(graph, root, subroot, a, parameters))
+						{
+							continue;
+						}
+					}
+					
+					return a;
+				}
+			}
+		}
+	}
+	
+	if(root->parent)
+	{
+		symbol_t *result;
+		result = syntax_find_reference_by_id(graph, root->parent, root, applicant, target, arguments, parameters);
+		if(result)
+		{
+			return result;
+		}
+	}
+
+	return NULL;
+}
+
+static symbol_t *
+syntax_find_reference_by_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target)
+{
+	symbol_t *left;
+	left = syntax_extract_by_flag(target, SYMBOL_FLAG_NAME);
+
+	symbol_t *origin;
+	origin = syntax_find_reference(graph, root, subroot, root, left, target, NULL);
+
+	if(!origin)
+	{
+		syntax_error(graph, left, "lhs type not found in composite type, symbol(%lld)", left->flags);
+		return NULL;
+	}
+
+	return origin;
+}
+
+static symbol_t *
+syntax_find_reference_by_attribute(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target, symbol_t *arguments, symbol_t *parameters)
+{
+	symbol_t *left;
+	left = syntax_extract_by_flag(target, SYMBOL_FLAG_LEFT);
+
+	symbol_t *origin;
+	origin = syntax_find_reference(graph, root, subroot, root, left, NULL, NULL);
+	if (!origin)
+	{
+		syntax_error(graph, left, "lhs type not found in attribute type, symbol(%lld)", left->flags);
+		return NULL;
+	}
+
+	symbol_t *right;
+	right = syntax_extract_by_flag(target, SYMBOL_FLAG_RIGHT);
+
+	symbol_t *result;
+	result = syntax_find_reference(graph, origin, origin->end, origin, right, arguments, parameters);
+	if (!result)
+	{
+		syntax_error(graph, right, "rhs type not found in attribute type, symbol(%lld)", right->flags);
+		return NULL;
+	}
+
+	return result;
+}
+
+static symbol_t *
+syntax_find_reference(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters)
+{
+	if (symbol_check_flag(target, SYMBOL_FLAG_COMPOSITE))
+	{
+		return syntax_find_reference_by_composite(graph, root, subroot, target);
+	}
+
+	if (symbol_check_flag(target, SYMBOL_FLAG_ATTR))
+	{
+		return syntax_find_reference_by_attribute(graph, root, subroot, target, arguments, parameters);
+	}
+
+	if (symbol_check_flag(target, SYMBOL_FLAG_ID))
+	{
+		return syntax_find_reference_by_id(graph, root, subroot, applicant, target, arguments, parameters);
+	}
+
+	return NULL;
+}
+
+
 
 
 
@@ -3352,7 +3559,7 @@ syntax_var(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 			for(b = a->begin; b != a->end; b = b->next)
 			{
 				symbol_t *result;
-				result = syntax_find_type(graph, a, b, b, NULL);
+				result = syntax_find_type(graph, a, b, a, b, NULL);
 				if (!result)
 				{
 					return NULL;
@@ -3860,10 +4067,11 @@ syntax_method(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curre
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
-			int32_t result;
-			result = syntax_duplicated_in_set_by_parameter(graph, root, subroot, a);
-			if (!result)
+			symbol_t *result;
+			result = syntax_find_reference(graph, root, subroot, root, syntax_extract(a), NULL, NULL);
+			if (result)
 			{
+				syntax_error(graph, a, "duplicated method");
 				return NULL;
 			}
 		}
@@ -4100,7 +4308,7 @@ syntax_field(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curren
 			for(b = a->begin; b != a->end; b = b->next)
 			{
 				symbol_t *result;
-				result = syntax_find_type(graph, a, b, b, NULL);
+				result = syntax_find_type(graph, a, b, a, b, NULL);
 				if (!result)
 				{
 					return NULL;
@@ -4133,7 +4341,7 @@ syntax_parameter(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cu
 			for(b = a->begin; b != a->end; b = b->next)
 			{
 				symbol_t *result;
-				result = syntax_find_type(graph, a, b, b, NULL);
+				result = syntax_find_type(graph, a, b, a, b, NULL);
 				if (!result)
 				{
 					return NULL;
