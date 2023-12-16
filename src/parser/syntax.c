@@ -1265,7 +1265,7 @@ syntax_locate(symbol_t *root, symbol_t *subroot, symbol_t *target)
 
 
 static symbol_t *
-syntax_find_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments);
+syntax_find_type_primary(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments);
 
 static int32_t
 syntax_equivalent_of_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *type1, symbol_t *type2);
@@ -1287,7 +1287,7 @@ syntax_subset_of_type_by_heritage(graph_t *graph, symbol_t *root, symbol_t *subr
 			type = syntax_extract_by_flag(a, SYMBOL_FLAG_TYPE);
 
 			symbol_t *origin;
-			origin = syntax_find_type(graph, type2, a, type2, type, NULL);
+			origin = syntax_find_type_primary(graph, type2, a, type2, type, NULL);
 			if (!origin)
 			{
 				syntax_error(graph, type, "reference of type not found");
@@ -1346,7 +1346,7 @@ syntax_subset_of_type_by_component(graph_t *graph, symbol_t *root, symbol_t *sub
 	}
 
 	symbol_t *origin;
-	origin = syntax_find_type(graph, root, subroot, root, type2, NULL);
+	origin = syntax_find_type_primary(graph, root, subroot, root, type2, NULL);
 	if (!origin)
 	{
 		syntax_error(graph, type2, "reference of type not found");
@@ -1443,7 +1443,7 @@ syntax_match_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 					}
 
 					symbol_t *origin;
-					origin = syntax_find_type(graph, target, b, target, syntax_extract(b), NULL);
+					origin = syntax_find_type_primary(graph, target, b, target, syntax_extract(b), NULL);
 					if (!origin)
 					{
 						syntax_error(graph, b, "reference of type not found");
@@ -1615,7 +1615,7 @@ syntax_find_type_by_array(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 	direct = syntax_extract_by_flag(target, SYMBOL_FLAG_NAME);
 
 	symbol_t *origin;
-	origin = syntax_find_type(graph, root, subroot, root, direct, NULL);
+	origin = syntax_find_type_primary(graph, root, subroot, root, direct, NULL);
 	if(!origin)
 	{
 		syntax_error(graph, direct, "direct type not found in array type, symbol(%lld)", direct->flags);
@@ -1643,7 +1643,7 @@ syntax_find_type_by_tuple(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 	for (a = target->begin;(a != target->end);a = a->next)
 	{
 		symbol_t *origin;
-		origin = syntax_find_type(graph, target, a, target, a, NULL);
+		origin = syntax_find_type_primary(graph, target, a, target, a, NULL);
 		if(!origin)
 		{
 			syntax_error(graph, a, "type not found in tuple type, symbol(%lld)", a->flags);
@@ -1668,7 +1668,7 @@ syntax_find_type_by_object(graph_t *graph, symbol_t *root, symbol_t *subroot, sy
 		}
 
 		symbol_t *origin;
-		origin = syntax_find_type(graph, target, a, target, value, NULL);
+		origin = syntax_find_type_primary(graph, target, a, target, value, NULL);
 		if(!origin)
 		{
 			syntax_error(graph, a, "type not found in tuple type, symbol(%lld)", a->flags);
@@ -1685,7 +1685,7 @@ syntax_find_type_by_composite(graph_t *graph, symbol_t *root, symbol_t *subroot,
 	left = syntax_extract_by_flag(target, SYMBOL_FLAG_NAME);
 
 	symbol_t *origin;
-	origin = syntax_find_type(graph, root, subroot, root, left, target);
+	origin = syntax_find_type_primary(graph, root, subroot, root, left, target);
 
 	if(!origin)
 	{
@@ -1703,7 +1703,7 @@ syntax_find_type_by_attribute(graph_t *graph, symbol_t *root, symbol_t *subroot,
 	left = syntax_extract_by_flag(target, SYMBOL_FLAG_LEFT);
 
 	symbol_t *origin;
-	origin = syntax_find_type(graph, root, subroot, root, left, NULL);
+	origin = syntax_find_type_primary(graph, root, subroot, root, left, NULL);
 	if (!origin)
 	{
 		syntax_error(graph, left, "lhs type not found in attribute type, symbol(%lld)", left->flags);
@@ -1714,7 +1714,7 @@ syntax_find_type_by_attribute(graph_t *graph, symbol_t *root, symbol_t *subroot,
 	right = syntax_extract_by_flag(target, SYMBOL_FLAG_RIGHT);
 
 	symbol_t *result;
-	result = syntax_find_type(graph, origin, origin->end, origin, right, arguments);
+	result = syntax_find_type_primary(graph, origin, origin->end, origin, right, arguments);
 	if (!result)
 	{
 		syntax_error(graph, right, "rhs type not found in attribute type, symbol(%lld)", right->flags);
@@ -1725,7 +1725,7 @@ syntax_find_type_by_attribute(graph_t *graph, symbol_t *root, symbol_t *subroot,
 }
 
 static symbol_t *
-syntax_find_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments)
+syntax_find_type_primary(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments)
 {
 	if (symbol_check_flag(target, SYMBOL_FLAG_COMPOSITE))
 	{
@@ -1760,10 +1760,17 @@ syntax_find_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *ap
 	return NULL;
 }
 
+static symbol_t *
+syntax_find_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target)
+{
+	return syntax_find_type_primary(graph, root, subroot, applicant, target, NULL);
+}
+
+
 
 
 static symbol_t *
-syntax_find_reference(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters);
+syntax_find_reference_primary(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters);
 
 static symbol_t *
 syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters);
@@ -1905,7 +1912,7 @@ syntax_match_fields(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t 
 			ref_type = syntax_extract_by_flag(a, SYMBOL_FLAG_TYPE);
 
 			symbol_t *ref_origin;
-			ref_origin = syntax_find_type(graph, reference, a, reference, ref_type, NULL);
+			ref_origin = syntax_find_type_primary(graph, reference, a, reference, ref_type, NULL);
 			if (ref_origin)
 			{
 				syntax_error(graph, a, "reference of type not found");
@@ -1922,7 +1929,7 @@ syntax_match_fields(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t 
 					tar_type = syntax_extract_by_flag(b, SYMBOL_FLAG_TYPE);
 
 					symbol_t *tar_origin;
-					tar_origin = syntax_find_type(graph, target, a, target, tar_type, NULL);
+					tar_origin = syntax_find_type_primary(graph, target, a, target, tar_type, NULL);
 					if (tar_origin)
 					{
 						syntax_error(graph, a, "reference of type not found");
@@ -1949,7 +1956,7 @@ syntax_match_fields(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t 
 			tar_type = syntax_extract_by_flag(b, SYMBOL_FLAG_TYPE);
 
 			symbol_t *tar_origin;
-			tar_origin = syntax_find_type(graph, target, a, target, tar_type, NULL);
+			tar_origin = syntax_find_type_primary(graph, target, a, target, tar_type, NULL);
 			if (tar_origin)
 			{
 				syntax_error(graph, a, "reference of type not found");
@@ -1988,7 +1995,7 @@ syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 				symbol_t *type;
 				type = syntax_extract_by_flag(target, SYMBOL_FLAG_TYPE);
 
-				return syntax_find_type(graph, root, a, root, type, NULL);
+				return syntax_find_type_primary(graph, root, a, root, type, NULL);
 			}
 		}
 
@@ -2001,7 +2008,76 @@ syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 				symbol_t *type;
 				type = syntax_extract_by_flag(target, SYMBOL_FLAG_TYPE);
 
-				return syntax_find_type(graph, root, a, root, type, NULL);
+				return syntax_find_type_primary(graph, root, a, root, type, NULL);
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_VAR))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (!syntax_subset_of_above(root, applicant))
+				{
+					node_t *node = a->declaration;
+					node_class_t *node_class = (node_class_t *)node->value;
+					if ((node_class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
+				}
+				return a;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_DEFINE))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				return a;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_IF))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				return a;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_FOR))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				return a;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_FORIN))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				return a;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_PARAMETER))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				return a;
 			}
 		}
 
@@ -2044,7 +2120,7 @@ syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result && (result->id != target->id))
 			{
-				if (symbol_check_flag(root, SYMBOL_FLAG_CLASS) && (root != applicant))
+				if (!syntax_subset_of_above(root, applicant))
 				{
 					node_t *node = a->declaration;
 					node_class_t *node_class = (node_class_t *)node->value;
@@ -2060,6 +2136,44 @@ syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 						return a;
 					}
 					continue;
+				}
+				return a;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (!syntax_subset_of_above(root, applicant))
+				{
+					node_t *node = a->declaration;
+					node_enum_t *node_enum = (node_enum_t *)node->value;
+					if ((node_enum->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
+				}
+				return a;
+			}
+		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_PROPERTY))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (!syntax_subset_of_above(root, applicant))
+				{
+					node_t *node = a->declaration;
+					node_property_t *node_property = (node_property_t *)node->value;
+					if ((node_property->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
 				}
 				return a;
 			}
@@ -2092,13 +2206,13 @@ syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 			}
 		}
 
-		if (symbol_check_flag(a, SYMBOL_FLAG_FUNCTION))
+		if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
 		{
 			symbol_t *result;
 			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result && (result->id != target->id))
 			{
-				if (symbol_check_flag(root, SYMBOL_FLAG_MODULE) && (root != applicant))
+				if (!syntax_subset_of_above(root, applicant))
 				{
 					node_t *node = a->declaration;
 					node_func_t *node_func = (node_func_t *)node->value;
@@ -2135,6 +2249,48 @@ syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 			}
 		}
 
+		if (symbol_check_flag(a, SYMBOL_FLAG_FUNCTION))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (!syntax_subset_of_above(root, applicant))
+				{
+					node_t *node = a->declaration;
+					node_func_t *node_func = (node_func_t *)node->value;
+					if ((node_func->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
+				}
+
+				symbol_t *field;
+				field = syntax_extract_by_flag(a, SYMBOL_FLAG_FIELD);
+				if (!!field)
+				{
+					continue;
+				}
+
+				if (!!arguments)
+				{
+					if (!syntax_match_composite(graph, root, subroot, a, arguments))
+					{
+						continue;
+					}
+				}
+
+				if (!!parameters)
+				{
+					if (!syntax_match_parameters(graph, root, subroot, a, parameters))
+					{
+						continue;
+					}
+				}
+				
+				return a;
+			}
+		}
 	}
 
 	if (symbol_check_flag(root, SYMBOL_FLAG_TYPE))
@@ -2211,7 +2367,7 @@ syntax_find_reference_by_composite(graph_t *graph, symbol_t *root, symbol_t *sub
 	left = syntax_extract_by_flag(target, SYMBOL_FLAG_NAME);
 
 	symbol_t *origin;
-	origin = syntax_find_reference(graph, root, subroot, root, left, target, NULL);
+	origin = syntax_find_reference_primary(graph, root, subroot, root, left, target, NULL);
 
 	if(!origin)
 	{
@@ -2223,13 +2379,31 @@ syntax_find_reference_by_composite(graph_t *graph, symbol_t *root, symbol_t *sub
 }
 
 static symbol_t *
-syntax_find_reference_by_attribute(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target, symbol_t *arguments, symbol_t *parameters)
+syntax_find_reference_by_call(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target)
+{
+	symbol_t *left;
+	left = syntax_extract_by_flag(target, SYMBOL_FLAG_NAME);
+
+	symbol_t *origin;
+	origin = syntax_find_reference_primary(graph, root, subroot, root, left, NULL, target);
+
+	if(!origin)
+	{
+		syntax_error(graph, left, "lhs type not found in callable type, symbol(%lld)", left->flags);
+		return NULL;
+	}
+
+	return origin;
+}
+
+static symbol_t *
+syntax_find_reference_by_attribute(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target, symbol_t *arguments)
 {
 	symbol_t *left;
 	left = syntax_extract_by_flag(target, SYMBOL_FLAG_LEFT);
 
 	symbol_t *origin;
-	origin = syntax_find_reference(graph, root, subroot, root, left, NULL, NULL);
+	origin = syntax_find_reference_primary(graph, root, subroot, root, left, NULL, NULL);
 	if (!origin)
 	{
 		syntax_error(graph, left, "lhs type not found in attribute type, symbol(%lld)", left->flags);
@@ -2240,7 +2414,7 @@ syntax_find_reference_by_attribute(graph_t *graph, symbol_t *root, symbol_t *sub
 	right = syntax_extract_by_flag(target, SYMBOL_FLAG_RIGHT);
 
 	symbol_t *result;
-	result = syntax_find_reference(graph, origin, origin->end, origin, right, arguments, parameters);
+	result = syntax_find_reference_primary(graph, origin, origin->end, origin, right, arguments, NULL);
 	if (!result)
 	{
 		syntax_error(graph, right, "rhs type not found in attribute type, symbol(%lld)", right->flags);
@@ -2251,16 +2425,21 @@ syntax_find_reference_by_attribute(graph_t *graph, symbol_t *root, symbol_t *sub
 }
 
 static symbol_t *
-syntax_find_reference(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters)
+syntax_find_reference_primary(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters)
 {
 	if (symbol_check_flag(target, SYMBOL_FLAG_COMPOSITE))
 	{
 		return syntax_find_reference_by_composite(graph, root, subroot, target);
 	}
 
+	if (symbol_check_flag(target, SYMBOL_FLAG_CALL))
+	{
+		return syntax_find_reference_by_call(graph, root, subroot, target);
+	}
+
 	if (symbol_check_flag(target, SYMBOL_FLAG_ATTR))
 	{
-		return syntax_find_reference_by_attribute(graph, root, subroot, target, arguments, parameters);
+		return syntax_find_reference_by_attribute(graph, root, subroot, target, arguments);
 	}
 
 	if (symbol_check_flag(target, SYMBOL_FLAG_ID))
@@ -2271,7 +2450,11 @@ syntax_find_reference(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_
 	return NULL;
 }
 
-
+static symbol_t *
+syntax_find_reference(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target)
+{
+	return syntax_find_reference_primary(graph, root, subroot, applicant, target, NULL, NULL);
+}
 
 
 
@@ -2296,14 +2479,7 @@ syntax_parameter(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cu
 static symbol_t *
 syntax_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 {
-	symbol_t *result;
-	result = syntax_locate(root, subroot, current);
-	if (!result)
-	{
-		syntax_error(graph, current, "symbol(%d) already not defined\n", current->flags);
-		return NULL;
-	}
-	return result;
+	return current;
 }
 
 static symbol_t *
@@ -2460,7 +2636,14 @@ syntax_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cu
 				}
 			}
 		}
-		
+	}
+
+	symbol_t *result;
+	result = syntax_find_reference(graph, root, subroot, root, current);
+	if (!result)
+	{
+		syntax_error(graph, current, "reference of composite not found");
+		return NULL;
 	}
 	return current;
 }
@@ -2484,7 +2667,7 @@ syntax_call(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current
 				}
 			}
 		}
-		else if (symbol_check_flag(a, SYMBOL_FLAG_ARGUMENT))
+		if (symbol_check_flag(a, SYMBOL_FLAG_ARGUMENT))
 		{
 			symbol_t *b;
 			for (b = a->begin;(b != a->end); b = b->next)
@@ -2497,6 +2680,13 @@ syntax_call(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current
 				}
 			}
 		}
+	}
+	symbol_t *result;
+	result = syntax_find_reference(graph, root, subroot, root, current);
+	if (!result)
+	{
+		syntax_error(graph, current, "reference of call not found");
+		return NULL;
 	}
 	return current;
 }
@@ -3559,7 +3749,7 @@ syntax_var(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 			for(b = a->begin; b != a->end; b = b->next)
 			{
 				symbol_t *result;
-				result = syntax_find_type(graph, a, b, a, b, NULL);
+				result = syntax_find_type(graph, a, b, a, b);
 				if (!result)
 				{
 					return NULL;
@@ -3569,11 +3759,15 @@ syntax_var(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
 
 		if (symbol_check_flag(a, SYMBOL_FLAG_VALUE))
 		{
-			symbol_t *result;
-			result = syntax_expression(graph, current, a, a);
-			if(!result)
+			symbol_t *b;
+			for(b = a->begin; b != a->end; b = b->next)
 			{
-				return NULL;
+				symbol_t *result;
+				result = syntax_expression(graph, a, b, b);
+				if(!result)
+				{
+					return NULL;
+				}
 			}
 		}
 	}
@@ -4031,6 +4225,20 @@ syntax_heritage(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cur
 				}
 			}
 		}
+
+		if (symbol_check_flag(a, SYMBOL_FLAG_TYPE))
+		{
+			symbol_t *b;
+			for(b = a->begin; b != a->end; b = b->next)
+			{
+				symbol_t *result;
+				result = syntax_find_type(graph, a, b, a, b);
+				if (!result)
+				{
+					return NULL;
+				}
+			}
+		}
 	}
 
 	return current;
@@ -4068,7 +4276,7 @@ syntax_method(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curre
 		if (symbol_check_flag(a, SYMBOL_FLAG_NAME))
 		{
 			symbol_t *result;
-			result = syntax_find_reference(graph, root, subroot, root, syntax_extract(a), NULL, NULL);
+			result = syntax_find_reference_primary(graph, root, subroot, root, syntax_extract(a), NULL, NULL);
 			if (result)
 			{
 				syntax_error(graph, a, "duplicated method");
@@ -4308,7 +4516,7 @@ syntax_field(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curren
 			for(b = a->begin; b != a->end; b = b->next)
 			{
 				symbol_t *result;
-				result = syntax_find_type(graph, a, b, a, b, NULL);
+				result = syntax_find_type(graph, a, b, a, b);
 				if (!result)
 				{
 					return NULL;
@@ -4341,7 +4549,7 @@ syntax_parameter(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cu
 			for(b = a->begin; b != a->end; b = b->next)
 			{
 				symbol_t *result;
-				result = syntax_find_type(graph, a, b, a, b, NULL);
+				result = syntax_find_type_primary(graph, a, b, a, b, NULL);
 				if (!result)
 				{
 					return NULL;
