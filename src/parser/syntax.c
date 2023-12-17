@@ -1870,11 +1870,18 @@ syntax_match_parameters(graph_t *graph, symbol_t *root, symbol_t *subroot, symbo
 		}
 	}
 
+	
 	uint64_t tar_counter = 0;
+	
 	for (a = target->begin; a != target->end; a = a->next)
 	{
 		if (symbol_check_flag(a, SYMBOL_FLAG_PARAMETER))
 		{
+			if (!ref_counter)
+			{
+				return 0;
+			}
+
 			tar_counter += 1;
 			if (tar_counter <= ref_counter)
 			{
@@ -1888,7 +1895,97 @@ syntax_match_parameters(graph_t *graph, symbol_t *root, symbol_t *subroot, symbo
 			
 			symbol_t *value;
 			value = syntax_extract_by_flag(a, SYMBOL_FLAG_VALUE);
-			if (!value) {
+			if (!value)
+			{
+				return 0;
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_match_arguments(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *reference, symbol_t *target)
+{
+	uint64_t ref_counter = 0;  
+	symbol_t *a;
+	for (a = reference->begin; a != reference->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_PARAMETER))
+		{
+			symbol_t *value;
+			value = syntax_extract_by_flag(a, SYMBOL_FLAG_VALUE);
+			if (value)
+			{
+				continue;
+			}
+
+			ref_counter += 1;
+			uint64_t tar_counter = 0;
+			symbol_t *b;
+			for (b = target->begin; b != target->end; b = b->next)
+			{
+				if (symbol_check_flag(b, SYMBOL_FLAG_ARGUMENT))
+				{
+					tar_counter += 1;
+					if (tar_counter < ref_counter)
+					{
+						continue;
+					}
+
+					if (syntax_subset_of_ellipsis(b))
+					{
+						return 1;
+					}
+
+					if (!syntax_equivalent_of_type(graph, target, b, a, b))
+					{
+						return 0;
+					}
+					break;
+				}
+			}
+			
+			if (tar_counter != ref_counter)
+			{
+				symbol_t *value;
+				value = syntax_extract_by_flag(a, SYMBOL_FLAG_VALUE);
+				if (value) {
+					continue;
+				}
+				return 0;
+			}
+		}
+	}
+
+	
+	uint64_t tar_counter = 0;
+	
+	for (a = target->begin; a != target->end; a = a->next)
+	{
+		if (symbol_check_flag(a, SYMBOL_FLAG_ARGUMENT))
+		{
+			if (!ref_counter)
+			{
+				return 0;
+			}
+
+			tar_counter += 1;
+			if (tar_counter <= ref_counter)
+			{
+				continue;
+			}
+
+			if (syntax_subset_of_ellipsis(a))
+			{
+				return 1;
+			}
+			
+			symbol_t *value;
+			value = syntax_extract_by_flag(a, SYMBOL_FLAG_VALUE);
+			if (!value)
+			{
 				return 0;
 			}
 		}
@@ -2131,13 +2228,33 @@ syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 				}
 				if (!!arguments)
 				{
-					if (syntax_match_composite(graph, root, subroot, a, arguments))
+					if (!syntax_match_composite(graph, root, subroot, a, arguments))
 					{
+						continue;
+					}
+				}
+				
+				symbol_t *b;
+				for (b = a->begin;(b != a->end);b = b->next)
+				{
+					if (symbol_check_flag(b, SYMBOL_FLAG_METHOD))
+					{
+						symbol_t *name = syntax_extract_by_flag(b, SYMBOL_FLAG_NAME);
+						if (!syntax_subset_compare_string(name, "init"))
+						{
+							continue;
+						}
+						if (!!parameters)
+						{
+							if (!syntax_match_arguments(graph, a, b, b, parameters))
+							{
+								continue;
+							}
+						}
+						
 						return a;
 					}
-					continue;
 				}
-				return a;
 			}
 		}
 
@@ -2222,13 +2339,6 @@ syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 					}
 				}
 
-				symbol_t *field;
-				field = syntax_extract_by_flag(a, SYMBOL_FLAG_FIELD);
-				if (!!field)
-				{
-					continue;
-				}
-
 				if (!!arguments)
 				{
 					if (!syntax_match_composite(graph, root, subroot, a, arguments))
@@ -2239,7 +2349,7 @@ syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 
 				if (!!parameters)
 				{
-					if (!syntax_match_parameters(graph, root, subroot, a, parameters))
+					if (!syntax_match_arguments(graph, root, subroot, a, parameters))
 					{
 						continue;
 					}
@@ -2282,7 +2392,7 @@ syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 
 				if (!!parameters)
 				{
-					if (!syntax_match_parameters(graph, root, subroot, a, parameters))
+					if (!syntax_match_arguments(graph, root, subroot, a, parameters))
 					{
 						continue;
 					}
@@ -2335,7 +2445,7 @@ syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 
 					if (!!parameters)
 					{
-						if (!syntax_match_parameters(graph, root, subroot, a, parameters))
+						if (!syntax_match_arguments(graph, root, subroot, a, parameters))
 						{
 							continue;
 						}
@@ -2361,13 +2471,13 @@ syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 }
 
 static symbol_t *
-syntax_find_reference_by_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target)
+syntax_find_reference_by_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target, symbol_t *parameters)
 {
 	symbol_t *left;
 	left = syntax_extract_by_flag(target, SYMBOL_FLAG_NAME);
 
 	symbol_t *origin;
-	origin = syntax_find_reference_primary(graph, root, subroot, root, left, target, NULL);
+	origin = syntax_find_reference_primary(graph, root, subroot, root, left, target, parameters);
 
 	if(!origin)
 	{
@@ -2397,7 +2507,7 @@ syntax_find_reference_by_call(graph_t *graph, symbol_t *root, symbol_t *subroot,
 }
 
 static symbol_t *
-syntax_find_reference_by_attribute(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target, symbol_t *arguments)
+syntax_find_reference_by_attribute(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target, symbol_t *arguments, symbol_t *parameters)
 {
 	symbol_t *left;
 	left = syntax_extract_by_flag(target, SYMBOL_FLAG_LEFT);
@@ -2414,7 +2524,7 @@ syntax_find_reference_by_attribute(graph_t *graph, symbol_t *root, symbol_t *sub
 	right = syntax_extract_by_flag(target, SYMBOL_FLAG_RIGHT);
 
 	symbol_t *result;
-	result = syntax_find_reference_primary(graph, origin, origin->end, origin, right, arguments, NULL);
+	result = syntax_find_reference_primary(graph, origin, origin->end, origin, right, arguments, parameters);
 	if (!result)
 	{
 		syntax_error(graph, right, "rhs type not found in attribute type, symbol(%lld)", right->flags);
@@ -2429,7 +2539,7 @@ syntax_find_reference_primary(graph_t *graph, symbol_t *root, symbol_t *subroot,
 {
 	if (symbol_check_flag(target, SYMBOL_FLAG_COMPOSITE))
 	{
-		return syntax_find_reference_by_composite(graph, root, subroot, target);
+		return syntax_find_reference_by_composite(graph, root, subroot, target, parameters);
 	}
 
 	if (symbol_check_flag(target, SYMBOL_FLAG_CALL))
@@ -2439,7 +2549,7 @@ syntax_find_reference_primary(graph_t *graph, symbol_t *root, symbol_t *subroot,
 
 	if (symbol_check_flag(target, SYMBOL_FLAG_ATTR))
 	{
-		return syntax_find_reference_by_attribute(graph, root, subroot, target, arguments);
+		return syntax_find_reference_by_attribute(graph, root, subroot, target, arguments, parameters);
 	}
 
 	if (symbol_check_flag(target, SYMBOL_FLAG_ID))

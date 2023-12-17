@@ -425,15 +425,15 @@ graph_call(symbol_t *parent, node_t *node)
 
 	if (node_call->arguments)
 	{
-		symbol_argument = symbol_rpush(symbol, SYMBOL_FLAG_ARGUMENT, node);
-		if(!symbol_argument)
-		{
-			return 0;
-		}
-
 		ilist_t *a;
 		for (a = node_call->arguments->begin; a != node_call->arguments->end; a = a->next)
 		{
+			symbol_argument = symbol_rpush(symbol, SYMBOL_FLAG_ARGUMENT, node);
+			if(!symbol_argument)
+			{
+				return 0;
+			}
+			
 			node_t *temp;
 			temp = (node_t *)a->value;
 
