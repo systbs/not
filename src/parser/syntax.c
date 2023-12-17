@@ -1102,166 +1102,6 @@ syntax_subset_of_reference_type(symbol_t *root, symbol_t *subset, symbol_t *targ
 
 
 
-static symbol_t *
-syntax_locate(symbol_t *root, symbol_t *subroot, symbol_t *target)
-{
-	symbol_t *result;
-	result = syntax_subset_exist_in_flag(root, target, SYMBOL_FLAG_NAME);
-	if (result)
-	{
-		return root;
-	}
-
-	symbol_t *a;
-	for (a = root->begin;(a != root->end);a = a->next)
-	{
-		if (symbol_check_flag(a, SYMBOL_FLAG_IMPORT))
-		{
-			symbol_t *b;
-			for(b = a->begin; b != a->end; b = b->next)
-			{
-				if (symbol_check_flag(b, SYMBOL_FLAG_FIELD))
-				{
-					symbol_t *result;
-					result = syntax_subset_exist_in_flag(b, target, SYMBOL_FLAG_NAME);
-					if(result && (result->id != target->id))
-					{
-						return b;
-					}
-				}
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_VAR))
-		{
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if (result && (result->id != target->id))
-			{
-				return a;
-			}
-		}
-		
-		if (symbol_check_flag(a, SYMBOL_FLAG_PARAMETER))
-		{
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if (result && (result->id != target->id))
-			{
-				return a;
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_DEFINE))
-		{
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if (result && (result->id != target->id))
-			{
-				return a;
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_IF))
-		{
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if (result && (result->id != target->id))
-			{
-				return a;
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_FOR))
-		{
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if (result && (result->id != target->id))
-			{
-				return a;
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_FORIN))
-		{
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if (result && (result->id != target->id))
-			{
-				return a;
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_FIELD))
-		{
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if (result && (result->id != target->id))
-			{
-				return a;
-			}
-		}
-
-		if (!symbol_check_flag(root, SYMBOL_FLAG_CLASS) && !symbol_check_flag(root, SYMBOL_FLAG_MODULE))
-		{
-			if (a == subroot)
-			{
-				break;
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
-		{
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if (result && (result->id != target->id))
-			{
-				return a;
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_METHOD))
-		{
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if (result && (result->id != target->id))
-			{
-				return a;
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_ENUM))
-		{
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if (result && (result->id != target->id))
-			{
-				return a;
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_PROPERTY))
-		{
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if (result && (result->id != target->id))
-			{
-				return a;
-			}
-		}
-
-		if (symbol_check_flag(a, SYMBOL_FLAG_HERITAGE))
-		{
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
-			if (result && (result->id != target->id))
-			{
-				return a;
-			}
-		}
-	}
-	
-	if(root->parent)
-	{
-		result = syntax_locate(root->parent, root, target);
-		if(result)
-		{
-			return result;
-		}
-	}
-
-	return NULL;
-}
-
-
 
 
 static symbol_t *
@@ -1410,6 +1250,25 @@ syntax_equivalent_of_type(graph_t *graph, symbol_t *root, symbol_t *subroot, sym
 }
 
 
+static symbol_t *
+syntax_subset_of_above(symbol_t *root, symbol_t *applicant)
+{
+	if (root->id == applicant->id)
+	{
+		return root;
+	}
+
+	if(root->parent)
+	{
+		symbol_t *result;
+		result = syntax_subset_of_above(root->parent, applicant);
+		if(result)
+		{
+			return result;
+		}
+	}
+	return NULL;
+}
 
 static int32_t
 syntax_match_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *reference, symbol_t *target)
@@ -1491,8 +1350,83 @@ syntax_match_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 }
 
 static symbol_t *
-syntax_find_type_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments)
+syntax_find_type_by_id(graph_t *graph, symbol_t *root, uint64_t type)
 {
+	if (root->id == type)
+	{
+		return root;
+	}
+
+	symbol_t *a;
+	for (a = root->begin;(a != root->end);a = a->next)
+	{
+		if (a->id == type)
+		{
+			return a;
+		}
+	}
+
+	if(root->parent)
+	{
+		return syntax_find_type_by_id(graph, root->parent, type);
+	}
+
+	return NULL;
+}
+
+static symbol_t *
+syntax_find_type_by_target(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments)
+{
+	if (symbol_check_flag(target, SYMBOL_FLAG_NULL))
+	{
+		symbol_t *result;
+		result = syntax_find_type_by_id(graph, root, SYMBOL_TYPE_NULL);
+		if(result)
+		{
+			return result;
+		}
+	}
+
+	if (symbol_check_flag(target, SYMBOL_FLAG_CHAR))
+	{
+		symbol_t *result;
+		result = syntax_find_type_by_id(graph, root, SYMBOL_TYPE_CHAR);
+		if(result)
+		{
+			return result;
+		}
+	}
+
+	if (symbol_check_flag(target, SYMBOL_FLAG_STRING))
+	{
+		symbol_t *result;
+		result = syntax_find_type_by_id(graph, root, SYMBOL_TYPE_STRING);
+		if(result)
+		{
+			return result;
+		}
+	}
+
+	if (symbol_check_flag(target, SYMBOL_FLAG_NUMBER))
+	{
+		symbol_t *result;
+		result = syntax_find_type_by_id(graph, root, SYMBOL_TYPE_NUMBER);
+		if(result)
+		{
+			return result;
+		}
+	}
+
+	if (symbol_check_flag(target, SYMBOL_FLAG_BOOLEAN))
+	{
+		symbol_t *result;
+		result = syntax_find_type_by_id(graph, root, SYMBOL_TYPE_BOOLEAN);
+		if(result)
+		{
+			return result;
+		}
+	}
+
 	symbol_t *a;
 	for (a = root->begin;(a != root->end);a = a->next)
 	{
@@ -1541,14 +1475,12 @@ syntax_find_type_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 
 		if (symbol_check_flag(a, SYMBOL_FLAG_CLASS))
 		{
-			symbol_t *result;
-			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
+			symbol_t *result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result && (result->id != target->id))
 			{
-				if (symbol_check_flag(root, SYMBOL_FLAG_CLASS) && (root != applicant))
+				if (!syntax_subset_of_above(root, applicant))
 				{
-					node_t *node = a->declaration;
-					node_class_t *node_class = (node_class_t *)node->value;
+					node_class_t *node_class = (node_class_t *)a->declaration->value;
 					if ((node_class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
 					{
 						continue;
@@ -1572,7 +1504,7 @@ syntax_find_type_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 			result = syntax_subset_exist_in_flag(a, target, SYMBOL_FLAG_NAME);
 			if (result && (result->id != target->id))
 			{
-				if (symbol_check_flag(root, SYMBOL_FLAG_CLASS) && (root != applicant))
+				if (!syntax_subset_of_above(root, applicant))
 				{
 					node_t *node = a->declaration;
 					node_type_t *node_type = (node_type_t *)node->value;
@@ -1598,7 +1530,7 @@ syntax_find_type_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol
 	if(root->parent)
 	{
 		symbol_t *result;
-		result = syntax_find_type_by_id(graph, root->parent, root, applicant, target, arguments);
+		result = syntax_find_type_by_target(graph, root->parent, root, applicant, target, arguments);
 		if(result)
 		{
 			return result;
@@ -1752,9 +1684,16 @@ syntax_find_type_primary(graph_t *graph, symbol_t *root, symbol_t *subroot, symb
 		return syntax_find_type_by_object(graph, root, subroot, target);
 	}
 
-	if (symbol_check_flag(target, SYMBOL_FLAG_ID))
+	if (
+		symbol_check_flag(target, SYMBOL_FLAG_ID) || 
+		symbol_check_flag(target, SYMBOL_FLAG_NULL) ||
+		symbol_check_flag(target, SYMBOL_FLAG_CHAR) ||
+		symbol_check_flag(target, SYMBOL_FLAG_STRING) ||
+		symbol_check_flag(target, SYMBOL_FLAG_NUMBER) ||
+		symbol_check_flag(target, SYMBOL_FLAG_BOOLEAN)
+		)
 	{
-		return syntax_find_type_by_id(graph, root, subroot, applicant, target, arguments);
+		return syntax_find_type_by_target(graph, root, subroot, applicant, target, arguments);
 	}
 
 	return NULL;
@@ -1773,27 +1712,7 @@ static symbol_t *
 syntax_find_reference_primary(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters);
 
 static symbol_t *
-syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters);
-
-static symbol_t *
-syntax_subset_of_above(symbol_t *root, symbol_t *applicant)
-{
-	if (root->id == applicant->id)
-	{
-		return root;
-	}
-
-	if(root->parent)
-	{
-		symbol_t *result;
-		result = syntax_subset_of_above(root->parent, applicant);
-		if(result)
-		{
-			return result;
-		}
-	}
-	return NULL;
-}
+syntax_find_reference_by_target(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters);
 
 static int32_t
 syntax_subset_of_ellipsis(symbol_t *reference)
@@ -2078,7 +1997,7 @@ syntax_match_fields(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t 
 }
 
 static symbol_t *
-syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters)
+syntax_find_reference_by_target(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters)
 {
 	symbol_t *a;
 	for (a = root->begin;(a != root->end);a = a->next)
@@ -2460,7 +2379,7 @@ syntax_find_reference_by_id(graph_t *graph, symbol_t *root, symbol_t *subroot, s
 	if(root->parent)
 	{
 		symbol_t *result;
-		result = syntax_find_reference_by_id(graph, root->parent, root, applicant, target, arguments, parameters);
+		result = syntax_find_reference_by_target(graph, root->parent, root, applicant, target, arguments, parameters);
 		if(result)
 		{
 			return result;
@@ -2554,7 +2473,7 @@ syntax_find_reference_primary(graph_t *graph, symbol_t *root, symbol_t *subroot,
 
 	if (symbol_check_flag(target, SYMBOL_FLAG_ID))
 	{
-		return syntax_find_reference_by_id(graph, root, subroot, applicant, target, arguments, parameters);
+		return syntax_find_reference_by_target(graph, root, subroot, applicant, target, arguments, parameters);
 	}
 
 	return NULL;
@@ -2565,6 +2484,9 @@ syntax_find_reference(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_
 {
 	return syntax_find_reference_primary(graph, root, subroot, applicant, target, NULL, NULL);
 }
+
+
+
 
 
 
@@ -2604,6 +2526,7 @@ syntax_parenthesis(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *
 		{
 			return NULL;
 		}
+		return result;
 	}
 	return current;
 }
@@ -2755,7 +2678,7 @@ syntax_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cu
 		syntax_error(graph, current, "reference of composite not found");
 		return NULL;
 	}
-	return current;
+	return result;
 }
 
 static symbol_t *
@@ -2798,7 +2721,7 @@ syntax_call(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current
 		syntax_error(graph, current, "reference of call not found");
 		return NULL;
 	}
-	return current;
+	return result;
 }
 
 static symbol_t *
@@ -2918,7 +2841,6 @@ syntax_get_attr(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cur
 				}
 			}
 		}
-		
 		if (symbol_check_flag(a, SYMBOL_FLAG_RIGHT))
 		{
 			symbol_t *b;
@@ -2932,8 +2854,14 @@ syntax_get_attr(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *cur
 			}
 		}
 	}
-
-	return current;
+	symbol_t *result;
+	result = syntax_find_reference(graph, root, subroot, root, current);
+	if (!result)
+	{
+		syntax_error(graph, current, "reference of call not found");
+		return NULL;
+	}
+	return result;
 }
 
 static symbol_t *
@@ -3007,6 +2935,10 @@ syntax_prefix(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *curre
 						if(!result)
 						{
 							return NULL;
+						}
+						if (symbol_check_flag(b, SYMBOL_FLAG_TYPEOF))
+						{
+							return result;
 						}
 					}
 					else

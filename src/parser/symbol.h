@@ -97,11 +97,13 @@ typedef enum symbol_flag {
     SYMBOL_FLAG_CHAR,
     SYMBOL_FLAG_STRING,
     SYMBOL_FLAG_NUMBER,
+    SYMBOL_FLAG_BOOLEAN,
     SYMBOL_FLAG_ID
 } symbol_flag_t;
 
 typedef enum symbol_type {
-    SYMBOL_TYPE_CHAR = 1,
+    SYMBOL_TYPE_NULL = 1,
+    SYMBOL_TYPE_CHAR,
     SYMBOL_TYPE_STRING,
     SYMBOL_TYPE_NUMBER,
     SYMBOL_TYPE_BOOLEAN
@@ -170,6 +172,9 @@ symbol_remove(symbol_t *sym, int (*f)(symbol_t *));
 
 symbol_t*
 symbol_clear(symbol_t *sym);
+
+symbol_t *
+symbol_prime(symbol_t *sym, uint64_t id, uint64_t flags, node_t *declaration);
 
 symbol_t*
 symbol_rpop(symbol_t *sym);

@@ -72,9 +72,8 @@ static int32_t
 graph_number(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
-
 	symbol = symbol_rpush(parent, SYMBOL_FLAG_NUMBER, node);
-	if(!symbol)
+	if (!symbol)
 	{
 		return 0;
 	}
@@ -3547,8 +3546,7 @@ graph_run(graph_t *graph, node_t *root)
 graph_t *
 graph_create(program_t *program, list_t *errors)
 {
-	graph_t *graph;
-	graph = (graph_t *)malloc(sizeof(graph_t));
+	graph_t *graph = (graph_t *)malloc(sizeof(graph_t));
 	if (!graph)
 	{
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(graph_t));
@@ -3565,6 +3563,28 @@ graph_create(program_t *program, list_t *errors)
 	{
 		return 0;
 	}
+
+	uint64_t type_list[] = {SYMBOL_TYPE_NULL, SYMBOL_TYPE_CHAR, SYMBOL_TYPE_STRING, SYMBOL_TYPE_NUMBER, SYMBOL_TYPE_BOOLEAN};
+
+	const uint64_t type_flags[] = {
+		[SYMBOL_TYPE_NULL] = SYMBOL_FLAG_NULL,
+		[SYMBOL_TYPE_CHAR] = SYMBOL_FLAG_CHAR,
+		[SYMBOL_TYPE_STRING] = SYMBOL_FLAG_STRING,
+		[SYMBOL_TYPE_NUMBER] = SYMBOL_FLAG_NUMBER,
+		[SYMBOL_TYPE_BOOLEAN] = SYMBOL_FLAG_BOOLEAN
+	};
+
+	uint64_t list_length = sizeof(type_list)/sizeof(type_list[0]);
+	for (uint64_t i = 0; i < list_length; i++)
+	{
+		symbol_t *sym;
+		sym = symbol_prime(symbol, type_list[i], type_flags[i], NULL);
+		if (!sym)
+		{
+			return 0;
+		}
+	}
+	
 
 	graph->symbol = symbol;
 

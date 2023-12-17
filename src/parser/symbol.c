@@ -33,7 +33,6 @@ symbol_t *
 symbol_create(uint64_t flags, node_t *declaration)
 {
     symbol_t *sym;
-
     if(!(sym = (symbol_t *)malloc(sizeof(*sym)))) {
         return NULL;
     }
@@ -217,6 +216,25 @@ symbol_rpush(symbol_t *sym, uint64_t flags, node_t *declaration)
     it->flags = flags;
     it->declaration = declaration;
     it->id = symbol_counter++;
+
+    return symbol_link(sym, sym->end, it);
+}
+
+symbol_t *
+symbol_prime(symbol_t *sym, uint64_t id, uint64_t flags, node_t *declaration)
+{
+    symbol_t *it;
+    if(!(it = (symbol_t *)malloc(sizeof(*it)))) {
+        return NULL;
+    }
+    memset(it, 0, sizeof(symbol_t));
+
+    symbol_apply(it);
+
+    it->parent = sym;
+    it->flags = flags;
+    it->declaration = declaration;
+    it->id = id;
 
     return symbol_link(sym, sym->end, it);
 }
