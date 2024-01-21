@@ -2,13 +2,10 @@
 #ifndef __LIST_H__
 #define __LIST_H__
 
-typedef unsigned long long list_key_t;
-typedef intptr_t list_value_t;
-
 typedef struct ilist {
     struct ilist *previous;
     struct ilist *next;
-    list_value_t value;
+    uint64_t value;
 } ilist_t;
 
 typedef struct list {
@@ -25,7 +22,7 @@ list_create();
 int
 list_isempty(list_t *lst);
 
-list_value_t
+uint64_t
 list_content(ilist_t *current);
 
 ilist_t*
@@ -34,7 +31,7 @@ list_next(ilist_t *current);
 ilist_t*
 list_previous(ilist_t *current);
 
-list_key_t
+uint64_t
 list_count(list_t *lst);
 
 int
@@ -44,7 +41,7 @@ void
 list_destroy(list_t *lst);
 
 ilist_t *
-list_create_iterior(list_value_t value);
+list_create_iterior(uint64_t value);
 
 ilist_t*
 list_link(list_t *lst, ilist_t *current, ilist_t *it);
@@ -65,16 +62,16 @@ ilist_t*
 list_rpop(list_t *lst);
 
 ilist_t *
-list_rpush(list_t *lst, list_value_t value);
+list_rpush(list_t *lst, uint64_t value);
 
 ilist_t*
 list_lpop(list_t *lst);
 
 ilist_t *
-list_lpush(list_t *lst, list_value_t value);
+list_lpush(list_t *lst, uint64_t value);
 
 ilist_t *
-list_at(list_t *lst, list_key_t key);
+list_at(list_t *lst, uint64_t key);
 
 ilist_t *
 list_first(list_t *lst);

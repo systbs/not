@@ -1,0 +1,2535 @@
+static symbol_t *
+syntax_comparison_of_object(symbol_t *concept, symbol_t *target);
+
+static symbol_t *
+syntax_comparison_of_array(symbol_t *concept, symbol_t *target);
+
+static int32_t
+syntax_comparison_id(symbol_t *concept, symbol_t *target)
+{
+	node_t *nc = concept->declaration;
+	node_basic_t *nbc = (node_basic_t *)nc->value;
+
+	node_t *nt = target->declaration;
+	node_basic_t *nbt = (node_basic_t *)nt->value;
+
+	//printf("%s %s\n", nbt->value, nbc->value);
+
+	return (strncmp(nbt->value, nbc->value, 
+		max(strlen(nbc->value), strlen(nbt->value))) == 0);
+}
+
+static symbol_t *
+syntax_comparison_inside_of_set(symbol_t *concept, symbol_t *target)
+{
+	if (symbol_check_type(concept, SYMBOL_TYPE_ID))
+	{
+		int32_t result;
+		result = syntax_comparison_id(concept, target);
+		if(result)
+		{
+			return concept;
+		}
+		return NULL;
+	}
+	if(symbol_check_type(concept, SYMBOL_TYPE_OBJECT))
+	{
+		return syntax_comparison_of_object(concept, target);
+	}
+	if(symbol_check_type(concept, SYMBOL_TYPE_ARRAY))
+	{
+		return syntax_comparison_of_array(concept, target);
+	}
+	return NULL;
+}
+
+static symbol_t *
+syntax_comparison_of_object_property(symbol_t *concept, symbol_t *target)
+{
+	symbol_t *a;
+	for(a = concept->begin; a != concept->end; a = a->next)
+	{
+		if(symbol_check_type(a, SYMBOL_TYPE_NAME))
+		{
+			return syntax_comparison_inside_of_set(a, target);
+		}
+	}
+	return NULL;
+}
+
+static symbol_t *
+syntax_comparison_of_object(symbol_t *concept, symbol_t *target)
+{
+	symbol_t *a;
+	for(a = concept->begin; a != concept->end; a = a->next)
+	{
+		if(symbol_check_type(a, SYMBOL_TYPE_OBJECT_PROPERTY))
+		{
+			return syntax_comparison_of_object_property(a, target);
+		}
+	}
+	return NULL;
+}
+
+static symbol_t *
+syntax_comparison_of_array(symbol_t *concept, symbol_t *target)
+{
+	symbol_t *a;
+	for (a = concept->begin; a != concept->end; a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_OBJECT))
+		{
+			return syntax_comparison_of_object(a, target);
+		}
+		else if (symbol_check_type(a, SYMBOL_TYPE_ARRAY))
+		{
+			return syntax_comparison_of_array(a, target);
+		}
+		else if (symbol_check_type(a, SYMBOL_TYPE_ID))
+		{
+			int32_t result;
+			result = syntax_comparison_id(a, target);
+			if (result)
+			{
+				return a;
+			}
+		}
+	}
+	return NULL;
+}
+
+
+
+
+
+
+
+
+static symbol_t *
+syntax_subset_of_reference_type(symbol_t *root, symbol_t *subroot, symbol_t *target);
+
+static int32_t
+syntax_prototype_subset_of_generic(symbol_t *reference, symbol_t *target)
+{
+	uint64_t ref_counter = 0;
+	uint64_t reference_counter_by_value = 0;
+	symbol_t *a;
+	for (a = reference->begin; a != reference->end; a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_GENERIC))
+		{
+			if (syntax_symbol_contain_flag(a, SYMBOL_TYPE_VALUE))
+			{
+				reference_counter_by_value += 1;
+			}
+			ref_counter += 1;
+		}
+	}
+
+	uint64_t tar_counter = 0;
+	uint64_t target_counter_by_value = 0;
+
+	for (a = target->begin; a != target->end; a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_GENERIC))
+		{
+			if (syntax_symbol_contain_flag(a, SYMBOL_TYPE_VALUE))
+			{
+				target_counter_by_value += 1;
+			}
+			tar_counter += 1;
+		}
+	}
+
+	if ((ref_counter - reference_counter_by_value) == (tar_counter - target_counter_by_value))
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
+static int32_t
+syntax_prototype_subset_of_component_type(symbol_t *reference, symbol_t *target)
+{
+	if(symbol_check_type(reference, SYMBOL_TYPE_OR))
+	{
+		int32_t result = 1;
+		symbol_t *a;
+		for (a = reference->begin; a != reference->end; a = a->next)
+		{
+			if (symbol_check_type(a, SYMBOL_TYPE_LEFT))
+			{
+				result |= syntax_prototype_subset_of_component_type(a, target);
+			}
+			else if (symbol_check_type(a, SYMBOL_TYPE_RIGHT))
+			{
+				result |= syntax_prototype_subset_of_component_type(a, target);
+			}
+		}
+		return result;
+	}
+	else if(symbol_check_type(reference, SYMBOL_TYPE_AND))
+	{
+		int32_t result = 1;
+		symbol_t *a;
+		for (a = reference->begin; a != reference->end; a = a->next)
+		{
+			if (symbol_check_type(a, SYMBOL_TYPE_LEFT))
+			{
+				result &= syntax_prototype_subset_of_component_type(a, target);
+			}
+			else if (symbol_check_type(a, SYMBOL_TYPE_RIGHT))
+			{
+				result &= syntax_prototype_subset_of_component_type(a, target);
+			}
+		}
+		return result;
+	}
+	else if (symbol_check_type(reference, SYMBOL_TYPE_LEFT))
+	{
+		if(symbol_check_type(target, SYMBOL_TYPE_OR))
+		{
+			int32_t result = 1;
+			symbol_t *a;
+			for (a = target->begin; a != target->end; a = a->next)
+			{
+				if (symbol_check_type(a, SYMBOL_TYPE_LEFT))
+				{
+					result |= syntax_prototype_subset_of_component_type(a, reference);
+				}
+				else if (symbol_check_type(a, SYMBOL_TYPE_RIGHT))
+				{
+					result |= syntax_prototype_subset_of_component_type(a, reference);
+				}
+			}
+			return result;
+		}
+		else if(symbol_check_type(target, SYMBOL_TYPE_AND))
+		{
+			int32_t result = 1;
+			symbol_t *a;
+			for (a = target->begin; a != target->end; a = a->next)
+			{
+				if (symbol_check_type(a, SYMBOL_TYPE_LEFT))
+				{
+					result &= syntax_prototype_subset_of_component_type(a, reference);
+				}
+				else if (symbol_check_type(a, SYMBOL_TYPE_RIGHT))
+				{
+					result &= syntax_prototype_subset_of_component_type(a, reference);
+				}
+			}
+			return result;
+		}
+		else
+		{
+			symbol_t *a;
+			for (a = reference->begin; a != reference->end; a = a->next)
+			{
+				if (!symbol_equal_type(a, target))
+				{
+					return 0;
+				}
+				if (symbol_check_type(a, SYMBOL_TYPE_ID) || symbol_check_type(a, SYMBOL_TYPE_NUMBER) || symbol_check_type(a, SYMBOL_TYPE_CHAR))
+				{
+					if (!syntax_subset_compare_id(a, target))
+					{
+						return 0;
+					}
+					return 1;
+				}
+			}
+		}
+	}
+	else if (symbol_check_type(reference, SYMBOL_TYPE_RIGHT))
+	{
+		if(symbol_check_type(target, SYMBOL_TYPE_OR))
+		{
+			int32_t result = 1;
+			symbol_t *a;
+			for (a = target->begin; a != target->end; a = a->next)
+			{
+				if (symbol_check_type(a, SYMBOL_TYPE_LEFT))
+				{
+					result |= syntax_prototype_subset_of_component_type(a, reference);
+				}
+				else if (symbol_check_type(a, SYMBOL_TYPE_RIGHT))
+				{
+					result |= syntax_prototype_subset_of_component_type(a, reference);
+				}
+			}
+			return result;
+		}
+		else if(symbol_check_type(target, SYMBOL_TYPE_AND))
+		{
+			int32_t result = 1;
+			symbol_t *a;
+			for (a = target->begin; a != target->end; a = a->next)
+			{
+				if (symbol_check_type(a, SYMBOL_TYPE_LEFT))
+				{
+					result &= syntax_prototype_subset_of_component_type(a, reference);
+				}
+				else if (symbol_check_type(a, SYMBOL_TYPE_RIGHT))
+				{
+					result &= syntax_prototype_subset_of_component_type(a, reference);
+				}
+			}
+			return result;
+		}
+		else
+		{
+			symbol_t *a;
+			for (a = reference->begin; a != reference->end; a = a->next)
+			{
+				if (!symbol_equal_type(a, target))
+				{
+					return 0;
+				}
+				if (symbol_check_type(a, SYMBOL_TYPE_ID) || symbol_check_type(a, SYMBOL_TYPE_NUMBER) || symbol_check_type(a, SYMBOL_TYPE_CHAR))
+				{
+					if (!syntax_subset_compare_id(a, target))
+					{
+						return 0;
+					}
+					return 1;
+				}
+			}
+		}
+	}
+
+	if (!symbol_equal_type(reference, target))
+	{
+		return 0;
+	}
+
+	if (symbol_check_type(reference, SYMBOL_TYPE_ID) || symbol_check_type(reference, SYMBOL_TYPE_NUMBER) || symbol_check_type(reference, SYMBOL_TYPE_CHAR))
+	{
+		if (!syntax_subset_compare_id(reference, target))
+		{
+			return 0;
+		}
+		return 1;
+	}
+
+	return 0;
+}
+
+static int32_t
+syntax_prototype_subset_of_type(symbol_t *reference, symbol_t *target)
+{
+	if (!symbol_equal_type(reference, target))
+	{
+		if (!syntax_prototype_subset_of_component_type(reference, target))
+		{
+			return 0;
+		}
+		return 1;
+	}
+
+	if (symbol_check_type(reference, SYMBOL_TYPE_ID) || symbol_check_type(reference, SYMBOL_TYPE_NUMBER) || symbol_check_type(reference, SYMBOL_TYPE_CHAR))
+	{
+		if (!syntax_subset_compare_id(reference, target))
+		{
+			return 0;
+		}
+		return 1;
+	}
+	
+	uint64_t ref_counter = 0;
+	symbol_t *a;
+	for (a = reference->begin; a != reference->end; a = a->next)
+	{
+		ref_counter += 1;
+
+		symbol_t *c;
+		c = syntax_subset_of_reference_type(reference, a, a);
+		if(!c)
+		{
+			c = a;
+		}
+
+		int32_t founded = 0;
+		uint64_t tar_counter = 0;
+		symbol_t *b;
+		for (b = target->begin;b != target->end;b = b->next)
+		{
+			tar_counter += 1;
+
+			if (tar_counter < ref_counter)
+			{
+				continue;
+			}
+
+			founded = 1;
+
+			symbol_t *d;
+			d = syntax_subset_of_reference_type(target, b, b);
+			if(!d)
+			{
+				d = b;
+			}
+			
+			if (!symbol_equal_type(c, d))
+			{
+				if (!syntax_prototype_subset_of_component_type(c, d))
+				{
+					return 0;
+				}
+				return 1;
+			}
+
+			if (symbol_check_type(c, SYMBOL_TYPE_ID))
+			{
+				if (!syntax_subset_compare_id(c, d))
+				{
+					return 0;
+				}
+			}
+
+			if (!syntax_prototype_subset_of_type(c, d))
+			{
+				return 0;
+			}
+
+			break;
+		}
+
+		if (!founded)
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static symbol_t *
+syntax_subset_of_reference_type_in_generic(symbol_t *root, symbol_t *subroot, symbol_t *reference, symbol_t *target)
+{
+	symbol_t *a;
+	for (a = reference->begin;a != reference->end; a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_NAME))
+		{
+			symbol_t *b;
+			for (b = a->begin;b != a->end; b = b->next)
+			{
+				if(syntax_prototype_subset_of_type(b, target))
+				{
+					symbol_t *c;
+					for (c = reference->begin;c != reference->end; c = c->next)
+					{
+						if (symbol_check_type(c, SYMBOL_TYPE_TYPE))
+						{
+							symbol_t *d;
+							for (d = c->begin;d != c->end;d = d->next)
+							{
+								symbol_t *e;
+								e = syntax_subset_of_reference_type(root, a, d);
+								if (e)
+								{
+									return e;
+								}
+								return d;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
+static symbol_t *
+syntax_subset_of_reference_type_in_heritage(symbol_t *root, symbol_t *subroot, symbol_t *reference, symbol_t *target)
+{
+	symbol_t *a;
+	for (a = reference->begin;a != reference->end; a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_NAME))
+		{
+			symbol_t *b;
+			for (b = a->begin;b != a->end; b = b->next)
+			{
+				if(syntax_prototype_subset_of_type(b, target))
+				{
+					symbol_t *c;
+					for (c = reference->begin;c != reference->end;c = c->next)
+					{
+						if (symbol_check_type(c, SYMBOL_TYPE_TYPE))
+						{
+							symbol_t *d;
+							for (d = c->begin;d != c->end;d = d->next)
+							{
+								symbol_t *e;
+								e = syntax_subset_of_reference_type(root, a, d);
+								if (e)
+								{
+									return e;
+								}
+								return d;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
+static symbol_t *
+syntax_subset_of_reference_type_in_parameter(symbol_t *root, symbol_t *subroot, symbol_t *reference, symbol_t *target)
+{
+	symbol_t *a;
+	for (a = reference->begin;a != reference->end; a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_NAME))
+		{
+			symbol_t *b;
+			for (b = a->begin;b != a->end; b = b->next)
+			{
+				if(syntax_prototype_subset_of_type(b, target))
+				{
+					symbol_t *c;
+					for (c = reference->begin;c != reference->end; c = c->next)
+					{
+						if (symbol_check_type(c, SYMBOL_TYPE_TYPE))
+						{
+							symbol_t *d;
+							for (d = c->begin;d != c->end;d = d->next)
+							{
+								symbol_t *e;
+								e = syntax_subset_of_reference_type(root, a, d);
+								if (e)
+								{
+									return e;
+								}
+								return d;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
+static symbol_t *
+syntax_subset_of_reference_type(symbol_t *root, symbol_t *subset, symbol_t *target)
+{
+	if (symbol_check_type(root, SYMBOL_TYPE_CLASS))
+	{
+		symbol_t *a;
+		for (a = root->begin;(a != subset) && (a != root->end); a = a->next)
+		{
+			if (symbol_check_type(a, SYMBOL_TYPE_GENERIC))
+			{
+				symbol_t *b;
+				b = syntax_subset_of_reference_type_in_generic(root, subset, a, target);
+				if (b)
+				{
+					return b;
+				}
+			}
+
+			if (symbol_check_type(a, SYMBOL_TYPE_HERITAGE))
+			{
+				symbol_t *b = NULL;
+				b = syntax_subset_of_reference_type_in_heritage(root, subset, a, target);
+				if (b)
+				{
+					return b;
+				}
+			}
+		}
+
+		if(root->parent)
+		{
+			return syntax_subset_of_reference_type(root->parent, root, target);
+		}
+	}
+	
+	if (symbol_check_type(root, SYMBOL_TYPE_METHOD))
+	{
+		symbol_t *a;
+		for (a = root->begin;(a != subset) && (a != root->end); a = a->next)
+		{
+			if (symbol_check_type(a, SYMBOL_TYPE_GENERIC))
+			{
+				symbol_t *b;
+				b = syntax_subset_of_reference_type_in_generic(root, subset, a, target);
+				if (b)
+				{
+					return b;
+				}
+			}
+		}
+
+		if(root->parent)
+		{
+			return syntax_subset_of_reference_type(root->parent, root, target);
+		}
+	}
+	
+	if (symbol_check_type(root, SYMBOL_TYPE_FUNCTION))
+	{
+		symbol_t *a;
+		for (a = root->begin;(a != subset) && (a != root->end); a = a->next)
+		{
+			if (symbol_check_type(a, SYMBOL_TYPE_GENERIC))
+			{
+				symbol_t *b;
+				b = syntax_subset_of_reference_type_in_generic(root, subset, a, target);
+				if (b)
+				{
+					return b;
+				}
+			}
+		}
+
+		if(root->parent)
+		{
+			return syntax_subset_of_reference_type(root->parent, root, target);
+		}
+	}
+	
+	if (symbol_check_type(root, SYMBOL_TYPE_TYPE))
+	{
+		symbol_t *a;
+		for (a = root->begin;(a != subset) && (a != root->end); a = a->next)
+		{
+			if (symbol_check_type(a, SYMBOL_TYPE_GENERIC))
+			{
+				symbol_t *b;
+				b = syntax_subset_of_reference_type_in_generic(root, subset, a, target);
+				if (b)
+				{
+					return b;
+				}
+			}
+			if (symbol_check_type(a, SYMBOL_TYPE_HERITAGE))
+			{
+				symbol_t *b = NULL;
+				b = syntax_subset_of_reference_type_in_heritage(root, subset, a, target);
+				if (b)
+				{
+					return b;
+				}
+			}
+		}
+		if(root->parent)
+		{
+			return syntax_subset_of_reference_type(root->parent, root, target);
+		}
+	}
+
+	if (root->parent)
+	{
+		return syntax_subset_of_reference_type(root->parent, root, target);
+	}
+
+	return NULL;
+}
+
+
+
+
+
+static symbol_t *
+syntax_find_type_primary(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments);
+
+static int32_t
+syntax_equivalent_of_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *t1, symbol_t *t2);
+
+static int32_t
+syntax_subset_of_type_by_heritage(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *t1, symbol_t *t2)
+{
+	if (t1->id == t2->id)
+	{
+		return 1;
+	}
+
+	symbol_t *a;
+	for (a = t2->begin;a != t2->end;a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_HERITAGE))
+		{
+			symbol_t *type;
+			type = syntax_extract_with(a, SYMBOL_TYPE_TYPE);
+
+			symbol_t *origin;
+			origin = syntax_find_type_primary(graph, t2, a, t2, type, NULL);
+			if (!origin)
+			{
+				syntax_error(graph, type, "reference of type not found");
+				return 0;
+			}
+
+			int32_t result;
+			result = syntax_equivalent_of_type(graph, t2, a, t1, origin);
+			if (result)
+			{
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+static int32_t
+syntax_subset_of_type_by_component(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *t1, symbol_t *t2)
+{
+	if(symbol_check_type(t2, SYMBOL_TYPE_OR))
+	{
+		int32_t result = 1;
+		symbol_t *a;
+		for (a = t2->begin; a != t2->end; a = a->next)
+		{
+			if (symbol_check_type(a, SYMBOL_TYPE_LEFT))
+			{
+				result |= syntax_subset_of_type_by_component(graph, root, subroot, t1, a);
+			}
+			if (symbol_check_type(a, SYMBOL_TYPE_RIGHT))
+			{
+				result |= syntax_subset_of_type_by_component(graph, root, subroot, t1, a);
+			}
+		}
+		return result;
+	}
+	
+	if(symbol_check_type(t2, SYMBOL_TYPE_AND))
+	{
+		int32_t result = 1;
+		symbol_t *a;
+		for (a = t2->begin; a != t2->end; a = a->next)
+		{
+			if (symbol_check_type(a, SYMBOL_TYPE_LEFT))
+			{
+				result &= syntax_subset_of_type_by_component(graph, root, subroot, t1, a);
+			}
+			if (symbol_check_type(a, SYMBOL_TYPE_RIGHT))
+			{
+				result &= syntax_subset_of_type_by_component(graph, root, subroot, t1, a);
+			}
+		}
+		return result;
+	}
+
+	symbol_t *origin;
+	origin = syntax_find_type_primary(graph, root, subroot, root, t2, NULL);
+	if (!origin)
+	{
+		syntax_error(graph, t2, "reference of type not found");
+		return 0;
+	}
+
+	return syntax_equivalent_of_type(graph, root, subroot, t1, origin);
+}
+
+static int32_t
+syntax_subset_of_type_by_generic(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *t1, symbol_t *t2)
+{
+	if (t1->id == t2->id)
+	{
+		return 1;
+	}
+
+	symbol_t *type2_type;
+	type2_type = syntax_extract_with(t2, SYMBOL_TYPE_TYPE);
+	if (type2_type)
+	{
+		if (symbol_check_type(t1, SYMBOL_TYPE_GENERIC))
+		{
+			symbol_t *type1_type;
+			type1_type = syntax_extract_with(t1, SYMBOL_TYPE_TYPE);
+			if (type1_type)
+			{
+				return syntax_subset_of_type_by_component(graph, root, subroot, type1_type, type2_type);
+			}
+		}
+		return syntax_subset_of_type_by_component(graph, root, subroot, t1, type2_type);
+	}
+
+	if (symbol_check_type(t1, SYMBOL_TYPE_GENERIC))
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
+static int32_t
+syntax_equivalent_of_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *t1, symbol_t *t2)
+{
+	if (t1->id == t2->id)
+	{
+		return 1;
+	}
+
+	if (symbol_check_type(t2, SYMBOL_TYPE_TYPE) || symbol_check_type(t2, SYMBOL_TYPE_CLASS))
+	{
+		return syntax_subset_of_type_by_heritage(graph, root, subroot, t1, t2);
+	}
+	
+	if (symbol_check_type(t2, SYMBOL_TYPE_GENERIC))
+	{
+		return syntax_subset_of_type_by_generic(graph, root, subroot, t1, t2);
+	}
+
+	return 0;
+}
+
+
+
+
+static symbol_t *
+syntax_find_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target);
+
+static symbol_t *
+syntax_subset_of_above(symbol_t *root, symbol_t *applicant)
+{
+	if (root->id == applicant->id)
+	{
+		return root;
+	}
+
+	if(root->parent)
+	{
+		symbol_t *result;
+		result = syntax_subset_of_above(root->parent, applicant);
+		if(result)
+		{
+			return result;
+		}
+	}
+	return NULL;
+}
+
+static int32_t
+syntax_match_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *reference, symbol_t *target)
+{
+	uint64_t ref_counter = 0;
+	uint64_t tar_counter = 0;
+
+	int32_t use_found = 0;
+
+	symbol_t *a;
+	for (a = reference->begin;a != reference->end;a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_GENERIC))
+		{
+			ref_counter += 1;
+			tar_counter = 0;
+			symbol_t *b;
+			for (b = target->begin;b != target->end;b = b->next)
+			{
+				if (symbol_check_type(b, SYMBOL_TYPE_ARGUMENT))
+				{
+					tar_counter += 1;
+					if (tar_counter < ref_counter)
+					{
+						continue;
+					}
+					if (use_found)
+					{
+						syntax_error(graph, a, "type without value after parameter by value");
+						return 0;
+					}
+
+					symbol_t *origin;
+					origin = syntax_find_type_primary(graph, target, b, target, syntax_only(b), NULL);
+					if (!origin)
+					{
+						syntax_error(graph, b, "reference of type not found");
+						return 0;
+					}
+
+					if (syntax_equivalent_of_type(graph, reference, a, origin, a))
+					{
+						break;
+					}
+					syntax_error(graph, b, "reference of type not found");
+					return 0;
+				}
+			}
+			
+			if (tar_counter != ref_counter)
+			{
+				symbol_t *value;
+				value = syntax_extract_with(a, SYMBOL_TYPE_VALUE);
+				if (!value)
+				{
+					return 0;
+				}
+				use_found = 1;
+			}
+		}
+	}
+
+	tar_counter = 0;
+	symbol_t *b;
+	for (b = target->begin;b != target->end;b = b->next)
+	{
+		if (symbol_check_type(b, SYMBOL_TYPE_ARGUMENT))
+		{
+			tar_counter += 1;
+		}
+	}
+
+	if (tar_counter > ref_counter)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static symbol_t *
+syntax_find_type_by_id(graph_t *graph, symbol_t *root, uint64_t type)
+{
+	if (root->id == type)
+	{
+		return root;
+	}
+
+	symbol_t *a;
+	for (a = root->begin;(a != root->end);a = a->next)
+	{
+		if (a->id == type)
+		{
+			return a;
+		}
+	}
+
+	if(root->parent)
+	{
+		return syntax_find_type_by_id(graph, root->parent, type);
+	}
+
+	return NULL;
+}
+
+static symbol_t *
+syntax_find_type_by_target(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments)
+{
+	if (symbol_check_type(target, SYMBOL_TYPE_NULL))
+	{
+		symbol_t *result;
+		result = syntax_find_type_by_id(graph, root, SYMBOL_TYPE_NULL);
+		if(result)
+		{
+			return result;
+		}
+	}
+
+	if (symbol_check_type(target, SYMBOL_TYPE_CHAR))
+	{
+		symbol_t *result;
+		result = syntax_find_type_by_id(graph, root, SYMBOL_TYPE_CHAR);
+		if(result)
+		{
+			return result;
+		}
+	}
+
+	if (symbol_check_type(target, SYMBOL_TYPE_STRING))
+	{
+		symbol_t *result;
+		result = syntax_find_type_by_id(graph, root, SYMBOL_TYPE_STRING);
+		if(result)
+		{
+			return result;
+		}
+	}
+
+	if (symbol_check_type(target, SYMBOL_TYPE_NUMBER))
+	{
+		symbol_t *result;
+		result = syntax_find_type_by_id(graph, root, SYMBOL_TYPE_NUMBER);
+		if(result)
+		{
+			return result;
+		}
+	}
+
+	if (symbol_check_type(target, SYMBOL_TYPE_BOOLEAN))
+	{
+		symbol_t *result;
+		result = syntax_find_type_by_id(graph, root, SYMBOL_TYPE_BOOLEAN);
+		if(result)
+		{
+			return result;
+		}
+	}
+
+	symbol_t *a;
+	for (a = root->begin;(a != root->end);a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_GENERIC))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				return a;
+			}
+		}
+
+		if (!symbol_check_type(root, SYMBOL_TYPE_CLASS) && !symbol_check_type(root, SYMBOL_TYPE_MODULE))
+		{
+			if (a == subroot)
+			{
+				break;
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_IMPORT))
+		{
+			symbol_t *b;
+			for (b = a->begin; b != a->end; b = b->next)
+			{
+				if (symbol_check_type(b, SYMBOL_TYPE_FIELD))
+				{
+					symbol_t *result;
+					result = syntax_subset_exist_in_flag(b, target, SYMBOL_TYPE_NAME);
+					if (result && (result->id != target->id))
+					{
+						if (!!arguments)
+						{
+							if (syntax_match_composite(graph, root, subroot, b, arguments))
+							{
+								return b;
+							}
+							continue;
+						}
+						return b;
+					}
+				}
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_CLASS))
+		{
+			symbol_t *result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (!syntax_subset_of_above(root, applicant))
+				{
+					node_class_t *node_class = (node_class_t *)a->declaration->value;
+					if ((node_class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
+				}
+				if (!!arguments)
+				{
+					if (syntax_match_composite(graph, root, subroot, a, arguments))
+					{
+						return a;
+					}
+					continue;
+				}
+				return a;
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_TYPE))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (!syntax_subset_of_above(root, applicant))
+				{
+					node_t *node = a->declaration;
+					node_type_t *node_type = (node_type_t *)node->value;
+					if ((node_type->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
+				}
+				
+				if (!!arguments)
+				{
+					if (syntax_match_composite(graph, root, subroot, a, arguments))
+					{
+						return a;
+					}
+					continue;
+				}
+				return a;
+			}
+		}
+	}
+	
+	if(root->parent)
+	{
+		symbol_t *result;
+		result = syntax_find_type_by_target(graph, root->parent, root, applicant, target, arguments);
+		if(result)
+		{
+			return result;
+		}
+	}
+
+	return NULL;
+}
+
+static symbol_t *
+syntax_find_type_by_array(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target)
+{
+	symbol_t *direct;
+	direct = syntax_extract_with(target, SYMBOL_TYPE_NAME);
+
+	symbol_t *origin;
+	origin = syntax_find_type_primary(graph, root, subroot, root, direct, NULL);
+	if(!origin)
+	{
+		syntax_error(graph, direct, "direct type not found in array type, symbol(%lld)", direct->flags);
+		return NULL;
+	}
+
+	symbol_t *index;
+	index = syntax_extract_with(target, SYMBOL_TYPE_INDEX);
+	if (index)
+	{
+		if (!symbol_check_type(index, SYMBOL_TYPE_NUMBER))
+		{
+			syntax_error(graph, direct, "array with invalid dimention, symbol(%lld)", direct->flags);
+			return NULL;
+		}
+	}
+	
+	return target;
+}
+
+static symbol_t *
+syntax_find_type_by_tuple(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target)
+{
+	symbol_t *a;
+	for (a = target->begin;(a != target->end);a = a->next)
+	{
+		symbol_t *origin;
+		origin = syntax_find_type_primary(graph, target, a, target, a, NULL);
+		if(!origin)
+		{
+			syntax_error(graph, a, "type not found in tuple type, symbol(%lld)", a->flags);
+			return NULL;
+		}
+	}
+	return target;
+}
+
+static symbol_t *
+syntax_find_type_by_object(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target)
+{
+	symbol_t *a;
+	for (a = target->begin;(a != target->end);a = a->next)
+	{
+		symbol_t *value;
+		value = syntax_extract_with(a, SYMBOL_TYPE_VALUE);
+		if (!value)
+		{
+			syntax_error(graph, a, "item in object type without type, symbol(%lld)", a->flags);
+			return NULL;
+		}
+
+		symbol_t *origin;
+		origin = syntax_find_type_primary(graph, target, a, target, value, NULL);
+		if(!origin)
+		{
+			syntax_error(graph, a, "type not found in tuple type, symbol(%lld)", a->flags);
+			return NULL;
+		}
+	}
+	return target;
+}
+
+static symbol_t *
+syntax_find_type_by_typeof(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target)
+{
+	return syntax_find_type(graph, root, subroot, syntax_only(target));
+}
+
+static symbol_t *
+syntax_find_type_by_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target)
+{
+	symbol_t *left;
+	left = syntax_extract_with(target, SYMBOL_TYPE_NAME);
+
+	symbol_t *origin;
+	origin = syntax_find_type_primary(graph, root, subroot, root, left, target);
+
+	if(!origin)
+	{
+		syntax_error(graph, left, "lhs type not found in composite type, symbol(%lld)", left->flags);
+		return NULL;
+	}
+
+	return origin;
+}
+
+static symbol_t *
+syntax_find_type_by_attribute(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target, symbol_t *arguments)
+{
+	symbol_t *left;
+	left = syntax_extract_with(target, SYMBOL_TYPE_LEFT);
+
+	symbol_t *origin;
+	origin = syntax_find_type_primary(graph, root, subroot, root, left, NULL);
+	if (!origin)
+	{
+		syntax_error(graph, left, "lhs type not found in attribute type, symbol(%lld)", left->flags);
+		return NULL;
+	}
+
+	symbol_t *right;
+	right = syntax_extract_with(target, SYMBOL_TYPE_RIGHT);
+
+	symbol_t *result;
+	result = syntax_find_type_primary(graph, origin, origin->end, origin, right, arguments);
+	if (!result)
+	{
+		syntax_error(graph, right, "rhs type not found in attribute type, symbol(%lld)", right->flags);
+		return NULL;
+	}
+
+	return result;
+}
+
+static symbol_t *
+syntax_find_type_primary(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments)
+{
+	if (symbol_check_type(target, SYMBOL_TYPE_COMPOSITE))
+	{
+		return syntax_find_type_by_composite(graph, root, subroot, target);
+	}
+
+	if (symbol_check_type(target, SYMBOL_TYPE_ATTR))
+	{
+		return syntax_find_type_by_attribute(graph, root, subroot, target, arguments);
+	}
+
+	if (symbol_check_type(target, SYMBOL_TYPE_ITEM))
+	{
+		return syntax_find_type_by_array(graph, root, subroot, target);
+	}
+
+	if (symbol_check_type(target, SYMBOL_TYPE_ARRAY))
+	{
+		return syntax_find_type_by_tuple(graph, root, subroot, target);
+	}
+
+	if (symbol_check_type(target, SYMBOL_TYPE_OBJECT))
+	{
+		return syntax_find_type_by_object(graph, root, subroot, target);
+	}
+
+	if (symbol_check_type(target, SYMBOL_TYPE_TYPEOF))
+	{
+		return syntax_find_type_by_typeof(graph, root, subroot, target);
+	}
+
+	if (
+		symbol_check_type(target, SYMBOL_TYPE_ID) || 
+		symbol_check_type(target, SYMBOL_TYPE_NULL) ||
+		symbol_check_type(target, SYMBOL_TYPE_CHAR) ||
+		symbol_check_type(target, SYMBOL_TYPE_STRING) ||
+		symbol_check_type(target, SYMBOL_TYPE_NUMBER) ||
+		symbol_check_type(target, SYMBOL_TYPE_BOOLEAN)
+		)
+	{
+		return syntax_find_type_by_target(graph, root, subroot, applicant, target, arguments);
+	}
+
+	return NULL;
+}
+
+static symbol_t *
+syntax_find_type(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target)
+{
+	return syntax_find_type_primary(graph, root, subroot, applicant, target, NULL);
+}
+
+
+
+
+static symbol_t *
+syntax_find_reference_primary(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters);
+
+static symbol_t *
+syntax_find_reference_by_target(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters);
+
+static int32_t
+syntax_subset_of_ellipsis(symbol_t *reference)
+{
+	symbol_t *a;
+	for (a = reference->begin; a != reference->end; a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_NAME))
+		{
+			symbol_t *b;
+			for (b = a->begin; b != a->end; b = b->next)
+			{
+				if (symbol_check_type(b, SYMBOL_TYPE_ELLIPSIS))
+				{
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+static int32_t
+syntax_match_parameters(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *reference, symbol_t *target)
+{
+	uint64_t ref_counter = 0;  
+	symbol_t *a;
+	for (a = reference->begin; a != reference->end; a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_PARAMETER))
+		{
+			symbol_t *value;
+			value = syntax_extract_with(a, SYMBOL_TYPE_VALUE);
+			if (value)
+			{
+				continue;
+			}
+
+			ref_counter += 1;
+			uint64_t tar_counter = 0;
+			symbol_t *b;
+			for (b = target->begin; b != target->end; b = b->next)
+			{
+				if (symbol_check_type(b, SYMBOL_TYPE_PARAMETER))
+				{
+					tar_counter += 1;
+					if (tar_counter < ref_counter)
+					{
+						continue;
+					}
+
+					if (syntax_subset_of_ellipsis(b))
+					{
+						return 1;
+					}
+
+					if (!syntax_equivalent_of_type(graph, target, b, a, b))
+					{
+						return 0;
+					}
+					break;
+				}
+			}
+			
+			if (tar_counter != ref_counter)
+			{
+				symbol_t *value;
+				value = syntax_extract_with(a, SYMBOL_TYPE_VALUE);
+				if (value) {
+					continue;
+				}
+				return 0;
+			}
+		}
+	}
+
+	
+	uint64_t tar_counter = 0;
+	
+	for (a = target->begin; a != target->end; a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_PARAMETER))
+		{
+			if (!ref_counter)
+			{
+				return 0;
+			}
+
+			tar_counter += 1;
+			if (tar_counter <= ref_counter)
+			{
+				continue;
+			}
+
+			if (syntax_subset_of_ellipsis(a))
+			{
+				return 1;
+			}
+			
+			symbol_t *value;
+			value = syntax_extract_with(a, SYMBOL_TYPE_VALUE);
+			if (!value)
+			{
+				return 0;
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_match_arguments(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *reference, symbol_t *target)
+{
+	uint64_t ref_counter = 0;  
+	symbol_t *a;
+	for (a = reference->begin; a != reference->end; a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_PARAMETER))
+		{
+			symbol_t *value;
+			value = syntax_extract_with(a, SYMBOL_TYPE_VALUE);
+			if (value)
+			{
+				continue;
+			}
+
+			ref_counter += 1;
+			uint64_t tar_counter = 0;
+			symbol_t *b;
+			for (b = target->begin; b != target->end; b = b->next)
+			{
+				if (symbol_check_type(b, SYMBOL_TYPE_ARGUMENT))
+				{
+					tar_counter += 1;
+					if (tar_counter < ref_counter)
+					{
+						continue;
+					}
+
+					if (syntax_subset_of_ellipsis(b))
+					{
+						return 1;
+					}
+
+					if (!syntax_equivalent_of_type(graph, target, b, a, b))
+					{
+						return 0;
+					}
+					break;
+				}
+			}
+			
+			if (tar_counter != ref_counter)
+			{
+				symbol_t *value;
+				value = syntax_extract_with(a, SYMBOL_TYPE_VALUE);
+				if (value) {
+					continue;
+				}
+				return 0;
+			}
+		}
+	}
+
+	
+	uint64_t tar_counter = 0;
+	
+	for (a = target->begin; a != target->end; a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_ARGUMENT))
+		{
+			if (!ref_counter)
+			{
+				return 0;
+			}
+
+			tar_counter += 1;
+			if (tar_counter <= ref_counter)
+			{
+				continue;
+			}
+
+			if (syntax_subset_of_ellipsis(a))
+			{
+				return 1;
+			}
+			
+			symbol_t *value;
+			value = syntax_extract_with(a, SYMBOL_TYPE_VALUE);
+			if (!value)
+			{
+				return 0;
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_match_fields(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *reference, symbol_t *target)
+{
+	uint64_t ref_counter = 0;
+	uint64_t tar_counter = 0;
+
+	symbol_t *a;
+	for (a = reference->begin; a != reference->end; a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_HERITAGE))
+		{
+			symbol_t *ref_type;
+			ref_type = syntax_extract_with(a, SYMBOL_TYPE_TYPE);
+
+			symbol_t *ref_origin;
+			ref_origin = syntax_find_type_primary(graph, reference, a, reference, ref_type, NULL);
+			if (ref_origin)
+			{
+				syntax_error(graph, a, "reference of type not found");
+				return 0;
+			}
+
+			ref_counter += 1;
+			symbol_t *b;
+			for (b = target->begin; b != target->end; b = b->next)
+			{
+				if (symbol_check_type(b, SYMBOL_TYPE_FIELD))
+				{
+					symbol_t *tar_type;
+					tar_type = syntax_extract_with(b, SYMBOL_TYPE_TYPE);
+
+					symbol_t *tar_origin;
+					tar_origin = syntax_find_type_primary(graph, target, a, target, tar_type, NULL);
+					if (tar_origin)
+					{
+						syntax_error(graph, a, "reference of type not found");
+						return 0;
+					}
+
+					if (syntax_equivalent_of_type(graph, target, b, ref_origin, tar_origin))
+					{
+						return 0;
+					}
+					tar_counter += 1;
+					break;
+				}
+			}
+		}
+	}
+	
+	symbol_t *b;
+	for (b = target->begin; b != target->end; b = b->next)
+	{
+		if (symbol_check_type(b, SYMBOL_TYPE_FIELD))
+		{
+			symbol_t *tar_type;
+			tar_type = syntax_extract_with(b, SYMBOL_TYPE_TYPE);
+
+			symbol_t *tar_origin;
+			tar_origin = syntax_find_type_primary(graph, target, a, target, tar_type, NULL);
+			if (tar_origin)
+			{
+				syntax_error(graph, a, "reference of type not found");
+				return 0;
+			}
+
+			if (syntax_equivalent_of_type(graph, target, b, reference, tar_origin))
+			{
+				return 0;
+			}
+			tar_counter += 1;
+			break;
+		}
+	}
+
+	if (ref_counter != tar_counter)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+static symbol_t *
+syntax_find_reference_by_target(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters)
+{
+	symbol_t *a;
+	for (a = root->begin;(a != root->end);a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_HERITAGE))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				symbol_t *type;
+				type = syntax_extract_with(target, SYMBOL_TYPE_TYPE);
+
+				return syntax_find_type_primary(graph, root, a, root, type, NULL);
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_FIELD))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				symbol_t *type;
+				type = syntax_extract_with(target, SYMBOL_TYPE_TYPE);
+
+				return syntax_find_type_primary(graph, root, a, root, type, NULL);
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_VAR))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (!syntax_subset_of_above(root, applicant))
+				{
+					node_t *node = a->declaration;
+					node_class_t *node_class = (node_class_t *)node->value;
+					if ((node_class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
+				}
+				return a;
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_DEFINE))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				return a;
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_IF))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				return a;
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_FOR))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				return a;
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_FORIN))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				return a;
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_PARAMETER))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				return a;
+			}
+		}
+
+		if (!symbol_check_type(root, SYMBOL_TYPE_CLASS) && !symbol_check_type(root, SYMBOL_TYPE_MODULE))
+		{
+			if (a == subroot)
+			{
+				break;
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_IMPORT))
+		{
+			symbol_t *b;
+			for (b = a->begin; b != a->end; b = b->next)
+			{
+				if (symbol_check_type(b, SYMBOL_TYPE_FIELD))
+				{
+					symbol_t *result;
+					result = syntax_subset_exist_in_flag(b, target, SYMBOL_TYPE_NAME);
+					if (result && (result->id != target->id))
+					{
+						if (!!arguments)
+						{
+							if (syntax_match_composite(graph, root, subroot, b, arguments))
+							{
+								return b;
+							}
+							continue;
+						}
+						return b;
+					}
+				}
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_CLASS))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (!syntax_subset_of_above(root, applicant))
+				{
+					node_t *node = a->declaration;
+					node_class_t *node_class = (node_class_t *)node->value;
+					if ((node_class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
+				}
+				if (!!arguments)
+				{
+					if (!syntax_match_composite(graph, root, subroot, a, arguments))
+					{
+						continue;
+					}
+				}
+				
+				symbol_t *b;
+				for (b = a->begin;(b != a->end);b = b->next)
+				{
+					if (symbol_check_type(b, SYMBOL_TYPE_METHOD))
+					{
+						symbol_t *name = syntax_extract_with(b, SYMBOL_TYPE_NAME);
+						if (!syntax_subset_compare_string(name, "init"))
+						{
+							continue;
+						}
+						if (!!parameters)
+						{
+							if (!syntax_match_arguments(graph, a, b, b, parameters))
+							{
+								continue;
+							}
+						}
+						
+						return a;
+					}
+				}
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_ENUM))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (!syntax_subset_of_above(root, applicant))
+				{
+					node_t *node = a->declaration;
+					node_enum_t *node_enum = (node_enum_t *)node->value;
+					if ((node_enum->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
+				}
+				return a;
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_PROPERTY))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (!syntax_subset_of_above(root, applicant))
+				{
+					node_t *node = a->declaration;
+					node_property_t *node_property = (node_property_t *)node->value;
+					if ((node_property->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
+				}
+				return a;
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_TYPE))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (symbol_check_type(root, SYMBOL_TYPE_MODULE) && (root != applicant))
+				{
+					node_t *node = a->declaration;
+					node_type_t *node_class = (node_type_t *)node->value;
+					if ((node_class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
+				}
+				if (!!arguments)
+				{
+					if (syntax_match_composite(graph, root, subroot, a, arguments))
+					{
+						return a;
+					}
+					continue;
+				}
+				return a;
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_METHOD))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (!syntax_subset_of_above(root, applicant))
+				{
+					node_t *node = a->declaration;
+					node_func_t *node_func = (node_func_t *)node->value;
+					if ((node_func->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
+				}
+
+				if (!!arguments)
+				{
+					if (!syntax_match_composite(graph, root, subroot, a, arguments))
+					{
+						continue;
+					}
+				}
+
+				if (!!parameters)
+				{
+					if (!syntax_match_arguments(graph, root, subroot, a, parameters))
+					{
+						continue;
+					}
+				}
+				
+				return a;
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_FUNCTION))
+		{
+			symbol_t *result;
+			result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+			if (result && (result->id != target->id))
+			{
+				if (!syntax_subset_of_above(root, applicant))
+				{
+					node_t *node = a->declaration;
+					node_func_t *node_func = (node_func_t *)node->value;
+					if ((node_func->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						continue;
+					}
+				}
+
+				symbol_t *field;
+				field = syntax_extract_with(a, SYMBOL_TYPE_FIELD);
+				if (!!field)
+				{
+					continue;
+				}
+
+				if (!!arguments)
+				{
+					if (!syntax_match_composite(graph, root, subroot, a, arguments))
+					{
+						continue;
+					}
+				}
+
+				if (!!parameters)
+				{
+					if (!syntax_match_arguments(graph, root, subroot, a, parameters))
+					{
+						continue;
+					}
+				}
+				
+				return a;
+			}
+		}
+	}
+
+	if (symbol_check_type(root, SYMBOL_TYPE_TYPE))
+	{
+		symbol_t *parent = root->parent;
+		symbol_t *a;
+		for (a = parent->begin;(a != parent->end);a = a->next)
+		{
+			if (a == subroot)
+			{
+				break;
+			}
+
+			if (symbol_check_type(a, SYMBOL_TYPE_FUNCTION))
+			{
+				symbol_t *result;
+				result = syntax_subset_exist_in_flag(a, target, SYMBOL_TYPE_NAME);
+				if (result && (result->id != target->id))
+				{
+					if (!syntax_subset_of_above(root, applicant))
+					{
+						node_t *node = a->declaration;
+						node_func_t *node_func = (node_func_t *)node->value;
+						if ((node_func->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+						{
+							continue;
+						}
+					}
+
+					if (!syntax_match_fields(graph, root, subroot, root, a))
+					{
+						continue;
+					}
+
+					if (!!arguments)
+					{
+						if (!syntax_match_composite(graph, root, subroot, a, arguments))
+						{
+							continue;
+						}
+					}
+
+					if (!!parameters)
+					{
+						if (!syntax_match_arguments(graph, root, subroot, a, parameters))
+						{
+							continue;
+						}
+					}
+					
+					return a;
+				}
+			}
+		}
+	}
+	
+	if(root->parent)
+	{
+		symbol_t *result;
+		result = syntax_find_reference_by_target(graph, root->parent, root, applicant, target, arguments, parameters);
+		if(result)
+		{
+			return result;
+		}
+	}
+
+	return NULL;
+}
+
+static symbol_t *
+syntax_find_reference_by_composite(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target, symbol_t *parameters)
+{
+	symbol_t *left;
+	left = syntax_extract_with(target, SYMBOL_TYPE_NAME);
+
+	symbol_t *origin;
+	origin = syntax_find_reference_primary(graph, root, subroot, root, left, target, parameters);
+
+	if(!origin)
+	{
+		syntax_error(graph, left, "lhs type not found in composite type, symbol(%lld)", left->flags);
+		return NULL;
+	}
+
+	return origin;
+}
+
+static symbol_t *
+syntax_find_reference_by_call(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target)
+{
+	symbol_t *left;
+	left = syntax_extract_with(target, SYMBOL_TYPE_NAME);
+
+	symbol_t *origin;
+	origin = syntax_find_reference_primary(graph, root, subroot, root, left, NULL, target);
+
+	if(!origin)
+	{
+		syntax_error(graph, left, "lhs type not found in callable type, symbol(%lld)", left->flags);
+		return NULL;
+	}
+
+	return origin;
+}
+
+static symbol_t *
+syntax_find_reference_by_attribute(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *target, symbol_t *arguments, symbol_t *parameters)
+{
+	symbol_t *left;
+	left = syntax_extract_with(target, SYMBOL_TYPE_LEFT);
+
+	symbol_t *origin;
+	origin = syntax_find_reference_primary(graph, root, subroot, root, left, NULL, NULL);
+	if (!origin)
+	{
+		syntax_error(graph, left, "lhs type not found in attribute type, symbol(%lld)", left->flags);
+		return NULL;
+	}
+
+	symbol_t *right;
+	right = syntax_extract_with(target, SYMBOL_TYPE_RIGHT);
+
+	symbol_t *result;
+	result = syntax_find_reference_primary(graph, origin, origin->end, origin, right, arguments, parameters);
+	if (!result)
+	{
+		syntax_error(graph, right, "rhs type not found in attribute type, symbol(%lld)", right->flags);
+		return NULL;
+	}
+
+	return result;
+}
+
+static symbol_t *
+syntax_find_reference_primary(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target, symbol_t *arguments, symbol_t *parameters)
+{
+	if (symbol_check_type(target, SYMBOL_TYPE_COMPOSITE))
+	{
+		return syntax_find_reference_by_composite(graph, root, subroot, target, parameters);
+	}
+
+	if (symbol_check_type(target, SYMBOL_TYPE_CALL))
+	{
+		return syntax_find_reference_by_call(graph, root, subroot, target);
+	}
+
+	if (symbol_check_type(target, SYMBOL_TYPE_ATTR))
+	{
+		return syntax_find_reference_by_attribute(graph, root, subroot, target, arguments, parameters);
+	}
+
+	if (symbol_check_type(target, SYMBOL_TYPE_ID))
+	{
+		return syntax_find_reference_by_target(graph, root, subroot, applicant, target, arguments, parameters);
+	}
+
+	return NULL;
+}
+
+static symbol_t *
+syntax_find_reference(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *applicant, symbol_t *target)
+{
+	return syntax_find_reference_primary(graph, root, subroot, applicant, target, NULL, NULL);
+}
+
+
+static int32_t
+syntax_equivalence_of_generic(graph_t *graph, symbol_t *g1, symbol_t *g2)
+{
+	symbol_t *gt_1;
+	gt_1 = syntax_extract_with(g1, SYMBOL_TYPE_TYPE);
+	if (gt_1)
+	{
+		symbol_t *gtr_1;
+		gtr_1 = syntax_reference_of(gt_1);
+		if (gtr_1)
+		{
+			symbol_t *gt_2;
+			gt_2 = syntax_extract_with(g2, SYMBOL_TYPE_TYPE);
+			if (gt_2)
+			{
+				symbol_t *gtr_2;
+				gtr_2 = syntax_reference_of(gt_2);
+				if (gtr_2)
+				{
+					return syntax_equivalence(gtr_1, gtr_2);
+				}
+			}
+			else
+			{
+				symbol_t *gv_2;
+				gv_2 = syntax_extract_with(g2, SYMBOL_TYPE_VALUE);
+				if (gv_2)
+				{
+					symbol_t *gtr_2;
+					gtr_2 = syntax_reference_of(gv_2);
+					if (gtr_2)
+					{
+						return syntax_equivalence(gtr_1, gtr_2);
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		symbol_t *gt_2;
+		gt_2 = syntax_extract_with(g2, SYMBOL_TYPE_TYPE);
+		if (gt_2)
+		{
+			return syntax_equivalence_of_generic(g2, g1);
+		}
+	}
+	return 1;
+}
+
+static int32_t
+syntax_equivalence_of_generics(symbol_t *gs1, symbol_t *gs2)
+{
+	uint64_t gs1_counter = 0;
+	uint64_t gs2_counter = 0;
+
+	symbol_t *a;
+	for (a = gs1->begin;a != gs1->end;a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_GENERIC))
+		{
+			gs1_counter += 1;
+			gs2_counter = 0;
+
+			symbol_t *b;
+			for (b = gs2->begin;b != gs2->end;b = b->next)
+			{
+				if (symbol_check_type(b, SYMBOL_TYPE_GENERIC))
+				{
+					gs2_counter += 1;
+					if (gs2_counter < gs1_counter)
+					{
+						continue;
+					}
+					if (syntax_equivalence_of_generic(a, b))
+					{
+						break;
+					}
+					return 0;
+				}
+			}
+			
+			if (gs2_counter < gs1_counter)
+			{
+				symbol_t *value;
+				value = syntax_extract_with(a, SYMBOL_TYPE_VALUE);
+				if (!value)
+				{
+					return 0;
+				}
+			}
+		}
+	}
+
+	gs2_counter = 0;
+	symbol_t *b;
+	for (b = gs2->begin;b != gs2->end;b = b->next)
+	{
+		if (symbol_check_type(b, SYMBOL_TYPE_GENERIC))
+		{
+			gs2_counter += 1;
+			if (gs2_counter > gs1_counter)
+			{
+				symbol_t *value;
+				value = syntax_extract_with(b, SYMBOL_TYPE_VALUE);
+				if (!value)
+				{
+					return 0;
+				}
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int32_t 
+syntax_equivalence_by_genericable(symbol_t *c1, symbol_t *n1)
+{
+	symbol_t *cn1;
+	cn1 = syntax_extract_with(c1, SYMBOL_TYPE_NAME);
+	if (cn1)
+	{
+		symbol_t *nn1;
+		nn1 = syntax_extract_with(n1, SYMBOL_TYPE_NAME);
+		if (nn1)
+		{
+			symbol_t *result;
+			result = syntax_comparison_exist_on_set(cn1, nn1);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	symbol_t *gs_1;
+	gs_1 = syntax_only_with(c1, SYMBOL_TYPE_GENERICS);
+	if (gs_1)
+	{
+		symbol_t *a;
+		for (a = gs_1->begin;a != gs_1->end;a = a->next)
+		{
+			if (symbol_check_type(a, SYMBOL_TYPE_GENERIC))
+			{
+				symbol_t *value;
+				value = syntax_extract_with(a, SYMBOL_TYPE_VALUE);
+				if (!value)
+				{
+					return 0;
+				}
+			}
+		}
+	}
+	return 1;
+}
+
+static int32_t 
+syntax_equivalence_of_genericables(symbol_t *c1, symbol_t *c2)
+{
+	symbol_t *cn1;
+	cn1 = syntax_extract_with(c1, SYMBOL_TYPE_NAME);
+	if (cn1)
+	{
+		symbol_t *cn2;
+		cn2 = syntax_extract_with(c2, SYMBOL_TYPE_NAME);
+		if (cn2)
+		{
+			symbol_t *result;
+			result = syntax_comparison_exist_on_set(cn1, cn2);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	symbol_t *gs_1;
+	gs_1 = syntax_only_with(c1, SYMBOL_TYPE_GENERICS);
+	if (gs_1)
+	{
+		symbol_t *gs_2;
+		gs_2 = syntax_only_with(c2, SYMBOL_TYPE_GENERICS);
+		if (gs_2)
+		{
+			if (syntax_equivalence_of_generics(gs_1, gs_2))
+			{
+				return 1;
+			}
+		}
+		else
+		{
+			symbol_t *a;
+			for (a = gs_1->begin;a != gs_1->end;a = a->next)
+			{
+				if (symbol_check_type(a, SYMBOL_TYPE_GENERIC))
+				{
+					symbol_t *value;
+					value = syntax_extract_with(a, SYMBOL_TYPE_VALUE);
+					if (!value)
+					{
+						return 0;
+					}
+				}
+			}
+			return 1;
+		}
+	}
+	else
+	{
+		symbol_t *gs_2;
+		gs_2 = syntax_only_with(c2, SYMBOL_TYPE_GENERICS);
+		if (gs_2)
+		{
+			symbol_t *a;
+			for (a = gs_2->begin;a != gs_2->end;a = a->next)
+			{
+				if (symbol_check_type(a, SYMBOL_TYPE_GENERIC))
+				{
+					symbol_t *value;
+					value = syntax_extract_with(a, SYMBOL_TYPE_VALUE);
+					if (!value)
+					{
+						return 0;
+					}
+				}
+			}
+		}
+	}
+	return 1;
+}
+
+static int32_t 
+syntax_equivalence(symbol_t *t1, symbol_t *t2)
+{
+	if (symbol_check_type(t1, SYMBOL_TYPE_CLASS))
+	{
+		if (symbol_check_type(t2, SYMBOL_TYPE_CLASS))
+		{
+			return syntax_equivalence_of_genericables(t1, t2);
+		}
+		if (symbol_check_type(t2, SYMBOL_TYPE_TYPE))
+		{
+			return syntax_equivalence_of_genericables(t1, t2);
+		}
+		if (symbol_check_type(t2, SYMBOL_TYPE_METHOD))
+		{
+			return syntax_equivalence_of_genericables(t1, t2);
+		}
+		if (symbol_check_type(t2, SYMBOL_TYPE_HERITAGE))
+		{
+			symbol_t *ht;
+			ht = syntax_only_with(t2, SYMBOL_TYPE_TYPE);
+			if (ht)
+			{
+				return syntax_equivalence_by_genericable(t1, t2);
+			}
+			return 0;
+		}
+		else
+		{
+			return syntax_equivalence_by_genericable(t1, t2);
+		}
+	}
+	if (symbol_check_type(t1, SYMBOL_TYPE_TYPE))
+	{
+		if (symbol_check_type(t2, SYMBOL_TYPE_TYPE))
+		{
+			return syntax_equivalence_of_genericables(t1, t2);
+		}
+		if (symbol_check_type(t2, SYMBOL_TYPE_METHOD))
+		{
+			return syntax_equivalence_of_genericables(t1, t2);
+		}
+		if (symbol_check_type(t2, SYMBOL_TYPE_HERITAGE))
+		{
+			symbol_t *ht;
+			ht = syntax_only_with(t2, SYMBOL_TYPE_TYPE);
+			if (ht)
+			{
+				return syntax_equivalence_by_genericable(t1, t2);
+			}
+			return 0;
+		}
+		else
+		{
+			return syntax_equivalence(t2, t1);
+		}
+	}
+	else
+	{
+		if (symbol_check_type(t2, SYMBOL_TYPE_CLASS))
+		{
+			return syntax_equivalence_by_genericable(t2, t1);
+		}
+		if (symbol_check_type(t2, SYMBOL_TYPE_TYPE))
+		{
+			return syntax_equivalence_by_genericable(t2, t1);
+		}
+		else
+		{
+			if (symbol_check_type(t1, SYMBOL_TYPE_HERITAGE))
+			{
+				symbol_t *ht1;
+				ht1 = syntax_only_with(t1, SYMBOL_TYPE_TYPE);
+				if (!ht1)
+				{
+					return 0;
+				}
+			}
+
+			if (symbol_check_type(t2, SYMBOL_TYPE_HERITAGE))
+			{
+				symbol_t *ht2;
+				ht2 = syntax_only_with(t2, SYMBOL_TYPE_TYPE);
+				if (!ht2)
+				{
+					return 0;
+				}
+			}
+
+			symbol_t *tn1;
+			tn1 = syntax_extract_with(t1, SYMBOL_TYPE_NAME);
+			if (tn1)
+			{
+				symbol_t *tn2;
+				tn2 = syntax_extract_with(t2, SYMBOL_TYPE_NAME);
+				if (tn2)
+				{
+					symbol_t *result;
+					result = syntax_comparison_exist_on_set(tn1, tn2);
+					if (!result)
+					{
+						return 0;
+					}
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+static int32_t
+syntax_unique_insideof_root(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *current)
+{
+	symbol_t *a;
+	for (a = root->begin;(a != root->end);a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_TYPE_CLASS))
+		{
+			if (syntax_equivalence(a, current))
+			{
+				syntax_error(graph, current, "predefined, previous at %lld:%lld", 
+					a->declaration->position.line, a->declaration->position.column);
+				return 0;
+			}
+
+			symbol_t *gs;
+			gs = syntax_only_with(a, SYMBOL_TYPE_GENERICS);
+			if (gs)
+			{
+				symbol_t *b;
+				for (b = gs->begin;b != gs->end;b = b->next)
+				{
+					if (symbol_check_type(b, SYMBOL_TYPE_GENERIC))
+					{
+						if (syntax_equivalence(b, current))
+						{
+							syntax_error(graph, current, "predefined, previous at %lld:%lld", 
+								b->declaration->position.line, b->declaration->position.column);
+							return 0;
+						}
+					}
+				}
+			}
+
+			symbol_t *hs;
+			hs = syntax_only_with(a, SYMBOL_TYPE_HERITAGES);
+			if (hs)
+			{
+				symbol_t *b;
+				for (b = hs->begin;b != hs->end;b = b->next)
+				{
+					if (symbol_check_type(b, SYMBOL_TYPE_HERITAGE))
+					{
+						if (syntax_equivalence(b, current))
+						{
+							syntax_error(graph, current, "predefined, previous at %lld:%lld", 
+								b->declaration->position.line, b->declaration->position.column);
+							return 0;
+						}
+					}
+				}
+			}
+
+			continue;
+		}
+
+		if (symbol_check_type(a, SYMBOL_TYPE_METHOD))
+		{
+			if (syntax_equivalence(a, current))
+			{
+				syntax_error(graph, current, "predefined, previous at %lld:%lld", 
+					a->declaration->position.line, a->declaration->position.column);
+				return 0;
+			}
+
+			symbol_t *ps;
+			ps = syntax_only_with(a, SYMBOL_TYPE_PARAMETERS);
+			if (ps)
+			{
+				symbol_t *b;
+				for (b = ps->begin;b != ps->end;b = b->next)
+				{
+					if (symbol_check_type(b, SYMBOL_TYPE_PARAMETER))
+					{
+						if (syntax_equivalence(b, current))
+						{
+							syntax_error(graph, current, "predefined, previous at %lld:%lld", 
+								b->declaration->position.line, b->declaration->position.column);
+							return 0;
+						}
+					}
+				}
+			}
+
+			continue;
+		}
+
+
+
+
+
+		if (symbol_check_type(a, SYMBOL_TYPE_TYPE))
+		{
+			if (syntax_equivalence(a, current))
+			{
+				syntax_error(graph, current, "predefined, previous at %lld:%lld", 
+					a->declaration->position.line, a->declaration->position.column);
+				return 0;
+			}
+
+			symbol_t *gs;
+			gs = syntax_only_with(a, SYMBOL_TYPE_GENERICS);
+			if (gs)
+			{
+				symbol_t *b;
+				for (b = gs->begin;b != gs->end;b = b->next)
+				{
+					if (symbol_check_type(b, SYMBOL_TYPE_GENERIC))
+					{
+						if (syntax_equivalence(b, current))
+						{
+							syntax_error(graph, current, "predefined, previous at %lld:%lld", 
+								b->declaration->position.line, b->declaration->position.column);
+							return 0;
+						}
+					}
+				}
+			}
+
+			symbol_t *hs;
+			hs = syntax_only_with(a, SYMBOL_TYPE_HERITAGES);
+			if (hs)
+			{
+				symbol_t *b;
+				for (b = hs->begin;b != hs->end;b = b->next)
+				{
+					if (symbol_check_type(b, SYMBOL_TYPE_HERITAGE))
+					{
+						if (syntax_equivalence(b, current))
+						{
+							syntax_error(graph, current, "predefined, previous at %lld:%lld", 
+								b->declaration->position.line, b->declaration->position.column);
+							return 0;
+						}
+					}
+				}
+			}
+
+			continue;
+		}
+	}
+}
+
+static int32_t
+syntax_unique(graph_t *graph, symbol_t *current)
+{
+	symbol_t *root = current->parent;
+	symbol_t *subroot = current;
+	return syntax_unique_insideof_root(graph, root, subroot, current);
+}
+
+

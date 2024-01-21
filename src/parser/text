@@ -100,12 +100,12 @@ syntax_check_is_duplicated_symbol(syntax_t *syntax, node_t *container, symbol_t 
 
 			if(strcmp(symbol->escaped_name, symbol2->escaped_name) == 0)
 			{
-				if(symbol_check_flag(symbol, SYMBOL_FLAG_FUNCTION))
+				if(symbol_check_type(symbol, SYMBOL_TYPE_FUNCTION))
 				{
 					
 				}
 
-				if(symbol_check_flag(symbol2, SYMBOL_FLAG_FUNCTION))
+				if(symbol_check_type(symbol2, SYMBOL_TYPE_FUNCTION))
 				{
 
 				}
@@ -216,7 +216,7 @@ graph_parameter_by_object_and_array(syntax_t *syntax, node_t *node)
 	else if(node->kind == NODE_KIND_ID)
 	{
 		symbol_t *symbol;
-		symbol = syntax_create_symbol_from_id(syntax, node, SYMBOL_FLAG_PARAMETER, node);
+		symbol = syntax_create_symbol_from_id(syntax, node, SYMBOL_TYPE_PARAMETER, node);
 		if(symbol)
 		{
 			node_t *container;
@@ -230,7 +230,7 @@ graph_parameter_by_object_and_array(syntax_t *syntax, node_t *node)
 				}
 				else
 				{
-					if(!list_rpush(container->locals, (list_value_t)symbol))
+					if(!list_rpush(container->locals, (uint64_t)symbol))
 					{
 						return 0;
 					}
@@ -274,13 +274,13 @@ graph_parameter(syntax_t *syntax, node_t *node)
 }
 
 static int32_t
-graph_type_parameter(syntax_t *syntax, node_t *node)
+graph_generic(syntax_t *syntax, node_t *node)
 {
-	node_type_parameter_t *node_type_parameter;
-	node_type_parameter = (node_type_parameter_t *)node->value;
+	node_generic_t *node_generic;
+	node_generic = (node_generic_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = syntax_create_symbol_from_id(syntax, node_type_parameter->name, SYMBOL_FLAG_TYPE_PARAMETER, node);
+	symbol = syntax_create_symbol_from_id(syntax, node_generic->name, SYMBOL_TYPE_GENERIC, node);
 	if(symbol)
 	{
 		node_t *container;
@@ -294,7 +294,7 @@ graph_type_parameter(syntax_t *syntax, node_t *node)
 			}
 			else
 			{
-				if(!list_rpush(container->locals, (list_value_t)symbol))
+				if(!list_rpush(container->locals, (uint64_t)symbol))
 				{
 					return 0;
 				}
@@ -308,7 +308,7 @@ graph_type_parameter(syntax_t *syntax, node_t *node)
 	}
 	else
 	{
-		syntax_error(syntax, node_type_parameter->name->position, "empty symbol");
+		syntax_error(syntax, node_generic->name->position, "empty symbol");
 		return 0;
 	}
 
@@ -322,7 +322,7 @@ graph_field(syntax_t *syntax, node_t *node)
 	node_field = (node_field_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = syntax_create_symbol_from_id(syntax, node_field->name, SYMBOL_FLAG_FIELD, node);
+	symbol = syntax_create_symbol_from_id(syntax, node_field->name, SYMBOL_TYPE_FIELD, node);
 	if(symbol)
 	{
 		node_t *container;
@@ -336,7 +336,7 @@ graph_field(syntax_t *syntax, node_t *node)
 			}
 			else
 			{
-				if(!list_rpush(container->locals, (list_value_t)symbol))
+				if(!list_rpush(container->locals, (uint64_t)symbol))
 				{
 					return 0;
 				}
@@ -364,7 +364,7 @@ graph_method(syntax_t *syntax, node_t *node)
 	node_method = (node_method_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = syntax_create_symbol_from_id(syntax, node_method->name, SYMBOL_FLAG_METHOD, node);
+	symbol = syntax_create_symbol_from_id(syntax, node_method->name, SYMBOL_TYPE_METHOD, node);
 	if(symbol)
 	{
 		node_t *container;
@@ -378,7 +378,7 @@ graph_method(syntax_t *syntax, node_t *node)
 			}
 			else
 			{
-				if(!list_rpush(container->locals, (list_value_t)symbol))
+				if(!list_rpush(container->locals, (uint64_t)symbol))
 				{
 					return 0;
 				}
@@ -399,14 +399,14 @@ graph_method(syntax_t *syntax, node_t *node)
 	int32_t result;
 
 	ilist_t *a;
-	if (node_method->type_parameters)
+	if (node_method->generics)
 	{
-		for (a = node_method->type_parameters->begin; a != node_method->type_parameters->end; a = a->next)
+		for (a = node_method->generics->begin; a != node_method->generics->end; a = a->next)
 		{
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = graph_type_parameter(syntax, temp);
+			result = graph_generic(syntax, temp);
 			if (!result)
 			{
 				return 0;
@@ -442,7 +442,7 @@ graph_func(syntax_t *syntax, node_t *node)
 	if (node_func->name)
 	{
 		symbol_t *symbol;
-		symbol = syntax_create_symbol_from_id(syntax, node_func->name, SYMBOL_FLAG_METHOD, node);
+		symbol = syntax_create_symbol_from_id(syntax, node_func->name, SYMBOL_TYPE_METHOD, node);
 		if(symbol)
 		{
 			node_t *container;
@@ -456,7 +456,7 @@ graph_func(syntax_t *syntax, node_t *node)
 				}
 				else
 				{
-					if(!list_rpush(container->locals, (list_value_t)symbol))
+					if(!list_rpush(container->locals, (uint64_t)symbol))
 					{
 						return 0;
 					}
@@ -490,15 +490,15 @@ graph_func(syntax_t *syntax, node_t *node)
 		}
 	}
 
-	if (node_func->type_parameters)
+	if (node_func->generics)
 	{
 		ilist_t *a;
-		for (a = node_func->type_parameters->begin; a != node_func->type_parameters->end; a = a->next)
+		for (a = node_func->generics->begin; a != node_func->generics->end; a = a->next)
 		{
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = graph_type_parameter(syntax, temp);
+			result = graph_generic(syntax, temp);
 			if (!result)
 			{
 				return 0;
@@ -532,7 +532,7 @@ graph_property(syntax_t *syntax, node_t *node)
 	node_field = (node_field_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = syntax_create_symbol_from_id(syntax, node_field->name, SYMBOL_FLAG_PROPERTY, node);
+	symbol = syntax_create_symbol_from_id(syntax, node_field->name, SYMBOL_TYPE_PROPERTY, node);
 	if(symbol)
 	{
 		node_t *container;
@@ -546,7 +546,7 @@ graph_property(syntax_t *syntax, node_t *node)
 			}
 			else
 			{
-				if(!list_rpush(container->locals, (list_value_t)symbol))
+				if(!list_rpush(container->locals, (uint64_t)symbol))
 				{
 					return 0;
 				}
@@ -574,7 +574,7 @@ graph_enum_member(syntax_t *syntax, node_t *node)
 	node_enum_member = (node_enum_member_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = syntax_create_symbol_from_id(syntax, node_enum_member->name, SYMBOL_FLAG_ENUM_MEMBER, node);
+	symbol = syntax_create_symbol_from_id(syntax, node_enum_member->name, SYMBOL_TYPE_ENUM_MEMBER, node);
 	if(symbol)
 	{
 		node_t *container;
@@ -588,7 +588,7 @@ graph_enum_member(syntax_t *syntax, node_t *node)
 			}
 			else
 			{
-				if(!list_rpush(container->locals, (list_value_t)symbol))
+				if(!list_rpush(container->locals, (uint64_t)symbol))
 				{
 					return 0;
 				}
@@ -616,7 +616,7 @@ graph_enum(syntax_t *syntax, node_t *node)
 	node_enum = (node_enum_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = syntax_create_symbol_from_id(syntax, node_enum->name, SYMBOL_FLAG_ENUM, node);
+	symbol = syntax_create_symbol_from_id(syntax, node_enum->name, SYMBOL_TYPE_ENUM, node);
 	if(symbol)
 	{
 		node_t *container;
@@ -630,7 +630,7 @@ graph_enum(syntax_t *syntax, node_t *node)
 			}
 			else
 			{
-				if(!list_rpush(container->locals, (list_value_t)symbol))
+				if(!list_rpush(container->locals, (uint64_t)symbol))
 				{
 					return 0;
 				}
@@ -673,7 +673,7 @@ graph_class(syntax_t *syntax, node_t *node)
 	node_class = (node_class_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = syntax_create_symbol_from_id(syntax, node_class->name, SYMBOL_FLAG_CLASS, node);
+	symbol = syntax_create_symbol_from_id(syntax, node_class->name, SYMBOL_TYPE_CLASS, node);
 	if(symbol)
 	{
 		node_t *container;
@@ -687,7 +687,7 @@ graph_class(syntax_t *syntax, node_t *node)
 			}
 			else
 			{
-				if(!list_rpush(container->locals, (list_value_t)symbol))
+				if(!list_rpush(container->locals, (uint64_t)symbol))
 				{
 					return 0;
 				}
@@ -708,14 +708,14 @@ graph_class(syntax_t *syntax, node_t *node)
 	int32_t result;
 
 	ilist_t *a;
-	if (node_class->type_parameters)
+	if (node_class->generics)
 	{
-		for (a = node_class->type_parameters->begin; a != node_class->type_parameters->end; a = a->next)
+		for (a = node_class->generics->begin; a != node_class->generics->end; a = a->next)
 		{
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = graph_type_parameter(syntax, temp);
+			result = graph_generic(syntax, temp);
 			if (!result)
 			{
 				return 0;
@@ -869,7 +869,7 @@ graph_variable_by_object_and_array(syntax_t *syntax, node_t *node)
 	else if(node->kind == NODE_KIND_ID)
 	{
 		symbol_t *symbol;
-		symbol = syntax_create_symbol_from_id(syntax, node, SYMBOL_FLAG_VARIABLE, node);
+		symbol = syntax_create_symbol_from_id(syntax, node, SYMBOL_TYPE_VARIABLE, node);
 		if(symbol)
 		{
 			node_t *container;
@@ -883,7 +883,7 @@ graph_variable_by_object_and_array(syntax_t *syntax, node_t *node)
 				}
 				else
 				{
-					if(!list_rpush(container->locals, (list_value_t)symbol))
+					if(!list_rpush(container->locals, (uint64_t)symbol))
 					{
 						return 0;
 					}
@@ -1023,7 +1023,7 @@ graph_constant_by_object_and_array(syntax_t *syntax, node_t *node)
 	else if(node->kind == NODE_KIND_ID)
 	{
 		symbol_t *symbol;
-		symbol = syntax_create_symbol_from_id(syntax, node, SYMBOL_FLAG_CONST, node);
+		symbol = syntax_create_symbol_from_id(syntax, node, SYMBOL_TYPE_CONST, node);
 		if(symbol)
 		{
 			node_t *container;
@@ -1037,7 +1037,7 @@ graph_constant_by_object_and_array(syntax_t *syntax, node_t *node)
 				}
 				else
 				{
-					if(!list_rpush(container->locals, (list_value_t)symbol))
+					if(!list_rpush(container->locals, (uint64_t)symbol))
 					{
 						return 0;
 					}
@@ -1087,7 +1087,7 @@ graph_type(syntax_t *syntax, node_t *node)
 	node_type = (node_type_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = syntax_create_symbol_from_id(syntax, node_type->name, SYMBOL_FLAG_TYPE, node);
+	symbol = syntax_create_symbol_from_id(syntax, node_type->name, SYMBOL_TYPE_TYPE, node);
 	if(symbol)
 	{
 		node_t *container;
@@ -1101,7 +1101,7 @@ graph_type(syntax_t *syntax, node_t *node)
 			}
 			else
 			{
-				if(!list_rpush(container->locals, (list_value_t)symbol))
+				if(!list_rpush(container->locals, (uint64_t)symbol))
 				{
 					return 0;
 				}
@@ -1122,14 +1122,14 @@ graph_type(syntax_t *syntax, node_t *node)
 	int32_t result;
 
 	ilist_t *a;
-	if (node_type->type_parameters)
+	if (node_type->generics)
 	{
-		for (a = node_type->type_parameters->begin; a != node_type->type_parameters->end; a = a->next)
+		for (a = node_type->generics->begin; a != node_type->generics->end; a = a->next)
 		{
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result = graph_type_parameter(syntax, temp);
+			result = graph_generic(syntax, temp);
 			if (!result)
 			{
 				return 0;
@@ -1197,7 +1197,7 @@ graph_export_by_object(syntax_t *syntax, node_t *node)
 	else if(node->kind == NODE_KIND_ID)
 	{
 		symbol_t *symbol;
-		symbol = syntax_create_symbol_from_id(syntax, node, SYMBOL_FLAG_EXPORT, node);
+		symbol = syntax_create_symbol_from_id(syntax, node, SYMBOL_TYPE_EXPORT, node);
 		if(symbol)
 		{
 			node_t *container;
@@ -1211,7 +1211,7 @@ graph_export_by_object(syntax_t *syntax, node_t *node)
 				}
 				else
 				{
-					if(!list_rpush(container->locals, (list_value_t)symbol))
+					if(!list_rpush(container->locals, (uint64_t)symbol))
 					{
 						return 0;
 					}

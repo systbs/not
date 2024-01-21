@@ -97,7 +97,7 @@ scanner_error(scanner_t *scanner, position_t position, const char *format, ...)
 		return NULL;
 	}
 
-	if (list_rpush(scanner->errors, (list_value_t)error))
+	if (list_rpush(scanner->errors, (uint64_t)error))
 	{
 		return NULL;
 	}
@@ -776,6 +776,22 @@ scanner_advance(scanner_t *scanner)
 					scanner_next(scanner);
 					return 1;
 				}
+
+				if (scanner->ch == '*')
+				{
+					scanner_set_token(scanner, (token_t){
+																				 .type = TOKEN_POWER,
+																				 .value = NULL,
+																				 .position = {
+																						 .path = scanner->file_source->path,
+																						 .offset = offset,
+																						 .column = column,
+																						 .line = line}});
+
+					scanner_next(scanner);
+					return 1;
+				}
+
 				return 1;
 			}
 			else if (scanner->ch == '/')
@@ -1568,6 +1584,21 @@ scanner_advance(scanner_t *scanner)
 
 				return 1;
 			}
+			else if (strncmp(scanner->source + start_offset, "oo", max(length, 2)) == 0)
+			{
+				scanner_set_token(scanner, (token_t){
+					.type = TOKEN_INFINITY_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->file_source->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - (scanner->offset - start_offset),
+							.line = scanner->line
+						}
+					});
+
+				return 1;
+			}
 			else if (strncmp(scanner->source + start_offset, "class", max(length, 5)) == 0)
 			{
 				scanner_set_token(scanner, (token_t){
@@ -1617,6 +1648,36 @@ scanner_advance(scanner_t *scanner)
 			{
 				scanner_set_token(scanner, (token_t){
 					.type = TOKEN_READONLY_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->file_source->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - (scanner->offset - start_offset),
+							.line = scanner->line
+							}
+					});
+
+				return 1;
+			}
+			else if (strncmp(scanner->source + start_offset, "reference", max(length, 9)) == 0)
+			{
+				scanner_set_token(scanner, (token_t){
+					.type = TOKEN_REFERENCE_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->file_source->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - (scanner->offset - start_offset),
+							.line = scanner->line
+							}
+					});
+
+				return 1;
+			}
+			else if (strncmp(scanner->source + start_offset, "protected", max(length, 9)) == 0)
+			{
+				scanner_set_token(scanner, (token_t){
+					.type = TOKEN_PROTECTED_KEYWORD,
 					.value = NULL,
 					.position = {
 							.path = scanner->file_source->path,
@@ -1753,6 +1814,32 @@ scanner_advance(scanner_t *scanner)
 
 				return 1;
 			}
+			else if (strncmp(scanner->source + start_offset, "this", max(length, 4)) == 0)
+			{
+				scanner_set_token(scanner, (token_t){
+																			 .type = TOKEN_THIS_KEYWORD,
+																			 .value = NULL,
+																			 .position = {
+																					 .path = scanner->file_source->path,
+																					 .offset = scanner->offset - length,
+																					 .column = scanner->column - (scanner->offset - start_offset),
+																					 .line = scanner->line}});
+
+				return 1;
+			}
+			else if (strncmp(scanner->source + start_offset, "async", max(length, 5)) == 0)
+			{
+				scanner_set_token(scanner, (token_t){
+																			 .type = TOKEN_ASYNC_KEYWORD,
+																			 .value = NULL,
+																			 .position = {
+																					 .path = scanner->file_source->path,
+																					 .offset = scanner->offset - length,
+																					 .column = scanner->column - (scanner->offset - start_offset),
+																					 .line = scanner->line}});
+
+				return 1;
+			}
 			else if (strncmp(scanner->source + start_offset, "return", max(length, 6)) == 0)
 			{
 				scanner_set_token(scanner, (token_t){
@@ -1822,19 +1909,6 @@ scanner_advance(scanner_t *scanner)
 			{
 				scanner_set_token(scanner, (token_t){
 																			 .type = TOKEN_VAR_KEYWORD,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->file_source->path,
-																					 .offset = scanner->offset - length,
-																					 .column = scanner->column - (scanner->offset - start_offset),
-																					 .line = scanner->line}});
-
-				return 1;
-			}
-			else if (strncmp(scanner->source + start_offset, "const", max(length, 5)) == 0)
-			{
-				scanner_set_token(scanner, (token_t){
-																			 .type = TOKEN_CONST_KEYWORD,
 																			 .value = NULL,
 																			 .position = {
 																					 .path = scanner->file_source->path,

@@ -39,7 +39,7 @@ list_isempty(list_t *lst)
     return (lst->begin == lst->end);
 }
 
-list_value_t
+uint64_t
 list_content(ilist_t *current){
     return current ? current->value : 0;
 }
@@ -56,10 +56,10 @@ list_previous(ilist_t *current)
     return current->previous;
 }
 
-list_key_t
+uint64_t
 list_count(list_t *lst)
 {
-    list_key_t cnt = 0;
+    uint64_t cnt = 0;
     ilist_t *b;
     for(b = lst->begin; b && (b != lst->end); b = b->next){
         cnt++;
@@ -92,7 +92,7 @@ list_destroy(list_t *lst)
 }
 
 ilist_t *
-list_create_iterior(list_value_t value){
+list_create_iterior(uint64_t value){
 	ilist_t *it;
     if(!(it = (ilist_t *)malloc(sizeof(*it)))) {
         return NULL;
@@ -187,7 +187,7 @@ list_rpop(list_t *lst)
 }
 
 ilist_t *
-list_rpush(list_t *lst, list_value_t value)
+list_rpush(list_t *lst, uint64_t value)
 {
     ilist_t *it;
     if(!(it = (ilist_t *)malloc(sizeof(*it)))) {
@@ -207,7 +207,7 @@ list_lpop(list_t *lst)
 }
 
 ilist_t *
-list_lpush(list_t *lst, list_value_t value)
+list_lpush(list_t *lst, uint64_t value)
 {
     ilist_t *it;
 
@@ -222,7 +222,7 @@ list_lpush(list_t *lst, list_value_t value)
 }
 
 ilist_t *
-list_at(list_t *lst, list_key_t key)
+list_at(list_t *lst, uint64_t key)
 {
     ilist_t *b, *n;
     for(b = lst->begin; b && (b != lst->end); b = n){

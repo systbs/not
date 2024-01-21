@@ -25,55 +25,60 @@ enum
   TOKEN_SEMICOLON,	//	;
   TOKEN_QUESTION, 	//	?
   TOKEN_AT,  	 	    //	@
-  TOKEN_BACKSLASH,	//	
   TOKEN_UNDERLINE,	//	_
+
   // Binary Arithmetic 
   TOKEN_PLUS,	 	  //	+
   TOKEN_MINUS,	 	//	-
   TOKEN_STAR,	 	  //	*
+  TOKEN_POWER,	 	//	**
   TOKEN_SLASH,	 	//	/
+  TOKEN_BACKSLASH, 
   TOKEN_PERCENT,	//	%
-  // Bit-Wise	&,|,^,~,<<,>>
+
+  // Bit-Wise
   TOKEN_AND, 	 	  // &
   TOKEN_OR,			  // |
   TOKEN_CARET,		// ^
   TOKEN_TILDE,		// ~
-  TOKEN_LT_LT,
-  TOKEN_GT_GT,
+  TOKEN_LT_LT,    // <<
+  TOKEN_GT_GT,    // >>
 
-  // Relational <,>,<=,>=,==,!=
+  // Relational
   TOKEN_LT,	   		//	<
   TOKEN_GT,	   		//	>
-  TOKEN_LT_EQ,
-  TOKEN_GT_EQ,
-  TOKEN_EQ_EQ,
-  TOKEN_NOT_EQ,
+  TOKEN_LT_EQ,    // <=
+  TOKEN_GT_EQ,    // >=
+  TOKEN_EQ_EQ,    // ==
+  TOKEN_NOT_EQ,   // !=
 
-  // Logical &&,||,!
+  // Logical
   TOKEN_NOT,	   	//	!
-  TOKEN_AND_AND,
-  TOKEN_OR_OR,
-  // Assignment =,+=,-=,*=,/=,%=,&=,|=,<<=,>>=
-  TOKEN_EQ,	   		//	=
-  TOKEN_PLUS_EQ,
-  TOKEN_MINUS_EQ,
-  TOKEN_STAR_EQ,
-  TOKEN_SLASH_EQ,
-  TOKEN_PERCENT_EQ,
-  TOKEN_AND_EQ,
-  TOKEN_OR_EQ,
-  TOKEN_LT_LT_EQ,
-  TOKEN_GT_GT_EQ,
+  TOKEN_AND_AND,  // &&
+  TOKEN_OR_OR,    // ||
 
-  TOKEN_DOT_DOT,
-  TOKEN_COLON_EQ,
-  TOKEN_MINUS_GT,
+  // Assignment
+  TOKEN_EQ,	   		    //	=
+  TOKEN_PLUS_EQ,      // +=
+  TOKEN_MINUS_EQ,     // -=
+  TOKEN_STAR_EQ,      // *=
+  TOKEN_SLASH_EQ,     // /=
+  TOKEN_PERCENT_EQ,   // %=
+  TOKEN_AND_EQ,       // &=
+  TOKEN_OR_EQ,        // |=
+  TOKEN_LT_LT_EQ,     // <<=
+  TOKEN_GT_GT_EQ,     // >>=
+
+  TOKEN_DOT_DOT,      // ..
+  TOKEN_COLON_EQ,     // :=
+  TOKEN_MINUS_GT,     // ->
 
   TOKEN_ID,
   TOKEN_NUMBER,
   TOKEN_CHAR,
   TOKEN_STRING,
 
+  TOKEN_INFINITY_KEYWORD,
   TOKEN_CONTINUE_KEYWORD,
   TOKEN_BREAK_KEYWORD,
   TOKEN_ELSE_KEYWORD,
@@ -91,9 +96,13 @@ enum
   TOKEN_NULL_KEYWORD,
   TOKEN_FUNC_KEYWORD,
   TOKEN_CLASS_KEYWORD,
+  TOKEN_ASYNC_KEYWORD,
   TOKEN_EXTENDS_KEYWORD,
   TOKEN_STATIC_KEYWORD,
   TOKEN_READONLY_KEYWORD,
+  TOKEN_REFERENCE_KEYWORD,
+  TOKEN_PROTECTED_KEYWORD,
+  TOKEN_THIS_KEYWORD,
   TOKEN_VAR_KEYWORD,
   TOKEN_CONST_KEYWORD,
   TOKEN_TYPE_KEYWORD,

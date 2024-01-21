@@ -34,16 +34,13 @@ static int32_t
 graph_parameter(symbol_t *parent, node_t *node);
 
 static int32_t
-graph_type_parameter(symbol_t *parent, node_t *node);
+graph_generic(symbol_t *parent, node_t *node);
 
 static int32_t
 graph_postfix(symbol_t *parent, node_t *node);
 
 static int32_t
 graph_block(symbol_t *parent, node_t *node);
-
-static int32_t
-graph_const(symbol_t *parent, node_t *node);
 
 static int32_t
 graph_var(symbol_t *parent, node_t *node);
@@ -60,7 +57,7 @@ graph_id(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_ID, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_ID, node);
 	if(!symbol)
 	{
 		return 0;
@@ -72,7 +69,7 @@ static int32_t
 graph_number(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_NUMBER, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_NUMBER, node);
 	if (!symbol)
 	{
 		return 0;
@@ -85,7 +82,7 @@ graph_string(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_STRING, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_STRING, node);
 	if(!symbol)
 	{
 		return 0;
@@ -98,7 +95,7 @@ graph_char(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_CHAR, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_CHAR, node);
 	if(!symbol)
 	{
 		return 0;
@@ -111,7 +108,7 @@ graph_null(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_NULL, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_NULL, node);
 	if(!symbol)
 	{
 		return 0;
@@ -124,7 +121,7 @@ graph_true(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_TRUE, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_TRUE, node);
 	if(!symbol)
 	{
 		return 0;
@@ -137,7 +134,7 @@ graph_false(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_FALSE, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_FALSE, node);
 	if(!symbol)
 	{
 		return 0;
@@ -149,13 +146,12 @@ static int32_t
 graph_array(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
-	
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_ARRAY, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_ARRAY, node);
 	if(!symbol)
 	{
 		return 0;
 	}
-	
+
 	node_array_t *node_array;
 	node_array = (node_array_t *)node->value;
 
@@ -180,7 +176,7 @@ graph_parenthesis(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_PARENTHESIS, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_PARENTHESIS, node);
 	if(!symbol)
 	{
 		return 0;
@@ -200,13 +196,70 @@ graph_parenthesis(symbol_t *parent, node_t *node)
 }
 
 static int32_t
+graph_lambda(symbol_t *parent, node_t *node)
+{
+	symbol_t *symbol;
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_LAMBDA, node);
+	if(!symbol)
+	{
+		return 0;
+	}
+
+	node_lambda_t *node_lambda = (node_lambda_t *)node->value;
+
+	int32_t result;
+	if (node_lambda->parameters)
+	{
+		symbol_t *parameters;
+		parameters = symbol_rpush(symbol, SYMBOL_TYPE_PARAMETERS, NULL);
+
+		ilist_t *a;
+		for (a = node_lambda->parameters->begin; a != node_lambda->parameters->end; a = a->next)
+		{
+			node_t *parameter = (node_t *)a->value;
+
+			result = graph_parameter(parameters, parameter);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	if (node_lambda->body)
+	{
+		if(node_lambda->body->kind == NODE_KIND_BLOCK)
+		{
+			result = graph_block(symbol, node_lambda->body);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+		else
+		{
+			symbol_t *value = symbol_rpush(symbol, SYMBOL_TYPE_VALUE, NULL);
+			if(!value)
+			{
+				return 0;
+			}
+
+			result = graph_expression(value, node_lambda->body);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
 graph_object_property(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
-	symbol_t *symbol_name;
-	symbol_t *symbol_value;
-	
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_OBJECT_PROPERTY, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_OBJECT_PROPERTY, node);
 	if(!symbol)
 	{
 		return 0;
@@ -218,7 +271,8 @@ graph_object_property(symbol_t *parent, node_t *node)
 	int32_t result;
 	if(node_object_property->name)
 	{
-		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_object_property->name);
+		symbol_t *symbol_name;
+		symbol_name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, node_object_property->name);
 		if(!symbol_name)
 		{
 			return 0;
@@ -233,7 +287,8 @@ graph_object_property(symbol_t *parent, node_t *node)
 
 	if (node_object_property->value)
 	{
-		symbol_value = symbol_rpush(symbol, SYMBOL_FLAG_VALUE, node_object_property->value);
+		symbol_t *symbol_value;
+		symbol_value = symbol_rpush(symbol, SYMBOL_TYPE_VALUE, node_object_property->value);
 		if(!symbol_value)
 		{
 			return 0;
@@ -252,15 +307,15 @@ graph_object_property(symbol_t *parent, node_t *node)
 static int32_t
 graph_object(symbol_t *parent, node_t *node)
 {
-	node_object_t *node_object;
-	node_object = (node_object_t *)node->value;
-
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_OBJECT, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_OBJECT, node);
 	if(!symbol)
 	{
 		return 0;
 	}
+
+	node_object_t *node_object;
+	node_object = (node_object_t *)node->value;
 
 	int32_t result;
 	ilist_t *a;
@@ -321,8 +376,8 @@ graph_primary(symbol_t *parent, node_t *node)
 		result = graph_object(parent, node);
 		break;
 
-	case NODE_KIND_FUNC:
-		result = graph_func(parent, node);
+	case NODE_KIND_LAMBDA:
+		result = graph_lambda(parent, node);
 		break;
 
 	case NODE_KIND_PARENTHESIS:
@@ -337,14 +392,59 @@ graph_primary(symbol_t *parent, node_t *node)
 }
 
 static int32_t
+graph_argument(symbol_t *parent, node_t *node)
+{
+	node_argument_t *node_argument = (node_argument_t *)node->value;
+
+	symbol_t *symbol;
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_ARGUMENT, node);
+	if(!symbol)
+	{
+		return 0;
+	}
+
+	int32_t result;
+	if (node_argument->name)
+	{
+		symbol_t *name;
+		name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, NULL);
+		if(!name)
+		{
+			return 0;
+		}
+		
+		result = graph_expression(name, node_argument->name);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+
+	if (node_argument->value)
+	{
+		symbol_t *value;
+		value = symbol_rpush(symbol, SYMBOL_TYPE_VALUE, NULL);
+		if(!value)
+		{
+			return 0;
+		}
+
+		result = graph_expression(value, node_argument->value);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
 graph_composite(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
-	symbol_t *symbol_base;
-	symbol_t *symbol_type_argument;
-
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_COMPOSITE, node);
-	if(!symbol)
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_COMPOSITE, node);
+	if (!symbol)
 	{
 		return 0;
 	}
@@ -353,36 +453,35 @@ graph_composite(symbol_t *parent, node_t *node)
 	node_composite = (node_composite_t *)node->value;
 
 	int32_t result;
-	if(node_composite->base)
+	if (node_composite->base)
 	{
-		symbol_base = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node);
-		if(!symbol_base)
+		symbol_t *base = symbol_rpush(symbol, SYMBOL_TYPE_NAME, node);
+		if(!base)
 		{
 			return 0;
 		}
 
-		result = graph_postfix(symbol_base, node_composite->base);
+		result = graph_expression(base, node_composite->base);
 		if (!result)
 		{
 			return 0;
 		}
 	}
 
-	if (node_composite->type_arguments)
+	if (node_composite->arguments)
 	{
-		ilist_t *a;
-		for (a = node_composite->type_arguments->begin; a != node_composite->type_arguments->end; a = a->next)
+		symbol_t *arguments = symbol_rpush(symbol, SYMBOL_TYPE_ARGUMENTS, NULL);
+		if(!arguments)
 		{
-			node_t *temp;
-			temp = (node_t *)a->value;
+			return 0;
+		}
 
-			symbol_type_argument = symbol_rpush(symbol, SYMBOL_FLAG_ARGUMENT, node);
-			if(!symbol_type_argument)
-			{
-				return 0;
-			}
+		ilist_t *a;
+		for (a = node_composite->arguments->begin; a != node_composite->arguments->end; a = a->next)
+		{
+			node_t *argument = (node_t *)a->value;
 
-			result = graph_expression(symbol_type_argument, temp);
+			result = graph_argument(arguments, argument);
 			if (!result)
 			{
 				return 0;
@@ -397,46 +496,43 @@ static int32_t
 graph_call(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
-	symbol_t *symbol_callable;
-	symbol_t *symbol_argument;
-
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_CALL, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_CALL, node);
 	if(!symbol)
 	{
 		return 0;
 	}
 
-	node_call_t *node_call;
-	node_call = (node_call_t *)node->value;
+	node_composite_t *node_composite;
+	node_composite = (node_composite_t *)node->value;
 
-	symbol_callable = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node);
-	if(!symbol_callable)
+	symbol_t *name;
+	name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, NULL);
+	if(!name)
 	{
 		return 0;
 	}
 
 	int32_t result;
-	result = graph_postfix(symbol_callable, node_call->callable);
+	result = graph_postfix(name, node_composite->base);
 	if (!result)
 	{
 		return 0;
 	}
 
-	if (node_call->arguments)
+	if (node_composite->arguments)
 	{
-		ilist_t *a;
-		for (a = node_call->arguments->begin; a != node_call->arguments->end; a = a->next)
+		symbol_t *arguments = symbol_rpush(symbol, SYMBOL_TYPE_ARGUMENTS, NULL);
+		if(!arguments)
 		{
-			symbol_argument = symbol_rpush(symbol, SYMBOL_FLAG_ARGUMENT, node);
-			if(!symbol_argument)
-			{
-				return 0;
-			}
-			
-			node_t *temp;
-			temp = (node_t *)a->value;
+			return 0;
+		}
 
-			result = graph_expression(symbol_argument, temp);
+		ilist_t *a;
+		for (a = node_composite->arguments->begin; a != node_composite->arguments->end; a = a->next)
+		{
+			node_t *argument = (node_t *)a->value;
+
+			result = graph_argument(arguments, argument);
 			if (!result)
 			{
 				return 0;
@@ -448,78 +544,50 @@ graph_call(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_get_slice(symbol_t *parent, node_t *node)
+graph_item(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
-	symbol_t *symbol_name;
-	symbol_t *symbol_start;
-	symbol_t *symbol_step;
-	symbol_t *symbol_stop;
-
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_SLICE, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_ITEM, node);
 	if(!symbol)
 	{
 		return 0;
 	}
 
-	node_get_slice_t *node_get_slice;
-	node_get_slice = (node_get_slice_t *)node->value;
-
-	symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_get_slice->name);
-	if(!symbol_name)
+	node_composite_t *node_composite;
+	node_composite = (node_composite_t *)node->value;
+	
+	symbol_t *name;
+	name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, NULL);
+	if(!name)
 	{
 		return 0;
 	}
 
 	int32_t result;
-	result = graph_postfix(symbol_name, node_get_slice->name);
+	result = graph_postfix(name, node_composite->base);
 	if (!result)
 	{
 		return 0;
 	}
 
-	if (node_get_slice->start)
+	if (node_composite->arguments)
 	{
-		symbol_start = symbol_rpush(symbol, SYMBOL_FLAG_GET_START, node_get_slice->start);
-		if(!symbol_start)
+		symbol_t *arguments = symbol_rpush(symbol, SYMBOL_TYPE_ARGUMENTS, NULL);
+		if(!arguments)
 		{
 			return 0;
 		}
 
-		result = graph_expression(symbol_start, node_get_slice->start);
-		if (!result)
+		ilist_t *a;
+		for (a = node_composite->arguments->begin; a != node_composite->arguments->end; a = a->next)
 		{
-			return 0;
-		}
-	}
+			node_t *argument = (node_t *)a->value;
 
-	if (node_get_slice->step)
-	{
-		symbol_step = symbol_rpush(symbol, SYMBOL_FLAG_GET_STEP, node_get_slice->step);
-		if(!symbol_step)
-		{
-			return 0;
-		}
-
-		result = graph_expression(symbol_step, node_get_slice->step);
-		if (!result)
-		{
-			return 0;
-		}
-	}
-
-	if (node_get_slice->stop)
-	{
-		symbol_stop = symbol_rpush(symbol, SYMBOL_FLAG_GET_STOP, node_get_slice->stop);
-		if(!symbol_stop)
-		{
-			return 0;
-		}
-
-		result = graph_expression(symbol_stop, node_get_slice->stop);
-		if (!result)
-		{
-			return 0;
+			result = graph_argument(arguments, argument);
+			if (!result)
+			{
+				return 0;
+			}
 		}
 	}
 
@@ -527,95 +595,46 @@ graph_get_slice(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_get_item(symbol_t *parent, node_t *node)
-{
-	symbol_t *symbol;
-	symbol_t *symbol_name;
-	symbol_t *symbol_index;
-
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_ITEM, node);
-	if(!symbol)
-	{
-		return 0;
-	}
-
-	node_get_item_t *node_get_item;
-	node_get_item = (node_get_item_t *)node->value;
-
-	int32_t result;
-	if(node_get_item->name)
-	{
-		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_get_item->name);
-		if(!symbol_name)
-		{
-			return 0;
-		}
-
-		result = graph_postfix(symbol_name, node_get_item->name);
-		if (!result)
-		{
-			return 0;
-		}
-	}
-
-	if (node_get_item->index)
-	{
-		symbol_index = symbol_rpush(symbol, SYMBOL_FLAG_INDEX, node_get_item->index);
-		if(!symbol_index)
-		{
-			return 0;
-		}
-
-		result = graph_expression(symbol_index, node_get_item->index);
-		if (!result)
-		{
-			return 0;
-		}
-	}
-	return 1;
-}
-
-static int32_t
-graph_get_attr(symbol_t *parent, node_t *node)
+graph_attribute(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol_t *symbol_left;
 	symbol_t *symbol_right;
 
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_ATTR, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_ATTR, node);
 	if(!symbol)
 	{
 		return 0;
 	}
 
-	node_get_attr_t *node_get_attr;
-	node_get_attr = (node_get_attr_t *)node->value;
+	node_binary_t *node_binary;
+	node_binary = (node_binary_t *)node->value;
 	
 	int32_t result;
-	if(node_get_attr->left)
+	if(node_binary->left)
 	{
-		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_LEFT, node_get_attr->left);
+		symbol_left = symbol_rpush(symbol, SYMBOL_TYPE_LEFT, NULL);
 		if(!symbol_left)
 		{
 			return 0;
 		}
 		
-		result = graph_postfix(symbol_left, node_get_attr->left);
+		result = graph_postfix(symbol_left, node_binary->left);
 		if (!result)
 		{
 			return 0;
 		}
 	}
 
-	if(node_get_attr->right)
+	if(node_binary->right)
 	{
-		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_RIGHT, node_get_attr->right);
+		symbol_right = symbol_rpush(symbol, SYMBOL_TYPE_RIGHT, NULL);
 		if(!symbol_right)
 		{
 			return 0;
 		}
 
-		result = graph_id(symbol_right, node_get_attr->right);
+		result = graph_id(symbol_right, node_binary->right);
 		if (!result)
 		{
 			return 0;
@@ -647,24 +666,16 @@ graph_postfix(symbol_t *parent, node_t *node)
 		}
 		break;
 
-	case NODE_KIND_GET_SLICE:
-		result = graph_get_slice(parent, node);
-		if (!result)
-		{
-			return 0;
-		}
-		break;
-
 	case NODE_KIND_GET_ITEM:
-		result = graph_get_item(parent, node);
+		result = graph_item(parent, node);
 		if (!result)
 		{
 			return 0;
 		}
 		break;
 
-	case NODE_KIND_GET_ATTR:
-		result = graph_get_attr(parent, node);
+	case NODE_KIND_ATTRIBUTE:
+		result = graph_attribute(parent, node);
 		if (!result)
 		{
 			return 0;
@@ -690,7 +701,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 
 	if(node->kind == NODE_KIND_TILDE)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_TILDE, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_TILDE, node);
 		if(!symbol)
 		{
 			return 0;
@@ -698,7 +709,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_NOT)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_NOT, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_NOT, node);
 		if(!symbol)
 		{
 			return 0;
@@ -706,7 +717,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_NEG)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_NEG, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_NEG, node);
 		if(!symbol)
 		{
 			return 0;
@@ -714,31 +725,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_POS)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_POS, node);
-		if(!symbol)
-		{
-			return 0;
-		}
-	}
-	else if(node->kind == NODE_KIND_GET_VALUE)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_GET_VALUE, node);
-		if(!symbol)
-		{
-			return 0;
-		}
-	}
-	else if(node->kind == NODE_KIND_GET_ADDRESS)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_GET_ADDRESS, node);
-		if(!symbol)
-		{
-			return 0;
-		}
-	}
-	else if(node->kind == NODE_KIND_AWAIT)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_AWAIT, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_POS, node);
 		if(!symbol)
 		{
 			return 0;
@@ -746,7 +733,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_SIZEOF)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_SIZEOF, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_SIZEOF, node);
 		if(!symbol)
 		{
 			return 0;
@@ -754,7 +741,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_TYPEOF)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_TYPEOF, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_TYPEOF, node);
 		if(!symbol)
 		{
 			return 0;
@@ -762,7 +749,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_ELLIPSIS)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_ELLIPSIS, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_ELLIPSIS, node);
 		if(!symbol)
 		{
 			return 0;
@@ -777,15 +764,12 @@ graph_prefix(symbol_t *parent, node_t *node)
 	case NODE_KIND_NOT:
 	case NODE_KIND_NEG:
 	case NODE_KIND_POS:
-	case NODE_KIND_GET_VALUE:
-	case NODE_KIND_GET_ADDRESS:
-	case NODE_KIND_AWAIT:
 	case NODE_KIND_SIZEOF:
 	case NODE_KIND_TYPEOF:
 	case NODE_KIND_ELLIPSIS:
 		node_unary = (node_unary_t *)node->value;
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_RIGHT, node_unary->right);
+		symbol_right = symbol_rpush(symbol, SYMBOL_TYPE_RIGHT, node_unary->right);
 		if(!symbol_right)
 		{
 			return 0;
@@ -816,30 +800,6 @@ graph_prefix(symbol_t *parent, node_t *node)
 			}
 		}
 		else if (node_unary->right->kind == NODE_KIND_NEG)
-		{
-			result = graph_prefix(symbol_right, node_unary->right);
-			if (!result)
-			{
-				return 0;
-			}
-		}
-		else if (node_unary->right->kind == NODE_KIND_GET_VALUE)
-		{
-			result = graph_prefix(symbol_right, node_unary->right);
-			if (!result)
-			{
-				return 0;
-			}
-		}
-		else if (node_unary->right->kind == NODE_KIND_GET_ADDRESS)
-		{
-			result = graph_prefix(symbol_right, node_unary->right);
-			if (!result)
-			{
-				return 0;
-			}
-		}
-		else if (node_unary->right->kind == NODE_KIND_AWAIT)
 		{
 			result = graph_prefix(symbol_right, node_unary->right);
 			if (!result)
@@ -886,6 +846,76 @@ graph_prefix(symbol_t *parent, node_t *node)
 }
 
 static int32_t
+graph_power(symbol_t *parent, node_t *node)
+{
+	symbol_t *symbol = NULL;
+	if(node->kind == NODE_KIND_TILDE)
+	{
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_POW, node);
+		if(!symbol)
+		{
+			return 0;
+		}
+	}
+	symbol_t *symbol_left;
+	symbol_t *symbol_right;
+
+	int32_t result;
+	node_binary_t *node_binary;
+	switch (node->kind)
+	{
+	case NODE_KIND_POW:
+		node_binary = (node_binary_t *)node->value;
+
+		symbol_left = symbol_rpush(symbol, SYMBOL_TYPE_LEFT, node_binary->left);
+		if(!symbol_left)
+		{
+			return 0;
+		}
+
+		if (node_binary->left->kind == NODE_KIND_POW)
+		{
+			result = graph_power(symbol_left, node_binary->left);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+		else
+		{
+			result = graph_prefix(symbol_left, node_binary->left);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+
+		symbol_right = symbol_rpush(symbol, SYMBOL_TYPE_RIGHT, node_binary->right);
+		if(!symbol_right)
+		{
+			return 0;
+		}
+
+		result = graph_prefix(symbol_right, node_binary->right);
+		if (!result)
+		{
+			return 0;
+		}
+		break;
+
+	default:
+		result = graph_prefix(parent, node);
+		if (!result)
+		{
+			return 0;
+		}
+		break;
+	}
+
+	return 1;
+}
+
+static int32_t
 graph_multiplicative(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
@@ -894,7 +924,7 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 
 	if(node->kind == NODE_KIND_MUL)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_MUL, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_MUL, node);
 		if(!symbol)
 		{
 			return 0;
@@ -902,7 +932,7 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_DIV)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_DIV, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_DIV, node);
 		if(!symbol)
 		{
 			return 0;
@@ -910,7 +940,15 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_MOD)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_MOD, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_MOD, node);
+		if(!symbol)
+		{
+			return 0;
+		}
+	}
+	else if(node->kind == NODE_KIND_EPI)
+	{
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_EPI, node);
 		if(!symbol)
 		{
 			return 0;
@@ -925,9 +963,10 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 	case NODE_KIND_MUL:
 	case NODE_KIND_DIV:
 	case NODE_KIND_MOD:
+	case NODE_KIND_EPI:
 		node_binary = (node_binary_t *)node->value;
 
-		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_LEFT, node_binary->left);
+		symbol_left = symbol_rpush(symbol, SYMBOL_TYPE_LEFT, node_binary->left);
 		if(!symbol_left)
 		{
 			return 0;
@@ -957,22 +996,30 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 				return 0;
 			}
 		}
+		else if (node_binary->left->kind == NODE_KIND_EPI)
+		{
+			result = graph_multiplicative(symbol_left, node_binary->left);
+			if (!result)
+			{
+				return 0;
+			}
+		}
 		else
 		{
-			result = graph_prefix(symbol_left, node_binary->left);
+			result = graph_power(symbol_left, node_binary->left);
 			if (!result)
 			{
 				return 0;
 			}
 		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_RIGHT, node_binary->right);
+		symbol_right = symbol_rpush(symbol, SYMBOL_TYPE_RIGHT, node_binary->right);
 		if(!symbol_right)
 		{
 			return 0;
 		}
 
-		result = graph_prefix(symbol_right, node_binary->right);
+		result = graph_power(symbol_right, node_binary->right);
 		if (!result)
 		{
 			return 0;
@@ -980,7 +1027,7 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_prefix(parent, node);
+		result = graph_power(parent, node);
 		if (!result)
 		{
 			return 0;
@@ -1000,15 +1047,16 @@ graph_addative(symbol_t *parent, node_t *node)
 
 	if(node->kind == NODE_KIND_PLUS)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_PLUS, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_PLUS, node);
 		if(!symbol)
 		{
 			return 0;
 		}
 	}
+	
 	if(node->kind == NODE_KIND_MINUS)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_MINUS, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_MINUS, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1024,7 +1072,7 @@ graph_addative(symbol_t *parent, node_t *node)
 	case NODE_KIND_MINUS:
 		node_binary = (node_binary_t *)node->value;
 
-		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_LEFT, node_binary->left);
+		symbol_left = symbol_rpush(symbol, SYMBOL_TYPE_LEFT, node_binary->left);
 		if(!symbol_left)
 		{
 			return 0;
@@ -1055,7 +1103,7 @@ graph_addative(symbol_t *parent, node_t *node)
 			}
 		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_RIGHT, node_binary->right);
+		symbol_right = symbol_rpush(symbol, SYMBOL_TYPE_RIGHT, node_binary->right);
 		if(!symbol_right)
 		{
 			return 0;
@@ -1089,7 +1137,7 @@ graph_shifting(symbol_t *parent, node_t *node)
 
 	if(node->kind == NODE_KIND_SHL)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_SHL, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_SHL, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1097,7 +1145,7 @@ graph_shifting(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_SHR)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_SHR, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_SHR, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1112,7 +1160,7 @@ graph_shifting(symbol_t *parent, node_t *node)
 	case NODE_KIND_SHR:
 		node_binary = (node_binary_t *)node->value;
 
-		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_LEFT, node_binary->left);
+		symbol_left = symbol_rpush(symbol, SYMBOL_TYPE_LEFT, node_binary->left);
 		if(!symbol_left)
 		{
 			return 0;
@@ -1143,7 +1191,7 @@ graph_shifting(symbol_t *parent, node_t *node)
 			}
 		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_RIGHT, node_binary->right);
+		symbol_right = symbol_rpush(symbol, SYMBOL_TYPE_RIGHT, node_binary->right);
 		if(!symbol_right)
 		{
 			return 0;
@@ -1177,7 +1225,7 @@ graph_relational(symbol_t *parent, node_t *node)
 
 	if(node->kind == NODE_KIND_LT)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_LT, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_LT, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1185,7 +1233,7 @@ graph_relational(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_GT)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_GT, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_GT, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1193,7 +1241,7 @@ graph_relational(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_LE)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_LE, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_LE, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1201,7 +1249,7 @@ graph_relational(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_GE)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_GE, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_GE, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1218,7 +1266,7 @@ graph_relational(symbol_t *parent, node_t *node)
 	case NODE_KIND_GE:
 		node_binary = (node_binary_t *)node->value;
 
-		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_LEFT, node_binary->left);
+		symbol_left = symbol_rpush(symbol, SYMBOL_TYPE_LEFT, node_binary->left);
 		if(!symbol_left)
 		{
 			return 0;
@@ -1265,7 +1313,7 @@ graph_relational(symbol_t *parent, node_t *node)
 			}
 		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_RIGHT, node_binary->right);
+		symbol_right = symbol_rpush(symbol, SYMBOL_TYPE_RIGHT, node_binary->right);
 		if(!symbol_right)
 		{
 			return 0;
@@ -1302,7 +1350,7 @@ graph_equality(symbol_t *parent, node_t *node)
 
 	if(node->kind == NODE_KIND_EQ)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_EQ, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_EQ, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1310,15 +1358,7 @@ graph_equality(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_IN)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_IN, node);
-		if(!symbol)
-		{
-			return 0;
-		}
-	}
-	else if(node->kind == NODE_KIND_EXTENDS)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_EXTENDS, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_IN, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1326,7 +1366,7 @@ graph_equality(symbol_t *parent, node_t *node)
 	}
 	else if(node->kind == NODE_KIND_NEQ)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_NEQ, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_NEQ, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1337,11 +1377,10 @@ graph_equality(symbol_t *parent, node_t *node)
 	{
 	case NODE_KIND_EQ:
 	case NODE_KIND_IN:
-	case NODE_KIND_EXTENDS:
 	case NODE_KIND_NEQ:
 		node_binary = (node_binary_t *)node->value;
 		
-		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_LEFT, node_binary->left);
+		symbol_left = symbol_rpush(symbol, SYMBOL_TYPE_LEFT, node_binary->left);
 		if(!symbol_left)
 		{
 			return 0;
@@ -1380,7 +1419,7 @@ graph_equality(symbol_t *parent, node_t *node)
 			}
 		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_RIGHT, node_binary->right);
+		symbol_right = symbol_rpush(symbol, SYMBOL_TYPE_RIGHT, node_binary->right);
 		if(!symbol_right)
 		{
 			return 0;
@@ -1417,7 +1456,7 @@ graph_bitwise_and(symbol_t *parent, node_t *node)
 	switch (node->kind)
 	{
 	case NODE_KIND_AND:
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_AND, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_AND, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1425,7 +1464,7 @@ graph_bitwise_and(symbol_t *parent, node_t *node)
 
 		node_binary = (node_binary_t *)node->value;
 
-		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_LEFT, node_binary->left);
+		symbol_left = symbol_rpush(symbol, SYMBOL_TYPE_LEFT, node_binary->left);
 		if(!symbol_left)
 		{
 			return 0;
@@ -1448,7 +1487,7 @@ graph_bitwise_and(symbol_t *parent, node_t *node)
 			}
 		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_RIGHT, node_binary->right);
+		symbol_right = symbol_rpush(symbol, SYMBOL_TYPE_RIGHT, node_binary->right);
 		if(!symbol_right)
 		{
 			return 0;
@@ -1485,7 +1524,7 @@ graph_bitwise_xor(symbol_t *parent, node_t *node)
 	switch (node->kind)
 	{
 	case NODE_KIND_XOR:
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_XOR, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_XOR, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1493,7 +1532,7 @@ graph_bitwise_xor(symbol_t *parent, node_t *node)
 
 		node_binary = (node_binary_t *)node->value;
 
-		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_LEFT, node_binary->left);
+		symbol_left = symbol_rpush(symbol, SYMBOL_TYPE_LEFT, node_binary->left);
 		if(!symbol_left)
 		{
 			return 0;
@@ -1516,7 +1555,7 @@ graph_bitwise_xor(symbol_t *parent, node_t *node)
 			}
 		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_RIGHT, node_binary->right);
+		symbol_right = symbol_rpush(symbol, SYMBOL_TYPE_RIGHT, node_binary->right);
 		if(!symbol_right)
 		{
 			return 0;
@@ -1553,7 +1592,7 @@ graph_bitwise_or(symbol_t *parent, node_t *node)
 	switch (node->kind)
 	{
 	case NODE_KIND_OR:
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_OR, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_OR, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1561,7 +1600,7 @@ graph_bitwise_or(symbol_t *parent, node_t *node)
 
 		node_binary = (node_binary_t *)node->value;
 
-		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_LEFT, node_binary->left);
+		symbol_left = symbol_rpush(symbol, SYMBOL_TYPE_LEFT, node_binary->left);
 		if(!symbol_left)
 		{
 			return 0;
@@ -1584,7 +1623,7 @@ graph_bitwise_or(symbol_t *parent, node_t *node)
 			}
 		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_RIGHT, node_binary->right);
+		symbol_right = symbol_rpush(symbol, SYMBOL_TYPE_RIGHT, node_binary->right);
 		if(!symbol_right)
 		{
 			return 0;
@@ -1621,7 +1660,7 @@ graph_logical_and(symbol_t *parent, node_t *node)
 	switch (node->kind)
 	{
 	case NODE_KIND_LAND:
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_LAND, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_LAND, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1629,7 +1668,7 @@ graph_logical_and(symbol_t *parent, node_t *node)
 
 		node_binary = (node_binary_t *)node->value;
 
-		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_LEFT, node_binary->left);
+		symbol_left = symbol_rpush(symbol, SYMBOL_TYPE_LEFT, node_binary->left);
 		if(!symbol_left)
 		{
 			return 0;
@@ -1652,7 +1691,7 @@ graph_logical_and(symbol_t *parent, node_t *node)
 			}
 		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_RIGHT, node_binary->right);
+		symbol_right = symbol_rpush(symbol, SYMBOL_TYPE_RIGHT, node_binary->right);
 		if(!symbol_right)
 		{
 			return 0;
@@ -1689,7 +1728,7 @@ graph_logical_or(symbol_t *parent, node_t *node)
 	switch (node->kind)
 	{
 	case NODE_KIND_LOR:
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_LOR, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_LOR, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1697,7 +1736,7 @@ graph_logical_or(symbol_t *parent, node_t *node)
 
 		node_binary = (node_binary_t *)node->value;
 
-		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_LEFT, node_binary->left);
+		symbol_left = symbol_rpush(symbol, SYMBOL_TYPE_LEFT, node_binary->left);
 		if(!symbol_left)
 		{
 			return 0;
@@ -1720,7 +1759,7 @@ graph_logical_or(symbol_t *parent, node_t *node)
 			}
 		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_RIGHT, node_binary->right);
+		symbol_right = symbol_rpush(symbol, SYMBOL_TYPE_RIGHT, node_binary->right);
 		if(!symbol_right)
 		{
 			return 0;
@@ -1749,52 +1788,52 @@ static int32_t
 graph_conditional(symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
-	symbol_t *symbol_condition;
+	symbol_t *condition;
 	symbol_t *symbol_true;
 	symbol_t *symbol_false;
 
 	int32_t result;
-	node_conditional_t *node_conditional;
+	node_triple_t *node_triple;
 	switch (node->kind)
 	{
 	case NODE_KIND_CONDITIONAL:
-		node_conditional = (node_conditional_t *)node->value;
+		node_triple = (node_triple_t *)node->value;
 
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_CONDITIONAL, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_CONDITIONAL, node);
 		if(!symbol)
 		{
 			return 0;
 		}
 
-		symbol_condition = symbol_rpush(symbol, SYMBOL_FLAG_CONDITION, node_conditional->condition);
-		if(!symbol_condition)
+		condition = symbol_rpush(symbol, SYMBOL_TYPE_CONDITION, NULL);
+		if(!condition)
 		{
 			return 0;
 		}
 
-		result = graph_logical_or(symbol_condition, node_conditional->condition);
+		result = graph_logical_or(condition, node_triple->base);
 		if (!result)
 		{
 			return 0;
 		}
 
-		symbol_true = symbol_rpush(symbol, SYMBOL_FLAG_TRUE, node_conditional->true_expression);
+		symbol_true = symbol_rpush(symbol, SYMBOL_TYPE_TRUE, NULL);
 		if(!symbol_true)
 		{
 			return 0;
 		}
-		result = graph_conditional(symbol_true, node_conditional->true_expression);
+		result = graph_conditional(symbol_true, node_triple->left);
 		if (!result)
 		{
 			return 0;
 		}
 
-		symbol_false = symbol_rpush(symbol, SYMBOL_FLAG_FALSE, node_conditional->false_expression);
+		symbol_false = symbol_rpush(symbol, SYMBOL_TYPE_FALSE, NULL);
 		if(!symbol_false)
 		{
 			return 0;
 		}
-		result = graph_conditional(symbol_false, node_conditional->false_expression);
+		result = graph_conditional(symbol_false, node_triple->right);
 		if (!result)
 		{
 			return 0;
@@ -1830,27 +1869,97 @@ graph_assign(symbol_t *parent, node_t *node)
 
 	if(node->kind == NODE_KIND_DEFINE)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_DEFINE, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_DEFINE, node);
 		if(!symbol)
 		{
 			return 0;
 		}
 	}
 
-	else if (
-		(node->kind == NODE_KIND_ASSIGN) ||
-		(node->kind == NODE_KIND_ADD_ASSIGN) ||
-		(node->kind == NODE_KIND_SUB_ASSIGN) ||
-		(node->kind == NODE_KIND_DIV_ASSIGN) ||
-		(node->kind == NODE_KIND_MUL_ASSIGN) ||
-		(node->kind == NODE_KIND_MOD_ASSIGN) ||
-		(node->kind == NODE_KIND_AND_ASSIGN) ||
-		(node->kind == NODE_KIND_OR_ASSIGN) ||
-		(node->kind == NODE_KIND_SHL_ASSIGN) ||
-		(node->kind == NODE_KIND_SHR_ASSIGN)
-		)
+	else if (node->kind == NODE_KIND_ASSIGN)
 	{
-		symbol = symbol_rpush(parent, SYMBOL_FLAG_ASSIGN, node);
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_ASSIGN, node);
+		if(!symbol)
+		{
+			return 0;
+		}
+	}
+
+	else if (node->kind == NODE_KIND_ADD_ASSIGN)
+	{
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_ADD_ASSIGN, node);
+		if(!symbol)
+		{
+			return 0;
+		}
+	}
+
+	else if (node->kind == NODE_KIND_SUB_ASSIGN)
+	{
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_SUB_ASSIGN, node);
+		if(!symbol)
+		{
+			return 0;
+		}
+	}
+
+	else if (node->kind == NODE_KIND_DIV_ASSIGN)
+	{
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_DIV_ASSIGN, node);
+		if(!symbol)
+		{
+			return 0;
+		}
+	}
+
+	else if (node->kind == NODE_KIND_MUL_ASSIGN)
+	{
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_MUL_ASSIGN, node);
+		if(!symbol)
+		{
+			return 0;
+		}
+	}
+
+	else if (node->kind == NODE_KIND_MOD_ASSIGN)
+	{
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_MOD_ASSIGN, node);
+		if(!symbol)
+		{
+			return 0;
+		}
+	}
+
+	else if (node->kind == NODE_KIND_AND_ASSIGN)
+	{
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_AND_ASSIGN, node);
+		if(!symbol)
+		{
+			return 0;
+		}
+	}
+
+	else if (node->kind == NODE_KIND_OR_ASSIGN)
+	{
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_OR_ASSIGN, node);
+		if(!symbol)
+		{
+			return 0;
+		}
+	}
+
+	else if (node->kind == NODE_KIND_SHL_ASSIGN)
+	{
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_SHL_ASSIGN, node);
+		if(!symbol)
+		{
+			return 0;
+		}
+	}
+
+	else if (node->kind == NODE_KIND_SHR_ASSIGN)
+	{
+		symbol = symbol_rpush(parent, SYMBOL_TYPE_SHR_ASSIGN, node);
 		if(!symbol)
 		{
 			return 0;
@@ -1872,7 +1981,7 @@ graph_assign(symbol_t *parent, node_t *node)
 	case NODE_KIND_SHR_ASSIGN:
 		node_binary = (node_binary_t *)node->value;
 
-		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_LEFT, node_binary->left);
+		symbol_left = symbol_rpush(symbol, SYMBOL_TYPE_LEFT, node_binary->left);
 		if(!symbol_left)
 		{
 			return 0;
@@ -1884,7 +1993,7 @@ graph_assign(symbol_t *parent, node_t *node)
 			return 0;
 		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_RIGHT, node_binary->right);
+		symbol_right = symbol_rpush(symbol, SYMBOL_TYPE_RIGHT, node_binary->right);
 		if(!symbol_right)
 		{
 			return 0;
@@ -1900,7 +2009,7 @@ graph_assign(symbol_t *parent, node_t *node)
 	case NODE_KIND_DEFINE:
 		node_binary = (node_binary_t *)node->value;
 
-		symbol_left = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_binary->left);
+		symbol_left = symbol_rpush(symbol, SYMBOL_TYPE_NAME, node_binary->left);
 		if(!symbol_left)
 		{
 			return 0;
@@ -1912,7 +2021,7 @@ graph_assign(symbol_t *parent, node_t *node)
 			return 0;
 		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_FLAG_VALUE, node_binary->right);
+		symbol_right = symbol_rpush(symbol, SYMBOL_TYPE_VALUE, node_binary->right);
 		if(!symbol_right)
 		{
 			return 0;
@@ -1944,7 +2053,7 @@ graph_if(symbol_t *parent, node_t *node)
 	node_if = (node_if_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_IF, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_IF, node);
 	if (!symbol)
 	{
 		return 0;
@@ -1954,7 +2063,7 @@ graph_if(symbol_t *parent, node_t *node)
 	if (node_if->name)
 	{
 		symbol_t *symbol_name;
-		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_if->name);
+		symbol_name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, node_if->name);
 		if(!symbol_name)
 		{
 			return 0;
@@ -1969,7 +2078,7 @@ graph_if(symbol_t *parent, node_t *node)
 	if (node_if->condition)
 	{
 		symbol_t *symbol_condition;
-		symbol_condition = symbol_rpush(symbol, SYMBOL_FLAG_CONDITION, node_if->condition);
+		symbol_condition = symbol_rpush(symbol, SYMBOL_TYPE_CONDITION, node_if->condition);
 		if(!symbol_condition)
 		{
 			return 0;
@@ -1994,7 +2103,7 @@ graph_if(symbol_t *parent, node_t *node)
 	if (node_if->else_body)
 	{
 		symbol_t *symbol_else;
-		symbol_else = symbol_rpush(symbol, SYMBOL_FLAG_ELSE, node_if->else_body);
+		symbol_else = symbol_rpush(symbol, SYMBOL_TYPE_ELSE, node_if->else_body);
 		if(!symbol_else)
 		{
 			return 0;
@@ -2024,19 +2133,28 @@ graph_catch(symbol_t *parent, node_t *node)
 	node_catch = (node_catch_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_CATCH, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_CATCH, node);
 	if(!symbol)
 	{
 		return 0;
 	}
 
 	int32_t result;
-	if (node_catch->parameter)
+	if (node_catch->parameters)
 	{
-		result = graph_parameter(symbol, node_catch->parameter);
-		if (!result)
+		symbol_t *parameters;
+		parameters = symbol_rpush(symbol, SYMBOL_TYPE_PARAMETERS, NULL);
+
+		ilist_t *a;
+		for (a = node_catch->parameters->begin; a != node_catch->parameters->end; a = a->next)
 		{
-			return 0;
+			node_t *parameter = (node_t *)a->value;
+
+			result = graph_parameter(parameters, parameter);
+			if (!result)
+			{
+				return 0;
+			}
 		}
 	}
 
@@ -2059,7 +2177,7 @@ graph_try(symbol_t *parent, node_t *node)
 	node_try = (node_try_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_TRY, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_TRY, node);
 	if(!symbol)
 	{
 		return 0;
@@ -2072,88 +2190,24 @@ graph_try(symbol_t *parent, node_t *node)
 		return 0;
 	}
 
-	ilist_t *a;
-	for (a = node_try->catchs->begin; a != node_try->catchs->end; a = a->next)
+	if (node_try->catchs)
 	{
-		node_t *temp;
-		temp = (node_t *)a->value;
-		result = graph_catch(symbol, temp);
-		if (!result)
+		symbol_t *catchs;
+		catchs = symbol_rpush(symbol, SYMBOL_TYPE_CATCHS, NULL);
+		if(!catchs)
 		{
 			return 0;
 		}
-	}
 
-	return 1;
-}
-
-static int32_t
-graph_for_init(symbol_t *parent, node_t *node)
-{
-	node_enumerable_t *node_enumerable;
-	node_enumerable = (node_enumerable_t *)node->value;
-
-	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_FOR_INIT, node);
-	if(!symbol)
-	{
-		return 0;
-	}
-
-	int32_t result;
-	ilist_t *a;
-	for (a = node_enumerable->list->begin; a != node_enumerable->list->end; a = a->next)
-	{
-		node_t *temp;
-		temp = (node_t *)a->value;
-
-		switch (temp->kind)
+		ilist_t *a;
+		for (a = node_try->catchs->begin; a != node_try->catchs->end; a = a->next)
 		{
-		case NODE_KIND_VAR:
-			result = graph_var(symbol, temp);
-			break;
-
-		case NODE_KIND_CONST:
-			result = graph_const(symbol, temp);
-			break;
-
-		default:
-			result = graph_assign(symbol, temp);
-			break;
-		}
-
-		if (!result)
-		{
-			return 0;
-		}
-	}
-
-	return 1;
-}
-
-static int32_t
-graph_for_step(symbol_t *parent, node_t *node)
-{
-	node_enumerable_t *node_enumerable;
-	node_enumerable = (node_enumerable_t *)node->value;
-	
-	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_FOR_STEP, node);
-	if(!symbol)
-	{
-		return 0;
-	}
-
-	ilist_t *a;
-	for (a = node_enumerable->list->begin; a != node_enumerable->list->end; a = a->next)
-	{
-		node_t *temp;
-		temp = (node_t *)a->value;
-
-		int32_t result = graph_assign(symbol, temp);
-		if (!result)
-		{
-			return 0;
+			node_t *temp = (node_t *)a->value;
+			result = graph_catch(catchs, temp);
+			if (!result)
+			{
+				return 0;
+			}
 		}
 	}
 
@@ -2167,7 +2221,7 @@ graph_for(symbol_t *parent, node_t *node)
 	node_for = (node_for_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_FOR, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_FOR, node);
 	if(!symbol)
 	{
 		return 0;
@@ -2176,13 +2230,13 @@ graph_for(symbol_t *parent, node_t *node)
 	int32_t result;
 	if (node_for->name)
 	{
-		symbol_t *symbol_name;
-		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_for->name);
-		if(!symbol_name)
+		symbol_t *name;
+		name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, NULL);
+		if(!name)
 		{
 			return 0;
 		}
-		result = graph_id(symbol_name, node_for->name);
+		result = graph_id(name, node_for->name);
 		if (!result)
 		{
 			return 0;
@@ -2191,37 +2245,41 @@ graph_for(symbol_t *parent, node_t *node)
 
 	if (node_for->initializer)
 	{
-		symbol_t *symbol_initializer;
-		symbol_initializer = symbol_rpush(symbol, SYMBOL_FLAG_INITIALIZER, node_for->initializer);
-		if(!symbol_initializer)
+		symbol_t *initializer;
+		initializer = symbol_rpush(symbol, SYMBOL_TYPE_INITIALIZER, NULL);
+		if(!initializer)
 		{
 			return 0;
 		}
 
-		switch (node_for->initializer->kind)
+		ilist_t *a;
+		for (a = node_for->initializer->begin; a != node_for->initializer->end; a = a->next)
 		{
-		case NODE_KIND_FOR_INIT_LIST:
-			result = graph_for_init(symbol_initializer, node_for->initializer);
-			break;
+			node_t *temp = (node_t *)a->value;
 
-		case NODE_KIND_VAR:
-			result = graph_var(symbol_initializer, node_for->initializer);
-			break;
-
-		case NODE_KIND_CONST:
-			result = graph_const(symbol_initializer, node_for->initializer);
-			break;
-
-		default:
-			result = graph_assign(symbol_initializer, node_for->initializer);
-			break;
+			if (temp->kind == NODE_KIND_VAR)
+			{
+				result = graph_var(initializer, temp);
+				if (!result)
+				{
+					return 0;
+				}
+			}
+			else
+			{
+				result = graph_assign(initializer, temp);
+				if (!result)
+				{
+					return 0;
+				}
+			}
 		}
 	}
 
 	if (node_for->condition)
 	{
 		symbol_t *symbol_condition;
-		symbol_condition = symbol_rpush(symbol, SYMBOL_FLAG_CONDITION, node);
+		symbol_condition = symbol_rpush(symbol, SYMBOL_TYPE_CONDITION, NULL);
 		if(!symbol_condition)
 		{
 			return 0;
@@ -2236,24 +2294,23 @@ graph_for(symbol_t *parent, node_t *node)
 
 	if (node_for->incrementor)
 	{
-		symbol_t *symbol_incrementor;
-		symbol_incrementor = symbol_rpush(symbol, SYMBOL_FLAG_INCREMENTOR, node);
-		if(!symbol_incrementor)
+		symbol_t *incrementor;
+		incrementor = symbol_rpush(symbol, SYMBOL_TYPE_INCREMENTOR, NULL);
+		if(!incrementor)
 		{
 			return 0;
 		}
 
-		if (node_for->incrementor->kind == NODE_KIND_FOR_STEP_LIST)
+		ilist_t *a;
+		for (a = node_for->incrementor->begin; a != node_for->incrementor->end; a = a->next)
 		{
-			result = graph_for_step(symbol_incrementor, node_for->incrementor);
-		}
-		else
-		{
-			result = graph_assign(symbol_incrementor, node_for->incrementor);
-		}
-		if (!result)
-		{
-			return 0;
+			node_t *temp = (node_t *)a->value;
+
+			result = graph_assign(incrementor, temp);
+			if (!result)
+			{
+				return 0;
+			}
 		}
 	}
 	
@@ -2276,7 +2333,7 @@ graph_forin(symbol_t *parent, node_t *node)
 	node_forin = (node_forin_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_FORIN, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_FORIN, node);
 	if(!symbol)
 	{
 		return 0;
@@ -2285,13 +2342,13 @@ graph_forin(symbol_t *parent, node_t *node)
 	int32_t result;
 	if (node_forin->name)
 	{
-		symbol_t *symbol_name;
-		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_forin->name);
-		if(!symbol_name)
+		symbol_t *name;
+		name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, NULL);
+		if(!name)
 		{
 			return 0;
 		}
-		result = graph_id(symbol_name, node_forin->name);
+		result = graph_id(name, node_forin->name);
 		if (!result)
 		{
 			return 0;
@@ -2300,36 +2357,47 @@ graph_forin(symbol_t *parent, node_t *node)
 
 	if (node_forin->initializer)
 	{
-		symbol_t *symbol_initializer;
-		symbol_initializer = symbol_rpush(symbol, SYMBOL_FLAG_INITIALIZER, node);
-		if(!symbol_initializer)
+		symbol_t *initializer;
+		initializer = symbol_rpush(symbol, SYMBOL_TYPE_INITIALIZER, NULL);
+		if(!initializer)
 		{
 			return 0;
 		}
-		if(node_forin->initializer->kind == NODE_KIND_VAR)
+
+		ilist_t *a;
+		for (a = node_forin->initializer->begin; a != node_forin->initializer->end; a = a->next)
 		{
-			result = graph_var(symbol_initializer, node_forin->initializer);
-		}
-		else if(node_forin->initializer->kind == NODE_KIND_CONST)
-		{
-			result = graph_const(symbol_initializer, node_forin->initializer);
-		}
-		if (!result)
-		{
-			return 0;
+			node_t *temp = (node_t *)a->value;
+
+			if (temp->kind == NODE_KIND_VAR)
+			{
+				result = graph_var(initializer, temp);
+				if (!result)
+				{
+					return 0;
+				}
+			}
+			else
+			{
+				result = graph_assign(initializer, temp);
+				if (!result)
+				{
+					return 0;
+				}
+			}
 		}
 	}
 
 	if (node_forin->expression)
 	{
-		symbol_t *symbol_expression;
-		symbol_expression = symbol_rpush(symbol, SYMBOL_FLAG_EXPRESSION, node);
-		if(!symbol_expression)
+		symbol_t *expression;
+		expression = symbol_rpush(symbol, SYMBOL_TYPE_EXPRESSION, NULL);
+		if(!expression)
 		{
 			return 0;
 		}
 
-		result = graph_expression(symbol_expression, node_forin->expression);
+		result = graph_expression(expression, node_forin->expression);
 		if (!result)
 		{
 			return 0;
@@ -2355,7 +2423,7 @@ graph_break(symbol_t *parent, node_t *node)
 	node_unary = (node_unary_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_BREAK, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_BREAK, node);
 	if(!symbol)
 	{
 		return 0;
@@ -2377,7 +2445,7 @@ graph_continue(symbol_t *parent, node_t *node)
 	node_unary = (node_unary_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_CONTINUE, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_CONTINUE, node);
 	if(!symbol)
 	{
 		return 0;
@@ -2399,7 +2467,7 @@ graph_return(symbol_t *parent, node_t *node)
 	node_unary = (node_unary_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_RETURN, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_RETURN, node);
 	if(!symbol)
 	{
 		return 0;
@@ -2417,20 +2485,36 @@ graph_return(symbol_t *parent, node_t *node)
 static int32_t
 graph_throw(symbol_t *parent, node_t *node)
 {
-	node_unary_t *node_throw;
-	node_throw = (node_unary_t *)node->value;
-
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_THROW, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_THROW, node);
 	if(!symbol)
 	{
 		return 0;
 	}
 
-	int32_t result = graph_expression(symbol, node_throw->right);
-	if (!result)
+	node_throw_t *node_throw;
+	node_throw = (node_throw_t *)node->value;
+
+	if (node_throw->arguments)
 	{
-		return 0;
+		symbol_t *arguments = symbol_rpush(symbol, SYMBOL_TYPE_ARGUMENTS, NULL);
+		if(!arguments)
+		{
+			return 0;
+		}
+
+		ilist_t *a;
+		for (a = node_throw->arguments->begin; a != node_throw->arguments->end; a = a->next)
+		{
+			node_t *argument = (node_t *)a->value;
+
+			int32_t result;
+			result = graph_argument(arguments, argument);
+			if (!result)
+			{
+				return 0;
+			}
+		}
 	}
 
 	return 1;
@@ -2464,10 +2548,6 @@ graph_statement(symbol_t *parent, node_t *node)
 
 	case NODE_KIND_VAR:
 		result = graph_var(parent, node);
-		break;
-
-	case NODE_KIND_CONST:
-		result = graph_const(parent, node);
 		break;
 
 	case NODE_KIND_TYPE:
@@ -2509,7 +2589,7 @@ graph_block(symbol_t *parent, node_t *node)
 	node_block = (node_block_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_BLOCK, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_BLOCK, node);
 	if(!symbol)
 	{
 		return 0;
@@ -2532,13 +2612,13 @@ graph_block(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_type_parameter(symbol_t *parent, node_t *node)
+graph_generic(symbol_t *parent, node_t *node)
 {
-	node_type_parameter_t *node_type_parameter;
-	node_type_parameter = (node_type_parameter_t *)node->value;
+	node_generic_t *node_generic;
+	node_generic = (node_generic_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_TYPE_PARAMETER, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_GENERIC, node);
 	if(!symbol)
 	{
 		return 0;
@@ -2546,48 +2626,45 @@ graph_type_parameter(symbol_t *parent, node_t *node)
 
 	int32_t result;
 
-	if (node_type_parameter->name)
+	if (node_generic->name)
 	{
-		symbol_t *symbol_name;
-		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_type_parameter->name);
-		if(!symbol_name)
+		symbol_t *name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, NULL);
+		if(!name)
 		{
 			return 0;
 		}
 
-		result = graph_id(symbol_name, node_type_parameter->name);
+		result = graph_id(name, node_generic->name);
 		if (!result)
 		{
 			return 0;
 		}
 	}
 
-	if (node_type_parameter->extends)
+	if (node_generic->type)
 	{
-		symbol_t *symbol_extends;
-		symbol_extends = symbol_rpush(symbol, SYMBOL_FLAG_TYPE, node_type_parameter->extends);
-		if(!symbol_extends)
+		symbol_t *type = symbol_rpush(symbol, SYMBOL_TYPE_TYPE, NULL);
+		if(!type)
 		{
 			return 0;
 		}
 
-		result = graph_expression(symbol_extends, node_type_parameter->extends);
+		result = graph_expression(type, node_generic->type);
 		if (!result)
 		{
 			return 0;
 		}
 	}
 
-	if (node_type_parameter->value)
+	if (node_generic->value)
 	{
-		symbol_t *symbol_value;
-		symbol_value = symbol_rpush(symbol, SYMBOL_FLAG_VALUE, node_type_parameter->value);
-		if(!symbol_value)
+		symbol_t *value = symbol_rpush(symbol, SYMBOL_TYPE_VALUE, NULL);
+		if(!value)
 		{
 			return 0;
 		}
 
-		result = graph_expression(symbol_value, node_type_parameter->value);
+		result = graph_expression(value, node_generic->value);
 		if (!result)
 		{
 			return 0;
@@ -2598,42 +2675,39 @@ graph_type_parameter(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_enum_member(symbol_t *parent, node_t *node)
+graph_member(symbol_t *parent, node_t *node)
 {
-	node_enum_member_t *node_enum_member;
-	node_enum_member = (node_enum_member_t *)node->value;
+	node_member_t *node_member = (node_member_t *)node->value;
 
-	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_ENUM_MEMBER, node);
+	symbol_t *symbol = symbol_rpush(parent, SYMBOL_TYPE_MEMBER, node);
 	if(!symbol)
 	{
 		return 0;
 	}
 
-	symbol_t *symbol_name;
-	symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_enum_member->name);
-	if(!symbol_name)
+	symbol_t *name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, NULL);
+	if(!name)
 	{
 		return 0;
 	}
 
 	int32_t result;
-	result = graph_id(symbol_name, node_enum_member->name);
+	result = graph_id(name, node_member->name);
 	if (!result)
 	{
 		return 0;
 	}
 
-	if (node_enum_member->value)
+	if (node_member->value)
 	{
-		symbol_t *symbol_value;
-		symbol_value = symbol_rpush(symbol, SYMBOL_FLAG_VALUE, node_enum_member->value);
-		if(!symbol_value)
+		symbol_t *value;
+		value = symbol_rpush(symbol, SYMBOL_TYPE_VALUE, NULL);
+		if(!value)
 		{
 			return 0;
 		}
 
-		int32_t result = graph_expression(symbol_value, node_enum_member->value);
+		result = graph_expression(value, node_member->value);
 		if (!result)
 		{
 			return 0;
@@ -2650,7 +2724,7 @@ graph_enum(symbol_t *parent, node_t *node)
 	node_enum = (node_enum_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_ENUM, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_ENUM, node);
 	if(!symbol)
 	{
 		return 0;
@@ -2659,31 +2733,36 @@ graph_enum(symbol_t *parent, node_t *node)
 	int32_t result;
 	if (node_enum->name)
 	{
-		symbol_t *symbol_name;
-		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_enum->name);
-		if(!symbol_name)
+		symbol_t *name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, NULL);
+		if(!name)
 		{
 			return 0;
 		}
 
-		result = graph_id(symbol_name, node_enum->name);
+		result = graph_id(name, node_enum->name);
 		if (!result)
 		{
 			return 0;
 		}
 	}
 
-	ilist_t *a;
-	for (a = node_enum->body->begin; a != node_enum->body->end; a = a->next)
+	if (node_enum->body)
 	{
-		node_t *temp;
-		temp = (node_t *)a->value;
-
-		int32_t result;
-		result = graph_enum_member(symbol, temp);
-		if (!result)
+		symbol_t *members = symbol_rpush(symbol, SYMBOL_TYPE_MEMBERS, NULL);
+		if(!members)
 		{
 			return 0;
+		}
+		ilist_t *a;
+		for (a = node_enum->body->begin; a != node_enum->body->end; a = a->next)
+		{
+			node_t *temp = (node_t *)a->value;
+
+			result = graph_member(members, temp);
+			if (!result)
+			{
+				return 0;
+			}
 		}
 	}
 
@@ -2697,7 +2776,7 @@ graph_property(symbol_t *parent, node_t *node)
 	node_property = (node_property_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_PROPERTY, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_PROPERTY, node);
 	if (!symbol)
 	{
 		return 0;
@@ -2707,7 +2786,7 @@ graph_property(symbol_t *parent, node_t *node)
 	if (node_property->name)
 	{
 		symbol_t *symbol_name;
-		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_property->name);
+		symbol_name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, node_property->name);
 		if(!symbol_name)
 		{
 			return 0;
@@ -2723,7 +2802,7 @@ graph_property(symbol_t *parent, node_t *node)
 	if (node_property->type)
 	{
 		symbol_t *symbol_type;
-		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_TYPE, node_property->type);
+		symbol_type = symbol_rpush(symbol, SYMBOL_TYPE_TYPE, node_property->type);
 		if(!symbol_type)
 		{
 			return 0;
@@ -2739,7 +2818,7 @@ graph_property(symbol_t *parent, node_t *node)
 	if (node_property->value)
 	{
 		symbol_t *symbol_value;
-		symbol_value = symbol_rpush(symbol, SYMBOL_FLAG_VALUE, node_property->value);
+		symbol_value = symbol_rpush(symbol, SYMBOL_TYPE_VALUE, node_property->value);
 		if(!symbol_value)
 		{
 			return 0;
@@ -2762,7 +2841,7 @@ graph_parameter(symbol_t *parent, node_t *node)
 	node_parameter = (node_parameter_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_PARAMETER, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_PARAMETER, node);
 	if(!symbol)
 	{
 		return 0;
@@ -2772,21 +2851,13 @@ graph_parameter(symbol_t *parent, node_t *node)
 	if (node_parameter->name)
 	{
 		symbol_t *symbol_name;
-		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_parameter->name);
+		symbol_name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, node_parameter->name);
 		if(!symbol_name)
 		{
 			return 0;
 		}
 		
-		if (node_parameter->name->kind == NODE_KIND_ID)
-		{
-			result = graph_id(symbol_name, node_parameter->name);
-		}
-		else
-		{
-			result = graph_expression(symbol_name, node_parameter->name);
-		}
-		
+		result = graph_expression(symbol_name, node_parameter->name);
 		if (!result)
 		{
 			return 0;
@@ -2796,7 +2867,7 @@ graph_parameter(symbol_t *parent, node_t *node)
 	if (node_parameter->type)
 	{
 		symbol_t *symbol_type;
-		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_TYPE, node_parameter->type);
+		symbol_type = symbol_rpush(symbol, SYMBOL_TYPE_TYPE, node_parameter->type);
 		if(!symbol_type)
 		{
 			return 0;
@@ -2812,7 +2883,7 @@ graph_parameter(symbol_t *parent, node_t *node)
 	if (node_parameter->value)
 	{
 		symbol_t *symbol_value;
-		symbol_value = symbol_rpush(symbol, SYMBOL_FLAG_VALUE, node_parameter->value);
+		symbol_value = symbol_rpush(symbol, SYMBOL_TYPE_VALUE, node_parameter->value);
 		if(!symbol_value)
 		{
 			return 0;
@@ -2829,62 +2900,13 @@ graph_parameter(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_field(symbol_t *parent, node_t *node)
-{
-	node_field_t *node_field;
-	node_field = (node_field_t *)node->value;
-
-	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_FIELD, node);
-	if(!symbol)
-	{
-		return 0;
-	}
-
-	int32_t result;
-	if (node_field->name)
-	{
-		symbol_t *symbol_name;
-		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_field->name);
-		if(!symbol_name)
-		{
-			return 0;
-		}
-
-		result = graph_id(symbol_name, node_field->name);
-		if (!result)
-		{
-			return 0;
-		}
-	}
-
-	if (node_field->type)
-	{
-		symbol_t *symbol_type;
-		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_TYPE, node_field->type);
-		if(!symbol_type)
-		{
-			return 0;
-		}
-
-		result = graph_expression(symbol_type, node_field->type);
-		if (!result)
-		{
-			return 0;
-		}
-	}
-
-	return 1;
-}
-
-static int32_t
 graph_method(symbol_t *parent, node_t *node)
 {
 	node_method_t *node_method;
 	node_method = (node_method_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_METHOD, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_METHOD, node);
 	if(!symbol)
 	{
 		return 0;
@@ -2894,7 +2916,7 @@ graph_method(symbol_t *parent, node_t *node)
 	if (node_method->name)
 	{
 		symbol_t *symbol_name;
-		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_method->name);
+		symbol_name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, node_method->name);
 		if(!symbol_name)
 		{
 			return 0;
@@ -2909,12 +2931,15 @@ graph_method(symbol_t *parent, node_t *node)
 	ilist_t *a;
 	if (node_method->parameters)
 	{
+		symbol_t *symbol_parameters;
+		symbol_parameters = symbol_rpush(symbol, SYMBOL_TYPE_PARAMETERS, NULL);
+
 		for (a = node_method->parameters->begin; a != node_method->parameters->end; a = a->next)
 		{
-			node_t *temp;
-			temp = (node_t *)a->value;
+			node_t *parameter;
+			parameter = (node_t *)a->value;
 
-			result = graph_parameter(symbol, temp);
+			result = graph_parameter(symbol_parameters, parameter);
 			if (!result)
 			{
 				return 0;
@@ -2922,14 +2947,17 @@ graph_method(symbol_t *parent, node_t *node)
 		}
 	}
 
-	if (node_method->type_parameters)
+	if (node_method->generics)
 	{
-		for (a = node_method->type_parameters->begin; a != node_method->type_parameters->end; a = a->next)
-		{
-			node_t *temp;
-			temp = (node_t *)a->value;
+		symbol_t *symbol_generics;
+		symbol_generics = symbol_rpush(symbol, SYMBOL_TYPE_GENERICS, NULL);
 
-			result = graph_type_parameter(symbol, temp);
+		for (a = node_method->generics->begin; a != node_method->generics->end; a = a->next)
+		{
+			node_t *generic;
+			generic = (node_t *)a->value;
+
+			result = graph_generic(symbol_generics, generic);
 			if (!result)
 			{
 				return 0;
@@ -2956,7 +2984,7 @@ graph_heritage(symbol_t *parent, node_t *node)
 	node_heritage = (node_heritage_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_HERITAGE, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_HERITAGE, node);
 	if(!symbol)
 	{
 		return 0;
@@ -2966,7 +2994,7 @@ graph_heritage(symbol_t *parent, node_t *node)
 	if (node_heritage->name)
 	{
 		symbol_t *symbol_name;
-		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_heritage->name);
+		symbol_name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, node_heritage->name);
 		if(!symbol_name)
 		{
 			return 0;
@@ -2982,7 +3010,7 @@ graph_heritage(symbol_t *parent, node_t *node)
 	if (node_heritage->type)
 	{
 		symbol_t *symbol_type;
-		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_TYPE, node);
+		symbol_type = symbol_rpush(symbol, SYMBOL_TYPE_TYPE, node);
 		if(!symbol_type)
 		{
 			return 0;
@@ -3001,21 +3029,21 @@ graph_heritage(symbol_t *parent, node_t *node)
 static int32_t
 graph_class(symbol_t *parent, node_t *node)
 {
-	node_class_t *node_class;
-	node_class = (node_class_t *)node->value;
-
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_CLASS, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_CLASS, node);
 	if(!symbol)
 	{
 		return 0;
 	}
 
+	node_class_t *node_class;
+	node_class = (node_class_t *)node->value;
+
 	int32_t result;
 	if (node_class->name)
 	{
 		symbol_t *symbol_name;
-		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_class->name);
+		symbol_name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, node_class->name);
 		if(!symbol_name)
 		{
 			return 0;
@@ -3031,12 +3059,15 @@ graph_class(symbol_t *parent, node_t *node)
 	ilist_t *a;
 	if (node_class->heritages)
 	{
+		symbol_t *symbol_heritages;
+		symbol_heritages = symbol_rpush(symbol, SYMBOL_TYPE_HERITAGES, NULL);
+
 		for (a = node_class->heritages->begin; a != node_class->heritages->end; a = a->next)
 		{
-			node_t *temp;
-			temp = (node_t *)a->value;
+			node_t *heritage;
+			heritage = (node_t *)a->value;
 
-			result = graph_heritage(symbol, temp);
+			result = graph_heritage(symbol_heritages, heritage);
 			if (!result)
 			{
 				return 0;
@@ -3044,14 +3075,17 @@ graph_class(symbol_t *parent, node_t *node)
 		}
 	}
 
-	if (node_class->type_parameters)
+	if (node_class->generics)
 	{
-		for (a = node_class->type_parameters->begin; a != node_class->type_parameters->end; a = a->next)
-		{
-			node_t *temp;
-			temp = (node_t *)a->value;
+		symbol_t *symbol_generics;
+		symbol_generics = symbol_rpush(symbol, SYMBOL_TYPE_GENERICS, NULL);
 
-			result = graph_type_parameter(symbol, temp);
+		for (a = node_class->generics->begin; a != node_class->generics->end; a = a->next)
+		{
+			node_t *generic;
+			generic = (node_t *)a->value;
+
+			result = graph_generic(symbol_generics, generic);
 			if (!result)
 			{
 				return 0;
@@ -3098,21 +3132,21 @@ graph_class(symbol_t *parent, node_t *node)
 static int32_t
 graph_func(symbol_t *parent, node_t *node)
 {
-	node_func_t *node_func;
-	node_func = (node_func_t *)node->value;
-
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_FUNCTION, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_FUNCTION, node);
 	if(!symbol)
 	{
 		return 0;
 	}
 
+	node_func_t *node_func;
+	node_func = (node_func_t *)node->value;
+
 	int32_t result;
 	if (node_func->name)
 	{
 		symbol_t *symbol_name;
-		symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_func->name);
+		symbol_name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, NULL);
 		if(!symbol_name)
 		{
 			return 0;
@@ -3126,14 +3160,15 @@ graph_func(symbol_t *parent, node_t *node)
 	}
 
 	ilist_t *a;
-	if (node_func->type_parameters)
+	if (node_func->generics)
 	{
-		for (a = node_func->type_parameters->begin; a != node_func->type_parameters->end; a = a->next)
-		{
-			node_t *temp;
-			temp = (node_t *)a->value;
+		symbol_t *generics;
+		generics = symbol_rpush(symbol, SYMBOL_TYPE_GENERICS, NULL);
 
-			result = graph_type_parameter(symbol, temp);
+		for (a = node_func->generics->begin; a != node_func->generics->end; a = a->next)
+		{
+			node_t *generic = (node_t *)a->value;
+			result = graph_generic(generics, generic);
 			if (!result)
 			{
 				return 0;
@@ -3141,15 +3176,17 @@ graph_func(symbol_t *parent, node_t *node)
 		}
 	}
 
-	if (node_func->fields)
+	if (node_func->heritages)
 	{
-		ilist_t *a;
-		for (a = node_func->fields->begin; a != node_func->fields->end; a = a->next)
-		{
-			node_t *temp;
-			temp = (node_t *)a->value;
+		symbol_t *heritages;
+		heritages = symbol_rpush(symbol, SYMBOL_TYPE_HERITAGES, NULL);
 
-			result = graph_field(symbol, temp);
+		ilist_t *a;
+		for (a = node_func->heritages->begin; a != node_func->heritages->end; a = a->next)
+		{
+			node_t *heritage = (node_t *)a->value;
+
+			result = graph_heritage(heritages, heritage);
 			if (!result)
 			{
 				return 0;
@@ -3159,12 +3196,14 @@ graph_func(symbol_t *parent, node_t *node)
 
 	if (node_func->parameters)
 	{
+		symbol_t *parameters;
+		parameters = symbol_rpush(symbol, SYMBOL_TYPE_PARAMETERS, NULL);
+
 		for (a = node_func->parameters->begin; a != node_func->parameters->end; a = a->next)
 		{
-			node_t *temp;
-			temp = (node_t *)a->value;
+			node_t *parameter = (node_t *)a->value;
 
-			result = graph_parameter(symbol, temp);
+			result = graph_parameter(parameters, parameter);
 			if (!result)
 			{
 				return 0;
@@ -3174,22 +3213,7 @@ graph_func(symbol_t *parent, node_t *node)
 
 	if (node_func->body)
 	{
-		if(node_func->body->kind == NODE_KIND_BLOCK)
-		{
-			result = graph_block(symbol, node_func->body);
-		}
-		else
-		{
-			symbol_t *symbol_value;
-			symbol_value = symbol_rpush(symbol, SYMBOL_FLAG_VALUE, node_func->body);
-			if(!symbol_value)
-			{
-				return 0;
-			}
-
-			result = graph_expression(symbol_value, node_func->body);
-		}
-		
+		result = graph_block(symbol, node_func->body);
 		if (!result)
 		{
 			return 0;
@@ -3206,14 +3230,14 @@ graph_var(symbol_t *parent, node_t *node)
 	node_var = (node_var_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_VAR, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_VAR, node);
 	if(!symbol)
 	{
 		return 0;
 	}
 
 	symbol_t *symbol_name;
-	symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_var->name);
+	symbol_name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, node_var->name);
 	if(!symbol_name)
 	{
 		return 0;
@@ -3248,7 +3272,7 @@ graph_var(symbol_t *parent, node_t *node)
 	if (node_var->type)
 	{
 		symbol_t *symbol_type;
-		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_TYPE, node_var->type);
+		symbol_type = symbol_rpush(symbol, SYMBOL_TYPE_TYPE, node_var->type);
 		if(!symbol_type)
 		{
 			return 0;
@@ -3264,7 +3288,7 @@ graph_var(symbol_t *parent, node_t *node)
 	if (node_var->value)
 	{
 		symbol_t *symbol_value;
-		symbol_value = symbol_rpush(symbol, SYMBOL_FLAG_VALUE, node_var->value);
+		symbol_value = symbol_rpush(symbol, SYMBOL_TYPE_VALUE, node_var->value);
 		if(!symbol_value)
 		{
 			return 0;
@@ -3281,101 +3305,20 @@ graph_var(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_const(symbol_t *parent, node_t *node)
+graph_type(symbol_t *parent, node_t *node)
 {
-	node_const_t *node_const;
-	node_const = (node_const_t *)node->value;
-
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_CONST, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_TYPE, node);
 	if(!symbol)
 	{
 		return 0;
 	}
 
-	symbol_t *symbol_name;
-	symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_const->name);
-	if(!symbol_name)
-	{
-		return 0;
-	}
-
-	int32_t result;
-	if (node_const->name->kind == NODE_KIND_OBJECT)
-	{
-		result = graph_object(symbol_name, node_const->name);
-		if (!result)
-		{
-			return 0;
-		}
-	}
-	else if (node_const->name->kind == NODE_KIND_ARRAY)
-	{
-		result = graph_array(symbol_name, node_const->name);
-		if (!result)
-		{
-			return 0;
-		}
-	}
-	else
-	{
-		result = graph_id(symbol_name, node_const->name);
-		if (!result)
-		{
-			return 0;
-		}
-	}
-
-	if (node_const->type)
-	{
-		symbol_t *symbol_type;
-		symbol_type = symbol_rpush(symbol, SYMBOL_FLAG_TYPE, node_const->type);
-		if(!symbol_type)
-		{
-			return 0;
-		}
-
-		result = graph_expression(symbol_type, node_const->type);
-		if (!result)
-		{
-			return 0;
-		}
-	}
-
-	if (node_const->value)
-	{
-		symbol_t *symbol_value;
-		symbol_value = symbol_rpush(symbol, SYMBOL_FLAG_VALUE, node_const->value);
-		if(!symbol_value)
-		{
-			return 0;
-		}
-
-		result = graph_expression(symbol_value, node_const->value);
-		if (!result)
-		{
-			return 0;
-		}
-	}
-
-	return 1;
-}
-
-static int32_t
-graph_type(symbol_t *parent, node_t *node)
-{
 	node_type_t *node_type;
 	node_type = (node_type_t *)node->value;
 
-	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_TYPE, node);
-	if(!symbol)
-	{
-		return 0;
-	}
-
 	symbol_t *symbol_name;
-	symbol_name = symbol_rpush(symbol, SYMBOL_FLAG_NAME, node_type->name);
+	symbol_name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, node_type->name);
 	if(!symbol_name)
 	{
 		return 0;
@@ -3389,14 +3332,17 @@ graph_type(symbol_t *parent, node_t *node)
 	}
 
 	ilist_t *a;
-	if (node_type->type_parameters)
+	if (node_type->generics)
 	{
-		for (a = node_type->type_parameters->begin; a != node_type->type_parameters->end; a = a->next)
-		{
-			node_t *temp;
-			temp = (node_t *)a->value;
+		symbol_t *symbol_generics;
+		symbol_generics = symbol_rpush(symbol, SYMBOL_TYPE_GENERICS, NULL);
 
-			result = graph_type_parameter(symbol, temp);
+		for (a = node_type->generics->begin; a != node_type->generics->end; a = a->next)
+		{
+			node_t *generic;
+			generic = (node_t *)a->value;
+
+			result = graph_generic(symbol_generics, generic);
 			if (!result)
 			{
 				return 0;
@@ -3406,12 +3352,15 @@ graph_type(symbol_t *parent, node_t *node)
 
 	if (node_type->heritages)
 	{
+		symbol_t *symbol_heritages;
+		symbol_heritages = symbol_rpush(symbol, SYMBOL_TYPE_HERITAGES, NULL);
+
 		for (a = node_type->heritages->begin; a != node_type->heritages->end; a = a->next)
 		{
-			node_t *temp;
-			temp = (node_t *)a->value;
+			node_t *heritage;
+			heritage = (node_t *)a->value;
 
-			result = graph_heritage(symbol, temp);
+			result = graph_heritage(symbol_heritages, heritage);
 			if (!result)
 			{
 				return 0;
@@ -3420,7 +3369,7 @@ graph_type(symbol_t *parent, node_t *node)
 	}
 
 	symbol_t *symbol_value;
-	symbol_value = symbol_rpush(symbol, SYMBOL_FLAG_VALUE, node_type->body);
+	symbol_value = symbol_rpush(symbol, SYMBOL_TYPE_VALUE, node_type->body);
 	if(!symbol_value)
 	{
 		return 0;
@@ -3436,34 +3385,127 @@ graph_type(symbol_t *parent, node_t *node)
 }
 
 static int32_t
+graph_field(symbol_t *parent, node_t *node)
+{
+	node_field_t *node_field;
+	node_field = (node_field_t *)node->value;
+
+	symbol_t *symbol;
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_FIELD, node);
+	if(!symbol)
+	{
+		return 0;
+	}
+
+	int32_t result;
+	if (node_field->name)
+	{
+		symbol_t *name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, NULL);
+		if(!name)
+		{
+			return 0;
+		}
+
+		result = graph_expression(name, node_field->name);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+
+	if (node_field->type)
+	{
+		symbol_t *type = symbol_rpush(symbol, SYMBOL_TYPE_TYPE, NULL);
+		if(!type)
+		{
+			return 0;
+		}
+
+		result = graph_expression(type, node_field->type);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
 graph_import(symbol_t *parent, node_t *node)
 {
 	node_import_t *node_import;
 	node_import = (node_import_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_IMPORT, node);
-	if(!symbol)
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_IMPORT, node);
+	if (!symbol)
 	{
 		return 0;
 	}
 
-	symbol_t *symbol_path;
-	symbol_path = symbol_rpush(symbol, SYMBOL_FLAG_PATH, node_import->path);
-	if(!symbol_path)
+	int32_t result;
+	if (node_import->name)
 	{
-		return 0;
+		symbol_t *name;
+		name = symbol_rpush(symbol, SYMBOL_TYPE_NAME, NULL);
+		if(!name)
+		{
+			return 0;
+		}
+
+		result = graph_id(name, node_import->name);
+		if (!result)
+		{
+			return 0;
+		}
 	}
 
-	if(node_import->fields)
+	if (node_import->generics)
 	{
+		symbol_t *generics;
+		generics = symbol_rpush(symbol, SYMBOL_TYPE_GENERICS, NULL);
+
+		ilist_t *a;
+		for (a = node_import->generics->begin; a != node_import->generics->end; a = a->next)
+		{
+			node_t *generic = (node_t *)a->value;
+			result = graph_generic(generics, generic);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	if (node_import->path)
+	{
+		symbol_t *path = symbol_rpush(symbol, SYMBOL_TYPE_PATH, NULL);
+		if(!path)
+		{
+			return 0;
+		}
+
+		result = graph_string(path, node_import->path);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+
+	if (node_import->fields)
+	{
+		symbol_t *fields = symbol_rpush(symbol, SYMBOL_TYPE_FIELDS, NULL);
+		if(!fields)
+		{
+			return 0;
+		}
 		ilist_t *a;
 		for (a = node_import->fields->begin; a != node_import->fields->end; a = a->next)
 		{
-			node_t *temp;
-			temp = (node_t *)a->value;
+			node_t *temp = (node_t *)a->value;
 
-			int32_t result = graph_field(symbol, temp);
+			result = graph_field(fields, temp);
 			if (!result)
 			{
 				return 0;
@@ -3481,7 +3523,7 @@ graph_module(symbol_t *parent, node_t *node)
 	node_module = (node_module_t *)node->value;
 
 	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FLAG_MODULE, node);
+	symbol = symbol_rpush(parent, SYMBOL_TYPE_MODULE, node);
 	if(!symbol)
 	{
 		return 0;
@@ -3491,8 +3533,7 @@ graph_module(symbol_t *parent, node_t *node)
 	ilist_t *a;
 	for (a = node_module->members->begin; a != node_module->members->end; a = a->next)
 	{
-		node_t *temp;
-		temp = (node_t *)a->value;
+		node_t *temp = (node_t *)a->value;
 
 		switch (temp->kind)
 		{
@@ -3514,10 +3555,6 @@ graph_module(symbol_t *parent, node_t *node)
 
 		case NODE_KIND_VAR:
 			result = graph_var(symbol, temp);
-			break;
-
-		case NODE_KIND_CONST:
-			result = graph_const(symbol, temp);
 			break;
 
 		case NODE_KIND_TYPE:
@@ -3558,33 +3595,11 @@ graph_create(program_t *program, list_t *errors)
 	graph->errors = errors;
 
 	symbol_t *symbol;
-	symbol = symbol_create(SYMBOL_FLAG_NONE, NULL);
+	symbol = symbol_create(SYMBOL_TYPE_NONE, NULL);
 	if(!symbol)
 	{
 		return 0;
 	}
-
-	uint64_t type_list[] = {SYMBOL_TYPE_NULL, SYMBOL_TYPE_CHAR, SYMBOL_TYPE_STRING, SYMBOL_TYPE_NUMBER, SYMBOL_TYPE_BOOLEAN};
-
-	const uint64_t type_flags[] = {
-		[SYMBOL_TYPE_NULL] = SYMBOL_FLAG_NULL,
-		[SYMBOL_TYPE_CHAR] = SYMBOL_FLAG_CHAR,
-		[SYMBOL_TYPE_STRING] = SYMBOL_FLAG_STRING,
-		[SYMBOL_TYPE_NUMBER] = SYMBOL_FLAG_NUMBER,
-		[SYMBOL_TYPE_BOOLEAN] = SYMBOL_FLAG_BOOLEAN
-	};
-
-	uint64_t list_length = sizeof(type_list)/sizeof(type_list[0]);
-	for (uint64_t i = 0; i < list_length; i++)
-	{
-		symbol_t *sym;
-		sym = symbol_prime(symbol, type_list[i], type_flags[i], NULL);
-		if (!sym)
-		{
-			return 0;
-		}
-	}
-	
 
 	graph->symbol = symbol;
 

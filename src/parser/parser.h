@@ -4,10 +4,13 @@
 
 typedef enum parser_modifier 
 {
-	PARSER_MODIFIER_NONE 			= 1 << 0,
-	PARSER_MODIFIER_EXPORT 		= 1 << 1,
-	PARSER_MODIFIER_READONLY 	= 1 << 2,
-	PARSER_MODIFIER_STATIC 		= 1 << 3
+	PARSER_MODIFIER_NONE 				= 1 << 0,
+	PARSER_MODIFIER_EXPORT 			= 1 << 1,
+	PARSER_MODIFIER_READONLY 		= 1 << 2,
+	PARSER_MODIFIER_REFERENCE 	= 1 << 3,
+	PARSER_MODIFIER_PROTECTED 	= 1 << 4,
+	PARSER_MODIFIER_STATIC 			= 1 << 5,
+	PARSER_MODIFIER_ASYNC 			= 1 << 6
 } Parser_modifier_t;
 
 typedef struct parser 

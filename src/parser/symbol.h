@@ -2,127 +2,133 @@
 #ifndef __SYMBOL_H__
 #define __SYMBOL_H__
 
-typedef enum symbol_flag {
-    SYMBOL_FLAG_NONE						= 1,
-    SYMBOL_FLAG_VAR,
-	SYMBOL_FLAG_MODULE,
-	SYMBOL_FLAG_CONST,
-    SYMBOL_FLAG_PROPERTY,
-    SYMBOL_FLAG_FUNCTION,
-    SYMBOL_FLAG_CLASS,
-    SYMBOL_FLAG_ENUM,
-    SYMBOL_FLAG_ENUM_MEMBER,
-    SYMBOL_FLAG_TYPE,
-    SYMBOL_FLAG_METHOD,
-    SYMBOL_FLAG_CONSTRUCTOR,
-    SYMBOL_FLAG_TYPE_PARAMETER,
-    SYMBOL_FLAG_PARAMETER,
-    SYMBOL_FLAG_FIELD,
-    SYMBOL_FLAG_TYPE_EXPRESSION,
-    SYMBOL_FLAG_EXPORT,
-    SYMBOL_FLAG_IMPORT,
-    SYMBOL_FLAG_PATH,
-    SYMBOL_FLAG_HERITAGE,
-    SYMBOL_FLAG_THROW,
-    SYMBOL_FLAG_RETURN,
-    SYMBOL_FLAG_CONTINUE,
-    SYMBOL_FLAG_BREAK,
-    SYMBOL_FLAG_FORIN ,
-    SYMBOL_FLAG_EXPRESSION,
-    SYMBOL_FLAG_FOR,
-    SYMBOL_FLAG_INITIALIZER,
-    SYMBOL_FLAG_INCREMENTOR,
-    SYMBOL_FLAG_FOR_STEP,
-    SYMBOL_FLAG_FOR_INIT,
-    SYMBOL_FLAG_BLOCK,
-    SYMBOL_FLAG_CATCH,
-    SYMBOL_FLAG_TRY,
-    SYMBOL_FLAG_IF,
-    SYMBOL_FLAG_CONDITION,
-    SYMBOL_FLAG_ELSE,
-    SYMBOL_FLAG_DEFINE,
-    SYMBOL_FLAG_ASSIGN,
-    SYMBOL_FLAG_CONDITIONAL,
-    SYMBOL_FLAG_TRUE,
-    SYMBOL_FLAG_FALSE,
-    SYMBOL_FLAG_LEFT,
-    SYMBOL_FLAG_RIGHT,
-    SYMBOL_FLAG_TILDE,
-	SYMBOL_FLAG_NOT,
-	SYMBOL_FLAG_NEG,
-	SYMBOL_FLAG_POS,
-	SYMBOL_FLAG_GET_VALUE,
-	SYMBOL_FLAG_GET_ADDRESS,
-	SYMBOL_FLAG_AWAIT,
-	SYMBOL_FLAG_SIZEOF,
-	SYMBOL_FLAG_TYPEOF,
-	SYMBOL_FLAG_ELLIPSIS,
-    SYMBOL_FLAG_SHL,
-    SYMBOL_FLAG_SHR,
-    SYMBOL_FLAG_LOR,
-    SYMBOL_FLAG_LAND,
-    SYMBOL_FLAG_OR,
-    SYMBOL_FLAG_XOR,
-    SYMBOL_FLAG_AND,
-    SYMBOL_FLAG_EQ,
-    SYMBOL_FLAG_IN,
-    SYMBOL_FLAG_EXTENDS,
-    SYMBOL_FLAG_NEQ,
-    SYMBOL_FLAG_LT,
-    SYMBOL_FLAG_GT,
-    SYMBOL_FLAG_LE,
-    SYMBOL_FLAG_GE,
-    SYMBOL_FLAG_PLUS,
-    SYMBOL_FLAG_MINUS,
-    SYMBOL_FLAG_MUL,
-    SYMBOL_FLAG_DIV,
-    SYMBOL_FLAG_MOD,
-    SYMBOL_FLAG_COMPOSITE,
-    SYMBOL_FLAG_ATTR,
-    SYMBOL_FLAG_ITEM,
-    SYMBOL_FLAG_SLICE,
-    SYMBOL_FLAG_INDEX,
-    SYMBOL_FLAG_NAME,
-    SYMBOL_FLAG_GET_START,
-    SYMBOL_FLAG_GET_STEP,
-    SYMBOL_FLAG_GET_STOP,
-    SYMBOL_FLAG_CALL,
-    SYMBOL_FLAG_ARGUMENT,
-    SYMBOL_FLAG_OBJECT,
-    SYMBOL_FLAG_OBJECT_PROPERTY,
-    SYMBOL_FLAG_VALUE,
-    SYMBOL_FLAG_PARENTHESIS,
-    SYMBOL_FLAG_ARRAY,
-    SYMBOL_FLAG_NULL,
-    SYMBOL_FLAG_CHAR,
-    SYMBOL_FLAG_STRING,
-    SYMBOL_FLAG_NUMBER,
-    SYMBOL_FLAG_BOOLEAN,
-    SYMBOL_FLAG_ID
-} symbol_flag_t;
-
 typedef enum symbol_type {
-    SYMBOL_TYPE_NULL = 1,
+    SYMBOL_TYPE_NONE						= 1,
+    SYMBOL_TYPE_VAR,
+	SYMBOL_TYPE_MODULE,
+    SYMBOL_TYPE_PROPERTY,
+    SYMBOL_TYPE_FUNCTION,
+    SYMBOL_TYPE_LAMBDA,
+    SYMBOL_TYPE_CLASS,
+    SYMBOL_TYPE_ENUM,
+    SYMBOL_TYPE_MEMBER,
+    SYMBOL_TYPE_MEMBERS,
+    SYMBOL_TYPE_TYPE,
+    SYMBOL_TYPE_METHOD,
+    SYMBOL_TYPE_GENERIC,
+    SYMBOL_TYPE_GENERICS,
+    SYMBOL_TYPE_PARAMETER,
+    SYMBOL_TYPE_PARAMETERS,
+    SYMBOL_TYPE_FIELD,
+    SYMBOL_TYPE_FIELDS,
+    SYMBOL_TYPE_TYPE_EXPRESSION,
+    SYMBOL_TYPE_EXPORT,
+    SYMBOL_TYPE_IMPORT,
+    SYMBOL_TYPE_PATH,
+    SYMBOL_TYPE_HERITAGE,
+    SYMBOL_TYPE_HERITAGES,
+    SYMBOL_TYPE_THROW,
+    SYMBOL_TYPE_RETURN,
+    SYMBOL_TYPE_CONTINUE,
+    SYMBOL_TYPE_BREAK,
+    SYMBOL_TYPE_FORIN ,
+    SYMBOL_TYPE_EXPRESSION,
+    SYMBOL_TYPE_FOR,
+    SYMBOL_TYPE_INITIALIZER,
+    SYMBOL_TYPE_INCREMENTOR,
+    SYMBOL_TYPE_BLOCK,
+    SYMBOL_TYPE_CATCH,
+    SYMBOL_TYPE_CATCHS,
+    SYMBOL_TYPE_TRY,
+    SYMBOL_TYPE_IF,
+    SYMBOL_TYPE_CONDITION,
+    SYMBOL_TYPE_ELSE,
+
+    SYMBOL_TYPE_DEFINE,
+    SYMBOL_TYPE_ASSIGN,
+    SYMBOL_TYPE_ADD_ASSIGN,
+    SYMBOL_TYPE_SUB_ASSIGN,
+    SYMBOL_TYPE_DIV_ASSIGN,
+    SYMBOL_TYPE_MUL_ASSIGN,
+    SYMBOL_TYPE_MOD_ASSIGN,
+    SYMBOL_TYPE_AND_ASSIGN,
+    SYMBOL_TYPE_OR_ASSIGN,
+    SYMBOL_TYPE_SHL_ASSIGN,
+    SYMBOL_TYPE_SHR_ASSIGN,
+
+    SYMBOL_TYPE_CONDITIONAL,
+    SYMBOL_TYPE_TRUE,
+    SYMBOL_TYPE_FALSE,
+    SYMBOL_TYPE_LEFT,
+    SYMBOL_TYPE_RIGHT,
+    SYMBOL_TYPE_TILDE,
+	SYMBOL_TYPE_NOT,
+	SYMBOL_TYPE_NEG,
+	SYMBOL_TYPE_POS,
+	SYMBOL_TYPE_AWAIT,
+	SYMBOL_TYPE_SIZEOF,
+	SYMBOL_TYPE_TYPEOF,
+	SYMBOL_TYPE_ELLIPSIS,
+    SYMBOL_TYPE_SHL,
+    SYMBOL_TYPE_SHR,
+    SYMBOL_TYPE_LOR,
+    SYMBOL_TYPE_LAND,
+    SYMBOL_TYPE_OR,
+    SYMBOL_TYPE_XOR,
+    SYMBOL_TYPE_AND,
+    SYMBOL_TYPE_EQ,
+    SYMBOL_TYPE_IN,
+    SYMBOL_TYPE_EXTENDS,
+    SYMBOL_TYPE_NEQ,
+    SYMBOL_TYPE_LT,
+    SYMBOL_TYPE_GT,
+    SYMBOL_TYPE_LE,
+    SYMBOL_TYPE_GE,
+    SYMBOL_TYPE_POW,
+    SYMBOL_TYPE_PLUS,
+    SYMBOL_TYPE_MINUS,
+    SYMBOL_TYPE_MUL,
+    SYMBOL_TYPE_DIV,
+    SYMBOL_TYPE_MOD,
+    SYMBOL_TYPE_EPI,
+    SYMBOL_TYPE_COMPOSITE,
+    SYMBOL_TYPE_ATTR,
+    SYMBOL_TYPE_ITEM,
+    SYMBOL_TYPE_NAME,
+    SYMBOL_TYPE_CALL,
+    SYMBOL_TYPE_ARGUMENT,
+    SYMBOL_TYPE_ARGUMENTS,
+    SYMBOL_TYPE_OBJECT,
+    SYMBOL_TYPE_OBJECT_PROPERTY,
+    SYMBOL_TYPE_VALUE,
+    SYMBOL_TYPE_PARENTHESIS,
+    SYMBOL_TYPE_ARRAY,
+    SYMBOL_TYPE_NULL,
     SYMBOL_TYPE_CHAR,
     SYMBOL_TYPE_STRING,
     SYMBOL_TYPE_NUMBER,
-    SYMBOL_TYPE_BOOLEAN
+    SYMBOL_TYPE_BOOLEAN,
+    SYMBOL_TYPE_ID
 } symbol_type_t;
+
+typedef enum symbol_flag {
+    SYMBOL_FLAG_NONE            = 0 << 0,
+    SYMBOL_FLAG_CHECKING        = 1 << 0,
+    SYMBOL_FLAG_SYNTAX          = 1 << 1,
+    SYMBOL_FLAG_REFERENCE       = 1 << 2
+} symbol_flag_t;
 
 typedef struct symbol {
     uint64_t id;
-    uint64_t flags;
-	
-    // node
+    uint32_t type;
+    uint32_t flag;
+    
+    // statistics
+    uint64_t reference;
+
+    // declaration
 	node_t *declaration;
-    node_t *reference;
-
-    // types
-    list_t *types;
-
-    // refrence
-    struct symbol *refrence;
-
+    
     // list
     struct symbol *previous;
     struct symbol *next;
@@ -135,7 +141,7 @@ typedef struct symbol {
 } symbol_t;
 
 symbol_t *
-symbol_create(uint64_t flags, node_t *declaration);
+symbol_create(uint32_t type, node_t *declaration);
 
 int
 symbol_isempty(symbol_t *sym);
@@ -155,9 +161,6 @@ symbol_query(symbol_t *sym, int (*f)(symbol_t*));
 void
 symbol_destroy(symbol_t *sym);
 
-symbol_t *
-symbol_create_iterior(uint64_t flags, node_t *declaration);
-
 symbol_t*
 symbol_link(symbol_t *sym, symbol_t *current, symbol_t *it);
 
@@ -173,20 +176,17 @@ symbol_remove(symbol_t *sym, int (*f)(symbol_t *));
 symbol_t*
 symbol_clear(symbol_t *sym);
 
-symbol_t *
-symbol_prime(symbol_t *sym, uint64_t id, uint64_t flags, node_t *declaration);
-
 symbol_t*
 symbol_rpop(symbol_t *sym);
 
 symbol_t *
-symbol_rpush(symbol_t *sym, uint64_t flags, node_t *declaration);
+symbol_rpush(symbol_t *sym, uint32_t type, node_t *declaration);
 
 symbol_t*
 symbol_lpop(symbol_t *sym);
 
 symbol_t *
-symbol_lpush(symbol_t *sym, uint64_t flags, node_t *declaration);
+symbol_lpush(symbol_t *sym, uint32_t type, node_t *declaration);
 
 symbol_t *
 symbol_at(symbol_t *sym, uint64_t key);
@@ -198,18 +198,18 @@ symbol_t *
 symbol_last(symbol_t *sym);
 
 int32_t
-symbol_equal_flag(symbol_t *symbol1, symbol_t *symbol2);
+symbol_check_type(symbol_t *sym, uint32_t type);
+
+void
+symbol_clear_flag(symbol_t *sym, uint32_t flag);
+
+void
+symbol_set_flag(symbol_t *sym, uint32_t flag);
+
+void
+symbol_toggle_flag(symbol_t *sym, uint32_t flag);
 
 int32_t
-symbol_check_flag(symbol_t *symbol, uint64_t flag);
-
-void
-symbol_clear_flag(symbol_t *symbol, uint64_t flag);
-
-void
-symbol_set_flag(symbol_t *symbol, uint64_t flag);
-
-void
-symbol_toggle_flag(symbol_t *symbol, uint64_t flag);
+symbol_check_flag(symbol_t *sym, uint32_t flag);
 
 #endif

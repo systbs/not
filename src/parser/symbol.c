@@ -11,7 +11,7 @@
 #include "../ast/node.h"
 #include "symbol.h"
 
-uint64_t symbol_counter = 1000;
+uint64_t symbol_counter = 0;
 
 symbol_t *
 symbol_apply(symbol_t *sym)
@@ -30,7 +30,7 @@ symbol_apply(symbol_t *sym)
 }
 
 symbol_t *
-symbol_create(uint64_t flags, node_t *declaration)
+symbol_create(uint32_t type, node_t *declaration)
 {
     symbol_t *sym;
     if(!(sym = (symbol_t *)malloc(sizeof(*sym)))) {
@@ -39,11 +39,10 @@ symbol_create(uint64_t flags, node_t *declaration)
     memset(sym, 0, sizeof(symbol_t));
     
     sym->parent = NULL;
-    sym->refrence = NULL;
-    sym->flags = flags;
+    sym->type = type;
+    sym->flag = SYMBOL_FLAG_NONE;
     sym->declaration = declaration;
     sym->id = symbol_counter++;
-    sym->types = list_create();
 
     return symbol_apply(sym);
 }
@@ -99,24 +98,6 @@ symbol_destroy(symbol_t *sym)
 {
     symbol_clear(sym);
     free (sym);
-}
-
-symbol_t *
-symbol_create_iterior(uint64_t flags, node_t *declaration)
-{
-	symbol_t *it;
-    if(!(it = (symbol_t *)malloc(sizeof(*it)))) {
-        return NULL;
-    }
-    memset(it, 0, sizeof(symbol_t));
-
-    symbol_apply(it);
-
-    it->flags = flags;
-    it->declaration = declaration;
-    it->id = symbol_counter++;
-    
-    return it;
 }
 
 symbol_t*
@@ -202,7 +183,7 @@ symbol_rpop(symbol_t *sym)
 }
 
 symbol_t *
-symbol_rpush(symbol_t *sym, uint64_t flags, node_t *declaration)
+symbol_rpush(symbol_t *sym, uint32_t type, node_t *declaration)
 {
     symbol_t *it;
     if(!(it = (symbol_t *)malloc(sizeof(*it)))) {
@@ -213,28 +194,10 @@ symbol_rpush(symbol_t *sym, uint64_t flags, node_t *declaration)
     symbol_apply(it);
 
     it->parent = sym;
-    it->flags = flags;
+    it->type = type;
+    it->flag = SYMBOL_FLAG_NONE;
     it->declaration = declaration;
     it->id = symbol_counter++;
-
-    return symbol_link(sym, sym->end, it);
-}
-
-symbol_t *
-symbol_prime(symbol_t *sym, uint64_t id, uint64_t flags, node_t *declaration)
-{
-    symbol_t *it;
-    if(!(it = (symbol_t *)malloc(sizeof(*it)))) {
-        return NULL;
-    }
-    memset(it, 0, sizeof(symbol_t));
-
-    symbol_apply(it);
-
-    it->parent = sym;
-    it->flags = flags;
-    it->declaration = declaration;
-    it->id = id;
 
     return symbol_link(sym, sym->end, it);
 }
@@ -246,7 +209,7 @@ symbol_lpop(symbol_t *sym)
 }
 
 symbol_t *
-symbol_lpush(symbol_t *sym, uint64_t flags, node_t *declaration)
+symbol_lpush(symbol_t *sym, uint32_t type, node_t *declaration)
 {
     symbol_t *it;
 
@@ -258,7 +221,8 @@ symbol_lpush(symbol_t *sym, uint64_t flags, node_t *declaration)
     symbol_apply(it);
     
     it->parent = sym;
-    it->flags = flags;
+    it->type = type;
+    it->flag = SYMBOL_FLAG_NONE;
     it->declaration = declaration;
     it->id = symbol_counter++;
 
@@ -325,64 +289,31 @@ symbol_last(symbol_t *sym)
 }
 
 int32_t
-symbol_check_flag(symbol_t *symbol, uint64_t flag)
+symbol_check_type(symbol_t *sym, uint32_t type)
 {
-    return (symbol->flags == flag);
+    return (sym->type == type);
+}
+
+void
+symbol_clear_flag(symbol_t *sym, uint32_t flag)
+{
+    sym->flag &= ~flag;
+}
+
+void
+symbol_set_flag(symbol_t *sym, uint32_t flag)
+{
+    sym->flag |= flag;
+}
+
+void
+symbol_toggle_flag(symbol_t *sym, uint32_t flag)
+{
+    sym->flag ^= flag;
 }
 
 int32_t
-symbol_equal_flag(symbol_t *symbol1, symbol_t *symbol2)
+symbol_check_flag(symbol_t *sym, uint32_t flag)
 {
-    return (symbol1->flags == symbol2->flags);
-}
-
-void
-symbol_clear_flag(symbol_t *symbol, uint64_t flag)
-{
-    symbol->flags &= ~flag;
-}
-
-void
-symbol_set_flag(symbol_t *symbol, uint64_t flag)
-{
-    symbol->flags |= flag;
-}
-
-void
-symbol_toggle_flag(symbol_t *symbol, uint64_t flag)
-{
-    symbol->flags ^= flag;
-}
-
-symbol_t *
-symbol_find_up(symbol_t *sym, uint64_t flag)
-{
-    symbol_t *b, *n, *end = sym->previous;
-    for(b = sym; b && (b != end); b = n){
-        n = b->next;
-        if(symbol_check_flag(b, flag))
-        {
-            return b;
-        }
-    }
-    if(sym->parent)
-    {
-        return symbol_find_up(sym->parent, flag);
-    }
-
-    return NULL;
-}
-
-symbol_t *
-symbol_find_down(symbol_t *sym, uint64_t flag)
-{
-    symbol_t *b, *n;
-    for(b = sym->begin; b && (b != sym->end); b = n){
-        n = b->next;
-        if(symbol_check_flag(b, flag))
-        {
-            return b;
-        }
-    }
-    return NULL;
+    return ((sym->flag & flag) == flag);
 }

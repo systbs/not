@@ -1,28 +1,42 @@
+import (T) task2 ("~/libs/task", promise, task{T, R}:task{T}.find{R});
+import (T) task3 ("~/libs/task", promise, t{T}:task{int}.find{T});
 
-type int: typeof 0;
-type char: typeof ' ';
-type nil: typeof null;
-type string: typeof "simple text";
-type boolean: typeof true;
-
-export class (W, R) task 
+export class (W=int, R extends string) teacher extends (p:person)
 {
-
-}
-
-export class (T) task
-{
-  func init(t1:int, t2:int) {
-
-  }
-
-  export class (R) task1
+  static readonly version:int = 0;
+  register_date:date;
+  export func init (name:string, degree:string) 
   {
 
   }
+
+  export func init
+  {
+    register_date = date();
+  }
+
+  export protected func get_date {
+    return register_date;
+  }
+
+  export func + (readonly p:person) {
+
+  }
 }
 
-export func (R, T, a:task{R}.task1{T}) init {
-  readonly var t:task{T} = task{T}(1, 2);
+func init(args:string[])
+{
+  var t1 = teacher();
+  var t2 = teacher{R=string}("peyman", "bachelor");
 }
+
+type (T) A extends (b:B{T}, c:C{T}):
+{
+
+}
+
+func (a:A{T}, T) fnA {
+  
+}
+
 

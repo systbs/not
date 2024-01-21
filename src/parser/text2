@@ -53,7 +53,7 @@ syntax_error(syntax_t *syntax, position_t position, const char *format, ...)
 		return NULL;
 	}
 
-	if (list_rpush(syntax->errors, (list_value_t)error))
+	if (list_rpush(syntax->errors, (uint64_t)error))
 	{
 		return NULL;
 	}
@@ -270,7 +270,7 @@ static int32_t
 syntax_parameter(syntax_t *syntax, node_t *parent, node_t *node);
 
 static int32_t
-syntax_type_parameter(syntax_t *syntax, node_t *parent, node_t *node);
+syntax_generic(syntax_t *syntax, node_t *parent, node_t *node);
 
 static int32_t
 syntax_postfix(syntax_t *syntax, node_t *parent, node_t *node);
@@ -809,7 +809,7 @@ syntax_postfix(syntax_t *syntax, node_t *parent, node_t *node)
 		result &= syntax_get_item(syntax, parent, node);
 		break;
 
-	case NODE_KIND_GET_ATTR:
+	case NODE_KIND_ATTRIBUTE:
 		result &= syntax_get_attr(syntax, parent, node);
 		break;
 
@@ -1784,26 +1784,26 @@ static int32_t
 syntax_check_is_type(syntax_t *syntax, node_t *node);
 
 static int32_t
-syntax_type_parameter(syntax_t *syntax, node_t *parent, node_t *node)
+syntax_generic(syntax_t *syntax, node_t *parent, node_t *node)
 {
 	node->parent = parent;
 
-	node_type_parameter_t *node_type_parameter;
-	node_type_parameter = (node_type_parameter_t *)node->value;
+	node_generic_t *node_generic;
+	node_generic = (node_generic_t *)node->value;
 
 	int32_t result = 1;
-	result &= syntax_id(syntax, node, node_type_parameter->name);
+	result &= syntax_id(syntax, node, node_generic->name);
 
-	if (node_type_parameter->extends)
+	if (node_generic->extends)
 	{
-		result &= syntax_check_is_type(syntax, node_type_parameter->extends);
-		result &= syntax_expression(syntax, node, node_type_parameter->extends);
+		result &= syntax_check_is_type(syntax, node_generic->extends);
+		result &= syntax_expression(syntax, node, node_generic->extends);
 	}
 
-	if (node_type_parameter->value)
+	if (node_generic->value)
 	{
-		result &= syntax_check_is_type(syntax, node_type_parameter->value);
-		result &= syntax_expression(syntax, node, node_type_parameter->value);
+		result &= syntax_check_is_type(syntax, node_generic->value);
+		result &= syntax_expression(syntax, node, node_generic->value);
 	}
 
 	if(debug)
@@ -1903,7 +1903,7 @@ syntax_check_is_get_attr(syntax_t *syntax, node_t *node)
 {
 	int32_t result = 1;
 
-	if (node->kind == NODE_KIND_GET_ATTR)
+	if (node->kind == NODE_KIND_ATTRIBUTE)
 	{
 		node_get_attr_t *node_get_attr;
 		node_get_attr = (node_get_attr_t *)node->value;
@@ -1934,7 +1934,7 @@ syntax_check_is_object_variable_value(syntax_t *syntax, node_t *node)
 	{
 		result &= syntax_check_is_object_variable(syntax, node);
 	}
-	else if (node->kind == NODE_KIND_GET_ATTR)
+	else if (node->kind == NODE_KIND_ATTRIBUTE)
 	{
 		result &= syntax_check_is_get_attr(syntax, node);
 	}
@@ -2372,7 +2372,7 @@ syntax_check_is_type_postfix(syntax_t *syntax, node_t *node)
 		return 0;
 
 	case NODE_KIND_GET_ITEM:
-	case NODE_KIND_GET_ATTR:
+	case NODE_KIND_ATTRIBUTE:
 		break;
 
 	default:
@@ -2602,14 +2602,14 @@ syntax_method(syntax_t *syntax, node_t *parent, node_t *node)
 		}
 	}
 
-	if (node_method->type_parameters)
+	if (node_method->generics)
 	{
-		for (a = node_method->type_parameters->begin; a != node_method->type_parameters->end; a = a->next)
+		for (a = node_method->generics->begin; a != node_method->generics->end; a = a->next)
 		{
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result &= syntax_type_parameter(syntax, node, temp);
+			result &= syntax_generic(syntax, node, temp);
 		}
 	}
 
@@ -2637,7 +2637,7 @@ static int32_t
 syntax_check_is_hierarchy_attribute(syntax_t *syntax, node_t *node)
 {
 	int32_t result = 1;
-	if (node->kind == NODE_KIND_GET_ATTR)
+	if (node->kind == NODE_KIND_ATTRIBUTE)
 	{
 		node_get_attr_t *node_get_attr;
 		node_get_attr = (node_get_attr_t *)node->value;
@@ -2721,14 +2721,14 @@ syntax_class(syntax_t *syntax, node_t *parent, node_t *node)
 		}
 	}
 
-	if (node_class->type_parameters)
+	if (node_class->generics)
 	{
-		for (a = node_class->type_parameters->begin; a != node_class->type_parameters->end; a = a->next)
+		for (a = node_class->generics->begin; a != node_class->generics->end; a = a->next)
 		{
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result &= syntax_type_parameter(syntax, node, temp);
+			result &= syntax_generic(syntax, node, temp);
 		}
 	}
 
@@ -2799,14 +2799,14 @@ syntax_func(syntax_t *syntax, node_t *parent, node_t *node)
 		}
 	}
 
-	if (node_func->type_parameters)
+	if (node_func->generics)
 	{
-		for (a = node_func->type_parameters->begin; a != node_func->type_parameters->end; a = a->next)
+		for (a = node_func->generics->begin; a != node_func->generics->end; a = a->next)
 		{
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result &= syntax_type_parameter(syntax, node, temp);
+			result &= syntax_generic(syntax, node, temp);
 		}
 	}
 
@@ -3009,14 +3009,14 @@ syntax_type(syntax_t *syntax, node_t *parent, node_t *node)
 	result &= syntax_id(syntax, node, node_type->name);
 
 	ilist_t *a;
-	if (node_type->type_parameters)
+	if (node_type->generics)
 	{
-		for (a = node_type->type_parameters->begin; a != node_type->type_parameters->end; a = a->next)
+		for (a = node_type->generics->begin; a != node_type->generics->end; a = a->next)
 		{
 			node_t *temp;
 			temp = (node_t *)a->value;
 
-			result &= syntax_type_parameter(syntax, node, temp);
+			result &= syntax_generic(syntax, node, temp);
 		}
 	}
 
@@ -3179,7 +3179,7 @@ syntax_import(syntax_t *syntax, node_t *parent, node_t *node)
 static int32_t
 syntax_module(syntax_t *syntax, node_t *node)
 {
-	if (!list_rpush(syntax->modules, (list_value_t)node))
+	if (!list_rpush(syntax->modules, (uint64_t)node))
 	{
 		return 0;
 	}
