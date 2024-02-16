@@ -1,13 +1,20 @@
 
-export class int {
-
-}
-
 export class string {
 
 }
 
-export class (R extends int) person 
+export class int {
+  func init {
+
+  }
+  func init {
+    
+  }
+}
+
+
+
+export class (R extends string) person 
 {
   export class (R extends int) person 
   {

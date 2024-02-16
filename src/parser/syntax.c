@@ -162,6 +162,1351 @@ syntax_comparison_id(symbol_t *id1, symbol_t *id2)
 
 
 
+static symbol_t *
+syntax_type_of(graph_t *graph, symbol_t *t1);
+
+static int32_t
+syntax_ga(graph_t *graph, symbol_t *g1, symbol_t *a1)
+{
+	symbol_t *gt_1;
+	gt_1 = syntax_extract_with(g1, SYMBOL_TYPE);
+	if (gt_1)
+	{
+		symbol_t *gtr_1;
+		gtr_1 = syntax_type_of(graph, gt_1);
+		if (gtr_1)
+		{
+			symbol_t *an_1;
+			an_1 = syntax_extract_with(a1, SYMBOL_KEY);
+			if (an_1)
+			{
+				symbol_t *anr_1;
+				anr_1 = syntax_type_of(graph, an_1);
+				if (anr_1)
+				{
+					return (gtr_1 == anr_1) ? 1 : -1;
+				}
+				else
+				{
+					syntax_error(graph, an_1, "refrerence of this type not found");
+					return 0;
+				}
+			}
+			else
+			{
+				syntax_error(graph, a1, "refrerence of this type not found");
+				return 0;
+			}
+		}
+		else
+		{
+			syntax_error(graph, g1, "refrerence of this type not found");
+			return 0;
+		}
+	}
+	return 1;
+}
+
+static int32_t
+syntax_gsas(graph_t *graph, symbol_t *gs1, symbol_t *as1)
+{
+	uint64_t gs1_cnt = 0;
+	uint64_t as1_cnt = 0;
+
+	symbol_t *a;
+	for (a = gs1->begin;a != gs1->end;a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_GENERIC))
+		{
+			gs1_cnt += 1;
+			as1_cnt = 0;
+
+			symbol_t *b;
+			for (b = as1->begin;b != as1->end;b = b->next)
+			{
+				if (symbol_check_type(b, SYMBOL_ARGUMENT))
+				{
+					as1_cnt += 1;
+					if (as1_cnt < gs1_cnt)
+					{
+						continue;
+					}
+					int32_t result;
+					result = syntax_ga(graph, a, b);
+					if (result == 1)
+					{
+						return 1;
+					}
+					else 
+					if (result == 0)
+					{
+						return 0;
+					}
+					return -1;
+				}
+			}
+			
+			if (as1_cnt < gs1_cnt)
+			{
+				symbol_t *value;
+				value = syntax_extract_with(a, SYMBOL_VALUE);
+				if (!value)
+				{
+					return -1;
+				}
+			}
+		}
+	}
+
+	as1_cnt = 0;
+	symbol_t *b;
+	for (b = as1->begin;b != as1->end;b = b->next)
+	{
+		if (symbol_check_type(b, SYMBOL_ARGUMENT))
+		{
+			as1_cnt += 1;
+			if (as1_cnt > gs1_cnt)
+			{
+				return -1;
+			}
+		}
+	}
+
+	return 1;
+}
+
+static symbol_t *
+syntax_in_backward(symbol_t *t1, symbol_t *t2)
+{
+	if (t1 == t2)
+	{
+		return t2;
+	}
+	if (t2->parent)
+	{
+		return syntax_in_backward(t1, t2->parent);
+	}
+	return NULL;
+}
+
+static symbol_t *
+syntax_type_of_in_scope(graph_t *graph, symbol_t *base, symbol_t *t1, symbol_t *arguments, int32_t route)
+{
+	symbol_t *a;
+	for (a = base->begin;(a != base->end);a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_CLASS))
+		{
+			symbol_t *ak;
+			ak = syntax_extract_with(a, SYMBOL_KEY);
+			if (ak)
+			{
+				if (syntax_comparison_id(ak, t1))
+				{
+					symbol_t *gs;
+					gs = syntax_only_with(a, SYMBOL_GENERICS);
+					if (gs)
+					{
+						if (arguments)
+						{
+							if (syntax_gsas(graph, gs, arguments))
+							{
+								goto region_access;
+							}
+							continue;
+						}
+						else
+						{
+							int32_t no_match = 0;
+							symbol_t *b;
+							for (b = gs->begin;b != gs->end;b = b->next)
+							{
+								if (symbol_check_type(b, SYMBOL_GENERIC))
+								{
+									symbol_t *bv;
+									bv = syntax_only_with(b, SYMBOL_VALUE);
+									if (!bv)
+									{
+										no_match = 1;
+										break;
+									}
+								}
+							}
+							if (no_match)
+							{
+								goto region_access;
+							}
+						}
+					}
+					else
+					{
+						if (arguments)
+						{
+							continue;
+						}
+						goto region_access;
+					}
+				}
+				continue;
+			}
+			else
+			{
+				syntax_error(graph, a, "does not include the key field");
+				return NULL;
+			}
+			continue;
+		}
+
+		if (symbol_check_type(a, SYMBOL_GENERICS))
+		{
+			symbol_t *b;
+			for (b = a->begin;b != a->end;b = b->next)
+			{
+				if (symbol_check_type(b, SYMBOL_GENERIC))
+				{
+					symbol_t *bk;
+					bk = syntax_extract_with(b, SYMBOL_KEY);
+					if (bk)
+					{
+						if (syntax_comparison_id(bk, t1) && (bk != t1) && !arguments)
+						{
+							return b;
+						}
+					}
+				}
+			}
+			continue;
+		}
+		
+		continue;
+region_access:
+		if ((route == (route & SYNTAX_ROUTE_FORWARD)))
+		{
+			if (!syntax_in_backward(base, a))
+			{
+				if (symbol_check_type(a, SYMBOL_CLASS))
+				{
+					node_class_t *class = a->declaration->value;
+					if ((class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						syntax_error(graph, a, "private access");
+						return NULL;
+					}
+				}
+			}
+		}
+		return a;
+	}
+
+	if (base->parent && (route == (route & SYNTAX_ROUTE_NONE)))
+	{
+		return syntax_type_of_in_scope(graph, base->parent, t1, arguments, route);
+	}
+
+	return NULL;
+}
+
+static symbol_t *
+syntax_type_of_by_arguments(graph_t *graph, symbol_t *base, symbol_t *t1, symbol_t *arguments, int32_t route)
+{
+	if (symbol_check_type(t1, SYMBOL_ATTR))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(t1, SYMBOL_LEFT);
+		if (left)
+		{
+			symbol_t *right;
+			right = syntax_extract_with(t1, SYMBOL_RIGHT);
+			if (right)
+			{
+				symbol_t *r1;
+				r1 = syntax_type_of_by_arguments(graph, base, left, NULL, route);
+				if (r1)
+				{
+					symbol_t *r2;
+					r2 = syntax_type_of_by_arguments(graph, r1, right, arguments, SYNTAX_ROUTE_FORWARD);
+					if (r2)
+					{
+						return r2;
+					}
+					else
+					{
+						syntax_error(graph, right, "field not found in (%lld:%lld)",
+							r1->declaration->position.line, r1->declaration->position.column);
+						return NULL;
+					}
+				}
+				else
+				{
+					syntax_error(graph, left, "field not found");
+					return NULL;
+				}
+			}
+			else
+			{
+				syntax_error(graph, t1, "attribute does not include the right field");
+				return NULL;
+			}
+		}
+		else
+		{
+			syntax_error(graph, t1, "attribute does not include the left field");
+			return NULL;
+		}
+	}
+	else 
+	if (symbol_check_type(t1, SYMBOL_COMPOSITE))
+	{
+		symbol_t *key;
+		key = syntax_extract_with(t1, SYMBOL_KEY);
+		if (key)
+		{
+			symbol_t *arguments1;
+			arguments1 = syntax_extract_with(t1, SYMBOL_ARGUMENTS);
+			if (arguments1)
+			{
+				symbol_t *r1;
+				r1 = syntax_type_of_by_arguments(graph, base, key, arguments1, route);
+				if (r1)
+				{
+					return r1;
+				}
+				else
+				{
+					syntax_error(graph, key, "field not found");
+					return NULL;
+				}
+			}
+			else
+			{
+				syntax_error(graph, t1, "attribute does not include the arguments field");
+				return NULL;
+			}
+		}
+		else
+		{
+			syntax_error(graph, t1, "attribute does not include the key field");
+			return NULL;
+		}
+	}
+	else
+	if (symbol_check_type(t1, SYMBOL_ID))
+	{
+		symbol_t *r;
+		r = syntax_type_of_in_scope(graph, base, t1, arguments, route);
+		if (r)
+		{
+			return r;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		syntax_error(graph, t1, "the reference is not a routable");
+		return NULL;
+	}
+}
+
+static symbol_t *
+syntax_type_of(graph_t *graph, symbol_t *t1)
+{
+	return syntax_type_of_by_arguments(graph, t1->parent, t1, NULL, SYNTAX_ROUTE_NONE);
+}
+
+static int32_t
+syntax_gg(graph_t *graph, symbol_t *g1, symbol_t *g2)
+{
+	symbol_t *gt_1;
+	gt_1 = syntax_extract_with(g1, SYMBOL_TYPE);
+	if (gt_1)
+	{
+		symbol_t *gtr_1;
+		gtr_1 = syntax_type_of(graph, gt_1);
+		if (gtr_1)
+		{
+			symbol_t *gt_2;
+			gt_2 = syntax_extract_with(g2, SYMBOL_TYPE);
+			if (gt_2)
+			{
+				symbol_t *gtr_2;
+				gtr_2 = syntax_type_of(graph, gt_2);
+				if (gtr_2)
+				{
+					return (gtr_1 == gtr_2) ? 1 : -1;
+				}
+				else
+				{
+					syntax_error(graph, gt_2, "refrerence of this type not found");
+					return 0;
+				}
+			}
+			else
+			{
+				return 1;
+			}
+		}
+		else
+		{
+			syntax_error(graph, gt_1, "refrerence of this type not found");
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_gsgs(graph_t *graph, symbol_t *gs1, symbol_t *gs2)
+{
+	uint64_t gs1_cnt = 0;
+	uint64_t gs2_cnt = 0;
+
+	symbol_t *a;
+	for (a = gs1->begin;a != gs1->end;a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_GENERIC))
+		{
+			gs1_cnt += 1;
+			gs2_cnt = 0;
+
+			symbol_t *b;
+			for (b = gs2->begin;b != gs2->end;b = b->next)
+			{
+				if (symbol_check_type(b, SYMBOL_GENERIC))
+				{
+					gs2_cnt += 1;
+					if (gs2_cnt < gs1_cnt)
+					{
+						continue;
+					}
+					int32_t result;
+					result = syntax_gg(graph, a, b);
+					if (result == 1)
+					{
+						return 1;
+					}
+					else 
+					if (result == 0)
+					{
+						return 0;
+					}
+					return -1;
+				}
+			}
+			
+			if (gs2_cnt < gs1_cnt)
+			{
+				symbol_t *value;
+				value = syntax_only_with(a, SYMBOL_VALUE);
+				if (!value)
+				{
+					return -1;
+				}
+			}
+		}
+	}
+
+	gs2_cnt = 0;
+	symbol_t *b;
+	for (b = gs2->begin;b != gs2->end;b = b->next)
+	{
+		if (symbol_check_type(b, SYMBOL_GENERIC))
+		{
+			gs2_cnt += 1;
+			if (gs2_cnt > gs1_cnt)
+			{
+				symbol_t *value;
+				value = syntax_only_with(b, SYMBOL_VALUE);
+				if (!value)
+				{
+					return -1;
+				}
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_pp(graph_t *graph, symbol_t *p1, symbol_t *p2)
+{
+	symbol_t *pt1;
+	pt1 = syntax_extract_with(p1, SYMBOL_TYPE);
+	if (pt1)
+	{
+		symbol_t *ptr1;
+		ptr1 = syntax_type_of(graph, pt1);
+		if (ptr1)
+		{
+			symbol_t *pt2;
+			pt2 = syntax_extract_with(p2, SYMBOL_TYPE);
+			if (pt2)
+			{
+				symbol_t *ptr2;
+				ptr2 = syntax_type_of(graph, pt2);
+				if (ptr2)
+				{
+					return (ptr1 == ptr2) ? 1 : -1;
+				}
+				else
+				{
+					syntax_error(graph, pt2, "refrerence of this type not found");
+					return 0;
+				}
+			}
+			else
+			{
+				return 1;
+			}
+		}
+		else
+		{
+			syntax_error(graph, pt1, "refrerence of this type not found");
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_psps(graph_t *graph, symbol_t *ps1, symbol_t *ps2)
+{
+	uint64_t ps1_cnt = 0;
+	uint64_t ps2_cnt = 0;
+
+	symbol_t *a;
+	for (a = ps1->begin;a != ps1->end;a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_PARAMETER))
+		{
+			ps1_cnt += 1;
+			ps2_cnt = 0;
+
+			symbol_t *b;
+			for (b = ps2->begin;b != ps2->end;b = b->next)
+			{
+				if (symbol_check_type(b, SYMBOL_PARAMETER))
+				{
+					ps2_cnt += 1;
+					if (ps2_cnt < ps1_cnt)
+					{
+						continue;
+					}
+					if (syntax_pp(graph, a, b))
+					{
+						break;
+					}
+					return -1;
+				}
+			}
+			
+			if (ps2_cnt < ps1_cnt)
+			{
+				symbol_t *value;
+				value = syntax_extract_with(a, SYMBOL_VALUE);
+				if (!value)
+				{
+					return -1;
+				}
+			}
+		}
+	}
+
+	ps2_cnt = 0;
+	symbol_t *b;
+	for (b = ps2->begin;b != ps2->end;b = b->next)
+	{
+		if (symbol_check_type(b, SYMBOL_GENERIC))
+		{
+			ps2_cnt += 1;
+			if (ps2_cnt > ps1_cnt)
+			{
+				symbol_t *value;
+				value = syntax_extract_with(b, SYMBOL_VALUE);
+				if (!value)
+				{
+					return -1;
+				}
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_gs_v(graph_t *graph, symbol_t *gs)
+{
+	symbol_t *a;
+	for (a = gs->begin;a != gs->end;a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_GENERIC))
+		{
+			symbol_t *av;
+			av = syntax_extract_with(a, SYMBOL_VALUE);
+			if (!av)
+			{
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
+static int32_t
+syntax_ps_v(graph_t *graph, symbol_t *ps)
+{
+	symbol_t *a;
+	for (a = ps->begin;a != ps->end;a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_PARAMETER))
+		{
+			symbol_t *av;
+			av = syntax_extract_with(a, SYMBOL_VALUE);
+			if (!av)
+			{
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
+static int32_t
+syntax_unique(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *s)
+{
+	symbol_t *a;
+	for (a = root->begin;(a != root->end) && (a != subroot);a = a->next)
+	{
+		if (symbol_check_type(s, SYMBOL_CLASS))
+		{
+			if (symbol_check_type(a, SYMBOL_CLASS))
+			{
+				symbol_t *sk;
+				sk = syntax_extract_with(s, SYMBOL_KEY);
+				if (sk)
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if (syntax_comparison_id(sk, ak) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t result;
+									result = syntax_gsgs(graph, sgs, ags);
+									if (result == 1)
+									{
+										syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+											ak->declaration->position.line, ak->declaration->position.column);
+										return 0;
+									}
+									else
+									if (result == 0)
+									{
+										return 0;
+									}
+								}
+								else
+								{
+									syntax_error(graph, sk, "the class is redefined1, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the class is redefined2, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+					}
+				}
+				continue;
+			}
+			else
+			if (symbol_check_type(a, SYMBOL_FUNCTION))
+			{
+				symbol_t *sk;
+				sk = syntax_extract_with(s, SYMBOL_KEY);
+				if (sk)
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if (syntax_comparison_id(sk, ak) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t result;
+									result = syntax_gsgs(graph, sgs, ags);
+									if (result == 1)
+									{
+										syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+											ak->declaration->position.line, ak->declaration->position.column);
+										return 0;
+									}
+									else
+									if (result == 0)
+									{
+										return 0;
+									}
+								}
+								else
+								{
+									syntax_error(graph, sk, "the class is redefined1, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the class is redefined2, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+					}
+				}
+				continue;
+			}
+			else
+			if (symbol_check_type(a, SYMBOL_GENERICS))
+			{
+				int32_t result;
+				result = syntax_unique(graph, a, NULL, s);
+				if (!result)
+				{
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(a, SYMBOL_HERITAGES))
+			{
+				int32_t result;
+				result = syntax_unique(graph, a, NULL, s);
+				if (!result)
+				{
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(a, SYMBOL_PARAMETERS))
+			{
+				int32_t result;
+				result = syntax_unique(graph, a, NULL, s);
+				if (!result)
+				{
+					return 0;
+				}
+			}
+			else
+			{
+				symbol_t *sk;
+				sk = syntax_extract_with(s, SYMBOL_KEY);
+				if (sk)
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if (syntax_comparison_id(sk, ak) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								if (syntax_gs_v(graph, sgs))
+								{
+									syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+							}
+						}
+					}
+				}
+				continue;
+			}
+		}
+		else
+		if (symbol_check_type(s, SYMBOL_FUNCTION))
+		{
+			if (symbol_check_type(a, SYMBOL_CLASS))
+			{
+				symbol_t *sk;
+				sk = syntax_extract_with(s, SYMBOL_KEY);
+				if (sk)
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if (syntax_comparison_id(sk, ak) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t result;
+									result = syntax_gsgs(graph, sgs, ags);
+									if (result == 1)
+									{
+										syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+											ak->declaration->position.line, ak->declaration->position.column);
+										return 0;
+									}
+									else
+									if (result == 0)
+									{
+										return 0;
+									}
+								}
+								else
+								{
+									syntax_error(graph, sk, "the class is redefined1, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the class is redefined2, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+					}
+				}
+				continue;
+			}
+			else
+			if (symbol_check_type(a, SYMBOL_FUNCTION))
+			{
+				symbol_t *sk;
+				sk = syntax_extract_with(s, SYMBOL_KEY);
+				if (sk)
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if (syntax_comparison_id(sk, ak) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t result;
+									result = syntax_gsgs(graph, sgs, ags);
+									if (result == 1)
+									{
+										symbol_t *sps;
+										sps = syntax_only_with(s, SYMBOL_PARAMETERS);
+										if (sps)
+										{
+											symbol_t *aps;
+											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (aps)
+											{
+												result = syntax_psps(graph, sps, aps);
+												if (result == 1)
+												{
+													syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+												else
+												if (result == 0)
+												{
+													return 0;
+												}
+											}
+											else
+											{
+												if (syntax_ps_v(graph, sps))
+												{
+													syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+											}
+										}
+										else
+										{
+											symbol_t *aps;
+											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (aps)
+											{
+												if (syntax_ps_v(graph, aps))
+												{
+													syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+											}
+											else
+											{
+												syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
+													ak->declaration->position.line, ak->declaration->position.column);
+												return 0;
+											}
+										}
+									}
+									else
+									if (result == 0)
+									{
+										return 0;
+									}
+								}
+								else
+								{
+									if (syntax_gs_v(graph, sgs))
+									{
+										symbol_t *sps;
+										sps = syntax_only_with(s, SYMBOL_PARAMETERS);
+										if (sps)
+										{
+											symbol_t *aps;
+											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (aps)
+											{
+												int32_t result;
+												result = syntax_psps(graph, sps, aps);
+												if (result == 1)
+												{
+													syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+												else
+												if (result == 0)
+												{
+													return 0;
+												}
+											}
+											else
+											{
+												if (syntax_ps_v(graph, sps))
+												{
+													syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+											}
+										}
+										else
+										{
+											symbol_t *aps;
+											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (aps)
+											{
+												if (syntax_ps_v(graph, aps))
+												{
+													syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+											}
+											else
+											{
+												syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
+													ak->declaration->position.line, ak->declaration->position.column);
+												return 0;
+											}
+										}
+									}
+								}
+							}
+							else
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									if (syntax_gs_v(graph, ags))
+									{
+										symbol_t *sps;
+										sps = syntax_only_with(s, SYMBOL_PARAMETERS);
+										if (sps)
+										{
+											symbol_t *aps;
+											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (aps)
+											{
+												int32_t result;
+												result = syntax_psps(graph, sps, aps);
+												if (result == 1)
+												{
+													syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+												else
+												if (result == 0)
+												{
+													return 0;
+												}
+											}
+											else
+											{
+												if (syntax_ps_v(graph, sps))
+												{
+													syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+											}
+										}
+										else
+										{
+											symbol_t *aps;
+											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (aps)
+											{
+												if (syntax_ps_v(graph, aps))
+												{
+													syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+											}
+											else
+											{
+												syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
+													ak->declaration->position.line, ak->declaration->position.column);
+												return 0;
+											}
+										}
+									}
+								}
+								else
+								{
+									symbol_t *sps;
+									sps = syntax_only_with(s, SYMBOL_PARAMETERS);
+									if (sps)
+									{
+										symbol_t *aps;
+										aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+										if (aps)
+										{
+											int32_t result;
+											result = syntax_psps(graph, sps, aps);
+											if (result == 1)
+											{
+												syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
+													ak->declaration->position.line, ak->declaration->position.column);
+												return 0;
+											}
+											else
+											if (result == 0)
+											{
+												return 0;
+											}
+										}
+										else
+										{
+											if (syntax_ps_v(graph, sps))
+											{
+												syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+													ak->declaration->position.line, ak->declaration->position.column);
+												return 0;
+											}
+										}
+									}
+									else
+									{
+										symbol_t *aps;
+										aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+										if (aps)
+										{
+											if (syntax_ps_v(graph, aps))
+											{
+												syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+													ak->declaration->position.line, ak->declaration->position.column);
+												return 0;
+											}
+										}
+										else
+										{
+											syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
+												ak->declaration->position.line, ak->declaration->position.column);
+											return 0;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				continue;
+			}
+			else
+			if (symbol_check_type(a, SYMBOL_GENERICS))
+			{
+				int32_t result;
+				result = syntax_unique(graph, a, NULL, s);
+				if (!result)
+				{
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(a, SYMBOL_HERITAGES))
+			{
+				int32_t result;
+				result = syntax_unique(graph, a, NULL, s);
+				if (!result)
+				{
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(a, SYMBOL_PARAMETERS))
+			{
+				int32_t result;
+				result = syntax_unique(graph, a, NULL, s);
+				if (!result)
+				{
+					return 0;
+				}
+			}
+			else
+			{
+				symbol_t *sk;
+				sk = syntax_extract_with(s, SYMBOL_KEY);
+				if (sk)
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if (syntax_comparison_id(sk, ak) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								if (syntax_gs_v(graph, sgs))
+								{
+									syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+							}
+						}
+					}
+				}
+				continue;
+			}
+			continue;
+		}
+		else
+		{
+			if (symbol_check_type(a, SYMBOL_CLASS))
+			{
+				symbol_t *sk;
+				sk = syntax_extract_with(s, SYMBOL_KEY);
+				if (sk)
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if (syntax_comparison_id(sk, ak) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t result;
+									result = syntax_gsgs(graph, sgs, ags);
+									if (result == 1)
+									{
+										syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+											ak->declaration->position.line, ak->declaration->position.column);
+										return 0;
+									}
+									else
+									if (result == 0)
+									{
+										return 0;
+									}
+								}
+								else
+								{
+									syntax_error(graph, sk, "the class is redefined1, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the class is redefined2, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+					}
+				}
+				continue;
+			}
+			else
+			if (symbol_check_type(a, SYMBOL_FUNCTION))
+			{
+				symbol_t *sk;
+				sk = syntax_extract_with(s, SYMBOL_KEY);
+				if (sk)
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if (syntax_comparison_id(sk, ak) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t result;
+									result = syntax_gsgs(graph, sgs, ags);
+									if (result == 1)
+									{
+										syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+											ak->declaration->position.line, ak->declaration->position.column);
+										return 0;
+									}
+									else
+									if (result == 0)
+									{
+										return 0;
+									}
+								}
+								else
+								{
+									syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+					}
+				}
+				continue;
+			}
+			else
+			if (symbol_check_type(a, SYMBOL_GENERICS))
+			{
+				int32_t result;
+				result = syntax_unique(graph, a, NULL, s);
+				if (!result)
+				{
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(a, SYMBOL_HERITAGES))
+			{
+				int32_t result;
+				result = syntax_unique(graph, a, NULL, s);
+				if (!result)
+				{
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(a, SYMBOL_PARAMETERS))
+			{
+				int32_t result;
+				result = syntax_unique(graph, a, NULL, s);
+				if (!result)
+				{
+					return 0;
+				}
+			}
+			else
+			{
+				symbol_t *sk;
+				sk = syntax_extract_with(s, SYMBOL_KEY);
+				if (sk)
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if (syntax_comparison_id(sk, ak) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								if (syntax_gs_v(graph, sgs))
+								{
+									syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+							}
+						}
+					}
+				}
+				continue;
+			}
+			continue;		
+		}
+	}
+
+	if (root->parent && (subroot != NULL))
+	{
+		return syntax_unique(graph, root->parent, root, s);
+	}
+
+	return 1;
+}
+
+
 static int32_t
 syntax_expression(graph_t *graph, symbol_t *current)
 {
@@ -244,12 +1589,25 @@ syntax_throw(graph_t *graph, symbol_t *current)
 static int32_t
 syntax_var(graph_t *graph, symbol_t *current)
 {
+	int32_t result;
+	result = syntax_unique(graph, current->parent, current, current);
+	if (result == 0)
+	{
+		return 0;
+	}
 	return 1;
 }
 
 static int32_t
 syntax_if(graph_t *graph, symbol_t *current)
 {
+	int32_t result;
+	result = syntax_unique(graph, current->parent, current, current);
+	if (result == 0)
+	{
+		return 0;
+	}
+
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
@@ -365,6 +1723,13 @@ syntax_try(graph_t *graph, symbol_t *current)
 static int32_t
 syntax_for(graph_t *graph, symbol_t *current)
 {
+	int32_t result;
+	result = syntax_unique(graph, current->parent, current, current);
+	if (result == 0)
+	{
+		return 0;
+	}
+
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
@@ -440,6 +1805,13 @@ syntax_for(graph_t *graph, symbol_t *current)
 static int32_t
 syntax_forin(graph_t *graph, symbol_t *current)
 {
+	int32_t result;
+	result = syntax_unique(graph, current->parent, current, current);
+	if (result == 0)
+	{
+		return 0;
+	}
+
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
@@ -562,6 +1934,12 @@ syntax_block(graph_t *graph, symbol_t *current)
 static int32_t
 syntax_generic(graph_t *graph, symbol_t *current)
 {
+	int32_t result;
+	result = syntax_unique(graph, current->parent, current, current);
+	if (result == 0)
+	{
+		return 0;
+	}
 	return 1;
 }
 
@@ -575,6 +1953,12 @@ syntax_generics(graph_t *graph, symbol_t *current)
 static int32_t
 syntax_parameter(graph_t *graph, symbol_t *current)
 {
+	int32_t result;
+	result = syntax_unique(graph, current->parent, current, current);
+	if (result == 0)
+	{
+		return 0;
+	}
 	return 1;
 }
 
@@ -617,55 +2001,27 @@ syntax_heritages(graph_t *graph, symbol_t *current)
 }
 
 static int32_t
-syntax_method(graph_t *graph, symbol_t *current)
-{
-	symbol_t *a;
-	for (a = current->begin;a != current->end;a = a->next)
-	{
-		if (symbol_check_type(a, SYMBOL_GENERICS))
-		{
-			int32_t result;
-			result = syntax_generics(graph, a);
-			if(!result)
-			{
-				return 0;
-			}
-			continue;
-		}
-		if (symbol_check_type(a, SYMBOL_PARAMETERS))
-		{
-			int32_t result;
-			result = syntax_parameters(graph, a);
-			if(!result)
-			{
-				return 0;
-			}
-			continue;
-		}
-		if (symbol_check_type(a, SYMBOL_BLOCK))
-		{
-			int32_t result;
-			result = syntax_block(graph, a);
-			if(!result)
-			{
-				return 0;
-			}
-			continue;
-		}
-	}
-
-	return 1;
-}
-
-static int32_t
 syntax_member(graph_t *graph, symbol_t *current)
 {
+	int32_t result;
+	result = syntax_unique(graph, current->parent, current, current);
+	if (result == 0)
+	{
+		return 0;
+	}
 	return 1;
 }
 
 static int32_t
 syntax_enum(graph_t *graph, symbol_t *current)
 {
+	int32_t result;
+	result = syntax_unique(graph, current->parent, current, current);
+	if (result == 0)
+	{
+		return 0;
+	}
+
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
@@ -682,529 +2038,24 @@ syntax_enum(graph_t *graph, symbol_t *current)
 static int32_t
 syntax_property(graph_t *graph, symbol_t *current)
 {
-	return 1;
-}
-
-static symbol_t *
-syntax_reference(graph_t *graph, symbol_t *t1);
-
-static int32_t
-syntax_ga(graph_t *graph, symbol_t *g1, symbol_t *a1)
-{
-	symbol_t *gt_1;
-	gt_1 = syntax_extract_with(g1, SYMBOL_TYPE);
-	if (gt_1)
+	int32_t result;
+	result = syntax_unique(graph, current->parent, current, current);
+	if (result == 0)
 	{
-		symbol_t *gtr_1;
-		gtr_1 = syntax_reference(graph, gt_1);
-		if (gtr_1)
-		{
-			symbol_t *an_1;
-			an_1 = syntax_extract_with(a1, SYMBOL_KEY);
-			if (an_1)
-			{
-				symbol_t *anr_1;
-				anr_1 = syntax_reference(graph, an_1);
-				if (anr_1)
-				{
-					return (gtr_1 == anr_1) ? 1 : -1;
-				}
-				else
-				{
-					syntax_error(graph, an_1, "refrerence of this type not found");
-					return 0;
-				}
-			}
-			else
-			{
-				syntax_error(graph, a1, "refrerence of this type not found");
-				return 0;
-			}
-		}
-		else
-		{
-			syntax_error(graph, g1, "refrerence of this type not found");
-			return 0;
-		}
+		return 0;
 	}
 	return 1;
 }
 
-static int32_t
-syntax_gsas(graph_t *graph, symbol_t *gs1, symbol_t *as1)
-{
-	uint64_t gs1_cnt = 0;
-	uint64_t as1_cnt = 0;
 
-	symbol_t *a;
-	for (a = gs1->begin;a != gs1->end;a = a->next)
-	{
-		if (symbol_check_type(a, SYMBOL_GENERIC))
-		{
-			gs1_cnt += 1;
-			as1_cnt = 0;
 
-			symbol_t *b;
-			for (b = as1->begin;b != as1->end;b = b->next)
-			{
-				if (symbol_check_type(b, SYMBOL_ARGUMENT))
-				{
-					as1_cnt += 1;
-					if (as1_cnt < gs1_cnt)
-					{
-						continue;
-					}
-					int32_t result;
-					result = syntax_ga(graph, a, b);
-					if (result == 1)
-					{
-						return 1;
-					}
-					else 
-					if (result == 0)
-					{
-						return 0;
-					}
-					return -1;
-				}
-			}
-			
-			if (as1_cnt < gs1_cnt)
-			{
-				symbol_t *value;
-				value = syntax_extract_with(a, SYMBOL_VALUE);
-				if (!value)
-				{
-					return -1;
-				}
-			}
-		}
-	}
 
-	as1_cnt = 0;
-	symbol_t *b;
-	for (b = as1->begin;b != as1->end;b = b->next)
-	{
-		if (symbol_check_type(b, SYMBOL_ARGUMENT))
-		{
-			as1_cnt += 1;
-			if (as1_cnt > gs1_cnt)
-			{
-				return -1;
-			}
-		}
-	}
-
-	return 1;
-}
-
-static symbol_t *
-syntax_in_backward(symbol_t *t1, symbol_t *t2)
-{
-	if (t1 == t2)
-	{
-		return t2;
-	}
-	if (t2->parent)
-	{
-		return syntax_in_backward(t1, t2->parent);
-	}
-	return NULL;
-}
-
-static symbol_t *
-syntax_reference_in_scope(graph_t *graph, symbol_t *base, symbol_t *t1, symbol_t *arguments, int32_t route)
-{
-	symbol_t *a;
-	for (a = base->begin;(a != base->end);a = a->next)
-	{
-		if (symbol_check_type(a, SYMBOL_CLASS))
-		{
-			symbol_t *ak;
-			ak = syntax_extract_with(a, SYMBOL_KEY);
-			if (ak)
-			{
-				if (syntax_comparison_id(ak, t1))
-				{
-					symbol_t *gs;
-					gs = syntax_only_with(a, SYMBOL_GENERICS);
-					if (gs)
-					{
-						if (arguments)
-						{
-							if (syntax_gsas(graph, gs, arguments))
-							{
-								goto region_access;
-							}
-							continue;
-						}
-						else
-						{
-							int32_t no_match = 0;
-							symbol_t *b;
-							for (b = gs->begin;b != gs->end;b = b->next)
-							{
-								if (symbol_check_type(b, SYMBOL_GENERIC))
-								{
-									symbol_t *bv;
-									bv = syntax_only_with(b, SYMBOL_VALUE);
-									if (!bv)
-									{
-										no_match = 1;
-										break;
-									}
-								}
-							}
-							if (no_match)
-							{
-								goto region_access;
-							}
-						}
-					}
-					else
-					{
-						if (arguments)
-						{
-							continue;
-						}
-						goto region_access;
-					}
-				}
-				continue;
-			}
-			else
-			{
-				syntax_error(graph, a, "does not include the key field");
-				return NULL;
-			}
-		}
-		
-		continue;
-region_access:
-		if ((route == (route & SYNTAX_ROUTE_FORWARD)))
-		{
-			if (!syntax_in_backward(base, a))
-			{
-				if (symbol_check_type(a, SYMBOL_CLASS))
-				{
-					node_class_t *class = a->declaration->value;
-					if ((class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
-					{
-						syntax_error(graph, a, "private access");
-						return NULL;
-					}
-				}
-			}
-		}
-		return a;
-	}
-
-	if (base->parent && (route == (route & SYNTAX_ROUTE_NONE)))
-	{
-		return syntax_reference_in_scope(graph, base->parent, t1, arguments, route);
-	}
-
-	return NULL;
-}
-
-static symbol_t *
-syntax_reference_by_arguments(graph_t *graph, symbol_t *base, symbol_t *t1, symbol_t *arguments, int32_t route)
-{
-	if (symbol_check_type(t1, SYMBOL_ATTR))
-	{
-		symbol_t *left;
-		left = syntax_extract_with(t1, SYMBOL_LEFT);
-		if (left)
-		{
-			symbol_t *right;
-			right = syntax_extract_with(t1, SYMBOL_RIGHT);
-			if (right)
-			{
-				symbol_t *r1;
-				r1 = syntax_reference_by_arguments(graph, base, left, NULL, route);
-				if (r1)
-				{
-					symbol_t *r2;
-					r2 = syntax_reference_by_arguments(graph, r1, right, arguments, SYNTAX_ROUTE_FORWARD);
-					if (r2)
-					{
-						return r2;
-					}
-					else
-					{
-						syntax_error(graph, right, "field not found in (%lld:%lld)",
-							r1->declaration->position.line, r1->declaration->position.column);
-						return NULL;
-					}
-				}
-				else
-				{
-					syntax_error(graph, left, "field not found");
-					return NULL;
-				}
-			}
-			else
-			{
-				syntax_error(graph, t1, "attribute does not include the right field");
-				return NULL;
-			}
-		}
-		else
-		{
-			syntax_error(graph, t1, "attribute does not include the left field");
-			return NULL;
-		}
-	}
-	else 
-	if (symbol_check_type(t1, SYMBOL_COMPOSITE))
-	{
-		symbol_t *key;
-		key = syntax_extract_with(t1, SYMBOL_KEY);
-		if (key)
-		{
-			symbol_t *arguments1;
-			arguments1 = syntax_extract_with(t1, SYMBOL_ARGUMENTS);
-			if (arguments1)
-			{
-				symbol_t *r1;
-				r1 = syntax_reference_by_arguments(graph, base, key, arguments1, route);
-				if (r1)
-				{
-					return r1;
-				}
-				else
-				{
-					syntax_error(graph, key, "field not found");
-					return NULL;
-				}
-			}
-			else
-			{
-				syntax_error(graph, t1, "attribute does not include the arguments field");
-				return NULL;
-			}
-		}
-		else
-		{
-			syntax_error(graph, t1, "attribute does not include the key field");
-			return NULL;
-		}
-	}
-	else
-	if (symbol_check_type(t1, SYMBOL_ID))
-	{
-		symbol_t *r;
-		r = syntax_reference_in_scope(graph, base, t1, arguments, route);
-		if (r)
-		{
-			return r;
-		}
-		else
-		{
-			return NULL;
-		}
-	}
-	else
-	{
-		syntax_error(graph, t1, "the reference is not a routable");
-		return NULL;
-	}
-}
-
-static symbol_t *
-syntax_reference(graph_t *graph, symbol_t *t1)
-{
-	return syntax_reference_by_arguments(graph, t1->parent, t1, NULL, SYNTAX_ROUTE_NONE);
-}
-
-static int32_t
-syntax_gg(graph_t *graph, symbol_t *g1, symbol_t *g2)
-{
-	symbol_t *gt_1;
-	gt_1 = syntax_extract_with(g1, SYMBOL_TYPE);
-	if (gt_1)
-	{
-		symbol_t *gtr_1;
-		gtr_1 = syntax_reference(graph, gt_1);
-		if (gtr_1)
-		{
-			symbol_t *gt_2;
-			gt_2 = syntax_extract_with(g2, SYMBOL_TYPE);
-			if (gt_2)
-			{
-				symbol_t *gtr_2;
-				gtr_2 = syntax_reference(graph, gt_2);
-				if (gtr_2)
-				{
-					return (gtr_1 == gtr_2) ? 1 : -1;
-				}
-				else
-				{
-					syntax_error(graph, gt_2, "refrerence of this type not found");
-					return 0;
-				}
-			}
-			else
-			{
-				return 1;
-			}
-		}
-		else
-		{
-			syntax_error(graph, gt_1, "refrerence of this type not found");
-			return 0;
-		}
-	}
-
-	return 1;
-}
-
-static int32_t
-syntax_gsgs(graph_t *graph, symbol_t *gs1, symbol_t *gs2)
-{
-	uint64_t gs1_cnt = 0;
-	uint64_t gs2_cnt = 0;
-
-	symbol_t *a;
-	for (a = gs1->begin;a != gs1->end;a = a->next)
-	{
-		if (symbol_check_type(a, SYMBOL_GENERIC))
-		{
-			gs1_cnt += 1;
-			gs2_cnt = 0;
-
-			symbol_t *b;
-			for (b = gs2->begin;b != gs2->end;b = b->next)
-			{
-				if (symbol_check_type(b, SYMBOL_GENERIC))
-				{
-					gs2_cnt += 1;
-					if (gs2_cnt < gs1_cnt)
-					{
-						continue;
-					}
-					int32_t result;
-					result = syntax_gg(graph, a, b);
-					if (result == 1)
-					{
-						return 1;
-					}
-					else 
-					if (result == 0)
-					{
-						return 0;
-					}
-					return -1;
-				}
-			}
-			
-			if (gs2_cnt < gs1_cnt)
-			{
-				symbol_t *value;
-				value = syntax_only_with(a, SYMBOL_VALUE);
-				if (!value)
-				{
-					return -1;
-				}
-			}
-		}
-	}
-
-	gs2_cnt = 0;
-	symbol_t *b;
-	for (b = gs2->begin;b != gs2->end;b = b->next)
-	{
-		if (symbol_check_type(b, SYMBOL_GENERIC))
-		{
-			gs2_cnt += 1;
-			if (gs2_cnt > gs1_cnt)
-			{
-				symbol_t *value;
-				value = syntax_only_with(b, SYMBOL_VALUE);
-				if (!value)
-				{
-					return -1;
-				}
-			}
-		}
-	}
-
-	return 1;
-}
-
-static int32_t
-syntax_unique(graph_t *graph, symbol_t *root, symbol_t *c1)
-{
-	symbol_t *a;
-	for (a = root->begin;a != root->end;a = a->next)
-	{
-		if (symbol_check_type(a, SYMBOL_CLASS))
-		{
-			symbol_t *ck1;
-			ck1 = syntax_extract_with(c1, SYMBOL_KEY);
-			if (ck1)
-			{
-				symbol_t *ck2;
-				ck2 = syntax_extract_with(a, SYMBOL_KEY);
-				if (ck2)
-				{
-					if (syntax_comparison_id(ck1, ck2) && (a != c1))
-					{
-						symbol_t *cgs1;
-						cgs1 = syntax_only_with(c1, SYMBOL_GENERICS);
-						if (cgs1)
-						{
-							symbol_t *cgs2;
-							cgs2 = syntax_only_with(a, SYMBOL_GENERICS);
-							if (cgs2)
-							{
-								int32_t result;
-								result = syntax_gsgs(graph, cgs1, cgs2);
-								if (result == 1)
-								{
-									syntax_error(graph, ck1, "the class is redefined, previous at %lld:%lld", 
-										ck2->declaration->position.line, ck2->declaration->position.column);
-									return 0;
-								}
-								else
-								if (result == 0)
-								{
-									return 0;
-								}
-							}
-							else
-							{
-								syntax_error(graph, ck1, "the class is redefined1, previous at %lld:%lld", 
-									ck2->declaration->position.line, ck2->declaration->position.column);
-								return 0;
-							}
-						}
-						else
-						{
-							syntax_error(graph, ck1, "the class is redefined2, previous at %lld:%lld", 
-								ck2->declaration->position.line, ck2->declaration->position.column);
-							return 0;
-						}
-					}
-				}
-			}
-		}
-
-	}
-
-	if (root->parent)
-	{
-		return syntax_unique(graph, root->parent, c1);
-	}
-
-	return 1;
-}
 
 static int32_t
 syntax_class(graph_t *graph, symbol_t *current)
 {
 	int32_t result;
-	result = syntax_unique(graph, current->parent, current);
+	result = syntax_unique(graph, current->parent, current, current);
 	if (result == 0)
 	{
 		return 0;
@@ -1273,41 +2124,10 @@ syntax_class(graph_t *graph, symbol_t *current)
 			}
 			continue;
 		}
-		if (symbol_check_type(a, SYMBOL_METHOD))
+		if (symbol_check_type(a, SYMBOL_FUNCTION))
 		{
 			int32_t result;
-			result = syntax_method(graph, a);
-			if(!result)
-			{
-				return 0;
-			}
-			continue;
-		}
-	}
-
-	return 1;
-}
-
-static int32_t
-syntax_type(graph_t *graph, symbol_t *current)
-{
-	symbol_t *a;
-	for (a = current->begin;a != current->end;a = a->next)
-	{
-		if (symbol_check_type(a, SYMBOL_HERITAGES))
-		{
-			int32_t result;
-			result = syntax_heritages(graph, a);
-			if(!result)
-			{
-				return 0;
-			}
-			continue;
-		}
-		if (symbol_check_type(a, SYMBOL_GENERICS))
-		{
-			int32_t result;
-			result = syntax_generics(graph, a);
+			result = syntax_function(graph, a);
 			if(!result)
 			{
 				return 0;
@@ -1485,16 +2305,6 @@ syntax_module(graph_t *graph, symbol_t *current)
 		{
 			int32_t result;
 			result = syntax_enum(graph, a);
-			if(!result)
-			{
-				return 0;
-			}
-			continue;
-		}
-		if (symbol_check_type(a, SYMBOL_TYPE))
-		{
-			int32_t result;
-			result = syntax_type(graph, a);
 			if(!result)
 			{
 				return 0;

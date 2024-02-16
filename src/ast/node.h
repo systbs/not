@@ -512,10 +512,6 @@ node_make_throw(position_t position, list_t *arguments);
 node_t *
 node_make_var(position_t position, uint64_t flag, node_t *name, node_t *type, node_t *value);
 
-node_t *
-node_make_type(position_t position, uint64_t flag, node_t *name, list_t *generics, node_t *body);
-
-
 
 node_t *
 node_make_parameter(position_t position, uint64_t flag, node_t *name, node_t *type, node_t *value);
@@ -530,8 +526,8 @@ node_t *
 node_make_func(
 	position_t position,
 	uint64_t flag,
+	node_t *key, 
 	list_t *generics, 
-	node_t *name, 
 	list_t *parameters, 
 	node_t *block);
 
@@ -540,9 +536,6 @@ node_make_lambda(position_t position, list_t *parameters, node_t *block);
 
 node_t *
 node_make_heritage(position_t position, node_t *key, node_t *type);
-
-node_t *
-node_make_method(position_t position, uint64_t flag, node_t *name, list_t *generics, list_t *parameters, node_t *body);
 
 node_t *
 node_make_property(position_t position, uint64_t flag, node_t *name, node_t *type, node_t *value);

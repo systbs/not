@@ -2738,7 +2738,7 @@ parser_func_stmt(parser_t *parser, uint64_t flag)
 		return NULL;
 	}
 
-	return node_make_func(position, flag, generics, key, parameters, body);
+	return node_make_func(position, flag, key, generics, parameters, body);
 }
 
 static node_t *
@@ -3091,7 +3091,7 @@ parser_class_func(parser_t *parser, uint64_t flag)
 		return NULL;
 	}
 
-	return node_make_method(position, flag, key, generics, parameters, body);
+	return node_make_func(position, flag, key, generics, parameters, body);
 }
 
 static node_t *

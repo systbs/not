@@ -1052,7 +1052,7 @@ node_make_generic(position_t position, node_t *key, node_t *type, node_t *value)
 }
 
 node_t *
-node_make_func(position_t position, uint64_t flag, list_t *generics, node_t *key, list_t *parameters, node_t *body)
+node_make_func(position_t position, uint64_t flag, node_t *key, list_t *generics, list_t *parameters, node_t *body)
 {
 	node_func_t *node_func;
 	if(!(node_func = (node_func_t *)malloc(sizeof(node_func_t))))
@@ -1062,8 +1062,8 @@ node_make_func(position_t position, uint64_t flag, list_t *generics, node_t *key
 	}
 	memset(node_func, 0, sizeof(node_func_t));
 	node_func->flag = flag;
-	node_func->generics = generics;
 	node_func->key = key;
+	node_func->generics = generics;
 	node_func->parameters = parameters;
 	node_func->body = body;
 	
@@ -1084,24 +1084,6 @@ node_make_lambda(position_t position, list_t *parameters, node_t *body)
 	node_lambda->body = body;
 	
 	return node_make_node(position, NODE_KIND_LAMBDA, node_lambda);
-}
-
-node_t *
-node_make_method(position_t position, uint64_t flag, node_t *key, list_t *generics, list_t *parameters, node_t *body)
-{
-	node_method_t *node_method;
-	if(!(node_method = (node_method_t *)malloc(sizeof(node_method_t)))){
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_method_t));
-		return NULL;
-	}
-	memset(node_method, 0, sizeof(node_method_t));
-	node_method->flag = flag;
-	node_method->key = key;
-	node_method->generics = generics;
-	node_method->parameters = parameters;
-	node_method->body = body;
-	
-	return node_make_node(position, NODE_KIND_METHOD, node_method);
 }
 
 node_t *

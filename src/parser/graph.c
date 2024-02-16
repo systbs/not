@@ -2890,81 +2890,6 @@ graph_parameter(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_method(symbol_t *parent, node_t *node)
-{
-	node_method_t *node_method;
-	node_method = (node_method_t *)node->value;
-
-	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_METHOD, node);
-	if(!symbol)
-	{
-		return 0;
-	}
-
-	int32_t result;
-	if (node_method->key)
-	{
-		symbol_t *key;
-		key = symbol_rpush(symbol, SYMBOL_KEY, NULL);
-		if(!key)
-		{
-			return 0;
-		}
-		result = graph_id(key, node_method->key);
-		if (!result)
-		{
-			return 0;
-		}
-	}
-
-	ilist_t *a;
-	if (node_method->parameters)
-	{
-		symbol_t *parameters = symbol_rpush(symbol, SYMBOL_PARAMETERS, NULL);
-
-		for (a = node_method->parameters->begin; a != node_method->parameters->end; a = a->next)
-		{
-			node_t *parameter = (node_t *)a->value;
-
-			result = graph_parameter(parameters, parameter);
-			if (!result)
-			{
-				return 0;
-			}
-		}
-	}
-
-	if (node_method->generics)
-	{
-		symbol_t *generics = symbol_rpush(symbol, SYMBOL_GENERICS, NULL);
-
-		for (a = node_method->generics->begin; a != node_method->generics->end; a = a->next)
-		{
-			node_t *generic;
-			generic = (node_t *)a->value;
-
-			result = graph_generic(generics, generic);
-			if (!result)
-			{
-				return 0;
-			}
-		}
-	}
-
-	if (node_method->body)
-	{
-		result = graph_block(symbol, node_method->body);
-		if (!result)
-		{
-			return 0;
-		}
-	}
-
-	return 1;
-}
-
-static int32_t
 graph_heritage(symbol_t *parent, node_t *node)
 {
 	node_heritage_t *node_heritage;
@@ -3004,6 +2929,82 @@ graph_heritage(symbol_t *parent, node_t *node)
 		}
 
 		int32_t result = graph_expression(symbol_type, node_heritage->type);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+graph_func(symbol_t *parent, node_t *node)
+{
+	symbol_t *symbol;
+	symbol = symbol_rpush(parent, SYMBOL_FUNCTION, node);
+	if(!symbol)
+	{
+		return 0;
+	}
+
+	node_func_t *node_func;
+	node_func = (node_func_t *)node->value;
+
+	int32_t result;
+	if (node_func->key)
+	{
+		symbol_t *key;
+		key = symbol_rpush(symbol, SYMBOL_KEY, NULL);
+		if(!key)
+		{
+			return 0;
+		}
+
+		result = graph_id(key, node_func->key);
+		if (!result)
+		{
+			return 0;
+		}
+	}
+
+	ilist_t *a;
+	if (node_func->generics)
+	{
+		symbol_t *generics;
+		generics = symbol_rpush(symbol, SYMBOL_GENERICS, NULL);
+
+		for (a = node_func->generics->begin; a != node_func->generics->end; a = a->next)
+		{
+			node_t *generic = (node_t *)a->value;
+			result = graph_generic(generics, generic);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	if (node_func->parameters)
+	{
+		symbol_t *parameters;
+		parameters = symbol_rpush(symbol, SYMBOL_PARAMETERS, NULL);
+
+		for (a = node_func->parameters->begin; a != node_func->parameters->end; a = a->next)
+		{
+			node_t *parameter = (node_t *)a->value;
+
+			result = graph_parameter(parameters, parameter);
+			if (!result)
+			{
+				return 0;
+			}
+		}
+	}
+
+	if (node_func->body)
+	{
+		result = graph_block(symbol, node_func->body);
 		if (!result)
 		{
 			return 0;
@@ -3099,90 +3100,14 @@ graph_class(symbol_t *parent, node_t *node)
 			result = graph_property(symbol, temp);
 			break;
 
-		case NODE_KIND_METHOD:
-			result = graph_method(symbol, temp);
+		case NODE_KIND_FUNC:
+			result = graph_func(symbol, temp);
 			break;
 
 		default:
 			return 0;
 		}
 
-		if (!result)
-		{
-			return 0;
-		}
-	}
-
-	return 1;
-}
-
-static int32_t
-graph_func(symbol_t *parent, node_t *node)
-{
-	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_FUNCTION, node);
-	if(!symbol)
-	{
-		return 0;
-	}
-
-	node_func_t *node_func;
-	node_func = (node_func_t *)node->value;
-
-	int32_t result;
-	if (node_func->key)
-	{
-		symbol_t *key;
-		key = symbol_rpush(symbol, SYMBOL_KEY, NULL);
-		if(!key)
-		{
-			return 0;
-		}
-
-		result = graph_id(key, node_func->key);
-		if (!result)
-		{
-			return 0;
-		}
-	}
-
-	ilist_t *a;
-	if (node_func->generics)
-	{
-		symbol_t *generics;
-		generics = symbol_rpush(symbol, SYMBOL_GENERICS, NULL);
-
-		for (a = node_func->generics->begin; a != node_func->generics->end; a = a->next)
-		{
-			node_t *generic = (node_t *)a->value;
-			result = graph_generic(generics, generic);
-			if (!result)
-			{
-				return 0;
-			}
-		}
-	}
-
-	if (node_func->parameters)
-	{
-		symbol_t *parameters;
-		parameters = symbol_rpush(symbol, SYMBOL_PARAMETERS, NULL);
-
-		for (a = node_func->parameters->begin; a != node_func->parameters->end; a = a->next)
-		{
-			node_t *parameter = (node_t *)a->value;
-
-			result = graph_parameter(parameters, parameter);
-			if (!result)
-			{
-				return 0;
-			}
-		}
-	}
-
-	if (node_func->body)
-	{
-		result = graph_block(symbol, node_func->body);
 		if (!result)
 		{
 			return 0;
