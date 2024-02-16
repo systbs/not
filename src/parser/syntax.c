@@ -2047,9 +2047,63 @@ syntax_property(graph_t *graph, symbol_t *current)
 	return 1;
 }
 
+static int32_t
+syntax_function(graph_t *graph, symbol_t *current)
+{
+	int32_t result;
+	result = syntax_unique(graph, current->parent, current, current);
+	if (result == 0)
+	{
+		return 0;
+	}
+	
+	symbol_t *a;
+	for (a = current->begin;a != current->end;a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_HERITAGES))
+		{
+			int32_t result;
+			result = syntax_heritages(graph, a);
+			if(!result)
+			{
+				return 0;
+			}
+			continue;
+		}
+		if (symbol_check_type(a, SYMBOL_PARAMETERS))
+		{
+			int32_t result;
+			result = syntax_parameters(graph, a);
+			if(!result)
+			{
+				return 0;
+			}
+			continue;
+		}
+		if (symbol_check_type(a, SYMBOL_GENERICS))
+		{
+			int32_t result;
+			result = syntax_generics(graph, a);
+			if(!result)
+			{
+				return 0;
+			}
+			continue;
+		}
+		if (symbol_check_type(a, SYMBOL_BLOCK))
+		{
+			int32_t result;
+			result = syntax_block(graph, a);
+			if(!result)
+			{
+				return 0;
+			}
+			continue;
+		}
+	}
 
-
-
+	return 1;
+}
 
 static int32_t
 syntax_class(graph_t *graph, symbol_t *current)
@@ -2138,58 +2192,6 @@ syntax_class(graph_t *graph, symbol_t *current)
 
 	return 1;
 }
-
-static int32_t
-syntax_function(graph_t *graph, symbol_t *current)
-{
-	symbol_t *a;
-	for (a = current->begin;a != current->end;a = a->next)
-	{
-		if (symbol_check_type(a, SYMBOL_HERITAGES))
-		{
-			int32_t result;
-			result = syntax_heritages(graph, a);
-			if(!result)
-			{
-				return 0;
-			}
-			continue;
-		}
-		if (symbol_check_type(a, SYMBOL_PARAMETERS))
-		{
-			int32_t result;
-			result = syntax_parameters(graph, a);
-			if(!result)
-			{
-				return 0;
-			}
-			continue;
-		}
-		if (symbol_check_type(a, SYMBOL_GENERICS))
-		{
-			int32_t result;
-			result = syntax_generics(graph, a);
-			if(!result)
-			{
-				return 0;
-			}
-			continue;
-		}
-		if (symbol_check_type(a, SYMBOL_BLOCK))
-		{
-			int32_t result;
-			result = syntax_block(graph, a);
-			if(!result)
-			{
-				return 0;
-			}
-			continue;
-		}
-	}
-
-	return 1;
-}
-
 
 static int32_t
 syntax_field(graph_t *graph, symbol_t *current)
