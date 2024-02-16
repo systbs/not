@@ -697,9 +697,16 @@ syntax_psps(graph_t *graph, symbol_t *ps1, symbol_t *ps2)
 					{
 						continue;
 					}
-					if (syntax_pp(graph, a, b))
+					int32_t result;
+					result = syntax_pp(graph, a, b);
+					if (result == 1)
 					{
-						break;
+						return 1;
+					}
+					else 
+					if (result == 0)
+					{
+						return 0;
 					}
 					return -1;
 				}
@@ -781,35 +788,35 @@ static int32_t
 syntax_unique(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *s)
 {
 	symbol_t *a;
-	for (a = root->begin;(a != root->end) && (a != subroot);a = a->next)
+	for (a = root->begin;(a != root->end);a = a->next)
 	{
-		if (symbol_check_type(s, SYMBOL_CLASS))
+		if (symbol_check_type(a, SYMBOL_CLASS))
 		{
-			if (symbol_check_type(a, SYMBOL_CLASS))
+			if (symbol_check_type(s, SYMBOL_CLASS))
 			{
-				symbol_t *sk;
-				sk = syntax_extract_with(s, SYMBOL_KEY);
-				if (sk)
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
 				{
-					symbol_t *ak;
-					ak = syntax_extract_with(a, SYMBOL_KEY);
-					if (ak)
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
 					{
-						if (syntax_comparison_id(sk, ak) && (a != s))
+						if (syntax_comparison_id(ak, sk) && (a != s))
 						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
 							{
-								symbol_t *ags;
-								ags = syntax_only_with(a, SYMBOL_GENERICS);
-								if (ags)
+								symbol_t *sgs;
+								sgs = syntax_only_with(s, SYMBOL_GENERICS);
+								if (sgs)
 								{
 									int32_t result;
-									result = syntax_gsgs(graph, sgs, ags);
+									result = syntax_gsgs(graph, ags, sgs);
 									if (result == 1)
 									{
-										syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+										syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
 											ak->declaration->position.line, ak->declaration->position.column);
 										return 0;
 									}
@@ -818,411 +825,944 @@ syntax_unique(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *s)
 									{
 										return 0;
 									}
-								}
-								else
-								{
-									syntax_error(graph, sk, "the class is redefined1, previous at %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return 0;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "the class is redefined2, previous at %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return 0;
-							}
-						}
-					}
-				}
-				continue;
-			}
-			else
-			if (symbol_check_type(a, SYMBOL_FUNCTION))
-			{
-				symbol_t *sk;
-				sk = syntax_extract_with(s, SYMBOL_KEY);
-				if (sk)
-				{
-					symbol_t *ak;
-					ak = syntax_extract_with(a, SYMBOL_KEY);
-					if (ak)
-					{
-						if (syntax_comparison_id(sk, ak) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								symbol_t *ags;
-								ags = syntax_only_with(a, SYMBOL_GENERICS);
-								if (ags)
-								{
-									int32_t result;
-									result = syntax_gsgs(graph, sgs, ags);
-									if (result == 1)
-									{
-										syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return 0;
-									}
 									else
-									if (result == 0)
 									{
-										return 0;
+										continue;
 									}
 								}
 								else
-								{
-									syntax_error(graph, sk, "the class is redefined1, previous at %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return 0;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "the class is redefined2, previous at %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return 0;
-							}
-						}
-					}
-				}
-				continue;
-			}
-			else
-			if (symbol_check_type(a, SYMBOL_GENERICS))
-			{
-				int32_t result;
-				result = syntax_unique(graph, a, NULL, s);
-				if (!result)
-				{
-					return 0;
-				}
-			}
-			else
-			if (symbol_check_type(a, SYMBOL_HERITAGES))
-			{
-				int32_t result;
-				result = syntax_unique(graph, a, NULL, s);
-				if (!result)
-				{
-					return 0;
-				}
-			}
-			else
-			if (symbol_check_type(a, SYMBOL_PARAMETERS))
-			{
-				int32_t result;
-				result = syntax_unique(graph, a, NULL, s);
-				if (!result)
-				{
-					return 0;
-				}
-			}
-			else
-			{
-				symbol_t *sk;
-				sk = syntax_extract_with(s, SYMBOL_KEY);
-				if (sk)
-				{
-					symbol_t *ak;
-					ak = syntax_extract_with(a, SYMBOL_KEY);
-					if (ak)
-					{
-						if (syntax_comparison_id(sk, ak) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return 0;
-								}
-							}
-						}
-					}
-				}
-				continue;
-			}
-		}
-		else
-		if (symbol_check_type(s, SYMBOL_FUNCTION))
-		{
-			if (symbol_check_type(a, SYMBOL_CLASS))
-			{
-				symbol_t *sk;
-				sk = syntax_extract_with(s, SYMBOL_KEY);
-				if (sk)
-				{
-					symbol_t *ak;
-					ak = syntax_extract_with(a, SYMBOL_KEY);
-					if (ak)
-					{
-						if (syntax_comparison_id(sk, ak) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								symbol_t *ags;
-								ags = syntax_only_with(a, SYMBOL_GENERICS);
-								if (ags)
-								{
-									int32_t result;
-									result = syntax_gsgs(graph, sgs, ags);
-									if (result == 1)
-									{
-										syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return 0;
-									}
-									else
-									if (result == 0)
-									{
-										return 0;
-									}
-								}
-								else
-								{
-									syntax_error(graph, sk, "the class is redefined1, previous at %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return 0;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "the class is redefined2, previous at %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return 0;
-							}
-						}
-					}
-				}
-				continue;
-			}
-			else
-			if (symbol_check_type(a, SYMBOL_FUNCTION))
-			{
-				symbol_t *sk;
-				sk = syntax_extract_with(s, SYMBOL_KEY);
-				if (sk)
-				{
-					symbol_t *ak;
-					ak = syntax_extract_with(a, SYMBOL_KEY);
-					if (ak)
-					{
-						if (syntax_comparison_id(sk, ak) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								symbol_t *ags;
-								ags = syntax_only_with(a, SYMBOL_GENERICS);
-								if (ags)
-								{
-									int32_t result;
-									result = syntax_gsgs(graph, sgs, ags);
-									if (result == 1)
-									{
-										symbol_t *sps;
-										sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-										if (sps)
-										{
-											symbol_t *aps;
-											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-											if (aps)
-											{
-												result = syntax_psps(graph, sps, aps);
-												if (result == 1)
-												{
-													syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return 0;
-												}
-												else
-												if (result == 0)
-												{
-													return 0;
-												}
-											}
-											else
-											{
-												if (syntax_ps_v(graph, sps))
-												{
-													syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return 0;
-												}
-											}
-										}
-										else
-										{
-											symbol_t *aps;
-											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-											if (aps)
-											{
-												if (syntax_ps_v(graph, aps))
-												{
-													syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return 0;
-												}
-											}
-											else
-											{
-												syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
-													ak->declaration->position.line, ak->declaration->position.column);
-												return 0;
-											}
-										}
-									}
-									else
-									if (result == 0)
-									{
-										return 0;
-									}
-								}
-								else
-								{
-									if (syntax_gs_v(graph, sgs))
-									{
-										symbol_t *sps;
-										sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-										if (sps)
-										{
-											symbol_t *aps;
-											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-											if (aps)
-											{
-												int32_t result;
-												result = syntax_psps(graph, sps, aps);
-												if (result == 1)
-												{
-													syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return 0;
-												}
-												else
-												if (result == 0)
-												{
-													return 0;
-												}
-											}
-											else
-											{
-												if (syntax_ps_v(graph, sps))
-												{
-													syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return 0;
-												}
-											}
-										}
-										else
-										{
-											symbol_t *aps;
-											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-											if (aps)
-											{
-												if (syntax_ps_v(graph, aps))
-												{
-													syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return 0;
-												}
-											}
-											else
-											{
-												syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
-													ak->declaration->position.line, ak->declaration->position.column);
-												return 0;
-											}
-										}
-									}
-								}
-							}
-							else
-							{
-								symbol_t *ags;
-								ags = syntax_only_with(a, SYMBOL_GENERICS);
-								if (ags)
 								{
 									if (syntax_gs_v(graph, ags))
 									{
-										symbol_t *sps;
-										sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-										if (sps)
-										{
-											symbol_t *aps;
-											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-											if (aps)
-											{
-												int32_t result;
-												result = syntax_psps(graph, sps, aps);
-												if (result == 1)
-												{
-													syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return 0;
-												}
-												else
-												if (result == 0)
-												{
-													return 0;
-												}
-											}
-											else
-											{
-												if (syntax_ps_v(graph, sps))
-												{
-													syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return 0;
-												}
-											}
-										}
-										else
-										{
-											symbol_t *aps;
-											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-											if (aps)
-											{
-												if (syntax_ps_v(graph, aps))
-												{
-													syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return 0;
-												}
-											}
-											else
-											{
-												syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
-													ak->declaration->position.line, ak->declaration->position.column);
-												return 0;
-											}
-										}
+										syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+											ak->declaration->position.line, ak->declaration->position.column);
+										return 0;
+									}
+									else
+									{
+										continue;
+									}
+								}
+							}
+							else
+							{
+								symbol_t *sgs;
+								sgs = syntax_only_with(s, SYMBOL_GENERICS);
+								if (sgs)
+								{
+									if (syntax_gs_v(graph, sgs))
+									{
+										syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+											ak->declaration->position.line, ak->declaration->position.column);
+										return 0;
+									}
+									else
+									{
+										continue;
 									}
 								}
 								else
 								{
-									symbol_t *sps;
-									sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-									if (sps)
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(s, SYMBOL_FUNCTION))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								symbol_t *sgs;
+								sgs = syntax_only_with(s, SYMBOL_GENERICS);
+								if (sgs)
+								{
+									int32_t result;
+									result = syntax_gsgs(graph, ags, sgs);
+									if (result == 1)
+									{
+										syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+											ak->declaration->position.line, ak->declaration->position.column);
+										return 0;
+									}
+									else
+									if (result == 0)
+									{
+										return 0;
+									}
+									else
+									{
+										continue;
+									}
+								}
+								else
+								{
+									if (syntax_gs_v(graph, ags))
+									{
+										syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+											ak->declaration->position.line, ak->declaration->position.column);
+										return 0;
+									}
+									else
+									{
+										continue;
+									}
+								}
+							}
+							else
+							{
+								symbol_t *sgs;
+								sgs = syntax_only_with(s, SYMBOL_GENERICS);
+								if (sgs)
+								{
+									if (syntax_gs_v(graph, sgs))
+									{
+										syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+											ak->declaration->position.line, ak->declaration->position.column);
+										return 0;
+									}
+									else
+									{
+										continue;
+									}
+								}
+								else
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(s, SYMBOL_PROPERTY))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								if (syntax_gs_v(graph, ags))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(s, SYMBOL_PARAMETER))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								if (syntax_gs_v(graph, ags))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(s, SYMBOL_HERITAGE))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								if (syntax_gs_v(graph, ags))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(s, SYMBOL_GENERIC))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								if (syntax_gs_v(graph, ags))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(s, SYMBOL_VAR))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								if (syntax_gs_v(graph, ags))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(s, SYMBOL_IF))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								if (syntax_gs_v(graph, ags))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(s, SYMBOL_FOR))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								if (syntax_gs_v(graph, ags))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(s, SYMBOL_FORIN))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								if (syntax_gs_v(graph, ags))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			continue;
+		}
+		else
+		if (symbol_check_type(a, SYMBOL_FUNCTION))
+		{
+			if (symbol_check_type(s, SYMBOL_CLASS))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								symbol_t *sgs;
+								sgs = syntax_only_with(s, SYMBOL_GENERICS);
+								if (sgs)
+								{
+									int32_t result;
+									result = syntax_gsgs(graph, ags, sgs);
+									if (result == 1)
+									{
+										syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+											ak->declaration->position.line, ak->declaration->position.column);
+										return 0;
+									}
+									else
+									if (result == 0)
+									{
+										return 0;
+									}
+									else
+									{
+										continue;
+									}
+								}
+								else
+								{
+									if (syntax_gs_v(graph, ags))
+									{
+										syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+											ak->declaration->position.line, ak->declaration->position.column);
+										return 0;
+									}
+									else
+									{
+										continue;
+									}
+								}
+							}
+							else
+							{
+								symbol_t *sgs;
+								sgs = syntax_only_with(s, SYMBOL_GENERICS);
+								if (sgs)
+								{
+									if (syntax_gs_v(graph, sgs))
+									{
+										syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+											ak->declaration->position.line, ak->declaration->position.column);
+										return 0;
+									}
+									else
+									{
+										continue;
+									}
+								}
+								else
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(s, SYMBOL_FUNCTION))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								symbol_t *sgs;
+								sgs = syntax_only_with(s, SYMBOL_GENERICS);
+								if (sgs)
+								{
+									int32_t result;
+									result = syntax_gsgs(graph, ags, sgs);
+									if (result == 1)
 									{
 										symbol_t *aps;
 										aps = syntax_only_with(a, SYMBOL_PARAMETERS);
 										if (aps)
 										{
+											symbol_t *sps;
+											sps = syntax_only_with(s, SYMBOL_PARAMETERS);
+											if (sps)
+											{
+												result = syntax_psps(graph, aps, sps);
+												if (result == 1)
+												{
+													syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+												else
+												if (result == 0)
+												{
+													return 0;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												if (syntax_ps_v(graph, aps))
+												{
+													syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+												else
+												{
+													continue;
+												}
+											}
+										}
+										else
+										{
+											symbol_t *sps;
+											sps = syntax_only_with(s, SYMBOL_PARAMETERS);
+											if (sps)
+											{
+												if (syntax_ps_v(graph, sps))
+												{
+													syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+													ak->declaration->position.line, ak->declaration->position.column);
+												return 0;
+											}
+										}
+									}
+									else
+									if (result == 0)
+									{
+										return 0;
+									}
+									else
+									{
+										continue;
+									}
+								}
+								else
+								{
+									if (syntax_gs_v(graph, ags))
+									{
+										symbol_t *aps;
+										aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+										if (aps)
+										{
+											symbol_t *sps;
+											sps = syntax_only_with(s, SYMBOL_PARAMETERS);
+											if (sps)
+											{
+												int32_t result;
+												result = syntax_psps(graph, aps, sps);
+												if (result == 1)
+												{
+													syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+												else
+												if (result == 0)
+												{
+													return 0;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												if (syntax_ps_v(graph, aps))
+												{
+													syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+												else
+												{
+													continue;
+												}
+											}
+										}
+										else
+										{
+											symbol_t *sps;
+											sps = syntax_only_with(s, SYMBOL_PARAMETERS);
+											if (sps)
+											{
+												if (syntax_ps_v(graph, sps))
+												{
+													syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+													ak->declaration->position.line, ak->declaration->position.column);
+												return 0;
+											}
+										}
+									}
+									else
+									{
+										continue;
+									}
+								}
+							}
+							else
+							{
+								symbol_t *sgs;
+								sgs = syntax_only_with(s, SYMBOL_GENERICS);
+								if (sgs)
+								{
+									if (syntax_gs_v(graph, sgs))
+									{
+										symbol_t *aps;
+										aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+										if (aps)
+										{
+											symbol_t *sps;
+											sps = syntax_only_with(s, SYMBOL_PARAMETERS);
+											if (sps)
+											{
+												int32_t result;
+												result = syntax_psps(graph, aps, sps);
+												if (result == 1)
+												{
+													syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+												else
+												if (result == 0)
+												{
+													return 0;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												if (syntax_ps_v(graph, aps))
+												{
+													syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+												else
+												{
+													continue;
+												}
+											}
+										}
+										else
+										{
+											symbol_t *sps;
+											sps = syntax_only_with(s, SYMBOL_PARAMETERS);
+											if (sps)
+											{
+												if (syntax_ps_v(graph, sps))
+												{
+													syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+														ak->declaration->position.line, ak->declaration->position.column);
+													return 0;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+													ak->declaration->position.line, ak->declaration->position.column);
+												return 0;
+											}
+										}
+									}
+									else
+									{
+										continue;
+									}
+								}
+								else
+								{
+									symbol_t *aps;
+									aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+									if (aps)
+									{
+										symbol_t *sps;
+										sps = syntax_only_with(s, SYMBOL_PARAMETERS);
+										if (sps)
+										{
 											int32_t result;
-											result = syntax_psps(graph, sps, aps);
+											result = syntax_psps(graph, aps, sps);
 											if (result == 1)
 											{
-												syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
+												syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
 													ak->declaration->position.line, ak->declaration->position.column);
 												return 0;
 											}
@@ -1231,33 +1771,45 @@ syntax_unique(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *s)
 											{
 												return 0;
 											}
+											else
+											{
+												continue;
+											}
 										}
 										else
 										{
-											if (syntax_ps_v(graph, sps))
+											if (syntax_ps_v(graph, aps))
 											{
-												syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+												syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
 													ak->declaration->position.line, ak->declaration->position.column);
 												return 0;
+											}
+											else
+											{
+												continue;
 											}
 										}
 									}
 									else
 									{
-										symbol_t *aps;
-										aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-										if (aps)
+										symbol_t *sps;
+										sps = syntax_only_with(s, SYMBOL_PARAMETERS);
+										if (sps)
 										{
-											if (syntax_ps_v(graph, aps))
+											if (syntax_ps_v(graph, sps))
 											{
-												syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+												syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
 													ak->declaration->position.line, ak->declaration->position.column);
 												return 0;
+											}
+											else
+											{
+												continue;
 											}
 										}
 										else
 										{
-											syntax_error(graph, sk, "the method is redefined, previous at %lld:%lld", 
+											syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
 												ak->declaration->position.line, ak->declaration->position.column);
 											return 0;
 										}
@@ -1265,218 +1817,404 @@ syntax_unique(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *s)
 								}
 							}
 						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
 					}
 				}
-				continue;
-			}
-			else
-			if (symbol_check_type(a, SYMBOL_GENERICS))
-			{
-				int32_t result;
-				result = syntax_unique(graph, a, NULL, s);
-				if (!result)
+				else
 				{
+					syntax_error(graph, a, "without key");
 					return 0;
 				}
 			}
 			else
-			if (symbol_check_type(a, SYMBOL_HERITAGES))
+			if (symbol_check_type(s, SYMBOL_PROPERTY))
 			{
-				int32_t result;
-				result = syntax_unique(graph, a, NULL, s);
-				if (!result)
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
 				{
-					return 0;
-				}
-			}
-			else
-			if (symbol_check_type(a, SYMBOL_PARAMETERS))
-			{
-				int32_t result;
-				result = syntax_unique(graph, a, NULL, s);
-				if (!result)
-				{
-					return 0;
-				}
-			}
-			else
-			{
-				symbol_t *sk;
-				sk = syntax_extract_with(s, SYMBOL_KEY);
-				if (sk)
-				{
-					symbol_t *ak;
-					ak = syntax_extract_with(a, SYMBOL_KEY);
-					if (ak)
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
 					{
-						if (syntax_comparison_id(sk, ak) && (a != s))
+						if (syntax_comparison_id(ak, sk) && (a != s))
 						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
 							{
-								if (syntax_gs_v(graph, sgs))
+								if (syntax_gs_v(graph, ags))
 								{
-									syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
 										ak->declaration->position.line, ak->declaration->position.column);
 									return 0;
 								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
 							}
 						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
 					}
 				}
-				continue;
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
 			}
+			else
+			if (symbol_check_type(s, SYMBOL_PARAMETER))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								if (syntax_gs_v(graph, ags))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(s, SYMBOL_GENERIC))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								if (syntax_gs_v(graph, ags))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(s, SYMBOL_VAR))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								if (syntax_gs_v(graph, ags))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(s, SYMBOL_IF))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								if (syntax_gs_v(graph, ags))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(s, SYMBOL_FOR))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								if (syntax_gs_v(graph, ags))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+			else
+			if (symbol_check_type(s, SYMBOL_FORIN))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								if (syntax_gs_v(graph, ags))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+
 			continue;
 		}
 		else
+		if (symbol_check_type(a, SYMBOL_PROPERTY))
 		{
-			if (symbol_check_type(a, SYMBOL_CLASS))
+			if (symbol_check_type(s, SYMBOL_CLASS))
 			{
-				symbol_t *sk;
-				sk = syntax_extract_with(s, SYMBOL_KEY);
-				if (sk)
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
 				{
-					symbol_t *ak;
-					ak = syntax_extract_with(a, SYMBOL_KEY);
-					if (ak)
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
 					{
-						if (syntax_comparison_id(sk, ak) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								symbol_t *ags;
-								ags = syntax_only_with(a, SYMBOL_GENERICS);
-								if (ags)
-								{
-									int32_t result;
-									result = syntax_gsgs(graph, sgs, ags);
-									if (result == 1)
-									{
-										syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return 0;
-									}
-									else
-									if (result == 0)
-									{
-										return 0;
-									}
-								}
-								else
-								{
-									syntax_error(graph, sk, "the class is redefined1, previous at %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return 0;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "the class is redefined2, previous at %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return 0;
-							}
-						}
-					}
-				}
-				continue;
-			}
-			else
-			if (symbol_check_type(a, SYMBOL_FUNCTION))
-			{
-				symbol_t *sk;
-				sk = syntax_extract_with(s, SYMBOL_KEY);
-				if (sk)
-				{
-					symbol_t *ak;
-					ak = syntax_extract_with(a, SYMBOL_KEY);
-					if (ak)
-					{
-						if (syntax_comparison_id(sk, ak) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								symbol_t *ags;
-								ags = syntax_only_with(a, SYMBOL_GENERICS);
-								if (ags)
-								{
-									int32_t result;
-									result = syntax_gsgs(graph, sgs, ags);
-									if (result == 1)
-									{
-										syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return 0;
-									}
-									else
-									if (result == 0)
-									{
-										return 0;
-									}
-								}
-								else
-								{
-									syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return 0;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return 0;
-							}
-						}
-					}
-				}
-				continue;
-			}
-			else
-			if (symbol_check_type(a, SYMBOL_GENERICS))
-			{
-				int32_t result;
-				result = syntax_unique(graph, a, NULL, s);
-				if (!result)
-				{
-					return 0;
-				}
-			}
-			else
-			if (symbol_check_type(a, SYMBOL_HERITAGES))
-			{
-				int32_t result;
-				result = syntax_unique(graph, a, NULL, s);
-				if (!result)
-				{
-					return 0;
-				}
-			}
-			else
-			if (symbol_check_type(a, SYMBOL_PARAMETERS))
-			{
-				int32_t result;
-				result = syntax_unique(graph, a, NULL, s);
-				if (!result)
-				{
-					return 0;
-				}
-			}
-			else
-			{
-				symbol_t *sk;
-				sk = syntax_extract_with(s, SYMBOL_KEY);
-				if (sk)
-				{
-					symbol_t *ak;
-					ak = syntax_extract_with(a, SYMBOL_KEY);
-					if (ak)
-					{
-						if (syntax_comparison_id(sk, ak) && (a != s))
+						if (syntax_comparison_id(ak, sk) && (a != s))
 						{
 							symbol_t *sgs;
 							sgs = syntax_only_with(s, SYMBOL_GENERICS);
@@ -1484,17 +2222,474 @@ syntax_unique(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *s)
 							{
 								if (syntax_gs_v(graph, sgs))
 								{
-									syntax_error(graph, sk, "the class is redefined, previous at %lld:%lld", 
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
 										ak->declaration->position.line, ak->declaration->position.column);
 									return 0;
 								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
 							}
 						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
 					}
 				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+		}
+		else
+		if (symbol_check_type(a, SYMBOL_PARAMETER))
+		{
+			if (symbol_check_type(s, SYMBOL_CLASS))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								if (syntax_gs_v(graph, sgs))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+		}
+		else
+		if (symbol_check_type(a, SYMBOL_HERITAGE))
+		{
+			if (symbol_check_type(s, SYMBOL_CLASS))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								if (syntax_gs_v(graph, sgs))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+		}
+		else
+		if (symbol_check_type(a, SYMBOL_GENERIC))
+		{
+			if (symbol_check_type(s, SYMBOL_CLASS))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								if (syntax_gs_v(graph, sgs))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+		}
+		else
+		if (symbol_check_type(a, SYMBOL_PARAMETERS))
+		{
+			int32_t result;
+			result = syntax_unique(graph, a, NULL, s);
+			if (result == 0)
+			{
+				return 0;
+			}
+			else
+			{
 				continue;
 			}
-			continue;		
+		}
+		else
+		if (symbol_check_type(a, SYMBOL_HERITAGES))
+		{
+			int32_t result;
+			result = syntax_unique(graph, a, NULL, s);
+			if (result == 0)
+			{
+				return 0;
+			}
+			else
+			{
+				continue;
+			}
+		}
+		else
+		if (symbol_check_type(a, SYMBOL_GENERICS))
+		{
+			int32_t result;
+			result = syntax_unique(graph, a, NULL, s);
+			if (result == 0)
+			{
+				return 0;
+			}
+			else
+			{
+				continue;
+			}
+		}
+
+		if (symbol_check_type(root, SYMBOL_MODULE) || symbol_check_type(root, SYMBOL_BLOCK))
+		{
+			if (a == subroot)
+			{
+				break;
+			}
+		}
+
+		if (symbol_check_type(a, SYMBOL_VAR))
+		{
+			if (symbol_check_type(s, SYMBOL_CLASS))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								if (syntax_gs_v(graph, sgs))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+		}
+		else
+		if (symbol_check_type(a, SYMBOL_IF))
+		{
+			if (symbol_check_type(s, SYMBOL_CLASS))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								if (syntax_gs_v(graph, sgs))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+		}
+		else
+		if (symbol_check_type(a, SYMBOL_FOR))
+		{
+			if (symbol_check_type(s, SYMBOL_CLASS))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								if (syntax_gs_v(graph, sgs))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
+		}
+		else
+		if (symbol_check_type(a, SYMBOL_FORIN))
+		{
+			if (symbol_check_type(s, SYMBOL_CLASS))
+			{
+				symbol_t *ak;
+				ak = syntax_extract_with(a, SYMBOL_KEY);
+				if (ak)
+				{
+					symbol_t *sk;
+					sk = syntax_extract_with(s, SYMBOL_KEY);
+					if (sk)
+					{
+						if (syntax_comparison_id(ak, sk) && (a != s))
+						{
+							symbol_t *sgs;
+							sgs = syntax_only_with(s, SYMBOL_GENERICS);
+							if (sgs)
+							{
+								if (syntax_gs_v(graph, sgs))
+								{
+									syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+										ak->declaration->position.line, ak->declaration->position.column);
+									return 0;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, sk, "the command key is repeated, previous at %lld:%lld", 
+									ak->declaration->position.line, ak->declaration->position.column);
+								return 0;
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, s, "without key");
+						return 0;
+					}
+				}
+				else
+				{
+					syntax_error(graph, a, "without key");
+					return 0;
+				}
+			}
 		}
 	}
 
@@ -2056,7 +3251,7 @@ syntax_function(graph_t *graph, symbol_t *current)
 	{
 		return 0;
 	}
-	
+
 	symbol_t *a;
 	for (a = current->begin;a != current->end;a = a->next)
 	{
