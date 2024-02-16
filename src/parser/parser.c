@@ -808,9 +808,9 @@ parser_argument(parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	node_t *name = NULL;
-	name = parser_expression(parser);
-	if (!name)
+	node_t *key = NULL;
+	key = parser_expression(parser);
+	if (!key)
 	{
 		return NULL;
 	}
@@ -830,7 +830,7 @@ parser_argument(parser_t *parser)
 		}
 	}
 
-	return node_make_argument(position, name, value);
+	return node_make_argument(position, key, value);
 }
 
 static list_t *
@@ -1904,11 +1904,11 @@ parser_if_stmt(parser_t *parser)
 		return NULL;
 	}
 
-	node_t *name = NULL;
+	node_t *key = NULL;
 	if (parser->token->type == TOKEN_ID)
 	{
-		name = parser_id(parser);
-		if (!name)
+		key = parser_id(parser);
+		if (!key)
 		{
 			return NULL;
 		}
@@ -1962,7 +1962,7 @@ parser_if_stmt(parser_t *parser)
 		}
 	}
 
-	return node_make_if(position, name, condition, then_body, else_body);
+	return node_make_if(position, key, condition, then_body, else_body);
 }
 
 static node_t *
@@ -1975,9 +1975,9 @@ parser_var_stmt(parser_t *parser, uint64_t flag)
 		return NULL;
 	}
 
-	node_t *name;
-	name = parser_expression(parser);
-	if (!name)
+	node_t *key;
+	key = parser_expression(parser);
+	if (!key)
 	{
 		return NULL;
 	}
@@ -2011,7 +2011,7 @@ parser_var_stmt(parser_t *parser, uint64_t flag)
 		}
 	}
 
-	return node_make_var(position, flag, name, type, value);
+	return node_make_var(position, flag, key, type, value);
 }
 
 static node_t *
@@ -2024,11 +2024,11 @@ parser_for_stmt(parser_t *parser, uint64_t flag)
 		return NULL;
 	}
 
-	node_t *name = NULL;
+	node_t *key = NULL;
 	if (parser->token->type == TOKEN_ID)
 	{
-		name = parser_id(parser);
-		if (!name)
+		key = parser_id(parser);
+		if (!key)
 		{
 			return NULL;
 		}
@@ -2061,7 +2061,7 @@ parser_for_stmt(parser_t *parser, uint64_t flag)
 
 		parser->loop_depth -= 1;
 
-		return node_make_for(position, flag, name, initializer, condition, incrementor, body);
+		return node_make_for(position, flag, key, initializer, condition, incrementor, body);
 	}
 
 	if (!parser_match(parser, TOKEN_LPAREN))
@@ -2199,7 +2199,7 @@ parser_for_stmt(parser_t *parser, uint64_t flag)
 
 	parser->loop_depth -= 1;
 
-	return node_make_for(position, flag, name, initializer, condition, incrementor, body);
+	return node_make_for(position, flag, key, initializer, condition, incrementor, body);
 
 	region_forin:
 	if (!parser_match(parser, TOKEN_IN_KEYWORD))
@@ -2229,7 +2229,7 @@ parser_for_stmt(parser_t *parser, uint64_t flag)
 
 	parser->loop_depth -= 1;
 
-	return node_make_forin(position, flag, name, initializer, iterator, body);
+	return node_make_forin(position, flag, key, initializer, iterator, body);
 }
 
 static node_t *
@@ -2426,95 +2426,6 @@ parser_throw_stmt(parser_t *parser)
 }
 
 static node_t *
-parser_type_stmt(parser_t *parser, uint64_t flag)
-{
-	position_t position = parser->token->position;
-
-	if (!parser_match(parser, TOKEN_TYPE_KEYWORD))
-	{
-		return NULL;
-	}
-
-	list_t *generics = NULL;
-	if (parser->token->type == TOKEN_LPAREN)
-	{
-		if (!parser_next(parser))
-		{
-			return NULL;
-		}
-
-		if (parser->token->type == TOKEN_RPAREN)
-		{
-			parser_error(parser, parser->token->position, "type parameters is empty");
-			return NULL;
-		}
-
-		generics = parser_generics(parser);
-		if (!generics)
-		{
-			return NULL;
-		}
-
-		if (!parser_match(parser, TOKEN_RPAREN))
-		{
-			return NULL;
-		}
-	}
-
-	node_t *name;
-	name = parser_id(parser);
-	if (!name)
-	{
-		return NULL;
-	}
-
-	list_t *heritages = NULL;
-	if (parser->token->type == TOKEN_EXTENDS_KEYWORD)
-	{
-		if (!parser_next(parser))
-		{
-			return NULL;
-		}
-
-		if (!parser_match(parser, TOKEN_LPAREN))
-		{
-			return NULL;
-		}
-
-		if (parser->token->type == TOKEN_RPAREN)
-		{
-			parser_error(parser, parser->token->position, "empty fields");
-			return NULL;
-		}
-
-		heritages = parser_heritages(parser);
-		if (!heritages)
-		{
-			return NULL;
-		}
-
-		if (!parser_match(parser, TOKEN_RPAREN))
-		{
-			return NULL;
-		}
-	}
-
-	if (!parser_match(parser, TOKEN_COLON))
-	{
-		return NULL;
-	}
-
-	node_t *type = NULL;
-	type = parser_expression(parser);
-	if (!type)
-	{
-		return NULL;
-	}
-
-	return node_make_type(position, flag, name, generics, heritages, type);
-}
-
-static node_t *
 parser_block_stmt(parser_t *parser)
 {
 	position_t position = parser->token->position;
@@ -2588,9 +2499,9 @@ parser_parameter(parser_t *parser)
 		}
 	}
 
-	node_t *name;
-	name = parser_expression(parser);
-	if (!name)
+	node_t *key;
+	key = parser_expression(parser);
+	if (!key)
 	{
 		return NULL;
 	}
@@ -2625,7 +2536,7 @@ parser_parameter(parser_t *parser)
 		}
 	}
 
-	return node_make_parameter(position, flag, name, type, value);
+	return node_make_parameter(position, flag, key, type, value);
 }
 
 static list_t *
@@ -2670,9 +2581,9 @@ parser_generic(parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	node_t *name;
-	name = parser_id(parser);
-	if (!name)
+	node_t *key;
+	key = parser_id(parser);
+	if (!key)
 	{
 		return NULL;
 	}
@@ -2705,7 +2616,7 @@ parser_generic(parser_t *parser)
 		}
 	}
 
-	return node_make_generic(position, name, type, value);
+	return node_make_generic(position, key, type, value);
 }
 
 static list_t *
@@ -2755,7 +2666,6 @@ parser_func_stmt(parser_t *parser, uint64_t flag)
 		return NULL;
 	}
   
-	list_t *heritages = NULL;
 	list_t *generics = NULL;
 	if (parser->token->type == TOKEN_LPAREN)
 	{
@@ -2763,108 +2673,17 @@ parser_func_stmt(parser_t *parser, uint64_t flag)
 		{
 			return NULL;
 		}
+
 		if (parser->token->type == TOKEN_RPAREN)
 		{
-			parser_error(parser, parser->token->position, "empty generic/heritages");
+			parser_error(parser, parser->token->position, "empty generics");
 			return NULL;
 		}
 
-		heritages = list_create();
-		if (!heritages)
-		{
-			return NULL;
-		}
-
-		generics = list_create();
+		generics = parser_generics(parser);
 		if (!generics)
 		{
 			return NULL;
-		}
-
-		node_t *node;
-		while (true)
-		{
-			position_t position2 = parser->token->position;
-
-			node_t *name;
-			name = parser_id(parser);
-			if (!name)
-			{
-				return NULL;
-			}
-
-			if (parser->token->type == TOKEN_COLON)
-			{
-				if (!parser_next(parser))
-				{
-					return NULL;
-				}
-
-				node_t *type = NULL;
-				type = parser_expression(parser);
-				if (!type)
-				{
-					return NULL;
-				}
-
-				node = node_make_heritage(position2, name, type);
-				if (!node)
-				{
-					return NULL;
-				}
-				if (!list_rpush(heritages, (uint64_t)node))
-				{
-					return NULL;
-				}
-			} else {
-				node_t *extends = NULL;
-				if (parser->token->type == TOKEN_EXTENDS_KEYWORD)
-				{
-					if (!parser_next(parser))
-					{
-						return NULL;
-					}
-					extends = parser_expression(parser);
-					if (!extends)
-					{
-						return NULL;
-					}
-				}
-
-				node_t *value = NULL;
-				if (parser->token->type == TOKEN_EQ)
-				{
-					if (!parser_next(parser))
-					{
-						return NULL;
-					}
-					value = parser_expression(parser);
-					if (!value)
-					{
-						return NULL;
-					}
-				}
-
-				node = node_make_generic(position2, name, extends, value);
-				if (!node)
-				{
-					return NULL;
-				}
-				if (!list_rpush(generics, (uint64_t)node))
-				{
-					return NULL;
-				}
-			}
-
-			if (parser->token->type != TOKEN_COMMA)
-			{
-				break;
-			}
-
-			if (!parser_next(parser))
-			{
-				return NULL;
-			}
 		}
 
 		if (!parser_match(parser, TOKEN_RPAREN))
@@ -2873,24 +2692,19 @@ parser_func_stmt(parser_t *parser, uint64_t flag)
 		}
 	}
 
-	node_t *name = NULL;
+	node_t *key = NULL;
 	if (parser->token->type == TOKEN_ID)
 	{
-		name = parser_id(parser);
-		if (!name)
+		key = parser_id(parser);
+		if (!key)
 		{
 			return NULL;
 		}
 	}
 	else
 	{
-		if (!heritages)
-		{
-			parser_error(parser, parser->token->position, "override operator without heritages");
-			return NULL;
-		}
-		name = parser_operator(parser);
-		if (!name)
+		key = parser_operator(parser);
+		if (!key)
 		{
 			return NULL;
 		}
@@ -2924,7 +2738,7 @@ parser_func_stmt(parser_t *parser, uint64_t flag)
 		return NULL;
 	}
 
-	return node_make_func(position, flag, heritages, generics, name, parameters, body);
+	return node_make_func(position, flag, generics, key, parameters, body);
 }
 
 static node_t *
@@ -3033,10 +2847,6 @@ parser_statement(parser_t *parser)
 		node = parser_async_stmt(parser, PARSER_MODIFIER_NONE);
 		break;
 
-	case TOKEN_TYPE_KEYWORD:
-		node = parser_type_stmt(parser, PARSER_MODIFIER_NONE);
-		break;
-
 	case TOKEN_BREAK_KEYWORD:
 		node = parser_break_stmt(parser);
 		if (!parser_match(parser, TOKEN_SEMICOLON))
@@ -3094,9 +2904,10 @@ static node_t *
 parser_enum_member(parser_t *parser)
 {
 	position_t position = parser->token->position;
-	node_t *name;
-	name = parser_id(parser);
-	if (!name)
+
+	node_t *key;
+	key = parser_id(parser);
+	if (!key)
 	{
 		return NULL;
 	}
@@ -3116,7 +2927,7 @@ parser_enum_member(parser_t *parser)
 		}
 	}
 
-	return node_make_member(position, name, value);
+	return node_make_member(position, key, value);
 }
 
 static list_t *
@@ -3170,9 +2981,9 @@ parser_enum(parser_t *parser, uint64_t flag)
 		return NULL;
 	}
 
-	node_t *name;
-	name = parser_id(parser);
-	if (!name)
+	node_t *key;
+	key = parser_id(parser);
+	if (!key)
 	{
 		return NULL;
 	}
@@ -3194,7 +3005,7 @@ parser_enum(parser_t *parser, uint64_t flag)
 		return NULL;
 	}
 
-	return node_make_enum(position, flag, name, body);
+	return node_make_enum(position, flag, key, body);
 }
 
 static node_t *
@@ -3217,7 +3028,7 @@ parser_class_func(parser_t *parser, uint64_t flag)
 
 		if (parser->token->type == TOKEN_RPAREN)
 		{
-			parser_error(parser, parser->token->position, "empty type parameters");
+			parser_error(parser, parser->token->position, "empty generics");
 			return NULL;
 		}
 
@@ -3234,19 +3045,19 @@ parser_class_func(parser_t *parser, uint64_t flag)
 	}
 
 
-	node_t *name = NULL;
+	node_t *key = NULL;
 	if (parser->token->type == TOKEN_ID)
 	{
-		name = parser_id(parser);
-		if (!name)
+		key = parser_id(parser);
+		if (!key)
 		{
 			return NULL;
 		}
 	}
 	else
 	{
-		name = parser_operator(parser);
-		if (!name)
+		key = parser_operator(parser);
+		if (!key)
 		{
 			return NULL;
 		}
@@ -3280,7 +3091,7 @@ parser_class_func(parser_t *parser, uint64_t flag)
 		return NULL;
 	}
 
-	return node_make_method(position, flag, name, generics, parameters, body);
+	return node_make_method(position, flag, key, generics, parameters, body);
 }
 
 static node_t *
@@ -3288,9 +3099,9 @@ parser_class_property(parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
-	node_t *name = NULL;
-	name = parser_id(parser);
-	if (!name)
+	node_t *key = NULL;
+	key = parser_id(parser);
+	if (!key)
 	{
 		return NULL;
 	}
@@ -3328,7 +3139,7 @@ parser_class_property(parser_t *parser, uint64_t flag)
 		return NULL;
 	}
 
-	return node_make_property(position, flag, name, type, value);
+	return node_make_property(position, flag, key, type, value);
 }
 
 static node_t *
@@ -3606,9 +3417,9 @@ parser_heritage(parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	node_t *name;
-	name = parser_id(parser);
-	if (!name)
+	node_t *key;
+	key = parser_id(parser);
+	if (!key)
 	{
 		return NULL;
 	}
@@ -3625,7 +3436,7 @@ parser_heritage(parser_t *parser)
 		return NULL;
 	}
 
-	return node_make_heritage(position, name, type);
+	return node_make_heritage(position, key, type);
 }
 
 static list_t *
@@ -3702,9 +3513,9 @@ parser_class(parser_t *parser, uint64_t flag)
 		}
 	}
 
-	node_t *name;
-	name = parser_id(parser);
-	if (!name)
+	node_t *key;
+	key = parser_id(parser);
+	if (!key)
 	{
 		return NULL;
 	}
@@ -3748,7 +3559,7 @@ parser_class(parser_t *parser, uint64_t flag)
 		return NULL;
 	}
 
-	return node_make_class(position, flag, name, generics, heritages, body);
+	return node_make_class(position, flag, key, generics, heritages, body);
 }
 
 static node_t *
@@ -3756,9 +3567,9 @@ parser_field(parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	node_t *name;
-	name = parser_expression(parser);
-	if (!name)
+	node_t *key;
+	key = parser_expression(parser);
+	if (!key)
 	{
 		return NULL;
 	}
@@ -3778,7 +3589,7 @@ parser_field(parser_t *parser)
 		}
 	}
 
-	return node_make_field(position, name, type);
+	return node_make_field(position, key, type);
 }
 
 static list_t *
@@ -3829,39 +3640,6 @@ parser_import(parser_t *parser)
 		return NULL;
 	}
 
-	list_t *generics = NULL;
-	if (parser->token->type == TOKEN_LPAREN)
-	{
-		if (!parser_next(parser))
-		{
-			return NULL;
-		}
-
-		if (parser->token->type == TOKEN_RPAREN)
-		{
-			parser_error(parser, parser->token->position, "type parameters");
-			return NULL;
-		}
-
-		generics = parser_generics(parser);
-		if (!generics)
-		{
-			return NULL;
-		}
-
-		if (!parser_match(parser, TOKEN_RPAREN))
-		{
-			return NULL;
-		}
-	}
-
-	node_t *name;
-	name = parser_id(parser);
-	if (!name)
-	{
-		return NULL;
-	}
-
 	if (!parser_match(parser, TOKEN_LPAREN))
 	{
 		return NULL;
@@ -3874,16 +3652,19 @@ parser_import(parser_t *parser)
 		return NULL;
 	}
 
-	if (!parser_match(parser, TOKEN_COMMA))
+	list_t *fields = NULL;
+	if (parser->token->type == TOKEN_COMMA)
 	{
-		return NULL;
-	}
+		if (!parser_match(parser, TOKEN_COMMA))
+		{
+			return NULL;
+		}
 
-	list_t *fields;
-	fields = parser_fields(parser);
-	if (!fields)
-	{
-		return NULL;
+		fields = parser_fields(parser);
+		if (!fields)
+		{
+			return NULL;
+		}
 	}
 
 	if (!parser_match(parser, TOKEN_RPAREN))
@@ -3896,7 +3677,7 @@ parser_import(parser_t *parser)
 		return NULL;
 	}
 
-	return node_make_import(position, name, generics, path, fields);
+	return node_make_import(position, path, fields);
 }
 
 static node_t *
@@ -3932,10 +3713,6 @@ parser_export(parser_t *parser)
 
 	case TOKEN_READONLY_KEYWORD:
 		node = parser_readonly_stmt(parser, flag);
-		break;
-
-	case TOKEN_TYPE_KEYWORD:
-		node = parser_type_stmt(parser, flag);
 		break;
 
 	case TOKEN_LBRACE:
@@ -4005,10 +3782,6 @@ parser_module(parser_t *parser)
 
 		case TOKEN_READONLY_KEYWORD:
 			decl = parser_readonly_stmt(parser, PARSER_MODIFIER_NONE);
-			break;
-
-		case TOKEN_TYPE_KEYWORD:
-			decl = parser_type_stmt(parser, PARSER_MODIFIER_NONE);
 			break;
 
 		default:

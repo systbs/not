@@ -28,7 +28,8 @@
         "stdio.h": "c",
         "node.h": "c",
         "error.h": "c",
-        "syntax.h": "c"
+        "syntax.h": "c",
+        "text5": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

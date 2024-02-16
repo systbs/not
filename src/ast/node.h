@@ -172,7 +172,7 @@ typedef struct node_block {
 } node_block_t;
 
 typedef struct node_if {
-	node_t *name;
+	node_t *key;
 	node_t *condition;
 	node_t *then_body;
 	node_t *else_body;
@@ -180,7 +180,7 @@ typedef struct node_if {
 
 typedef struct node_for {
 	uint64_t flag;
-	node_t *name;
+	node_t *key;
 	list_t *initializer;
 	node_t *condition;
 	list_t *incrementor;
@@ -189,7 +189,7 @@ typedef struct node_for {
 
 typedef struct node_forin {
 	uint64_t flag;
-	node_t *name;
+	node_t *key;
 	list_t *initializer;
 	node_t *expression;
 	node_t *body;
@@ -207,43 +207,35 @@ typedef struct node_try {
 
 typedef struct node_var {
 	uint64_t flag;
-	node_t *name;
+	node_t *key;
 	node_t *type;
 	node_t *value;
 } node_var_t;
 
-typedef struct node_type {
-	uint64_t flag;
-	node_t *name;
-	list_t *generics;
-	list_t *heritages;
-	node_t *body;
-} node_type_t;
-
 typedef struct node_argument {
-	node_t *name;
+	node_t *key;
 	node_t *value;
 } node_argument_t;
 
 typedef struct node_parameter {
 	uint64_t flag;
-	node_t *name;
+	node_t *key;
 	node_t *type;
 	node_t *value;
 } node_parameter_t;
 
 typedef struct node_field {
-	node_t *name;
+	node_t *key;
 	node_t *type;
 } node_field_t;
 
 typedef struct node_heritage {
-	node_t *name;
+	node_t *key;
 	node_t *type;
 } node_heritage_t;
 
 typedef struct node_generic {
-	node_t *name;
+	node_t *key;
 	node_t *type;
 	node_t *value;
 } node_generic_t;
@@ -255,16 +247,15 @@ typedef struct node_lambda {
 
 typedef struct node_func {
 	uint64_t flag;
-	list_t *heritages;
 	list_t *generics;
-	node_t *name;
+	node_t *key;
 	list_t *parameters;
 	node_t *body;
 } node_func_t;
 
 typedef struct node_method {
 	uint64_t flag;
-	node_t *name;
+	node_t *key;
 	list_t *generics;
 	list_t *parameters;
 	node_t *body;
@@ -272,35 +263,33 @@ typedef struct node_method {
 
 typedef struct node_property {
 	uint64_t flag;
-	node_t *name;
+	node_t *key;
 	node_t *type;
 	node_t *value;
 } node_property_t;
 
 typedef struct node_class {
 	uint64_t flag;
-	node_t *name;
+	node_t *key;
 	list_t *heritages;
 	list_t *generics;
 	list_t *body;
 } node_class_t;
 
 typedef struct node_member {
-	node_t *name;
+	node_t *key;
 	node_t *value;
 } node_member_t;
 
 typedef struct node_enum {
 	uint64_t flag;
-	node_t *name;
+	node_t *key;
 	list_t *body;
 } node_enum_t;
 
 typedef struct node_import {
-	node_t *name;
 	node_t *path;
 	list_t *fields;
-	list_t *generics;
 } node_import_t;
 
 typedef struct node_module {
@@ -524,7 +513,7 @@ node_t *
 node_make_var(position_t position, uint64_t flag, node_t *name, node_t *type, node_t *value);
 
 node_t *
-node_make_type(position_t position, uint64_t flag, node_t *name, list_t *generics, list_t *heritages, node_t *body);
+node_make_type(position_t position, uint64_t flag, node_t *name, list_t *generics, node_t *body);
 
 
 
@@ -532,16 +521,15 @@ node_t *
 node_make_parameter(position_t position, uint64_t flag, node_t *name, node_t *type, node_t *value);
 
 node_t *
-node_make_field(position_t position, node_t *name, node_t *type);
+node_make_field(position_t position, node_t *key, node_t *value);
 
 node_t *
-node_make_generic(position_t position, node_t *name, node_t *heritage, node_t *value);
+node_make_generic(position_t position, node_t *key, node_t *type, node_t *value);
 
 node_t *
 node_make_func(
 	position_t position,
 	uint64_t flag,
-	list_t *heritages,
 	list_t *generics, 
 	node_t *name, 
 	list_t *parameters, 
@@ -551,7 +539,7 @@ node_t *
 node_make_lambda(position_t position, list_t *parameters, node_t *block);
 
 node_t *
-node_make_heritage(position_t position, node_t *name, node_t *type);
+node_make_heritage(position_t position, node_t *key, node_t *type);
 
 node_t *
 node_make_method(position_t position, uint64_t flag, node_t *name, list_t *generics, list_t *parameters, node_t *body);
@@ -578,7 +566,7 @@ node_t *
 node_make_block(position_t position, list_t *stmt_list);
 
 node_t *
-node_make_import(position_t position, node_t *name, list_t *generics, node_t *path, list_t *fields);
+node_make_import(position_t position, node_t *path, list_t *fields);
 
 node_t *
 node_make_module(position_t position, char *path, list_t *members);

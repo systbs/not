@@ -820,7 +820,7 @@ node_make_shr_assign(position_t position, node_t *left, node_t *right){
 
 
 node_t *
-node_make_if(position_t position, node_t *name, node_t *condition, node_t *then_body, node_t *else_body)
+node_make_if(position_t position, node_t *key, node_t *condition, node_t *then_body, node_t *else_body)
 {
 	node_if_t *node_if;
 	if(!(node_if = (node_if_t *)malloc(sizeof(node_if_t))))
@@ -831,7 +831,7 @@ node_make_if(position_t position, node_t *name, node_t *condition, node_t *then_
 
 	memset(node_if, 0, sizeof(node_if_t));
 	
-	node_if->name = name;
+	node_if->key = key;
 	node_if->condition = condition;
 	node_if->then_body = then_body;
 	node_if->else_body = else_body;
@@ -840,7 +840,7 @@ node_make_if(position_t position, node_t *name, node_t *condition, node_t *then_
 }
 
 node_t *
-node_make_for(position_t position, uint64_t flag, node_t *name, list_t *initializer, node_t *condition, list_t *incrementor, node_t *body)
+node_make_for(position_t position, uint64_t flag, node_t *key, list_t *initializer, node_t *condition, list_t *incrementor, node_t *body)
 {
 	node_for_t *node_for;
 	if(!(node_for = (node_for_t *)malloc(sizeof(node_for_t)))){
@@ -851,7 +851,7 @@ node_make_for(position_t position, uint64_t flag, node_t *name, list_t *initiali
 	memset(node_for, 0, sizeof(node_for_t));
 
 	node_for->flag = flag;
-	node_for->name = name;
+	node_for->key = key;
 	node_for->initializer = initializer;
 	node_for->condition = condition;
 	node_for->incrementor = incrementor;
@@ -861,7 +861,7 @@ node_make_for(position_t position, uint64_t flag, node_t *name, list_t *initiali
 }
 
 node_t *
-node_make_forin(position_t position, uint64_t flag, node_t *name, list_t *initializer, node_t *expression, node_t *body)
+node_make_forin(position_t position, uint64_t flag, node_t *key, list_t *initializer, node_t *expression, node_t *body)
 {
 	node_forin_t *node_forin;
 	if(!(node_forin = (node_forin_t *)malloc(sizeof(node_forin_t))))
@@ -872,7 +872,7 @@ node_make_forin(position_t position, uint64_t flag, node_t *name, list_t *initia
 	memset(node_forin, 0, sizeof(node_forin_t));
 	
 	node_forin->flag = flag;
-	node_forin->name = name;
+	node_forin->key = key;
 	node_forin->initializer = initializer;
 	node_forin->expression = expression;
 	node_forin->body = body;
@@ -972,7 +972,7 @@ node_make_throw(position_t position, list_t *arguments)
 
 
 node_t *
-node_make_var(position_t position, uint64_t flag, node_t *name, node_t *type, node_t *value){
+node_make_var(position_t position, uint64_t flag, node_t *key, node_t *type, node_t *value){
 	node_var_t *node_var;
 	if(!(node_var = (node_var_t *)malloc(sizeof(node_var_t)))){
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_var_t));
@@ -980,7 +980,7 @@ node_make_var(position_t position, uint64_t flag, node_t *name, node_t *type, no
 	}
 	memset(node_var, 0, sizeof(node_var_t));
 	node_var->flag = flag;
-	node_var->name = name;
+	node_var->key = key;
 	node_var->type = type;
 	node_var->value = value;
 	
@@ -988,29 +988,7 @@ node_make_var(position_t position, uint64_t flag, node_t *name, node_t *type, no
 }
 
 node_t *
-node_make_type(position_t position, uint64_t flag, node_t *name, list_t *generics, list_t *heritages, node_t *body)
-{
-	node_type_t *node_type;
-	if(!(node_type = (node_type_t *)malloc(sizeof(node_type_t))))
-	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_type_t));
-		return NULL;
-	}
-	memset(node_type, 0, sizeof(node_type_t));
-	node_type->flag = flag;
-	node_type->name = name;
-	node_type->generics = generics;
-	node_type->body = body;
-	node_type->heritages = heritages;
-	
-	return node_make_node(position, NODE_KIND_TYPE, node_type);
-}
-
-
-
-
-node_t *
-node_make_argument(position_t position, node_t *name, node_t *value)
+node_make_argument(position_t position, node_t *key, node_t *value)
 {
 	node_argument_t *node_argument;
 	if(!(node_argument = (node_argument_t *)malloc(sizeof(node_argument_t)))){
@@ -1018,14 +996,14 @@ node_make_argument(position_t position, node_t *name, node_t *value)
 		return NULL;
 	}
 	memset(node_argument, 0, sizeof(node_argument_t));
-	node_argument->name = name;
+	node_argument->key = key;
 	node_argument->value = value;
 	
 	return node_make_node(position, NODE_KIND_ARGUMENT, node_argument);
 }
 
 node_t *
-node_make_parameter(position_t position, uint64_t flag, node_t *name, node_t *type, node_t *value){
+node_make_parameter(position_t position, uint64_t flag, node_t *key, node_t *type, node_t *value){
 	node_parameter_t *node_parameter;
 	if(!(node_parameter = (node_parameter_t *)malloc(sizeof(node_parameter_t)))){
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_parameter_t));
@@ -1033,7 +1011,7 @@ node_make_parameter(position_t position, uint64_t flag, node_t *name, node_t *ty
 	}
 	memset(node_parameter, 0, sizeof(node_parameter_t));
 	node_parameter->flag = flag;
-	node_parameter->name = name;
+	node_parameter->key = key;
 	node_parameter->type = type;
 	node_parameter->value = value;
 	
@@ -1041,7 +1019,7 @@ node_make_parameter(position_t position, uint64_t flag, node_t *name, node_t *ty
 }
 
 node_t *
-node_make_field(position_t position, node_t *name, node_t *type)
+node_make_field(position_t position, node_t *key, node_t *type)
 {
 	node_field_t *node_field;
 	if(!(node_field = (node_field_t *)malloc(sizeof(node_field_t))))
@@ -1050,14 +1028,14 @@ node_make_field(position_t position, node_t *name, node_t *type)
 		return NULL;
 	}
 	memset(node_field, 0, sizeof(node_field_t));
-	node_field->name = name;
+	node_field->key = key;
 	node_field->type = type;
 	
 	return node_make_node(position, NODE_KIND_FIELD, node_field);
 }
 
 node_t *
-node_make_generic(position_t position, node_t *name, node_t *type, node_t *value)
+node_make_generic(position_t position, node_t *key, node_t *type, node_t *value)
 {
 	node_generic_t *node_generic;
 	if(!(node_generic = (node_generic_t *)malloc(sizeof(node_generic_t))))
@@ -1066,7 +1044,7 @@ node_make_generic(position_t position, node_t *name, node_t *type, node_t *value
 		return NULL;
 	}
 	memset(node_generic, 0, sizeof(node_generic_t));
-	node_generic->name = name;
+	node_generic->key = key;
 	node_generic->type = type;
 	node_generic->value = value;
 	
@@ -1074,7 +1052,7 @@ node_make_generic(position_t position, node_t *name, node_t *type, node_t *value
 }
 
 node_t *
-node_make_func(position_t position, uint64_t flag, list_t *heritages, list_t *generics, node_t *name, list_t *parameters, node_t *body)
+node_make_func(position_t position, uint64_t flag, list_t *generics, node_t *key, list_t *parameters, node_t *body)
 {
 	node_func_t *node_func;
 	if(!(node_func = (node_func_t *)malloc(sizeof(node_func_t))))
@@ -1084,9 +1062,8 @@ node_make_func(position_t position, uint64_t flag, list_t *heritages, list_t *ge
 	}
 	memset(node_func, 0, sizeof(node_func_t));
 	node_func->flag = flag;
-	node_func->heritages = heritages;
 	node_func->generics = generics;
-	node_func->name = name;
+	node_func->key = key;
 	node_func->parameters = parameters;
 	node_func->body = body;
 	
@@ -1110,7 +1087,7 @@ node_make_lambda(position_t position, list_t *parameters, node_t *body)
 }
 
 node_t *
-node_make_method(position_t position, uint64_t flag, node_t *name, list_t *generics, list_t *parameters, node_t *body)
+node_make_method(position_t position, uint64_t flag, node_t *key, list_t *generics, list_t *parameters, node_t *body)
 {
 	node_method_t *node_method;
 	if(!(node_method = (node_method_t *)malloc(sizeof(node_method_t)))){
@@ -1119,7 +1096,7 @@ node_make_method(position_t position, uint64_t flag, node_t *name, list_t *gener
 	}
 	memset(node_method, 0, sizeof(node_method_t));
 	node_method->flag = flag;
-	node_method->name = name;
+	node_method->key = key;
 	node_method->generics = generics;
 	node_method->parameters = parameters;
 	node_method->body = body;
@@ -1128,7 +1105,7 @@ node_make_method(position_t position, uint64_t flag, node_t *name, list_t *gener
 }
 
 node_t *
-node_make_property(position_t position, uint64_t flag, node_t *name, node_t *type, node_t *value)
+node_make_property(position_t position, uint64_t flag, node_t *key, node_t *type, node_t *value)
 {
 	node_property_t *node_property;
 	if(!(node_property = (node_property_t *)malloc(sizeof(node_property_t))))
@@ -1138,7 +1115,7 @@ node_make_property(position_t position, uint64_t flag, node_t *name, node_t *typ
 	}
 	memset(node_property, 0, sizeof(node_property_t));
 	node_property->flag = flag;
-	node_property->name = name;
+	node_property->key = key;
 	node_property->type = type;
 	node_property->value = value;
 	
@@ -1146,7 +1123,7 @@ node_make_property(position_t position, uint64_t flag, node_t *name, node_t *typ
 }
 
 node_t *
-node_make_heritage(position_t position, node_t *name, node_t *type)
+node_make_heritage(position_t position, node_t *key, node_t *type)
 {
 	node_heritage_t *node_heritage;
 	if(!(node_heritage = (node_heritage_t *)malloc(sizeof(node_heritage_t))))
@@ -1155,14 +1132,14 @@ node_make_heritage(position_t position, node_t *name, node_t *type)
 		return NULL;
 	}
 	memset(node_heritage, 0, sizeof(node_heritage_t));
-	node_heritage->name = name;
+	node_heritage->key = key;
 	node_heritage->type = type;
 	
 	return node_make_node(position, NODE_KIND_HERITAGE, node_heritage);
 }
 
 node_t *
-node_make_class(position_t position, uint64_t flag, node_t *name, list_t *generics, list_t *heritages, list_t *body)
+node_make_class(position_t position, uint64_t flag, node_t *key, list_t *generics, list_t *heritages, list_t *body)
 {
 	node_class_t *node_class;
 	if(!(node_class = (node_class_t *)malloc(sizeof(node_class_t))))
@@ -1172,7 +1149,7 @@ node_make_class(position_t position, uint64_t flag, node_t *name, list_t *generi
 	}
 	memset(node_class, 0, sizeof(node_class_t));
 	node_class->flag = flag;
-	node_class->name = name;
+	node_class->key = key;
 	node_class->generics = generics;
 	node_class->heritages = heritages;
 	node_class->body = body;
@@ -1181,21 +1158,21 @@ node_make_class(position_t position, uint64_t flag, node_t *name, list_t *generi
 }
 
 node_t *
-node_make_member(position_t position, node_t *name, node_t *value){
+node_make_member(position_t position, node_t *key, node_t *value){
 	node_member_t *node_member;
 	if(!(node_member = (node_member_t *)malloc(sizeof(node_member_t)))){
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_member_t));
 		return NULL;
 	}
 	memset(node_member, 0, sizeof(node_member_t));
-	node_member->name = name;
+	node_member->key = key;
 	node_member->value = value;
 	
 	return node_make_node(position, NODE_KIND_MEMBER, node_member);
 }
 
 node_t *
-node_make_enum(position_t position, uint64_t flag, node_t *name, list_t *body)
+node_make_enum(position_t position, uint64_t flag, node_t *key, list_t *body)
 {
 	node_enum_t *node_enum;
 	if(!(node_enum = (node_enum_t *)malloc(sizeof(node_enum_t))))
@@ -1205,7 +1182,7 @@ node_make_enum(position_t position, uint64_t flag, node_t *name, list_t *body)
 	}
 	memset(node_enum, 0, sizeof(node_enum_t));
 	node_enum->flag = flag;
-	node_enum->name = name;
+	node_enum->key = key;
 	node_enum->body = body;
 	
 	return node_make_node(position, NODE_KIND_ENUM, node_enum);
@@ -1227,7 +1204,7 @@ node_make_block(position_t position, list_t *list)
 }
 
 node_t *
-node_make_import(position_t position, node_t *name, list_t *generics, node_t *path, list_t *fields)
+node_make_import(position_t position, node_t *path, list_t *fields)
 {
 	node_import_t *node_import;
 	if(!(node_import = (node_import_t *)malloc(sizeof(node_import_t))))
@@ -1236,9 +1213,7 @@ node_make_import(position_t position, node_t *name, list_t *generics, node_t *pa
 		return NULL;
 	}
 	memset(node_import, 0, sizeof(node_import_t));
-	node_import->name = name;
 	node_import->path = path;
-	node_import->generics = generics;
 	node_import->fields = fields;
 	
 	return node_make_node(position, NODE_KIND_IMPORT, node_import);
