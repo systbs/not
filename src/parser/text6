@@ -1,91 +1,81 @@
-
-if (symbol_check_type(a, SYMBOL_PROPERTY))
+symbol_t *ck;
+ck = syntax_extract_with(current, SYMBOL_KEY);
+if (ck)
 {
-  symbol_t *ak;
-  ak = syntax_extract_with(a, SYMBOL_KEY);
-  if (ak)
+  symbol_t *root = current->parent;
+  if (root)
   {
-    if ((syntax_comparison_id(ck, ak) == 1) && (current != a))
+    symbol_t *a;
+    for (a = root->begin;(a != root->end) && (a != current);a = a->next)
     {
-      symbol_t *cgs;
-      cgs = syntax_extract_with(current, SYMBOL_GENERICS);
-      if (cgs)
+      if (symbol_check_type(a, SYMBOL_CLASS))
       {
-        int32_t no_value = -1;
-        symbol_t *b;
-        for (b = cgs->begin;(b != cgs->end);b = b->next)
+        symbol_t *ak;
+        ak = syntax_extract_with(a, SYMBOL_KEY);
+        if (ak)
         {
-          if (symbol_check_type(b, SYMBOL_GENERIC))
+          if ((syntax_comparison_id(ck, ak) == 1) && (current != a))
           {
-            symbol_t *cgv;
-            cgv = syntax_extract_with(b, SYMBOL_VALUE);
-            if (!cgv)
+            symbol_t *ags;
+            ags = syntax_only_with(a, SYMBOL_GENERICS);
+            if (ags)
             {
-              no_value = 1;
-              break;
-            }
-          }
-        }
-        if (no_value == -1)
-        {
-          symbol_t *cps;
-          cps = syntax_extract_with(current, SYMBOL_PARAMETERS);
-          if (cps)
-          {
-            int32_t no_value2 = -1;
-            for (b = cps->begin;(b != cps->end);b = b->next)
-            {
-              if (symbol_check_type(b, SYMBOL_PARAMETER))
+              int32_t no_value = -1;
+              symbol_t *b;
+              for (b = ags->begin;(b != ags->end);b = b->next)
               {
-                symbol_t *cpv;
-                cpv = syntax_extract_with(b, SYMBOL_VALUE);
-                if (!cpv)
+                if (symbol_check_type(b, SYMBOL_GENERIC))
                 {
-                  no_value2 = 1;
-                  break;
+                  symbol_t *agv;
+                  agv = syntax_extract_with(b, SYMBOL_VALUE);
+                  if (!agv)
+                  {
+                    no_value = 1;
+                    break;
+                  }
                 }
               }
+              if (no_value == -1)
+              {
+                syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+                  ak->declaration->position.line, ak->declaration->position.column);
+                return -1;
+              }
+              else
+              {
+                continue;
+              }
             }
-            if (no_value2 == -1)
+            else
             {
               syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
                 ak->declaration->position.line, ak->declaration->position.column);
               return -1;
             }
-            else
-            {
-              continue;
-            }
           }
           else
           {
-            syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
-              ak->declaration->position.line, ak->declaration->position.column);
-            return -1;
+            continue;
           }
         }
         else
         {
-          continue;
+          syntax_error(graph, current, "class without a key");
+          return -1;
         }
       }
-      else
-      {
-        syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
-          ak->declaration->position.line, ak->declaration->position.column);
-        return -1;
-      }
-    }
-    else
-    {
-      continue;
     }
   }
   else
   {
-    syntax_error(graph, a, "property without a key");
+    syntax_error(graph, current, "property without parent");
     return -1;
   }
+}
+else
+{
+  syntax_error(graph, current, "property without a key");
+  return -1;
 }
 
 
@@ -94,252 +84,6 @@ if (symbol_check_type(a, SYMBOL_PROPERTY))
 
 
 
-
-
-
-
-if (symbol_check_type(a, SYMBOL_CLASS))
-{
-  symbol_t *ak;
-  ak = syntax_extract_with(a, SYMBOL_KEY);
-  if (ak)
-  {
-    if ((syntax_comparison_id(ck, ak) == 1) && (current != a))
-    {
-      symbol_t *cgs;
-      cgs = syntax_extract_with(current, SYMBOL_GENERICS);
-      if (cgs)
-      {
-        symbol_t *ags;
-        ags = syntax_extract_with(a, SYMBOL_GENERICS);
-        if (ags)
-        {
-          int32_t result;
-          result = syntax_gsgs(graph, cgs, ags);
-          if (result == 1)
-          {
-            symbol_t *cps;
-            cps = syntax_extract_with(current, SYMBOL_PARAMETERS);
-            if (cps)
-            {
-              int32_t no_value2 = -1;
-              for (b = cps->begin;(b != cps->end);b = b->next)
-              {
-                if (symbol_check_type(b, SYMBOL_PARAMETER))
-                {
-                  symbol_t *cpv;
-                  cpv = syntax_extract_with(b, SYMBOL_VALUE);
-                  if (!cpv)
-                  {
-                    no_value2 = 1;
-                    break;
-                  }
-                }
-              }
-              if (no_value2 == -1)
-              {
-                syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
-                  ak->declaration->position.line, ak->declaration->position.column);
-                return -1;
-              }
-              else
-              {
-                continue;
-              }
-            }
-            else
-            {
-              syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
-                ak->declaration->position.line, ak->declaration->position.column);
-              return -1;
-            }
-          }
-          else
-          if (result == -1)
-          {
-            return -1;
-          }
-          else
-          {
-            continue;
-          }
-        }
-        else
-        {
-          int32_t no_value = -1;
-          symbol_t *b;
-          for (b = cgs->begin;(b != cgs->end);b = b->next)
-          {
-            if (symbol_check_type(b, SYMBOL_GENERIC))
-            {
-              symbol_t *cgv;
-              cgv = syntax_extract_with(b, SYMBOL_VALUE);
-              if (!cgv)
-              {
-                no_value = 1;
-                break;
-              }
-            }
-          }
-          if (no_value == -1)
-          {
-            symbol_t *cps;
-            cps = syntax_extract_with(current, SYMBOL_PARAMETERS);
-            if (cps)
-            {
-              int32_t no_value2 = -1;
-              for (b = cps->begin;(b != cps->end);b = b->next)
-              {
-                if (symbol_check_type(b, SYMBOL_PARAMETER))
-                {
-                  symbol_t *cpv;
-                  cpv = syntax_extract_with(b, SYMBOL_VALUE);
-                  if (!cpv)
-                  {
-                    no_value2 = 1;
-                    break;
-                  }
-                }
-              }
-              if (no_value2 == -1)
-              {
-                syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
-                  ak->declaration->position.line, ak->declaration->position.column);
-                return -1;
-              }
-              else
-              {
-                continue;
-              }
-            }
-            else
-            {
-              syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
-                ak->declaration->position.line, ak->declaration->position.column);
-              return -1;
-            }
-          }
-          else
-          {
-            continue;
-          }
-        }
-      }
-      else
-      {
-        symbol_t *ags;
-        ags = syntax_extract_with(a, SYMBOL_GENERICS);
-        if (ags)
-        {
-          int32_t no_value = -1;
-          symbol_t *b;
-          for (b = ags->begin;(b != ags->end);b = b->next)
-          {
-            if (symbol_check_type(b, SYMBOL_GENERIC))
-            {
-              symbol_t *agv;
-              agv = syntax_extract_with(b, SYMBOL_VALUE);
-              if (!agv)
-              {
-                no_value = 1;
-                break;
-              }
-            }
-          }
-          if (no_value == -1)
-          {
-            symbol_t *cps;
-            cps = syntax_extract_with(current, SYMBOL_PARAMETERS);
-            if (cps)
-            {
-              int32_t no_value2 = -1;
-              for (b = cps->begin;(b != cps->end);b = b->next)
-              {
-                if (symbol_check_type(b, SYMBOL_PARAMETER))
-                {
-                  symbol_t *cpv;
-                  cpv = syntax_extract_with(b, SYMBOL_VALUE);
-                  if (!cpv)
-                  {
-                    no_value2 = 1;
-                    break;
-                  }
-                }
-              }
-              if (no_value2 == -1)
-              {
-                syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
-                  ak->declaration->position.line, ak->declaration->position.column);
-                return -1;
-              }
-              else
-              {
-                continue;
-              }
-            }
-            else
-            {
-              syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
-                ak->declaration->position.line, ak->declaration->position.column);
-              return -1;
-            }
-          }
-          else
-          {
-            continue;
-          }
-        }
-        else
-        {
-          symbol_t *cps;
-          cps = syntax_extract_with(current, SYMBOL_PARAMETERS);
-          if (cps)
-          {
-            int32_t no_value2 = -1;
-            for (b = cps->begin;(b != cps->end);b = b->next)
-            {
-              if (symbol_check_type(b, SYMBOL_PARAMETER))
-              {
-                symbol_t *cpv;
-                cpv = syntax_extract_with(b, SYMBOL_VALUE);
-                if (!cpv)
-                {
-                  no_value2 = 1;
-                  break;
-                }
-              }
-            }
-            if (no_value2 == -1)
-            {
-              syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
-                ak->declaration->position.line, ak->declaration->position.column);
-              return -1;
-            }
-            else
-            {
-              continue;
-            }
-          }
-          else
-          {
-            syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
-              ak->declaration->position.line, ak->declaration->position.column);
-            return -1;
-          }
-        }
-      }
-    }
-    else
-    {
-      continue;
-    }
-  }
-  else
-  {
-    syntax_error(graph, a, "class without a key");
-    return -1;
-  }
-}
 
 
 

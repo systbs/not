@@ -3,12 +3,14 @@ export class string {
 }
 
 export class int {
-  init:int;
+  
 
   func init (arg:string)
   {
 
   }
+
+  init:int;
 }
 
 func init(args:int)
