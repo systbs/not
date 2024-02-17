@@ -871,7 +871,7 @@ syntax_psps(graph_t *graph, symbol_t *ps1, symbol_t *ps2)
 			if (ps2_cnt > ps1_cnt)
 			{
 				symbol_t *value;
-				value = syntax_extract_with(b, SYMBOL_VALUE);
+				value = syntax_only_with(b, SYMBOL_VALUE);
 				if (!value)
 				{
 					return -1;
@@ -6560,19 +6560,1373 @@ syntax_property(graph_t *graph, symbol_t *current)
 static int32_t
 syntax_function(graph_t *graph, symbol_t *current)
 {
+	symbol_t *ck;
+	ck = syntax_extract_with(current, SYMBOL_KEY);
+	if (ck)
+	{
+		symbol_t *root = current->parent;
+		if (root)
+		{
+			symbol_t *a;
+			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			{
+				if (symbol_check_type(a, SYMBOL_CLASS))
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if ((syntax_comparison_id(ck, ak) == 1) && (current != a))
+						{
+							symbol_t *cgs;
+							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							if (cgs)
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t result;
+									result = syntax_gsgs(graph, cgs, ags);
+									if (result == 1)
+									{
+										symbol_t *cps;
+										cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+										if (cps)
+										{
+											int32_t no_value2 = -1;
+											symbol_t *b;
+											for (b = cps->begin;(b != cps->end);b = b->next)
+											{
+												if (symbol_check_type(b, SYMBOL_PARAMETER))
+												{
+													symbol_t *cpv;
+													cpv = syntax_only_with(b, SYMBOL_VALUE);
+													if (!cpv)
+													{
+														no_value2 = 1;
+														break;
+													}
+												}
+											}
+											if (no_value2 == -1)
+											{
+												syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+											else
+											{
+												continue;
+											}
+										}
+										else
+										{
+											syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+									else
+									if (result == -1)
+									{
+										return -1;
+									}
+									else
+									{
+										continue;
+									}
+								}
+								else
+								{
+									int32_t no_value = -1;
+									symbol_t *b;
+									for (b = cgs->begin;(b != cgs->end);b = b->next)
+									{
+										if (symbol_check_type(b, SYMBOL_GENERIC))
+										{
+											symbol_t *cgv;
+											cgv = syntax_only_with(b, SYMBOL_VALUE);
+											if (!cgv)
+											{
+												no_value = 1;
+												break;
+											}
+										}
+									}
+									if (no_value == -1)
+									{
+										symbol_t *cps;
+										cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+										if (cps)
+										{
+											int32_t no_value2 = -1;
+											for (b = cps->begin;(b != cps->end);b = b->next)
+											{
+												if (symbol_check_type(b, SYMBOL_PARAMETER))
+												{
+													symbol_t *cpv;
+													cpv = syntax_only_with(b, SYMBOL_VALUE);
+													if (!cpv)
+													{
+														no_value2 = 1;
+														break;
+													}
+												}
+											}
+											if (no_value2 == -1)
+											{
+												syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+											else
+											{
+												continue;
+											}
+										}
+										else
+										{
+											syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+									else
+									{
+										continue;
+									}
+								}
+							}
+							else
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t no_value = -1;
+									symbol_t *b;
+									for (b = ags->begin;(b != ags->end);b = b->next)
+									{
+										if (symbol_check_type(b, SYMBOL_GENERIC))
+										{
+											symbol_t *agv;
+											agv = syntax_only_with(b, SYMBOL_VALUE);
+											if (!agv)
+											{
+												no_value = 1;
+												break;
+											}
+										}
+									}
+									if (no_value == -1)
+									{
+										symbol_t *cps;
+										cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+										if (cps)
+										{
+											int32_t no_value2 = -1;
+											for (b = cps->begin;(b != cps->end);b = b->next)
+											{
+												if (symbol_check_type(b, SYMBOL_PARAMETER))
+												{
+													symbol_t *cpv;
+													cpv = syntax_only_with(b, SYMBOL_VALUE);
+													if (!cpv)
+													{
+														no_value2 = 1;
+														break;
+													}
+												}
+											}
+											if (no_value2 == -1)
+											{
+												syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+											else
+											{
+												continue;
+											}
+										}
+										else
+										{
+											syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+									else
+									{
+										continue;
+									}
+								}
+								else
+								{
+									symbol_t *cps;
+									cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+									if (cps)
+									{
+										int32_t no_value2 = -1;
+										symbol_t *b;
+										for (b = cps->begin;(b != cps->end);b = b->next)
+										{
+											if (symbol_check_type(b, SYMBOL_PARAMETER))
+											{
+												symbol_t *cpv;
+												cpv = syntax_only_with(b, SYMBOL_VALUE);
+												if (!cpv)
+												{
+													no_value2 = 1;
+													break;
+												}
+											}
+										}
+										if (no_value2 == -1)
+										{
+											syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+										else
+										{
+											continue;
+										}
+									}
+									else
+									{
+										syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+											ak->declaration->position.line, ak->declaration->position.column);
+										return -1;
+									}
+								}
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, a, "class without a key");
+						return -1;
+					}
+				}
+				else
+				if (symbol_check_type(a, SYMBOL_FUNCTION))
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if ((syntax_comparison_id(ck, ak) == 1) && (current != a))
+						{
+							symbol_t *cgs;
+							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							if (cgs)
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t result;
+									result = syntax_gsgs(graph, cgs, ags);
+									if (result == 1)
+									{
+										symbol_t *cps;
+										cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+										if (cps)
+										{
+											symbol_t *aps;
+											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (aps)
+											{
+												int32_t result;
+												result = syntax_psps(graph, cps, aps);
+												if (result == 1)
+												{
+													syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+												if (result == -1)
+												{
+													return -1;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												int32_t no_value = -1;
+												symbol_t *b;
+												for (b = cps->begin;(b != cps->end);b = b->next)
+												{
+													if (symbol_check_type(b, SYMBOL_PARAMETER))
+													{
+														symbol_t *cpv;
+														cpv = syntax_only_with(b, SYMBOL_VALUE);
+														if (!cpv)
+														{
+															no_value = 1;
+															break;
+														}
+													}
+												}
+												if (no_value == -1)
+												{
+													syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+												else
+												{
+													continue;
+												}
+											}
+										}
+										else
+										{
+											symbol_t *aps;
+											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (aps)
+											{
+												int32_t no_value = -1;
+												symbol_t *b;
+												for (b = aps->begin;(b != aps->end);b = b->next)
+												{
+													if (symbol_check_type(b, SYMBOL_PARAMETER))
+													{
+														symbol_t *apv;
+														apv = syntax_only_with(b, SYMBOL_VALUE);
+														if (!apv)
+														{
+															no_value = 1;
+															break;
+														}
+													}
+												}
+												if (no_value == -1)
+												{
+													syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+									}
+									else
+									if (result == -1)
+									{
+										return -1;
+									}
+									else
+									{
+										continue;
+									}
+								}
+								else
+								{
+									int32_t no_value = -1;
+									symbol_t *b;
+									for (b = cgs->begin;(b != cgs->end);b = b->next)
+									{
+										if (symbol_check_type(b, SYMBOL_GENERIC))
+										{
+											symbol_t *cgv;
+											cgv = syntax_only_with(b, SYMBOL_VALUE);
+											if (!cgv)
+											{
+												no_value = 1;
+												break;
+											}
+										}
+									}
+									if (no_value == -1)
+									{
+										symbol_t *cps;
+										cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+										if (cps)
+										{
+											symbol_t *aps;
+											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (aps)
+											{
+												int32_t result;
+												result = syntax_psps(graph, cps, aps);
+												if (result == 1)
+												{
+													syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+												if (result == -1)
+												{
+													return -1;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												int32_t no_value = -1;
+												for (b = cps->begin;(b != cps->end);b = b->next)
+												{
+													if (symbol_check_type(b, SYMBOL_PARAMETER))
+													{
+														symbol_t *cpv;
+														cpv = syntax_only_with(b, SYMBOL_VALUE);
+														if (!cpv)
+														{
+															no_value = 1;
+															break;
+														}
+													}
+												}
+												if (no_value == -1)
+												{
+													syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+												else
+												{
+													continue;
+												}
+											}
+										}
+										else
+										{
+											symbol_t *aps;
+											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (aps)
+											{
+												int32_t no_value = -1;
+												for (b = aps->begin;(b != aps->end);b = b->next)
+												{
+													if (symbol_check_type(b, SYMBOL_PARAMETER))
+													{
+														symbol_t *apv;
+														apv = syntax_only_with(b, SYMBOL_VALUE);
+														if (!apv)
+														{
+															no_value = 1;
+															break;
+														}
+													}
+												}
+												if (no_value == -1)
+												{
+													syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+									}
+									else
+									{
+										continue;
+									}
+								}
+							}
+							else
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t no_value = -1;
+									symbol_t *b;
+									for (b = ags->begin;(b != ags->end);b = b->next)
+									{
+										if (symbol_check_type(b, SYMBOL_GENERIC))
+										{
+											symbol_t *agv;
+											agv = syntax_only_with(b, SYMBOL_VALUE);
+											if (!agv)
+											{
+												no_value = 1;
+												break;
+											}
+										}
+									}
+									if (no_value == -1)
+									{
+										symbol_t *cps;
+										cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+										if (cps)
+										{
+											symbol_t *aps;
+											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (aps)
+											{
+												int32_t result;
+												result = syntax_psps(graph, cps, aps);
+												if (result == 1)
+												{
+													syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+												if (result == -1)
+												{
+													return -1;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												int32_t no_value = -1;
+												for (b = cps->begin;(b != cps->end);b = b->next)
+												{
+													if (symbol_check_type(b, SYMBOL_PARAMETER))
+													{
+														symbol_t *cpv;
+														cpv = syntax_only_with(b, SYMBOL_VALUE);
+														if (!cpv)
+														{
+															no_value = 1;
+															break;
+														}
+													}
+												}
+												if (no_value == -1)
+												{
+													syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+												else
+												{
+													continue;
+												}
+											}
+										}
+										else
+										{
+											symbol_t *aps;
+											aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (aps)
+											{
+												int32_t no_value = -1;
+												for (b = aps->begin;(b != aps->end);b = b->next)
+												{
+													if (symbol_check_type(b, SYMBOL_PARAMETER))
+													{
+														symbol_t *apv;
+														apv = syntax_only_with(b, SYMBOL_VALUE);
+														if (!apv)
+														{
+															no_value = 1;
+															break;
+														}
+													}
+												}
+												if (no_value == -1)
+												{
+													syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+									}
+									else
+									{
+										continue;
+									}
+								}
+								else
+								{
+									symbol_t *cps;
+									cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+									if (cps)
+									{
+										symbol_t *aps;
+										aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+										if (aps)
+										{
+											int32_t result;
+											result = syntax_psps(graph, cps, aps);
+											if (result == 1)
+											{
+												syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+											else
+											if (result == -1)
+											{
+												return -1;
+											}
+											else
+											{
+												continue;
+											}
+										}
+										else
+										{
+											int32_t no_value = -1;
+											symbol_t *b;
+											for (b = cps->begin;(b != cps->end);b = b->next)
+											{
+												if (symbol_check_type(b, SYMBOL_PARAMETER))
+												{
+													symbol_t *cpv;
+													cpv = syntax_only_with(b, SYMBOL_VALUE);
+													if (!cpv)
+													{
+														no_value = 1;
+														break;
+													}
+												}
+											}
+											if (no_value == -1)
+											{
+												syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+											else
+											{
+												continue;
+											}
+										}
+									}
+									else
+									{
+										symbol_t *aps;
+										aps = syntax_only_with(a, SYMBOL_PARAMETERS);
+										if (aps)
+										{
+											int32_t no_value = -1;
+											symbol_t *b;
+											for (b = aps->begin;(b != aps->end);b = b->next)
+											{
+												if (symbol_check_type(b, SYMBOL_PARAMETER))
+												{
+													symbol_t *apv;
+													apv = syntax_only_with(b, SYMBOL_VALUE);
+													if (!apv)
+													{
+														no_value = 1;
+														break;
+													}
+												}
+											}
+											if (no_value == -1)
+											{
+												syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+											else
+											{
+												continue;
+											}
+										}
+										else
+										{
+											syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+								}
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, a, "function without a key");
+						return -1;
+					}
+				}
+				else
+				if (symbol_check_type(a, SYMBOL_PROPERTY))
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if ((syntax_comparison_id(ck, ak) == 1) && (current != a))
+						{
+							symbol_t *cgs;
+							cgs = syntax_extract_with(current, SYMBOL_GENERICS);
+							if (cgs)
+							{
+								int32_t no_value = -1;
+								symbol_t *b;
+								for (b = cgs->begin;(b != cgs->end);b = b->next)
+								{
+									if (symbol_check_type(b, SYMBOL_GENERIC))
+									{
+										symbol_t *cgv;
+										cgv = syntax_extract_with(b, SYMBOL_VALUE);
+										if (!cgv)
+										{
+											no_value = 1;
+											break;
+										}
+									}
+								}
+								if (no_value == -1)
+								{
+									symbol_t *cps;
+									cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+									if (cps)
+									{
+										int32_t no_value2 = -1;
+										for (b = cps->begin;(b != cps->end);b = b->next)
+										{
+											if (symbol_check_type(b, SYMBOL_PARAMETER))
+											{
+												symbol_t *cpv;
+												cpv = syntax_extract_with(b, SYMBOL_VALUE);
+												if (!cpv)
+												{
+													no_value2 = 1;
+													break;
+												}
+											}
+										}
+										if (no_value2 == -1)
+										{
+											syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+										else
+										{
+											continue;
+										}
+									}
+									else
+									{
+										syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+											ak->declaration->position.line, ak->declaration->position.column);
+										return -1;
+									}
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								symbol_t *cps;
+								cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+								if (cps)
+								{
+									int32_t no_value2 = -1;
+									symbol_t *b;
+									for (b = cps->begin;(b != cps->end);b = b->next)
+									{
+										if (symbol_check_type(b, SYMBOL_PARAMETER))
+										{
+											symbol_t *cpv;
+											cpv = syntax_extract_with(b, SYMBOL_VALUE);
+											if (!cpv)
+											{
+												no_value2 = 1;
+												break;
+											}
+										}
+									}
+									if (no_value2 == -1)
+									{
+										syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+											ak->declaration->position.line, ak->declaration->position.column);
+										return -1;
+									}
+									else
+									{
+										continue;
+									}
+								}
+								else
+								{
+									syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+										ak->declaration->position.line, ak->declaration->position.column);
+									return -1;
+								}
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, a, "property without a key");
+						return -1;
+					}
+				}
+				else
+				if (symbol_check_type(a, SYMBOL_VAR))
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if ((syntax_comparison_id(ck, ak) == 1) && (current != a))
+						{
+							symbol_t *cgs;
+							cgs = syntax_extract_with(current, SYMBOL_GENERICS);
+							if (cgs)
+							{
+								int32_t no_value = -1;
+								symbol_t *b;
+								for (b = cgs->begin;(b != cgs->end);b = b->next)
+								{
+									if (symbol_check_type(b, SYMBOL_GENERIC))
+									{
+										symbol_t *cgv;
+										cgv = syntax_extract_with(b, SYMBOL_VALUE);
+										if (!cgv)
+										{
+											no_value = 1;
+											break;
+										}
+									}
+								}
+								if (no_value == -1)
+								{
+									symbol_t *cps;
+									cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+									if (cps)
+									{
+										int32_t no_value2 = -1;
+										for (b = cps->begin;(b != cps->end);b = b->next)
+										{
+											if (symbol_check_type(b, SYMBOL_PARAMETER))
+											{
+												symbol_t *cpv;
+												cpv = syntax_extract_with(b, SYMBOL_VALUE);
+												if (!cpv)
+												{
+													no_value2 = 1;
+													break;
+												}
+											}
+										}
+										if (no_value2 == -1)
+										{
+											syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+										else
+										{
+											continue;
+										}
+									}
+									else
+									{
+										syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+											ak->declaration->position.line, ak->declaration->position.column);
+										return -1;
+									}
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								symbol_t *cps;
+								cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+								if (cps)
+								{
+									int32_t no_value2 = -1;
+									symbol_t *b;
+									for (b = cps->begin;(b != cps->end);b = b->next)
+									{
+										if (symbol_check_type(b, SYMBOL_PARAMETER))
+										{
+											symbol_t *cpv;
+											cpv = syntax_extract_with(b, SYMBOL_VALUE);
+											if (!cpv)
+											{
+												no_value2 = 1;
+												break;
+											}
+										}
+									}
+									if (no_value2 == -1)
+									{
+										syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+											ak->declaration->position.line, ak->declaration->position.column);
+										return -1;
+									}
+									else
+									{
+										continue;
+									}
+								}
+								else
+								{
+									syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+										ak->declaration->position.line, ak->declaration->position.column);
+									return -1;
+								}
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, a, "variable without a key");
+						return -1;
+					}
+				}
+				else
+				if (symbol_check_type(a, SYMBOL_ENUM))
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if ((syntax_comparison_id(ck, ak) == 1) && (current != a))
+						{
+							symbol_t *cgs;
+							cgs = syntax_extract_with(current, SYMBOL_GENERICS);
+							if (cgs)
+							{
+								int32_t no_value = -1;
+								symbol_t *b;
+								for (b = cgs->begin;(b != cgs->end);b = b->next)
+								{
+									if (symbol_check_type(b, SYMBOL_GENERIC))
+									{
+										symbol_t *cgv;
+										cgv = syntax_extract_with(b, SYMBOL_VALUE);
+										if (!cgv)
+										{
+											no_value = 1;
+											break;
+										}
+									}
+								}
+								if (no_value == -1)
+								{
+									symbol_t *cps;
+									cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+									if (cps)
+									{
+										int32_t no_value2 = -1;
+										for (b = cps->begin;(b != cps->end);b = b->next)
+										{
+											if (symbol_check_type(b, SYMBOL_PARAMETER))
+											{
+												symbol_t *cpv;
+												cpv = syntax_extract_with(b, SYMBOL_VALUE);
+												if (!cpv)
+												{
+													no_value2 = 1;
+													break;
+												}
+											}
+										}
+										if (no_value2 == -1)
+										{
+											syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+										else
+										{
+											continue;
+										}
+									}
+									else
+									{
+										syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+											ak->declaration->position.line, ak->declaration->position.column);
+										return -1;
+									}
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								symbol_t *cps;
+								cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+								if (cps)
+								{
+									int32_t no_value2 = -1;
+									symbol_t *b;
+									for (b = cps->begin;(b != cps->end);b = b->next)
+									{
+										if (symbol_check_type(b, SYMBOL_PARAMETER))
+										{
+											symbol_t *cpv;
+											cpv = syntax_extract_with(b, SYMBOL_VALUE);
+											if (!cpv)
+											{
+												no_value2 = 1;
+												break;
+											}
+										}
+									}
+									if (no_value2 == -1)
+									{
+										syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+											ak->declaration->position.line, ak->declaration->position.column);
+										return -1;
+									}
+									else
+									{
+										continue;
+									}
+								}
+								else
+								{
+									syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+										ak->declaration->position.line, ak->declaration->position.column);
+									return -1;
+								}
+							}
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, a, "enum without a key");
+						return -1;
+					}
+				}
+				else
+				if (symbol_check_type(a, SYMBOL_GENERICS))
+				{
+					symbol_t *d;
+					for (d = a->begin;(d != a->end);d = d->next)
+					{
+						if (symbol_check_type(d, SYMBOL_GENERIC))
+						{
+							symbol_t *dk;
+							dk = syntax_extract_with(d, SYMBOL_KEY);
+							if (dk)
+							{
+								if ((syntax_comparison_id(ck, dk) == 1) && (current != a))
+								{
+									symbol_t *cgs;
+									cgs = syntax_extract_with(current, SYMBOL_GENERICS);
+									if (cgs)
+									{
+										int32_t no_value = -1;
+										symbol_t *b;
+										for (b = cgs->begin;(b != cgs->end);b = b->next)
+										{
+											if (symbol_check_type(b, SYMBOL_GENERIC))
+											{
+												symbol_t *cgv;
+												cgv = syntax_extract_with(b, SYMBOL_VALUE);
+												if (!cgv)
+												{
+													no_value = 1;
+													break;
+												}
+											}
+										}
+										if (no_value == -1)
+										{
+											symbol_t *cps;
+											cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+											if (cps)
+											{
+												int32_t no_value2 = -1;
+												for (b = cps->begin;(b != cps->end);b = b->next)
+												{
+													if (symbol_check_type(b, SYMBOL_PARAMETER))
+													{
+														symbol_t *cpv;
+														cpv = syntax_extract_with(b, SYMBOL_VALUE);
+														if (!cpv)
+														{
+															no_value2 = 1;
+															break;
+														}
+													}
+												}
+												if (no_value2 == -1)
+												{
+													syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+														dk->declaration->position.line, dk->declaration->position.column);
+													return -1;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+													dk->declaration->position.line, dk->declaration->position.column);
+												return -1;
+											}
+										}
+										else
+										{
+											continue;
+										}
+									}
+									else
+									{
+										symbol_t *cps;
+										cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+										if (cps)
+										{
+											int32_t no_value2 = -1;
+											symbol_t *b;
+											for (b = cps->begin;(b != cps->end);b = b->next)
+											{
+												if (symbol_check_type(b, SYMBOL_PARAMETER))
+												{
+													symbol_t *cpv;
+													cpv = syntax_extract_with(b, SYMBOL_VALUE);
+													if (!cpv)
+													{
+														no_value2 = 1;
+														break;
+													}
+												}
+											}
+											if (no_value2 == -1)
+											{
+												syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+													dk->declaration->position.line, dk->declaration->position.column);
+												return -1;
+											}
+											else
+											{
+												continue;
+											}
+										}
+										else
+										{
+											syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+												dk->declaration->position.line, dk->declaration->position.column);
+											return -1;
+										}
+									}
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, d, "generic without a key");
+								return -1;
+							}
+						}
+					}
+				}
+				else
+				if (symbol_check_type(a, SYMBOL_HERITAGES))
+				{
+					symbol_t *d;
+					for (d = a->begin;(d != a->end);d = d->next)
+					{
+						if (symbol_check_type(d, SYMBOL_HERITAGE))
+						{
+							symbol_t *dk;
+							dk = syntax_extract_with(d, SYMBOL_KEY);
+							if (dk)
+							{
+								if ((syntax_comparison_id(ck, dk) == 1) && (current != a))
+								{
+									symbol_t *cgs;
+									cgs = syntax_extract_with(current, SYMBOL_GENERICS);
+									if (cgs)
+									{
+										int32_t no_value = -1;
+										symbol_t *b;
+										for (b = cgs->begin;(b != cgs->end);b = b->next)
+										{
+											if (symbol_check_type(b, SYMBOL_GENERIC))
+											{
+												symbol_t *cgv;
+												cgv = syntax_extract_with(b, SYMBOL_VALUE);
+												if (!cgv)
+												{
+													no_value = 1;
+													break;
+												}
+											}
+										}
+										if (no_value == -1)
+										{
+											symbol_t *cps;
+											cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+											if (cps)
+											{
+												int32_t no_value2 = -1;
+												for (b = cps->begin;(b != cps->end);b = b->next)
+												{
+													if (symbol_check_type(b, SYMBOL_PARAMETER))
+													{
+														symbol_t *cpv;
+														cpv = syntax_extract_with(b, SYMBOL_VALUE);
+														if (!cpv)
+														{
+															no_value2 = 1;
+															break;
+														}
+													}
+												}
+												if (no_value2 == -1)
+												{
+													syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+														dk->declaration->position.line, dk->declaration->position.column);
+													return -1;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+													dk->declaration->position.line, dk->declaration->position.column);
+												return -1;
+											}
+										}
+										else
+										{
+											continue;
+										}
+									}
+									else
+									{
+										symbol_t *cps;
+										cps = syntax_only_with(current, SYMBOL_PARAMETERS);
+										if (cps)
+										{
+											int32_t no_value2 = -1;
+											symbol_t *b;
+											for (b = cps->begin;(b != cps->end);b = b->next)
+											{
+												if (symbol_check_type(b, SYMBOL_PARAMETER))
+												{
+													symbol_t *cpv;
+													cpv = syntax_extract_with(b, SYMBOL_VALUE);
+													if (!cpv)
+													{
+														no_value2 = 1;
+														break;
+													}
+												}
+											}
+											if (no_value2 == -1)
+											{
+												syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+													dk->declaration->position.line, dk->declaration->position.column);
+												return -1;
+											}
+											else
+											{
+												continue;
+											}
+										}
+										else
+										{
+											syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+												dk->declaration->position.line, dk->declaration->position.column);
+											return -1;
+										}
+									}
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								syntax_error(graph, d, "heritage without a key");
+								return -1;
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			syntax_error(graph, current, "function without parent");
+			return -1;
+		}
+	}
+	else
+	{
+		syntax_error(graph, current, "function without a key");
+		return -1;
+	}
+
 	symbol_t *a;
 	for (a = current->begin;a != current->end;a = a->next)
 	{
-		if (symbol_check_type(a, SYMBOL_HERITAGES))
-		{
-			int32_t result;
-			result = syntax_heritages(graph, a);
-			if (result == -1)
-			{
-				return -1;
-			}
-			continue;
-		}
 		if (symbol_check_type(a, SYMBOL_PARAMETERS))
 		{
 			int32_t result;

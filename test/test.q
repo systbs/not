@@ -3,11 +3,11 @@ export class string {
 }
 
 export class int {
-  func init (arg:string) {
+  init:int;
 
-  }
-  func init (arg:int) {
-    
+  func init (arg:string)
+  {
+
   }
 }
 
