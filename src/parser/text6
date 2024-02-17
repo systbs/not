@@ -8,7 +8,7 @@ if (ck)
     symbol_t *a;
     for (a = root->begin;(a != root->end) && (a != current);a = a->next)
     {
-      if (symbol_check_type(a, SYMBOL_CLASS))
+      if (symbol_check_type(a, SYMBOL_MEMBER))
       {
         symbol_t *ak;
         ak = syntax_extract_with(a, SYMBOL_KEY);
@@ -16,42 +16,9 @@ if (ck)
         {
           if ((syntax_comparison_id(ck, ak) == 1) && (current != a))
           {
-            symbol_t *ags;
-            ags = syntax_only_with(a, SYMBOL_GENERICS);
-            if (ags)
-            {
-              int32_t no_value = -1;
-              symbol_t *b;
-              for (b = ags->begin;(b != ags->end);b = b->next)
-              {
-                if (symbol_check_type(b, SYMBOL_GENERIC))
-                {
-                  symbol_t *agv;
-                  agv = syntax_extract_with(b, SYMBOL_VALUE);
-                  if (!agv)
-                  {
-                    no_value = 1;
-                    break;
-                  }
-                }
-              }
-              if (no_value == -1)
-              {
-                syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
-                  ak->declaration->position.line, ak->declaration->position.column);
-                return -1;
-              }
-              else
-              {
-                continue;
-              }
-            }
-            else
-            {
-              syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
-                ak->declaration->position.line, ak->declaration->position.column);
-              return -1;
-            }
+            syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+              ak->declaration->position.line, ak->declaration->position.column);
+            return -1;
           }
           else
           {
@@ -60,7 +27,7 @@ if (ck)
         }
         else
         {
-          syntax_error(graph, current, "class without a key");
+          syntax_error(graph, a, "enum member without a key");
           return -1;
         }
       }
@@ -68,13 +35,13 @@ if (ck)
   }
   else
   {
-    syntax_error(graph, current, "property without parent");
+    syntax_error(graph, current, "emum member without parent");
     return -1;
   }
 }
 else
 {
-  syntax_error(graph, current, "property without a key");
+  syntax_error(graph, current, "emum member without a key");
   return -1;
 }
 

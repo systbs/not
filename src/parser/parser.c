@@ -2901,7 +2901,7 @@ parser_statement(parser_t *parser)
 }
 
 static node_t *
-parser_enum_member(parser_t *parser)
+parser_member(parser_t *parser)
 {
 	position_t position = parser->token->position;
 
@@ -2930,47 +2930,6 @@ parser_enum_member(parser_t *parser)
 	return node_make_member(position, key, value);
 }
 
-static list_t *
-parser_enum_block(parser_t *parser)
-{
-	list_t *member_list;
-	member_list = list_create();
-	if (!member_list)
-	{
-		return NULL;
-	}
-
-	if (parser->token->type != TOKEN_RBRACE)
-	{
-		while (true)
-		{
-			node_t *member;
-			member = parser_enum_member(parser);
-			if (!member)
-			{
-				return NULL;
-			}
-
-			if (!list_rpush(member_list, (uint64_t)member))
-			{
-				return NULL;
-			}
-
-			if (parser->token->type != TOKEN_COMMA)
-			{
-				break;
-			}
-
-			if (!parser_next(parser))
-			{
-				return NULL;
-			}
-		}
-	}
-
-	return member_list;
-}
-
 static node_t *
 parser_enum(parser_t *parser, uint64_t flag)
 {
@@ -2993,11 +2952,39 @@ parser_enum(parser_t *parser, uint64_t flag)
 		return NULL;
 	}
 
-	list_t *body;
-	body = parser_enum_block(parser);
-	if (!body)
+	list_t *members;
+	members = list_create();
+	if (!members)
 	{
 		return NULL;
+	}
+
+	if (parser->token->type != TOKEN_RBRACE)
+	{
+		while (true)
+		{
+			node_t *member;
+			member = parser_member(parser);
+			if (!member)
+			{
+				return NULL;
+			}
+
+			if (!list_rpush(members, (uint64_t)member))
+			{
+				return NULL;
+			}
+
+			if (parser->token->type != TOKEN_COMMA)
+			{
+				break;
+			}
+
+			if (!parser_next(parser))
+			{
+				return NULL;
+			}
+		}
 	}
 
 	if (!parser_match(parser, TOKEN_RBRACE))
@@ -3005,7 +2992,7 @@ parser_enum(parser_t *parser, uint64_t flag)
 		return NULL;
 	}
 
-	return node_make_enum(position, flag, key, body);
+	return node_make_enum(position, flag, key, members);
 }
 
 static node_t *

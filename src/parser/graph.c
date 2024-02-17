@@ -2677,17 +2677,20 @@ graph_member(symbol_t *parent, node_t *node)
 		return -1;
 	}
 
-	symbol_t *key = symbol_rpush(symbol, SYMBOL_KEY, NULL);
-	if(!key)
-	{
-		return -1;
-	}
-
 	int32_t result;
-	result = graph_id(key, node_member->key);
-	if (result == -1)
+	if (node_member->key)
 	{
-		return -1;
+		symbol_t *key = symbol_rpush(symbol, SYMBOL_KEY, NULL);
+		if(!key)
+		{
+			return -1;
+		}
+		
+		result = graph_id(key, node_member->key);
+		if (result == -1)
+		{
+			return -1;
+		}
 	}
 
 	if (node_member->value)
@@ -2748,9 +2751,9 @@ graph_enum(symbol_t *parent, node_t *node)
 		ilist_t *a;
 		for (a = node_enum->body->begin; a != node_enum->body->end; a = a->next)
 		{
-			node_t *temp = (node_t *)a->value;
+			node_t *member = (node_t *)a->value;
 
-			result = graph_member(members, temp);
+			result = graph_member(members, member);
 			if (result == -1)
 			{
 				return -1;

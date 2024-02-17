@@ -6532,6 +6532,69 @@ syntax_heritages(graph_t *graph, symbol_t *current)
 static int32_t
 syntax_member(graph_t *graph, symbol_t *current)
 {
+	symbol_t *ck;
+	ck = syntax_extract_with(current, SYMBOL_KEY);
+	if (ck)
+	{
+		symbol_t *root = current->parent;
+		if (root)
+		{
+			symbol_t *a;
+			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			{
+				if (symbol_check_type(a, SYMBOL_MEMBER))
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if ((syntax_comparison_id(ck, ak) == 1) && (current != a))
+						{
+							syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+								ak->declaration->position.line, ak->declaration->position.column);
+							return -1;
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, a, "enum member without a key");
+						return -1;
+					}
+				}
+			}
+		}
+		else
+		{
+			syntax_error(graph, current, "emum member without parent");
+			return -1;
+		}
+	}
+	else
+	{
+		syntax_error(graph, current, "emum member without a key");
+		return -1;
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_members(graph_t *graph, symbol_t *current)
+{
+	symbol_t *a;
+	for (a = current->begin;(a != current->end); a = a->next)
+	{
+		int32_t result;
+		result = syntax_member(graph, a);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
 	return 1;
 }
 
@@ -6851,17 +6914,20 @@ syntax_enum(graph_t *graph, symbol_t *current)
 		return -1;
 	}
 
-
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
-		int32_t result;
-		result = syntax_member(graph, a);
-		if (result == -1)
+		if (symbol_check_type(a, SYMBOL_MEMBERS))
 		{
-			return -1;
+			int32_t result;
+			result = syntax_members(graph, a);
+			if (result == -1)
+			{
+				return -1;
+			}
 		}
 	}
+
 	return 1;
 }
 

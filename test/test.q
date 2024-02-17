@@ -2,6 +2,11 @@ export class string {
 
 }
 
+enum result {
+  a = 1,
+  b
+}
+
 export class int {
   
 
