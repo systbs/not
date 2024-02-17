@@ -6475,19 +6475,121 @@ syntax_block(graph_t *graph, symbol_t *current)
 static int32_t
 syntax_generic(graph_t *graph, symbol_t *current)
 {
+	symbol_t *ck;
+	ck = syntax_extract_with(current, SYMBOL_KEY);
+	if (ck)
+	{
+		symbol_t *root = current->parent;
+		if (root)
+		{
+			symbol_t *a;
+			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			{
+				if (symbol_check_type(a, SYMBOL_GENERIC))
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if ((syntax_comparison_id(ck, ak) == 1) && (current != a))
+						{
+							syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+								ak->declaration->position.line, ak->declaration->position.column);
+							return -1;
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, a, "generic without a key");
+						return -1;
+					}
+				}
+			}
+		}
+		else
+		{
+			syntax_error(graph, current, "generic without parent");
+			return -1;
+		}
+	}
+	else
+	{
+		syntax_error(graph, current, "generic without a key");
+		return -1;
+	}
 	return 1;
 }
 
 static int32_t
 syntax_generics(graph_t *graph, symbol_t *current)
 {
-	
+	symbol_t *a;
+	for (a = current->begin;(a != current->end); a = a->next)
+	{
+		int32_t result;
+		result = syntax_generic(graph, a);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
 	return 1;
 }
 
 static int32_t
 syntax_parameter(graph_t *graph, symbol_t *current)
 {
+	symbol_t *ck;
+	ck = syntax_extract_with(current, SYMBOL_KEY);
+	if (ck)
+	{
+		symbol_t *root = current->parent;
+		if (root)
+		{
+			symbol_t *a;
+			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			{
+				if (symbol_check_type(a, SYMBOL_PARAMETER))
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if ((syntax_comparison_id(ck, ak) == 1) && (current != a))
+						{
+							syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+								ak->declaration->position.line, ak->declaration->position.column);
+							return -1;
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, a, "parameter without a key");
+						return -1;
+					}
+				}
+			}
+		}
+		else
+		{
+			syntax_error(graph, current, "parameter without parent");
+			return -1;
+		}
+	}
+	else
+	{
+		syntax_error(graph, current, "parameter without a key");
+		return -1;
+	}
 	return 1;
 }
 
@@ -6503,6 +6605,50 @@ syntax_parameters(graph_t *graph, symbol_t *current)
 		{
 			return -1;
 		}
+
+		symbol_t *ak;
+		ak = syntax_extract_with(a, SYMBOL_KEY);
+		if (ak)
+		{
+			symbol_t *root = current->parent;
+			symbol_t *gs;
+			gs = syntax_only_with(root, SYMBOL_GENERICS);
+			if (gs)
+			{
+				symbol_t *b;
+				for (b = gs->begin;(b != gs->end); b = b->next)
+				{
+					if (symbol_check_type(b, SYMBOL_GENERIC))
+					{
+						symbol_t *bk;
+						bk = syntax_extract_with(b, SYMBOL_KEY);
+						if (bk)
+						{
+							if (syntax_comparison_id(ak, bk))
+							{
+								syntax_error(graph, ak, "defination repeated, another defination in %lld:%lld",
+									bk->declaration->position.line, bk->declaration->position.column);
+								return -1;
+							}
+							else
+							{
+								continue;
+							}
+						}
+						else
+						{
+							syntax_error(graph, b, "generic without a key");
+							return -1;
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			syntax_error(graph, a, "parameter without a key");
+			return -1;
+		}
 	}
 	return 1;
 }
@@ -6510,6 +6656,52 @@ syntax_parameters(graph_t *graph, symbol_t *current)
 static int32_t
 syntax_heritage(graph_t *graph, symbol_t *current)
 {
+	symbol_t *ck;
+	ck = syntax_extract_with(current, SYMBOL_KEY);
+	if (ck)
+	{
+		symbol_t *root = current->parent;
+		if (root)
+		{
+			symbol_t *a;
+			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			{
+				if (symbol_check_type(a, SYMBOL_HERITAGE))
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if ((syntax_comparison_id(ck, ak) == 1) && (current != a))
+						{
+							syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+								ak->declaration->position.line, ak->declaration->position.column);
+							return -1;
+						}
+						else
+						{
+							continue;
+						}
+					}
+					else
+					{
+						syntax_error(graph, a, "heritage without a key");
+						return -1;
+					}
+				}
+			}
+		}
+		else
+		{
+			syntax_error(graph, current, "heritage without parent");
+			return -1;
+		}
+	}
+	else
+	{
+		syntax_error(graph, current, "heritage without a key");
+		return -1;
+	}
 	return 1;
 }
 
@@ -6523,6 +6715,50 @@ syntax_heritages(graph_t *graph, symbol_t *current)
 		result = syntax_heritage(graph, a);
 		if (result == -1)
 		{
+			return -1;
+		}
+
+		symbol_t *ak;
+		ak = syntax_extract_with(a, SYMBOL_KEY);
+		if (ak)
+		{
+			symbol_t *root = current->parent;
+			symbol_t *gs;
+			gs = syntax_only_with(root, SYMBOL_GENERICS);
+			if (gs)
+			{
+				symbol_t *b;
+				for (b = gs->begin;(b != gs->end); b = b->next)
+				{
+					if (symbol_check_type(b, SYMBOL_GENERIC))
+					{
+						symbol_t *bk;
+						bk = syntax_extract_with(b, SYMBOL_KEY);
+						if (bk)
+						{
+							if (syntax_comparison_id(ak, bk))
+							{
+								syntax_error(graph, ak, "defination repeated, another defination in %lld:%lld",
+									bk->declaration->position.line, bk->declaration->position.column);
+								return -1;
+							}
+							else
+							{
+								continue;
+							}
+						}
+						else
+						{
+							syntax_error(graph, b, "generic without a key");
+							return -1;
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			syntax_error(graph, a, "heritage without a key");
 			return -1;
 		}
 	}

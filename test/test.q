@@ -2,20 +2,8 @@ export class string {
 
 }
 
-enum result {
-  a = 1,
-  b
-}
+export class (T, T) int {
 
-export class int {
-  
-
-  func init (arg:string)
-  {
-
-  }
-
-  init:int;
 }
 
 func init(args:int)
