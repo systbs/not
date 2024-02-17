@@ -20,7 +20,7 @@ func init(args:int)
 
 export class (R extends int) person 
 {
-  export class (R extends int) person 
+  export class (R extends int = int) person 
   {
 
   }

@@ -78,7 +78,7 @@ main(int argc, char **argv)
 
     int32_t graph_result;
     graph_result = graph_run(graph, root);
-    if(!graph_result)
+    if(graph_result == -1)
     {
         if(list_count(errors) > 0)
         {
@@ -87,8 +87,9 @@ main(int argc, char **argv)
     	return -1;
     }
 
-    graph_result = syntax_run(graph);
-    if(!graph_result)
+    int32_t syntax_result;
+    syntax_result = syntax_run(graph);
+    if(syntax_result == -1)
     {
         if(list_count(errors) > 0)
         {
@@ -118,5 +119,5 @@ main(int argc, char **argv)
         );
     }
 
-    return -2;
+    return -1;
 }

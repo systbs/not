@@ -1976,7 +1976,7 @@ parser_var_stmt(parser_t *parser, uint64_t flag)
 	}
 
 	node_t *key;
-	key = parser_expression(parser);
+	key = parser_id(parser);
 	if (!key)
 	{
 		return NULL;
@@ -2500,7 +2500,7 @@ parser_parameter(parser_t *parser)
 	}
 
 	node_t *key;
-	key = parser_expression(parser);
+	key = parser_id(parser);
 	if (!key)
 	{
 		return NULL;
