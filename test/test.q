@@ -2,14 +2,27 @@ export class string {
 
 }
 
-export class (T, T) int {
+export class (T) int {
 
 }
+
+var int = 1;
+var a = 2;
 
 func init(args:int)
 {
   var t1 = teacher();
   var t2 = teacher{R=string}("peyman", "bachelor");
+
+  if name (a < 10)
+  {
+
+  }
+
+  if name (a < 10)
+  {
+    
+  }
 }
 
 
