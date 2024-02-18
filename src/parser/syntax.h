@@ -7,6 +7,6 @@ enum syntax_type_of_flag {
 };
 
 int32_t
-syntax_run(graph_t *graph);
+syntax_run(program_t *program, symbol_t *root);
 
 #endif

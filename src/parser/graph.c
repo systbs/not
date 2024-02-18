@@ -22,35 +22,35 @@
 #define max(a, b) a > b ? a : b
 
 static int32_t
-graph_expression(symbol_t *parent, node_t *node);
+graph_expression(program_t *program, symbol_t *parent, node_t *node);
 
 static int32_t
-graph_expression(symbol_t *parent, node_t *node);
+graph_expression(program_t *program, symbol_t *parent, node_t *node);
 
 static int32_t
-graph_func(symbol_t *parent, node_t *node);
+graph_func(program_t *program, symbol_t *parent, node_t *node);
 
 static int32_t
-graph_parameter(symbol_t *parent, node_t *node);
+graph_parameter(program_t *program, symbol_t *parent, node_t *node);
 
 static int32_t
-graph_generic(symbol_t *parent, node_t *node);
+graph_generic(program_t *program, symbol_t *parent, node_t *node);
 
 static int32_t
-graph_postfix(symbol_t *parent, node_t *node);
+graph_postfix(program_t *program, symbol_t *parent, node_t *node);
 
 static int32_t
-graph_block(symbol_t *parent, node_t *node);
+graph_block(program_t *program, symbol_t *parent, node_t *node);
 
 static int32_t
-graph_var(symbol_t *parent, node_t *node);
+graph_var(program_t *program, symbol_t *parent, node_t *node);
 
 static int32_t
-graph_prefix(symbol_t *parent, node_t *node);
+graph_prefix(program_t *program, symbol_t *parent, node_t *node);
 
 
 static int32_t
-graph_id(symbol_t *parent, node_t *node)
+graph_id(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 
@@ -63,7 +63,7 @@ graph_id(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_number(symbol_t *parent, node_t *node)
+graph_number(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_NUMBER, node);
@@ -75,7 +75,7 @@ graph_number(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_string(symbol_t *parent, node_t *node)
+graph_string(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 
@@ -88,7 +88,7 @@ graph_string(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_char(symbol_t *parent, node_t *node)
+graph_char(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 
@@ -101,7 +101,7 @@ graph_char(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_null(symbol_t *parent, node_t *node)
+graph_null(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	
@@ -114,7 +114,7 @@ graph_null(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_true(symbol_t *parent, node_t *node)
+graph_true(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	
@@ -127,7 +127,7 @@ graph_true(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_false(symbol_t *parent, node_t *node)
+graph_false(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	
@@ -140,7 +140,7 @@ graph_false(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_array(symbol_t *parent, node_t *node)
+graph_array(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_ARRAY, node);
@@ -159,7 +159,7 @@ graph_array(symbol_t *parent, node_t *node)
 		node_t *temp;
 		temp = (node_t *)a->value;
 
-		result = graph_expression(symbol, temp);
+		result = graph_expression(program, symbol, temp);
 		if (result == -1)
 		{
 			return -1;
@@ -169,7 +169,7 @@ graph_array(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_parenthesis(symbol_t *parent, node_t *node)
+graph_parenthesis(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 
@@ -183,7 +183,7 @@ graph_parenthesis(symbol_t *parent, node_t *node)
 	node_unary = (node_unary_t *)node->value;
 
 	int32_t result;
-	result = graph_expression(symbol, node_unary->right);
+	result = graph_expression(program, symbol, node_unary->right);
 	if (result == -1)
 	{
 		return -1;
@@ -193,7 +193,7 @@ graph_parenthesis(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_lambda(symbol_t *parent, node_t *node)
+graph_lambda(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_LAMBDA, node);
@@ -215,7 +215,7 @@ graph_lambda(symbol_t *parent, node_t *node)
 		{
 			node_t *parameter = (node_t *)a->value;
 
-			result = graph_parameter(parameters, parameter);
+			result = graph_parameter(program, parameters, parameter);
 			if (result == -1)
 			{
 				return -1;
@@ -227,7 +227,7 @@ graph_lambda(symbol_t *parent, node_t *node)
 	{
 		if(node_lambda->body->kind == NODE_KIND_BLOCK)
 		{
-			result = graph_block(symbol, node_lambda->body);
+			result = graph_block(program, symbol, node_lambda->body);
 			if (result == -1)
 			{
 				return -1;
@@ -241,7 +241,7 @@ graph_lambda(symbol_t *parent, node_t *node)
 				return -1;
 			}
 
-			result = graph_expression(value, node_lambda->body);
+			result = graph_expression(program, value, node_lambda->body);
 			if (result == -1)
 			{
 				return -1;
@@ -253,7 +253,7 @@ graph_lambda(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_object_property(symbol_t *parent, node_t *node)
+graph_object_property(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_OBJECT_PROPERTY, node);
@@ -275,7 +275,7 @@ graph_object_property(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(symbol_name, node_object_property->name);
+		result = graph_expression(program, symbol_name, node_object_property->name);
 		if (result == -1)
 		{
 			return -1;
@@ -291,7 +291,7 @@ graph_object_property(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(symbol_value, node_object_property->value);
+		result = graph_expression(program, symbol_value, node_object_property->value);
 		if (result == -1)
 		{
 			return -1;
@@ -302,7 +302,7 @@ graph_object_property(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_object(symbol_t *parent, node_t *node)
+graph_object(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_OBJECT, node);
@@ -321,7 +321,7 @@ graph_object(symbol_t *parent, node_t *node)
 		node_t *temp;
 		temp = (node_t *)a->value;
 
-		result = graph_object_property(symbol, temp);
+		result = graph_object_property(program, symbol, temp);
 		if (result == -1)
 		{
 			return -1;
@@ -332,53 +332,53 @@ graph_object(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_primary(symbol_t *parent, node_t *node)
+graph_primary(program_t *program, symbol_t *parent, node_t *node)
 {
 	int32_t result = 1;
 	switch (node->kind)
 	{
 	case NODE_KIND_ID:
-		result = graph_id(parent, node);
+		result = graph_id(program, parent, node);
 		break;
 
 	case NODE_KIND_NUMBER:
-		result = graph_number(parent, node);
+		result = graph_number(program, parent, node);
 		break;
 
 	case NODE_KIND_STRING:
-		result = graph_string(parent, node);
+		result = graph_string(program, parent, node);
 		break;
 
 	case NODE_KIND_CHAR:
-		result = graph_char(parent, node);
+		result = graph_char(program, parent, node);
 		break;
 
 	case NODE_KIND_NULL:
-		result = graph_null(parent, node);
+		result = graph_null(program, parent, node);
 		break;
 
 	case NODE_KIND_TRUE:
-		result = graph_true(parent, node);
+		result = graph_true(program, parent, node);
 		break;
 
 	case NODE_KIND_FALSE:
-		result = graph_false(parent, node);
+		result = graph_false(program, parent, node);
 		break;
 
 	case NODE_KIND_ARRAY:
-		result = graph_array(parent, node);
+		result = graph_array(program, parent, node);
 		break;
 
 	case NODE_KIND_OBJECT:
-		result = graph_object(parent, node);
+		result = graph_object(program, parent, node);
 		break;
 
 	case NODE_KIND_LAMBDA:
-		result = graph_lambda(parent, node);
+		result = graph_lambda(program, parent, node);
 		break;
 
 	case NODE_KIND_PARENTHESIS:
-		result = graph_parenthesis(parent, node);
+		result = graph_parenthesis(program, parent, node);
 		break;
 
 	default:
@@ -389,7 +389,7 @@ graph_primary(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_argument(symbol_t *parent, node_t *node)
+graph_argument(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_argument_t *node_argument = (node_argument_t *)node->value;
 
@@ -410,7 +410,7 @@ graph_argument(symbol_t *parent, node_t *node)
 			return -1;
 		}
 		
-		result = graph_expression(key, node_argument->key);
+		result = graph_expression(program, key, node_argument->key);
 		if (result == -1)
 		{
 			return -1;
@@ -426,7 +426,7 @@ graph_argument(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(value, node_argument->value);
+		result = graph_expression(program, value, node_argument->value);
 		if (result == -1)
 		{
 			return -1;
@@ -437,7 +437,7 @@ graph_argument(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_composite(symbol_t *parent, node_t *node)
+graph_composite(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_COMPOSITE, node);
@@ -458,7 +458,7 @@ graph_composite(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(base, node_composite->base);
+		result = graph_expression(program, base, node_composite->base);
 		if (result == -1)
 		{
 			return -1;
@@ -478,7 +478,7 @@ graph_composite(symbol_t *parent, node_t *node)
 		{
 			node_t *argument = (node_t *)a->value;
 
-			result = graph_argument(arguments, argument);
+			result = graph_argument(program, arguments, argument);
 			if (result == -1)
 			{
 				return -1;
@@ -490,7 +490,7 @@ graph_composite(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_call(symbol_t *parent, node_t *node)
+graph_call(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_CALL, node);
@@ -510,7 +510,7 @@ graph_call(symbol_t *parent, node_t *node)
 	}
 
 	int32_t result;
-	result = graph_postfix(name, node_composite->base);
+	result = graph_postfix(program, name, node_composite->base);
 	if (result == -1)
 	{
 		return -1;
@@ -529,7 +529,7 @@ graph_call(symbol_t *parent, node_t *node)
 		{
 			node_t *argument = (node_t *)a->value;
 
-			result = graph_argument(arguments, argument);
+			result = graph_argument(program, arguments, argument);
 			if (result == -1)
 			{
 				return -1;
@@ -541,7 +541,7 @@ graph_call(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_item(symbol_t *parent, node_t *node)
+graph_item(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_ITEM, node);
@@ -561,7 +561,7 @@ graph_item(symbol_t *parent, node_t *node)
 	}
 
 	int32_t result;
-	result = graph_postfix(name, node_composite->base);
+	result = graph_postfix(program, name, node_composite->base);
 	if (result == -1)
 	{
 		return -1;
@@ -580,7 +580,7 @@ graph_item(symbol_t *parent, node_t *node)
 		{
 			node_t *argument = (node_t *)a->value;
 
-			result = graph_argument(arguments, argument);
+			result = graph_argument(program, arguments, argument);
 			if (result == -1)
 			{
 				return -1;
@@ -592,7 +592,7 @@ graph_item(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_attribute(symbol_t *parent, node_t *node)
+graph_attribute(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol_t *symbol_left;
@@ -616,7 +616,7 @@ graph_attribute(symbol_t *parent, node_t *node)
 			return -1;
 		}
 		
-		result = graph_postfix(symbol_left, node_binary->left);
+		result = graph_postfix(program, symbol_left, node_binary->left);
 		if (result == -1)
 		{
 			return -1;
@@ -631,7 +631,7 @@ graph_attribute(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_id(symbol_right, node_binary->right);
+		result = graph_id(program, symbol_right, node_binary->right);
 		if (result == -1)
 		{
 			return -1;
@@ -642,13 +642,13 @@ graph_attribute(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_postfix(symbol_t *parent, node_t *node)
+graph_postfix(program_t *program, symbol_t *parent, node_t *node)
 {
 	int32_t result;
 	switch (node->kind)
 	{
 	case NODE_KIND_COMPOSITE:
-		result = graph_composite(parent, node);
+		result = graph_composite(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -656,7 +656,7 @@ graph_postfix(symbol_t *parent, node_t *node)
 		break;
 
 	case NODE_KIND_CALL:
-		result = graph_call(parent, node);
+		result = graph_call(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -664,7 +664,7 @@ graph_postfix(symbol_t *parent, node_t *node)
 		break;
 
 	case NODE_KIND_GET_ITEM:
-		result = graph_item(parent, node);
+		result = graph_item(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -672,7 +672,7 @@ graph_postfix(symbol_t *parent, node_t *node)
 		break;
 
 	case NODE_KIND_ATTRIBUTE:
-		result = graph_attribute(parent, node);
+		result = graph_attribute(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -680,7 +680,7 @@ graph_postfix(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_primary(parent, node);
+		result = graph_primary(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -691,7 +691,7 @@ graph_postfix(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_prefix(symbol_t *parent, node_t *node)
+graph_prefix(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol = NULL;
 	symbol_t *symbol_right;
@@ -774,7 +774,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 
 		if (node_unary->right->kind == NODE_KIND_TILDE)
 		{
-			result = graph_prefix(symbol_right, node_unary->right);
+			result = graph_prefix(program, symbol_right, node_unary->right);
 			if (result == -1)
 			{
 				return -1;
@@ -782,7 +782,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 		}
 		else if (node_unary->right->kind == NODE_KIND_NOT)
 		{
-			result = graph_prefix(symbol_right, node_unary->right);
+			result = graph_prefix(program, symbol_right, node_unary->right);
 			if (result == -1)
 			{
 				return -1;
@@ -790,7 +790,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 		}
 		else if (node_unary->right->kind == NODE_KIND_POS)
 		{
-			result = graph_prefix(symbol_right, node_unary->right);
+			result = graph_prefix(program, symbol_right, node_unary->right);
 			if (result == -1)
 			{
 				return -1;
@@ -798,7 +798,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 		}
 		else if (node_unary->right->kind == NODE_KIND_NEG)
 		{
-			result = graph_prefix(symbol_right, node_unary->right);
+			result = graph_prefix(program, symbol_right, node_unary->right);
 			if (result == -1)
 			{
 				return -1;
@@ -806,7 +806,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 		}
 		else if (node_unary->right->kind == NODE_KIND_SIZEOF)
 		{
-			result = graph_prefix(symbol_right, node_unary->right);
+			result = graph_prefix(program, symbol_right, node_unary->right);
 			if (result == -1)
 			{
 				return -1;
@@ -814,7 +814,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 		}
 		else if (node_unary->right->kind == NODE_KIND_TYPEOF)
 		{
-			result = graph_prefix(symbol_right, node_unary->right);
+			result = graph_prefix(program, symbol_right, node_unary->right);
 			if (result == -1)
 			{
 				return -1;
@@ -822,7 +822,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			result = graph_postfix(symbol_right, node_unary->right);
+			result = graph_postfix(program, symbol_right, node_unary->right);
 			if (result == -1)
 			{
 				return -1;
@@ -831,7 +831,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_postfix(parent, node);
+		result = graph_postfix(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -843,7 +843,7 @@ graph_prefix(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_power(symbol_t *parent, node_t *node)
+graph_power(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol = NULL;
 	if(node->kind == NODE_KIND_TILDE)
@@ -872,7 +872,7 @@ graph_power(symbol_t *parent, node_t *node)
 
 		if (node_binary->left->kind == NODE_KIND_POW)
 		{
-			result = graph_power(symbol_left, node_binary->left);
+			result = graph_power(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -880,7 +880,7 @@ graph_power(symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			result = graph_prefix(symbol_left, node_binary->left);
+			result = graph_prefix(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -893,7 +893,7 @@ graph_power(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_prefix(symbol_right, node_binary->right);
+		result = graph_prefix(program, symbol_right, node_binary->right);
 		if (result == -1)
 		{
 			return -1;
@@ -901,7 +901,7 @@ graph_power(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_prefix(parent, node);
+		result = graph_prefix(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -913,7 +913,7 @@ graph_power(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_multiplicative(symbol_t *parent, node_t *node)
+graph_multiplicative(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol_t *symbol_left;
@@ -971,7 +971,7 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 
 		if (node_binary->left->kind == NODE_KIND_MUL)
 		{
-			result = graph_multiplicative(symbol_left, node_binary->left);
+			result = graph_multiplicative(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -979,7 +979,7 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 		}
 		else if (node_binary->left->kind == NODE_KIND_DIV)
 		{
-			result = graph_multiplicative(symbol_left, node_binary->left);
+			result = graph_multiplicative(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -987,7 +987,7 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 		}
 		else if (node_binary->left->kind == NODE_KIND_MOD)
 		{
-			result = graph_multiplicative(symbol_left, node_binary->left);
+			result = graph_multiplicative(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -995,7 +995,7 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 		}
 		else if (node_binary->left->kind == NODE_KIND_EPI)
 		{
-			result = graph_multiplicative(symbol_left, node_binary->left);
+			result = graph_multiplicative(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1003,7 +1003,7 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			result = graph_power(symbol_left, node_binary->left);
+			result = graph_power(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1016,7 +1016,7 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_power(symbol_right, node_binary->right);
+		result = graph_power(program, symbol_right, node_binary->right);
 		if (result == -1)
 		{
 			return -1;
@@ -1024,7 +1024,7 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_power(parent, node);
+		result = graph_power(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -1036,7 +1036,7 @@ graph_multiplicative(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_addative(symbol_t *parent, node_t *node)
+graph_addative(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol_t *symbol_left;
@@ -1077,7 +1077,7 @@ graph_addative(symbol_t *parent, node_t *node)
 
 		if (node_binary->left->kind == NODE_KIND_PLUS)
 		{
-			result = graph_addative(symbol_left, node_binary->left);
+			result = graph_addative(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1085,7 +1085,7 @@ graph_addative(symbol_t *parent, node_t *node)
 		}
 		else if (node_binary->left->kind == NODE_KIND_MINUS)
 		{
-			result = graph_addative(symbol_left, node_binary->left);
+			result = graph_addative(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1093,7 +1093,7 @@ graph_addative(symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			result = graph_multiplicative(symbol_left, node_binary->left);
+			result = graph_multiplicative(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1106,7 +1106,7 @@ graph_addative(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_multiplicative(symbol_right, node_binary->right);
+		result = graph_multiplicative(program, symbol_right, node_binary->right);
 		if (result == -1)
 		{
 			return -1;
@@ -1114,7 +1114,7 @@ graph_addative(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_multiplicative(parent, node);
+		result = graph_multiplicative(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -1126,7 +1126,7 @@ graph_addative(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_shifting(symbol_t *parent, node_t *node)
+graph_shifting(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol_t *symbol_left;
@@ -1165,7 +1165,7 @@ graph_shifting(symbol_t *parent, node_t *node)
 
 		if (node_binary->left->kind == NODE_KIND_SHL)
 		{
-			result = graph_shifting(symbol_left, node_binary->left);
+			result = graph_shifting(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1173,7 +1173,7 @@ graph_shifting(symbol_t *parent, node_t *node)
 		}
 		else if (node_binary->left->kind == NODE_KIND_SHR)
 		{
-			result = graph_shifting(symbol_left, node_binary->left);
+			result = graph_shifting(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1181,7 +1181,7 @@ graph_shifting(symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			result = graph_addative(symbol_left, node_binary->left);
+			result = graph_addative(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1194,7 +1194,7 @@ graph_shifting(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_addative(symbol_right, node_binary->right);
+		result = graph_addative(program, symbol_right, node_binary->right);
 		if (result == -1)
 		{
 			return -1;
@@ -1202,7 +1202,7 @@ graph_shifting(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_addative(parent, node);
+		result = graph_addative(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -1214,7 +1214,7 @@ graph_shifting(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_relational(symbol_t *parent, node_t *node)
+graph_relational(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol_t *symbol_left;
@@ -1271,7 +1271,7 @@ graph_relational(symbol_t *parent, node_t *node)
 
 		if (node_binary->left->kind == NODE_KIND_LT)
 		{
-			result = graph_relational(symbol_left, node_binary->left);
+			result = graph_relational(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1279,7 +1279,7 @@ graph_relational(symbol_t *parent, node_t *node)
 		}
 		else if (node_binary->left->kind == NODE_KIND_LE)
 		{
-			result = graph_relational(symbol_left, node_binary->left);
+			result = graph_relational(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1287,7 +1287,7 @@ graph_relational(symbol_t *parent, node_t *node)
 		}
 		else if (node_binary->left->kind == NODE_KIND_GT)
 		{
-			result = graph_relational(symbol_left, node_binary->left);
+			result = graph_relational(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1295,7 +1295,7 @@ graph_relational(symbol_t *parent, node_t *node)
 		}
 		else if (node_binary->left->kind == NODE_KIND_GE)
 		{
-			result = graph_relational(symbol_left, node_binary->left);
+			result = graph_relational(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1303,7 +1303,7 @@ graph_relational(symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			result = graph_shifting(symbol_left, node_binary->left);
+			result = graph_shifting(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1316,7 +1316,7 @@ graph_relational(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_shifting(symbol_right, node_binary->right);
+		result = graph_shifting(program, symbol_right, node_binary->right);
 		if (result == -1)
 		{
 			return -1;
@@ -1324,7 +1324,7 @@ graph_relational(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_shifting(parent, node);
+		result = graph_shifting(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -1336,7 +1336,7 @@ graph_relational(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_equality(symbol_t *parent, node_t *node)
+graph_equality(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol_t *symbol_left;
@@ -1385,7 +1385,7 @@ graph_equality(symbol_t *parent, node_t *node)
 
 		if (node_binary->left->kind == NODE_KIND_IN)
 		{
-			result = graph_equality(symbol_left, node_binary->left);
+			result = graph_equality(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1393,7 +1393,7 @@ graph_equality(symbol_t *parent, node_t *node)
 		}
 		else if (node_binary->left->kind == NODE_KIND_EQ)
 		{
-			result = graph_equality(symbol_left, node_binary->left);
+			result = graph_equality(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1401,7 +1401,7 @@ graph_equality(symbol_t *parent, node_t *node)
 		}
 		else if (node_binary->left->kind == NODE_KIND_NEQ)
 		{
-			result = graph_equality(symbol_left, node_binary->left);
+			result = graph_equality(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1409,7 +1409,7 @@ graph_equality(symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			result = graph_relational(symbol_left, node_binary->left);
+			result = graph_relational(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1422,7 +1422,7 @@ graph_equality(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_relational(symbol_right, node_binary->right);
+		result = graph_relational(program, symbol_right, node_binary->right);
 		if (result == -1)
 		{
 			return -1;
@@ -1430,7 +1430,7 @@ graph_equality(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_relational(parent, node);
+		result = graph_relational(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -1442,7 +1442,7 @@ graph_equality(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_bitwise_and(symbol_t *parent, node_t *node)
+graph_bitwise_and(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol_t *symbol_left;
@@ -1469,7 +1469,7 @@ graph_bitwise_and(symbol_t *parent, node_t *node)
 
 		if (node_binary->left->kind == NODE_KIND_AND)
 		{
-			result = graph_bitwise_and(symbol_left, node_binary->left);
+			result = graph_bitwise_and(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1477,7 +1477,7 @@ graph_bitwise_and(symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			result = graph_equality(symbol_left, node_binary->left);
+			result = graph_equality(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1490,7 +1490,7 @@ graph_bitwise_and(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_equality(symbol_right, node_binary->right);
+		result = graph_equality(program, symbol_right, node_binary->right);
 		if (result == -1)
 		{
 			return -1;
@@ -1498,7 +1498,7 @@ graph_bitwise_and(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_equality(parent, node);
+		result = graph_equality(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -1510,7 +1510,7 @@ graph_bitwise_and(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_bitwise_xor(symbol_t *parent, node_t *node)
+graph_bitwise_xor(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol_t *symbol_left;
@@ -1537,7 +1537,7 @@ graph_bitwise_xor(symbol_t *parent, node_t *node)
 
 		if (node_binary->left->kind == NODE_KIND_XOR)
 		{
-			result = graph_bitwise_xor(symbol_left, node_binary->left);
+			result = graph_bitwise_xor(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1545,7 +1545,7 @@ graph_bitwise_xor(symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			result = graph_bitwise_and(symbol_left, node_binary->left);
+			result = graph_bitwise_and(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1558,7 +1558,7 @@ graph_bitwise_xor(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_bitwise_and(symbol_right, node_binary->right);
+		result = graph_bitwise_and(program, symbol_right, node_binary->right);
 		if (result == -1)
 		{
 			return -1;
@@ -1566,7 +1566,7 @@ graph_bitwise_xor(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_bitwise_and(parent, node);
+		result = graph_bitwise_and(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -1578,7 +1578,7 @@ graph_bitwise_xor(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_bitwise_or(symbol_t *parent, node_t *node)
+graph_bitwise_or(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol_t *symbol_left;
@@ -1605,7 +1605,7 @@ graph_bitwise_or(symbol_t *parent, node_t *node)
 
 		if (node_binary->left->kind == NODE_KIND_OR)
 		{
-			result = graph_bitwise_or(symbol_left, node_binary->left);
+			result = graph_bitwise_or(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1613,7 +1613,7 @@ graph_bitwise_or(symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			result = graph_bitwise_xor(symbol_left, node_binary->left);
+			result = graph_bitwise_xor(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1626,7 +1626,7 @@ graph_bitwise_or(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_bitwise_xor(symbol_right, node_binary->right);
+		result = graph_bitwise_xor(program, symbol_right, node_binary->right);
 		if (result == -1)
 		{
 			return -1;
@@ -1634,7 +1634,7 @@ graph_bitwise_or(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_bitwise_xor(parent, node);
+		result = graph_bitwise_xor(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -1646,7 +1646,7 @@ graph_bitwise_or(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_logical_and(symbol_t *parent, node_t *node)
+graph_logical_and(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol_t *symbol_left;
@@ -1673,7 +1673,7 @@ graph_logical_and(symbol_t *parent, node_t *node)
 
 		if (node_binary->left->kind == NODE_KIND_LAND)
 		{
-			result = graph_logical_and(symbol_left, node_binary->left);
+			result = graph_logical_and(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1681,7 +1681,7 @@ graph_logical_and(symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			result = graph_bitwise_or(symbol_left, node_binary->left);
+			result = graph_bitwise_or(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1694,7 +1694,7 @@ graph_logical_and(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_bitwise_or(symbol_right, node_binary->right);
+		result = graph_bitwise_or(program, symbol_right, node_binary->right);
 		if (result == -1)
 		{
 			return -1;
@@ -1702,7 +1702,7 @@ graph_logical_and(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_bitwise_or(parent, node);
+		result = graph_bitwise_or(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -1714,7 +1714,7 @@ graph_logical_and(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_logical_or(symbol_t *parent, node_t *node)
+graph_logical_or(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol_t *symbol_left;
@@ -1741,7 +1741,7 @@ graph_logical_or(symbol_t *parent, node_t *node)
 
 		if (node_binary->left->kind == NODE_KIND_LOR)
 		{
-			result = graph_logical_or(symbol_left, node_binary->left);
+			result = graph_logical_or(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1749,7 +1749,7 @@ graph_logical_or(symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			result = graph_logical_and(symbol_left, node_binary->left);
+			result = graph_logical_and(program, symbol_left, node_binary->left);
 			if (result == -1)
 			{
 				return -1;
@@ -1762,7 +1762,7 @@ graph_logical_or(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_logical_and(symbol_right, node_binary->right);
+		result = graph_logical_and(program, symbol_right, node_binary->right);
 		if (result == -1)
 		{
 			return -1;
@@ -1770,7 +1770,7 @@ graph_logical_or(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_logical_and(parent, node);
+		result = graph_logical_and(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -1782,7 +1782,7 @@ graph_logical_or(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_conditional(symbol_t *parent, node_t *node)
+graph_conditional(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol_t *condition;
@@ -1808,7 +1808,7 @@ graph_conditional(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_logical_or(condition, node_triple->base);
+		result = graph_logical_or(program, condition, node_triple->base);
 		if (result == -1)
 		{
 			return -1;
@@ -1819,7 +1819,7 @@ graph_conditional(symbol_t *parent, node_t *node)
 		{
 			return -1;
 		}
-		result = graph_conditional(symbol_true, node_triple->left);
+		result = graph_conditional(program, symbol_true, node_triple->left);
 		if (result == -1)
 		{
 			return -1;
@@ -1830,7 +1830,7 @@ graph_conditional(symbol_t *parent, node_t *node)
 		{
 			return -1;
 		}
-		result = graph_conditional(symbol_false, node_triple->right);
+		result = graph_conditional(program, symbol_false, node_triple->right);
 		if (result == -1)
 		{
 			return -1;
@@ -1838,7 +1838,7 @@ graph_conditional(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_logical_or(parent, node);
+		result = graph_logical_or(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -1850,13 +1850,13 @@ graph_conditional(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_expression(symbol_t *parent, node_t *node)
+graph_expression(program_t *program, symbol_t *parent, node_t *node)
 {
-	return graph_conditional(parent, node);
+	return graph_conditional(program, parent, node);
 }
 
 static int32_t
-graph_assign(symbol_t *parent, node_t *node)
+graph_assign(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_binary_t *node_binary;
 
@@ -1984,7 +1984,7 @@ graph_assign(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(symbol_left, node_binary->left);
+		result = graph_expression(program, symbol_left, node_binary->left);
 		if (result == -1)
 		{
 			return -1;
@@ -1996,7 +1996,7 @@ graph_assign(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(symbol_right, node_binary->right);
+		result = graph_expression(program, symbol_right, node_binary->right);
 		if (result == -1)
 		{
 			return -1;
@@ -2012,7 +2012,7 @@ graph_assign(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(symbol_left, node_binary->left);
+		result = graph_expression(program, symbol_left, node_binary->left);
 		if (result == -1)
 		{
 			return -1;
@@ -2024,7 +2024,7 @@ graph_assign(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(symbol_right, node_binary->right);
+		result = graph_expression(program, symbol_right, node_binary->right);
 		if (result == -1)
 		{
 			return -1;
@@ -2032,7 +2032,7 @@ graph_assign(symbol_t *parent, node_t *node)
 		break;
 
 	default:
-		result = graph_expression(parent, node);
+		result = graph_expression(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
@@ -2044,7 +2044,7 @@ graph_assign(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_if(symbol_t *parent, node_t *node)
+graph_if(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_if_t *node_if;
 	node_if = (node_if_t *)node->value;
@@ -2064,7 +2064,7 @@ graph_if(symbol_t *parent, node_t *node)
 		{
 			return -1;
 		}
-		result = graph_id(key, node_if->key);
+		result = graph_id(program, key, node_if->key);
 		if (result == -1)
 		{
 			return -1;
@@ -2080,7 +2080,7 @@ graph_if(symbol_t *parent, node_t *node)
 			return -1;
 		}
 		
-		result = graph_expression(symbol_condition, node_if->condition);
+		result = graph_expression(program, symbol_condition, node_if->condition);
 		if (result == -1)
 		{
 			return -1;
@@ -2089,7 +2089,7 @@ graph_if(symbol_t *parent, node_t *node)
 
 	if (node_if->then_body)
 	{
-		result = graph_block(symbol, node_if->then_body);
+		result = graph_block(program, symbol, node_if->then_body);
 		if (result == -1)
 		{
 			return -1;
@@ -2107,11 +2107,11 @@ graph_if(symbol_t *parent, node_t *node)
 
 		if(node_if->else_body->kind == NODE_KIND_IF)
 		{
-			result = graph_if(symbol_else, node_if->else_body);
+			result = graph_if(program, symbol_else, node_if->else_body);
 		} 
 		else 
 		{
-			result = graph_block(symbol_else, node_if->else_body);
+			result = graph_block(program, symbol_else, node_if->else_body);
 		}
 
 		if (result == -1) {
@@ -2123,7 +2123,7 @@ graph_if(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_catch(symbol_t *parent, node_t *node)
+graph_catch(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_catch_t *node_catch;
 	node_catch = (node_catch_t *)node->value;
@@ -2146,7 +2146,7 @@ graph_catch(symbol_t *parent, node_t *node)
 		{
 			node_t *parameter = (node_t *)a->value;
 
-			result = graph_parameter(parameters, parameter);
+			result = graph_parameter(program, parameters, parameter);
 			if (result == -1)
 			{
 				return -1;
@@ -2156,7 +2156,7 @@ graph_catch(symbol_t *parent, node_t *node)
 
 	if (node_catch->body)
 	{
-		result = graph_block(symbol, node_catch->body);
+		result = graph_block(program, symbol, node_catch->body);
 		if (result == -1)
 		{
 			return -1;
@@ -2167,7 +2167,7 @@ graph_catch(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_try(symbol_t *parent, node_t *node)
+graph_try(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_try_t *node_try;
 	node_try = (node_try_t *)node->value;
@@ -2180,7 +2180,7 @@ graph_try(symbol_t *parent, node_t *node)
 	}
 
 	int32_t result;
-	result = graph_block(symbol, node_try->body);
+	result = graph_block(program, symbol, node_try->body);
 	if (result == -1)
 	{
 		return -1;
@@ -2199,7 +2199,7 @@ graph_try(symbol_t *parent, node_t *node)
 		for (a = node_try->catchs->begin; a != node_try->catchs->end; a = a->next)
 		{
 			node_t *temp = (node_t *)a->value;
-			result = graph_catch(catchs, temp);
+			result = graph_catch(program, catchs, temp);
 			if (result == -1)
 			{
 				return -1;
@@ -2211,7 +2211,7 @@ graph_try(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_for(symbol_t *parent, node_t *node)
+graph_for(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_for_t *node_for;
 	node_for = (node_for_t *)node->value;
@@ -2232,7 +2232,7 @@ graph_for(symbol_t *parent, node_t *node)
 		{
 			return -1;
 		}
-		result = graph_id(key, node_for->key);
+		result = graph_id(program, key, node_for->key);
 		if (result == -1)
 		{
 			return -1;
@@ -2255,7 +2255,7 @@ graph_for(symbol_t *parent, node_t *node)
 
 			if (temp->kind == NODE_KIND_VAR)
 			{
-				result = graph_var(initializer, temp);
+				result = graph_var(program, initializer, temp);
 				if (result == -1)
 				{
 					return -1;
@@ -2263,7 +2263,7 @@ graph_for(symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				result = graph_assign(initializer, temp);
+				result = graph_assign(program, initializer, temp);
 				if (result == -1)
 				{
 					return -1;
@@ -2281,7 +2281,7 @@ graph_for(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(symbol_condition, node_for->condition);
+		result = graph_expression(program, symbol_condition, node_for->condition);
 		if (result == -1)
 		{
 			return -1;
@@ -2302,7 +2302,7 @@ graph_for(symbol_t *parent, node_t *node)
 		{
 			node_t *temp = (node_t *)a->value;
 
-			result = graph_assign(incrementor, temp);
+			result = graph_assign(program, incrementor, temp);
 			if (result == -1)
 			{
 				return -1;
@@ -2312,7 +2312,7 @@ graph_for(symbol_t *parent, node_t *node)
 	
 	if (node_for->body)
 	{
-		result = graph_block(symbol, node_for->body);
+		result = graph_block(program, symbol, node_for->body);
 		if (result == -1)
 		{
 			return -1;
@@ -2323,7 +2323,7 @@ graph_for(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_forin(symbol_t *parent, node_t *node)
+graph_forin(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_forin_t *node_forin;
 	node_forin = (node_forin_t *)node->value;
@@ -2344,7 +2344,7 @@ graph_forin(symbol_t *parent, node_t *node)
 		{
 			return -1;
 		}
-		result = graph_id(key, node_forin->key);
+		result = graph_id(program, key, node_forin->key);
 		if (result == -1)
 		{
 			return -1;
@@ -2367,7 +2367,7 @@ graph_forin(symbol_t *parent, node_t *node)
 
 			if (temp->kind == NODE_KIND_VAR)
 			{
-				result = graph_var(initializer, temp);
+				result = graph_var(program, initializer, temp);
 				if (result == -1)
 				{
 					return -1;
@@ -2375,7 +2375,7 @@ graph_forin(symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				result = graph_assign(initializer, temp);
+				result = graph_assign(program, initializer, temp);
 				if (result == -1)
 				{
 					return -1;
@@ -2393,7 +2393,7 @@ graph_forin(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(expression, node_forin->expression);
+		result = graph_expression(program, expression, node_forin->expression);
 		if (result == -1)
 		{
 			return -1;
@@ -2402,7 +2402,7 @@ graph_forin(symbol_t *parent, node_t *node)
 
 	if (node_forin->body)
 	{
-		result = graph_block(symbol, node_forin->body);
+		result = graph_block(program, symbol, node_forin->body);
 		if (result == -1)
 		{
 			return -1;
@@ -2413,7 +2413,7 @@ graph_forin(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_break(symbol_t *parent, node_t *node)
+graph_break(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_unary_t *node_unary;
 	node_unary = (node_unary_t *)node->value;
@@ -2425,7 +2425,7 @@ graph_break(symbol_t *parent, node_t *node)
 		return -1;
 	}
 
-	int32_t result = graph_expression(symbol, node_unary->right);
+	int32_t result = graph_expression(program, symbol, node_unary->right);
 	if (result == -1)
 	{
 		return -1;
@@ -2435,7 +2435,7 @@ graph_break(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_continue(symbol_t *parent, node_t *node)
+graph_continue(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_unary_t *node_unary;
 	node_unary = (node_unary_t *)node->value;
@@ -2447,7 +2447,7 @@ graph_continue(symbol_t *parent, node_t *node)
 		return -1;
 	}
 
-	int32_t result = graph_expression(symbol, node_unary->right);
+	int32_t result = graph_expression(program, symbol, node_unary->right);
 	if (result == -1)
 	{
 		return -1;
@@ -2457,7 +2457,7 @@ graph_continue(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_return(symbol_t *parent, node_t *node)
+graph_return(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_unary_t *node_unary;
 	node_unary = (node_unary_t *)node->value;
@@ -2469,7 +2469,7 @@ graph_return(symbol_t *parent, node_t *node)
 		return -1;
 	}
 
-	int32_t result = graph_expression(symbol, node_unary->right);
+	int32_t result = graph_expression(program, symbol, node_unary->right);
 	if (result == -1)
 	{
 		return -1;
@@ -2479,7 +2479,7 @@ graph_return(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_throw(symbol_t *parent, node_t *node)
+graph_throw(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_THROW, node);
@@ -2505,7 +2505,7 @@ graph_throw(symbol_t *parent, node_t *node)
 			node_t *argument = (node_t *)a->value;
 
 			int32_t result;
-			result = graph_argument(arguments, argument);
+			result = graph_argument(program, arguments, argument);
 			if (result == -1)
 			{
 				return -1;
@@ -2517,57 +2517,57 @@ graph_throw(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_statement(symbol_t *parent, node_t *node)
+graph_statement(program_t *program, symbol_t *parent, node_t *node)
 {
 	int32_t result = 1;
 	switch (node->kind)
 	{
 	case NODE_KIND_BLOCK:
-		result = graph_block(parent, node);
+		result = graph_block(program, parent, node);
 		break;
 
 	case NODE_KIND_IF:
-		result = graph_if(parent, node);
+		result = graph_if(program, parent, node);
 		break;
 
 	case NODE_KIND_TRY:
-		result = graph_try(parent, node);
+		result = graph_try(program, parent, node);
 		break;
 
 	case NODE_KIND_FOR:
-		result = graph_for(parent, node);
+		result = graph_for(program, parent, node);
 		break;
 
 	case NODE_KIND_FORIN:
-		result = graph_forin(parent, node);
+		result = graph_forin(program, parent, node);
 		break;
 
 	case NODE_KIND_VAR:
-		result = graph_var(parent, node);
+		result = graph_var(program, parent, node);
 		break;
 
 	case NODE_KIND_BREAK:
-		result = graph_break(parent, node);
+		result = graph_break(program, parent, node);
 		break;
 
 	case NODE_KIND_CONTINUE:
-		result = graph_continue(parent, node);
+		result = graph_continue(program, parent, node);
 		break;
 
 	case NODE_KIND_RETURN:
-		result = graph_return(parent, node);
+		result = graph_return(program, parent, node);
 		break;
 
 	case NODE_KIND_THROW:
-		result = graph_throw(parent, node);
+		result = graph_throw(program, parent, node);
 		break;
 
 	case NODE_KIND_FUNC:
-		result = graph_func(parent, node);
+		result = graph_func(program, parent, node);
 		break;
 
 	default:
-		result = graph_assign(parent, node);
+		result = graph_assign(program, parent, node);
 		break;
 	}
 
@@ -2575,7 +2575,7 @@ graph_statement(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_block(symbol_t *parent, node_t *node)
+graph_block(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_block_t *node_block;
 	node_block = (node_block_t *)node->value;
@@ -2593,7 +2593,7 @@ graph_block(symbol_t *parent, node_t *node)
 		node_t *temp;
 		temp = (node_t *)a->value;
 
-		int32_t result = graph_statement(symbol, temp);
+		int32_t result = graph_statement(program, symbol, temp);
 		if (result == -1)
 		{
 			return -1;
@@ -2604,7 +2604,7 @@ graph_block(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_generic(symbol_t *parent, node_t *node)
+graph_generic(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_generic_t *node_generic;
 	node_generic = (node_generic_t *)node->value;
@@ -2626,7 +2626,7 @@ graph_generic(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_id(key, node_generic->key);
+		result = graph_id(program, key, node_generic->key);
 		if (result == -1)
 		{
 			return -1;
@@ -2641,7 +2641,7 @@ graph_generic(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(type, node_generic->type);
+		result = graph_expression(program, type, node_generic->type);
 		if (result == -1)
 		{
 			return -1;
@@ -2656,7 +2656,7 @@ graph_generic(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(value, node_generic->value);
+		result = graph_expression(program, value, node_generic->value);
 		if (result == -1)
 		{
 			return -1;
@@ -2667,7 +2667,7 @@ graph_generic(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_member(symbol_t *parent, node_t *node)
+graph_member(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_member_t *node_member = (node_member_t *)node->value;
 
@@ -2686,7 +2686,7 @@ graph_member(symbol_t *parent, node_t *node)
 			return -1;
 		}
 		
-		result = graph_id(key, node_member->key);
+		result = graph_id(program, key, node_member->key);
 		if (result == -1)
 		{
 			return -1;
@@ -2702,7 +2702,7 @@ graph_member(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(value, node_member->value);
+		result = graph_expression(program, value, node_member->value);
 		if (result == -1)
 		{
 			return -1;
@@ -2713,7 +2713,7 @@ graph_member(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_enum(symbol_t *parent, node_t *node)
+graph_enum(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_enum_t *node_enum;
 	node_enum = (node_enum_t *)node->value;
@@ -2734,7 +2734,7 @@ graph_enum(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_id(key, node_enum->key);
+		result = graph_id(program, key, node_enum->key);
 		if (result == -1)
 		{
 			return -1;
@@ -2753,7 +2753,7 @@ graph_enum(symbol_t *parent, node_t *node)
 		{
 			node_t *member = (node_t *)a->value;
 
-			result = graph_member(members, member);
+			result = graph_member(program, members, member);
 			if (result == -1)
 			{
 				return -1;
@@ -2765,7 +2765,7 @@ graph_enum(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_property(symbol_t *parent, node_t *node)
+graph_property(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_property_t *node_property;
 	node_property = (node_property_t *)node->value;
@@ -2786,7 +2786,7 @@ graph_property(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_id(key, node_property->key);
+		result = graph_id(program, key, node_property->key);
 		if (result == -1)
 		{
 			return -1;
@@ -2802,7 +2802,7 @@ graph_property(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(symbol_type, node_property->type);
+		result = graph_expression(program, symbol_type, node_property->type);
 		if (result == -1)
 		{
 			return -1;
@@ -2818,7 +2818,7 @@ graph_property(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(symbol_value, node_property->value);
+		result = graph_expression(program, symbol_value, node_property->value);
 		if (result == -1)
 		{
 			return -1;
@@ -2829,7 +2829,7 @@ graph_property(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_parameter(symbol_t *parent, node_t *node)
+graph_parameter(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_parameter_t *node_parameter;
 	node_parameter = (node_parameter_t *)node->value;
@@ -2850,7 +2850,7 @@ graph_parameter(symbol_t *parent, node_t *node)
 			return -1;
 		}
 		
-		result = graph_id(key, node_parameter->key);
+		result = graph_id(program, key, node_parameter->key);
 		if (result == -1)
 		{
 			return -1;
@@ -2866,7 +2866,7 @@ graph_parameter(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(symbol_type, node_parameter->type);
+		result = graph_expression(program, symbol_type, node_parameter->type);
 		if (result == -1)
 		{
 			return -1;
@@ -2882,7 +2882,7 @@ graph_parameter(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(symbol_value, node_parameter->value);
+		result = graph_expression(program, symbol_value, node_parameter->value);
 		if (result == -1)
 		{
 			return -1;
@@ -2893,7 +2893,7 @@ graph_parameter(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_heritage(symbol_t *parent, node_t *node)
+graph_heritage(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_heritage_t *node_heritage;
 	node_heritage = (node_heritage_t *)node->value;
@@ -2915,7 +2915,7 @@ graph_heritage(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_id(key, node_heritage->key);
+		result = graph_id(program, key, node_heritage->key);
 		if (result == -1)
 		{
 			return -1;
@@ -2931,7 +2931,7 @@ graph_heritage(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		int32_t result = graph_expression(symbol_type, node_heritage->type);
+		int32_t result = graph_expression(program, symbol_type, node_heritage->type);
 		if (result == -1)
 		{
 			return -1;
@@ -2942,7 +2942,7 @@ graph_heritage(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_func(symbol_t *parent, node_t *node)
+graph_func(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_FUNCTION, node);
@@ -2964,7 +2964,7 @@ graph_func(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_id(key, node_func->key);
+		result = graph_id(program, key, node_func->key);
 		if (result == -1)
 		{
 			return -1;
@@ -2980,7 +2980,7 @@ graph_func(symbol_t *parent, node_t *node)
 		for (a = node_func->generics->begin; a != node_func->generics->end; a = a->next)
 		{
 			node_t *generic = (node_t *)a->value;
-			result = graph_generic(generics, generic);
+			result = graph_generic(program, generics, generic);
 			if (result == -1)
 			{
 				return -1;
@@ -2997,7 +2997,7 @@ graph_func(symbol_t *parent, node_t *node)
 		{
 			node_t *parameter = (node_t *)a->value;
 
-			result = graph_parameter(parameters, parameter);
+			result = graph_parameter(program, parameters, parameter);
 			if (result == -1)
 			{
 				return -1;
@@ -3007,7 +3007,7 @@ graph_func(symbol_t *parent, node_t *node)
 
 	if (node_func->body)
 	{
-		result = graph_block(symbol, node_func->body);
+		result = graph_block(program, symbol, node_func->body);
 		if (result == -1)
 		{
 			return -1;
@@ -3018,7 +3018,7 @@ graph_func(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_class(symbol_t *parent, node_t *node)
+graph_class(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_CLASS, node);
@@ -3040,7 +3040,7 @@ graph_class(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_id(key, node_class->key);
+		result = graph_id(program, key, node_class->key);
 		if (result == -1)
 		{
 			return -1;
@@ -3058,7 +3058,7 @@ graph_class(symbol_t *parent, node_t *node)
 			node_t *heritage;
 			heritage = (node_t *)a->value;
 
-			result = graph_heritage(symbol_heritages, heritage);
+			result = graph_heritage(program, symbol_heritages, heritage);
 			if (result == -1)
 			{
 				return -1;
@@ -3076,7 +3076,7 @@ graph_class(symbol_t *parent, node_t *node)
 			node_t *generic;
 			generic = (node_t *)a->value;
 
-			result = graph_generic(symbol_generics, generic);
+			result = graph_generic(program, symbol_generics, generic);
 			if (result == -1)
 			{
 				return -1;
@@ -3092,19 +3092,19 @@ graph_class(symbol_t *parent, node_t *node)
 		switch (temp->kind)
 		{
 		case NODE_KIND_CLASS:
-			result = graph_class(symbol, temp);
+			result = graph_class(program, symbol, temp);
 			break;
 
 		case NODE_KIND_ENUM:
-			result = graph_enum(symbol, temp);
+			result = graph_enum(program, symbol, temp);
 			break;
 
 		case NODE_KIND_PROPERTY:
-			result = graph_property(symbol, temp);
+			result = graph_property(program, symbol, temp);
 			break;
 
 		case NODE_KIND_FUNC:
-			result = graph_func(symbol, temp);
+			result = graph_func(program, symbol, temp);
 			break;
 
 		default:
@@ -3121,7 +3121,7 @@ graph_class(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_var(symbol_t *parent, node_t *node)
+graph_var(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_var_t *node_var;
 	node_var = (node_var_t *)node->value;
@@ -3143,7 +3143,7 @@ graph_var(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_id(key, node_var->key);
+		result = graph_id(program, key, node_var->key);
 		if (result == -1)
 		{
 			return -1;
@@ -3159,7 +3159,7 @@ graph_var(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(symbol_type, node_var->type);
+		result = graph_expression(program, symbol_type, node_var->type);
 		if (result == -1)
 		{
 			return -1;
@@ -3175,7 +3175,7 @@ graph_var(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(symbol_value, node_var->value);
+		result = graph_expression(program, symbol_value, node_var->value);
 		if (result == -1)
 		{
 			return -1;
@@ -3186,7 +3186,7 @@ graph_var(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_field(symbol_t *parent, node_t *node)
+graph_field(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_field_t *node_field;
 	node_field = (node_field_t *)node->value;
@@ -3207,7 +3207,7 @@ graph_field(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(key, node_field->key);
+		result = graph_expression(program, key, node_field->key);
 		if (result == -1)
 		{
 			return -1;
@@ -3222,7 +3222,7 @@ graph_field(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_expression(type, node_field->type);
+		result = graph_expression(program, type, node_field->type);
 		if (result == -1)
 		{
 			return -1;
@@ -3233,7 +3233,7 @@ graph_field(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_import(symbol_t *parent, node_t *node)
+graph_import(program_t *program, symbol_t *parent, node_t *node)
 {
 	node_import_t *node_import;
 	node_import = (node_import_t *)node->value;
@@ -3255,7 +3255,7 @@ graph_import(symbol_t *parent, node_t *node)
 			return -1;
 		}
 
-		result = graph_string(path, node_import->path);
+		result = graph_string(program, path, node_import->path);
 		if (result == -1)
 		{
 			return -1;
@@ -3274,7 +3274,7 @@ graph_import(symbol_t *parent, node_t *node)
 		{
 			node_t *temp = (node_t *)a->value;
 
-			result = graph_field(fields, temp);
+			result = graph_field(program, fields, temp);
 			if (result == -1)
 			{
 				return -1;
@@ -3286,7 +3286,7 @@ graph_import(symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_module(symbol_t *parent, node_t *node)
+graph_module(program_t *program, symbol_t *parent, node_t *node)
 {	
 	node_module_t *node_module;
 	node_module = (node_module_t *)node->value;
@@ -3307,23 +3307,23 @@ graph_module(symbol_t *parent, node_t *node)
 		switch (temp->kind)
 		{
 		case NODE_KIND_IMPORT:
-			result = graph_import(symbol, temp);
+			result = graph_import(program, symbol, temp);
 			break;
 
 		case NODE_KIND_CLASS:
-			result = graph_class(symbol, temp);
+			result = graph_class(program, symbol, temp);
 			break;
 
 		case NODE_KIND_ENUM:
-			result = graph_enum(symbol, temp);
+			result = graph_enum(program, symbol, temp);
 			break;
 
 		case NODE_KIND_FUNC:
-			result = graph_func(symbol, temp);
+			result = graph_func(program, symbol, temp);
 			break;
 
 		case NODE_KIND_VAR:
-			result = graph_var(symbol, temp);
+			result = graph_var(program, symbol, temp);
 			break;
 
 		default:
@@ -3335,38 +3335,12 @@ graph_module(symbol_t *parent, node_t *node)
 }
 
 int32_t
-graph_run(graph_t *graph, node_t *root)
+graph_run(program_t *program, symbol_t *root, node_t *node)
 {
-	int32_t result = graph_module(graph->symbol, root);
+	int32_t result = graph_module(program, root, node);
 	if(result == -1)
 	{
 		return -1;
 	}
 	return 1;
-}
-
-graph_t *
-graph_create(program_t *program, list_t *errors)
-{
-	graph_t *graph = (graph_t *)malloc(sizeof(graph_t));
-	if (!graph)
-	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(graph_t));
-		return NULL;
-	}
-	memset(graph, 0, sizeof(graph_t));
-
-	graph->program = program;
-	graph->errors = errors;
-
-	symbol_t *symbol;
-	symbol = symbol_create(SYMBOL_NONE, NULL);
-	if(!symbol)
-	{
-		return NULL;
-	}
-
-	graph->symbol = symbol;
-
-	return graph;
 }

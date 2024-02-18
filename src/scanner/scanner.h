@@ -22,7 +22,7 @@ typedef struct scanner
 } scanner_t;
 
 scanner_t *
-scanner_create(program_t *program, file_source_t *file_source, list_t *errors);
+scanner_create(file_source_t *file_source, list_t *errors);
 
 void
 scanner_destroy(scanner_t *scanner);

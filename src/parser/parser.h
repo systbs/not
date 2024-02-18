@@ -17,7 +17,6 @@ typedef struct parser
 {
 	file_source_t *file_source;
 	scanner_t *scanner;
-	list_t *errors;
 	list_t *states;
 	program_t *program;
 	token_t *token;
@@ -38,18 +37,18 @@ typedef struct parser_state
 } parser_state_t;
 
 parser_t *
-parser_create(program_t *program, char *path, list_t *errors);
+parser_create(program_t *program, char *path);
 
 node_t *
-parser_module(parser_t *parser);
+parser_module(program_t *program, parser_t *parser);
 
 int32_t
-parser_save_state(parser_t *parser);
+parser_save_state(program_t *program, parser_t *parser);
 
 int32_t
-parser_restore_state(parser_t *parser);
-
+parser_restore_state(program_t *program, parser_t *parser);
+ 
 int32_t
-parser_release_state(parser_t *parser);
+parser_release_state(program_t *program, parser_t *parser);
 
 #endif //__PARSER_H__

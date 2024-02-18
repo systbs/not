@@ -35,52 +35,66 @@ main(int argc, char **argv)
 
     program_t program;
 
-    path_get_current_directory(program.base_path, sizeof(program.base_path));
-    if(path_is_relative(path))
+    char *base_path = malloc(_MAX_DIR + _MAX_FNAME + _MAX_EXT);
+    memset(base_path, 0, _MAX_DIR + _MAX_FNAME + _MAX_EXT);
+
+    char *base_file = malloc(_MAX_DIR + _MAX_FNAME + _MAX_EXT);
+    memset(base_file, 0, _MAX_DIR + _MAX_FNAME + _MAX_EXT);
+
+    if (path_is_root(path))
     {
-        path_join(program.base_path, path, program.base_file, sizeof(program.base_file));
+			path_normalize(getenv ("QALAM-PATH"), base_path, _MAX_DIR + _MAX_FNAME + _MAX_EXT);
+			path_join(base_path, path + 2, base_file, _MAX_DIR + _MAX_FNAME + _MAX_EXT);
     }
-    else {
-        strcpy(program.base_file, path);
+    else
+    {
+			path_get_current_directory(base_path, _MAX_DIR + _MAX_FNAME + _MAX_EXT);
+			if(path_is_relative(path))
+			{
+				path_join(base_path, path, base_file, _MAX_DIR + _MAX_FNAME + _MAX_EXT);
+			}
+			else 
+			{
+				path_normalize(path, base_file, _MAX_DIR + _MAX_FNAME + _MAX_EXT);
+			}
     }
 
-    list_t *errors;
-    errors = list_create();
-    if(!errors)
+    program.errors = list_create();
+    if(!program.errors)
     {
         return -1;
     }
     
     parser_t *parser;
-    parser = parser_create(&program, program.base_file, errors);
+    parser = parser_create(&program, base_file);
     if(!parser)
     {
     	return -1;
     }
     
-    node_t *root;
-    root = parser_module(parser);
-    if(!root)
+    node_t *node;
+    node = parser_module(&program, parser);
+    if(!node)
     {
-        if(list_count(errors) > 0)
-        {
-            goto print_error;
-        }
+			if(list_count(program.errors) > 0)
+			{
+				goto print_error;
+			}
     	return -1;
     }
 
-    graph_t *graph;
-    graph = graph_create(&program, errors);
-    if(!graph)
-    {
-        return -1;
-    }
+    symbol_t *root;
+		root = symbol_create(SYMBOL_NONE, NULL);
+		if(!root)
+		{
+			return -1;
+		}
 
     int32_t graph_result;
-    graph_result = graph_run(graph, root);
+    graph_result = graph_run(&program, root, node);
     if(graph_result == -1)
     {
-        if(list_count(errors) > 0)
+        if(list_count(program.errors) > 0)
         {
             goto print_error;
         }
@@ -88,10 +102,10 @@ main(int argc, char **argv)
     }
 
     int32_t syntax_result;
-    syntax_result = syntax_run(graph);
+    syntax_result = syntax_run(&program, root);
     if(syntax_result == -1)
     {
-        if(list_count(errors) > 0)
+        if(list_count(program.errors) > 0)
         {
             goto print_error;
         }
@@ -102,13 +116,13 @@ main(int argc, char **argv)
 
     ilist_t *a;
     print_error:
-    for(a = errors->begin; a != errors->end; a = a->next)
+    for(a = program.errors->begin; a != program.errors->end; a = a->next)
     {
         error_t *error;
         error = (error_t *)a->value;
 
         char relative_path[_MAX_DIR + _MAX_FNAME + _MAX_EXT];
-        path_get_relative(program.base_path, error->position.path, relative_path, sizeof(relative_path));
+        path_get_relative(base_path, error->position.path, relative_path, sizeof(relative_path));
         
         fprintf(stderr, 
             "%s-%lld:%lld:error:%s\n", 

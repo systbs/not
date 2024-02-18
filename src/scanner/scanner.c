@@ -40,7 +40,7 @@ void scanner_set_token(scanner_t *scanner, token_t token)
 }
 
 scanner_t *
-scanner_create(program_t *program, file_source_t *file_source, list_t *errors)
+scanner_create(file_source_t *file_source, list_t *errors)
 {
 	scanner_t *scanner;
 
@@ -52,7 +52,6 @@ scanner_create(program_t *program, file_source_t *file_source, list_t *errors)
 	memset(scanner, 0, sizeof(scanner_t));
 
 	scanner->file_source = file_source;
-	scanner->program = program;
 	scanner->errors = errors;
 
 	scanner->source = file_source->text;

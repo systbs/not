@@ -1,4 +1,4 @@
-import ("~/type.q", field{T, K}:property{T}.field{K}, field{T, K}:property{T}.field{K});
+import ("~/type.q", field{T, K}:property{T}.field{K}, field{R, K}:property{R}.field{K});
 
 
 export class string {

@@ -2,8 +2,7 @@
 #ifndef __PROGRAM_H__
 
 typedef struct program {
-    char base_path[_MAX_PATH];
-    char base_file[_MAX_PATH + _MAX_FNAME + _MAX_EXT];
+    list_t *errors;
 } program_t;
 
 #endif
