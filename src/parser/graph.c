@@ -452,7 +452,7 @@ graph_composite(symbol_t *parent, node_t *node)
 	int32_t result;
 	if (node_composite->base)
 	{
-		symbol_t *base = symbol_rpush(symbol, SYMBOL_KEY, node);
+		symbol_t *base = symbol_rpush(symbol, SYMBOL_KEY, NULL);
 		if(!base)
 		{
 			return -1;

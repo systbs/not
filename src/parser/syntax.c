@@ -516,6 +516,8 @@ syntax_type_of(graph_t *graph, symbol_t *t1)
 	return syntax_type_of_by_arguments(graph, t1->parent, t1, NULL, SYNTAX_ROUTE_NONE);
 }
 
+
+
 static int32_t
 syntax_gg(graph_t *graph, symbol_t *g1, symbol_t *g2)
 {
@@ -836,16 +838,16 @@ syntax_psps(graph_t *graph, symbol_t *ps1, symbol_t *ps2)
 					}
 					int32_t result;
 					result = syntax_pp(graph, a, b);
-					if (result == 1)
+					if (result == 0)
 					{
-						return 1;
+						return 0;
 					}
 					else 
-					if (result == 0)
+					if (result == -1)
 					{
 						return -1;
 					}
-					return -1;
+					break;
 				}
 			}
 			
@@ -855,7 +857,7 @@ syntax_psps(graph_t *graph, symbol_t *ps1, symbol_t *ps2)
 				value = syntax_extract_with(a, SYMBOL_VALUE);
 				if (!value)
 				{
-					return -1;
+					return 0;
 				}
 			}
 		}
@@ -874,7 +876,7 @@ syntax_psps(graph_t *graph, symbol_t *ps1, symbol_t *ps2)
 				value = syntax_only_with(b, SYMBOL_VALUE);
 				if (!value)
 				{
-					return -1;
+					return 0;
 				}
 			}
 		}
@@ -884,5195 +886,108 @@ syntax_psps(graph_t *graph, symbol_t *ps1, symbol_t *ps2)
 }
 
 static int32_t
-syntax_gs_v(graph_t *graph, symbol_t *gs)
+syntax_aa(graph_t *graph, symbol_t *a1, symbol_t *a2)
 {
-	symbol_t *a;
-	for (a = gs->begin;a != gs->end;a = a->next)
+	symbol_t *an1;
+	an1 = syntax_extract_with(a1, SYMBOL_KEY);
+	if (an1)
 	{
-		if (symbol_check_type(a, SYMBOL_GENERIC))
+		symbol_t *an2;
+		an2 = syntax_extract_with(a2, SYMBOL_KEY);
+		if (an2)
 		{
-			symbol_t *av;
-			av = syntax_extract_with(a, SYMBOL_VALUE);
-			if (!av)
+			if (syntax_comparison_id(an1, an2) == 1)
 			{
-				return -1;
+				return 1;
+			}
+			else
+			{
+				return 0;
 			}
 		}
+		else
+		{
+			syntax_error(graph, a2, "argument without key");
+			return -1;
+		}
+	}
+	else
+	{
+		syntax_error(graph, a1, "argument without key");
+		return -1;
 	}
 	return 1;
 }
 
 static int32_t
-syntax_ps_v(graph_t *graph, symbol_t *ps)
+syntax_asas(graph_t *graph, symbol_t *as1, symbol_t *as2)
 {
+	uint64_t as1_cnt = 0;
+	uint64_t as2_cnt = 0;
+
 	symbol_t *a;
-	for (a = ps->begin;a != ps->end;a = a->next)
+	for (a = as1->begin;a != as1->end;a = a->next)
 	{
-		if (symbol_check_type(a, SYMBOL_PARAMETER))
+		if (symbol_check_type(a, SYMBOL_ARGUMENT))
 		{
-			symbol_t *av;
-			av = syntax_extract_with(a, SYMBOL_VALUE);
-			if (!av)
+			as1_cnt += 1;
+			as2_cnt = 0;
+
+			symbol_t *b;
+			for (b = as2->begin;b != as2->end;b = b->next)
 			{
-				return -1;
+				if (symbol_check_type(b, SYMBOL_ARGUMENT))
+				{
+					as2_cnt += 1;
+					if (as2_cnt < as1_cnt)
+					{
+						continue;
+					}
+					int32_t result;
+					result = syntax_aa(graph, a, b);
+					if (result == 0)
+					{
+						return 0;
+					}
+					else 
+					if (result == -1)
+					{
+						return -1;
+					}
+					break;
+				}
 			}
+
+			if (as2_cnt < as1_cnt)
+			{
+				symbol_t *value;
+				value = syntax_only_with(a, SYMBOL_VALUE);
+				if (!value)
+				{
+					return 0;
+				}
+			}
+
 		}
 	}
-	return 1;
-}
 
-static int32_t
-syntax_unique(graph_t *graph, symbol_t *root, symbol_t *subroot, symbol_t *s)
-{
-	symbol_t *a;
-	for (a = root->begin;(a != root->end);a = a->next)
+	as2_cnt = 0;
+	symbol_t *b;
+	for (b = as2->begin;b != as2->end;b = b->next)
 	{
-		if (symbol_check_type(a, SYMBOL_CLASS))
+		if (symbol_check_type(b, SYMBOL_ARGUMENT))
 		{
-			if (symbol_check_type(s, SYMBOL_CLASS))
+			as2_cnt += 1;
+			if (as2_cnt > as1_cnt)
 			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								symbol_t *sgs;
-								sgs = syntax_only_with(s, SYMBOL_GENERICS);
-								if (sgs)
-								{
-									int32_t result;
-									result = syntax_gsgs(graph, ags, sgs);
-									if (result == 1)
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-									else
-									if (result == -1)
-									{
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-								else
-								{
-									if (syntax_gs_v(graph, ags))
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-							}
-							else
-							{
-								symbol_t *sgs;
-								sgs = syntax_only_with(s, SYMBOL_GENERICS);
-								if (sgs)
-								{
-									if (syntax_gs_v(graph, sgs))
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-								else
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FUNCTION))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								symbol_t *sgs;
-								sgs = syntax_only_with(s, SYMBOL_GENERICS);
-								if (sgs)
-								{
-									int32_t result;
-									result = syntax_gsgs(graph, ags, sgs);
-									if (result == 1)
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-									else
-									if (result == -1)
-									{
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-								else
-								{
-									if (syntax_gs_v(graph, ags))
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-							}
-							else
-							{
-								symbol_t *sgs;
-								sgs = syntax_only_with(s, SYMBOL_GENERICS);
-								if (sgs)
-								{
-									if (syntax_gs_v(graph, sgs))
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-								else
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PROPERTY))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								if (syntax_gs_v(graph, ags))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PARAMETER))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								if (syntax_gs_v(graph, ags))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_HERITAGE))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								if (syntax_gs_v(graph, ags))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_GENERIC))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								if (syntax_gs_v(graph, ags))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_VAR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								if (syntax_gs_v(graph, ags))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_IF))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								if (syntax_gs_v(graph, ags))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FOR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								if (syntax_gs_v(graph, ags))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FORIN))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								if (syntax_gs_v(graph, ags))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			continue;
-		}
-		else
-		if (symbol_check_type(a, SYMBOL_FUNCTION))
-		{
-			if (symbol_check_type(s, SYMBOL_CLASS))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								symbol_t *sgs;
-								sgs = syntax_only_with(s, SYMBOL_GENERICS);
-								if (sgs)
-								{
-									int32_t result;
-									result = syntax_gsgs(graph, ags, sgs);
-									if (result == 1)
-									{
-										symbol_t *aps;
-										aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-										if (aps)
-										{
-											if (syntax_ps_v(graph, aps))
-											{
-												syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-													ak->declaration->position.line, ak->declaration->position.column);
-												return -1;
-											}
-											else
-											{
-												continue;
-											}
-										}
-										else
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-									}
-									else
-									if (result == -1)
-									{
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-								else
-								{
-									if (syntax_gs_v(graph, ags))
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-							}
-							else
-							{
-								symbol_t *sgs;
-								sgs = syntax_only_with(s, SYMBOL_GENERICS);
-								if (sgs)
-								{
-									if (syntax_gs_v(graph, sgs))
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-								else
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FUNCTION))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								symbol_t *sgs;
-								sgs = syntax_only_with(s, SYMBOL_GENERICS);
-								if (sgs)
-								{
-									int32_t result;
-									result = syntax_gsgs(graph, ags, sgs);
-									if (result == 1)
-									{
-										symbol_t *aps;
-										aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-										if (aps)
-										{
-											symbol_t *sps;
-											sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-											if (sps)
-											{
-												result = syntax_psps(graph, aps, sps);
-												if (result == 1)
-												{
-													syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return -1;
-												}
-												else
-												if (result == -1)
-												{
-													return -1;
-												}
-												else
-												{
-													continue;
-												}
-											}
-											else
-											{
-												if (syntax_ps_v(graph, aps))
-												{
-													syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return -1;
-												}
-												else
-												{
-													continue;
-												}
-											}
-										}
-										else
-										{
-											symbol_t *sps;
-											sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-											if (sps)
-											{
-												if (syntax_ps_v(graph, sps))
-												{
-													syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return -1;
-												}
-												else
-												{
-													continue;
-												}
-											}
-											else
-											{
-												syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-													ak->declaration->position.line, ak->declaration->position.column);
-												return -1;
-											}
-										}
-									}
-									else
-									if (result == 0)
-									{
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-								else
-								{
-									if (syntax_gs_v(graph, ags))
-									{
-										symbol_t *aps;
-										aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-										if (aps)
-										{
-											symbol_t *sps;
-											sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-											if (sps)
-											{
-												int32_t result;
-												result = syntax_psps(graph, aps, sps);
-												if (result == 1)
-												{
-													syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return -1;
-												}
-												else
-												if (result == -1)
-												{
-													return -1;
-												}
-												else
-												{
-													continue;
-												}
-											}
-											else
-											{
-												if (syntax_ps_v(graph, aps))
-												{
-													syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return -1;
-												}
-												else
-												{
-													continue;
-												}
-											}
-										}
-										else
-										{
-											symbol_t *sps;
-											sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-											if (sps)
-											{
-												if (syntax_ps_v(graph, sps))
-												{
-													syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return -1;
-												}
-												else
-												{
-													continue;
-												}
-											}
-											else
-											{
-												syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-													ak->declaration->position.line, ak->declaration->position.column);
-												return -1;
-											}
-										}
-									}
-									else
-									{
-										continue;
-									}
-								}
-							}
-							else
-							{
-								symbol_t *sgs;
-								sgs = syntax_only_with(s, SYMBOL_GENERICS);
-								if (sgs)
-								{
-									if (syntax_gs_v(graph, sgs))
-									{
-										symbol_t *aps;
-										aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-										if (aps)
-										{
-											symbol_t *sps;
-											sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-											if (sps)
-											{
-												int32_t result;
-												result = syntax_psps(graph, aps, sps);
-												if (result == 1)
-												{
-													syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return -1;
-												}
-												else
-												if (result == -1)
-												{
-													return -1;
-												}
-												else
-												{
-													continue;
-												}
-											}
-											else
-											{
-												if (syntax_ps_v(graph, aps))
-												{
-													syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return -1;
-												}
-												else
-												{
-													continue;
-												}
-											}
-										}
-										else
-										{
-											symbol_t *sps;
-											sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-											if (sps)
-											{
-												if (syntax_ps_v(graph, sps))
-												{
-													syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-														ak->declaration->position.line, ak->declaration->position.column);
-													return -1;
-												}
-												else
-												{
-													continue;
-												}
-											}
-											else
-											{
-												syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-													ak->declaration->position.line, ak->declaration->position.column);
-												return -1;
-											}
-										}
-									}
-									else
-									{
-										continue;
-									}
-								}
-								else
-								{
-									symbol_t *aps;
-									aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-									if (aps)
-									{
-										symbol_t *sps;
-										sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-										if (sps)
-										{
-											int32_t result;
-											result = syntax_psps(graph, aps, sps);
-											if (result == 1)
-											{
-												syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-													ak->declaration->position.line, ak->declaration->position.column);
-												return -1;
-											}
-											else
-											if (result == -1)
-											{
-												return -1;
-											}
-											else
-											{
-												continue;
-											}
-										}
-										else
-										{
-											if (syntax_ps_v(graph, aps))
-											{
-												syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-													ak->declaration->position.line, ak->declaration->position.column);
-												return -1;
-											}
-											else
-											{
-												continue;
-											}
-										}
-									}
-									else
-									{
-										symbol_t *sps;
-										sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-										if (sps)
-										{
-											if (syntax_ps_v(graph, sps))
-											{
-												syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-													ak->declaration->position.line, ak->declaration->position.column);
-												return -1;
-											}
-											else
-											{
-												continue;
-											}
-										}
-										else
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-									}
-								}
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PROPERTY))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								if (syntax_gs_v(graph, ags))
-								{
-									symbol_t *aps;
-									aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-									if (aps)
-									{
-										if (syntax_ps_v(graph, aps))
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-										else
-										{
-											continue;
-										}
-									}
-									else
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								symbol_t *aps;
-								aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-								if (aps)
-								{
-									if (syntax_ps_v(graph, aps))
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-								else
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PARAMETER))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								if (syntax_gs_v(graph, ags))
-								{
-									symbol_t *aps;
-									aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-									if (aps)
-									{
-										if (syntax_ps_v(graph, aps))
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-										else
-										{
-											continue;
-										}
-									}
-									else
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								symbol_t *aps;
-								aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-								if (aps)
-								{
-									if (syntax_ps_v(graph, aps))
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-								else
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_GENERIC))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								if (syntax_gs_v(graph, ags))
-								{
-									symbol_t *aps;
-									aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-									if (aps)
-									{
-										if (syntax_ps_v(graph, aps))
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-										else
-										{
-											continue;
-										}
-									}
-									else
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								symbol_t *aps;
-								aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-								if (aps)
-								{
-									if (syntax_ps_v(graph, aps))
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-								else
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_VAR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								if (syntax_gs_v(graph, ags))
-								{
-									symbol_t *aps;
-									aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-									if (aps)
-									{
-										if (syntax_ps_v(graph, aps))
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-										else
-										{
-											continue;
-										}
-									}
-									else
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_IF))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								if (syntax_gs_v(graph, ags))
-								{
-									symbol_t *aps;
-									aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-									if (aps)
-									{
-										if (syntax_ps_v(graph, aps))
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-										else
-										{
-											continue;
-										}
-									}
-									else
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								symbol_t *aps;
-								aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-								if (aps)
-								{
-									if (syntax_ps_v(graph, aps))
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-								else
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FOR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								if (syntax_gs_v(graph, ags))
-								{
-									symbol_t *aps;
-									aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-									if (aps)
-									{
-										if (syntax_ps_v(graph, aps))
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-										else
-										{
-											continue;
-										}
-									}
-									else
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								symbol_t *aps;
-								aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-								if (aps)
-								{
-									if (syntax_ps_v(graph, aps))
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-								else
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FORIN))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								if (syntax_gs_v(graph, ags))
-								{
-									symbol_t *aps;
-									aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-									if (aps)
-									{
-										if (syntax_ps_v(graph, aps))
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-										else
-										{
-											continue;
-										}
-									}
-									else
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								symbol_t *aps;
-								aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-								if (aps)
-								{
-									if (syntax_ps_v(graph, aps))
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-								else
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-
-			continue;
-		}
-		else
-		if (symbol_check_type(a, SYMBOL_PROPERTY))
-		{
-			if (symbol_check_type(s, SYMBOL_CLASS))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FUNCTION))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									symbol_t *sps;
-									sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-									if (sps)
-									{
-										if (syntax_ps_v(graph, sps))
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-										else
-										{
-											continue;
-										}
-									}
-									else
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PROPERTY))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PARAMETER))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_GENERIC))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_VAR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_IF))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FOR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FORIN))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
+				return 0;
 			}
 		}
-		else
-		if (symbol_check_type(a, SYMBOL_PARAMETER))
-		{
-			if (symbol_check_type(s, SYMBOL_CLASS))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FUNCTION))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									symbol_t *sps;
-									sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-									if (sps)
-									{
-										if (syntax_ps_v(graph, sps))
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-										else
-										{
-											continue;
-										}
-									}
-									else
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PROPERTY))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PARAMETER))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_GENERIC))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_VAR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_IF))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FOR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FORIN))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-		}
-		else
-		if (symbol_check_type(a, SYMBOL_GENERIC))
-		{
-			if (symbol_check_type(s, SYMBOL_CLASS))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FUNCTION))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									symbol_t *sps;
-									sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-									if (sps)
-									{
-										if (syntax_ps_v(graph, sps))
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-										else
-										{
-											continue;
-										}
-									}
-									else
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PROPERTY))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PARAMETER))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_GENERIC))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_VAR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_IF))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FOR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FORIN))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-		}
-		else
-		if (symbol_check_type(a, SYMBOL_PARAMETERS))
-		{
-			int32_t result;
-			result = syntax_unique(graph, a, NULL, s);
-			if (result == 0)
-			{
-				return -1;
-			}
-			else
-			{
-				continue;
-			}
-		}
-		else
-		if (symbol_check_type(a, SYMBOL_HERITAGES))
-		{
-			int32_t result;
-			result = syntax_unique(graph, a, NULL, s);
-			if (result == 0)
-			{
-				return -1;
-			}
-			else
-			{
-				continue;
-			}
-		}
-		else
-		if (symbol_check_type(a, SYMBOL_GENERICS))
-		{
-			int32_t result;
-			result = syntax_unique(graph, a, NULL, s);
-			if (result == 0)
-			{
-				return -1;
-			}
-			else
-			{
-				continue;
-			}
-		}
-
-		if (symbol_check_type(root, SYMBOL_MODULE) || symbol_check_type(root, SYMBOL_BLOCK))
-		{
-			if (a == subroot)
-			{
-				break;
-			}
-		}
-
-		if (symbol_check_type(a, SYMBOL_VAR))
-		{
-			if (symbol_check_type(s, SYMBOL_CLASS))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FUNCTION))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									symbol_t *sps;
-									sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-									if (sps)
-									{
-										if (syntax_ps_v(graph, sps))
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-										else
-										{
-											continue;
-										}
-									}
-									else
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PROPERTY))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PARAMETER))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_GENERIC))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_VAR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_IF))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FOR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FORIN))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-		}
-		else
-		if (symbol_check_type(a, SYMBOL_IF))
-		{
-			if (symbol_check_type(s, SYMBOL_CLASS))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FUNCTION))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									symbol_t *sps;
-									sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-									if (sps)
-									{
-										if (syntax_ps_v(graph, sps))
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-										else
-										{
-											continue;
-										}
-									}
-									else
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PROPERTY))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PARAMETER))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_GENERIC))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_VAR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_IF))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FOR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FORIN))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-		}
-		else
-		if (symbol_check_type(a, SYMBOL_FOR))
-		{
-			if (symbol_check_type(s, SYMBOL_CLASS))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FUNCTION))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									symbol_t *sps;
-									sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-									if (sps)
-									{
-										if (syntax_ps_v(graph, sps))
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-										else
-										{
-											continue;
-										}
-									}
-									else
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PROPERTY))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PARAMETER))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_GENERIC))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_VAR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_IF))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FOR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FORIN))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-		}
-		else
-		if (symbol_check_type(a, SYMBOL_FORIN))
-		{
-			if (symbol_check_type(s, SYMBOL_CLASS))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FUNCTION))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									symbol_t *sps;
-									sps = syntax_only_with(s, SYMBOL_PARAMETERS);
-									if (sps)
-									{
-										if (syntax_ps_v(graph, sps))
-										{
-											syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-										else
-										{
-											continue;
-										}
-									}
-									else
-									{
-										syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PROPERTY))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_PARAMETER))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_GENERIC))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_VAR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_IF))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FOR))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-			else
-			if (symbol_check_type(s, SYMBOL_FORIN))
-			{
-				symbol_t *ak;
-				ak = syntax_extract_with(a, SYMBOL_KEY);
-				if (ak)
-				{
-					symbol_t *sk;
-					sk = syntax_extract_with(s, SYMBOL_KEY);
-					if (sk)
-					{
-						if ((syntax_comparison_id(ak, sk) == 1) && (a != s))
-						{
-							symbol_t *sgs;
-							sgs = syntax_only_with(s, SYMBOL_GENERICS);
-							if (sgs)
-							{
-								if (syntax_gs_v(graph, sgs))
-								{
-									syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(graph, sk, "definition repeated, another definition in %lld:%lld", 
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						syntax_error(graph, s, "without key");
-						return -1;
-					}
-				}
-				else
-				{
-					syntax_error(graph, a, "without key");
-					return -1;
-				}
-			}
-		}
-		
-	}
-
-	if (root->parent && (subroot != NULL))
-	{
-		return syntax_unique(graph, root->parent, root, s);
 	}
 
 	return 1;
 }
+
 
 
 static int32_t
@@ -6219,7 +1134,7 @@ syntax_var(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "class without a key");
+						syntax_error(graph, a, "class without key");
 						return -1;
 					}
 				}
@@ -6342,7 +1257,7 @@ syntax_var(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "function without a key");
+						syntax_error(graph, a, "function without key");
 						return -1;
 					}
 				}
@@ -6366,7 +1281,7 @@ syntax_var(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "var without a key");
+						syntax_error(graph, a, "var without key");
 						return -1;
 					}
 				}
@@ -6390,7 +1305,7 @@ syntax_var(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "enum without a key");
+						syntax_error(graph, a, "enum without key");
 						return -1;
 					}
 				}
@@ -6404,7 +1319,7 @@ syntax_var(graph_t *graph, symbol_t *current)
 	}
 	else
 	{
-		syntax_error(graph, current, "variable without a key");
+		syntax_error(graph, current, "variable without key");
 		return -1;
 	}
 
@@ -6443,7 +1358,7 @@ syntax_if(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "var without a key");
+						syntax_error(graph, a, "var without key");
 						return -1;
 					}
 				}
@@ -6658,7 +1573,7 @@ syntax_for(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "var without a key");
+						syntax_error(graph, a, "var without key");
 						return -1;
 					}
 				}
@@ -6832,7 +1747,7 @@ syntax_forin(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "var without a key");
+						syntax_error(graph, a, "var without key");
 						return -1;
 					}
 				}
@@ -7053,7 +1968,7 @@ syntax_generic(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "generic without a key");
+						syntax_error(graph, a, "generic without key");
 						return -1;
 					}
 				}
@@ -7067,7 +1982,7 @@ syntax_generic(graph_t *graph, symbol_t *current)
 	}
 	else
 	{
-		syntax_error(graph, current, "generic without a key");
+		syntax_error(graph, current, "generic without key");
 		return -1;
 	}
 	return 1;
@@ -7122,7 +2037,7 @@ syntax_parameter(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "parameter without a key");
+						syntax_error(graph, a, "parameter without key");
 						return -1;
 					}
 				}
@@ -7136,7 +2051,7 @@ syntax_parameter(graph_t *graph, symbol_t *current)
 	}
 	else
 	{
-		syntax_error(graph, current, "parameter without a key");
+		syntax_error(graph, current, "parameter without key");
 		return -1;
 	}
 	return 1;
@@ -7186,7 +2101,7 @@ syntax_parameters(graph_t *graph, symbol_t *current)
 						}
 						else
 						{
-							syntax_error(graph, b, "generic without a key");
+							syntax_error(graph, b, "generic without key");
 							return -1;
 						}
 					}
@@ -7195,7 +2110,7 @@ syntax_parameters(graph_t *graph, symbol_t *current)
 		}
 		else
 		{
-			syntax_error(graph, a, "parameter without a key");
+			syntax_error(graph, a, "parameter without key");
 			return -1;
 		}
 	}
@@ -7234,7 +2149,7 @@ syntax_heritage(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "heritage without a key");
+						syntax_error(graph, a, "heritage without key");
 						return -1;
 					}
 				}
@@ -7248,7 +2163,7 @@ syntax_heritage(graph_t *graph, symbol_t *current)
 	}
 	else
 	{
-		syntax_error(graph, current, "heritage without a key");
+		syntax_error(graph, current, "heritage without key");
 		return -1;
 	}
 	return 1;
@@ -7298,7 +2213,7 @@ syntax_heritages(graph_t *graph, symbol_t *current)
 						}
 						else
 						{
-							syntax_error(graph, b, "generic without a key");
+							syntax_error(graph, b, "generic without key");
 							return -1;
 						}
 					}
@@ -7307,7 +2222,7 @@ syntax_heritages(graph_t *graph, symbol_t *current)
 		}
 		else
 		{
-			syntax_error(graph, a, "heritage without a key");
+			syntax_error(graph, a, "heritage without key");
 			return -1;
 		}
 	}
@@ -7346,7 +2261,7 @@ syntax_member(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "enum member without a key");
+						syntax_error(graph, a, "enum member without key");
 						return -1;
 					}
 				}
@@ -7360,7 +2275,7 @@ syntax_member(graph_t *graph, symbol_t *current)
 	}
 	else
 	{
-		syntax_error(graph, current, "emum member without a key");
+		syntax_error(graph, current, "emum member without key");
 		return -1;
 	}
 
@@ -7448,7 +2363,7 @@ syntax_enum(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "class without a key");
+						syntax_error(graph, a, "class without key");
 						return -1;
 					}
 				}
@@ -7571,7 +2486,7 @@ syntax_enum(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "function without a key");
+						syntax_error(graph, a, "function without key");
 						return -1;
 					}
 				}
@@ -7595,7 +2510,7 @@ syntax_enum(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "property without a key");
+						syntax_error(graph, a, "property without key");
 						return -1;
 					}
 				}
@@ -7619,7 +2534,7 @@ syntax_enum(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "variable without a key");
+						syntax_error(graph, a, "variable without key");
 						return -1;
 					}
 				}
@@ -7643,7 +2558,7 @@ syntax_enum(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "enum without a key");
+						syntax_error(graph, a, "enum without key");
 						return -1;
 					}
 				}
@@ -7672,7 +2587,7 @@ syntax_enum(graph_t *graph, symbol_t *current)
 							}
 							else
 							{
-								syntax_error(graph, d, "generic without a key");
+								syntax_error(graph, d, "generic without key");
 								return -1;
 							}
 						}
@@ -7703,7 +2618,7 @@ syntax_enum(graph_t *graph, symbol_t *current)
 							}
 							else
 							{
-								syntax_error(graph, d, "heritage without a key");
+								syntax_error(graph, d, "heritage without key");
 								return -1;
 							}
 						}
@@ -7719,7 +2634,7 @@ syntax_enum(graph_t *graph, symbol_t *current)
 	}
 	else
 	{
-		syntax_error(graph, current, "enum without a key");
+		syntax_error(graph, current, "enum without key");
 		return -1;
 	}
 
@@ -7805,7 +2720,7 @@ syntax_property(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "class without a key");
+						syntax_error(graph, a, "class without key");
 						return -1;
 					}
 				}
@@ -7928,7 +2843,7 @@ syntax_property(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "function without a key");
+						syntax_error(graph, a, "function without key");
 						return -1;
 					}
 				}
@@ -7952,7 +2867,7 @@ syntax_property(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "property without a key");
+						syntax_error(graph, a, "property without key");
 						return -1;
 					}
 				}
@@ -7976,7 +2891,7 @@ syntax_property(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "enum without a key");
+						syntax_error(graph, a, "enum without key");
 						return -1;
 					}
 				}
@@ -8005,7 +2920,7 @@ syntax_property(graph_t *graph, symbol_t *current)
 							}
 							else
 							{
-								syntax_error(graph, d, "generic without a key");
+								syntax_error(graph, d, "generic without key");
 								return -1;
 							}
 						}
@@ -8036,7 +2951,7 @@ syntax_property(graph_t *graph, symbol_t *current)
 							}
 							else
 							{
-								syntax_error(graph, d, "heritage without a key");
+								syntax_error(graph, d, "heritage without key");
 								return -1;
 							}
 						}
@@ -8052,7 +2967,7 @@ syntax_property(graph_t *graph, symbol_t *current)
 	}
 	else
 	{
-		syntax_error(graph, current, "property without a key");
+		syntax_error(graph, current, "property without key");
 		return -1;
 	}
 
@@ -8312,7 +3227,7 @@ syntax_function(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "class without a key");
+						syntax_error(graph, a, "class without key");
 						return -1;
 					}
 				}
@@ -8784,7 +3699,7 @@ syntax_function(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "function without a key");
+						syntax_error(graph, a, "function without key");
 						return -1;
 					}
 				}
@@ -8906,7 +3821,7 @@ syntax_function(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "property without a key");
+						syntax_error(graph, a, "property without key");
 						return -1;
 					}
 				}
@@ -9028,7 +3943,7 @@ syntax_function(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "variable without a key");
+						syntax_error(graph, a, "variable without key");
 						return -1;
 					}
 				}
@@ -9150,7 +4065,7 @@ syntax_function(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "enum without a key");
+						syntax_error(graph, a, "enum without key");
 						return -1;
 					}
 				}
@@ -9277,7 +4192,7 @@ syntax_function(graph_t *graph, symbol_t *current)
 							}
 							else
 							{
-								syntax_error(graph, d, "generic without a key");
+								syntax_error(graph, d, "generic without key");
 								return -1;
 							}
 						}
@@ -9406,7 +4321,7 @@ syntax_function(graph_t *graph, symbol_t *current)
 							}
 							else
 							{
-								syntax_error(graph, d, "heritage without a key");
+								syntax_error(graph, d, "heritage without key");
 								return -1;
 							}
 						}
@@ -9422,7 +4337,7 @@ syntax_function(graph_t *graph, symbol_t *current)
 	}
 	else
 	{
-		syntax_error(graph, current, "function without a key");
+		syntax_error(graph, current, "function without key");
 		return -1;
 	}
 
@@ -9575,7 +4490,7 @@ syntax_class(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "class without a key");
+						syntax_error(graph, a, "class without key");
 						return -1;
 					}
 				}
@@ -9814,7 +4729,7 @@ syntax_class(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "class without a key");
+						syntax_error(graph, a, "class without key");
 						return -1;
 					}
 				}
@@ -9867,7 +4782,7 @@ syntax_class(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "class without a key");
+						syntax_error(graph, a, "class without key");
 						return -1;
 					}
 				}
@@ -9920,7 +4835,7 @@ syntax_class(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "class without a key");
+						syntax_error(graph, a, "class without key");
 						return -1;
 					}
 				}
@@ -9973,7 +4888,7 @@ syntax_class(graph_t *graph, symbol_t *current)
 					}
 					else
 					{
-						syntax_error(graph, a, "class without a key");
+						syntax_error(graph, a, "class without key");
 						return -1;
 					}
 				}
@@ -10031,7 +4946,7 @@ syntax_class(graph_t *graph, symbol_t *current)
 							}
 							else
 							{
-								syntax_error(graph, d, "generic without a key");
+								syntax_error(graph, d, "generic without key");
 								return -1;
 							}
 						}
@@ -10091,7 +5006,7 @@ syntax_class(graph_t *graph, symbol_t *current)
 							}
 							else
 							{
-								syntax_error(graph, d, "generic without a key");
+								syntax_error(graph, d, "generic without key");
 								return -1;
 							}
 						}
@@ -10107,7 +5022,7 @@ syntax_class(graph_t *graph, symbol_t *current)
 	}
 	else
 	{
-		syntax_error(graph, current, "class without a key");
+		syntax_error(graph, current, "class without key");
 		return -1;
 	}
 
@@ -10192,40 +5107,260 @@ syntax_class(graph_t *graph, symbol_t *current)
 static int32_t
 syntax_field(graph_t *graph, symbol_t *current)
 {
-	symbol_t *fk;
-	fk = syntax_only_with(current, SYMBOL_KEY);
-	if (fk)
+	symbol_t *ck;
+	ck = syntax_extract_with(current, SYMBOL_KEY);
+	if (ck)
 	{
-		symbol_t *ft;
-		ft = syntax_only_with(current, SYMBOL_TYPE);
-		if (ft)
+		symbol_t *root = current->parent;
+		if (root)
 		{
-			int32_t result = 1;
-			//result = syntax_field_match(graph, fk, ft);
-			if (result == -1)
+			symbol_t *a;
+			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
 			{
-				return -1;
+				if (symbol_check_type(a, SYMBOL_FIELD))
+				{
+					symbol_t *ak;
+					ak = syntax_extract_with(a, SYMBOL_KEY);
+					if (ak)
+					{
+						if (symbol_check_type(ck, SYMBOL_ID))
+						{
+							if (symbol_check_type(ak, SYMBOL_ID))
+							{
+								if ((syntax_comparison_id(ck, ak) == 1) && (current != a))
+								{
+									syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+										ak->declaration->position.line, ak->declaration->position.column);
+									return -1;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							if (symbol_check_type(ak, SYMBOL_COMPOSITE))
+							{
+								symbol_t *akk;
+								akk = syntax_extract_with(ak, SYMBOL_KEY);
+								if (akk)
+								{
+									if (symbol_check_type(akk, SYMBOL_ID))
+									{
+										if (syntax_comparison_id(ck, akk) == 1)
+										{
+											symbol_t *aas;
+											aas = syntax_only_with(ak, SYMBOL_ARGUMENTS);
+											if (aas)
+											{
+												int32_t no_value = -1;
+												symbol_t *b;
+												for (b = aas->begin;(b != aas->end);b = b->next)
+												{
+													symbol_t *bv;
+													bv = syntax_only_with(b, SYMBOL_VALUE);
+													if (!bv)
+													{
+														no_value = 1;
+														break;
+													}
+												}
+												if (no_value == -1)
+												{
+													syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+														akk->declaration->position.line, akk->declaration->position.column);
+													return -1;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												syntax_error(graph, ck, "defination repeated, another defination in %lld:%lld",
+													akk->declaration->position.line, akk->declaration->position.column);
+												return -1;
+											}
+										}
+									}
+									else
+									{
+										syntax_error(graph, akk, "keyword is not an id");
+										return -1;
+									}
+								}
+								else
+								{
+									syntax_error(graph, ak, "composite without key");
+									return -1;
+								}
+							}
+							else
+							{
+								syntax_error(graph, ak, "unknown key");
+								return -1;
+							}
+						}
+						else
+						if (symbol_check_type(ck, SYMBOL_COMPOSITE))
+						{
+							if (symbol_check_type(ak, SYMBOL_ID))
+							{
+								symbol_t *ckk;
+								ckk = syntax_extract_with(ck, SYMBOL_KEY);
+								if (ckk)
+								{
+									if (symbol_check_type(ckk, SYMBOL_ID))
+									{
+										if (syntax_comparison_id(ak, ckk) == 1)
+										{
+											symbol_t *cas;
+											cas = syntax_only_with(ck, SYMBOL_ARGUMENTS);
+											if (cas)
+											{
+												int32_t no_value = -1;
+												symbol_t *b;
+												for (b = cas->begin;(b != cas->end);b = b->next)
+												{
+													symbol_t *bv;
+													bv = syntax_only_with(b, SYMBOL_VALUE);
+													if (!bv)
+													{
+														no_value = 1;
+														break;
+													}
+												}
+												if (no_value == -1)
+												{
+													syntax_error(graph, ckk, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+												else
+												{
+													continue;
+												}
+											}
+											else
+											{
+												syntax_error(graph, ckk, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+										else
+										{
+											continue;
+										}
+									}
+									else
+									{
+										syntax_error(graph, ckk, "keyword is not an id");
+										return -1;
+									}
+								}
+								else
+								{
+									syntax_error(graph, ak, "composite without key");
+									return -1;
+								}
+							}
+							else
+							if (symbol_check_type(ak, SYMBOL_COMPOSITE))
+							{
+								symbol_t *ckk;
+								ckk = syntax_extract_with(ck, SYMBOL_KEY);
+								if (ckk)
+								{
+									symbol_t *akk;
+									akk = syntax_extract_with(ak, SYMBOL_KEY);
+									if (akk)
+									{
+										if (syntax_comparison_id(akk, ckk) == 1)
+										{
+											symbol_t *cas;
+											cas = syntax_only_with(ck, SYMBOL_ARGUMENTS);
+											if (cas)
+											{
+												symbol_t *aas;
+												aas = syntax_only_with(ak, SYMBOL_ARGUMENTS);
+												if (aas)
+												{
+													int32_t result;
+													result = syntax_asas(graph, cas, aas);
+													if (result == 1)
+													{
+														syntax_error(graph, ckk, "defination repeated, another defination in %lld:%lld",
+															akk->declaration->position.line, akk->declaration->position.column);
+														return -1;
+													}
+													else
+													if (result == -1)
+													{
+														return -1;
+													}
+													else
+													{
+														continue;
+													}
+												}
+												else
+												{
+													syntax_error(graph, ak, "composite without arguments");
+													return -1;
+												}
+											}
+											else
+											{
+												syntax_error(graph, ck, "composite without arguments");
+												return -1;
+											}
+										}
+										else
+										{
+											continue;
+										}
+									}
+									else
+									{
+										syntax_error(graph, ak, "composite without key");
+										return -1;
+									}
+								}
+								else
+								{
+									syntax_error(graph, ck, "composite without key");
+									return -1;
+								}
+							}
+						}
+						else
+						{
+							syntax_error(graph, ck, "unknown key");
+							return -1;
+						}
+					}
+					else
+					{
+						syntax_error(graph, a, "field without key");
+						return -1;
+					}
+				}
 			}
 		}
 		else
 		{
-			if (symbol_check_type(fk, SYMBOL_ID))
-			{
-				int32_t result = 1;
-				//result = syntax_unique(graph, fk);
-				if (result == -1)
-				{
-					return -1;
-				} 
-				return 1;
-			}
-			else
-			{
-				syntax_error(graph, fk, "key is invalid");
-				return -1;
-			}
+			syntax_error(graph, current, "field without parent");
+			return -1;
 		}
 	}
+	else
+	{
+		syntax_error(graph, current, "field without key");
+		return -1;
+	}
+
 	return 1;
 }
 
@@ -10243,6 +5378,44 @@ syntax_fields(graph_t *graph, symbol_t *current)
 			{
 				return -1;
 			}
+			
+			symbol_t *ak;
+			ak = syntax_extract_with(a, SYMBOL_KEY);
+			if (ak)
+			{
+				symbol_t *parent = current->parent;
+				if (parent)
+				{
+					symbol_t *root = parent->parent;
+					if (root)
+					{
+						symbol_t *b;
+						for (b = root->begin;(b != root->end) && (b != parent); b = b->next)
+						{
+							if (symbol_check_type(b, SYMBOL_CLASS))
+							{
+
+							}
+						}
+					}
+					else
+					{
+						syntax_error(graph, parent, "import without parent");
+						return -1;
+					}
+				}
+				else
+				{
+					syntax_error(graph, current, "fields without parent");
+					return -1;
+				}
+			}
+			else
+			{
+				syntax_error(graph, a, "field without key");
+				return -1;
+			}
+
 			continue;
 		}
 	}
