@@ -1,6 +1,3 @@
-import ("~/type.q", field{T, K}:property{T}.field{K}, field{R, K}:property{R}.field{K});
-
-
 export class string {
 
 }
@@ -8,6 +5,10 @@ export class string {
 export class (T) int {
 
 }
+
+import ("~/lib/types.q",
+  int{T, K} : property{T}.field{K}
+);
 
 var int = 1;
 var a = 2;

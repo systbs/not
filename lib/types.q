@@ -1,0 +1,7 @@
+class int {
+
+}
+
+class string {
+  
+}

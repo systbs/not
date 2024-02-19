@@ -3,7 +3,7 @@
 #define __SYMBOL_H__
 
 typedef enum symbol_type {
-    SYMBOL_NONE						= 1,
+    SYMBOL_ROOT						= 1,
     SYMBOL_VAR,
 	SYMBOL_MODULE,
     SYMBOL_PROPERTY,

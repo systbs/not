@@ -62,7 +62,13 @@ main(int argc, char **argv)
     program.errors = list_create();
     if(!program.errors)
     {
-        return -1;
+      return -1;
+    }
+
+		program.imports = list_create();
+    if(!program.imports)
+    {
+      return -1;
     }
     
     parser_t *parser;
@@ -83,12 +89,17 @@ main(int argc, char **argv)
     	return -1;
     }
 
+		node_t *node_path;
+		node_path = node_make_string(node->position, base_file);
+
     symbol_t *root;
-		root = symbol_create(SYMBOL_NONE, NULL);
+		root = symbol_create(SYMBOL_ROOT, node_path);
 		if(!root)
 		{
 			return -1;
 		}
+
+		list_rpush(program.imports, (uint64_t)root);
 
     int32_t graph_result;
     graph_result = graph_run(&program, root, node);
