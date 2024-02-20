@@ -29,7 +29,9 @@
         "node.h": "c",
         "error.h": "c",
         "syntax.h": "c",
-        "text5": "c"
+        "text5": "c",
+        "text4": "c",
+        "text6": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

@@ -744,14 +744,6 @@ graph_prefix(program_t *program, symbol_t *parent, node_t *node)
 			return -1;
 		}
 	}
-	else if(node->kind == NODE_KIND_ELLIPSIS)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_ELLIPSIS, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
 
 	int32_t result;
 	node_unary_t *node_unary;
@@ -763,7 +755,6 @@ graph_prefix(program_t *program, symbol_t *parent, node_t *node)
 	case NODE_KIND_POS:
 	case NODE_KIND_SIZEOF:
 	case NODE_KIND_TYPEOF:
-	case NODE_KIND_ELLIPSIS:
 		node_unary = (node_unary_t *)node->value;
 
 		symbol_right = symbol_rpush(symbol, SYMBOL_RIGHT, node_unary->right);

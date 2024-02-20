@@ -1048,19 +1048,6 @@ parser_prefix(program_t *program, parser_t *parser)
 		node = node_make_pos(position, right);
 		break;
 
-	case TOKEN_DOT_DOT:
-		if (!parser_next(program, parser))
-		{
-			return NULL;
-		}
-		right = parser_postfix(program, parser);
-		if (!right)
-		{
-			return NULL;
-		}
-		node = node_make_ellipsis(position, right);
-		break;
-
 	case TOKEN_SIZEOF_KEYWORD:
 		if (!parser_next(program, parser))
 		{

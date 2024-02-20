@@ -646,7 +646,8 @@ syntax_prototype_subset_of_component_type(symbol_t *reference, symbol_t *target)
 		}
 		return result;
 	}
-	else if(symbol_check_type(reference, SYMBOL_AND))
+	else 
+	if(symbol_check_type(reference, SYMBOL_AND))
 	{
 		int32_t result = 1;
 		symbol_t *a;
@@ -663,7 +664,8 @@ syntax_prototype_subset_of_component_type(symbol_t *reference, symbol_t *target)
 		}
 		return result;
 	}
-	else if (symbol_check_type(reference, SYMBOL_LEFT))
+	else 
+	if (symbol_check_type(reference, SYMBOL_LEFT))
 	{
 		if(symbol_check_type(target, SYMBOL_OR))
 		{
@@ -682,7 +684,8 @@ syntax_prototype_subset_of_component_type(symbol_t *reference, symbol_t *target)
 			}
 			return result;
 		}
-		else if(symbol_check_type(target, SYMBOL_AND))
+		else 
+		if(symbol_check_type(target, SYMBOL_AND))
 		{
 			int32_t result = 1;
 			symbol_t *a;
