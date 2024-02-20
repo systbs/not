@@ -2,15 +2,9 @@
 #ifndef __RESPONSE_H__
 #define __RESPONSE_H__
 
-typedef enum response_type {
-  RESPONSE_TYPE_SYMBOL     = 1 << 0,
-  RESPONSE_TYPE_HYBRID     = 1 << 1
-} response_type_t;
-
 typedef struct iresponse {
     struct iresponse *previous;
     struct iresponse *next;
-    uint64_t type;
     void *value;
 } iresponse_t;
 
@@ -59,13 +53,13 @@ iresponse_t*
 response_rpop(response_t *res);
 
 iresponse_t *
-response_rpush(response_t *res, uint64_t type, void *value);
+response_rpush(response_t *res, void *value);
 
 iresponse_t*
 response_lpop(response_t *res);
 
 iresponse_t *
-response_lpush(response_t *res, uint64_t type, void *value);
+response_lpush(response_t *res, void *value);
 
 iresponse_t *
 response_first(response_t *res);

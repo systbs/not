@@ -31,7 +31,9 @@
         "syntax.h": "c",
         "text5": "c",
         "text4": "c",
-        "text6": "c"
+        "text6": "c",
+        "position.h": "c",
+        "response.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

@@ -9,7 +9,6 @@
 #include "../scanner/file.h"
 #include "../scanner/scanner.h"
 #include "../ast/node.h"
-#include "symbol.h"
 #include "response.h"
 
 response_t *
@@ -184,7 +183,7 @@ response_rpop(response_t *res)
 }
 
 iresponse_t *
-response_rpush(response_t *res, uint64_t type, void *value)
+response_rpush(response_t *res, void *value)
 {
   iresponse_t *it;
   if(!(it = (iresponse_t *)malloc(sizeof(*it)))) {
@@ -192,7 +191,6 @@ response_rpush(response_t *res, uint64_t type, void *value)
   }
   memset(it, 0, sizeof(iresponse_t));
 
-  it->type = type;
   it->value = value;
 
   return response_link(res, res->end, it);
@@ -205,7 +203,7 @@ response_lpop(response_t *res)
 }
 
 iresponse_t *
-response_lpush(response_t *res, uint64_t type, void *value)
+response_lpush(response_t *res, void *value)
 {
   iresponse_t *it;
   if(!(it = (iresponse_t *)malloc(sizeof(*it)))) {
@@ -213,7 +211,6 @@ response_lpush(response_t *res, uint64_t type, void *value)
   }
   memset(it, 0, sizeof(iresponse_t));
 
-  it->type = type;
   it->value = value;
 
   return response_link(res, res->begin, it);

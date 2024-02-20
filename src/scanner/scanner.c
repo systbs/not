@@ -34,7 +34,8 @@ digit_val(int32_t ch)
 	return 16;
 }
 
-void scanner_set_token(scanner_t *scanner, token_t token)
+void 
+scanner_set_token(scanner_t *scanner, token_t token)
 {
 	scanner->token = token;
 }
@@ -66,7 +67,8 @@ scanner_create(file_source_t *file_source, list_t *errors)
 	return scanner;
 }
 
-void scanner_destroy(scanner_t *scanner)
+void 
+scanner_destroy(scanner_t *scanner)
 {
 	free(scanner);
 }

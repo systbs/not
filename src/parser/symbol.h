@@ -134,7 +134,7 @@ typedef struct symbol {
     struct symbol *previous;
     struct symbol *next;
 
-    // branche
+    // branch
     struct symbol *begin;
     struct symbol *end;
 

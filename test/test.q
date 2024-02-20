@@ -1,37 +1,25 @@
-export class string {
-
+export class String extends (v : typeof("")) {
+  func constructor (value:String)
+  {
+    v(value);
+  }
 }
 
-export class (T) int {
+export class Int extends (v : typeof(0)) {
+  func constructor (value:Int)
+  {
+    v(value);
+  }
 
-}
-
-import ("~/lib/types.q",
-  int{T, K} : property{T}.field{K}
-);
-
-var int = 1;
-var a = 2;
-
-func init(args:int)
-{
-  var t1 = teacher();
-  var t2 = teacher{R=string}("peyman", "bachelor");
-}
-
-
-export class (R extends int) person 
-{
-  export class (R extends int = int) person 
+  func + (value:Int)
   {
 
   }
 }
 
-
-
-export class (W=int, R extends string) teacher extends (p:person)
+func constructor(args:int)
 {
-  
+  var t1 = teacher();
+  var t2 = teacher{R=string}("peyman", "bachelor");
 }
 

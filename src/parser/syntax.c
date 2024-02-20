@@ -13,6 +13,7 @@
 
 #include "../types/types.h"
 #include "../container/list.h"
+#include "../container/response.h"
 #include "../token/position.h"
 #include "../token/token.h"
 #include "../program.h"
@@ -21,12 +22,13 @@
 #include "../ast/node.h"
 #include "../utils/utils.h"
 #include "../utils/path.h"
+
 #include "parser.h"
 #include "error.h"
 #include "symbol.h"
 #include "graph.h"
 #include "syntax.h"
-#include "response.h"
+
 
 
 static error_t *
@@ -146,7 +148,14 @@ syntax_strcmp(symbol_t *id1, symbol_t *id2)
 	return strcmp(nbid1->value, nbid2->value);
 }
 
+static int32_t
+syntax_strcmp_by_string(symbol_t *id1, char *name)
+{
+	node_t *nid1 = id1->declaration;
+	node_basic_t *nbid1 = (node_basic_t *)nid1->value;
 
+	return strcmp(nbid1->value, name);
+}
 
 
 static int32_t
@@ -249,42 +258,9 @@ syntax_var(program_t *program, symbol_t *current)
 					{
 						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
 						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								int32_t no_value = -1;
-								symbol_t *b;
-								for (b = ags->begin;(b != ags->end);b = b->next)
-								{
-									if (symbol_check_type(b, SYMBOL_GENERIC))
-									{
-										symbol_t *agv;
-										agv = syntax_extract_with(b, SYMBOL_VALUE);
-										if (!agv)
-										{
-											no_value = 1;
-											break;
-										}
-									}
-								}
-								if (no_value == -1)
-								{
-									syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-									ak->declaration->position.line, ak->declaration->position.column);
-								return -1;
-							}
+							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+								ak->declaration->position.line, ak->declaration->position.column);
+							return -1;
 						}
 						else
 						{
@@ -306,108 +282,9 @@ syntax_var(program_t *program, symbol_t *current)
 					{
 						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
 						{
-							symbol_t *ags;
-							ags = syntax_only_with(a, SYMBOL_GENERICS);
-							if (ags)
-							{
-								int32_t no_value = -1;
-								symbol_t *b;
-								for (b = ags->begin;(b != ags->end);b = b->next)
-								{
-									if (symbol_check_type(b, SYMBOL_GENERIC))
-									{
-										symbol_t *agv;
-										agv = syntax_extract_with(b, SYMBOL_VALUE);
-										if (!agv)
-										{
-											no_value = 1;
-											break;
-										}
-									}
-								}
-								if (no_value == -1)
-								{
-									symbol_t *aps;
-									aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-									if (aps)
-									{
-										int32_t no_value2 = -1;
-										symbol_t *b;
-										for (b = aps->begin;(b != aps->end);b = b->next)
-										{
-											if (symbol_check_type(b, SYMBOL_PARAMETER))
-											{
-												symbol_t *cpv;
-												cpv = syntax_only_with(b, SYMBOL_VALUE);
-												if (!cpv)
-												{
-													no_value2 = 1;
-													break;
-												}
-											}
-										}
-										if (no_value2 == -1)
-										{
-											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-												ak->declaration->position.line, ak->declaration->position.column);
-											return -1;
-										}
-										else
-										{
-											continue;
-										}
-									}
-									else
-									{
-										syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-								}
-								else
-								{
-									continue;
-								}
-							}
-							else
-							{
-								symbol_t *aps;
-								aps = syntax_only_with(a, SYMBOL_PARAMETERS);
-								if (aps)
-								{
-									int32_t no_value2 = -1;
-									symbol_t *b;
-									for (b = aps->begin;(b != aps->end);b = b->next)
-									{
-										if (symbol_check_type(b, SYMBOL_PARAMETER))
-										{
-											symbol_t *cpv;
-											cpv = syntax_only_with(b, SYMBOL_VALUE);
-											if (!cpv)
-											{
-												no_value2 = 1;
-												break;
-											}
-										}
-									}
-									if (no_value2 == -1)
-									{
-										syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-											ak->declaration->position.line, ak->declaration->position.column);
-										return -1;
-									}
-									else
-									{
-										continue;
-									}
-								}
-								else
-								{
-									syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-										ak->declaration->position.line, ak->declaration->position.column);
-									return -1;
-								}
-							}
+							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+								ak->declaration->position.line, ak->declaration->position.column);
+							return -1;
 						}
 						else
 						{
@@ -1886,6 +1763,330 @@ syntax_function(program_t *program, symbol_t *current)
 	ck = syntax_extract_with(current, SYMBOL_KEY);
 	if (ck)
 	{
+		int32_t result;
+		result = syntax_strcmp_by_string(ck, "constructor");
+		if (result == 0)
+		{
+			symbol_t *gs;
+			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			if (gs)
+			{
+				syntax_error(program, current, "constructor with generics");
+				return -1;
+			}
+		}
+
+		result = syntax_strcmp_by_string(ck, "+");
+		if (result == 0)
+		{
+			symbol_t *gs;
+			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			if (gs)
+			{
+				syntax_error(program, current, "operator + with generics");
+				return -1;
+			}
+
+			symbol_t *ps;
+			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			if (ps)
+			{
+				if (symbol_count(ps) > 1)
+				{
+					syntax_error(program, current, "operator + with multiple parameters");
+					return -1;
+				}
+			}
+		}
+
+		result = syntax_strcmp_by_string(ck, "-");
+		if (result == 0)
+		{
+			symbol_t *gs;
+			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			if (gs)
+			{
+				syntax_error(program, current, "operator - with generics");
+				return -1;
+			}
+
+			symbol_t *ps;
+			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			if (ps)
+			{
+				if (symbol_count(ps) > 1)
+				{
+					syntax_error(program, current, "operator + with multiple parameters");
+					return -1;
+				}
+			}
+		}
+
+		result = syntax_strcmp_by_string(ck, "*");
+		if (result == 0)
+		{
+			symbol_t *gs;
+			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			if (gs)
+			{
+				syntax_error(program, current, "operator * with generics");
+				return -1;
+			}
+
+			symbol_t *ps;
+			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			if (ps)
+			{
+				if (symbol_count(ps) > 1)
+				{
+					syntax_error(program, current, "operator * with multiple parameters");
+					return -1;
+				}
+			}
+		}
+
+		result = syntax_strcmp_by_string(ck, "/");
+		if (result == 0)
+		{
+			symbol_t *gs;
+			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			if (gs)
+			{
+				syntax_error(program, current, "operator / with generics");
+				return -1;
+			}
+
+			symbol_t *ps;
+			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			if (ps)
+			{
+				if (symbol_count(ps) > 1)
+				{
+					syntax_error(program, current, "operator / with multiple parameters");
+					return -1;
+				}
+			}
+		}
+
+		result = syntax_strcmp_by_string(ck, "**");
+		if (result == 0)
+		{
+			symbol_t *gs;
+			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			if (gs)
+			{
+				syntax_error(program, current, "operator ** with generics");
+				return -1;
+			}
+
+			symbol_t *ps;
+			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			if (ps)
+			{
+				if (symbol_count(ps) > 1)
+				{
+					syntax_error(program, current, "operator ** with multiple parameters");
+					return -1;
+				}
+			}
+		}
+
+		result = syntax_strcmp_by_string(ck, "%");
+		if (result == 0)
+		{
+			symbol_t *gs;
+			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			if (gs)
+			{
+				syntax_error(program, current, "operator %% with generics");
+				return -1;
+			}
+
+			symbol_t *ps;
+			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			if (ps)
+			{
+				if (symbol_count(ps) > 1)
+				{
+					syntax_error(program, current, "operator %% with multiple parameters");
+					return -1;
+				}
+			}
+		}
+
+		result = syntax_strcmp_by_string(ck, "&");
+		if (result == 0)
+		{
+			symbol_t *gs;
+			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			if (gs)
+			{
+				syntax_error(program, current, "operator & with generics");
+				return -1;
+			}
+
+			symbol_t *ps;
+			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			if (ps)
+			{
+				if (symbol_count(ps) > 1)
+				{
+					syntax_error(program, current, "operator & with multiple parameters");
+					return -1;
+				}
+			}
+		}
+
+		result = syntax_strcmp_by_string(ck, "|");
+		if (result == 0)
+		{
+			symbol_t *gs;
+			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			if (gs)
+			{
+				syntax_error(program, current, "operator | with generics");
+				return -1;
+			}
+
+			symbol_t *ps;
+			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			if (ps)
+			{
+				if (symbol_count(ps) > 1)
+				{
+					syntax_error(program, current, "operator | with multiple parameters");
+					return -1;
+				}
+			}
+		}
+
+		result = syntax_strcmp_by_string(ck, "^");
+		if (result == 0)
+		{
+			symbol_t *gs;
+			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			if (gs)
+			{
+				syntax_error(program, current, "operator ^ with generics");
+				return -1;
+			}
+
+			symbol_t *ps;
+			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			if (ps)
+			{
+				if (symbol_count(ps) > 1)
+				{
+					syntax_error(program, current, "operator ^ with multiple parameters");
+					return -1;
+				}
+			}
+		}
+
+		result = syntax_strcmp_by_string(ck, ">>");
+		if (result == 0)
+		{
+			symbol_t *gs;
+			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			if (gs)
+			{
+				syntax_error(program, current, "operator >> with generics");
+				return -1;
+			}
+
+			symbol_t *ps;
+			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			if (ps)
+			{
+				if (symbol_count(ps) > 1)
+				{
+					syntax_error(program, current, "operator >> with multiple parameters");
+					return -1;
+				}
+			}
+		}
+
+		result = syntax_strcmp_by_string(ck, "<<");
+		if (result == 0)
+		{
+			symbol_t *gs;
+			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			if (gs)
+			{
+				syntax_error(program, current, "operator << with generics");
+				return -1;
+			}
+
+			symbol_t *ps;
+			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			if (ps)
+			{
+				if (symbol_count(ps) > 1)
+				{
+					syntax_error(program, current, "operator << with multiple parameters");
+					return -1;
+				}
+			}
+		}
+
+		result = syntax_strcmp_by_string(ck, ">");
+		if (result == 0)
+		{
+			symbol_t *gs;
+			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			if (gs)
+			{
+				syntax_error(program, current, "operator > with generics");
+				return -1;
+			}
+
+			symbol_t *ps;
+			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			if (ps)
+			{
+				if (symbol_count(ps) > 1)
+				{
+					syntax_error(program, current, "operator > with multiple parameters");
+					return -1;
+				}
+			}
+		}
+
+		result = syntax_strcmp_by_string(ck, "<");
+		if (result == 0)
+		{
+			symbol_t *gs;
+			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			if (gs)
+			{
+				syntax_error(program, current, "operator < with generics");
+				return -1;
+			}
+
+			symbol_t *ps;
+			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			if (ps)
+			{
+				if (symbol_count(ps) > 1)
+				{
+					syntax_error(program, current, "operator < with multiple parameters");
+					return -1;
+				}
+			}
+		}
+
+		result = syntax_strcmp_by_string(ck, "[]");
+		if (result == 0)
+		{
+			symbol_t *gs;
+			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			if (gs)
+			{
+				syntax_error(program, current, "operator [] with generics");
+				return -1;
+			}
+		}
+
 		symbol_t *root = current->parent;
 		if (root)
 		{

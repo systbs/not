@@ -849,3 +849,141 @@ syntax_gsas(program_t *program, symbol_t *gs1, symbol_t *as1)
 
 
 
+
+
+static response_t *
+syntax_addative(program_t *program, symbol_t *current)
+{
+	if (symbol_check_type(current, SYMBOL_PLUS))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			symbol_t *right;
+			right = syntax_extract_with(current, SYMBOL_RIGHT);
+			if (right)
+			{
+				response_t *rl;
+				rl = syntax_addative(program, left);
+				if (rl)
+				{
+					response_t *rr;
+					rr = syntax_multipicative(program, right);
+					if (rr)
+					{
+						iresponse_t *irl;
+						for (irl = rl->begin;irl != rl->end;irl = irl->next)
+						{
+							iresponse_t *irr;
+							for (irr = rr->begin;irr != rr->end;irr = irr->next)
+							{
+								if (symbol_check_type(irl, SYMBOL_CLASS))
+								{
+									if (symbol_check_type(irr, SYMBOL_CLASS))
+									{
+										symbol_t *f;
+										f = syntax_get_function(program, irl, "+");
+										if (f)
+										{
+											symbol_t *fps;
+											fps = syntax_only_with(f, SYMBOL_PARAMETERS);
+											if (fps)
+											{
+												uint64_t a_cnt = 0;
+												symbol_t *a;
+												for (a = fps->begin;a != fps->end;a = a->next)
+												{
+													if (symbol_check_type(a, SYMBOL_PARAMETER))
+													{
+														a_cnt += 1;
+														if (a_cnt > 1)
+														{
+															syntax_error(program, a, "the + operator has only one parameter");
+															return NULL;
+														}
+														else
+														{
+															symbol_t *at;
+															at = syntax_extract_with(a, SYMBOL_TYPE);
+															if (at)
+															{
+																int32_t result;
+																result = syntax_subset_of(program, a, irr);
+																if (result == -1)
+																{
+																	return NULL;
+																}
+																else
+																if (result == 0)
+																{
+																	syntax_error(program, a, "the + operator has no any parameter form type %lld:%lld",
+																		irr->declaration->position.line, irr->declaration->position.column);
+																	return NULL;
+																}
+																else
+																{
+
+																}
+															}
+															else
+															{
+																syntax_error(program, a, "parameter without type");
+																return NULL;
+															}
+														}
+													}
+												}
+											}
+											else
+											{
+												syntax_error(program, lf, "the + operator has no parameters");
+												return NULL;
+											}
+										}
+										else
+										{
+											syntax_error(program, lf, "the + operator is not defined for this class");
+											return NULL;
+										}
+									}
+									else
+									{
+										syntax_error(program, irr, "algebraic operations for a non-class");
+										return NULL;
+									}
+								}
+								else
+								{
+									syntax_error(program, irl, "algebraic operations for a non-class");
+									return NULL;
+								}
+							}
+						}
+					}
+					else
+					{
+						syntax_error(program, current, "algebraic without rhs");
+						return NULL;
+					}
+				}
+				else
+				{
+					syntax_error(program, current, "algebraic without lhs");
+					return NULL;
+				}
+			}
+			else
+			{
+				syntax_error(program, current, "algebraic without right");
+				return NULL;
+			}
+		}
+		else
+		{
+			syntax_error(program, current, "algebraic without left");
+			return NULL;
+		}
+	}
+	
+}
