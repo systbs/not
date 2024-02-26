@@ -55,7 +55,7 @@ static node_t *
 parser_export(program_t *program, parser_t *parser);
 
 int32_t
-parser_save_state(program_t *program, parser_t *parser)
+parser_save(program_t *program, parser_t *parser)
 {
 	scanner_t *scanner;
 	scanner = parser->scanner;
@@ -64,7 +64,7 @@ parser_save_state(program_t *program, parser_t *parser)
 	if (!(state = (parser_state_t *)malloc(sizeof(parser_state_t))))
 	{
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(parser_state_t));
-		return 0;
+		return -1;
 	}
 
 	state->loop_depth = parser->loop_depth;
@@ -74,17 +74,18 @@ parser_save_state(program_t *program, parser_t *parser)
 	state->column = scanner->column;
 	state->ch = scanner->ch;
 	state->token = scanner->token;
+	state->count_error = list_count(program->errors);
 
 	if (!list_rpush(parser->states, (uint64_t)state))
 	{
-		return 0;
+		return -1;
 	}
 
 	return 1;
 }
 
 int32_t
-parser_restore_state(program_t *program, parser_t *parser)
+parser_restore(program_t *program, parser_t *parser)
 {
 	scanner_t *scanner;
 	scanner = parser->scanner;
@@ -93,7 +94,7 @@ parser_restore_state(program_t *program, parser_t *parser)
 	state = (parser_state_t *)list_content(list_rpop(parser->states));
 	if (!state)
 	{
-		return 0;
+		return -1;
 	}
 
 	parser->loop_depth = state->loop_depth;
@@ -104,19 +105,30 @@ parser_restore_state(program_t *program, parser_t *parser)
 	scanner->column = state->column;
 	scanner->ch = state->ch;
 
+	for(uint64_t i = state->count_error;i > 0;i--)
+	{
+		ilist_t *it;
+		it = list_rpop(program->errors);
+		if (it)
+		{
+			free((void *)it->value);
+			free(it);
+		}
+	}
+
 	scanner->token = state->token;
 	free(state);
 	return 1;
 }
 
 int32_t
-parser_release_state(program_t *program, parser_t *parser)
+parser_release(program_t *program, parser_t *parser)
 {
 	parser_state_t *state;
 	state = (parser_state_t *)list_content(list_rpop(parser->states));
 	if (!state)
 	{
-		return 0;
+		return -1;
 	}
 
 	free(state);
@@ -208,15 +220,15 @@ parser_match(program_t *program, parser_t *parser, int32_t type)
 {
 	if (parser->token->type == type)
 	{
-		if (!scanner_advance(parser->scanner))
+		if (scanner_advance(parser->scanner) == -1)
 		{
-			return 0;
+			return -1;
 		}
 	}
 	else
 	{
 		parser_expected(program, parser, type);
-		return 0;
+		return -1;
 	}
 	return 1;
 }
@@ -224,12 +236,15 @@ parser_match(program_t *program, parser_t *parser, int32_t type)
 static int32_t
 parser_next(program_t *program, parser_t *parser)
 {
-	if (!scanner_advance(parser->scanner))
+	if (scanner_advance(parser->scanner) == -1)
 	{
-		return 0;
+		return -1;
 	}
 	return 1;
 }
+
+
+
 
 static node_t *
 parser_id(program_t *program, parser_t *parser)
@@ -240,7 +255,7 @@ parser_id(program_t *program, parser_t *parser)
 	{
 		return NULL;
 	}
-	if (!parser_match(program, parser, TOKEN_ID))
+	if (parser_match(program, parser, TOKEN_ID) == -1)
 	{
 		return NULL;
 	}
@@ -257,7 +272,7 @@ parser_number(program_t *program, parser_t *parser)
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_NUMBER))
+	if (parser_match(program, parser, TOKEN_NUMBER) == -1)
 	{
 		return NULL;
 	}
@@ -274,7 +289,7 @@ parser_char(program_t *program, parser_t *parser)
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_CHAR))
+	if (parser_match(program, parser, TOKEN_CHAR) == -1)
 	{
 		return NULL;
 	}
@@ -291,7 +306,7 @@ parser_string(program_t *program, parser_t *parser)
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_STRING))
+	if (parser_match(program, parser, TOKEN_STRING) == -1)
 	{
 		return NULL;
 	}
@@ -308,7 +323,7 @@ parser_null(program_t *program, parser_t *parser)
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_NULL_KEYWORD))
+	if (parser_match(program, parser, TOKEN_NULL_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -325,7 +340,7 @@ parser_true(program_t *program, parser_t *parser)
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_TRUE_KEYWORD))
+	if (parser_match(program, parser, TOKEN_TRUE_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -342,7 +357,7 @@ parser_false(program_t *program, parser_t *parser)
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_FALSE_KEYWORD))
+	if (parser_match(program, parser, TOKEN_FALSE_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -359,7 +374,7 @@ parser_infinity(program_t *program, parser_t *parser)
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_INFINITY_KEYWORD))
+	if (parser_match(program, parser, TOKEN_INFINITY_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -376,7 +391,7 @@ parser_this(program_t *program, parser_t *parser)
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_THIS_KEYWORD))
+	if (parser_match(program, parser, TOKEN_THIS_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -391,7 +406,7 @@ parser_operator(program_t *program, parser_t *parser)
 	char *operator = NULL;
 	if (parser->token->type == TOKEN_PLUS)
 	{
-		if (!parser_match(program, parser, TOKEN_PLUS))
+		if (parser_match(program, parser, TOKEN_PLUS) == -1)
 		{
 			return NULL;
 		}
@@ -399,7 +414,7 @@ parser_operator(program_t *program, parser_t *parser)
 	}
 	else if (parser->token->type == TOKEN_MINUS)
 	{
-		if (!parser_match(program, parser, TOKEN_MINUS))
+		if (parser_match(program, parser, TOKEN_MINUS) == -1)
 		{
 			return NULL;
 		}
@@ -407,7 +422,7 @@ parser_operator(program_t *program, parser_t *parser)
 	}
 	else if (parser->token->type == TOKEN_STAR)
 	{
-		if (!parser_match(program, parser, TOKEN_STAR))
+		if (parser_match(program, parser, TOKEN_STAR) == -1)
 		{
 			return NULL;
 		}
@@ -415,7 +430,7 @@ parser_operator(program_t *program, parser_t *parser)
 	}
 	else if (parser->token->type == TOKEN_SLASH)
 	{
-		if (!parser_match(program, parser, TOKEN_SLASH))
+		if (parser_match(program, parser, TOKEN_SLASH) == -1)
 		{
 			return NULL;
 		}
@@ -423,7 +438,7 @@ parser_operator(program_t *program, parser_t *parser)
 	}
 	else if (parser->token->type == TOKEN_POWER)
 	{
-		if (!parser_match(program, parser, TOKEN_POWER))
+		if (parser_match(program, parser, TOKEN_POWER) == -1)
 		{
 			return NULL;
 		}
@@ -431,7 +446,7 @@ parser_operator(program_t *program, parser_t *parser)
 	}
 	else if (parser->token->type == TOKEN_PERCENT)
 	{
-		if (!parser_match(program, parser, TOKEN_PERCENT))
+		if (parser_match(program, parser, TOKEN_PERCENT) == -1)
 		{
 			return NULL;
 		}
@@ -439,7 +454,7 @@ parser_operator(program_t *program, parser_t *parser)
 	}
 	else if (parser->token->type == TOKEN_AND)
 	{
-		if (!parser_match(program, parser, TOKEN_AND))
+		if (parser_match(program, parser, TOKEN_AND) == -1)
 		{
 			return NULL;
 		}
@@ -447,7 +462,7 @@ parser_operator(program_t *program, parser_t *parser)
 	}
 	else if (parser->token->type == TOKEN_OR)
 	{
-		if (!parser_match(program, parser, TOKEN_OR))
+		if (parser_match(program, parser, TOKEN_OR) == -1)
 		{
 			return NULL;
 		}
@@ -455,7 +470,7 @@ parser_operator(program_t *program, parser_t *parser)
 	}
 	else if (parser->token->type == TOKEN_CARET)
 	{
-		if (!parser_match(program, parser, TOKEN_CARET))
+		if (parser_match(program, parser, TOKEN_CARET) == -1)
 		{
 			return NULL;
 		}
@@ -463,7 +478,7 @@ parser_operator(program_t *program, parser_t *parser)
 	}
 	else if (parser->token->type == TOKEN_LT_LT)
 	{
-		if (!parser_match(program, parser, TOKEN_LT_LT))
+		if (parser_match(program, parser, TOKEN_LT_LT) == -1)
 		{
 			return NULL;
 		}
@@ -471,7 +486,7 @@ parser_operator(program_t *program, parser_t *parser)
 	}
 	else if (parser->token->type == TOKEN_GT_GT)
 	{
-		if (!parser_match(program, parser, TOKEN_GT_GT))
+		if (parser_match(program, parser, TOKEN_GT_GT) == -1)
 		{
 			return NULL;
 		}
@@ -479,7 +494,7 @@ parser_operator(program_t *program, parser_t *parser)
 	}
 	else if (parser->token->type == TOKEN_LT)
 	{
-		if (!parser_match(program, parser, TOKEN_LT))
+		if (parser_match(program, parser, TOKEN_LT) == -1)
 		{
 			return NULL;
 		}
@@ -487,7 +502,7 @@ parser_operator(program_t *program, parser_t *parser)
 	}
 	else if (parser->token->type == TOKEN_GT)
 	{
-		if (!parser_match(program, parser, TOKEN_GT))
+		if (parser_match(program, parser, TOKEN_GT) == -1)
 		{
 			return NULL;
 		}
@@ -495,11 +510,11 @@ parser_operator(program_t *program, parser_t *parser)
 	}
 	else if (parser->token->type == TOKEN_LBRACKET)
 	{
-		if (!parser_match(program, parser, TOKEN_LBRACKET))
+		if (parser_match(program, parser, TOKEN_LBRACKET) == -1)
 		{
 			return NULL;
 		}
-		if (!parser_match(program, parser, TOKEN_RBRACKET))
+		if (parser_match(program, parser, TOKEN_RBRACKET) == -1)
 		{
 			return NULL;
 		}
@@ -525,7 +540,7 @@ parser_array(program_t *program, parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_LBRACKET))
+	if (parser_match(program, parser, TOKEN_LBRACKET) == -1)
 	{
 		return NULL;
 	}
@@ -557,14 +572,14 @@ parser_array(program_t *program, parser_t *parser)
 			{
 				break;
 			}
-			if (!parser_match(program, parser, TOKEN_COMMA))
+			if (parser_match(program, parser, TOKEN_COMMA) == -1)
 			{
 				return NULL;
 			}
 		}
 	}
 
-	if (!parser_match(program, parser, TOKEN_RBRACKET))
+	if (parser_match(program, parser, TOKEN_RBRACKET) == -1)
 	{
 		return NULL;
 	}
@@ -587,7 +602,7 @@ parser_object_property(program_t *program, parser_t *parser)
 	node_t *value = NULL;
 	if (parser->token->type == TOKEN_COLON)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -607,7 +622,7 @@ parser_object(program_t *program, parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_LBRACE))
+	if (parser_match(program, parser, TOKEN_LBRACE) == -1)
 	{
 		return NULL;
 	}
@@ -639,14 +654,14 @@ parser_object(program_t *program, parser_t *parser, uint64_t flag)
 			{
 				break;
 			}
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
 		}
 	}
 
-	if (!parser_match(program, parser, TOKEN_RBRACE))
+	if (parser_match(program, parser, TOKEN_RBRACE) == -1)
 	{
 		return NULL;
 	}
@@ -659,12 +674,12 @@ parser_parenthesis(program_t *program, parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_LPAREN))
+	if (parser_match(program, parser, TOKEN_LPAREN) == -1)
 	{
 		return NULL;
 	}
 
-	if(!parser_save_state(program, parser))
+	if(!parser_save(program, parser))
 	{
 		return NULL;
 	}
@@ -677,14 +692,14 @@ parser_parenthesis(program_t *program, parser_t *parser)
 
 	if (parser->token->type == TOKEN_COLON)
 	{
-		if(!parser_restore_state(program, parser))
+		if(!parser_restore(program, parser))
 		{
 			return NULL;
 		}
 		goto region_lambda;
 	}
 
-	if (!parser_match(program, parser, TOKEN_RPAREN))
+	if (parser_match(program, parser, TOKEN_RPAREN) == -1)
 	{
 		return NULL;
 	}
@@ -699,7 +714,7 @@ parser_parenthesis(program_t *program, parser_t *parser)
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_RPAREN))
+	if (parser_match(program, parser, TOKEN_RPAREN) == -1)
 	{
 		return NULL;
 	}
@@ -707,7 +722,7 @@ parser_parenthesis(program_t *program, parser_t *parser)
 	node_t *body = NULL;
 	if (parser->token->type == TOKEN_MINUS_GT)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -806,7 +821,7 @@ parser_argument(program_t *program, parser_t *parser)
 	node_t *value = NULL;
 	if (parser->token->type == TOKEN_EQ)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -849,7 +864,7 @@ parser_arguments(program_t *program, parser_t *parser)
 		{
 			break;
 		}
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -859,7 +874,7 @@ parser_arguments(program_t *program, parser_t *parser)
 }
 
 static node_t *
-parser_postfix(program_t *program, parser_t *parser)
+parser_route(program_t *program, parser_t *parser)
 {
 	node_t *node;
 	node = parser_primary(program, parser);
@@ -877,7 +892,7 @@ parser_postfix(program_t *program, parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_LBRACE:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -885,15 +900,16 @@ parser_postfix(program_t *program, parser_t *parser)
 			if (parser->token->type == TOKEN_RBRACE)
 			{
 				parser_error(program, parser->token->position, "empty type arguments");
+				return NULL;
 			}
 
 			arguments = parser_arguments(program, parser);
-			if (!arguments)
+			if (arguments == NULL)
 			{
 				return NULL;
 			}
 
-			if (!parser_match(program, parser, TOKEN_RBRACE))
+			if (parser_match(program, parser, TOKEN_RBRACE) == -1)
 			{
 				return NULL;
 			}
@@ -901,31 +917,8 @@ parser_postfix(program_t *program, parser_t *parser)
 			node = node_make_composite(position, node, arguments);
 			break;
 
-		case TOKEN_LPAREN:
-			if (!parser_next(program, parser))
-			{
-				return NULL;
-			}
-
-			arguments = NULL;
-			if (parser->token->type != TOKEN_RPAREN)
-			{
-				arguments = parser_arguments(program, parser);
-				if (!(arguments))
-				{
-					return NULL;
-				}
-			}
-
-			if (!parser_match(program, parser, TOKEN_RPAREN))
-			{
-				return NULL;
-			}
-			node = node_make_call(position, node, arguments);
-			break;
-
 		case TOKEN_LBRACKET:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -940,7 +933,7 @@ parser_postfix(program_t *program, parser_t *parser)
 				}
 			}
 
-			if (!parser_match(program, parser, TOKEN_RBRACKET))
+			if (parser_match(program, parser, TOKEN_RBRACKET) == -1)
 			{
 				return NULL;
 			}
@@ -949,7 +942,7 @@ parser_postfix(program_t *program, parser_t *parser)
 			break;
 
 		case TOKEN_DOT:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -972,6 +965,54 @@ parser_postfix(program_t *program, parser_t *parser)
 }
 
 static node_t *
+parser_postfix(program_t *program, parser_t *parser)
+{
+	node_t *node;
+	node = parser_route(program, parser);
+	if (!node)
+	{
+		return NULL;
+	}
+
+	list_t *arguments;
+	while (node)
+	{
+		position_t position = parser->token->position;
+
+		switch (parser->token->type)
+		{
+		case TOKEN_LPAREN:
+			if (parser_next(program, parser) == -1)
+			{
+				return NULL;
+			}
+
+			arguments = NULL;
+			if (parser->token->type != TOKEN_RPAREN)
+			{
+				arguments = parser_arguments(program, parser);
+				if (!(arguments))
+				{
+					return NULL;
+				}
+			}
+
+			if (parser_match(program, parser, TOKEN_RPAREN) == -1)
+			{
+				return NULL;
+			}
+			node = node_make_call(position, node, arguments);
+			break;
+
+		default:
+			return node;
+		}
+	}
+
+	return node;
+}
+
+static node_t *
 parser_prefix(program_t *program, parser_t *parser)
 {
 	position_t position = parser->token->position;
@@ -981,7 +1022,7 @@ parser_prefix(program_t *program, parser_t *parser)
 	switch (parser->token->type)
 	{
 	case TOKEN_TILDE:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -995,7 +1036,7 @@ parser_prefix(program_t *program, parser_t *parser)
 		break;
 
 	case TOKEN_NOT:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1009,7 +1050,7 @@ parser_prefix(program_t *program, parser_t *parser)
 		break;
 
 	case TOKEN_MINUS:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1023,7 +1064,7 @@ parser_prefix(program_t *program, parser_t *parser)
 		break;
 
 	case TOKEN_PLUS:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1037,7 +1078,7 @@ parser_prefix(program_t *program, parser_t *parser)
 		break;
 
 	case TOKEN_SIZEOF_KEYWORD:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1051,7 +1092,7 @@ parser_prefix(program_t *program, parser_t *parser)
 		break;
 
 	case TOKEN_TYPEOF_KEYWORD:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1089,7 +1130,7 @@ parser_power(program_t *program, parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_POWER:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1128,7 +1169,7 @@ parser_multiplicative(program_t *program, parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_STAR:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1143,7 +1184,7 @@ parser_multiplicative(program_t *program, parser_t *parser)
 			break;
 
 		case TOKEN_SLASH:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1158,7 +1199,7 @@ parser_multiplicative(program_t *program, parser_t *parser)
 			break;
 
 		case TOKEN_PERCENT:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1173,7 +1214,7 @@ parser_multiplicative(program_t *program, parser_t *parser)
 			break;
 
 		case TOKEN_BACKSLASH:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1212,7 +1253,7 @@ parser_addative(program_t *program, parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_PLUS:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1227,7 +1268,7 @@ parser_addative(program_t *program, parser_t *parser)
 			break;
 
 		case TOKEN_MINUS:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1266,7 +1307,7 @@ parser_shifting(program_t *program, parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_LT_LT:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1281,7 +1322,7 @@ parser_shifting(program_t *program, parser_t *parser)
 			break;
 
 		case TOKEN_GT_GT:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1320,7 +1361,7 @@ parser_relational(program_t *program, parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_LT:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1334,7 +1375,7 @@ parser_relational(program_t *program, parser_t *parser)
 			break;
 
 		case TOKEN_LT_EQ:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1349,7 +1390,7 @@ parser_relational(program_t *program, parser_t *parser)
 			break;
 
 		case TOKEN_GT:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1363,7 +1404,7 @@ parser_relational(program_t *program, parser_t *parser)
 			break;
 
 		case TOKEN_GT_EQ:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1403,7 +1444,7 @@ parser_equality(program_t *program, parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_EQ_EQ:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1418,7 +1459,7 @@ parser_equality(program_t *program, parser_t *parser)
 			break;
 
 		case TOKEN_NOT_EQ:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1457,7 +1498,7 @@ parser_bitwise_and(program_t *program, parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_AND:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1496,7 +1537,7 @@ parser_bitwise_xor(program_t *program, parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_CARET:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1535,7 +1576,7 @@ parser_bitwise_or(program_t *program, parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_OR:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1574,7 +1615,7 @@ parser_logical_and(program_t *program, parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_AND_AND:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1613,7 +1654,7 @@ parser_logical_or(program_t *program, parser_t *parser)
 		switch (parser->token->type)
 		{
 		case TOKEN_OR_OR:
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -1652,7 +1693,7 @@ parser_conditional(program_t *program, parser_t *parser)
 	switch (parser->token->type)
 	{
 	case TOKEN_QUESTION:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1666,7 +1707,7 @@ parser_conditional(program_t *program, parser_t *parser)
 				break;
 			}
 		}
-		if (!parser_match(program, parser, TOKEN_COLON))
+		if (parser_match(program, parser, TOKEN_COLON) == -1)
 		{
 			return NULL;
 		}
@@ -1709,7 +1750,7 @@ parser_assign_stmt(program_t *program, parser_t *parser)
 	switch (parser->token->type)
 	{
 	case TOKEN_EQ:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1723,7 +1764,7 @@ parser_assign_stmt(program_t *program, parser_t *parser)
 		break;
 
 	case TOKEN_COLON_EQ:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1737,7 +1778,7 @@ parser_assign_stmt(program_t *program, parser_t *parser)
 		break;
 
 	case TOKEN_PLUS_EQ:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1751,7 +1792,7 @@ parser_assign_stmt(program_t *program, parser_t *parser)
 		break;
 
 	case TOKEN_MINUS_EQ:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1765,7 +1806,7 @@ parser_assign_stmt(program_t *program, parser_t *parser)
 		break;
 
 	case TOKEN_STAR_EQ:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1779,7 +1820,7 @@ parser_assign_stmt(program_t *program, parser_t *parser)
 		break;
 
 	case TOKEN_SLASH_EQ:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1793,7 +1834,7 @@ parser_assign_stmt(program_t *program, parser_t *parser)
 		break;
 
 	case TOKEN_PERCENT_EQ:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1807,7 +1848,7 @@ parser_assign_stmt(program_t *program, parser_t *parser)
 		break;
 
 	case TOKEN_AND_EQ:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1821,7 +1862,7 @@ parser_assign_stmt(program_t *program, parser_t *parser)
 		break;
 
 	case TOKEN_OR_EQ:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1835,7 +1876,7 @@ parser_assign_stmt(program_t *program, parser_t *parser)
 		break;
 
 	case TOKEN_LT_LT_EQ:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1849,7 +1890,7 @@ parser_assign_stmt(program_t *program, parser_t *parser)
 		break;
 
 	case TOKEN_GT_GT_EQ:
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1874,7 +1915,7 @@ parser_if_stmt(program_t *program, parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_IF_KEYWORD))
+	if (parser_match(program, parser, TOKEN_IF_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -1889,7 +1930,7 @@ parser_if_stmt(program_t *program, parser_t *parser)
 		}
 	}
 
-	if (!parser_match(program, parser, TOKEN_LPAREN))
+	if (parser_match(program, parser, TOKEN_LPAREN) == -1)
 	{
 		return NULL;
 	}
@@ -1901,7 +1942,7 @@ parser_if_stmt(program_t *program, parser_t *parser)
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_RPAREN))
+	if (parser_match(program, parser, TOKEN_RPAREN) == -1)
 	{
 		return NULL;
 	}
@@ -1917,7 +1958,7 @@ parser_if_stmt(program_t *program, parser_t *parser)
 	else_body = NULL;
 	if (parser->token->type == TOKEN_ELSE_KEYWORD)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1945,7 +1986,7 @@ parser_var_stmt(program_t *program, parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_VAR_KEYWORD))
+	if (parser_match(program, parser, TOKEN_VAR_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -1960,7 +2001,7 @@ parser_var_stmt(program_t *program, parser_t *parser, uint64_t flag)
 	node_t *type = NULL;
 	if (parser->token->type == TOKEN_COLON)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1974,7 +2015,7 @@ parser_var_stmt(program_t *program, parser_t *parser, uint64_t flag)
 	node_t *value = NULL;
 	if (parser->token->type == TOKEN_EQ)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -1994,7 +2035,7 @@ parser_for_stmt(program_t *program, parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_FOR_KEYWORD))
+	if (parser_match(program, parser, TOKEN_FOR_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -2039,14 +2080,14 @@ parser_for_stmt(program_t *program, parser_t *parser, uint64_t flag)
 		return node_make_for(position, flag, key, initializer, condition, incrementor, body);
 	}
 
-	if (!parser_match(program, parser, TOKEN_LPAREN))
+	if (parser_match(program, parser, TOKEN_LPAREN) == -1)
 	{
 		return NULL;
 	}
 
 	if (parser->token->type == TOKEN_SEMICOLON)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -2056,7 +2097,7 @@ parser_for_stmt(program_t *program, parser_t *parser, uint64_t flag)
 	int32_t use_readonly = 0;
 	if (parser->token->type == TOKEN_READONLY_KEYWORD)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -2095,13 +2136,13 @@ parser_for_stmt(program_t *program, parser_t *parser, uint64_t flag)
 			break;
 		}
 
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
 	}
 
-	if (!parser_match(program, parser, TOKEN_SEMICOLON))
+	if (parser_match(program, parser, TOKEN_SEMICOLON) == -1)
 	{
 		return NULL;
 	}
@@ -2109,7 +2150,7 @@ parser_for_stmt(program_t *program, parser_t *parser, uint64_t flag)
 	region_condition:
 	if (parser->token->type == TOKEN_SEMICOLON)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -2122,7 +2163,7 @@ parser_for_stmt(program_t *program, parser_t *parser, uint64_t flag)
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_SEMICOLON))
+	if (parser_match(program, parser, TOKEN_SEMICOLON) == -1)
 	{
 		return NULL;
 	}
@@ -2151,14 +2192,14 @@ parser_for_stmt(program_t *program, parser_t *parser, uint64_t flag)
 			break;
 		}
 
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
 	}
 
 	region_finish:
-	if (!parser_match(program, parser, TOKEN_RPAREN))
+	if (parser_match(program, parser, TOKEN_RPAREN) == -1)
 	{
 		return NULL;
 	}
@@ -2177,7 +2218,7 @@ parser_for_stmt(program_t *program, parser_t *parser, uint64_t flag)
 	return node_make_for(position, flag, key, initializer, condition, incrementor, body);
 
 	region_forin:
-	if (!parser_match(program, parser, TOKEN_IN_KEYWORD))
+	if (parser_match(program, parser, TOKEN_IN_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -2189,7 +2230,7 @@ parser_for_stmt(program_t *program, parser_t *parser, uint64_t flag)
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_RPAREN))
+	if (parser_match(program, parser, TOKEN_RPAREN) == -1)
 	{
 		return NULL;
 	}
@@ -2212,7 +2253,7 @@ parser_break_stmt(program_t *program, parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_BREAK_KEYWORD))
+	if (parser_match(program, parser, TOKEN_BREAK_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -2235,7 +2276,7 @@ parser_continue_stmt(program_t *program, parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_CONTINUE_KEYWORD))
+	if (parser_match(program, parser, TOKEN_CONTINUE_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -2258,7 +2299,7 @@ parser_catch_stmt(program_t *program, parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_CATCH_KEYWORD))
+	if (parser_match(program, parser, TOKEN_CATCH_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -2266,7 +2307,7 @@ parser_catch_stmt(program_t *program, parser_t *parser)
 	list_t *parameters = NULL;
 	if (parser->token->type == TOKEN_LPAREN)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -2278,7 +2319,7 @@ parser_catch_stmt(program_t *program, parser_t *parser)
 				return NULL;
 			}
 		}
-		if (!parser_match(program, parser, TOKEN_RPAREN))
+		if (parser_match(program, parser, TOKEN_RPAREN) == -1)
 		{
 			return NULL;
 		}
@@ -2327,7 +2368,7 @@ parser_try_stmt(program_t *program, parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_TRY_KEYWORD))
+	if (parser_match(program, parser, TOKEN_TRY_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -2357,7 +2398,7 @@ parser_return_stmt(program_t *program, parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_RETURN_KEYWORD))
+	if (parser_match(program, parser, TOKEN_RETURN_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -2377,12 +2418,12 @@ parser_throw_stmt(program_t *program, parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_THROW_KEYWORD))
+	if (parser_match(program, parser, TOKEN_THROW_KEYWORD) == -1)
 	{
 		return NULL;
 	}
 	
-	if (!parser_match(program, parser, TOKEN_LPAREN))
+	if (parser_match(program, parser, TOKEN_LPAREN) == -1)
 	{
 		return NULL;
 	}
@@ -2392,7 +2433,7 @@ parser_throw_stmt(program_t *program, parser_t *parser)
 	{
 		return NULL;
 	}
-	if (!parser_match(program, parser, TOKEN_RPAREN))
+	if (parser_match(program, parser, TOKEN_RPAREN) == -1)
 	{
 		return NULL;
 	}
@@ -2405,7 +2446,7 @@ parser_block_stmt(program_t *program, parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_LBRACE))
+	if (parser_match(program, parser, TOKEN_LBRACE) == -1)
 	{
 		return NULL;
 	}
@@ -2422,7 +2463,7 @@ parser_block_stmt(program_t *program, parser_t *parser)
 		/* empty stmt */
 		if (parser->token->type == TOKEN_SEMICOLON)
 		{
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -2443,7 +2484,7 @@ parser_block_stmt(program_t *program, parser_t *parser)
 		}
 	}
 
-	if (!parser_match(program, parser, TOKEN_RBRACE))
+	if (parser_match(program, parser, TOKEN_RBRACE) == -1)
 	{
 		return NULL;
 	}
@@ -2460,7 +2501,7 @@ parser_parameter(program_t *program, parser_t *parser)
 	if (parser->token->type == TOKEN_REFERENCE_KEYWORD)
 	{
 		flag |= PARSER_MODIFIER_REFERENCE;
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -2468,7 +2509,7 @@ parser_parameter(program_t *program, parser_t *parser)
 	else if (parser->token->type == TOKEN_READONLY_KEYWORD)
 	{
 		flag |= PARSER_MODIFIER_READONLY;
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -2482,7 +2523,7 @@ parser_parameter(program_t *program, parser_t *parser)
 	}
 
 	
-	if (!parser_match(program, parser, TOKEN_COLON))
+	if (parser_match(program, parser, TOKEN_COLON) == -1)
 	{
 		return NULL;
 	}
@@ -2497,7 +2538,7 @@ parser_parameter(program_t *program, parser_t *parser)
 	node_t *value = NULL;
 	if (parser->token->type == TOKEN_EQ)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -2540,7 +2581,7 @@ parser_parameters(program_t *program, parser_t *parser)
 		{
 			break;
 		}
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -2564,7 +2605,7 @@ parser_generic(program_t *program, parser_t *parser)
 	node_t *type = NULL;
 	if (parser->token->type == TOKEN_EXTENDS_KEYWORD)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -2578,7 +2619,7 @@ parser_generic(program_t *program, parser_t *parser)
 	node_t *value = NULL;
 	if (parser->token->type == TOKEN_EQ)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -2620,7 +2661,7 @@ parser_generics(program_t *program, parser_t *parser)
 		{
 			break;
 		}
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -2634,20 +2675,20 @@ parser_func_stmt(program_t *program, parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_FUNC_KEYWORD))
+	if (parser_match(program, parser, TOKEN_FUNC_KEYWORD) == -1)
 	{
 		return NULL;
 	}
   
 	list_t *generics = NULL;
-	if (parser->token->type == TOKEN_LPAREN)
+	if (parser->token->type == TOKEN_LBRACE)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
 
-		if (parser->token->type == TOKEN_RPAREN)
+		if (parser->token->type == TOKEN_RBRACE)
 		{
 			parser_error(program, parser->token->position, "empty generics");
 			return NULL;
@@ -2659,37 +2700,27 @@ parser_func_stmt(program_t *program, parser_t *parser, uint64_t flag)
 			return NULL;
 		}
 
-		if (!parser_match(program, parser, TOKEN_RPAREN))
+		if (parser_match(program, parser, TOKEN_RBRACE) == -1)
 		{
 			return NULL;
 		}
 	}
 
-	node_t *key = NULL;
-	if (parser->token->type == TOKEN_ID)
+	node_t *key;
+	key = parser_id(program, parser);
+	if (!key)
 	{
-		key = parser_id(program, parser);
-		if (!key)
-		{
-			return NULL;
-		}
-	}
-	else
-	{
-		key = parser_operator(program, parser);
-		if (!key)
-		{
-			return NULL;
-		}
+		return NULL;
 	}
 
 	list_t *parameters = NULL;
 	if (parser->token->type == TOKEN_LPAREN)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
+
 		if (parser->token->type != TOKEN_RPAREN)
 		{
 			parameters = parser_parameters(program, parser);
@@ -2698,7 +2729,8 @@ parser_func_stmt(program_t *program, parser_t *parser, uint64_t flag)
 				return NULL;
 			}
 		}
-		if (!parser_match(program, parser, TOKEN_RPAREN))
+
+		if (parser_match(program, parser, TOKEN_RPAREN) == -1)
 		{
 			return NULL;
 		}
@@ -2719,7 +2751,7 @@ parser_readonly_stmt(program_t *program, parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_READONLY_KEYWORD))
+	if (parser_match(program, parser, TOKEN_READONLY_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -2753,7 +2785,7 @@ parser_async_stmt(program_t *program, parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_ASYNC_KEYWORD))
+	if (parser_match(program, parser, TOKEN_ASYNC_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -2806,7 +2838,7 @@ parser_statement(program_t *program, parser_t *parser)
 
 	case TOKEN_VAR_KEYWORD:
 		node = parser_var_stmt(program, parser, PARSER_MODIFIER_NONE);
-		if (!parser_match(program, parser, TOKEN_SEMICOLON))
+		if (parser_match(program, parser, TOKEN_SEMICOLON) == -1)
 		{
 			return NULL;
 		}
@@ -2822,7 +2854,7 @@ parser_statement(program_t *program, parser_t *parser)
 
 	case TOKEN_BREAK_KEYWORD:
 		node = parser_break_stmt(program, parser);
-		if (!parser_match(program, parser, TOKEN_SEMICOLON))
+		if (parser_match(program, parser, TOKEN_SEMICOLON) == -1)
 		{
 			return NULL;
 		}
@@ -2830,7 +2862,7 @@ parser_statement(program_t *program, parser_t *parser)
 
 	case TOKEN_CONTINUE_KEYWORD:
 		node = parser_continue_stmt(program, parser);
-		if (!parser_match(program, parser, TOKEN_SEMICOLON))
+		if (parser_match(program, parser, TOKEN_SEMICOLON) == -1)
 		{
 			return NULL;
 		}
@@ -2838,7 +2870,7 @@ parser_statement(program_t *program, parser_t *parser)
 
 	case TOKEN_RETURN_KEYWORD:
 		node = parser_return_stmt(program, parser);
-		if (!parser_match(program, parser, TOKEN_SEMICOLON))
+		if (parser_match(program, parser, TOKEN_SEMICOLON) == -1)
 		{
 			return NULL;
 		}
@@ -2846,7 +2878,7 @@ parser_statement(program_t *program, parser_t *parser)
 
 	case TOKEN_THROW_KEYWORD:
 		node = parser_throw_stmt(program, parser);
-		if (!parser_match(program, parser, TOKEN_SEMICOLON))
+		if (parser_match(program, parser, TOKEN_SEMICOLON) == -1)
 		{
 			return NULL;
 		}
@@ -2862,7 +2894,7 @@ parser_statement(program_t *program, parser_t *parser)
 		{
 			break;
 		}
-		if (!parser_match(program, parser, TOKEN_SEMICOLON))
+		if (parser_match(program, parser, TOKEN_SEMICOLON) == -1)
 		{
 			return NULL;
 		}
@@ -2888,7 +2920,7 @@ parser_member(program_t *program, parser_t *parser)
 	node_t *value = NULL;
 	if (parser->token->type == TOKEN_EQ)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -2908,7 +2940,7 @@ parser_enum(program_t *program, parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_ENUM_KEYWORD))
+	if (parser_match(program, parser, TOKEN_ENUM_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -2920,7 +2952,7 @@ parser_enum(program_t *program, parser_t *parser, uint64_t flag)
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_LBRACE))
+	if (parser_match(program, parser, TOKEN_LBRACE) == -1)
 	{
 		return NULL;
 	}
@@ -2953,14 +2985,14 @@ parser_enum(program_t *program, parser_t *parser, uint64_t flag)
 				break;
 			}
 
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
 		}
 	}
 
-	if (!parser_match(program, parser, TOKEN_RBRACE))
+	if (parser_match(program, parser, TOKEN_RBRACE) == -1)
 	{
 		return NULL;
 	}
@@ -2973,22 +3005,23 @@ parser_class_func(program_t *program, parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_FUNC_KEYWORD))
+	if (parser_match(program, parser, TOKEN_FUNC_KEYWORD) == -1)
 	{
 		return NULL;
 	}
 
+	int32_t generic_used = 0;
 	list_t *generics = NULL;
-	if (parser->token->type == TOKEN_LPAREN)
+	if (parser->token->type == TOKEN_LBRACE)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
 
-		if (parser->token->type == TOKEN_RPAREN)
+		if (parser->token->type == TOKEN_RBRACE)
 		{
-			parser_error(program, parser->token->position, "empty generics");
+			parser_error(program, parser->token->position, "empty generic");
 			return NULL;
 		}
 
@@ -2998,12 +3031,13 @@ parser_class_func(program_t *program, parser_t *parser, uint64_t flag)
 			return NULL;
 		}
 
-		if (!parser_match(program, parser, TOKEN_RPAREN))
+		if (parser_match(program, parser, TOKEN_RBRACE) == -1)
 		{
 			return NULL;
 		}
-	}
 
+		generic_used = 1;
+	}
 
 	node_t *key = NULL;
 	if (parser->token->type == TOKEN_ID)
@@ -3021,15 +3055,21 @@ parser_class_func(program_t *program, parser_t *parser, uint64_t flag)
 		{
 			return NULL;
 		}
+		if (generic_used == 1)
+		{
+			parser_error(program, parser->token->position, "operator with generic");
+			return NULL;
+		}
 	}
 
 	list_t *parameters = NULL;
 	if (parser->token->type == TOKEN_LPAREN)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
+
 		if (parser->token->type != TOKEN_RPAREN)
 		{
 			parameters = parser_parameters(program, parser);
@@ -3038,7 +3078,8 @@ parser_class_func(program_t *program, parser_t *parser, uint64_t flag)
 				return NULL;
 			}
 		}
-		if (!parser_match(program, parser, TOKEN_RPAREN))
+
+		if (parser_match(program, parser, TOKEN_RPAREN) == -1)
 		{
 			return NULL;
 		}
@@ -3069,7 +3110,7 @@ parser_class_property(program_t *program, parser_t *parser, uint64_t flag)
 	node_t *type = NULL;
 	if (parser->token->type == TOKEN_COLON)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -3083,7 +3124,7 @@ parser_class_property(program_t *program, parser_t *parser, uint64_t flag)
 	node_t *value = NULL;
 	if ((flag & PARSER_MODIFIER_STATIC) == PARSER_MODIFIER_STATIC)
 	{
-		if (!parser_match(program, parser, TOKEN_EQ))
+		if (parser_match(program, parser, TOKEN_EQ) == -1)
 		{
 			return NULL;
 		}
@@ -3094,7 +3135,7 @@ parser_class_property(program_t *program, parser_t *parser, uint64_t flag)
 		}
 	}
 
-	if (!parser_match(program, parser, TOKEN_SEMICOLON))
+	if (parser_match(program, parser, TOKEN_SEMICOLON) == -1)
 	{
 		return NULL;
 	}
@@ -3107,7 +3148,7 @@ parser_class_readonly(program_t *program, parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_READONLY_KEYWORD))
+	if (parser_match(program, parser, TOKEN_READONLY_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -3141,7 +3182,7 @@ parser_class_static(program_t *program, parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_STATIC_KEYWORD))
+	if (parser_match(program, parser, TOKEN_STATIC_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -3191,7 +3232,7 @@ parser_class_protected(program_t *program, parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_PROTECTED_KEYWORD))
+	if (parser_match(program, parser, TOKEN_PROTECTED_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -3245,7 +3286,7 @@ parser_class_export(program_t *program, parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_EXPORT_KEYWORD))
+	if (parser_match(program, parser, TOKEN_EXPORT_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -3310,7 +3351,7 @@ parser_class_block(program_t *program, parser_t *parser)
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_LBRACE))
+	if (parser_match(program, parser, TOKEN_LBRACE) == -1)
 	{
 		return NULL;
 	}
@@ -3364,7 +3405,7 @@ parser_class_block(program_t *program, parser_t *parser)
 		}
 	}
 
-	if (!parser_match(program, parser, TOKEN_RBRACE))
+	if (parser_match(program, parser, TOKEN_RBRACE) == -1)
 	{
 		return NULL;
 	}
@@ -3384,7 +3425,7 @@ parser_heritage(program_t *program, parser_t *parser)
 		return NULL;
 	}
 	
-	if (!parser_match(program, parser, TOKEN_COLON))
+	if (parser_match(program, parser, TOKEN_COLON) == -1)
 	{
 		return NULL;
 	}
@@ -3428,7 +3469,7 @@ parser_heritages(program_t *program, parser_t *parser)
 			break;
 		}
 
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -3442,22 +3483,22 @@ parser_class(program_t *program, parser_t *parser, uint64_t flag)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_CLASS_KEYWORD))
+	if (parser_match(program, parser, TOKEN_CLASS_KEYWORD) == -1)
 	{
 		return NULL;
 	}
 
 	list_t *generics = NULL;
-	if (parser->token->type == TOKEN_LPAREN)
+	if (parser->token->type == TOKEN_LBRACE)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
 
-		if (parser->token->type == TOKEN_RPAREN)
+		if (parser->token->type == TOKEN_RBRACE)
 		{
-			parser_error(program, parser->token->position, "type parameters");
+			parser_error(program, parser->token->position, "empty generic");
 			return NULL;
 		}
 
@@ -3467,7 +3508,7 @@ parser_class(program_t *program, parser_t *parser, uint64_t flag)
 			return NULL;
 		}
 
-		if (!parser_match(program, parser, TOKEN_RPAREN))
+		if (parser_match(program, parser, TOKEN_RBRACE) == -1)
 		{
 			return NULL;
 		}
@@ -3483,12 +3524,12 @@ parser_class(program_t *program, parser_t *parser, uint64_t flag)
 	list_t *heritages = NULL;
 	if (parser->token->type == TOKEN_EXTENDS_KEYWORD)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
 
-		if (!parser_match(program, parser, TOKEN_LPAREN))
+		if (parser_match(program, parser, TOKEN_LPAREN) == -1)
 		{
 			return NULL;
 		}
@@ -3505,7 +3546,7 @@ parser_class(program_t *program, parser_t *parser, uint64_t flag)
 			return NULL;
 		}
 
-		if (!parser_match(program, parser, TOKEN_RPAREN))
+		if (parser_match(program, parser, TOKEN_RPAREN) == -1)
 		{
 			return NULL;
 		}
@@ -3537,7 +3578,7 @@ parser_field(program_t *program, parser_t *parser)
 	node_t *type = NULL;
 	if (parser->token->type == TOKEN_COLON)
 	{
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -3581,7 +3622,7 @@ parser_fields(program_t *program, parser_t *parser)
 			break;
 		}
 
-		if (!parser_next(program, parser))
+		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
@@ -3595,12 +3636,12 @@ parser_import(program_t *program, parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_IMPORT_KEYWORD))
+	if (parser_match(program, parser, TOKEN_IMPORT_KEYWORD) == -1)
 	{
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_LPAREN))
+	if (parser_match(program, parser, TOKEN_LPAREN) == -1)
 	{
 		return NULL;
 	}
@@ -3615,7 +3656,7 @@ parser_import(program_t *program, parser_t *parser)
 	list_t *fields = NULL;
 	if (parser->token->type == TOKEN_COMMA)
 	{
-		if (!parser_match(program, parser, TOKEN_COMMA))
+		if (parser_match(program, parser, TOKEN_COMMA) == -1)
 		{
 			return NULL;
 		}
@@ -3627,12 +3668,12 @@ parser_import(program_t *program, parser_t *parser)
 		}
 	}
 
-	if (!parser_match(program, parser, TOKEN_RPAREN))
+	if (parser_match(program, parser, TOKEN_RPAREN) == -1)
 	{
 		return NULL;
 	}
 
-	if (!parser_match(program, parser, TOKEN_SEMICOLON))
+	if (parser_match(program, parser, TOKEN_SEMICOLON) == -1)
 	{
 		return NULL;
 	}
@@ -3645,7 +3686,7 @@ parser_export(program_t *program, parser_t *parser)
 {
 	position_t position = parser->token->position;
 
-	if (!parser_match(program, parser, TOKEN_EXPORT_KEYWORD))
+	if (parser_match(program, parser, TOKEN_EXPORT_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -3707,7 +3748,7 @@ parser_module(program_t *program, parser_t *parser)
 
 		if (parser->token->type == TOKEN_SEMICOLON)
 		{
-			if (!parser_next(program, parser))
+			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
@@ -3760,7 +3801,7 @@ parser_module(program_t *program, parser_t *parser)
 		}
 	}
 
-	if (!parser_match(program, parser, TOKEN_EOF))
+	if (parser_match(program, parser, TOKEN_EOF) == -1)
 	{
 		return NULL;
 	}

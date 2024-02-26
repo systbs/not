@@ -40,6 +40,9 @@ list_query(list_t *lst, int (*f)(ilist_t*));
 void
 list_destroy(list_t *lst);
 
+void
+list_free_it(ilist_t *it);
+
 ilist_t *
 list_create_iterior(uint64_t value);
 

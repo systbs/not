@@ -135,7 +135,7 @@ syntax_extract_with(symbol_t *s2, uint64_t flag)
 
 
 static int32_t
-syntax_strcmp(symbol_t *id1, symbol_t *id2)
+syntax_idcmp(symbol_t *id1, symbol_t *id2)
 {
 	node_t *nid1 = id1->declaration;
 	node_basic_t *nbid1 = (node_basic_t *)nid1->value;
@@ -149,14 +149,24 @@ syntax_strcmp(symbol_t *id1, symbol_t *id2)
 }
 
 static int32_t
-syntax_strcmp_by_string(symbol_t *id1, char *name)
+syntax_idstrcmp(symbol_t *id1, char *name)
 {
 	node_t *nid1 = id1->declaration;
 	node_basic_t *nbid1 = (node_basic_t *)nid1->value;
-
 	return strcmp(nbid1->value, name);
 }
 
+static int32_t
+syntax_equal_gsgs(program_t *program, symbol_t *gs1, symbol_t *gs2)
+{
+	return 1;
+}
+
+static int32_t
+syntax_equal_psps(program_t *program, symbol_t *ps1, symbol_t *ps2)
+{
+	return 1;
+}
 
 static int32_t
 syntax_expression(program_t *program, symbol_t *current)
@@ -173,17 +183,6 @@ syntax_assign(program_t *program, symbol_t *current)
 static int32_t
 syntax_return(program_t *program, symbol_t *current)
 {
-	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
-	{
-		int32_t result;
-		result = syntax_expression(program, a);
-		if (result == -1)
-		{
-			return -1;
-		}
-	}
-
 	return 1;
 }
 
@@ -256,7 +255,7 @@ syntax_var(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -280,7 +279,7 @@ syntax_var(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -304,7 +303,7 @@ syntax_var(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -328,7 +327,7 @@ syntax_var(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -381,7 +380,7 @@ syntax_if(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -405,7 +404,7 @@ syntax_if(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -424,7 +423,7 @@ syntax_if(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -443,7 +442,7 @@ syntax_if(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -596,7 +595,7 @@ syntax_for(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -620,7 +619,7 @@ syntax_for(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -639,7 +638,7 @@ syntax_for(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -658,7 +657,7 @@ syntax_for(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -770,7 +769,7 @@ syntax_forin(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -794,7 +793,7 @@ syntax_forin(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -813,7 +812,7 @@ syntax_forin(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -832,7 +831,7 @@ syntax_forin(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -1001,7 +1000,7 @@ syntax_generic(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -1070,7 +1069,7 @@ syntax_parameter(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -1134,7 +1133,7 @@ syntax_parameters(program_t *program, symbol_t *current)
 						bk = syntax_extract_with(b, SYMBOL_KEY);
 						if (bk)
 						{
-							if (syntax_strcmp(ak, bk) == 0)
+							if (syntax_idcmp(ak, bk) == 0)
 							{
 								syntax_error(program, ak, "defination repeated, another defination in %lld:%lld",
 									bk->declaration->position.line, bk->declaration->position.column);
@@ -1182,7 +1181,7 @@ syntax_heritage(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -1212,6 +1211,14 @@ syntax_heritage(program_t *program, symbol_t *current)
 		syntax_error(program, current, "heritage without key");
 		return -1;
 	}
+
+	symbol_t *ct;
+	ct = syntax_extract_with(current, SYMBOL_TYPE);
+	if (ct)
+	{
+
+	}
+
 	return 1;
 }
 
@@ -1246,7 +1253,7 @@ syntax_heritages(program_t *program, symbol_t *current)
 						bk = syntax_extract_with(b, SYMBOL_KEY);
 						if (bk)
 						{
-							if (syntax_strcmp(ak, bk) == 0)
+							if (syntax_idcmp(ak, bk) == 0)
 							{
 								syntax_error(program, ak, "defination repeated, another defination in %lld:%lld",
 									bk->declaration->position.line, bk->declaration->position.column);
@@ -1294,7 +1301,7 @@ syntax_member(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -1363,11 +1370,123 @@ syntax_enum(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
-							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-								ak->declaration->position.line, ak->declaration->position.column);
-							return -1;
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								int32_t generic_without_value = 0;
+								symbol_t *ag;
+								for (ag = ags->begin;ag != ags->end;ag = ag->next)
+								{
+									if (symbol_check_type(ag, SYMBOL_GENERIC))
+									{
+										symbol_t *agv;
+										agv = syntax_only_with(ag, SYMBOL_VALUE);
+										if (!agv)
+										{
+											generic_without_value = 1;
+										}
+									}
+								}
+								if (generic_without_value == 0)
+								{
+									// check parameters
+									symbol_t *b2;
+									for (b2 = a->begin;b2 != a->end;b2 = b2->next)
+									{
+										if (symbol_check_type(b2, SYMBOL_FUNCTION))
+										{
+											symbol_t *bk2;
+											bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+											if (bk2)
+											{
+												if (syntax_idstrcmp(bk2, "constructor") == 0)
+												{
+													symbol_t *bps2;
+													bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+													if (bps2)
+													{
+														int32_t parameter_without_value = 0;
+														symbol_t *bp2;
+														for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+														{
+															symbol_t *bpv2;
+															bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+															if (!bpv2)
+															{
+																parameter_without_value = 1;
+																break;
+															}
+														}
+														if (parameter_without_value == 0)
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+													else
+													{
+														syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+															ak->declaration->position.line, ak->declaration->position.column);
+														return -1;
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							else
+							{
+								// check parameters
+								symbol_t *b2;
+								for (b2 = a->begin;b2 != a->end;b2 = b2->next)
+								{
+									if (symbol_check_type(b2, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk2;
+										bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+										if (bk2)
+										{
+											if (syntax_idstrcmp(bk2, "constructor") == 0)
+											{
+												symbol_t *bps2;
+												bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+												if (bps2)
+												{
+													int32_t parameter_without_value = 0;
+													symbol_t *bp2;
+													for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+													{
+														symbol_t *bpv2;
+														bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+														if (!bpv2)
+														{
+															parameter_without_value = 1;
+															break;
+														}
+													}
+													if (parameter_without_value == 0)
+													{
+														syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+															ak->declaration->position.line, ak->declaration->position.column);
+														return -1;
+													}
+												}
+												else
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+											}
+										}
+									}
+								}
+							}
 						}
 						else
 						{
@@ -1387,11 +1506,93 @@ syntax_enum(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
-							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-								ak->declaration->position.line, ak->declaration->position.column);
-							return -1;
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								int32_t generic_without_value = 0;
+								symbol_t *ag;
+								for (ag = ags->begin;ag != ags->end;ag = ag->next)
+								{
+									if (symbol_check_type(ag, SYMBOL_GENERIC))
+									{
+										symbol_t *agv;
+										agv = syntax_only_with(ag, SYMBOL_VALUE);
+										if (!agv)
+										{
+											generic_without_value = 1;
+										}
+									}
+								}
+								if (generic_without_value == 0)
+								{
+									// check parameters
+									symbol_t *bps2;
+									bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+									if (bps2)
+									{
+										int32_t parameter_without_value = 0;
+										symbol_t *bp2;
+										for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+										{
+											symbol_t *bpv2;
+											bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+											if (!bpv2)
+											{
+												parameter_without_value = 1;
+												break;
+											}
+										}
+										if (parameter_without_value == 0)
+										{
+											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+									else
+									{
+										syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+											ak->declaration->position.line, ak->declaration->position.column);
+										return -1;
+									}
+								}
+							}
+							else
+							{
+								// check parameters
+								symbol_t *bps2;
+								bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+								if (bps2)
+								{
+									int32_t parameter_without_value = 0;
+									symbol_t *bp2;
+									for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+									{
+										symbol_t *bpv2;
+										bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+										if (!bpv2)
+										{
+											parameter_without_value = 1;
+											break;
+										}
+									}
+									if (parameter_without_value == 0)
+									{
+										syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+											ak->declaration->position.line, ak->declaration->position.column);
+										return -1;
+									}
+								}
+								else
+								{
+									syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+										ak->declaration->position.line, ak->declaration->position.column);
+									return -1;
+								}
+							}
 						}
 						else
 						{
@@ -1411,7 +1612,7 @@ syntax_enum(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -1435,7 +1636,7 @@ syntax_enum(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -1459,7 +1660,7 @@ syntax_enum(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -1488,7 +1689,7 @@ syntax_enum(program_t *program, symbol_t *current)
 							dk = syntax_extract_with(d, SYMBOL_KEY);
 							if (dk)
 							{
-								if ((syntax_strcmp(ck, dk) == 0) && (current != a))
+								if (syntax_idcmp(ck, dk) == 0)
 								{
 									syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 										dk->declaration->position.line, dk->declaration->position.column);
@@ -1519,7 +1720,7 @@ syntax_enum(program_t *program, symbol_t *current)
 							dk = syntax_extract_with(d, SYMBOL_KEY);
 							if (dk)
 							{
-								if ((syntax_strcmp(ck, dk) == 0) && (current != a))
+								if (syntax_idcmp(ck, dk) == 0)
 								{
 									syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 										dk->declaration->position.line, dk->declaration->position.column);
@@ -1588,11 +1789,123 @@ syntax_property(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
-							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-								ak->declaration->position.line, ak->declaration->position.column);
-							return -1;
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								int32_t generic_without_value = 0;
+								symbol_t *ag;
+								for (ag = ags->begin;ag != ags->end;ag = ag->next)
+								{
+									if (symbol_check_type(ag, SYMBOL_GENERIC))
+									{
+										symbol_t *agv;
+										agv = syntax_only_with(ag, SYMBOL_VALUE);
+										if (!agv)
+										{
+											generic_without_value = 1;
+										}
+									}
+								}
+								if (generic_without_value == 0)
+								{
+									// check parameters
+									symbol_t *b2;
+									for (b2 = a->begin;b2 != a->end;b2 = b2->next)
+									{
+										if (symbol_check_type(b2, SYMBOL_FUNCTION))
+										{
+											symbol_t *bk2;
+											bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+											if (bk2)
+											{
+												if (syntax_idstrcmp(bk2, "constructor") == 0)
+												{
+													symbol_t *bps2;
+													bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+													if (bps2)
+													{
+														int32_t parameter_without_value = 0;
+														symbol_t *bp2;
+														for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+														{
+															symbol_t *bpv2;
+															bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+															if (!bpv2)
+															{
+																parameter_without_value = 1;
+																break;
+															}
+														}
+														if (parameter_without_value == 0)
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+													else
+													{
+														syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+															ak->declaration->position.line, ak->declaration->position.column);
+														return -1;
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							else
+							{
+								// check parameters
+								symbol_t *b2;
+								for (b2 = a->begin;b2 != a->end;b2 = b2->next)
+								{
+									if (symbol_check_type(b2, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk2;
+										bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+										if (bk2)
+										{
+											if (syntax_idstrcmp(bk2, "constructor") == 0)
+											{
+												symbol_t *bps2;
+												bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+												if (bps2)
+												{
+													int32_t parameter_without_value = 0;
+													symbol_t *bp2;
+													for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+													{
+														symbol_t *bpv2;
+														bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+														if (!bpv2)
+														{
+															parameter_without_value = 1;
+															break;
+														}
+													}
+													if (parameter_without_value == 0)
+													{
+														syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+															ak->declaration->position.line, ak->declaration->position.column);
+														return -1;
+													}
+												}
+												else
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+											}
+										}
+									}
+								}
+							}
 						}
 						else
 						{
@@ -1612,11 +1925,93 @@ syntax_property(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
-							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-								ak->declaration->position.line, ak->declaration->position.column);
-							return -1;
+							symbol_t *ags;
+							ags = syntax_only_with(a, SYMBOL_GENERICS);
+							if (ags)
+							{
+								int32_t generic_without_value = 0;
+								symbol_t *ag;
+								for (ag = ags->begin;ag != ags->end;ag = ag->next)
+								{
+									if (symbol_check_type(ag, SYMBOL_GENERIC))
+									{
+										symbol_t *agv;
+										agv = syntax_only_with(ag, SYMBOL_VALUE);
+										if (!agv)
+										{
+											generic_without_value = 1;
+										}
+									}
+								}
+								if (generic_without_value == 0)
+								{
+									// check parameters
+									symbol_t *bps2;
+									bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+									if (bps2)
+									{
+										int32_t parameter_without_value = 0;
+										symbol_t *bp2;
+										for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+										{
+											symbol_t *bpv2;
+											bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+											if (!bpv2)
+											{
+												parameter_without_value = 1;
+												break;
+											}
+										}
+										if (parameter_without_value == 0)
+										{
+											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+									else
+									{
+										syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+											ak->declaration->position.line, ak->declaration->position.column);
+										return -1;
+									}
+								}
+							}
+							else
+							{
+								// check parameters
+								symbol_t *bps2;
+								bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+								if (bps2)
+								{
+									int32_t parameter_without_value = 0;
+									symbol_t *bp2;
+									for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+									{
+										symbol_t *bpv2;
+										bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+										if (!bpv2)
+										{
+											parameter_without_value = 1;
+											break;
+										}
+									}
+									if (parameter_without_value == 0)
+									{
+										syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+											ak->declaration->position.line, ak->declaration->position.column);
+										return -1;
+									}
+								}
+								else
+								{
+									syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+										ak->declaration->position.line, ak->declaration->position.column);
+									return -1;
+								}
+							}
 						}
 						else
 						{
@@ -1636,7 +2031,7 @@ syntax_property(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -1660,7 +2055,7 @@ syntax_property(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
 							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 								ak->declaration->position.line, ak->declaration->position.column);
@@ -1689,7 +2084,7 @@ syntax_property(program_t *program, symbol_t *current)
 							dk = syntax_extract_with(d, SYMBOL_KEY);
 							if (dk)
 							{
-								if ((syntax_strcmp(ck, dk) == 0) && (current != a))
+								if (syntax_idcmp(ck, dk) == 0)
 								{
 									syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 										dk->declaration->position.line, dk->declaration->position.column);
@@ -1720,7 +2115,7 @@ syntax_property(program_t *program, symbol_t *current)
 							dk = syntax_extract_with(d, SYMBOL_KEY);
 							if (dk)
 							{
-								if ((syntax_strcmp(ck, dk) == 0) && (current != a))
+								if (syntax_idcmp(ck, dk) == 0)
 								{
 									syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 										dk->declaration->position.line, dk->declaration->position.column);
@@ -1764,19 +2159,19 @@ syntax_function(program_t *program, symbol_t *current)
 	if (ck)
 	{
 		int32_t result;
-		result = syntax_strcmp_by_string(ck, "constructor");
+		result = syntax_idstrcmp(ck, "constructor");
 		if (result == 0)
 		{
 			symbol_t *gs;
 			gs = syntax_only_with(current, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "constructor with generics");
+				syntax_error(program, current, "constructor with generic");
 				return -1;
 			}
 		}
 
-		result = syntax_strcmp_by_string(ck, "+");
+		result = syntax_idstrcmp(ck, "+");
 		if (result == 0)
 		{
 			symbol_t *gs;
@@ -1799,7 +2194,7 @@ syntax_function(program_t *program, symbol_t *current)
 			}
 		}
 
-		result = syntax_strcmp_by_string(ck, "-");
+		result = syntax_idstrcmp(ck, "-");
 		if (result == 0)
 		{
 			symbol_t *gs;
@@ -1822,7 +2217,7 @@ syntax_function(program_t *program, symbol_t *current)
 			}
 		}
 
-		result = syntax_strcmp_by_string(ck, "*");
+		result = syntax_idstrcmp(ck, "*");
 		if (result == 0)
 		{
 			symbol_t *gs;
@@ -1845,7 +2240,7 @@ syntax_function(program_t *program, symbol_t *current)
 			}
 		}
 
-		result = syntax_strcmp_by_string(ck, "/");
+		result = syntax_idstrcmp(ck, "/");
 		if (result == 0)
 		{
 			symbol_t *gs;
@@ -1868,7 +2263,7 @@ syntax_function(program_t *program, symbol_t *current)
 			}
 		}
 
-		result = syntax_strcmp_by_string(ck, "**");
+		result = syntax_idstrcmp(ck, "**");
 		if (result == 0)
 		{
 			symbol_t *gs;
@@ -1891,7 +2286,7 @@ syntax_function(program_t *program, symbol_t *current)
 			}
 		}
 
-		result = syntax_strcmp_by_string(ck, "%");
+		result = syntax_idstrcmp(ck, "%");
 		if (result == 0)
 		{
 			symbol_t *gs;
@@ -1914,7 +2309,7 @@ syntax_function(program_t *program, symbol_t *current)
 			}
 		}
 
-		result = syntax_strcmp_by_string(ck, "&");
+		result = syntax_idstrcmp(ck, "&");
 		if (result == 0)
 		{
 			symbol_t *gs;
@@ -1937,7 +2332,7 @@ syntax_function(program_t *program, symbol_t *current)
 			}
 		}
 
-		result = syntax_strcmp_by_string(ck, "|");
+		result = syntax_idstrcmp(ck, "|");
 		if (result == 0)
 		{
 			symbol_t *gs;
@@ -1960,7 +2355,7 @@ syntax_function(program_t *program, symbol_t *current)
 			}
 		}
 
-		result = syntax_strcmp_by_string(ck, "^");
+		result = syntax_idstrcmp(ck, "^");
 		if (result == 0)
 		{
 			symbol_t *gs;
@@ -1983,7 +2378,7 @@ syntax_function(program_t *program, symbol_t *current)
 			}
 		}
 
-		result = syntax_strcmp_by_string(ck, ">>");
+		result = syntax_idstrcmp(ck, ">>");
 		if (result == 0)
 		{
 			symbol_t *gs;
@@ -2006,7 +2401,7 @@ syntax_function(program_t *program, symbol_t *current)
 			}
 		}
 
-		result = syntax_strcmp_by_string(ck, "<<");
+		result = syntax_idstrcmp(ck, "<<");
 		if (result == 0)
 		{
 			symbol_t *gs;
@@ -2029,7 +2424,7 @@ syntax_function(program_t *program, symbol_t *current)
 			}
 		}
 
-		result = syntax_strcmp_by_string(ck, ">");
+		result = syntax_idstrcmp(ck, ">");
 		if (result == 0)
 		{
 			symbol_t *gs;
@@ -2052,7 +2447,7 @@ syntax_function(program_t *program, symbol_t *current)
 			}
 		}
 
-		result = syntax_strcmp_by_string(ck, "<");
+		result = syntax_idstrcmp(ck, "<");
 		if (result == 0)
 		{
 			symbol_t *gs;
@@ -2075,7 +2470,7 @@ syntax_function(program_t *program, symbol_t *current)
 			}
 		}
 
-		result = syntax_strcmp_by_string(ck, "[]");
+		result = syntax_idstrcmp(ck, "[]");
 		if (result == 0)
 		{
 			symbol_t *gs;
@@ -2099,11 +2494,444 @@ syntax_function(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
-							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-								ak->declaration->position.line, ak->declaration->position.column);
-							return -1;
+							symbol_t *cgs;
+							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							if (cgs)
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t result;
+									result = syntax_equal_gsgs(program, cgs, ags);
+									if (result == -1)
+									{
+										return -1;
+									}
+									else
+									if (result == 1)
+									{
+										symbol_t *b2;
+										for (b2 = a->begin;b2 != a->end;b2 = b2->next)
+										{
+											if (symbol_check_type(b2, SYMBOL_FUNCTION))
+											{
+												symbol_t *bk2;
+												bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+												if (bk2)
+												{
+													if (syntax_idstrcmp(bk2, "constructor") == 0)
+													{
+														symbol_t *bps1;
+														bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+														if (bps1)
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t result;
+																result = syntax_equal_psps(program, bps1, bps2);
+																if (result == -1)
+																{
+																	return -1;
+																}
+																else 
+																if (result == 1)
+																{
+																	syntax_error(program, ck, "defination repeated1, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp1;
+																for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+																{
+																	symbol_t *bpv1;
+																	bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																	if (!bpv1)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated2, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+														}
+														else
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp2;
+																for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+																{
+																	symbol_t *bpv2;
+																	bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																	if (!bpv2)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated3, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																syntax_error(program, ck, "defination repeated4, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+								else
+								{
+									int32_t generic_without_value = 0;
+									symbol_t *cg;
+									for (cg = cgs->begin;cg != cgs->end;cg = cg->next)
+									{
+										if (symbol_check_type(cg, SYMBOL_GENERIC))
+										{
+											symbol_t *cgv;
+											cgv = syntax_only_with(cg, SYMBOL_VALUE);
+											if (!cgv)
+											{
+												generic_without_value = 1;
+												break;
+											}
+										}
+									}
+									if (generic_without_value == 0)
+									{
+										// check parameters
+										symbol_t *b2;
+										for (b2 = a->begin;b2 != a->end;b2 = b2->next)
+										{
+											if (symbol_check_type(b2, SYMBOL_FUNCTION))
+											{
+												symbol_t *bk2;
+												bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+												if (bk2)
+												{
+													if (syntax_idstrcmp(bk2, "constructor") == 0)
+													{
+														symbol_t *bps1;
+														bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+														if (bps1)
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t result;
+																result = syntax_equal_psps(program, bps1, bps2);
+																if (result == -1)
+																{
+																	return -1;
+																}
+																else 
+																if (result == 1)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp1;
+																for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+																{
+																	symbol_t *bpv1;
+																	bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																	if (!bpv1)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+														}
+														else
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp2;
+																for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+																{
+																	symbol_t *bpv2;
+																	bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																	if (!bpv2)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							else
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t generic_without_value = 0;
+									symbol_t *ag;
+									for (ag = ags->begin;ag != ags->end;ag = ag->next)
+									{
+										if (symbol_check_type(ag, SYMBOL_GENERIC))
+										{
+											symbol_t *agv;
+											agv = syntax_only_with(ag, SYMBOL_VALUE);
+											if (!agv)
+											{
+												generic_without_value = 1;
+											}
+										}
+									}
+									if (generic_without_value == 0)
+									{
+										// check parameters
+										symbol_t *b2;
+										for (b2 = a->begin;b2 != a->end;b2 = b2->next)
+										{
+											if (symbol_check_type(b2, SYMBOL_FUNCTION))
+											{
+												symbol_t *bk2;
+												bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+												if (bk2)
+												{
+													if (syntax_idstrcmp(bk2, "constructor") == 0)
+													{
+														symbol_t *bps1;
+														bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+														if (bps1)
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t result;
+																result = syntax_equal_psps(program, bps1, bps2);
+																if (result == -1)
+																{
+																	return -1;
+																}
+																else 
+																if (result == 1)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp1;
+																for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+																{
+																	symbol_t *bpv1;
+																	bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																	if (!bpv1)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+														}
+														else
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp2;
+																for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+																{
+																	symbol_t *bpv2;
+																	bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																	if (!bpv2)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+								else
+								{
+									// check parameters
+									symbol_t *b2;
+									for (b2 = a->begin;b2 != a->end;b2 = b2->next)
+									{
+										if (symbol_check_type(b2, SYMBOL_FUNCTION))
+										{
+											symbol_t *bk2;
+											bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+											if (bk2)
+											{
+												if (syntax_idstrcmp(bk2, "constructor") == 0)
+												{
+													symbol_t *bps1;
+													bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+													if (bps1)
+													{
+														symbol_t *bps2;
+														bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+														if (bps2)
+														{
+															int32_t result;
+															result = syntax_equal_psps(program, bps1, bps2);
+															if (result == -1)
+															{
+																return -1;
+															}
+															else 
+															if (result == 1)
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+														else
+														{
+															int32_t parameter_without_value = 0;
+															symbol_t *bp1;
+															for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+															{
+																symbol_t *bpv1;
+																bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																if (!bpv1)
+																{
+																	parameter_without_value = 1;
+																	break;
+																}
+															}
+															if (parameter_without_value == 0)
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+													}
+													else
+													{
+														symbol_t *bps2;
+														bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+														if (bps2)
+														{
+															int32_t parameter_without_value = 0;
+															symbol_t *bp2;
+															for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+															{
+																symbol_t *bpv2;
+																bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																if (!bpv2)
+																{
+																	parameter_without_value = 1;
+																	break;
+																}
+															}
+															if (parameter_without_value == 0)
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+														else
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
 						}
 						else
 						{
@@ -2123,11 +2951,384 @@ syntax_function(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
-							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-								ak->declaration->position.line, ak->declaration->position.column);
-							return -1;
+							symbol_t *cgs;
+							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							if (cgs)
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t result;
+									result = syntax_equal_gsgs(program, cgs, ags);
+									if (result == -1)
+									{
+										return -1;
+									}
+									else
+									if (result == 1)
+									{
+										symbol_t *bps1;
+										bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+										if (bps1)
+										{
+											symbol_t *bps2;
+											bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (bps2)
+											{
+												int32_t result;
+												result = syntax_equal_psps(program, bps1, bps2);
+												if (result == -1)
+												{
+													return -1;
+												}
+												else 
+												if (result == 1)
+												{
+													syntax_error(program, ck, "defination repeated1, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+											}
+											else
+											{
+												int32_t parameter_without_value = 0;
+												symbol_t *bp1;
+												for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+												{
+													symbol_t *bpv1;
+													bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+													if (!bpv1)
+													{
+														parameter_without_value = 1;
+														break;
+													}
+												}
+												if (parameter_without_value == 0)
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+											}
+										}
+										else
+										{
+											symbol_t *bps2;
+											bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (bps2)
+											{
+												int32_t parameter_without_value = 0;
+												symbol_t *bp2;
+												for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+												{
+													symbol_t *bpv2;
+													bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+													if (!bpv2)
+													{
+														parameter_without_value = 1;
+														break;
+													}
+												}
+												if (parameter_without_value == 0)
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+											}
+											else
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+									}
+								}
+								else
+								{
+									int32_t generic_without_value = 0;
+									symbol_t *cg;
+									for (cg = cgs->begin;cg != cgs->end;cg = cg->next)
+									{
+										if (symbol_check_type(cg, SYMBOL_GENERIC))
+										{
+											symbol_t *cgv;
+											cgv = syntax_only_with(cg, SYMBOL_VALUE);
+											if (!cgv)
+											{
+												generic_without_value = 1;
+												break;
+											}
+										}
+									}
+									if (generic_without_value == 0)
+									{
+										// check parameters
+										symbol_t *bps1;
+										bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+										if (bps1)
+										{
+											symbol_t *bps2;
+											bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (bps2)
+											{
+												int32_t result;
+												result = syntax_equal_psps(program, bps1, bps2);
+												if (result == -1)
+												{
+													return -1;
+												}
+												else 
+												if (result == 1)
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+											}
+											else
+											{
+												int32_t parameter_without_value = 0;
+												symbol_t *bp1;
+												for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+												{
+													symbol_t *bpv1;
+													bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+													if (!bpv1)
+													{
+														parameter_without_value = 1;
+														break;
+													}
+												}
+												if (parameter_without_value == 0)
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+											}
+										}
+										else
+										{
+											symbol_t *bps2;
+											bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (bps2)
+											{
+												int32_t parameter_without_value = 0;
+												symbol_t *bp2;
+												for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+												{
+													symbol_t *bpv2;
+													bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+													if (!bpv2)
+													{
+														parameter_without_value = 1;
+														break;
+													}
+												}
+												if (parameter_without_value == 0)
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+											}
+											else
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+									}
+								}
+							}
+							else
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t generic_without_value = 0;
+									symbol_t *ag;
+									for (ag = ags->begin;ag != ags->end;ag = ag->next)
+									{
+										if (symbol_check_type(ag, SYMBOL_GENERIC))
+										{
+											symbol_t *agv;
+											agv = syntax_only_with(ag, SYMBOL_VALUE);
+											if (!agv)
+											{
+												generic_without_value = 1;
+											}
+										}
+									}
+									if (generic_without_value == 0)
+									{
+										// check parameters
+										symbol_t *bps1;
+										bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+										if (bps1)
+										{
+											symbol_t *bps2;
+											bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (bps2)
+											{
+												int32_t result;
+												result = syntax_equal_psps(program, bps1, bps2);
+												if (result == -1)
+												{
+													return -1;
+												}
+												else 
+												if (result == 1)
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+											}
+											else
+											{
+												int32_t parameter_without_value = 0;
+												symbol_t *bp1;
+												for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+												{
+													symbol_t *bpv1;
+													bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+													if (!bpv1)
+													{
+														parameter_without_value = 1;
+														break;
+													}
+												}
+												if (parameter_without_value == 0)
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+											}
+										}
+										else
+										{
+											symbol_t *bps2;
+											bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+											if (bps2)
+											{
+												int32_t parameter_without_value = 0;
+												symbol_t *bp2;
+												for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+												{
+													symbol_t *bpv2;
+													bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+													if (!bpv2)
+													{
+														parameter_without_value = 1;
+														break;
+													}
+												}
+												if (parameter_without_value == 0)
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														ak->declaration->position.line, ak->declaration->position.column);
+													return -1;
+												}
+											}
+											else
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+									}
+								}
+								else
+								{
+									// check parameters
+									symbol_t *bps1;
+									bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+									if (bps1)
+									{
+										symbol_t *bps2;
+										bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+										if (bps2)
+										{
+											int32_t result;
+											result = syntax_equal_psps(program, bps1, bps2);
+											if (result == -1)
+											{
+												return -1;
+											}
+											else 
+											if (result == 1)
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+										else
+										{
+											int32_t parameter_without_value = 0;
+											symbol_t *bp1;
+											for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+											{
+												symbol_t *bpv1;
+												bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+												if (!bpv1)
+												{
+													parameter_without_value = 1;
+													break;
+												}
+											}
+											if (parameter_without_value == 0)
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+									}
+									else
+									{
+										symbol_t *bps2;
+										bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+										if (bps2)
+										{
+											int32_t parameter_without_value = 0;
+											symbol_t *bp2;
+											for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+											{
+												symbol_t *bpv2;
+												bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+												if (!bpv2)
+												{
+													parameter_without_value = 1;
+													break;
+												}
+											}
+											if (parameter_without_value == 0)
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+										else
+										{
+											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+								}
+							}
 						}
 						else
 						{
@@ -2147,11 +3348,188 @@ syntax_function(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
-							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-								ak->declaration->position.line, ak->declaration->position.column);
-							return -1;
+							symbol_t *cgs;
+							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							if (cgs)
+							{
+								int32_t generic_without_value = 0;
+								symbol_t *cg;
+								for (cg = cgs->begin;cg != cgs->end;cg = cg->next)
+								{
+									if (symbol_check_type(cg, SYMBOL_GENERIC))
+									{
+										symbol_t *cgv;
+										cgv = syntax_only_with(cg, SYMBOL_VALUE);
+										if (!cgv)
+										{
+											generic_without_value = 1;
+											break;
+										}
+									}
+								}
+								if (generic_without_value == 0)
+								{
+									// check parameters
+									symbol_t *bps1;
+									bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+									if (bps1)
+									{
+										symbol_t *bps2;
+										bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+										if (bps2)
+										{
+											int32_t result;
+											result = syntax_equal_psps(program, bps1, bps2);
+											if (result == -1)
+											{
+												return -1;
+											}
+											else 
+											if (result == 1)
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+										else
+										{
+											int32_t parameter_without_value = 0;
+											symbol_t *bp1;
+											for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+											{
+												symbol_t *bpv1;
+												bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+												if (!bpv1)
+												{
+													parameter_without_value = 1;
+													break;
+												}
+											}
+											if (parameter_without_value == 0)
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+									}
+									else
+									{
+										symbol_t *bps2;
+										bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+										if (bps2)
+										{
+											int32_t parameter_without_value = 0;
+											symbol_t *bp2;
+											for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+											{
+												symbol_t *bpv2;
+												bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+												if (!bpv2)
+												{
+													parameter_without_value = 1;
+													break;
+												}
+											}
+											if (parameter_without_value == 0)
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+										else
+										{
+											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+								}
+							}
+							else
+							{
+								// check parameters
+								symbol_t *bps1;
+								bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+								if (bps1)
+								{
+									symbol_t *bps2;
+									bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+									if (bps2)
+									{
+										int32_t result;
+										result = syntax_equal_psps(program, bps1, bps2);
+										if (result == -1)
+										{
+											return -1;
+										}
+										else 
+										if (result == 1)
+										{
+											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+									else
+									{
+										int32_t parameter_without_value = 0;
+										symbol_t *bp1;
+										for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+										{
+											symbol_t *bpv1;
+											bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+											if (!bpv1)
+											{
+												parameter_without_value = 1;
+												break;
+											}
+										}
+										if (parameter_without_value == 0)
+										{
+											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+								}
+								else
+								{
+									symbol_t *bps2;
+									bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+									if (bps2)
+									{
+										int32_t parameter_without_value = 0;
+										symbol_t *bp2;
+										for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+										{
+											symbol_t *bpv2;
+											bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+											if (!bpv2)
+											{
+												parameter_without_value = 1;
+												break;
+											}
+										}
+										if (parameter_without_value == 0)
+										{
+											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+									else
+									{
+										syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+											ak->declaration->position.line, ak->declaration->position.column);
+										return -1;
+									}
+								}
+							}
 						}
 						else
 						{
@@ -2171,11 +3549,188 @@ syntax_function(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
-							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-								ak->declaration->position.line, ak->declaration->position.column);
-							return -1;
+							symbol_t *cgs;
+							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							if (cgs)
+							{
+								int32_t generic_without_value = 0;
+								symbol_t *cg;
+								for (cg = cgs->begin;cg != cgs->end;cg = cg->next)
+								{
+									if (symbol_check_type(cg, SYMBOL_GENERIC))
+									{
+										symbol_t *cgv;
+										cgv = syntax_only_with(cg, SYMBOL_VALUE);
+										if (!cgv)
+										{
+											generic_without_value = 1;
+											break;
+										}
+									}
+								}
+								if (generic_without_value == 0)
+								{
+									// check parameters
+									symbol_t *bps1;
+									bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+									if (bps1)
+									{
+										symbol_t *bps2;
+										bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+										if (bps2)
+										{
+											int32_t result;
+											result = syntax_equal_psps(program, bps1, bps2);
+											if (result == -1)
+											{
+												return -1;
+											}
+											else 
+											if (result == 1)
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+										else
+										{
+											int32_t parameter_without_value = 0;
+											symbol_t *bp1;
+											for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+											{
+												symbol_t *bpv1;
+												bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+												if (!bpv1)
+												{
+													parameter_without_value = 1;
+													break;
+												}
+											}
+											if (parameter_without_value == 0)
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+									}
+									else
+									{
+										symbol_t *bps2;
+										bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+										if (bps2)
+										{
+											int32_t parameter_without_value = 0;
+											symbol_t *bp2;
+											for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+											{
+												symbol_t *bpv2;
+												bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+												if (!bpv2)
+												{
+													parameter_without_value = 1;
+													break;
+												}
+											}
+											if (parameter_without_value == 0)
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+										else
+										{
+											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+								}
+							}
+							else
+							{
+								// check parameters
+								symbol_t *bps1;
+								bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+								if (bps1)
+								{
+									symbol_t *bps2;
+									bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+									if (bps2)
+									{
+										int32_t result;
+										result = syntax_equal_psps(program, bps1, bps2);
+										if (result == -1)
+										{
+											return -1;
+										}
+										else 
+										if (result == 1)
+										{
+											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+									else
+									{
+										int32_t parameter_without_value = 0;
+										symbol_t *bp1;
+										for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+										{
+											symbol_t *bpv1;
+											bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+											if (!bpv1)
+											{
+												parameter_without_value = 1;
+												break;
+											}
+										}
+										if (parameter_without_value == 0)
+										{
+											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+								}
+								else
+								{
+									symbol_t *bps2;
+									bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+									if (bps2)
+									{
+										int32_t parameter_without_value = 0;
+										symbol_t *bp2;
+										for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+										{
+											symbol_t *bpv2;
+											bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+											if (!bpv2)
+											{
+												parameter_without_value = 1;
+												break;
+											}
+										}
+										if (parameter_without_value == 0)
+										{
+											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+									else
+									{
+										syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+											ak->declaration->position.line, ak->declaration->position.column);
+										return -1;
+									}
+								}
+							}
 						}
 						else
 						{
@@ -2195,11 +3750,188 @@ syntax_function(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
-							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-								ak->declaration->position.line, ak->declaration->position.column);
-							return -1;
+							symbol_t *cgs;
+							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							if (cgs)
+							{
+								int32_t generic_without_value = 0;
+								symbol_t *cg;
+								for (cg = cgs->begin;cg != cgs->end;cg = cg->next)
+								{
+									if (symbol_check_type(cg, SYMBOL_GENERIC))
+									{
+										symbol_t *cgv;
+										cgv = syntax_only_with(cg, SYMBOL_VALUE);
+										if (!cgv)
+										{
+											generic_without_value = 1;
+											break;
+										}
+									}
+								}
+								if (generic_without_value == 0)
+								{
+									// check parameters
+									symbol_t *bps1;
+									bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+									if (bps1)
+									{
+										symbol_t *bps2;
+										bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+										if (bps2)
+										{
+											int32_t result;
+											result = syntax_equal_psps(program, bps1, bps2);
+											if (result == -1)
+											{
+												return -1;
+											}
+											else 
+											if (result == 1)
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+										else
+										{
+											int32_t parameter_without_value = 0;
+											symbol_t *bp1;
+											for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+											{
+												symbol_t *bpv1;
+												bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+												if (!bpv1)
+												{
+													parameter_without_value = 1;
+													break;
+												}
+											}
+											if (parameter_without_value == 0)
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+									}
+									else
+									{
+										symbol_t *bps2;
+										bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+										if (bps2)
+										{
+											int32_t parameter_without_value = 0;
+											symbol_t *bp2;
+											for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+											{
+												symbol_t *bpv2;
+												bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+												if (!bpv2)
+												{
+													parameter_without_value = 1;
+													break;
+												}
+											}
+											if (parameter_without_value == 0)
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													ak->declaration->position.line, ak->declaration->position.column);
+												return -1;
+											}
+										}
+										else
+										{
+											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+								}
+							}
+							else
+							{
+								// check parameters
+								symbol_t *bps1;
+								bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+								if (bps1)
+								{
+									symbol_t *bps2;
+									bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+									if (bps2)
+									{
+										int32_t result;
+										result = syntax_equal_psps(program, bps1, bps2);
+										if (result == -1)
+										{
+											return -1;
+										}
+										else 
+										if (result == 1)
+										{
+											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+									else
+									{
+										int32_t parameter_without_value = 0;
+										symbol_t *bp1;
+										for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+										{
+											symbol_t *bpv1;
+											bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+											if (!bpv1)
+											{
+												parameter_without_value = 1;
+												break;
+											}
+										}
+										if (parameter_without_value == 0)
+										{
+											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+								}
+								else
+								{
+									symbol_t *bps2;
+									bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+									if (bps2)
+									{
+										int32_t parameter_without_value = 0;
+										symbol_t *bp2;
+										for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+										{
+											symbol_t *bpv2;
+											bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+											if (!bpv2)
+											{
+												parameter_without_value = 1;
+												break;
+											}
+										}
+										if (parameter_without_value == 0)
+										{
+											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+												ak->declaration->position.line, ak->declaration->position.column);
+											return -1;
+										}
+									}
+									else
+									{
+										syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+											ak->declaration->position.line, ak->declaration->position.column);
+										return -1;
+									}
+								}
+							}
 						}
 						else
 						{
@@ -2224,11 +3956,188 @@ syntax_function(program_t *program, symbol_t *current)
 							dk = syntax_extract_with(d, SYMBOL_KEY);
 							if (dk)
 							{
-								if ((syntax_strcmp(ck, dk) == 0) && (current != a))
+								if (syntax_idcmp(ck, dk) == 0)
 								{
-									syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-										dk->declaration->position.line, dk->declaration->position.column);
-									return -1;
+									symbol_t *cgs;
+									cgs = syntax_only_with(current, SYMBOL_GENERICS);
+									if (cgs)
+									{
+										int32_t generic_without_value = 0;
+										symbol_t *cg;
+										for (cg = cgs->begin;cg != cgs->end;cg = cg->next)
+										{
+											if (symbol_check_type(cg, SYMBOL_GENERIC))
+											{
+												symbol_t *cgv;
+												cgv = syntax_only_with(cg, SYMBOL_VALUE);
+												if (!cgv)
+												{
+													generic_without_value = 1;
+													break;
+												}
+											}
+										}
+										if (generic_without_value == 0)
+										{
+											// check parameters
+											symbol_t *bps1;
+											bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+											if (bps1)
+											{
+												symbol_t *bps2;
+												bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+												if (bps2)
+												{
+													int32_t result;
+													result = syntax_equal_psps(program, bps1, bps2);
+													if (result == -1)
+													{
+														return -1;
+													}
+													else 
+													if (result == 1)
+													{
+														syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+															dk->declaration->position.line, dk->declaration->position.column);
+														return -1;
+													}
+												}
+												else
+												{
+													int32_t parameter_without_value = 0;
+													symbol_t *bp1;
+													for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+													{
+														symbol_t *bpv1;
+														bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+														if (!bpv1)
+														{
+															parameter_without_value = 1;
+															break;
+														}
+													}
+													if (parameter_without_value == 0)
+													{
+														syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+															dk->declaration->position.line, dk->declaration->position.column);
+														return -1;
+													}
+												}
+											}
+											else
+											{
+												symbol_t *bps2;
+												bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+												if (bps2)
+												{
+													int32_t parameter_without_value = 0;
+													symbol_t *bp2;
+													for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+													{
+														symbol_t *bpv2;
+														bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+														if (!bpv2)
+														{
+															parameter_without_value = 1;
+															break;
+														}
+													}
+													if (parameter_without_value == 0)
+													{
+														syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+															dk->declaration->position.line, dk->declaration->position.column);
+														return -1;
+													}
+												}
+												else
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														dk->declaration->position.line, dk->declaration->position.column);
+													return -1;
+												}
+											}
+										}
+									}
+									else
+									{
+										// check parameters
+										symbol_t *bps1;
+										bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+										if (bps1)
+										{
+											symbol_t *bps2;
+											bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+											if (bps2)
+											{
+												int32_t result;
+												result = syntax_equal_psps(program, bps1, bps2);
+												if (result == -1)
+												{
+													return -1;
+												}
+												else 
+												if (result == 1)
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														dk->declaration->position.line, dk->declaration->position.column);
+													return -1;
+												}
+											}
+											else
+											{
+												int32_t parameter_without_value = 0;
+												symbol_t *bp1;
+												for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+												{
+													symbol_t *bpv1;
+													bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+													if (!bpv1)
+													{
+														parameter_without_value = 1;
+														break;
+													}
+												}
+												if (parameter_without_value == 0)
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														dk->declaration->position.line, dk->declaration->position.column);
+													return -1;
+												}
+											}
+										}
+										else
+										{
+											symbol_t *bps2;
+											bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+											if (bps2)
+											{
+												int32_t parameter_without_value = 0;
+												symbol_t *bp2;
+												for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+												{
+													symbol_t *bpv2;
+													bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+													if (!bpv2)
+													{
+														parameter_without_value = 1;
+														break;
+													}
+												}
+												if (parameter_without_value == 0)
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														dk->declaration->position.line, dk->declaration->position.column);
+													return -1;
+												}
+											}
+											else
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													dk->declaration->position.line, dk->declaration->position.column);
+												return -1;
+											}
+										}
+									}
 								}
 								else
 								{
@@ -2255,11 +4164,188 @@ syntax_function(program_t *program, symbol_t *current)
 							dk = syntax_extract_with(d, SYMBOL_KEY);
 							if (dk)
 							{
-								if ((syntax_strcmp(ck, dk) == 0) && (current != a))
+								if (syntax_idcmp(ck, dk) == 0)
 								{
-									syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-										dk->declaration->position.line, dk->declaration->position.column);
-									return -1;
+									symbol_t *cgs;
+									cgs = syntax_only_with(current, SYMBOL_GENERICS);
+									if (cgs)
+									{
+										int32_t generic_without_value = 0;
+										symbol_t *cg;
+										for (cg = cgs->begin;cg != cgs->end;cg = cg->next)
+										{
+											if (symbol_check_type(cg, SYMBOL_GENERIC))
+											{
+												symbol_t *cgv;
+												cgv = syntax_only_with(cg, SYMBOL_VALUE);
+												if (!cgv)
+												{
+													generic_without_value = 1;
+													break;
+												}
+											}
+										}
+										if (generic_without_value == 0)
+										{
+											// check parameters
+											symbol_t *bps1;
+											bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+											if (bps1)
+											{
+												symbol_t *bps2;
+												bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+												if (bps2)
+												{
+													int32_t result;
+													result = syntax_equal_psps(program, bps1, bps2);
+													if (result == -1)
+													{
+														return -1;
+													}
+													else 
+													if (result == 1)
+													{
+														syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+															dk->declaration->position.line, dk->declaration->position.column);
+														return -1;
+													}
+												}
+												else
+												{
+													int32_t parameter_without_value = 0;
+													symbol_t *bp1;
+													for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+													{
+														symbol_t *bpv1;
+														bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+														if (!bpv1)
+														{
+															parameter_without_value = 1;
+															break;
+														}
+													}
+													if (parameter_without_value == 0)
+													{
+														syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+															dk->declaration->position.line, dk->declaration->position.column);
+														return -1;
+													}
+												}
+											}
+											else
+											{
+												symbol_t *bps2;
+												bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+												if (bps2)
+												{
+													int32_t parameter_without_value = 0;
+													symbol_t *bp2;
+													for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+													{
+														symbol_t *bpv2;
+														bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+														if (!bpv2)
+														{
+															parameter_without_value = 1;
+															break;
+														}
+													}
+													if (parameter_without_value == 0)
+													{
+														syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+															dk->declaration->position.line, dk->declaration->position.column);
+														return -1;
+													}
+												}
+												else
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														dk->declaration->position.line, dk->declaration->position.column);
+													return -1;
+												}
+											}
+										}
+									}
+									else
+									{
+										// check parameters
+										symbol_t *bps1;
+										bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+										if (bps1)
+										{
+											symbol_t *bps2;
+											bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+											if (bps2)
+											{
+												int32_t result;
+												result = syntax_equal_psps(program, bps1, bps2);
+												if (result == -1)
+												{
+													return -1;
+												}
+												else 
+												if (result == 1)
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														dk->declaration->position.line, dk->declaration->position.column);
+													return -1;
+												}
+											}
+											else
+											{
+												int32_t parameter_without_value = 0;
+												symbol_t *bp1;
+												for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+												{
+													symbol_t *bpv1;
+													bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+													if (!bpv1)
+													{
+														parameter_without_value = 1;
+														break;
+													}
+												}
+												if (parameter_without_value == 0)
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														dk->declaration->position.line, dk->declaration->position.column);
+													return -1;
+												}
+											}
+										}
+										else
+										{
+											symbol_t *bps2;
+											bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+											if (bps2)
+											{
+												int32_t parameter_without_value = 0;
+												symbol_t *bp2;
+												for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+												{
+													symbol_t *bpv2;
+													bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+													if (!bpv2)
+													{
+														parameter_without_value = 1;
+														break;
+													}
+												}
+												if (parameter_without_value == 0)
+												{
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+														dk->declaration->position.line, dk->declaration->position.column);
+													return -1;
+												}
+											}
+											else
+											{
+												syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+													dk->declaration->position.line, dk->declaration->position.column);
+												return -1;
+											}
+										}
+									}
 								}
 								else
 								{
@@ -2345,11 +4431,504 @@ syntax_class(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
-							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-								ak->declaration->position.line, ak->declaration->position.column);
-							return -1;
+							symbol_t *cgs;
+							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							if (cgs)
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t result;
+									result = syntax_equal_gsgs(program, cgs, ags);
+									if (result == -1)
+									{
+										return -1;
+									}
+									else
+									if (result == 1)
+									{
+										symbol_t *b1;
+										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										{
+											if (symbol_check_type(b1, SYMBOL_FUNCTION))
+											{
+												symbol_t *bk1;
+												bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+												if (bk1)
+												{
+													if (syntax_idstrcmp(bk1, "constructor") == 0)
+													{
+														symbol_t *b2;
+														for (b2 = a->begin;b2 != a->end;b2 = b2->next)
+														{
+															if (symbol_check_type(b2, SYMBOL_FUNCTION))
+															{
+																symbol_t *bk2;
+																bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+																if (bk2)
+																{
+																	if (syntax_idstrcmp(bk2, "constructor") == 0)
+																	{
+																		symbol_t *bps1;
+																		bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+																		if (bps1)
+																		{
+																			symbol_t *bps2;
+																			bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																			if (bps2)
+																			{
+																				int32_t result;
+																				result = syntax_equal_psps(program, bps1, bps2);
+																				if (result == -1)
+																				{
+																					return -1;
+																				}
+																				else 
+																				if (result == 1)
+																				{
+																					syntax_error(program, ck, "defination repeated1, another defination in %lld:%lld",
+																						ak->declaration->position.line, ak->declaration->position.column);
+																					return -1;
+																				}
+																			}
+																			else
+																			{
+																				int32_t parameter_without_value = 0;
+																				symbol_t *bp1;
+																				for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+																				{
+																					symbol_t *bpv1;
+																					bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																					if (!bpv1)
+																					{
+																						parameter_without_value = 1;
+																						break;
+																					}
+																				}
+																				if (parameter_without_value == 0)
+																				{
+																					syntax_error(program, ck, "defination repeated2, another defination in %lld:%lld",
+																						ak->declaration->position.line, ak->declaration->position.column);
+																					return -1;
+																				}
+																			}
+																		}
+																		else
+																		{
+																			symbol_t *bps2;
+																			bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																			if (bps2)
+																			{
+																				int32_t parameter_without_value = 0;
+																				symbol_t *bp2;
+																				for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+																				{
+																					symbol_t *bpv2;
+																					bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																					if (!bpv2)
+																					{
+																						parameter_without_value = 1;
+																						break;
+																					}
+																				}
+																				if (parameter_without_value == 0)
+																				{
+																					syntax_error(program, ck, "defination repeated3, another defination in %lld:%lld",
+																						ak->declaration->position.line, ak->declaration->position.column);
+																					return -1;
+																				}
+																			}
+																			else
+																			{
+																				syntax_error(program, ck, "defination repeated4, another defination in %lld:%lld",
+																					ak->declaration->position.line, ak->declaration->position.column);
+																				return -1;
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+								else
+								{
+									int32_t generic_without_value = 0;
+									symbol_t *cg;
+									for (cg = cgs->begin;cg != cgs->end;cg = cg->next)
+									{
+										if (symbol_check_type(cg, SYMBOL_GENERIC))
+										{
+											symbol_t *cgv;
+											cgv = syntax_only_with(cg, SYMBOL_VALUE);
+											if (!cgv)
+											{
+												generic_without_value = 1;
+												break;
+											}
+										}
+									}
+									if (generic_without_value == 0)
+									{
+										// check parameters
+										symbol_t *b1;
+										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										{
+											if (symbol_check_type(b1, SYMBOL_FUNCTION))
+											{
+												symbol_t *bk1;
+												bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+												if (bk1)
+												{
+													if (syntax_idstrcmp(bk1, "constructor") == 0)
+													{
+														symbol_t *b2;
+														for (b2 = a->begin;b2 != a->end;b2 = b2->next)
+														{
+															if (symbol_check_type(b2, SYMBOL_FUNCTION))
+															{
+																symbol_t *bk2;
+																bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+																if (bk2)
+																{
+																	if (syntax_idstrcmp(bk2, "constructor") == 0)
+																	{
+																		symbol_t *bps1;
+																		bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+																		if (bps1)
+																		{
+																			symbol_t *bps2;
+																			bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																			if (bps2)
+																			{
+																				int32_t result;
+																				result = syntax_equal_psps(program, bps1, bps2);
+																				if (result == -1)
+																				{
+																					return -1;
+																				}
+																				else 
+																				if (result == 1)
+																				{
+																					syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																						ak->declaration->position.line, ak->declaration->position.column);
+																					return -1;
+																				}
+																			}
+																			else
+																			{
+																				int32_t parameter_without_value = 0;
+																				symbol_t *bp1;
+																				for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+																				{
+																					symbol_t *bpv1;
+																					bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																					if (!bpv1)
+																					{
+																						parameter_without_value = 1;
+																						break;
+																					}
+																				}
+																				if (parameter_without_value == 0)
+																				{
+																					syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																						ak->declaration->position.line, ak->declaration->position.column);
+																					return -1;
+																				}
+																			}
+																		}
+																		else
+																		{
+																			symbol_t *bps2;
+																			bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																			if (bps2)
+																			{
+																				int32_t parameter_without_value = 0;
+																				symbol_t *bp2;
+																				for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+																				{
+																					symbol_t *bpv2;
+																					bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																					if (!bpv2)
+																					{
+																						parameter_without_value = 1;
+																						break;
+																					}
+																				}
+																				if (parameter_without_value == 0)
+																				{
+																					syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																						ak->declaration->position.line, ak->declaration->position.column);
+																					return -1;
+																				}
+																			}
+																			else
+																			{
+																				syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																					ak->declaration->position.line, ak->declaration->position.column);
+																				return -1;
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							else
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t generic_without_value = 0;
+									symbol_t *ag;
+									for (ag = ags->begin;ag != ags->end;ag = ag->next)
+									{
+										if (symbol_check_type(ag, SYMBOL_GENERIC))
+										{
+											symbol_t *agv;
+											agv = syntax_only_with(ag, SYMBOL_VALUE);
+											if (!agv)
+											{
+												generic_without_value = 1;
+											}
+										}
+									}
+									if (generic_without_value == 0)
+									{
+										// check parameters
+										symbol_t *b1;
+										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										{
+											if (symbol_check_type(b1, SYMBOL_FUNCTION))
+											{
+												symbol_t *bk1;
+												bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+												if (bk1)
+												{
+													if (syntax_idstrcmp(bk1, "constructor") == 0)
+													{
+														symbol_t *b2;
+														for (b2 = a->begin;b2 != a->end;b2 = b2->next)
+														{
+															if (symbol_check_type(b2, SYMBOL_FUNCTION))
+															{
+																symbol_t *bk2;
+																bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+																if (bk2)
+																{
+																	if (syntax_idstrcmp(bk2, "constructor") == 0)
+																	{
+																		symbol_t *bps1;
+																		bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+																		if (bps1)
+																		{
+																			symbol_t *bps2;
+																			bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																			if (bps2)
+																			{
+																				int32_t result;
+																				result = syntax_equal_psps(program, bps1, bps2);
+																				if (result == -1)
+																				{
+																					return -1;
+																				}
+																				else 
+																				if (result == 1)
+																				{
+																					syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																						ak->declaration->position.line, ak->declaration->position.column);
+																					return -1;
+																				}
+																			}
+																			else
+																			{
+																				int32_t parameter_without_value = 0;
+																				symbol_t *bp1;
+																				for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+																				{
+																					symbol_t *bpv1;
+																					bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																					if (!bpv1)
+																					{
+																						parameter_without_value = 1;
+																						break;
+																					}
+																				}
+																				if (parameter_without_value == 0)
+																				{
+																					syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																						ak->declaration->position.line, ak->declaration->position.column);
+																					return -1;
+																				}
+																			}
+																		}
+																		else
+																		{
+																			symbol_t *bps2;
+																			bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																			if (bps2)
+																			{
+																				int32_t parameter_without_value = 0;
+																				symbol_t *bp2;
+																				for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+																				{
+																					symbol_t *bpv2;
+																					bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																					if (!bpv2)
+																					{
+																						parameter_without_value = 1;
+																						break;
+																					}
+																				}
+																				if (parameter_without_value == 0)
+																				{
+																					syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																						ak->declaration->position.line, ak->declaration->position.column);
+																					return -1;
+																				}
+																			}
+																			else
+																			{
+																				syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																					ak->declaration->position.line, ak->declaration->position.column);
+																				return -1;
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+								else
+								{
+									// check parameters
+									symbol_t *b1;
+									for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+									{
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
+										{
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1)
+											{
+												if (syntax_idstrcmp(bk1, "constructor") == 0)
+												{
+													symbol_t *b2;
+													for (b2 = a->begin;b2 != a->end;b2 = b2->next)
+													{
+														if (symbol_check_type(b2, SYMBOL_FUNCTION))
+														{
+															symbol_t *bk2;
+															bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+															if (bk2)
+															{
+																if (syntax_idstrcmp(bk2, "constructor") == 0)
+																{
+																	symbol_t *bps1;
+																	bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+																	if (bps1)
+																	{
+																		symbol_t *bps2;
+																		bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																		if (bps2)
+																		{
+																			int32_t result;
+																			result = syntax_equal_psps(program, bps1, bps2);
+																			if (result == -1)
+																			{
+																				return -1;
+																			}
+																			else 
+																			if (result == 1)
+																			{
+																				syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																					ak->declaration->position.line, ak->declaration->position.column);
+																				return -1;
+																			}
+																		}
+																		else
+																		{
+																			int32_t parameter_without_value = 0;
+																			symbol_t *bp1;
+																			for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+																			{
+																				symbol_t *bpv1;
+																				bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																				if (!bpv1)
+																				{
+																					parameter_without_value = 1;
+																					break;
+																				}
+																			}
+																			if (parameter_without_value == 0)
+																			{
+																				syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																					ak->declaration->position.line, ak->declaration->position.column);
+																				return -1;
+																			}
+																		}
+																	}
+																	else
+																	{
+																		symbol_t *bps2;
+																		bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																		if (bps2)
+																		{
+																			int32_t parameter_without_value = 0;
+																			symbol_t *bp2;
+																			for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+																			{
+																				symbol_t *bpv2;
+																				bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																				if (!bpv2)
+																				{
+																					parameter_without_value = 1;
+																					break;
+																				}
+																			}
+																			if (parameter_without_value == 0)
+																			{
+																				syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																					ak->declaration->position.line, ak->declaration->position.column);
+																				return -1;
+																			}
+																		}
+																		else
+																		{
+																			syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																				ak->declaration->position.line, ak->declaration->position.column);
+																			return -1;
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
 						}
 						else
 						{
@@ -2369,11 +4948,444 @@ syntax_class(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
-							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-								ak->declaration->position.line, ak->declaration->position.column);
-							return -1;
+							symbol_t *cgs;
+							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							if (cgs)
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t result;
+									result = syntax_equal_gsgs(program, cgs, ags);
+									if (result == -1)
+									{
+										return -1;
+									}
+									else
+									if (result == 1)
+									{
+										symbol_t *b1;
+										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										{
+											if (symbol_check_type(b1, SYMBOL_FUNCTION))
+											{
+												symbol_t *bk1;
+												bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+												if (bk1)
+												{
+													if (syntax_idstrcmp(bk1, "constructor") == 0)
+													{
+														symbol_t *bps1;
+														bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+														if (bps1)
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t result;
+																result = syntax_equal_psps(program, bps1, bps2);
+																if (result == -1)
+																{
+																	return -1;
+																}
+																else 
+																if (result == 1)
+																{
+																	syntax_error(program, ck, "defination repeated1, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp1;
+																for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+																{
+																	symbol_t *bpv1;
+																	bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																	if (!bpv1)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+														}
+														else
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp2;
+																for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+																{
+																	symbol_t *bpv2;
+																	bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																	if (!bpv2)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+								else
+								{
+									int32_t generic_without_value = 0;
+									symbol_t *cg;
+									for (cg = cgs->begin;cg != cgs->end;cg = cg->next)
+									{
+										if (symbol_check_type(cg, SYMBOL_GENERIC))
+										{
+											symbol_t *cgv;
+											cgv = syntax_only_with(cg, SYMBOL_VALUE);
+											if (!cgv)
+											{
+												generic_without_value = 1;
+												break;
+											}
+										}
+									}
+									if (generic_without_value == 0)
+									{
+										// check parameters
+										symbol_t *b1;
+										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										{
+											if (symbol_check_type(b1, SYMBOL_FUNCTION))
+											{
+												symbol_t *bk1;
+												bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+												if (bk1)
+												{
+													if (syntax_idstrcmp(bk1, "constructor") == 0)
+													{
+														symbol_t *bps1;
+														bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+														if (bps1)
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t result;
+																result = syntax_equal_psps(program, bps1, bps2);
+																if (result == -1)
+																{
+																	return -1;
+																}
+																else 
+																if (result == 1)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp1;
+																for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+																{
+																	symbol_t *bpv1;
+																	bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																	if (!bpv1)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+														}
+														else
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp2;
+																for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+																{
+																	symbol_t *bpv2;
+																	bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																	if (!bpv2)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							else
+							{
+								symbol_t *ags;
+								ags = syntax_only_with(a, SYMBOL_GENERICS);
+								if (ags)
+								{
+									int32_t generic_without_value = 0;
+									symbol_t *ag;
+									for (ag = ags->begin;ag != ags->end;ag = ag->next)
+									{
+										if (symbol_check_type(ag, SYMBOL_GENERIC))
+										{
+											symbol_t *agv;
+											agv = syntax_only_with(ag, SYMBOL_VALUE);
+											if (!agv)
+											{
+												generic_without_value = 1;
+											}
+										}
+									}
+									if (generic_without_value == 0)
+									{
+										// check parameters
+										symbol_t *b1;
+										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										{
+											if (symbol_check_type(b1, SYMBOL_FUNCTION))
+											{
+												symbol_t *bk1;
+												bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+												if (bk1)
+												{
+													if (syntax_idstrcmp(bk1, "constructor") == 0)
+													{
+														symbol_t *bps1;
+														bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+														if (bps1)
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t result;
+																result = syntax_equal_psps(program, bps1, bps2);
+																if (result == -1)
+																{
+																	return -1;
+																}
+																else 
+																if (result == 1)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp1;
+																for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+																{
+																	symbol_t *bpv1;
+																	bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																	if (!bpv1)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+														}
+														else
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp2;
+																for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+																{
+																	symbol_t *bpv2;
+																	bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																	if (!bpv2)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		ak->declaration->position.line, ak->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+								else
+								{
+									// check parameters
+									symbol_t *b1;
+									for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+									{
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
+										{
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1)
+											{
+												if (syntax_idstrcmp(bk1, "constructor") == 0)
+												{
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1)
+													{
+														symbol_t *bps2;
+														bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+														if (bps2)
+														{
+															int32_t result;
+															result = syntax_equal_psps(program, bps1, bps2);
+															if (result == -1)
+															{
+																return -1;
+															}
+															else 
+															if (result == 1)
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+														else
+														{
+															int32_t parameter_without_value = 0;
+															symbol_t *bp1;
+															for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+															{
+																symbol_t *bpv1;
+																bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																if (!bpv1)
+																{
+																	parameter_without_value = 1;
+																	break;
+																}
+															}
+															if (parameter_without_value == 0)
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+													}
+													else
+													{
+														symbol_t *bps2;
+														bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+														if (bps2)
+														{
+															int32_t parameter_without_value = 0;
+															symbol_t *bp2;
+															for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+															{
+																symbol_t *bpv2;
+																bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																if (!bpv2)
+																{
+																	parameter_without_value = 1;
+																	break;
+																}
+															}
+															if (parameter_without_value == 0)
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+														else
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
 						}
 						else
 						{
@@ -2393,11 +5405,218 @@ syntax_class(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
-							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-								ak->declaration->position.line, ak->declaration->position.column);
-							return -1;
+							symbol_t *cgs;
+							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							if (cgs)
+							{
+								int32_t generic_without_value = 0;
+								symbol_t *cg;
+								for (cg = cgs->begin;cg != cgs->end;cg = cg->next)
+								{
+									if (symbol_check_type(cg, SYMBOL_GENERIC))
+									{
+										symbol_t *cgv;
+										cgv = syntax_only_with(cg, SYMBOL_VALUE);
+										if (!cgv)
+										{
+											generic_without_value = 1;
+											break;
+										}
+									}
+								}
+								if (generic_without_value == 0)
+								{
+									// check parameters
+									symbol_t *b1;
+									for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+									{
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
+										{
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1)
+											{
+												if (syntax_idstrcmp(bk1, "constructor") == 0)
+												{
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1)
+													{
+														symbol_t *bps2;
+														bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+														if (bps2)
+														{
+															int32_t result;
+															result = syntax_equal_psps(program, bps1, bps2);
+															if (result == -1)
+															{
+																return -1;
+															}
+															else 
+															if (result == 1)
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+														else
+														{
+															int32_t parameter_without_value = 0;
+															symbol_t *bp1;
+															for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+															{
+																symbol_t *bpv1;
+																bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																if (!bpv1)
+																{
+																	parameter_without_value = 1;
+																	break;
+																}
+															}
+															if (parameter_without_value == 0)
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+													}
+													else
+													{
+														symbol_t *bps2;
+														bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+														if (bps2)
+														{
+															int32_t parameter_without_value = 0;
+															symbol_t *bp2;
+															for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+															{
+																symbol_t *bpv2;
+																bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																if (!bpv2)
+																{
+																	parameter_without_value = 1;
+																	break;
+																}
+															}
+															if (parameter_without_value == 0)
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+														else
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							else
+							{
+								// check parameters
+								symbol_t *b1;
+								for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "constructor") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													symbol_t *bps2;
+													bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+													if (bps2)
+													{
+														int32_t result;
+														result = syntax_equal_psps(program, bps1, bps2);
+														if (result == -1)
+														{
+															return -1;
+														}
+														else 
+														if (result == 1)
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+													else
+													{
+														int32_t parameter_without_value = 0;
+														symbol_t *bp1;
+														for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+														{
+															symbol_t *bpv1;
+															bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+															if (!bpv1)
+															{
+																parameter_without_value = 1;
+																break;
+															}
+														}
+														if (parameter_without_value == 0)
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+												}
+												else
+												{
+													symbol_t *bps2;
+													bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+													if (bps2)
+													{
+														int32_t parameter_without_value = 0;
+														symbol_t *bp2;
+														for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+														{
+															symbol_t *bpv2;
+															bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+															if (!bpv2)
+															{
+																parameter_without_value = 1;
+																break;
+															}
+														}
+														if (parameter_without_value == 0)
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+													else
+													{
+														syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+															ak->declaration->position.line, ak->declaration->position.column);
+														return -1;
+													}
+												}
+											}
+										}
+									}
+								}
+							}
 						}
 						else
 						{
@@ -2417,11 +5636,218 @@ syntax_class(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
-							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-								ak->declaration->position.line, ak->declaration->position.column);
-							return -1;
+							symbol_t *cgs;
+							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							if (cgs)
+							{
+								int32_t generic_without_value = 0;
+								symbol_t *cg;
+								for (cg = cgs->begin;cg != cgs->end;cg = cg->next)
+								{
+									if (symbol_check_type(cg, SYMBOL_GENERIC))
+									{
+										symbol_t *cgv;
+										cgv = syntax_only_with(cg, SYMBOL_VALUE);
+										if (!cgv)
+										{
+											generic_without_value = 1;
+											break;
+										}
+									}
+								}
+								if (generic_without_value == 0)
+								{
+									// check parameters
+									symbol_t *b1;
+									for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+									{
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
+										{
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1)
+											{
+												if (syntax_idstrcmp(bk1, "constructor") == 0)
+												{
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1)
+													{
+														symbol_t *bps2;
+														bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+														if (bps2)
+														{
+															int32_t result;
+															result = syntax_equal_psps(program, bps1, bps2);
+															if (result == -1)
+															{
+																return -1;
+															}
+															else 
+															if (result == 1)
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+														else
+														{
+															int32_t parameter_without_value = 0;
+															symbol_t *bp1;
+															for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+															{
+																symbol_t *bpv1;
+																bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																if (!bpv1)
+																{
+																	parameter_without_value = 1;
+																	break;
+																}
+															}
+															if (parameter_without_value == 0)
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+													}
+													else
+													{
+														symbol_t *bps2;
+														bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+														if (bps2)
+														{
+															int32_t parameter_without_value = 0;
+															symbol_t *bp2;
+															for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+															{
+																symbol_t *bpv2;
+																bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																if (!bpv2)
+																{
+																	parameter_without_value = 1;
+																	break;
+																}
+															}
+															if (parameter_without_value == 0)
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+														else
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							else
+							{
+								// check parameters
+								symbol_t *b1;
+								for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "constructor") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													symbol_t *bps2;
+													bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+													if (bps2)
+													{
+														int32_t result;
+														result = syntax_equal_psps(program, bps1, bps2);
+														if (result == -1)
+														{
+															return -1;
+														}
+														else 
+														if (result == 1)
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+													else
+													{
+														int32_t parameter_without_value = 0;
+														symbol_t *bp1;
+														for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+														{
+															symbol_t *bpv1;
+															bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+															if (!bpv1)
+															{
+																parameter_without_value = 1;
+																break;
+															}
+														}
+														if (parameter_without_value == 0)
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+												}
+												else
+												{
+													symbol_t *bps2;
+													bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+													if (bps2)
+													{
+														int32_t parameter_without_value = 0;
+														symbol_t *bp2;
+														for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+														{
+															symbol_t *bpv2;
+															bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+															if (!bpv2)
+															{
+																parameter_without_value = 1;
+																break;
+															}
+														}
+														if (parameter_without_value == 0)
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+													else
+													{
+														syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+															ak->declaration->position.line, ak->declaration->position.column);
+														return -1;
+													}
+												}
+											}
+										}
+									}
+								}
+							}
 						}
 						else
 						{
@@ -2441,11 +5867,218 @@ syntax_class(program_t *program, symbol_t *current)
 					ak = syntax_extract_with(a, SYMBOL_KEY);
 					if (ak)
 					{
-						if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+						if (syntax_idcmp(ck, ak) == 0)
 						{
-							syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-								ak->declaration->position.line, ak->declaration->position.column);
-							return -1;
+							symbol_t *cgs;
+							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							if (cgs)
+							{
+								int32_t generic_without_value = 0;
+								symbol_t *cg;
+								for (cg = cgs->begin;cg != cgs->end;cg = cg->next)
+								{
+									if (symbol_check_type(cg, SYMBOL_GENERIC))
+									{
+										symbol_t *cgv;
+										cgv = syntax_only_with(cg, SYMBOL_VALUE);
+										if (!cgv)
+										{
+											generic_without_value = 1;
+											break;
+										}
+									}
+								}
+								if (generic_without_value == 0)
+								{
+									// check parameters
+									symbol_t *b1;
+									for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+									{
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
+										{
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1)
+											{
+												if (syntax_idstrcmp(bk1, "constructor") == 0)
+												{
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1)
+													{
+														symbol_t *bps2;
+														bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+														if (bps2)
+														{
+															int32_t result;
+															result = syntax_equal_psps(program, bps1, bps2);
+															if (result == -1)
+															{
+																return -1;
+															}
+															else 
+															if (result == 1)
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+														else
+														{
+															int32_t parameter_without_value = 0;
+															symbol_t *bp1;
+															for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+															{
+																symbol_t *bpv1;
+																bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																if (!bpv1)
+																{
+																	parameter_without_value = 1;
+																	break;
+																}
+															}
+															if (parameter_without_value == 0)
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+													}
+													else
+													{
+														symbol_t *bps2;
+														bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+														if (bps2)
+														{
+															int32_t parameter_without_value = 0;
+															symbol_t *bp2;
+															for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+															{
+																symbol_t *bpv2;
+																bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																if (!bpv2)
+																{
+																	parameter_without_value = 1;
+																	break;
+																}
+															}
+															if (parameter_without_value == 0)
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	ak->declaration->position.line, ak->declaration->position.column);
+																return -1;
+															}
+														}
+														else
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+							else
+							{
+								// check parameters
+								symbol_t *b1;
+								for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "constructor") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													symbol_t *bps2;
+													bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+													if (bps2)
+													{
+														int32_t result;
+														result = syntax_equal_psps(program, bps1, bps2);
+														if (result == -1)
+														{
+															return -1;
+														}
+														else 
+														if (result == 1)
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+													else
+													{
+														int32_t parameter_without_value = 0;
+														symbol_t *bp1;
+														for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+														{
+															symbol_t *bpv1;
+															bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+															if (!bpv1)
+															{
+																parameter_without_value = 1;
+																break;
+															}
+														}
+														if (parameter_without_value == 0)
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+												}
+												else
+												{
+													symbol_t *bps2;
+													bps2 = syntax_only_with(a, SYMBOL_PARAMETERS);
+													if (bps2)
+													{
+														int32_t parameter_without_value = 0;
+														symbol_t *bp2;
+														for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+														{
+															symbol_t *bpv2;
+															bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+															if (!bpv2)
+															{
+																parameter_without_value = 1;
+																break;
+															}
+														}
+														if (parameter_without_value == 0)
+														{
+															syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																ak->declaration->position.line, ak->declaration->position.column);
+															return -1;
+														}
+													}
+													else
+													{
+														syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+															ak->declaration->position.line, ak->declaration->position.column);
+														return -1;
+													}
+												}
+											}
+										}
+									}
+								}
+							}
 						}
 						else
 						{
@@ -2470,11 +6103,218 @@ syntax_class(program_t *program, symbol_t *current)
 							dk = syntax_extract_with(d, SYMBOL_KEY);
 							if (dk)
 							{
-								if ((syntax_strcmp(ck, dk) == 0) && (current != a))
+								if (syntax_idcmp(ck, dk) == 0)
 								{
-									syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-										dk->declaration->position.line, dk->declaration->position.column);
-									return -1;
+									symbol_t *cgs;
+									cgs = syntax_only_with(current, SYMBOL_GENERICS);
+									if (cgs)
+									{
+										int32_t generic_without_value = 0;
+										symbol_t *cg;
+										for (cg = cgs->begin;cg != cgs->end;cg = cg->next)
+										{
+											if (symbol_check_type(cg, SYMBOL_GENERIC))
+											{
+												symbol_t *cgv;
+												cgv = syntax_only_with(cg, SYMBOL_VALUE);
+												if (!cgv)
+												{
+													generic_without_value = 1;
+													break;
+												}
+											}
+										}
+										if (generic_without_value == 0)
+										{
+											// check parameters
+											symbol_t *b1;
+											for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+											{
+												if (symbol_check_type(b1, SYMBOL_FUNCTION))
+												{
+													symbol_t *bk1;
+													bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+													if (bk1)
+													{
+														if (syntax_idstrcmp(bk1, "constructor") == 0)
+														{
+															symbol_t *bps1;
+															bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+															if (bps1)
+															{
+																symbol_t *bps2;
+																bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+																if (bps2)
+																{
+																	int32_t result;
+																	result = syntax_equal_psps(program, bps1, bps2);
+																	if (result == -1)
+																	{
+																		return -1;
+																	}
+																	else 
+																	if (result == 1)
+																	{
+																		syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																			dk->declaration->position.line, dk->declaration->position.column);
+																		return -1;
+																	}
+																}
+																else
+																{
+																	int32_t parameter_without_value = 0;
+																	symbol_t *bp1;
+																	for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+																	{
+																		symbol_t *bpv1;
+																		bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																		if (!bpv1)
+																		{
+																			parameter_without_value = 1;
+																			break;
+																		}
+																	}
+																	if (parameter_without_value == 0)
+																	{
+																		syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																			dk->declaration->position.line, dk->declaration->position.column);
+																		return -1;
+																	}
+																}
+															}
+															else
+															{
+																symbol_t *bps2;
+																bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+																if (bps2)
+																{
+																	int32_t parameter_without_value = 0;
+																	symbol_t *bp2;
+																	for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+																	{
+																		symbol_t *bpv2;
+																		bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																		if (!bpv2)
+																		{
+																			parameter_without_value = 1;
+																			break;
+																		}
+																	}
+																	if (parameter_without_value == 0)
+																	{
+																		syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																			dk->declaration->position.line, dk->declaration->position.column);
+																		return -1;
+																	}
+																}
+																else
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		dk->declaration->position.line, dk->declaration->position.column);
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+									else
+									{
+										// check parameters
+										symbol_t *b1;
+										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										{
+											if (symbol_check_type(b1, SYMBOL_FUNCTION))
+											{
+												symbol_t *bk1;
+												bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+												if (bk1)
+												{
+													if (syntax_idstrcmp(bk1, "constructor") == 0)
+													{
+														symbol_t *bps1;
+														bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+														if (bps1)
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t result;
+																result = syntax_equal_psps(program, bps1, bps2);
+																if (result == -1)
+																{
+																	return -1;
+																}
+																else 
+																if (result == 1)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		dk->declaration->position.line, dk->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp1;
+																for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+																{
+																	symbol_t *bpv1;
+																	bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																	if (!bpv1)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		dk->declaration->position.line, dk->declaration->position.column);
+																	return -1;
+																}
+															}
+														}
+														else
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp2;
+																for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+																{
+																	symbol_t *bpv2;
+																	bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																	if (!bpv2)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		dk->declaration->position.line, dk->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	dk->declaration->position.line, dk->declaration->position.column);
+																return -1;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
 								}
 								else
 								{
@@ -2501,11 +6341,218 @@ syntax_class(program_t *program, symbol_t *current)
 							dk = syntax_extract_with(d, SYMBOL_KEY);
 							if (dk)
 							{
-								if ((syntax_strcmp(ck, dk) == 0) && (current != a))
+								if ((syntax_idcmp(ck, dk) == 0) && (current != a))
 								{
-									syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
-										dk->declaration->position.line, dk->declaration->position.column);
-									return -1;
+									symbol_t *cgs;
+									cgs = syntax_only_with(current, SYMBOL_GENERICS);
+									if (cgs)
+									{
+										int32_t generic_without_value = 0;
+										symbol_t *cg;
+										for (cg = cgs->begin;cg != cgs->end;cg = cg->next)
+										{
+											if (symbol_check_type(cg, SYMBOL_GENERIC))
+											{
+												symbol_t *cgv;
+												cgv = syntax_only_with(cg, SYMBOL_VALUE);
+												if (!cgv)
+												{
+													generic_without_value = 1;
+													break;
+												}
+											}
+										}
+										if (generic_without_value == 0)
+										{
+											// check parameters
+											symbol_t *b1;
+											for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+											{
+												if (symbol_check_type(b1, SYMBOL_FUNCTION))
+												{
+													symbol_t *bk1;
+													bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+													if (bk1)
+													{
+														if (syntax_idstrcmp(bk1, "constructor") == 0)
+														{
+															symbol_t *bps1;
+															bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+															if (bps1)
+															{
+																symbol_t *bps2;
+																bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+																if (bps2)
+																{
+																	int32_t result;
+																	result = syntax_equal_psps(program, bps1, bps2);
+																	if (result == -1)
+																	{
+																		return -1;
+																	}
+																	else 
+																	if (result == 1)
+																	{
+																		syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																			dk->declaration->position.line, dk->declaration->position.column);
+																		return -1;
+																	}
+																}
+																else
+																{
+																	int32_t parameter_without_value = 0;
+																	symbol_t *bp1;
+																	for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+																	{
+																		symbol_t *bpv1;
+																		bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																		if (!bpv1)
+																		{
+																			parameter_without_value = 1;
+																			break;
+																		}
+																	}
+																	if (parameter_without_value == 0)
+																	{
+																		syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																			dk->declaration->position.line, dk->declaration->position.column);
+																		return -1;
+																	}
+																}
+															}
+															else
+															{
+																symbol_t *bps2;
+																bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+																if (bps2)
+																{
+																	int32_t parameter_without_value = 0;
+																	symbol_t *bp2;
+																	for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+																	{
+																		symbol_t *bpv2;
+																		bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																		if (!bpv2)
+																		{
+																			parameter_without_value = 1;
+																			break;
+																		}
+																	}
+																	if (parameter_without_value == 0)
+																	{
+																		syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																			dk->declaration->position.line, dk->declaration->position.column);
+																		return -1;
+																	}
+																}
+																else
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		dk->declaration->position.line, dk->declaration->position.column);
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+									else
+									{
+										// check parameters
+										symbol_t *b1;
+										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										{
+											if (symbol_check_type(b1, SYMBOL_FUNCTION))
+											{
+												symbol_t *bk1;
+												bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+												if (bk1)
+												{
+													if (syntax_idstrcmp(bk1, "constructor") == 0)
+													{
+														symbol_t *bps1;
+														bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+														if (bps1)
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t result;
+																result = syntax_equal_psps(program, bps1, bps2);
+																if (result == -1)
+																{
+																	return -1;
+																}
+																else 
+																if (result == 1)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		dk->declaration->position.line, dk->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp1;
+																for (bp1 = bps1->begin;bp1 != bps1->end;bps1 = bps1->next)
+																{
+																	symbol_t *bpv1;
+																	bpv1 = syntax_only_with(bp1, SYMBOL_VALUE);
+																	if (!bpv1)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		dk->declaration->position.line, dk->declaration->position.column);
+																	return -1;
+																}
+															}
+														}
+														else
+														{
+															symbol_t *bps2;
+															bps2 = syntax_only_with(d, SYMBOL_PARAMETERS);
+															if (bps2)
+															{
+																int32_t parameter_without_value = 0;
+																symbol_t *bp2;
+																for (bp2 = bps2->begin;bp2 != bps2->end;bps2 = bps2->next)
+																{
+																	symbol_t *bpv2;
+																	bpv2 = syntax_only_with(bp2, SYMBOL_VALUE);
+																	if (!bpv2)
+																	{
+																		parameter_without_value = 1;
+																		break;
+																	}
+																}
+																if (parameter_without_value == 0)
+																{
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																		dk->declaration->position.line, dk->declaration->position.column);
+																	return -1;
+																}
+															}
+															else
+															{
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
+																	dk->declaration->position.line, dk->declaration->position.column);
+																return -1;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
 								}
 								else
 								{
@@ -2635,7 +6682,7 @@ syntax_field(program_t *program, symbol_t *current)
 						{
 							if (symbol_check_type(ak, SYMBOL_ID))
 							{
-								if ((syntax_strcmp(ck, ak) == 0) && (current != a))
+								if (syntax_idcmp(ck, ak) == 0)
 								{
 									syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 										ak->declaration->position.line, ak->declaration->position.column);
@@ -2655,7 +6702,7 @@ syntax_field(program_t *program, symbol_t *current)
 								{
 									if (symbol_check_type(akk, SYMBOL_ID))
 									{
-										if (syntax_strcmp(ck, akk) == 0)
+										if (syntax_idcmp(ck, akk) == 0)
 										{
 											syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 												akk->declaration->position.line, akk->declaration->position.column);
@@ -2691,7 +6738,7 @@ syntax_field(program_t *program, symbol_t *current)
 								{
 									if (symbol_check_type(ckk, SYMBOL_ID))
 									{
-										if (syntax_strcmp(ak, ckk) == 0)
+										if (syntax_idcmp(ak, ckk) == 0)
 										{
 											syntax_error(program, ckk, "defination repeated, another defination in %lld:%lld",
 												ak->declaration->position.line, ak->declaration->position.column);
@@ -2725,7 +6772,7 @@ syntax_field(program_t *program, symbol_t *current)
 									akk = syntax_extract_with(ak, SYMBOL_KEY);
 									if (akk)
 									{
-										if (syntax_strcmp(akk, ckk) == 0)
+										if (syntax_idcmp(akk, ckk) == 0)
 										{
 											syntax_error(program, ckk, "defination repeated, another defination in %lld:%lld",
 												akk->declaration->position.line, akk->declaration->position.column);
@@ -2814,7 +6861,7 @@ syntax_fields(program_t *program, symbol_t *current)
 									bk = syntax_extract_with(b, SYMBOL_KEY);
 									if (bk)
 									{
-										if (syntax_strcmp(ak, bk) == 0)
+										if (syntax_idcmp(ak, bk) == 0)
 										{
 											symbol_t *bgs;
 											bgs = syntax_only_with(b, SYMBOL_GENERICS);
@@ -2875,7 +6922,7 @@ syntax_fields(program_t *program, symbol_t *current)
 										akk = syntax_extract_with(ak, SYMBOL_KEY);	
 										if (akk)
 										{
-											if (syntax_strcmp(akk, bk) == 0)
+											if (syntax_idcmp(akk, bk) == 0)
 											{
 												syntax_error(program, akk, "defination repeated, another defination in %lld:%lld",
 													bk->declaration->position.line, bk->declaration->position.column);

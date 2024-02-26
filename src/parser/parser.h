@@ -33,6 +33,7 @@ typedef struct parser_state
 	uint64_t reading_offset;
 	uint64_t line;
 	uint64_t column;
+	uint64_t count_error;
 	token_t token;
 } parser_state_t;
 

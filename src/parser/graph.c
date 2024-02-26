@@ -21,6 +21,40 @@
 
 #define max(a, b) a > b ? a : b
 
+static error_t *
+graph_error(program_t *program, node_t *node, const char *format, ...)
+{
+	char *message;
+	message = malloc(1024);
+	if (!message)
+	{
+		return NULL;
+	}
+
+	va_list arg;
+	if (format)
+	{
+		va_start(arg, format);
+		vsprintf(message, format, arg);
+		va_end(arg);
+	}
+
+	error_t *error;
+	error = error_create(node->position, message);
+	if (!error)
+	{
+		return NULL;
+	}
+
+	if (list_rpush(program->errors, (uint64_t)error))
+	{
+		return NULL;
+	}
+
+	return error;
+}
+
+
 static int32_t
 graph_expression(program_t *program, symbol_t *parent, node_t *node);
 
@@ -55,11 +89,15 @@ graph_id(program_t *program, symbol_t *parent, node_t *node)
 	symbol_t *symbol;
 
 	symbol = symbol_rpush(parent, SYMBOL_ID, node);
-	if(!symbol)
+	if(symbol)
 	{
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
 		return -1;
 	}
-	return 1;
 }
 
 static int32_t
@@ -67,11 +105,15 @@ graph_number(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_NUMBER, node);
-	if (!symbol)
+	if (symbol)
 	{
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
 		return -1;
 	}
-	return 1;
 }
 
 static int32_t
@@ -80,11 +122,15 @@ graph_string(program_t *program, symbol_t *parent, node_t *node)
 	symbol_t *symbol;
 
 	symbol = symbol_rpush(parent, SYMBOL_STRING, node);
-	if(!symbol)
+	if (symbol)
 	{
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
 		return -1;
 	}
-	return 1;
 }
 
 static int32_t
@@ -93,11 +139,15 @@ graph_char(program_t *program, symbol_t *parent, node_t *node)
 	symbol_t *symbol;
 
 	symbol = symbol_rpush(parent, SYMBOL_CHAR, node);
-	if(!symbol)
+	if (symbol)
 	{
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
 		return -1;
 	}
-	return 1;
 }
 
 static int32_t
@@ -106,11 +156,15 @@ graph_null(program_t *program, symbol_t *parent, node_t *node)
 	symbol_t *symbol;
 	
 	symbol = symbol_rpush(parent, SYMBOL_NULL, node);
-	if(!symbol)
+	if (symbol)
 	{
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
 		return -1;
 	}
-	return 1;
 }
 
 static int32_t
@@ -119,11 +173,15 @@ graph_true(program_t *program, symbol_t *parent, node_t *node)
 	symbol_t *symbol;
 	
 	symbol = symbol_rpush(parent, SYMBOL_TRUE, node);
-	if(!symbol)
+	if (symbol)
 	{
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
 		return -1;
 	}
-	return 1;
 }
 
 static int32_t
@@ -132,11 +190,15 @@ graph_false(program_t *program, symbol_t *parent, node_t *node)
 	symbol_t *symbol;
 	
 	symbol = symbol_rpush(parent, SYMBOL_FALSE, node);
-	if(!symbol)
+	if (symbol)
 	{
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
 		return -1;
 	}
-	return 1;
 }
 
 static int32_t
@@ -144,52 +206,56 @@ graph_array(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_ARRAY, node);
-	if(!symbol)
+	if (symbol)
 	{
+		node_array_t *node_array;
+		node_array = (node_array_t *)node->value;
+
+		int32_t result;
+		ilist_t *a;
+		for (a = node_array->list->begin; a != node_array->list->end; a = a->next)
+		{
+			node_t *temp;
+			temp = (node_t *)a->value;
+
+			result = graph_expression(program, symbol, temp);
+			if (result == -1)
+			{
+				return -1;
+			}
+		}
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
 		return -1;
 	}
-
-	node_array_t *node_array;
-	node_array = (node_array_t *)node->value;
-
-	int32_t result;
-	ilist_t *a;
-	for (a = node_array->list->begin; a != node_array->list->end; a = a->next)
-	{
-		node_t *temp;
-		temp = (node_t *)a->value;
-
-		result = graph_expression(program, symbol, temp);
-		if (result == -1)
-		{
-			return -1;
-		}
-	}
-	return 1;
 }
 
 static int32_t
 graph_parenthesis(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
-
 	symbol = symbol_rpush(parent, SYMBOL_PARENTHESIS, node);
-	if(!symbol)
+	if(symbol)
 	{
+		node_unary_t *node_unary;
+		node_unary = (node_unary_t *)node->value;
+
+		int32_t result;
+		result = graph_expression(program, symbol, node_unary->right);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
 		return -1;
 	}
-
-	node_unary_t *node_unary;
-	node_unary = (node_unary_t *)node->value;
-
-	int32_t result;
-	result = graph_expression(program, symbol, node_unary->right);
-	if (result == -1)
-	{
-		return -1;
-	}
-
-	return 1;
 }
 
 static int32_t
@@ -197,59 +263,71 @@ graph_lambda(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_LAMBDA, node);
-	if(!symbol)
+	if(symbol)
 	{
+		node_lambda_t *lambda = (node_lambda_t *)node->value;
+		int32_t result;
+		if (lambda->parameters)
+		{
+			symbol_t *parameters;
+			parameters = symbol_rpush(symbol, SYMBOL_PARAMETERS, NULL);
+			if (parameters)
+			{
+				ilist_t *a;
+				for (a = lambda->parameters->begin; a != lambda->parameters->end; a = a->next)
+				{
+					node_t *parameter = (node_t *)a->value;
+
+					result = graph_parameter(program, parameters, parameter);
+					if (result == -1)
+					{
+						return -1;
+					}
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+		}
+
+		if (lambda->body)
+		{
+			if(lambda->body->kind == NODE_KIND_BLOCK)
+			{
+				result = graph_block(program, symbol, lambda->body);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				symbol_t *value = symbol_rpush(symbol, SYMBOL_VALUE, NULL);
+				if(value)
+				{
+					result = graph_expression(program, value, lambda->body);
+					if (result == -1)
+					{
+						return -1;
+					}
+				}
+				else
+				{
+					graph_error(program, node, "low memory");
+					return -1;
+				}
+			}
+		}
+
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
 		return -1;
 	}
-
-	node_lambda_t *node_lambda = (node_lambda_t *)node->value;
-
-	int32_t result;
-	if (node_lambda->parameters)
-	{
-		symbol_t *parameters;
-		parameters = symbol_rpush(symbol, SYMBOL_PARAMETERS, NULL);
-
-		ilist_t *a;
-		for (a = node_lambda->parameters->begin; a != node_lambda->parameters->end; a = a->next)
-		{
-			node_t *parameter = (node_t *)a->value;
-
-			result = graph_parameter(program, parameters, parameter);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-	}
-
-	if (node_lambda->body)
-	{
-		if(node_lambda->body->kind == NODE_KIND_BLOCK)
-		{
-			result = graph_block(program, symbol, node_lambda->body);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-		else
-		{
-			symbol_t *value = symbol_rpush(symbol, SYMBOL_VALUE, NULL);
-			if(!value)
-			{
-				return -1;
-			}
-
-			result = graph_expression(program, value, node_lambda->body);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-	}
-
-	return 1;
 }
 
 static int32_t
@@ -257,48 +335,57 @@ graph_object_property(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_OBJECT_PROPERTY, node);
-	if(!symbol)
+	if(symbol)
 	{
+		node_object_property_t *node_object_property;
+		node_object_property = (node_object_property_t *)node->value;
+
+		int32_t result;
+		if(node_object_property->name)
+		{
+			symbol_t *name;
+			name = symbol_rpush(symbol, SYMBOL_NAME, NULL);
+			if(name)
+			{
+				result = graph_expression(program, name, node_object_property->name);
+				if (result == -1)
+				{
+					return -1;
+				}	
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+		}
+
+		if (node_object_property->value)
+		{
+			symbol_t *value;
+			value = symbol_rpush(symbol, SYMBOL_VALUE, NULL);
+			if(value)
+			{
+				result = graph_expression(program, value, node_object_property->value);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+		}
+
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
 		return -1;
 	}
-
-	node_object_property_t *node_object_property;
-	node_object_property = (node_object_property_t *)node->value;
-
-	int32_t result;
-	if(node_object_property->name)
-	{
-		symbol_t *symbol_name;
-		symbol_name = symbol_rpush(symbol, SYMBOL_NAME, node_object_property->name);
-		if(!symbol_name)
-		{
-			return -1;
-		}
-
-		result = graph_expression(program, symbol_name, node_object_property->name);
-		if (result == -1)
-		{
-			return -1;
-		}
-	}
-
-	if (node_object_property->value)
-	{
-		symbol_t *symbol_value;
-		symbol_value = symbol_rpush(symbol, SYMBOL_VALUE, node_object_property->value);
-		if(!symbol_value)
-		{
-			return -1;
-		}
-
-		result = graph_expression(program, symbol_value, node_object_property->value);
-		if (result == -1)
-		{
-			return -1;
-		}
-	}
-
-	return 1;
 }
 
 static int32_t
@@ -306,134 +393,217 @@ graph_object(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_OBJECT, node);
-	if(!symbol)
+	if(symbol)
 	{
+		node_object_t *node_object;
+		node_object = (node_object_t *)node->value;
+
+		int32_t result;
+		ilist_t *a;
+		for (a = node_object->list->begin; a != node_object->list->end; a = a->next)
+		{
+			node_t *temp = (node_t *)a->value;
+			result = graph_object_property(program, symbol, temp);
+			if (result == -1)
+			{
+				return -1;
+			}
+		}
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
 		return -1;
 	}
-
-	node_object_t *node_object;
-	node_object = (node_object_t *)node->value;
-
-	int32_t result;
-	ilist_t *a;
-	for (a = node_object->list->begin; a != node_object->list->end; a = a->next)
-	{
-		node_t *temp;
-		temp = (node_t *)a->value;
-
-		result = graph_object_property(program, symbol, temp);
-		if (result == -1)
-		{
-			return -1;
-		}
-	}
-
 	return 1;
 }
 
 static int32_t
 graph_primary(program_t *program, symbol_t *parent, node_t *node)
 {
-	int32_t result = 1;
-	switch (node->kind)
+	if (node->kind == NODE_KIND_ID)
 	{
-	case NODE_KIND_ID:
+		int32_t result;
 		result = graph_id(program, parent, node);
-		break;
-
-	case NODE_KIND_NUMBER:
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_NUMBER)
+	{
+		int32_t result;
 		result = graph_number(program, parent, node);
-		break;
-
-	case NODE_KIND_STRING:
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_STRING)
+	{
+		int32_t result;
 		result = graph_string(program, parent, node);
-		break;
-
-	case NODE_KIND_CHAR:
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_CHAR)
+	{
+		int32_t result;
 		result = graph_char(program, parent, node);
-		break;
-
-	case NODE_KIND_NULL:
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_NULL)
+	{
+		int32_t result;
 		result = graph_null(program, parent, node);
-		break;
-
-	case NODE_KIND_TRUE:
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_TRUE)
+	{
+		int32_t result;
 		result = graph_true(program, parent, node);
-		break;
-
-	case NODE_KIND_FALSE:
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_FALSE)
+	{
+		int32_t result;
 		result = graph_false(program, parent, node);
-		break;
-
-	case NODE_KIND_ARRAY:
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_ARRAY)
+	{
+		int32_t result;
 		result = graph_array(program, parent, node);
-		break;
-
-	case NODE_KIND_OBJECT:
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_OBJECT)
+	{
+		int32_t result;
 		result = graph_object(program, parent, node);
-		break;
-
-	case NODE_KIND_LAMBDA:
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_LAMBDA)
+	{
+		int32_t result;
 		result = graph_lambda(program, parent, node);
-		break;
-
-	case NODE_KIND_PARENTHESIS:
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_PARENTHESIS)
+	{
+		int32_t result;
 		result = graph_parenthesis(program, parent, node);
-		break;
-
-	default:
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "primary node");
 		return -1;
 	}
-
-	return result;
 }
 
 static int32_t
 graph_argument(program_t *program, symbol_t *parent, node_t *node)
 {
-	node_argument_t *node_argument = (node_argument_t *)node->value;
-
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_ARGUMENT, node);
-	if(!symbol)
+	if(symbol)
 	{
+		node_argument_t *node_argument = (node_argument_t *)node->value;
+
+		int32_t result;
+		if (node_argument->key)
+		{
+			symbol_t *key;
+			key = symbol_rpush(symbol, SYMBOL_KEY, NULL);
+			if(key)
+			{
+				result = graph_expression(program, key, node_argument->key);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}	
+		}
+
+		if (node_argument->value)
+		{
+			symbol_t *value;
+			value = symbol_rpush(symbol, SYMBOL_VALUE, NULL);
+			if(value)
+			{
+				result = graph_expression(program, value, node_argument->value);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+		}
+
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
 		return -1;
 	}
-
-	int32_t result;
-	if (node_argument->key)
-	{
-		symbol_t *key;
-		key = symbol_rpush(symbol, SYMBOL_KEY, NULL);
-		if(!key)
-		{
-			return -1;
-		}
-		
-		result = graph_expression(program, key, node_argument->key);
-		if (result == -1)
-		{
-			return -1;
-		}
-	}
-
-	if (node_argument->value)
-	{
-		symbol_t *value;
-		value = symbol_rpush(symbol, SYMBOL_VALUE, NULL);
-		if(!value)
-		{
-			return -1;
-		}
-
-		result = graph_expression(program, value, node_argument->value);
-		if (result == -1)
-		{
-			return -1;
-		}
-	}
-
-	return 1;
 }
 
 static int32_t
@@ -441,52 +611,61 @@ graph_composite(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_COMPOSITE, node);
-	if (!symbol)
+	if (symbol)
 	{
-		return -1;
-	}
+		node_composite_t *node_composite;
+		node_composite = (node_composite_t *)node->value;
 
-	node_composite_t *node_composite;
-	node_composite = (node_composite_t *)node->value;
-
-	int32_t result;
-	if (node_composite->base)
-	{
-		symbol_t *base = symbol_rpush(symbol, SYMBOL_KEY, NULL);
-		if(!base)
+		int32_t result;
+		if (node_composite->base)
 		{
-			return -1;
-		}
-
-		result = graph_expression(program, base, node_composite->base);
-		if (result == -1)
-		{
-			return -1;
-		}
-	}
-
-	if (node_composite->arguments)
-	{
-		symbol_t *arguments = symbol_rpush(symbol, SYMBOL_ARGUMENTS, NULL);
-		if(!arguments)
-		{
-			return -1;
-		}
-
-		ilist_t *a;
-		for (a = node_composite->arguments->begin; a != node_composite->arguments->end; a = a->next)
-		{
-			node_t *argument = (node_t *)a->value;
-
-			result = graph_argument(program, arguments, argument);
-			if (result == -1)
+			symbol_t *base = symbol_rpush(symbol, SYMBOL_KEY, NULL);
+			if(base)
 			{
+				result = graph_expression(program, base, node_composite->base);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
 		}
-	}
 
-	return 1;
+		if (node_composite->arguments)
+		{
+			symbol_t *arguments = symbol_rpush(symbol, SYMBOL_ARGUMENTS, NULL);
+			if(arguments)
+			{
+				ilist_t *a;
+				for (a = node_composite->arguments->begin; a != node_composite->arguments->end; a = a->next)
+				{
+					node_t *argument = (node_t *)a->value;
+
+					result = graph_argument(program, arguments, argument);
+					if (result == -1)
+					{
+						return -1;
+					}
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+		}
+
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
+		return -1;
+	}
 }
 
 static int32_t
@@ -494,50 +673,58 @@ graph_call(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_CALL, node);
-	if(!symbol)
+	if(symbol)
 	{
-		return -1;
-	}
+		node_composite_t *node_composite;
+		node_composite = (node_composite_t *)node->value;
 
-	node_composite_t *node_composite;
-	node_composite = (node_composite_t *)node->value;
-
-	symbol_t *name;
-	name = symbol_rpush(symbol, SYMBOL_NAME, NULL);
-	if(!name)
-	{
-		return -1;
-	}
-
-	int32_t result;
-	result = graph_postfix(program, name, node_composite->base);
-	if (result == -1)
-	{
-		return -1;
-	}
-
-	if (node_composite->arguments)
-	{
-		symbol_t *arguments = symbol_rpush(symbol, SYMBOL_ARGUMENTS, NULL);
-		if(!arguments)
+		symbol_t *name;
+		name = symbol_rpush(symbol, SYMBOL_NAME, NULL);
+		if(name)
 		{
-			return -1;
-		}
-
-		ilist_t *a;
-		for (a = node_composite->arguments->begin; a != node_composite->arguments->end; a = a->next)
-		{
-			node_t *argument = (node_t *)a->value;
-
-			result = graph_argument(program, arguments, argument);
+			int32_t result;
+			result = graph_postfix(program, name, node_composite->base);
 			if (result == -1)
 			{
 				return -1;
 			}
 		}
-	}
+		else
+		{
+			graph_error(program, node, "low memory");
+			return -1;
+		}
 
-	return 1;
+		if (node_composite->arguments)
+		{
+			symbol_t *arguments = symbol_rpush(symbol, SYMBOL_ARGUMENTS, NULL);
+			if(arguments)
+			{
+				ilist_t *a;
+				for (a = node_composite->arguments->begin; a != node_composite->arguments->end; a = a->next)
+				{
+					node_t *argument = (node_t *)a->value;
+					int32_t result;
+					result = graph_argument(program, arguments, argument);
+					if (result == -1)
+					{
+						return -1;
+					}
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+		}
+		return 1;
+	}
+	else 
+	{
+		graph_error(program, node, "low memory");
+		return -1;
+	}
 }
 
 static int32_t
@@ -545,1299 +732,1771 @@ graph_item(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_ITEM, node);
-	if(!symbol)
+	if(symbol)
 	{
-		return -1;
-	}
-
-	node_composite_t *node_composite;
-	node_composite = (node_composite_t *)node->value;
-	
-	symbol_t *name;
-	name = symbol_rpush(symbol, SYMBOL_NAME, NULL);
-	if(!name)
-	{
-		return -1;
-	}
-
-	int32_t result;
-	result = graph_postfix(program, name, node_composite->base);
-	if (result == -1)
-	{
-		return -1;
-	}
-
-	if (node_composite->arguments)
-	{
-		symbol_t *arguments = symbol_rpush(symbol, SYMBOL_ARGUMENTS, NULL);
-		if(!arguments)
+		node_composite_t *node_composite;
+		node_composite = (node_composite_t *)node->value;
+		
+		symbol_t *name;
+		name = symbol_rpush(symbol, SYMBOL_NAME, NULL);
+		if(name)
 		{
-			return -1;
-		}
-
-		ilist_t *a;
-		for (a = node_composite->arguments->begin; a != node_composite->arguments->end; a = a->next)
-		{
-			node_t *argument = (node_t *)a->value;
-
-			result = graph_argument(program, arguments, argument);
+			int32_t result;
+			result = graph_postfix(program, name, node_composite->base);
 			if (result == -1)
 			{
 				return -1;
 			}
 		}
-	}
+		else
+		{
+			graph_error(program, node, "low memory");
+			return -1;
+		}
 
-	return 1;
+		if (node_composite->arguments)
+		{
+			symbol_t *arguments = symbol_rpush(symbol, SYMBOL_ARGUMENTS, NULL);
+			if(arguments)
+			{
+				ilist_t *a;
+				for (a = node_composite->arguments->begin; a != node_composite->arguments->end; a = a->next)
+				{
+					node_t *argument = (node_t *)a->value;
+					int32_t result;
+					result = graph_argument(program, arguments, argument);
+					if (result == -1)
+					{
+						return -1;
+					}
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+		}
+
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
+		return -1;
+	}
 }
 
 static int32_t
 graph_attribute(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
-	symbol_t *symbol_left;
-	symbol_t *symbol_right;
-
 	symbol = symbol_rpush(parent, SYMBOL_ATTR, node);
-	if(!symbol)
+	if(symbol)
 	{
+		node_binary_t *node_binary;
+		node_binary = (node_binary_t *)node->value;
+		
+		int32_t result;
+		if(node_binary->left)
+		{
+			symbol_t *left;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				result = graph_postfix(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+		}
+
+		if(node_binary->right)
+		{
+			symbol_t *right;
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				result = graph_id(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;	
+			}
+		}
+		return 1;
+	}
+	else
+	{
+		graph_error(program, node, "low memory");
 		return -1;
 	}
-
-	node_binary_t *node_binary;
-	node_binary = (node_binary_t *)node->value;
-	
-	int32_t result;
-	if(node_binary->left)
-	{
-		symbol_left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
-		if(!symbol_left)
-		{
-			return -1;
-		}
-		
-		result = graph_postfix(program, symbol_left, node_binary->left);
-		if (result == -1)
-		{
-			return -1;
-		}
-	}
-
-	if(node_binary->right)
-	{
-		symbol_right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
-		if(!symbol_right)
-		{
-			return -1;
-		}
-
-		result = graph_id(program, symbol_right, node_binary->right);
-		if (result == -1)
-		{
-			return -1;
-		}
-	}
-
-	return 1;
 }
 
 static int32_t
 graph_postfix(program_t *program, symbol_t *parent, node_t *node)
 {
-	int32_t result;
-	switch (node->kind)
+	if (node->kind == NODE_KIND_COMPOSITE)
 	{
-	case NODE_KIND_COMPOSITE:
+		int32_t result;
 		result = graph_composite(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
-
-	case NODE_KIND_CALL:
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_CALL)
+	{
+		int32_t result;
 		result = graph_call(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
-
-	case NODE_KIND_GET_ITEM:
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_GET_ITEM)
+	{
+		int32_t result;
 		result = graph_item(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
-
-	case NODE_KIND_ATTRIBUTE:
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_ATTRIBUTE)
+	{
+		int32_t result;
 		result = graph_attribute(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
-
-	default:
+		return 1;
+	}
+	else
+	{
+		int32_t result;
 		result = graph_primary(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
+		return 1;
 	}
-	return 1;
 }
 
 static int32_t
 graph_prefix(program_t *program, symbol_t *parent, node_t *node)
 {
-	symbol_t *symbol = NULL;
-	symbol_t *symbol_right;
-
 	if(node->kind == NODE_KIND_TILDE)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_TILDE, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
-	else if(node->kind == NODE_KIND_NOT)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_NOT, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
-	else if(node->kind == NODE_KIND_NEG)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_NEG, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
-	else if(node->kind == NODE_KIND_POS)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_POS, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
-	else if(node->kind == NODE_KIND_SIZEOF)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_SIZEOF, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
-	else if(node->kind == NODE_KIND_TYPEOF)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_TYPEOF, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
 
-	int32_t result;
-	node_unary_t *node_unary;
-	switch (node->kind)
-	{
-	case NODE_KIND_TILDE:
-	case NODE_KIND_NOT:
-	case NODE_KIND_NEG:
-	case NODE_KIND_POS:
-	case NODE_KIND_SIZEOF:
-	case NODE_KIND_TYPEOF:
-		node_unary = (node_unary_t *)node->value;
+		if (symbol)
+		{
+			node_unary_t *node_unary;
+			node_unary = (node_unary_t *)node->value;
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_RIGHT, node_unary->right);
-		if(!symbol_right)
-		{
-			return -1;
-		}
+			symbol_t *right;
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_prefix(program, right, node_unary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
 
-		if (node_unary->right->kind == NODE_KIND_TILDE)
-		{
-			result = graph_prefix(program, symbol_right, node_unary->right);
-			if (result == -1)
-			{
-				return -1;
+				return 1;
 			}
-		}
-		else if (node_unary->right->kind == NODE_KIND_NOT)
-		{
-			result = graph_prefix(program, symbol_right, node_unary->right);
-			if (result == -1)
+			else
 			{
-				return -1;
-			}
-		}
-		else if (node_unary->right->kind == NODE_KIND_POS)
-		{
-			result = graph_prefix(program, symbol_right, node_unary->right);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-		else if (node_unary->right->kind == NODE_KIND_NEG)
-		{
-			result = graph_prefix(program, symbol_right, node_unary->right);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-		else if (node_unary->right->kind == NODE_KIND_SIZEOF)
-		{
-			result = graph_prefix(program, symbol_right, node_unary->right);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-		else if (node_unary->right->kind == NODE_KIND_TYPEOF)
-		{
-			result = graph_prefix(program, symbol_right, node_unary->right);
-			if (result == -1)
-			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
 		}
 		else
 		{
-			result = graph_postfix(program, symbol_right, node_unary->right);
-			if (result == -1)
+			graph_error(program, node, "low memory");
+			return -1;
+		}
+	}
+	else 
+	if(node->kind == NODE_KIND_NOT)
+	{
+		symbol_t *symbol;
+		symbol = symbol_rpush(parent, SYMBOL_NOT, node);
+		if (symbol)
+		{
+			node_unary_t *node_unary;
+			node_unary = (node_unary_t *)node->value;
+
+			symbol_t *right;
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
 			{
+				int32_t result;
+				result = graph_prefix(program, right, node_unary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+
+				return 1;
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
 		}
-		break;
+		else
+		{
+			graph_error(program, node, "low memory");
+			return -1;
+		}
+	}
+	else 
+	if(node->kind == NODE_KIND_NEG)
+	{
+		symbol_t *symbol;
+		symbol = symbol_rpush(parent, SYMBOL_NEG, node);
 
-	default:
+		if (symbol)
+		{
+			node_unary_t *node_unary;
+			node_unary = (node_unary_t *)node->value;
+
+			symbol_t *right;
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_prefix(program, right, node_unary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+
+				return 1;
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
+			return -1;
+		}
+	}
+	else 
+	if(node->kind == NODE_KIND_POS)
+	{
+		symbol_t *symbol;
+		symbol = symbol_rpush(parent, SYMBOL_POS, node);
+
+		if (symbol)
+		{
+			node_unary_t *node_unary;
+			node_unary = (node_unary_t *)node->value;
+
+			symbol_t *right;
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_prefix(program, right, node_unary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+
+				return 1;
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
+			return -1;
+		}
+	}
+	else 
+	if(node->kind == NODE_KIND_SIZEOF)
+	{
+		symbol_t *symbol;
+		symbol = symbol_rpush(parent, SYMBOL_SIZEOF, node);
+
+		if (symbol)
+		{
+			node_unary_t *node_unary;
+			node_unary = (node_unary_t *)node->value;
+
+			symbol_t *right;
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_prefix(program, right, node_unary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+
+				return 1;
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
+			return -1;
+		}
+	}
+	else 
+	if(node->kind == NODE_KIND_TYPEOF)
+	{
+		symbol_t *symbol;
+		symbol = symbol_rpush(parent, SYMBOL_TYPEOF, node);
+
+		if (symbol)
+		{
+			node_unary_t *node_unary;
+			node_unary = (node_unary_t *)node->value;
+
+			symbol_t *right;
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_prefix(program, right, node_unary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+
+				return 1;
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
+			return -1;
+		}
+	}
+	else
+	{
+		int32_t result;
 		result = graph_postfix(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
+		return 1;
 	}
-
-	return 1;
 }
 
 static int32_t
 graph_power(program_t *program, symbol_t *parent, node_t *node)
 {
-	symbol_t *symbol = NULL;
-	if(node->kind == NODE_KIND_TILDE)
+	
+	if(node->kind == NODE_KIND_POW)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_POW, node);
-		if(!symbol)
+		if (symbol)
 		{
-			return -1;
-		}
-	}
-	symbol_t *symbol_left;
-	symbol_t *symbol_right;
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
 
-	int32_t result;
-	node_binary_t *node_binary;
-	switch (node->kind)
-	{
-	case NODE_KIND_POW:
-		node_binary = (node_binary_t *)node->value;
-
-		symbol_left = symbol_rpush(symbol, SYMBOL_LEFT, node_binary->left);
-		if(!symbol_left)
-		{
-			return -1;
-		}
-
-		if (node_binary->left->kind == NODE_KIND_POW)
-		{
-			result = graph_power(program, symbol_left, node_binary->left);
-			if (result == -1)
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
 			{
+				int32_t result;
+				result = graph_power(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_prefix(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
 		}
 		else
 		{
-			result = graph_prefix(program, symbol_left, node_binary->left);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-
-		symbol_right = symbol_rpush(symbol, SYMBOL_RIGHT, node_binary->right);
-		if(!symbol_right)
-		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
-
-		result = graph_prefix(program, symbol_right, node_binary->right);
-		if (result == -1)
-		{
-			return -1;
-		}
-		break;
-
-	default:
+	}
+	else
+	{
+		int32_t result;
 		result = graph_prefix(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
+		return 1;
 	}
-
-	return 1;
 }
 
 static int32_t
 graph_multiplicative(program_t *program, symbol_t *parent, node_t *node)
 {
-	symbol_t *symbol;
-	symbol_t *symbol_left;
-	symbol_t *symbol_right;
-
 	if(node->kind == NODE_KIND_MUL)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_MUL, node);
-		if(!symbol)
+		if(symbol)
 		{
-			return -1;
-		}
-	}
-	else if(node->kind == NODE_KIND_DIV)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_DIV, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
-	else if(node->kind == NODE_KIND_MOD)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_MOD, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
-	else if(node->kind == NODE_KIND_EPI)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_EPI, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
 
-	int32_t result;
-	node_binary_t *node_binary;
-
-	switch (node->kind)
-	{
-	case NODE_KIND_MUL:
-	case NODE_KIND_DIV:
-	case NODE_KIND_MOD:
-	case NODE_KIND_EPI:
-		node_binary = (node_binary_t *)node->value;
-
-		symbol_left = symbol_rpush(symbol, SYMBOL_LEFT, node_binary->left);
-		if(!symbol_left)
-		{
-			return -1;
-		}
-
-		if (node_binary->left->kind == NODE_KIND_MUL)
-		{
-			result = graph_multiplicative(program, symbol_left, node_binary->left);
-			if (result == -1)
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
 			{
+				int32_t result;
+				result = graph_multiplicative(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
-		}
-		else if (node_binary->left->kind == NODE_KIND_DIV)
-		{
-			result = graph_multiplicative(program, symbol_left, node_binary->left);
-			if (result == -1)
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
 			{
+				int32_t result;
+				result = graph_power(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
-		}
-		else if (node_binary->left->kind == NODE_KIND_MOD)
-		{
-			result = graph_multiplicative(program, symbol_left, node_binary->left);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-		else if (node_binary->left->kind == NODE_KIND_EPI)
-		{
-			result = graph_multiplicative(program, symbol_left, node_binary->left);
-			if (result == -1)
-			{
-				return -1;
-			}
+
+			return 1;
 		}
 		else
 		{
-			result = graph_power(program, symbol_left, node_binary->left);
-			if (result == -1)
+			graph_error(program, node, "low memory");
+			return -1;
+		}
+	}
+	else 
+	if(node->kind == NODE_KIND_DIV)
+	{
+		symbol_t *symbol;
+		symbol = symbol_rpush(parent, SYMBOL_DIV, node);
+		if(symbol)
+		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
 			{
+				int32_t result;
+				result = graph_multiplicative(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
-		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_RIGHT, node_binary->right);
-		if(!symbol_right)
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_power(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
+		}
+		else
 		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
-
-		result = graph_power(program, symbol_right, node_binary->right);
-		if (result == -1)
+	}
+	else 
+	if(node->kind == NODE_KIND_MOD)
+	{
+		symbol_t *symbol;
+		symbol = symbol_rpush(parent, SYMBOL_MOD, node);
+		if(symbol)
 		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_multiplicative(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_power(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
-		break;
+	}
+	else 
+	if(node->kind == NODE_KIND_EPI)
+	{
+		symbol_t *symbol;
+		symbol = symbol_rpush(parent, SYMBOL_EPI, node);
+		if(symbol)
+		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
 
-	default:
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_multiplicative(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_power(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
+			return -1;
+		}
+	}
+	else
+	{
+		int32_t result;
 		result = graph_power(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
+		return 1;
 	}
-
-	return 1;
 }
 
 static int32_t
 graph_addative(program_t *program, symbol_t *parent, node_t *node)
 {
-	symbol_t *symbol;
-	symbol_t *symbol_left;
-	symbol_t *symbol_right;
-
 	if(node->kind == NODE_KIND_PLUS)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_PLUS, node);
-		if(!symbol)
+		if(symbol)
 		{
-			return -1;
-		}
-	}
-	
-	if(node->kind == NODE_KIND_MINUS)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_MINUS, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
 
-	int32_t result;
-	node_binary_t *node_binary;
-
-	switch (node->kind)
-	{
-	case NODE_KIND_PLUS:
-	case NODE_KIND_MINUS:
-		node_binary = (node_binary_t *)node->value;
-
-		symbol_left = symbol_rpush(symbol, SYMBOL_LEFT, node_binary->left);
-		if(!symbol_left)
-		{
-			return -1;
-		}
-
-		if (node_binary->left->kind == NODE_KIND_PLUS)
-		{
-			result = graph_addative(program, symbol_left, node_binary->left);
-			if (result == -1)
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
 			{
+				int32_t result;
+				result = graph_addative(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
-		}
-		else if (node_binary->left->kind == NODE_KIND_MINUS)
-		{
-			result = graph_addative(program, symbol_left, node_binary->left);
-			if (result == -1)
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
 			{
+				int32_t result;
+				result = graph_multiplicative(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
+
+			return 1;
 		}
 		else
 		{
-			result = graph_multiplicative(program, symbol_left, node_binary->left);
-			if (result == -1)
+			graph_error(program, node, "low memory");
+			return -1;
+		}
+	}
+	else
+	if(node->kind == NODE_KIND_MINUS)
+	{
+		symbol_t *symbol;
+		symbol = symbol_rpush(parent, SYMBOL_MINUS, node);
+		if(symbol)
+		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
 			{
+				int32_t result;
+				result = graph_addative(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
-		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_RIGHT, node_binary->right);
-		if(!symbol_right)
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_multiplicative(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
+		}
+		else
 		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
-
-		result = graph_multiplicative(program, symbol_right, node_binary->right);
-		if (result == -1)
-		{
-			return -1;
-		}
-		break;
-
-	default:
+	}
+	else
+	{
+		int32_t result;
 		result = graph_multiplicative(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
+		return 1;
 	}
-
-	return 1;
 }
 
 static int32_t
 graph_shifting(program_t *program, symbol_t *parent, node_t *node)
 {
-	symbol_t *symbol;
-	symbol_t *symbol_left;
-	symbol_t *symbol_right;
-
 	if(node->kind == NODE_KIND_SHL)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_SHL, node);
-		if(!symbol)
+		if(symbol)
 		{
-			return -1;
-		}
-	}
-	else if(node->kind == NODE_KIND_SHR)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_SHR, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
 
-	int32_t result;
-	node_binary_t *node_binary;
-	switch (node->kind)
-	{
-	case NODE_KIND_SHL:
-	case NODE_KIND_SHR:
-		node_binary = (node_binary_t *)node->value;
-
-		symbol_left = symbol_rpush(symbol, SYMBOL_LEFT, node_binary->left);
-		if(!symbol_left)
-		{
-			return -1;
-		}
-
-		if (node_binary->left->kind == NODE_KIND_SHL)
-		{
-			result = graph_shifting(program, symbol_left, node_binary->left);
-			if (result == -1)
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
 			{
+				int32_t result;
+				result = graph_shifting(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
-		}
-		else if (node_binary->left->kind == NODE_KIND_SHR)
-		{
-			result = graph_shifting(program, symbol_left, node_binary->left);
-			if (result == -1)
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
 			{
+				int32_t result;
+				result = graph_addative(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
+
+			return 1;
 		}
 		else
 		{
-			result = graph_addative(program, symbol_left, node_binary->left);
-			if (result == -1)
+			graph_error(program, node, "low memory");
+			return -1;
+		}
+	}
+	else 
+	if(node->kind == NODE_KIND_SHR)
+	{
+		symbol_t *symbol;
+		symbol = symbol_rpush(parent, SYMBOL_SHR, node);
+		if(symbol)
+		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
 			{
+				int32_t result;
+				result = graph_shifting(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
-		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_RIGHT, node_binary->right);
-		if(!symbol_right)
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_addative(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
+		}
+		else
 		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
-
-		result = graph_addative(program, symbol_right, node_binary->right);
-		if (result == -1)
-		{
-			return -1;
-		}
-		break;
-
-	default:
+	}
+	else
+	{
+		int32_t result;
 		result = graph_addative(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
+		return 1;
 	}
-
-	return 1;
 }
 
 static int32_t
 graph_relational(program_t *program, symbol_t *parent, node_t *node)
 {
-	symbol_t *symbol;
-	symbol_t *symbol_left;
-	symbol_t *symbol_right;
-
 	if(node->kind == NODE_KIND_LT)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_LT, node);
-		if(!symbol)
+		if(symbol)
 		{
-			return -1;
-		}
-	}
-	else if(node->kind == NODE_KIND_GT)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_GT, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
-	else if(node->kind == NODE_KIND_LE)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_LE, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
-	else if(node->kind == NODE_KIND_GE)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_GE, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
 
-	int32_t result;
-	node_binary_t *node_binary;
-	switch (node->kind)
-	{
-	case NODE_KIND_LT:
-	case NODE_KIND_GT:
-	case NODE_KIND_LE:
-	case NODE_KIND_GE:
-		node_binary = (node_binary_t *)node->value;
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_relational(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
 
-		symbol_left = symbol_rpush(symbol, SYMBOL_LEFT, node_binary->left);
-		if(!symbol_left)
-		{
-			return -1;
-		}
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_shifting(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
 
-		if (node_binary->left->kind == NODE_KIND_LT)
-		{
-			result = graph_relational(program, symbol_left, node_binary->left);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-		else if (node_binary->left->kind == NODE_KIND_LE)
-		{
-			result = graph_relational(program, symbol_left, node_binary->left);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-		else if (node_binary->left->kind == NODE_KIND_GT)
-		{
-			result = graph_relational(program, symbol_left, node_binary->left);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-		else if (node_binary->left->kind == NODE_KIND_GE)
-		{
-			result = graph_relational(program, symbol_left, node_binary->left);
-			if (result == -1)
-			{
-				return -1;
-			}
+			return 1;
 		}
 		else
 		{
-			result = graph_shifting(program, symbol_left, node_binary->left);
-			if (result == -1)
+			graph_error(program, node, "low memory");
+			return -1;
+		}
+	}
+	else 
+	if(node->kind == NODE_KIND_GT)
+	{
+		symbol_t *symbol;
+		symbol = symbol_rpush(parent, SYMBOL_GT, node);
+		if(symbol)
+		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
 			{
+				int32_t result;
+				result = graph_relational(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
-		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_RIGHT, node_binary->right);
-		if(!symbol_right)
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_shifting(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
+		}
+		else
 		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
-
-		result = graph_shifting(program, symbol_right, node_binary->right);
-		if (result == -1)
+	}
+	else 
+	if(node->kind == NODE_KIND_LE)
+	{
+		symbol_t *symbol;
+		symbol = symbol_rpush(parent, SYMBOL_LE, node);
+		if(symbol)
 		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_relational(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_shifting(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
-		break;
+	}
+	else 
+	if(node->kind == NODE_KIND_GE)
+	{
+		symbol_t *symbol;
+		symbol = symbol_rpush(parent, SYMBOL_GE, node);
+		if(symbol)
+		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
 
-	default:
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_relational(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_shifting(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
+			return -1;
+		}
+	}
+	else
+	{
+		int32_t result;
 		result = graph_shifting(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
+		return 1;
 	}
-
-	return 1;
 }
 
 static int32_t
 graph_equality(program_t *program, symbol_t *parent, node_t *node)
 {
-	symbol_t *symbol;
-	symbol_t *symbol_left;
-	symbol_t *symbol_right;
-
-	int32_t result;
-	node_binary_t *node_binary;
-
 	if(node->kind == NODE_KIND_EQ)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_EQ, node);
-		if(!symbol)
+		if(symbol)
 		{
-			return -1;
-		}
-	}
-	else if(node->kind == NODE_KIND_IN)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_IN, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
-	else if(node->kind == NODE_KIND_NEQ)
-	{
-		symbol = symbol_rpush(parent, SYMBOL_NEQ, node);
-		if(!symbol)
-		{
-			return -1;
-		}
-	}
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
 
-	switch (node->kind)
-	{
-	case NODE_KIND_EQ:
-	case NODE_KIND_IN:
-	case NODE_KIND_NEQ:
-		node_binary = (node_binary_t *)node->value;
-		
-		symbol_left = symbol_rpush(symbol, SYMBOL_LEFT, node_binary->left);
-		if(!symbol_left)
-		{
-			return -1;
-		}
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_equality(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
 
-		if (node_binary->left->kind == NODE_KIND_IN)
-		{
-			result = graph_equality(program, symbol_left, node_binary->left);
-			if (result == -1)
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
 			{
+				int32_t result;
+				result = graph_relational(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
-		}
-		else if (node_binary->left->kind == NODE_KIND_EQ)
-		{
-			result = graph_equality(program, symbol_left, node_binary->left);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-		else if (node_binary->left->kind == NODE_KIND_NEQ)
-		{
-			result = graph_equality(program, symbol_left, node_binary->left);
-			if (result == -1)
-			{
-				return -1;
-			}
+
+			return 1;
 		}
 		else
 		{
-			result = graph_relational(program, symbol_left, node_binary->left);
-			if (result == -1)
+			graph_error(program, node, "low memory");
+			return -1;
+		}
+	}
+	else 
+	if(node->kind == NODE_KIND_IN)
+	{
+		symbol_t *symbol;
+		symbol = symbol_rpush(parent, SYMBOL_IN, node);
+		if(symbol)
+		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
 			{
+				int32_t result;
+				result = graph_equality(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
-		}
 
-		symbol_right = symbol_rpush(symbol, SYMBOL_RIGHT, node_binary->right);
-		if(!symbol_right)
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_relational(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
+		}
+		else
 		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
-
-		result = graph_relational(program, symbol_right, node_binary->right);
-		if (result == -1)
+	}
+	else 
+	if(node->kind == NODE_KIND_NEQ)
+	{
+		symbol_t *symbol;
+		symbol = symbol_rpush(parent, SYMBOL_NEQ, node);
+		if(symbol)
 		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_equality(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_relational(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
-		break;
-
-	default:
+	}
+	else
+	{
+		int32_t result;
 		result = graph_relational(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
+		return 1;
 	}
-
-	return 1;
 }
 
 static int32_t
 graph_bitwise_and(program_t *program, symbol_t *parent, node_t *node)
 {
-	symbol_t *symbol;
-	symbol_t *symbol_left;
-	symbol_t *symbol_right;
-
-	int32_t result;
-	node_binary_t *node_binary;
-	switch (node->kind)
+	if (node->kind == NODE_KIND_AND)
 	{
-	case NODE_KIND_AND:
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_AND, node);
-		if(!symbol)
+		if (symbol)
 		{
-			return -1;
-		}
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
 
-		node_binary = (node_binary_t *)node->value;
-
-		symbol_left = symbol_rpush(symbol, SYMBOL_LEFT, node_binary->left);
-		if(!symbol_left)
-		{
-			return -1;
-		}
-
-		if (node_binary->left->kind == NODE_KIND_AND)
-		{
-			result = graph_bitwise_and(program, symbol_left, node_binary->left);
-			if (result == -1)
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
 			{
+				if (node_binary->left->kind == NODE_KIND_AND)
+				{
+					int32_t result;
+					result = graph_bitwise_and(program, left, node_binary->left);
+					if (result == -1)
+					{
+						return -1;
+					}
+				}
+				else
+				{
+					int32_t result;
+					result = graph_equality(program, left, node_binary->left);
+					if (result == -1)
+					{
+						return -1;
+					}
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_equality(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
 		}
 		else
 		{
-			result = graph_equality(program, symbol_left, node_binary->left);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-
-		symbol_right = symbol_rpush(symbol, SYMBOL_RIGHT, node_binary->right);
-		if(!symbol_right)
-		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
-
-		result = graph_equality(program, symbol_right, node_binary->right);
-		if (result == -1)
-		{
-			return -1;
-		}
-		break;
-
-	default:
+	}
+	else
+	{
+		int32_t result;
 		result = graph_equality(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
+		return 1;
 	}
-
-	return 1;
 }
 
 static int32_t
 graph_bitwise_xor(program_t *program, symbol_t *parent, node_t *node)
 {
-	symbol_t *symbol;
-	symbol_t *symbol_left;
-	symbol_t *symbol_right;
-
-	int32_t result;
-	node_binary_t *node_binary;
-	switch (node->kind)
+	if (node->kind == NODE_KIND_XOR)
 	{
-	case NODE_KIND_XOR:
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_XOR, node);
-		if(!symbol)
+		if(symbol)
 		{
-			return -1;
-		}
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
 
-		node_binary = (node_binary_t *)node->value;
-
-		symbol_left = symbol_rpush(symbol, SYMBOL_LEFT, node_binary->left);
-		if(!symbol_left)
-		{
-			return -1;
-		}
-
-		if (node_binary->left->kind == NODE_KIND_XOR)
-		{
-			result = graph_bitwise_xor(program, symbol_left, node_binary->left);
-			if (result == -1)
+			symbol_t *left,  *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
 			{
+				if (node_binary->left->kind == NODE_KIND_XOR)
+				{
+					int32_t result;
+					result = graph_bitwise_xor(program, left, node_binary->left);
+					if (result == -1)
+					{
+						return -1;
+					}
+				}
+				else
+				{
+					int32_t result;
+					result = graph_bitwise_and(program, left, node_binary->left);
+					if (result == -1)
+					{
+						return -1;
+					}
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_bitwise_and(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
 		}
 		else
 		{
-			result = graph_bitwise_and(program, symbol_left, node_binary->left);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-
-		symbol_right = symbol_rpush(symbol, SYMBOL_RIGHT, node_binary->right);
-		if(!symbol_right)
-		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
-
-		result = graph_bitwise_and(program, symbol_right, node_binary->right);
-		if (result == -1)
-		{
-			return -1;
-		}
-		break;
-
-	default:
+	}
+	else
+	{
+		int32_t result;
 		result = graph_bitwise_and(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
+		return 1;
 	}
-
-	return 1;
 }
 
 static int32_t
 graph_bitwise_or(program_t *program, symbol_t *parent, node_t *node)
 {
-	symbol_t *symbol;
-	symbol_t *symbol_left;
-	symbol_t *symbol_right;
-
-	int32_t result;
-	node_binary_t *node_binary;
-	switch (node->kind)
+	if (node->kind == NODE_KIND_OR)
 	{
-	case NODE_KIND_OR:
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_OR, node);
-		if(!symbol)
+		if(symbol)
 		{
-			return -1;
-		}
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
 
-		node_binary = (node_binary_t *)node->value;
-
-		symbol_left = symbol_rpush(symbol, SYMBOL_LEFT, node_binary->left);
-		if(!symbol_left)
-		{
-			return -1;
-		}
-
-		if (node_binary->left->kind == NODE_KIND_OR)
-		{
-			result = graph_bitwise_or(program, symbol_left, node_binary->left);
-			if (result == -1)
+			symbol_t *left,  *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
 			{
+				if (node_binary->left->kind == NODE_KIND_OR)
+				{
+					int32_t result;
+					result = graph_bitwise_or(program, left, node_binary->left);
+					if (result == -1)
+					{
+						return -1;
+					}
+				}
+				else
+				{
+					int32_t result;
+					result = graph_bitwise_xor(program, left, node_binary->left);
+					if (result == -1)
+					{
+						return -1;
+					}
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_bitwise_xor(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
 		}
 		else
 		{
-			result = graph_bitwise_xor(program, symbol_left, node_binary->left);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-
-		symbol_right = symbol_rpush(symbol, SYMBOL_RIGHT, node_binary->right);
-		if(!symbol_right)
-		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
-
-		result = graph_bitwise_xor(program, symbol_right, node_binary->right);
-		if (result == -1)
-		{
-			return -1;
-		}
-		break;
-
-	default:
+	}
+	else
+	{
+		int32_t result;
 		result = graph_bitwise_xor(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
+		return 1;
 	}
-
-	return 1;
 }
 
 static int32_t
 graph_logical_and(program_t *program, symbol_t *parent, node_t *node)
 {
-	symbol_t *symbol;
-	symbol_t *symbol_left;
-	symbol_t *symbol_right;
-
-	int32_t result;
-	node_binary_t *node_binary;
-	switch (node->kind)
+	if (node->kind == NODE_KIND_LAND)
 	{
-	case NODE_KIND_LAND:
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_LAND, node);
-		if(!symbol)
+		if(symbol)
 		{
-			return -1;
-		}
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
 
-		node_binary = (node_binary_t *)node->value;
-
-		symbol_left = symbol_rpush(symbol, SYMBOL_LEFT, node_binary->left);
-		if(!symbol_left)
-		{
-			return -1;
-		}
-
-		if (node_binary->left->kind == NODE_KIND_LAND)
-		{
-			result = graph_logical_and(program, symbol_left, node_binary->left);
-			if (result == -1)
+			symbol_t *left,  *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
 			{
+				if (node_binary->left->kind == NODE_KIND_LAND)
+				{
+					int32_t result;
+					result = graph_logical_and(program, left, node_binary->left);
+					if (result == -1)
+					{
+						return -1;
+					}
+				}
+				else
+				{
+					int32_t result;
+					result = graph_bitwise_or(program, left, node_binary->left);
+					if (result == -1)
+					{
+						return -1;
+					}
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_bitwise_or(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
 		}
 		else
 		{
-			result = graph_bitwise_or(program, symbol_left, node_binary->left);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-
-		symbol_right = symbol_rpush(symbol, SYMBOL_RIGHT, node_binary->right);
-		if(!symbol_right)
-		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
-
-		result = graph_bitwise_or(program, symbol_right, node_binary->right);
-		if (result == -1)
-		{
-			return -1;
-		}
-		break;
-
-	default:
+	}
+	else
+	{
+		int32_t result;
 		result = graph_bitwise_or(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
+		return 1;
 	}
-
-	return 1;
 }
 
 static int32_t
 graph_logical_or(program_t *program, symbol_t *parent, node_t *node)
 {
-	symbol_t *symbol;
-	symbol_t *symbol_left;
-	symbol_t *symbol_right;
-
-	int32_t result;
-	node_binary_t *node_binary;
-	switch (node->kind)
+	if (node->kind == NODE_KIND_LOR)
 	{
-	case NODE_KIND_LOR:
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_LOR, node);
-		if(!symbol)
+		if(symbol)
 		{
-			return -1;
-		}
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
 
-		node_binary = (node_binary_t *)node->value;
-
-		symbol_left = symbol_rpush(symbol, SYMBOL_LEFT, node_binary->left);
-		if(!symbol_left)
-		{
-			return -1;
-		}
-
-		if (node_binary->left->kind == NODE_KIND_LOR)
-		{
-			result = graph_logical_or(program, symbol_left, node_binary->left);
-			if (result == -1)
+			symbol_t *left,  *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
 			{
+				if (node_binary->left->kind == NODE_KIND_LOR)
+				{
+					int32_t result;
+					result = graph_logical_or(program, left, node_binary->left);
+					if (result == -1)
+					{
+						return -1;
+					}
+				}
+				else
+				{
+					int32_t result;
+					result = graph_logical_and(program, left, node_binary->left);
+					if (result == -1)
+					{
+						return -1;
+					}
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
 				return -1;
 			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_logical_and(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			return 1;
 		}
 		else
 		{
-			result = graph_logical_and(program, symbol_left, node_binary->left);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-
-		symbol_right = symbol_rpush(symbol, SYMBOL_RIGHT, node_binary->right);
-		if(!symbol_right)
-		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
-
-		result = graph_logical_and(program, symbol_right, node_binary->right);
-		if (result == -1)
-		{
-			return -1;
-		}
-		break;
-
-	default:
+	}
+	else
+	{
+		int32_t result;
 		result = graph_logical_and(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
+		return 1;
 	}
-
-	return 1;
 }
 
 static int32_t
 graph_conditional(program_t *program, symbol_t *parent, node_t *node)
 {
-	symbol_t *symbol;
-	symbol_t *condition;
-	symbol_t *symbol_true;
-	symbol_t *symbol_false;
-
-	int32_t result;
-	node_triple_t *node_triple;
-	switch (node->kind)
+	if (node->kind == NODE_KIND_CONDITIONAL)
 	{
-	case NODE_KIND_CONDITIONAL:
+		node_triple_t *node_triple;
 		node_triple = (node_triple_t *)node->value;
 
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_CONDITIONAL, node);
-		if(!symbol)
+		if(symbol)
 		{
+			symbol_t *condition;
+			condition = symbol_rpush(symbol, SYMBOL_CONDITION, NULL);
+			if(condition)
+			{
+				int32_t result;
+				result = graph_logical_or(program, condition, node_triple->base);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			symbol_t *symbol_true, *symbol_false;
+			symbol_true = symbol_rpush(symbol, SYMBOL_TRUE, NULL);
+			if(symbol_true)
+			{
+				int32_t result;
+				result = graph_conditional(program, symbol_true, node_triple->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			symbol_false = symbol_rpush(symbol, SYMBOL_FALSE, NULL);
+			if(symbol_false)
+			{
+				int32_t result;
+				result = graph_conditional(program, symbol_false, node_triple->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
 
-		condition = symbol_rpush(symbol, SYMBOL_CONDITION, NULL);
-		if(!condition)
-		{
-			return -1;
-		}
-
-		result = graph_logical_or(program, condition, node_triple->base);
-		if (result == -1)
-		{
-			return -1;
-		}
-
-		symbol_true = symbol_rpush(symbol, SYMBOL_TRUE, NULL);
-		if(!symbol_true)
-		{
-			return -1;
-		}
-		result = graph_conditional(program, symbol_true, node_triple->left);
-		if (result == -1)
-		{
-			return -1;
-		}
-
-		symbol_false = symbol_rpush(symbol, SYMBOL_FALSE, NULL);
-		if(!symbol_false)
-		{
-			return -1;
-		}
-		result = graph_conditional(program, symbol_false, node_triple->right);
-		if (result == -1)
-		{
-			return -1;
-		}
-		break;
-
-	default:
+		return 1;
+	}
+	else
+	{
+		int32_t result;
 		result = graph_logical_or(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
+		return 1;
 	}
-
-	return 1;
 }
 
 static int32_t
@@ -1849,189 +2508,576 @@ graph_expression(program_t *program, symbol_t *parent, node_t *node)
 static int32_t
 graph_assign(program_t *program, symbol_t *parent, node_t *node)
 {
-	node_binary_t *node_binary;
-
-	symbol_t *symbol = NULL;
-	symbol_t *symbol_left;
-	symbol_t *symbol_right;
-
 	if(node->kind == NODE_KIND_DEFINE)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_DEFINE, node);
-		if(!symbol)
+		if(symbol)
 		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_NAME, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_expression(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_VALUE, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_expression(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
 	}
 
-	else if (node->kind == NODE_KIND_ASSIGN)
+	else 
+	if (node->kind == NODE_KIND_ASSIGN)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_ASSIGN, node);
-		if(!symbol)
+		if(symbol)
 		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_expression(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_expression(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
 	}
 
-	else if (node->kind == NODE_KIND_ADD_ASSIGN)
+	else 
+	if (node->kind == NODE_KIND_ADD_ASSIGN)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_ADD_ASSIGN, node);
-		if(!symbol)
+		if(symbol)
 		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_expression(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_expression(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
 	}
 
-	else if (node->kind == NODE_KIND_SUB_ASSIGN)
+	else 
+	if (node->kind == NODE_KIND_SUB_ASSIGN)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_SUB_ASSIGN, node);
-		if(!symbol)
+		if(symbol)
 		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_expression(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_expression(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
 	}
 
-	else if (node->kind == NODE_KIND_DIV_ASSIGN)
+	else 
+	if (node->kind == NODE_KIND_DIV_ASSIGN)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_DIV_ASSIGN, node);
-		if(!symbol)
+		if(symbol)
 		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_expression(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_expression(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
 	}
 
-	else if (node->kind == NODE_KIND_MUL_ASSIGN)
+	else 
+	if (node->kind == NODE_KIND_MUL_ASSIGN)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_MUL_ASSIGN, node);
-		if(!symbol)
+		if(symbol)
 		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_expression(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_expression(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
 	}
 
-	else if (node->kind == NODE_KIND_MOD_ASSIGN)
+	else 
+	if (node->kind == NODE_KIND_MOD_ASSIGN)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_MOD_ASSIGN, node);
-		if(!symbol)
+		if(symbol)
 		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_expression(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_expression(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
 	}
 
-	else if (node->kind == NODE_KIND_AND_ASSIGN)
+	else 
+	if (node->kind == NODE_KIND_AND_ASSIGN)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_AND_ASSIGN, node);
-		if(!symbol)
+		if(symbol)
 		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_expression(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_expression(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
 	}
 
-	else if (node->kind == NODE_KIND_OR_ASSIGN)
+	else 
+	if (node->kind == NODE_KIND_OR_ASSIGN)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_OR_ASSIGN, node);
-		if(!symbol)
+		if(symbol)
 		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_expression(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_expression(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
 	}
 
-	else if (node->kind == NODE_KIND_SHL_ASSIGN)
+	else 
+	if (node->kind == NODE_KIND_SHL_ASSIGN)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_SHL_ASSIGN, node);
-		if(!symbol)
+		if(symbol)
 		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_expression(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_expression(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
 	}
 
-	else if (node->kind == NODE_KIND_SHR_ASSIGN)
+	else 
+	if (node->kind == NODE_KIND_SHR_ASSIGN)
 	{
+		symbol_t *symbol;
 		symbol = symbol_rpush(parent, SYMBOL_SHR_ASSIGN, node);
-		if(!symbol)
+		if(symbol)
 		{
+			node_binary_t *node_binary;
+			node_binary = (node_binary_t *)node->value;
+
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
+			{
+				int32_t result;
+				result = graph_expression(program, left, node_binary->left);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
+			{
+				int32_t result;
+				result = graph_expression(program, right, node_binary->right);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				graph_error(program, node, "low memory");
+				return -1;
+			}
+			return 1;
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
 	}
-
-	int32_t result;
-	switch (node->kind)
+	
+	else
 	{
-	case NODE_KIND_ASSIGN:
-	case NODE_KIND_ADD_ASSIGN:
-	case NODE_KIND_SUB_ASSIGN:
-	case NODE_KIND_DIV_ASSIGN:
-	case NODE_KIND_MUL_ASSIGN:
-	case NODE_KIND_MOD_ASSIGN:
-	case NODE_KIND_AND_ASSIGN:
-	case NODE_KIND_OR_ASSIGN:
-	case NODE_KIND_SHL_ASSIGN:
-	case NODE_KIND_SHR_ASSIGN:
-		node_binary = (node_binary_t *)node->value;
-
-		symbol_left = symbol_rpush(symbol, SYMBOL_LEFT, node_binary->left);
-		if(!symbol_left)
-		{
-			return -1;
-		}
-
-		result = graph_expression(program, symbol_left, node_binary->left);
-		if (result == -1)
-		{
-			return -1;
-		}
-
-		symbol_right = symbol_rpush(symbol, SYMBOL_RIGHT, node_binary->right);
-		if(!symbol_right)
-		{
-			return -1;
-		}
-
-		result = graph_expression(program, symbol_right, node_binary->right);
-		if (result == -1)
-		{
-			return -1;
-		}
-		break;
-
-	case NODE_KIND_DEFINE:
-		node_binary = (node_binary_t *)node->value;
-
-		symbol_left = symbol_rpush(symbol, SYMBOL_NAME, node_binary->left);
-		if(!symbol_left)
-		{
-			return -1;
-		}
-
-		result = graph_expression(program, symbol_left, node_binary->left);
-		if (result == -1)
-		{
-			return -1;
-		}
-
-		symbol_right = symbol_rpush(symbol, SYMBOL_VALUE, node_binary->right);
-		if(!symbol_right)
-		{
-			return -1;
-		}
-
-		result = graph_expression(program, symbol_right, node_binary->right);
-		if (result == -1)
-		{
-			return -1;
-		}
-		break;
-
-	default:
+		int32_t result;
 		result = graph_expression(program, parent, node);
 		if (result == -1)
 		{
 			return -1;
 		}
-		break;
+		return 1;
 	}
-
-	return 1;
 }
 
 static int32_t
@@ -2939,6 +3985,7 @@ graph_func(program_t *program, symbol_t *parent, node_t *node)
 	symbol = symbol_rpush(parent, SYMBOL_FUNCTION, node);
 	if(!symbol)
 	{
+		graph_error(program, node, "low memory");
 		return -1;
 	}
 
@@ -2950,14 +3997,17 @@ graph_func(program_t *program, symbol_t *parent, node_t *node)
 	{
 		symbol_t *key;
 		key = symbol_rpush(symbol, SYMBOL_KEY, NULL);
-		if(!key)
+		if(key)
 		{
-			return -1;
+			result = graph_id(program, key, node_func->key);
+			if (result == -1)
+			{
+				return -1;
+			}
 		}
-
-		result = graph_id(program, key, node_func->key);
-		if (result == -1)
+		else
 		{
+			graph_error(program, node, "low memory");
 			return -1;
 		}
 	}
@@ -2967,15 +4017,22 @@ graph_func(program_t *program, symbol_t *parent, node_t *node)
 	{
 		symbol_t *generics;
 		generics = symbol_rpush(symbol, SYMBOL_GENERICS, NULL);
-
-		for (a = node_func->generics->begin; a != node_func->generics->end; a = a->next)
+		if (generics)
 		{
-			node_t *generic = (node_t *)a->value;
-			result = graph_generic(program, generics, generic);
-			if (result == -1)
+			for (a = node_func->generics->begin; a != node_func->generics->end; a = a->next)
 			{
-				return -1;
+				node_t *generic = (node_t *)a->value;
+				result = graph_generic(program, generics, generic);
+				if (result == -1)
+				{
+					return -1;
+				}
 			}
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
+			return -1;
 		}
 	}
 
@@ -2983,16 +4040,22 @@ graph_func(program_t *program, symbol_t *parent, node_t *node)
 	{
 		symbol_t *parameters;
 		parameters = symbol_rpush(symbol, SYMBOL_PARAMETERS, NULL);
-
-		for (a = node_func->parameters->begin; a != node_func->parameters->end; a = a->next)
+		if (parameters)
 		{
-			node_t *parameter = (node_t *)a->value;
-
-			result = graph_parameter(program, parameters, parameter);
-			if (result == -1)
+			for (a = node_func->parameters->begin; a != node_func->parameters->end; a = a->next)
 			{
-				return -1;
+				node_t *parameter = (node_t *)a->value;
+				result = graph_parameter(program, parameters, parameter);
+				if (result == -1)
+				{
+					return -1;
+				}
 			}
+		}
+		else
+		{
+			graph_error(program, node, "low memory");
+			return -1;
 		}
 	}
 

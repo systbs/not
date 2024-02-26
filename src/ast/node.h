@@ -253,14 +253,6 @@ typedef struct node_func {
 	node_t *body;
 } node_func_t;
 
-typedef struct node_method {
-	uint64_t flag;
-	node_t *key;
-	list_t *generics;
-	list_t *parameters;
-	node_t *body;
-} node_method_t;
-
 typedef struct node_property {
 	uint64_t flag;
 	node_t *key;

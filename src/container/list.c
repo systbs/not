@@ -91,6 +91,12 @@ list_destroy(list_t *lst)
     free (lst);
 }
 
+void
+list_free_it(ilist_t *it)
+{
+    free (it);
+}
+
 ilist_t *
 list_create_iterior(uint64_t value){
 	ilist_t *it;

@@ -13,6 +13,13 @@ typedef struct response {
     iresponse_t *end;
 } response_t;
 
+typedef enum response_code 
+{
+    RESPONSE_CODE_NONE = 0,
+    RESPONSE_CODE_OK,
+    RESPONSE_CODE_ERROR
+} response_code_t;
+
 response_t *
 response_create();
 

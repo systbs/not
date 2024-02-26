@@ -5,7 +5,7 @@ export class String extends (v : typeof("")) {
   }
 }
 
-export class Int extends (v : typeof(0)) {
+export class {T} String extends (v : typeof(0)) {
   func constructor (value:Int)
   {
     v(value);
@@ -17,9 +17,9 @@ export class Int extends (v : typeof(0)) {
   }
 }
 
-func constructor(args:int)
+func constructor(args:Int)
 {
-  var t1 = teacher();
-  var t2 = teacher{R=string}("peyman", "bachelor");
+  var t1 = 1 > > 2;
+  var t2 = teacher{T}("peyman", "bachelor");
 }
 

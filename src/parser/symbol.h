@@ -29,6 +29,7 @@ typedef enum symbol_type {
     SYMBOL_HERITAGES,
     SYMBOL_THROW,
     SYMBOL_RETURN,
+    SYMBOL_RETURN_TYPE,
     SYMBOL_CONTINUE,
     SYMBOL_BREAK,
     SYMBOL_FORIN ,
