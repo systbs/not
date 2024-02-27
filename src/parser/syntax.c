@@ -156,10 +156,408 @@ syntax_idstrcmp(symbol_t *id1, char *name)
 	return strcmp(nbid1->value, name);
 }
 
+
+typedef enum syntax_route_type {
+	SYNTAX_ROUTE_NONE 			= 1 << 0,
+	SYNTAX_ROUTE_FORWARD 		= 1 << 1
+} syntax_route_type_t;
+
+static int32_t
+syntax_match_gsas(program_t *program, symbol_t *gs1, symbol_t *as2)
+{
+	return 1;
+}
+
+static symbol_t *
+syntax_in_backward(symbol_t *t1, symbol_t *t2)
+{
+	if (t1 == t2)
+	{
+		return t2;
+	}
+	if (t2->parent)
+	{
+		return syntax_in_backward(t1, t2->parent);
+	}
+	return NULL;
+}
+
+static symbol_t *
+syntax_find_in_scope(program_t *program, symbol_t *base, symbol_t *t1, symbol_t *arguments, int32_t route)
+{
+	symbol_t *a;
+	for (a = base->begin;(a != base->end);a = a->next)
+	{
+		if (symbol_check_type(a, SYMBOL_CLASS))
+		{
+			symbol_t *ak;
+			ak = syntax_extract_with(a, SYMBOL_KEY);
+			if (ak)
+			{
+				if (syntax_idcmp(ak, t1) == 0)
+				{
+					symbol_t *gs;
+					gs = syntax_only_with(a, SYMBOL_GENERICS);
+					if (gs)
+					{
+						if (arguments)
+						{
+							int32_t result;
+							result = syntax_match_gsas(program, gs, arguments);
+							if (result == -1)
+							{
+								return NULL;
+							}
+							else
+							if (result == 1)
+							{
+								goto region_access;
+							}
+							continue;
+						}
+						else
+						{
+							int32_t no_match = 0;
+							symbol_t *b;
+							for (b = gs->begin;b != gs->end;b = b->next)
+							{
+								if (symbol_check_type(b, SYMBOL_GENERIC))
+								{
+									symbol_t *bv;
+									bv = syntax_only_with(b, SYMBOL_VALUE);
+									if (!bv)
+									{
+										no_match = 1;
+										break;
+									}
+								}
+							}
+							if (no_match)
+							{
+								goto region_access;
+							}
+						}
+					}
+					else
+					{
+						if (arguments)
+						{
+							continue;
+						}
+						goto region_access;
+					}
+				}
+				continue;
+			}
+			else
+			{
+				syntax_error(program, a, "does not include the key field");
+				return NULL;
+			}
+			continue;
+		}
+
+		if (symbol_check_type(a, SYMBOL_GENERICS))
+		{
+			symbol_t *b;
+			for (b = a->begin;b != a->end;b = b->next)
+			{
+				if (symbol_check_type(b, SYMBOL_GENERIC))
+				{
+					symbol_t *bk;
+					bk = syntax_extract_with(b, SYMBOL_KEY);
+					if (bk)
+					{
+						if ((syntax_idcmp(bk, t1) == 0) && (bk != t1) && !arguments)
+						{
+							return b;
+						}
+					}
+				}
+			}
+			continue;
+		}
+		
+		continue;
+region_access:
+		if ((route == (route & SYNTAX_ROUTE_FORWARD)))
+		{
+			if (!syntax_in_backward(base, a))
+			{
+				if (symbol_check_type(a, SYMBOL_CLASS))
+				{
+					node_class_t *class = a->declaration->value;
+					if ((class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+					{
+						syntax_error(program, a, "private access");
+						return NULL;
+					}
+				}
+			}
+		}
+		return a;
+	}
+
+	if (base->parent && (route == (route & SYNTAX_ROUTE_NONE)))
+	{
+		return syntax_find_in_scope(program, base->parent, t1, arguments, route);
+	}
+
+	return NULL;
+}
+
+static symbol_t *
+syntax_find_by_arguments(program_t *program, symbol_t *base, symbol_t *t1, symbol_t *arguments, int32_t route)
+{
+	if (symbol_check_type(t1, SYMBOL_ATTR))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(t1, SYMBOL_LEFT);
+		if (left)
+		{
+			symbol_t *right;
+			right = syntax_extract_with(t1, SYMBOL_RIGHT);
+			if (right)
+			{
+				symbol_t *r1;
+				r1 = syntax_find_by_arguments(program, base, left, NULL, route);
+				if (r1)
+				{
+					symbol_t *r2;
+					r2 = syntax_find_by_arguments(program, r1, right, arguments, SYNTAX_ROUTE_FORWARD);
+					if (r2)
+					{
+						return r2;
+					}
+					else
+					{
+						syntax_error(program, right, "field not found in (%lld:%lld)",
+							r1->declaration->position.line, r1->declaration->position.column);
+						return NULL;
+					}
+				}
+				else
+				{
+					syntax_error(program, left, "field not found");
+					return NULL;
+				}
+			}
+			else
+			{
+				syntax_error(program, t1, "attribute does not include the right field");
+				return NULL;
+			}
+		}
+		else
+		{
+			syntax_error(program, t1, "attribute does not include the left field");
+			return NULL;
+		}
+	}
+	else 
+	if (symbol_check_type(t1, SYMBOL_COMPOSITE))
+	{
+		symbol_t *key;
+		key = syntax_extract_with(t1, SYMBOL_KEY);
+		if (key)
+		{
+			symbol_t *arguments1;
+			arguments1 = syntax_extract_with(t1, SYMBOL_ARGUMENTS);
+			if (arguments1)
+			{
+				symbol_t *r1;
+				r1 = syntax_find_by_arguments(program, base, key, arguments1, route);
+				if (r1)
+				{
+					return r1;
+				}
+				else
+				{
+					syntax_error(program, key, "field not found");
+					return NULL;
+				}
+			}
+			else
+			{
+				syntax_error(program, t1, "attribute does not include the arguments field");
+				return NULL;
+			}
+		}
+		else
+		{
+			syntax_error(program, t1, "attribute does not include the key field");
+			return NULL;
+		}
+	}
+	else
+	if (symbol_check_type(t1, SYMBOL_ID))
+	{
+		symbol_t *r;
+		r = syntax_find_in_scope(program, base, t1, arguments, route);
+		if (r)
+		{
+			return r;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		syntax_error(program, t1, "reference is not a routable");
+		return NULL;
+	}
+}
+
+static symbol_t *
+syntax_find(program_t *program, symbol_t *p)
+{
+	return syntax_find_by_arguments(program, p->parent, p, NULL, SYNTAX_ROUTE_NONE);
+}
+
 static int32_t
 syntax_equal_gsgs(program_t *program, symbol_t *gs1, symbol_t *gs2)
 {
-	return 1;
+	int32_t changed = 0;
+	symbol_t *g1;
+	region_key:
+	for (g1 = gs1->begin;g1 != gs1->end;g1 = g1->next)
+	{
+		if (symbol_check_type(g1, SYMBOL_GENERIC))
+		{
+			symbol_t *gk1;
+			gk1 = syntax_extract_with(g1, SYMBOL_KEY);
+			if (gk1)
+			{
+				int32_t found = 0;
+				symbol_t *g2;
+				for (g2 = gs2->begin;g2 != gs2->end;g2 = g2->next)
+				{
+					if (symbol_check_type(g2, SYMBOL_GENERIC))
+					{
+						symbol_t *gk2;
+						gk2 = syntax_extract_with(g2, SYMBOL_KEY);
+						if (gk2 != NULL)
+						{
+							if (syntax_idcmp(gk1, gk2) == 0)
+							{
+								found = 1;
+								break;
+							}
+						}
+					}
+				}
+				
+				if (found == 0)
+				{
+					symbol_t *gv1;
+					gv1 = syntax_only_with(g1, SYMBOL_VALUE);
+					if (gv1 == NULL)
+					{
+						goto region_type;
+					}
+				}
+			}
+		}
+	}
+
+	if (changed == 0)
+	{
+		changed = 1;
+		symbol_t *gs3;
+		gs3 = gs1;
+		gs1 = gs2;
+		gs2 = gs3;
+		goto region_key;
+	}
+	else
+	{
+		return 1;
+	}
+
+	changed = 0;
+	uint64_t gcnt1;
+	region_type:
+	gcnt1 = 0;
+	for (g1 = gs1->begin;g1 != gs1->end;g1 = g1->next)
+	{
+		if (symbol_check_type(g1, SYMBOL_GENERIC))
+		{
+			gcnt1 += 1;
+			uint64_t gcnt2 = 0;
+			symbol_t *g2;
+			for (g2 = gs2->begin;g2 != gs2->end;g2 = g2->next)
+			{
+				if (symbol_check_type(g2, SYMBOL_GENERIC))
+				{
+					gcnt2 += 1;
+					if (gcnt2 < gcnt1)
+					{
+						continue;
+					}
+					symbol_t *gt1;
+					gt1 = syntax_extract_with(g1, SYMBOL_TYPE);
+					if (gt1)
+					{
+						symbol_t *gt2;
+						gt2 = syntax_extract_with(g2, SYMBOL_TYPE);
+						if (gt2)
+						{
+							symbol_t *gr1;
+							gr1 = syntax_find(program, gt1);
+							if (gr1 != NULL)
+							{
+								symbol_t *gr2;
+								gr2 = syntax_find(program, gt2);
+								if (gr2 != NULL)
+								{
+									if (gr1 != gr2)
+									{
+										return 0;
+									}
+								}
+								else
+								{
+									syntax_error(program, gt2, "reference not found");
+									return -1;
+								}
+							}
+							else
+							{
+								syntax_error(program, gt1, "reference not found");
+								return -1;
+							}
+						}
+					}
+				}
+			}
+
+			if (gcnt2 < gcnt1)
+			{
+				symbol_t *gv1;
+				gv1 = syntax_only_with(g1, SYMBOL_VALUE);
+				if (gv1 == NULL)
+				{
+					return 0;
+				}
+			}
+		}
+	}
+
+	if (changed == 0)
+	{
+		changed = 1;
+		symbol_t *gs3;
+		gs3 = gs1;
+		gs1 = gs2;
+		gs2 = gs3;
+		goto region_type;
+	}
+	else
+	{
+		return 1;
+	}
 }
 
 static int32_t
