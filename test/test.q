@@ -1,11 +1,11 @@
-export class {T} String extends (v : typeof("")) {
+export class {R, T} String extends (v : typeof("")) {
   func constructor (value:String)
   {
     v(value);
   }
 }
 
-export class {R, T} String extends (v : typeof(0)) {
+export class {T, R} String extends (v : typeof(0)) {
   func constructor (value:Int)
   {
     v(value);

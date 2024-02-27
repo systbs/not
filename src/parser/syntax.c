@@ -563,7 +563,145 @@ syntax_equal_gsgs(program_t *program, symbol_t *gs1, symbol_t *gs2)
 static int32_t
 syntax_equal_psps(program_t *program, symbol_t *ps1, symbol_t *ps2)
 {
-	return 1;
+	int32_t changed = 0;
+	symbol_t *p1;
+	region_key:
+	for (p1 = ps1->begin;p1 != ps1->end;p1 = p1->next)
+	{
+		if (symbol_check_type(p1, SYMBOL_GENERIC))
+		{
+			symbol_t *pk1;
+			pk1 = syntax_extract_with(p1, SYMBOL_KEY);
+			if (pk1)
+			{
+				int32_t found = 0;
+				symbol_t *p2;
+				for (p2 = ps2->begin;p2 != ps2->end;p2 = p2->next)
+				{
+					if (symbol_check_type(p2, SYMBOL_GENERIC))
+					{
+						symbol_t *pk2;
+						pk2 = syntax_extract_with(p2, SYMBOL_KEY);
+						if (pk2 != NULL)
+						{
+							if (syntax_idcmp(pk1, pk2) == 0)
+							{
+								found = 1;
+								break;
+							}
+						}
+					}
+				}
+				
+				if (found == 0)
+				{
+					symbol_t *pv1;
+					pv1 = syntax_only_with(p1, SYMBOL_VALUE);
+					if (pv1 == NULL)
+					{
+						goto region_type;
+					}
+				}
+			}
+		}
+	}
+
+	if (changed == 0)
+	{
+		changed = 1;
+		symbol_t *ps3;
+		ps3 = ps1;
+		ps1 = ps2;
+		ps2 = ps3;
+		goto region_key;
+	}
+	else
+	{
+		return 1;
+	}
+
+	changed = 0;
+	uint64_t gcnt1;
+	region_type:
+	gcnt1 = 0;
+	for (p1 = ps1->begin;p1 != ps1->end;p1 = p1->next)
+	{
+		if (symbol_check_type(p1, SYMBOL_GENERIC))
+		{
+			gcnt1 += 1;
+			uint64_t gcnt2 = 0;
+			symbol_t *p2;
+			for (p2 = ps2->begin;p2 != ps2->end;p2 = p2->next)
+			{
+				if (symbol_check_type(p2, SYMBOL_GENERIC))
+				{
+					gcnt2 += 1;
+					if (gcnt2 < gcnt1)
+					{
+						continue;
+					}
+					symbol_t *gt1;
+					gt1 = syntax_extract_with(p1, SYMBOL_TYPE);
+					if (gt1)
+					{
+						symbol_t *gt2;
+						gt2 = syntax_extract_with(p2, SYMBOL_TYPE);
+						if (gt2)
+						{
+							symbol_t *gr1;
+							gr1 = syntax_find(program, gt1);
+							if (gr1 != NULL)
+							{
+								symbol_t *gr2;
+								gr2 = syntax_find(program, gt2);
+								if (gr2 != NULL)
+								{
+									if (gr1 != gr2)
+									{
+										return 0;
+									}
+								}
+								else
+								{
+									syntax_error(program, gt2, "reference not found");
+									return -1;
+								}
+							}
+							else
+							{
+								syntax_error(program, gt1, "reference not found");
+								return -1;
+							}
+						}
+					}
+				}
+			}
+
+			if (gcnt2 < gcnt1)
+			{
+				symbol_t *pv1;
+				pv1 = syntax_only_with(p1, SYMBOL_VALUE);
+				if (pv1 == NULL)
+				{
+					return 0;
+				}
+			}
+		}
+	}
+
+	if (changed == 0)
+	{
+		changed = 1;
+		symbol_t *ps3;
+		ps3 = ps1;
+		ps1 = ps2;
+		ps2 = ps3;
+		goto region_type;
+	}
+	else
+	{
+		return 1;
+	}
 }
 
 static int32_t
