@@ -158,9 +158,12 @@ syntax_idstrcmp(symbol_t *id1, char *name)
 
 
 typedef enum syntax_route_type {
-	SYNTAX_ROUTE_NONE 			= 1 << 0,
-	SYNTAX_ROUTE_FORWARD 		= 1 << 1
+	SYNTAX_ROUTE_NONE 			= 0,
+	SYNTAX_ROUTE_FORWARD
 } syntax_route_type_t;
+
+static int32_t
+syntax_find(program_t *program, symbol_t *p, symbol_t *response);
 
 static int32_t
 syntax_match_gsas(program_t *program, symbol_t *gs1, symbol_t *as2)
@@ -168,22 +171,8 @@ syntax_match_gsas(program_t *program, symbol_t *gs1, symbol_t *as2)
 	return 1;
 }
 
-static symbol_t *
-syntax_in_backward(symbol_t *t1, symbol_t *t2)
-{
-	if (t1 == t2)
-	{
-		return t2;
-	}
-	if (t2->parent)
-	{
-		return syntax_in_backward(t1, t2->parent);
-	}
-	return NULL;
-}
-
-static symbol_t *
-syntax_find_in_scope(program_t *program, symbol_t *base, symbol_t *t1, symbol_t *arguments, int32_t route)
+static int32_t
+syntax_find_in_scope(program_t *program, symbol_t *base, symbol_t *t1, symbol_t *arguments, int32_t route, symbol_t *applicant, symbol_t *response)
 {
 	symbol_t *a;
 	for (a = base->begin;(a != base->end);a = a->next)
@@ -206,18 +195,41 @@ syntax_find_in_scope(program_t *program, symbol_t *base, symbol_t *t1, symbol_t 
 							result = syntax_match_gsas(program, gs, arguments);
 							if (result == -1)
 							{
-								return NULL;
+								return -1;
 							}
 							else
 							if (result == 1)
 							{
-								goto region_access;
+								symbol_t *nearest = a->parent;
+								while (nearest)
+								{
+									if (symbol_check_type(nearest, SYMBOL_CLASS))
+									{
+										break;
+									}
+									nearest = nearest->parent;
+								}
+
+								if (nearest)
+								{
+									if (nearest->id != applicant->id)
+									{
+										node_class_t *class = response->declaration->value;
+										if ((class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+										{
+											syntax_error(program, response, "private access");
+											return -1;
+										}
+									}
+								}
+
+								*response = *a;
+								return 1;
 							}
-							continue;
 						}
 						else
 						{
-							int32_t no_match = 0;
+							int32_t no_value = 0;
 							symbol_t *b;
 							for (b = gs->begin;b != gs->end;b = b->next)
 							{
@@ -227,32 +239,80 @@ syntax_find_in_scope(program_t *program, symbol_t *base, symbol_t *t1, symbol_t 
 									bv = syntax_only_with(b, SYMBOL_VALUE);
 									if (!bv)
 									{
-										no_match = 1;
+										no_value = 1;
 										break;
 									}
 								}
 							}
-							if (no_match)
+							if (no_value == 0)
 							{
-								goto region_access;
+								symbol_t *nearest;
+								nearest = a->parent;
+								while (nearest)
+								{
+									if (symbol_check_type(nearest, SYMBOL_CLASS))
+									{
+										break;
+									}
+									nearest = nearest->parent;
+								}
+
+								if (nearest)
+								{
+									if (nearest->id != applicant->id)
+									{
+										node_class_t *class = response->declaration->value;
+										if ((class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+										{
+											syntax_error(program, response, "private access");
+											return -1;
+										}
+									}
+								}
+
+								*response = *a;
+								return 1;
 							}
 						}
 					}
 					else
 					{
-						if (arguments)
+						if (!arguments)
 						{
-							continue;
+							symbol_t *nearest;
+							nearest = a->parent;
+							while (nearest)
+							{
+								if (symbol_check_type(nearest, SYMBOL_CLASS))
+								{
+									break;
+								}
+								nearest = nearest->parent;
+							}
+
+							if (nearest)
+							{
+								if (nearest->id != applicant->id)
+								{
+									node_class_t *class = response->declaration->value;
+									if ((class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+									{
+										syntax_error(program, response, "private access");
+										return -1;
+									}
+								}
+							}
+
+							*response = *a;
+							return 1;
 						}
-						goto region_access;
 					}
 				}
-				continue;
 			}
 			else
 			{
-				syntax_error(program, a, "does not include the key field");
-				return NULL;
+				syntax_error(program, a, "class without key");
+				return -1;
 			}
 			continue;
 		}
@@ -270,44 +330,26 @@ syntax_find_in_scope(program_t *program, symbol_t *base, symbol_t *t1, symbol_t 
 					{
 						if ((syntax_idcmp(bk, t1) == 0) && (bk != t1) && !arguments)
 						{
-							return b;
+							*response = *b;
+							return 1;
 						}
 					}
 				}
 			}
 			continue;
 		}
-		
-		continue;
-region_access:
-		if ((route == (route & SYNTAX_ROUTE_FORWARD)))
-		{
-			if (!syntax_in_backward(base, a))
-			{
-				if (symbol_check_type(a, SYMBOL_CLASS))
-				{
-					node_class_t *class = a->declaration->value;
-					if ((class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
-					{
-						syntax_error(program, a, "private access");
-						return NULL;
-					}
-				}
-			}
-		}
-		return a;
 	}
 
-	if (base->parent && (route == (route & SYNTAX_ROUTE_NONE)))
+	if (symbol_check_type(base, SYMBOL_MODULE))
 	{
-		return syntax_find_in_scope(program, base->parent, t1, arguments, route);
+		return 0;
 	}
 
-	return NULL;
+	return syntax_find_in_scope(program, base->parent, t1, arguments, route, applicant, response);
 }
 
-static symbol_t *
-syntax_find_by_arguments(program_t *program, symbol_t *base, symbol_t *t1, symbol_t *arguments, int32_t route)
+static int32_t
+syntax_find_by_arguments(program_t *program, symbol_t *base, symbol_t *t1, symbol_t *arguments, int32_t route, symbol_t *applicant, symbol_t *response)
 {
 	if (symbol_check_type(t1, SYMBOL_ATTR))
 	{
@@ -319,39 +361,50 @@ syntax_find_by_arguments(program_t *program, symbol_t *base, symbol_t *t1, symbo
 			right = syntax_extract_with(t1, SYMBOL_RIGHT);
 			if (right)
 			{
-				symbol_t *r1;
-				r1 = syntax_find_by_arguments(program, base, left, NULL, route);
-				if (r1)
+				symbol_t r1;
+				int32_t result;
+				result = syntax_find_by_arguments(program, base, left, NULL, route, applicant, &r1);
+				if (result == 1)
 				{
-					symbol_t *r2;
-					r2 = syntax_find_by_arguments(program, r1, right, arguments, SYNTAX_ROUTE_FORWARD);
-					if (r2)
+					symbol_t r2;
+					result = syntax_find_by_arguments(program, &r1, right, arguments, SYNTAX_ROUTE_FORWARD, applicant, &r2);
+					if (result == 1)
 					{
-						return r2;
+						*response = r2;
+						return 1;
+					}
+					else
+					if (result == -1)
+					{
+						return -1;
 					}
 					else
 					{
-						syntax_error(program, right, "field not found in (%lld:%lld)",
-							r1->declaration->position.line, r1->declaration->position.column);
-						return NULL;
+						syntax_error(program, right, "reference not found");
+						return -1;
 					}
 				}
 				else
+				if (result == -1)
 				{
-					syntax_error(program, left, "field not found");
-					return NULL;
+					return -1;
+				}
+				else
+				{
+					syntax_error(program, left, "reference not found");
+					return -1;
 				}
 			}
 			else
 			{
-				syntax_error(program, t1, "attribute does not include the right field");
-				return NULL;
+				syntax_error(program, t1, "attribute does not include the rhs");
+				return -1;
 			}
 		}
 		else
 		{
 			syntax_error(program, t1, "attribute does not include the left field");
-			return NULL;
+			return -1;
 		}
 	}
 	else 
@@ -365,119 +418,97 @@ syntax_find_by_arguments(program_t *program, symbol_t *base, symbol_t *t1, symbo
 			arguments1 = syntax_extract_with(t1, SYMBOL_ARGUMENTS);
 			if (arguments1)
 			{
-				symbol_t *r1;
-				r1 = syntax_find_by_arguments(program, base, key, arguments1, route);
-				if (r1)
+				symbol_t r1;
+				int32_t result;
+				result = syntax_find_by_arguments(program, base, key, arguments1, route, applicant, &r1);
+				if (result == 1)
 				{
-					return r1;
+					*response = r1;
+					return 1;
+				}
+				else
+				if (result == -1)
+				{
+					return -1;
 				}
 				else
 				{
-					syntax_error(program, key, "field not found");
-					return NULL;
+					syntax_error(program, key, "reference not found");
+					return -1;
 				}
 			}
 			else
 			{
-				syntax_error(program, t1, "attribute does not include the arguments field");
-				return NULL;
+				syntax_error(program, t1, "attribute does not include the arguments");
+				return -1;
 			}
 		}
 		else
 		{
 			syntax_error(program, t1, "attribute does not include the key field");
-			return NULL;
+			return -1;
 		}
 	}
 	else
 	if (symbol_check_type(t1, SYMBOL_ID))
 	{
-		symbol_t *r;
-		r = syntax_find_in_scope(program, base, t1, arguments, route);
-		if (r)
+		int32_t result;
+		result = syntax_find_in_scope(program, base, t1, arguments, route, applicant, response);
+		if (result == 1)
 		{
-			return r;
+			return 1;
+		}
+		else
+		if (result == -1)
+		{
+			return -1;
 		}
 		else
 		{
-			return NULL;
+			syntax_error(program, t1, "reference not found");
+			return -1;
 		}
 	}
 	else
 	{
 		syntax_error(program, t1, "reference is not a routable");
-		return NULL;
+		return -1;
 	}
 }
 
-static symbol_t *
-syntax_find(program_t *program, symbol_t *p)
+static int32_t
+syntax_find(program_t *program, symbol_t *p, symbol_t *response)
 {
-	return syntax_find_by_arguments(program, p->parent, p, NULL, SYNTAX_ROUTE_NONE);
+	symbol_t *applicant;
+	applicant = p->parent;
+	while (applicant)
+	{
+		if (symbol_check_type(applicant, SYMBOL_CLASS))
+		{
+			break;
+		}
+		if (applicant->parent)
+		{
+			applicant = applicant->parent;
+		}
+	}
+	return syntax_find_by_arguments(program, p->parent, p, NULL, SYNTAX_ROUTE_NONE, applicant, response);
+}
+
+static void
+syntax_xchg(symbol_t *a, symbol_t *b)
+{
+	symbol_t c = *a;
+	*a = *b;
+	*b = c;
 }
 
 static int32_t
 syntax_equal_gsgs(program_t *program, symbol_t *gs1, symbol_t *gs2)
 {
 	int32_t changed = 0;
-	symbol_t *g1;
-	region_key:
-	for (g1 = gs1->begin;g1 != gs1->end;g1 = g1->next)
-	{
-		if (symbol_check_type(g1, SYMBOL_GENERIC))
-		{
-			symbol_t *gk1;
-			gk1 = syntax_extract_with(g1, SYMBOL_KEY);
-			if (gk1)
-			{
-				int32_t found = 0;
-				symbol_t *g2;
-				for (g2 = gs2->begin;g2 != gs2->end;g2 = g2->next)
-				{
-					if (symbol_check_type(g2, SYMBOL_GENERIC))
-					{
-						symbol_t *gk2;
-						gk2 = syntax_extract_with(g2, SYMBOL_KEY);
-						if (gk2 != NULL)
-						{
-							if (syntax_idcmp(gk1, gk2) == 0)
-							{
-								found = 1;
-								break;
-							}
-						}
-					}
-				}
-				
-				if (found == 0)
-				{
-					symbol_t *gv1;
-					gv1 = syntax_only_with(g1, SYMBOL_VALUE);
-					if (gv1 == NULL)
-					{
-						goto region_type;
-					}
-				}
-			}
-		}
-	}
-
-	if (changed == 0)
-	{
-		changed = 1;
-		symbol_t *gs3;
-		gs3 = gs1;
-		gs1 = gs2;
-		gs2 = gs3;
-		goto region_key;
-	}
-	else
-	{
-		return 1;
-	}
-
-	changed = 0;
 	uint64_t gcnt1;
+	symbol_t *g1;
 	region_type:
 	gcnt1 = 0;
 	for (g1 = gs1->begin;g1 != gs1->end;g1 = g1->next)
@@ -504,15 +535,16 @@ syntax_equal_gsgs(program_t *program, symbol_t *gs1, symbol_t *gs2)
 						gt2 = syntax_extract_with(g2, SYMBOL_TYPE);
 						if (gt2)
 						{
-							symbol_t *gr1;
-							gr1 = syntax_find(program, gt1);
-							if (gr1 != NULL)
+							symbol_t gr1;
+							int32_t result;
+							result = syntax_find(program, gt1, &gr1);
+							if (result == 1)
 							{
-								symbol_t *gr2;
-								gr2 = syntax_find(program, gt2);
-								if (gr2 != NULL)
+								symbol_t gr2;
+								result = syntax_find(program, gt2, &gr2);
+								if (result == 1)
 								{
-									if (gr1 != gr2)
+									if (gr1.id != gr2.id)
 									{
 										return 0;
 									}
@@ -548,11 +580,57 @@ syntax_equal_gsgs(program_t *program, symbol_t *gs1, symbol_t *gs2)
 	if (changed == 0)
 	{
 		changed = 1;
-		symbol_t *gs3;
-		gs3 = gs1;
-		gs1 = gs2;
-		gs2 = gs3;
+		syntax_xchg(gs1, gs2);
 		goto region_type;
+	}
+	
+	changed = 0;
+	region_key:
+	for (g1 = gs1->begin;g1 != gs1->end;g1 = g1->next)
+	{
+		if (symbol_check_type(g1, SYMBOL_GENERIC))
+		{
+			symbol_t *gk1;
+			gk1 = syntax_extract_with(g1, SYMBOL_KEY);
+			if (gk1)
+			{
+				int32_t found = 0;
+				symbol_t *g2;
+				for (g2 = gs2->begin;g2 != gs2->end;g2 = g2->next)
+				{
+					if (symbol_check_type(g2, SYMBOL_GENERIC))
+					{
+						symbol_t *gk2;
+						gk2 = syntax_extract_with(g2, SYMBOL_KEY);
+						if (gk2 != NULL)
+						{
+							if (syntax_idcmp(gk1, gk2) == 0)
+							{
+								found = 1;
+								break;
+							}
+						}
+					}
+				}
+				
+				if (found == 0)
+				{
+					symbol_t *gv1;
+					gv1 = syntax_only_with(g1, SYMBOL_VALUE);
+					if (gv1 == NULL)
+					{
+						return 0;
+					}
+				}
+			}
+		}
+	}
+
+	if (changed == 0)
+	{
+		changed = 1;
+		syntax_xchg(gs1, gs2);
+		goto region_key;
 	}
 	else
 	{
@@ -565,62 +643,6 @@ syntax_equal_psps(program_t *program, symbol_t *ps1, symbol_t *ps2)
 {
 	int32_t changed = 0;
 	symbol_t *p1;
-	region_key:
-	for (p1 = ps1->begin;p1 != ps1->end;p1 = p1->next)
-	{
-		if (symbol_check_type(p1, SYMBOL_GENERIC))
-		{
-			symbol_t *pk1;
-			pk1 = syntax_extract_with(p1, SYMBOL_KEY);
-			if (pk1)
-			{
-				int32_t found = 0;
-				symbol_t *p2;
-				for (p2 = ps2->begin;p2 != ps2->end;p2 = p2->next)
-				{
-					if (symbol_check_type(p2, SYMBOL_GENERIC))
-					{
-						symbol_t *pk2;
-						pk2 = syntax_extract_with(p2, SYMBOL_KEY);
-						if (pk2 != NULL)
-						{
-							if (syntax_idcmp(pk1, pk2) == 0)
-							{
-								found = 1;
-								break;
-							}
-						}
-					}
-				}
-				
-				if (found == 0)
-				{
-					symbol_t *pv1;
-					pv1 = syntax_only_with(p1, SYMBOL_VALUE);
-					if (pv1 == NULL)
-					{
-						goto region_type;
-					}
-				}
-			}
-		}
-	}
-
-	if (changed == 0)
-	{
-		changed = 1;
-		symbol_t *ps3;
-		ps3 = ps1;
-		ps1 = ps2;
-		ps2 = ps3;
-		goto region_key;
-	}
-	else
-	{
-		return 1;
-	}
-
-	changed = 0;
 	uint64_t gcnt1;
 	region_type:
 	gcnt1 = 0;
@@ -648,15 +670,16 @@ syntax_equal_psps(program_t *program, symbol_t *ps1, symbol_t *ps2)
 						gt2 = syntax_extract_with(p2, SYMBOL_TYPE);
 						if (gt2)
 						{
-							symbol_t *gr1;
-							gr1 = syntax_find(program, gt1);
-							if (gr1 != NULL)
+							symbol_t gr1;
+							int32_t result;
+							result = syntax_find(program, gt1, &gr1);
+							if (result == 1)
 							{
-								symbol_t *gr2;
-								gr2 = syntax_find(program, gt2);
-								if (gr2 != NULL)
+								symbol_t gr2;
+								result = syntax_find(program, gt2, &gr2);
+								if (result == 1)
 								{
-									if (gr1 != gr2)
+									if (gr1.id != gr2.id)
 									{
 										return 0;
 									}
@@ -692,17 +715,66 @@ syntax_equal_psps(program_t *program, symbol_t *ps1, symbol_t *ps2)
 	if (changed == 0)
 	{
 		changed = 1;
-		symbol_t *ps3;
-		ps3 = ps1;
-		ps1 = ps2;
-		ps2 = ps3;
+		syntax_xchg(ps1, ps2);
 		goto region_type;
+	}
+
+	changed = 0;
+	region_key:
+	for (p1 = ps1->begin;p1 != ps1->end;p1 = p1->next)
+	{
+		if (symbol_check_type(p1, SYMBOL_GENERIC))
+		{
+			symbol_t *pk1;
+			pk1 = syntax_extract_with(p1, SYMBOL_KEY);
+			if (pk1)
+			{
+				int32_t found = 0;
+				symbol_t *p2;
+				for (p2 = ps2->begin;p2 != ps2->end;p2 = p2->next)
+				{
+					if (symbol_check_type(p2, SYMBOL_GENERIC))
+					{
+						symbol_t *pk2;
+						pk2 = syntax_extract_with(p2, SYMBOL_KEY);
+						if (pk2 != NULL)
+						{
+							if (syntax_idcmp(pk1, pk2) == 0)
+							{
+								found = 1;
+								break;
+							}
+						}
+					}
+				}
+				
+				if (found == 0)
+				{
+					symbol_t *pv1;
+					pv1 = syntax_only_with(p1, SYMBOL_VALUE);
+					if (pv1 == NULL)
+					{
+						return 0;
+					}
+				}
+			}
+		}
+	}
+
+	if (changed == 0)
+	{
+		changed = 1;
+		syntax_xchg(ps1, ps2);
+		goto region_key;
 	}
 	else
 	{
 		return 1;
 	}
 }
+
+
+
 
 static int32_t
 syntax_expression(program_t *program, symbol_t *current)
@@ -3077,7 +3149,7 @@ syntax_function(program_t *program, symbol_t *current)
 																else 
 																if (result == 1)
 																{
-																	syntax_error(program, ck, "defination repeated1, another defination in %lld:%lld",
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 																		ak->declaration->position.line, ak->declaration->position.column);
 																	return -1;
 																}
@@ -3098,7 +3170,7 @@ syntax_function(program_t *program, symbol_t *current)
 																}
 																if (parameter_without_value == 0)
 																{
-																	syntax_error(program, ck, "defination repeated2, another defination in %lld:%lld",
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 																		ak->declaration->position.line, ak->declaration->position.column);
 																	return -1;
 																}
@@ -3124,14 +3196,14 @@ syntax_function(program_t *program, symbol_t *current)
 																}
 																if (parameter_without_value == 0)
 																{
-																	syntax_error(program, ck, "defination repeated3, another defination in %lld:%lld",
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 																		ak->declaration->position.line, ak->declaration->position.column);
 																	return -1;
 																}
 															}
 															else
 															{
-																syntax_error(program, ck, "defination repeated4, another defination in %lld:%lld",
+																syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 																	ak->declaration->position.line, ak->declaration->position.column);
 																return -1;
 															}
@@ -3523,7 +3595,7 @@ syntax_function(program_t *program, symbol_t *current)
 												else 
 												if (result == 1)
 												{
-													syntax_error(program, ck, "defination repeated1, another defination in %lld:%lld",
+													syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 														ak->declaration->position.line, ak->declaration->position.column);
 													return -1;
 												}
@@ -5025,7 +5097,7 @@ syntax_class(program_t *program, symbol_t *current)
 																				else 
 																				if (result == 1)
 																				{
-																					syntax_error(program, ck, "defination repeated1, another defination in %lld:%lld",
+																					syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 																						ak->declaration->position.line, ak->declaration->position.column);
 																					return -1;
 																				}
@@ -5046,7 +5118,7 @@ syntax_class(program_t *program, symbol_t *current)
 																				}
 																				if (parameter_without_value == 0)
 																				{
-																					syntax_error(program, ck, "defination repeated2, another defination in %lld:%lld",
+																					syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 																						ak->declaration->position.line, ak->declaration->position.column);
 																					return -1;
 																				}
@@ -5072,14 +5144,14 @@ syntax_class(program_t *program, symbol_t *current)
 																				}
 																				if (parameter_without_value == 0)
 																				{
-																					syntax_error(program, ck, "defination repeated3, another defination in %lld:%lld",
+																					syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 																						ak->declaration->position.line, ak->declaration->position.column);
 																					return -1;
 																				}
 																			}
 																			else
 																			{
-																				syntax_error(program, ck, "defination repeated4, another defination in %lld:%lld",
+																				syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 																					ak->declaration->position.line, ak->declaration->position.column);
 																				return -1;
 																			}
@@ -5531,7 +5603,7 @@ syntax_class(program_t *program, symbol_t *current)
 																else 
 																if (result == 1)
 																{
-																	syntax_error(program, ck, "defination repeated1, another defination in %lld:%lld",
+																	syntax_error(program, ck, "defination repeated, another defination in %lld:%lld",
 																		ak->declaration->position.line, ak->declaration->position.column);
 																	return -1;
 																}
