@@ -166,8 +166,95 @@ static int32_t
 syntax_find(program_t *program, symbol_t *p, symbol_t *response);
 
 static int32_t
-syntax_match_gsas(program_t *program, symbol_t *gs1, symbol_t *as2)
+syntax_match_gsast(program_t *program, symbol_t *gs1, symbol_t *as1)
 {
+	int32_t use_value = 0, use_key = 0;
+	uint64_t acnt1 = 0;
+	symbol_t *a1;
+	for (a1 = as1->begin;a1 != as1->end;a1 = a1->next)
+	{
+		if (symbol_check_type(a1, SYMBOL_ARGUMENT))
+		{
+			symbol_t *av1;
+			av1 = syntax_extract_with(a1, SYMBOL_VALUE);
+			if (av1 != NULL)
+			{
+				use_value = 1;
+				if (use_key == 1)
+				{
+					syntax_error(program, a1, "all entries must be the same");
+					return -1;
+				}
+				symbol_t *g1;
+				for (g1 = gs1->begin;g1 != gs1->end;g1 = g1->next)
+				{
+					if (symbol_check_type(g1, SYMBOL_GENERIC))
+					{
+						symbol_t *gt1;
+						gt1 = syntax_extract_with(g1, SYMBOL_TYPE);
+						if (gt1)
+						{
+							symbol_t ar1;
+							int32_t result;
+							result = syntax_find(program, av1, &ar1);
+							if (result == 1)
+							{
+								symbol_t gr1;
+								result = syntax_find(program, gt1, &gr1);
+								if (result == 1)
+								{
+									if (ar1.id != gr1.id)
+									{
+										return 0;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				use_key = 1;
+				if (use_value == 1)
+				{
+					syntax_error(program, a1, "all entries must be the same");
+					return -1;
+				}
+
+				acnt1 += 1;
+				uint64_t gcnt1 = 0;
+				symbol_t *g1;
+				for (g1 = gs1->begin;g1 != gs1->end;g1 = g1->next)
+				{
+					if (symbol_check_type(g1, SYMBOL_GENERIC))
+					{
+						gcnt1 += 1;
+						if (gcnt1 < acnt1)
+						{
+							continue;
+						}
+
+						symbol_t *ak1;
+						ak1 = syntax_extract_with(a1, SYMBOL_KEY);
+						if (ak1 != NULL)
+						{
+							symbol_t *gk1;
+							gk1 = syntax_extract_with(g1, SYMBOL_KEY);
+							if (gk1 != NULL)
+							{
+								if (syntax_idcmp(ak1, gk1) != 0)
+								{
+									return 0;
+								}
+							}
+						}
+					}
+				}
+			}
+			
+		}
+	}
 	return 1;
 }
 
@@ -192,7 +279,7 @@ syntax_find_in_scope(program_t *program, symbol_t *base, symbol_t *t1, symbol_t 
 						if (arguments)
 						{
 							int32_t result;
-							result = syntax_match_gsas(program, gs, arguments);
+							result = syntax_match_gsast(program, gs, arguments);
 							if (result == -1)
 							{
 								return -1;
@@ -380,8 +467,7 @@ syntax_find_by_arguments(program_t *program, symbol_t *base, symbol_t *t1, symbo
 					}
 					else
 					{
-						syntax_error(program, right, "reference not found");
-						return -1;
+						return 0;
 					}
 				}
 				else
@@ -391,8 +477,7 @@ syntax_find_by_arguments(program_t *program, symbol_t *base, symbol_t *t1, symbo
 				}
 				else
 				{
-					syntax_error(program, left, "reference not found");
-					return -1;
+					return 0;
 				}
 			}
 			else
@@ -433,8 +518,7 @@ syntax_find_by_arguments(program_t *program, symbol_t *base, symbol_t *t1, symbo
 				}
 				else
 				{
-					syntax_error(program, key, "reference not found");
-					return -1;
+					return 0;
 				}
 			}
 			else
@@ -465,8 +549,7 @@ syntax_find_by_arguments(program_t *program, symbol_t *base, symbol_t *t1, symbo
 		}
 		else
 		{
-			syntax_error(program, t1, "reference not found");
-			return -1;
+			return 0;
 		}
 	}
 	else
@@ -550,10 +633,20 @@ syntax_equal_gsgs(program_t *program, symbol_t *gs1, symbol_t *gs2)
 									}
 								}
 								else
+								if (result == -1)
+								{
+									return -1;
+								}
+								else
 								{
 									syntax_error(program, gt2, "reference not found");
 									return -1;
 								}
+							}
+							else
+							if (result == -1)
+							{
+								return -1;
 							}
 							else
 							{
@@ -685,10 +778,20 @@ syntax_equal_psps(program_t *program, symbol_t *ps1, symbol_t *ps2)
 									}
 								}
 								else
+								if (result == -1)
+								{
+									return -1;
+								}
+								else
 								{
 									syntax_error(program, gt2, "reference not found");
 									return -1;
 								}
+							}
+							else
+							if (result == -1)
+							{
+								return -1;
 							}
 							else
 							{

@@ -5,7 +5,7 @@ export class Int extends (v : typeof(0)) {
   }
 }
 
-export class {R extends Int, T} String extends (v : typeof("")) {
+export class {R extends String, T} String extends (v : typeof("")) {
   func constructor (value:String)
   {
     v(value);
