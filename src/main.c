@@ -99,7 +99,7 @@ main(int argc, char **argv)
 			return -1;
 		}
 
-		list_rpush(program.imports, (uint64_t)root);
+		list_rpush(program.imports, root);
 
     int32_t graph_result;
     graph_result = graph_run(&program, root, node);

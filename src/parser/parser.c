@@ -1775,20 +1775,6 @@ parser_assign_stmt(program_t *program, parser_t *parser)
 		node = node_make_assign(position, node, right);
 		break;
 
-	case TOKEN_COLON_EQ:
-		if (parser_next(program, parser) == -1)
-		{
-			return NULL;
-		}
-		right = parser_expression(program, parser);
-		if (!right)
-		{
-			return NULL;
-		}
-
-		node = node_make_define(position, node, right);
-		break;
-
 	case TOKEN_PLUS_EQ:
 		if (parser_next(program, parser) == -1)
 		{

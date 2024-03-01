@@ -69,8 +69,6 @@ enum
   TOKEN_LT_LT_EQ,     // <<=
   TOKEN_GT_GT_EQ,     // >>=
 
-  TOKEN_DOT_DOT,      // ..
-  TOKEN_COLON_EQ,     // :=
   TOKEN_MINUS_GT,     // ->
 
   TOKEN_ID,

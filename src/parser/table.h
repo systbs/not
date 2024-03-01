@@ -11,6 +11,7 @@ typedef struct itable {
     symbol_t *scope;
 
     uint64_t reference;
+    uint64_t initalize;
     uint64_t flag;
 } itable_t;
 

@@ -32,7 +32,7 @@
 
 
 static error_t *
-syntax_error(program_t *program, symbol_t *current, const char *format, ...)
+syntax_error(program_t *program, symbol_t *target, const char *format, ...)
 {
 	char *message;
 	message = malloc(1024);
@@ -50,7 +50,7 @@ syntax_error(program_t *program, symbol_t *current, const char *format, ...)
 	}
 
 	node_t *node;
-	node = current->declaration;
+	node = target->declaration;
 
 	error_t *error;
 	error = error_create(node->position, message);
@@ -69,31 +69,31 @@ syntax_error(program_t *program, symbol_t *current, const char *format, ...)
 
 
 static int32_t
-syntax_function(program_t *program, symbol_t *current);
+syntax_function(program_t *program, symbol_t *target);
 
 static int32_t
-syntax_block(program_t *program, symbol_t *current);
+syntax_block(program_t *program, symbol_t *target);
 
 static int32_t
-syntax_import(program_t *program, symbol_t *current);
+syntax_import(program_t *program, symbol_t *target);
 
 static int32_t
-syntax_generics(program_t *program, symbol_t *current);
+syntax_generics(program_t *program, symbol_t *target);
 
 static int32_t
-syntax_generic(program_t *program, symbol_t *current);
+syntax_generic(program_t *program, symbol_t *target);
 
 static int32_t
-syntax_fields(program_t *program, symbol_t *current);
+syntax_fields(program_t *program, symbol_t *target);
 
 static int32_t
-syntax_field(program_t *program, symbol_t *current);
+syntax_field(program_t *program, symbol_t *target);
 
 static int32_t
-syntax_expression(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag);
+syntax_expression(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag);
 
 static int32_t
-syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag);
+syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag);
 
 
 
@@ -159,6 +159,11 @@ syntax_idstrcmp(symbol_t *id1, char *name)
 	return strcmp(nbid1->value, name);
 }
 
+
+typedef enum syntax_flag_type {
+	SYNTAX_FLAG_NONE 			= 1 << 0,
+	SYNTAX_FLAG_INIT			= 1 << 1
+} syntax_flag_type_t;
 
 typedef enum syntax_route_type {
 	SYNTAX_ROUTE_NONE 			= 0,
@@ -824,6 +829,10 @@ syntax_id(program_t *program, table_t *frame, symbol_t *target, list_t *response
 				if (syntax_idcmp(key, target) == 0)
 				{
 					it1->reference += 1;
+					if ((flag & SYNTAX_FLAG_INIT) == SYNTAX_FLAG_INIT)
+					{
+						it1->initalize = 1;
+					}
 					ilist_t *r1;
 					r1 = list_rpush(response, it1->original);
 					if (r1 == NULL)
@@ -1144,7 +1153,7 @@ syntax_primary(program_t *program, table_t *frame, symbol_t *target, list_t *res
 }
 
 static int32_t
-syntax_attribute_class(program_t *program, table_t *frame, symbol_t *base, symbol_t *target, list_t *response, uint64_t flag)
+syntax_redirect(program_t *program, table_t *frame, symbol_t *base, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *a1;
 	for (a1 = base->begin;a1 != base->end;a1 = a1->next)
@@ -1211,7 +1220,7 @@ syntax_attribute_class(program_t *program, table_t *frame, symbol_t *base, symbo
 							if (symbol_check_type(r2, SYMBOL_CLASS))
 							{
 								int32_t r3;
-								r3 = syntax_attribute_class(program, frame, r2, target, response, flag);
+								r3 = syntax_redirect(program, frame, r2, target, response, flag);
 								if (r3 == -1)
 								{
 									return -1;
@@ -1272,7 +1281,7 @@ syntax_attribute(program_t *program, table_t *frame, symbol_t *target, list_t *r
 						if (symbol_check_type(s1, SYMBOL_CLASS))
 						{
 							int32_t r2;
-							r2 = syntax_attribute_class(program, frame, s1, target, response, flag);
+							r2 = syntax_redirect(program, frame, s1, target, response, flag);
 							if (r2 == -1)
 							{
 								return -1;
@@ -1297,10 +1306,10 @@ syntax_attribute(program_t *program, table_t *frame, symbol_t *target, list_t *r
 }
 
 static int32_t
-syntax_composite(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_composite(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *key;
-	key = syntax_extract_with(current, SYMBOL_KEY);
+	key = syntax_extract_with(target, SYMBOL_KEY);
 	if (key)
 	{
 		list_t response1;
@@ -1319,7 +1328,7 @@ syntax_composite(program_t *program, table_t *frame, symbol_t *current, list_t *
 		else
 		{
 			symbol_t *arguments;
-			arguments = syntax_extract_with(current, SYMBOL_ARGUMENTS);
+			arguments = syntax_extract_with(target, SYMBOL_ARGUMENTS);
 			if (arguments)
 			{
 				ilist_t *a1;
@@ -1380,10 +1389,10 @@ syntax_composite(program_t *program, table_t *frame, symbol_t *current, list_t *
 }
 
 static int32_t
-syntax_call(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_call(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *key;
-	key = syntax_extract_with(current, SYMBOL_KEY);
+	key = syntax_extract_with(target, SYMBOL_KEY);
 	if (key)
 	{
 		list_t response1;
@@ -1402,7 +1411,7 @@ syntax_call(program_t *program, table_t *frame, symbol_t *current, list_t *respo
 		else
 		{
 			symbol_t *arguments;
-			arguments = syntax_extract_with(current, SYMBOL_ARGUMENTS);
+			arguments = syntax_extract_with(target, SYMBOL_ARGUMENTS);
 			if (arguments)
 			{
 				ilist_t *a1;
@@ -1478,35 +1487,35 @@ syntax_call(program_t *program, table_t *frame, symbol_t *current, list_t *respo
 }
 
 static int32_t
-syntax_postfix(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_postfix(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	if (symbol_check_type(current, SYMBOL_ATTR))
+	if (symbol_check_type(target, SYMBOL_ATTR))
 	{
-		return syntax_attribute(program, frame, current, response, flag);
+		return syntax_attribute(program, frame, target, response, flag);
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_COMPOSITE))
+	if (symbol_check_type(target, SYMBOL_COMPOSITE))
 	{
-		return syntax_composite(program, frame, current, response, flag);
+		return syntax_composite(program, frame, target, response, flag);
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_CALL))
+	if (symbol_check_type(target, SYMBOL_CALL))
 	{
-		return syntax_call(program, frame, current, response, flag);
+		return syntax_call(program, frame, target, response, flag);
 	}
 	else
 	{
-		return syntax_primary(program, frame, current, response, flag);
+		return syntax_primary(program, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_prefix(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_prefix(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	if (symbol_check_type(current, SYMBOL_TILDE))
+	if (symbol_check_type(target, SYMBOL_TILDE))
 	{
 		symbol_t *right;
-		right = syntax_extract_with(current, SYMBOL_RIGHT);
+		right = syntax_extract_with(target, SYMBOL_RIGHT);
 		if (right)
 		{
 			return syntax_prefix(program, frame, right, response, flag);
@@ -1514,10 +1523,10 @@ syntax_prefix(program_t *program, table_t *frame, symbol_t *current, list_t *res
 		return 0;
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_NOT))
+	if (symbol_check_type(target, SYMBOL_NOT))
 	{
 		symbol_t *right;
-		right = syntax_extract_with(current, SYMBOL_RIGHT);
+		right = syntax_extract_with(target, SYMBOL_RIGHT);
 		if (right)
 		{
 			return syntax_prefix(program, frame, right, response, flag);
@@ -1525,10 +1534,10 @@ syntax_prefix(program_t *program, table_t *frame, symbol_t *current, list_t *res
 		return 0;
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_NEG))
+	if (symbol_check_type(target, SYMBOL_NEG))
 	{
 		symbol_t *right;
-		right = syntax_extract_with(current, SYMBOL_RIGHT);
+		right = syntax_extract_with(target, SYMBOL_RIGHT);
 		if (right)
 		{
 			return syntax_prefix(program, frame, right, response, flag);
@@ -1536,10 +1545,10 @@ syntax_prefix(program_t *program, table_t *frame, symbol_t *current, list_t *res
 		return 0;
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_POS))
+	if (symbol_check_type(target, SYMBOL_POS))
 	{
 		symbol_t *right;
-		right = syntax_extract_with(current, SYMBOL_RIGHT);
+		right = syntax_extract_with(target, SYMBOL_RIGHT);
 		if (right)
 		{
 			return syntax_prefix(program, frame, right, response, flag);
@@ -1547,10 +1556,10 @@ syntax_prefix(program_t *program, table_t *frame, symbol_t *current, list_t *res
 		return 0;
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_TYPEOF))
+	if (symbol_check_type(target, SYMBOL_TYPEOF))
 	{
 		symbol_t *right;
-		right = syntax_extract_with(current, SYMBOL_RIGHT);
+		right = syntax_extract_with(target, SYMBOL_RIGHT);
 		if (right)
 		{
 			return syntax_prefix(program, frame, right, response, flag);
@@ -1558,13 +1567,13 @@ syntax_prefix(program_t *program, table_t *frame, symbol_t *current, list_t *res
 		return 0;
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_SIZEOF))
+	if (symbol_check_type(target, SYMBOL_SIZEOF))
 	{
-		return syntax_number(program, frame, current, response, flag);
+		return syntax_number(program, frame, target, response, flag);
 	}
 	else
 	{
-		return syntax_postfix(program, frame, current, response, flag);
+		return syntax_postfix(program, frame, target, response, flag);
 	}
 }
 
@@ -1575,12 +1584,12 @@ syntax_get_return(program_t *program, table_t *frame, symbol_t *t1, list_t *resp
 }
 
 static int32_t
-syntax_power(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_power(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	if (symbol_check_type(current, SYMBOL_POW))
+	if (symbol_check_type(target, SYMBOL_POW))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -1599,7 +1608,7 @@ syntax_power(program_t *program, table_t *frame, symbol_t *current, list_t *resp
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -1677,17 +1686,17 @@ syntax_power(program_t *program, table_t *frame, symbol_t *current, list_t *resp
 	}
 	else
 	{
-		return syntax_prefix(program, frame, current, response, flag);
+		return syntax_prefix(program, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_multiplicative(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_multiplicative(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	if (symbol_check_type(current, SYMBOL_MUL))
+	if (symbol_check_type(target, SYMBOL_MUL))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -1706,7 +1715,7 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *current, lis
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -1783,10 +1792,10 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *current, lis
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_DIV))
+	if (symbol_check_type(target, SYMBOL_DIV))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -1805,7 +1814,7 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *current, lis
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -1882,10 +1891,10 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *current, lis
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_MOD))
+	if (symbol_check_type(target, SYMBOL_MOD))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -1904,7 +1913,7 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *current, lis
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -1981,10 +1990,10 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *current, lis
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_EPI))
+	if (symbol_check_type(target, SYMBOL_EPI))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -2003,7 +2012,7 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *current, lis
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -2081,17 +2090,17 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *current, lis
 	}
 	else
 	{
-		return syntax_prefix(program, frame, current, response, flag);
+		return syntax_prefix(program, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_addative(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_addative(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	if (symbol_check_type(current, SYMBOL_PLUS))
+	if (symbol_check_type(target, SYMBOL_PLUS))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -2110,7 +2119,7 @@ syntax_addative(program_t *program, table_t *frame, symbol_t *current, list_t *r
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -2187,10 +2196,10 @@ syntax_addative(program_t *program, table_t *frame, symbol_t *current, list_t *r
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_MINUS))
+	if (symbol_check_type(target, SYMBOL_MINUS))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -2209,7 +2218,7 @@ syntax_addative(program_t *program, table_t *frame, symbol_t *current, list_t *r
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -2287,17 +2296,17 @@ syntax_addative(program_t *program, table_t *frame, symbol_t *current, list_t *r
 	}
 	else
 	{
-		return syntax_multiplicative(program, frame, current, response, flag);
+		return syntax_multiplicative(program, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_shifting(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_shifting(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	if (symbol_check_type(current, SYMBOL_SHL))
+	if (symbol_check_type(target, SYMBOL_SHL))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -2316,7 +2325,7 @@ syntax_shifting(program_t *program, table_t *frame, symbol_t *current, list_t *r
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -2393,10 +2402,10 @@ syntax_shifting(program_t *program, table_t *frame, symbol_t *current, list_t *r
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_SHR))
+	if (symbol_check_type(target, SYMBOL_SHR))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -2415,7 +2424,7 @@ syntax_shifting(program_t *program, table_t *frame, symbol_t *current, list_t *r
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -2493,17 +2502,17 @@ syntax_shifting(program_t *program, table_t *frame, symbol_t *current, list_t *r
 	}
 	else
 	{
-		return syntax_addative(program, frame, current, response, flag);
+		return syntax_addative(program, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_relational(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_relational(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	if (symbol_check_type(current, SYMBOL_LT))
+	if (symbol_check_type(target, SYMBOL_LT))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -2522,7 +2531,7 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *current, list_t 
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -2599,10 +2608,10 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *current, list_t 
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_GT))
+	if (symbol_check_type(target, SYMBOL_GT))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -2621,7 +2630,7 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *current, list_t 
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -2698,10 +2707,10 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *current, list_t 
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_LE))
+	if (symbol_check_type(target, SYMBOL_LE))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -2720,7 +2729,7 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *current, list_t 
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -2797,10 +2806,10 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *current, list_t 
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_GE))
+	if (symbol_check_type(target, SYMBOL_GE))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -2819,7 +2828,7 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *current, list_t 
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -2897,17 +2906,17 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *current, list_t 
 	}
 	else
 	{
-		return syntax_shifting(program, frame, current, response, flag);
+		return syntax_shifting(program, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_equality(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_equality(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	if (symbol_check_type(current, SYMBOL_EQ))
+	if (symbol_check_type(target, SYMBOL_EQ))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -2926,7 +2935,7 @@ syntax_equality(program_t *program, table_t *frame, symbol_t *current, list_t *r
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -3003,10 +3012,10 @@ syntax_equality(program_t *program, table_t *frame, symbol_t *current, list_t *r
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_NEQ))
+	if (symbol_check_type(target, SYMBOL_NEQ))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -3025,7 +3034,7 @@ syntax_equality(program_t *program, table_t *frame, symbol_t *current, list_t *r
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -3103,17 +3112,17 @@ syntax_equality(program_t *program, table_t *frame, symbol_t *current, list_t *r
 	}
 	else
 	{
-		return syntax_relational(program, frame, current, response, flag);
+		return syntax_relational(program, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_bitwise_and(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_bitwise_and(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	if (symbol_check_type(current, SYMBOL_AND))
+	if (symbol_check_type(target, SYMBOL_AND))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -3132,7 +3141,7 @@ syntax_bitwise_and(program_t *program, table_t *frame, symbol_t *current, list_t
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -3210,17 +3219,17 @@ syntax_bitwise_and(program_t *program, table_t *frame, symbol_t *current, list_t
 	}
 	else
 	{
-		return syntax_equality(program, frame, current, response, flag);
+		return syntax_equality(program, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_bitwise_xor(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_bitwise_xor(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	if (symbol_check_type(current, SYMBOL_XOR))
+	if (symbol_check_type(target, SYMBOL_XOR))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -3239,7 +3248,7 @@ syntax_bitwise_xor(program_t *program, table_t *frame, symbol_t *current, list_t
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -3317,17 +3326,17 @@ syntax_bitwise_xor(program_t *program, table_t *frame, symbol_t *current, list_t
 	}
 	else
 	{
-		return syntax_bitwise_and(program, frame, current, response, flag);
+		return syntax_bitwise_and(program, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_bitwise_or(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_bitwise_or(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	if (symbol_check_type(current, SYMBOL_OR))
+	if (symbol_check_type(target, SYMBOL_OR))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -3346,7 +3355,7 @@ syntax_bitwise_or(program_t *program, table_t *frame, symbol_t *current, list_t 
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -3424,17 +3433,17 @@ syntax_bitwise_or(program_t *program, table_t *frame, symbol_t *current, list_t 
 	}
 	else
 	{
-		return syntax_bitwise_xor(program, frame, current, response, flag);
+		return syntax_bitwise_xor(program, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_logical_and(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_logical_and(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	if (symbol_check_type(current, SYMBOL_LAND))
+	if (symbol_check_type(target, SYMBOL_LAND))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -3453,7 +3462,7 @@ syntax_logical_and(program_t *program, table_t *frame, symbol_t *current, list_t
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -3531,17 +3540,17 @@ syntax_logical_and(program_t *program, table_t *frame, symbol_t *current, list_t
 	}
 	else
 	{
-		return syntax_bitwise_or(program, frame, current, response, flag);
+		return syntax_bitwise_or(program, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_logical_or(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_logical_or(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	if (symbol_check_type(current, SYMBOL_LOR))
+	if (symbol_check_type(target, SYMBOL_LOR))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -3560,7 +3569,7 @@ syntax_logical_or(program_t *program, table_t *frame, symbol_t *current, list_t 
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -3638,17 +3647,17 @@ syntax_logical_or(program_t *program, table_t *frame, symbol_t *current, list_t 
 	}
 	else
 	{
-		return syntax_logical_and(program, frame, current, response, flag);
+		return syntax_logical_and(program, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_conditional(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_conditional(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	if (symbol_check_type(current, SYMBOL_CONDITIONAL))
+	if (symbol_check_type(target, SYMBOL_CONDITIONAL))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			int32_t r1;
@@ -3666,7 +3675,7 @@ syntax_conditional(program_t *program, table_t *frame, symbol_t *current, list_t
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 					int32_t r2;
@@ -3687,53 +3696,28 @@ syntax_conditional(program_t *program, table_t *frame, symbol_t *current, list_t
 	}
 	else
 	{
-		return syntax_logical_or(program, frame, current, response, flag);
+		return syntax_logical_or(program, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_expression(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_expression(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	return syntax_conditional(program, frame, current, response, flag);
+	return syntax_conditional(program, frame, target, response, flag);
 }
 
 static int32_t
-syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	if (symbol_check_type(current, SYMBOL_DEFINE))
-	{
-		symbol_t *right;
-		right = syntax_extract_with(current, SYMBOL_RIGHT);
-		if (right)
-		{
-			int32_t r1;
-			r1 = syntax_expression(program, frame, right, response, flag);
-			if (r1 == -1)
-			{
-				return -1;
-			}
-			else
-			if (r1 == 0)
-			{
-				syntax_error(program, right, "reference not found");
-				return -1;
-			}
-			else
-			{
-				return 1;
-			}
-		}
-	}
-	else
-	if (symbol_check_type(current, SYMBOL_ASSIGN))
+	if (symbol_check_type(target, SYMBOL_ASSIGN))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, frame, left, &response1, flag | SYNTAX_FLAG_INIT);
 			if (r1 == -1)
 			{
 				return -1;
@@ -3747,7 +3731,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 
@@ -3824,10 +3808,10 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_ADD_ASSIGN))
+	if (symbol_check_type(target, SYMBOL_ADD_ASSIGN))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -3846,7 +3830,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 					list_t response2;
@@ -3983,10 +3967,10 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_SUB_ASSIGN))
+	if (symbol_check_type(target, SYMBOL_SUB_ASSIGN))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -4005,7 +3989,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 					list_t response2;
@@ -4142,10 +4126,10 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_MUL_ASSIGN))
+	if (symbol_check_type(target, SYMBOL_MUL_ASSIGN))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -4164,7 +4148,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 					list_t response2;
@@ -4301,10 +4285,10 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_DIV_ASSIGN))
+	if (symbol_check_type(target, SYMBOL_DIV_ASSIGN))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -4323,7 +4307,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 					list_t response2;
@@ -4460,10 +4444,10 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_MOD_ASSIGN))
+	if (symbol_check_type(target, SYMBOL_MOD_ASSIGN))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -4482,7 +4466,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 					list_t response2;
@@ -4619,10 +4603,10 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_AND_ASSIGN))
+	if (symbol_check_type(target, SYMBOL_AND_ASSIGN))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -4641,7 +4625,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 					list_t response2;
@@ -4778,10 +4762,10 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_OR_ASSIGN))
+	if (symbol_check_type(target, SYMBOL_OR_ASSIGN))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -4800,7 +4784,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 					list_t response2;
@@ -4937,10 +4921,10 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_SHL_ASSIGN))
+	if (symbol_check_type(target, SYMBOL_SHL_ASSIGN))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -4959,7 +4943,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 					list_t response2;
@@ -5096,10 +5080,10 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 		}
 	}
 	else
-	if (symbol_check_type(current, SYMBOL_SHR_ASSIGN))
+	if (symbol_check_type(target, SYMBOL_SHR_ASSIGN))
 	{
 		symbol_t *left;
-		left = syntax_extract_with(current, SYMBOL_LEFT);
+		left = syntax_extract_with(target, SYMBOL_LEFT);
 		if (left)
 		{
 			list_t response1;
@@ -5118,7 +5102,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 			else
 			{
 				symbol_t *right;
-				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
 					list_t response2;
@@ -5256,7 +5240,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 	}
 	else
 	{
-		return syntax_expression(program, frame, current, response, flag);
+		return syntax_expression(program, frame, target, response, flag);
 	}
 }
 
@@ -5265,17 +5249,17 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *res
 
 
 static int32_t
-syntax_return(program_t *program, symbol_t *current)
+syntax_return(program_t *program, symbol_t *target)
 {
 	return 1;
 }
 
 static int32_t
-syntax_continue(program_t *program, symbol_t *current)
+syntax_continue(program_t *program, symbol_t *target)
 {
 	/*
 	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
+	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		int32_t result;
 		result = syntax_expression(program, a);
@@ -5290,11 +5274,11 @@ syntax_continue(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_break(program_t *program, symbol_t *current)
+syntax_break(program_t *program, symbol_t *target)
 {
 	/*
 	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
+	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		int32_t result;
 		result = syntax_expression(program, a);
@@ -5308,11 +5292,11 @@ syntax_break(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_throw(program_t *program, symbol_t *current)
+syntax_throw(program_t *program, symbol_t *target)
 {
 	/*
 	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
+	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		int32_t result;
 		result = syntax_expression(program, a);
@@ -5327,17 +5311,17 @@ syntax_throw(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_var(program_t *program, symbol_t *current)
+syntax_var(program_t *program, symbol_t *target)
 {
 	symbol_t *ck;
-	ck = syntax_extract_with(current, SYMBOL_KEY);
+	ck = syntax_extract_with(target, SYMBOL_KEY);
 	if (ck)
 	{
-		symbol_t *root = current->parent;
+		symbol_t *root = target->parent;
 		if (root)
 		{
 			symbol_t *a;
-			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			for (a = root->begin;(a != root->end) && (a != target);a = a->next)
 			{
 				if (symbol_check_type(a, SYMBOL_CLASS))
 				{
@@ -5438,13 +5422,13 @@ syntax_var(program_t *program, symbol_t *current)
 		}
 		else
 		{
-			syntax_error(program, current, "variable without parent");
+			syntax_error(program, target, "variable without parent");
 			return -1;
 		}
 	}
 	else
 	{
-		syntax_error(program, current, "variable without key");
+		syntax_error(program, target, "variable without key");
 		return -1;
 	}
 
@@ -5452,17 +5436,17 @@ syntax_var(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_if(program_t *program, symbol_t *current)
+syntax_if(program_t *program, symbol_t *target)
 {
 	symbol_t *ck;
-	ck = syntax_extract_with(current, SYMBOL_KEY);
+	ck = syntax_extract_with(target, SYMBOL_KEY);
 	if (ck)
 	{
-		symbol_t *root = current->parent;
+		symbol_t *root = target->parent;
 		if (root)
 		{
 			symbol_t *a;
-			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			for (a = root->begin;(a != root->end) && (a != target);a = a->next)
 			{
 				if (symbol_check_type(a, SYMBOL_VAR))
 				{
@@ -5548,14 +5532,14 @@ syntax_if(program_t *program, symbol_t *current)
 		}
 		else
 		{
-			syntax_error(program, current, "if without parent");
+			syntax_error(program, target, "if without parent");
 			return -1;
 		}
 	}
 
 
 	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
+	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		if (symbol_check_type(a, SYMBOL_CONDITION))
 		{
@@ -5608,10 +5592,10 @@ syntax_if(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_catch(program_t *program, symbol_t *current)
+syntax_catch(program_t *program, symbol_t *target)
 {
 	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
+	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		if (symbol_check_type(a, SYMBOL_BLOCK))
 		{
@@ -5628,10 +5612,10 @@ syntax_catch(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_try(program_t *program, symbol_t *current)
+syntax_try(program_t *program, symbol_t *target)
 {
 	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
+	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		if (symbol_check_type(a, SYMBOL_BLOCK))
 		{
@@ -5667,17 +5651,17 @@ syntax_try(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_for(program_t *program, symbol_t *current)
+syntax_for(program_t *program, symbol_t *target)
 {
 	symbol_t *ck;
-	ck = syntax_extract_with(current, SYMBOL_KEY);
+	ck = syntax_extract_with(target, SYMBOL_KEY);
 	if (ck)
 	{
-		symbol_t *root = current->parent;
+		symbol_t *root = target->parent;
 		if (root)
 		{
 			symbol_t *a;
-			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			for (a = root->begin;(a != root->end) && (a != target);a = a->next)
 			{
 				if (symbol_check_type(a, SYMBOL_VAR))
 				{
@@ -5763,13 +5747,13 @@ syntax_for(program_t *program, symbol_t *current)
 		}
 		else
 		{
-			syntax_error(program, current, "if without parent");
+			syntax_error(program, target, "if without parent");
 			return -1;
 		}
 	}
 
 	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
+	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		if (symbol_check_type(a, SYMBOL_INITIALIZER))
 		{
@@ -5847,17 +5831,17 @@ syntax_for(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_forin(program_t *program, symbol_t *current)
+syntax_forin(program_t *program, symbol_t *target)
 {
 	symbol_t *ck;
-	ck = syntax_extract_with(current, SYMBOL_KEY);
+	ck = syntax_extract_with(target, SYMBOL_KEY);
 	if (ck)
 	{
-		symbol_t *root = current->parent;
+		symbol_t *root = target->parent;
 		if (root)
 		{
 			symbol_t *a;
-			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			for (a = root->begin;(a != root->end) && (a != target);a = a->next)
 			{
 				if (symbol_check_type(a, SYMBOL_VAR))
 				{
@@ -5943,13 +5927,13 @@ syntax_forin(program_t *program, symbol_t *current)
 		}
 		else
 		{
-			syntax_error(program, current, "for without parent");
+			syntax_error(program, target, "for without parent");
 			return -1;
 		}
 	}
 
 	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
+	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		if (symbol_check_type(a, SYMBOL_INITIALIZER))
 		{
@@ -5995,68 +5979,68 @@ syntax_forin(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_statement(program_t *program, symbol_t *current)
+syntax_statement(program_t *program, symbol_t *target)
 {
 	int32_t result = 1;
 
-	if (symbol_check_type(current, SYMBOL_BLOCK))
+	if (symbol_check_type(target, SYMBOL_BLOCK))
 	{
-		result = syntax_block(program, current);
+		result = syntax_block(program, target);
 	}
 	else 
-	if (symbol_check_type(current, SYMBOL_IF))
+	if (symbol_check_type(target, SYMBOL_IF))
 	{
-		result = syntax_if(program, current);
+		result = syntax_if(program, target);
 	}
 	else 
-	if (symbol_check_type(current, SYMBOL_TRY))
+	if (symbol_check_type(target, SYMBOL_TRY))
 	{
-		result = syntax_try(program, current);
+		result = syntax_try(program, target);
 	}
 	else 
-	if (symbol_check_type(current, SYMBOL_FOR))
+	if (symbol_check_type(target, SYMBOL_FOR))
 	{
-		result = syntax_for(program, current);
+		result = syntax_for(program, target);
 	}
 	else 
-	if (symbol_check_type(current, SYMBOL_FORIN))
+	if (symbol_check_type(target, SYMBOL_FORIN))
 	{
-		result = syntax_forin(program, current);
+		result = syntax_forin(program, target);
 	}
 	else 
-	if (symbol_check_type(current, SYMBOL_FUNCTION))
+	if (symbol_check_type(target, SYMBOL_FUNCTION))
 	{
-		result = syntax_function(program, current);
+		result = syntax_function(program, target);
 	}
 	else 
-	if (symbol_check_type(current, SYMBOL_CONTINUE))
+	if (symbol_check_type(target, SYMBOL_CONTINUE))
 	{
-		result = syntax_continue(program, current);
+		result = syntax_continue(program, target);
 	}
 	else 
-	if (symbol_check_type(current, SYMBOL_BREAK))
+	if (symbol_check_type(target, SYMBOL_BREAK))
 	{
-		result = syntax_break(program, current);
+		result = syntax_break(program, target);
 	}
 	else 
-	if (symbol_check_type(current, SYMBOL_RETURN))
+	if (symbol_check_type(target, SYMBOL_RETURN))
 	{
-		result = syntax_return(program, current);
+		result = syntax_return(program, target);
 	}
 	else 
-	if (symbol_check_type(current, SYMBOL_THROW))
+	if (symbol_check_type(target, SYMBOL_THROW))
 	{
-		result = syntax_throw(program, current);
+		result = syntax_throw(program, target);
 	}
 	else 
-	if (symbol_check_type(current, SYMBOL_VAR))
+	if (symbol_check_type(target, SYMBOL_VAR))
 	{
-		result = syntax_var(program, current);
+		result = syntax_var(program, target);
 	}
 	else
 	{
 		/*
-		result = syntax_assign(program, current);
+		result = syntax_assign(program, target);
 		*/
 	}
 
@@ -6064,10 +6048,10 @@ syntax_statement(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_block(program_t *program, symbol_t *current)
+syntax_block(program_t *program, symbol_t *target)
 {
 	symbol_t *a;
-	for (a = current->begin;(a != current->end);a = a->next)
+	for (a = target->begin;(a != target->end);a = a->next)
 	{
 		int32_t result;
 		result = syntax_statement(program, a);
@@ -6082,17 +6066,17 @@ syntax_block(program_t *program, symbol_t *current)
 
 
 static int32_t
-syntax_generic(program_t *program, symbol_t *current)
+syntax_generic(program_t *program, symbol_t *target)
 {
 	symbol_t *ck;
-	ck = syntax_extract_with(current, SYMBOL_KEY);
+	ck = syntax_extract_with(target, SYMBOL_KEY);
 	if (ck)
 	{
-		symbol_t *root = current->parent;
+		symbol_t *root = target->parent;
 		if (root)
 		{
 			symbol_t *a;
-			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			for (a = root->begin;(a != root->end) && (a != target);a = a->next)
 			{
 				if (symbol_check_type(a, SYMBOL_GENERIC))
 				{
@@ -6121,23 +6105,23 @@ syntax_generic(program_t *program, symbol_t *current)
 		}
 		else
 		{
-			syntax_error(program, current, "generic without parent");
+			syntax_error(program, target, "generic without parent");
 			return -1;
 		}
 	}
 	else
 	{
-		syntax_error(program, current, "generic without key");
+		syntax_error(program, target, "generic without key");
 		return -1;
 	}
 	return 1;
 }
 
 static int32_t
-syntax_generics(program_t *program, symbol_t *current)
+syntax_generics(program_t *program, symbol_t *target)
 {
 	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
+	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		int32_t result;
 		result = syntax_generic(program, a);
@@ -6151,17 +6135,17 @@ syntax_generics(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_parameter(program_t *program, symbol_t *current)
+syntax_parameter(program_t *program, symbol_t *target)
 {
 	symbol_t *ck;
-	ck = syntax_extract_with(current, SYMBOL_KEY);
+	ck = syntax_extract_with(target, SYMBOL_KEY);
 	if (ck)
 	{
-		symbol_t *root = current->parent;
+		symbol_t *root = target->parent;
 		if (root)
 		{
 			symbol_t *a;
-			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			for (a = root->begin;(a != root->end) && (a != target);a = a->next)
 			{
 				if (symbol_check_type(a, SYMBOL_PARAMETER))
 				{
@@ -6190,23 +6174,23 @@ syntax_parameter(program_t *program, symbol_t *current)
 		}
 		else
 		{
-			syntax_error(program, current, "parameter without parent");
+			syntax_error(program, target, "parameter without parent");
 			return -1;
 		}
 	}
 	else
 	{
-		syntax_error(program, current, "parameter without key");
+		syntax_error(program, target, "parameter without key");
 		return -1;
 	}
 	return 1;
 }
 
 static int32_t
-syntax_parameters(program_t *program, symbol_t *current)
+syntax_parameters(program_t *program, symbol_t *target)
 {
 	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
+	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		int32_t result;
 		result = syntax_parameter(program, a);
@@ -6219,7 +6203,7 @@ syntax_parameters(program_t *program, symbol_t *current)
 		ak = syntax_extract_with(a, SYMBOL_KEY);
 		if (ak)
 		{
-			symbol_t *root = current->parent;
+			symbol_t *root = target->parent;
 			symbol_t *gs;
 			gs = syntax_only_with(root, SYMBOL_GENERICS);
 			if (gs)
@@ -6263,17 +6247,17 @@ syntax_parameters(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_heritage(program_t *program, symbol_t *current)
+syntax_heritage(program_t *program, symbol_t *target)
 {
 	symbol_t *ck;
-	ck = syntax_extract_with(current, SYMBOL_KEY);
+	ck = syntax_extract_with(target, SYMBOL_KEY);
 	if (ck)
 	{
-		symbol_t *root = current->parent;
+		symbol_t *root = target->parent;
 		if (root)
 		{
 			symbol_t *a;
-			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			for (a = root->begin;(a != root->end) && (a != target);a = a->next)
 			{
 				if (symbol_check_type(a, SYMBOL_HERITAGE))
 				{
@@ -6302,18 +6286,18 @@ syntax_heritage(program_t *program, symbol_t *current)
 		}
 		else
 		{
-			syntax_error(program, current, "heritage without parent");
+			syntax_error(program, target, "heritage without parent");
 			return -1;
 		}
 	}
 	else
 	{
-		syntax_error(program, current, "heritage without key");
+		syntax_error(program, target, "heritage without key");
 		return -1;
 	}
 
 	symbol_t *ct;
-	ct = syntax_extract_with(current, SYMBOL_TYPE);
+	ct = syntax_extract_with(target, SYMBOL_TYPE);
 	if (ct)
 	{
 
@@ -6323,10 +6307,10 @@ syntax_heritage(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_heritages(program_t *program, symbol_t *current)
+syntax_heritages(program_t *program, symbol_t *target)
 {
 	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
+	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		int32_t result;
 		result = syntax_heritage(program, a);
@@ -6339,7 +6323,7 @@ syntax_heritages(program_t *program, symbol_t *current)
 		ak = syntax_extract_with(a, SYMBOL_KEY);
 		if (ak)
 		{
-			symbol_t *root = current->parent;
+			symbol_t *root = target->parent;
 			symbol_t *gs;
 			gs = syntax_only_with(root, SYMBOL_GENERICS);
 			if (gs)
@@ -6383,17 +6367,17 @@ syntax_heritages(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_member(program_t *program, symbol_t *current)
+syntax_member(program_t *program, symbol_t *target)
 {
 	symbol_t *ck;
-	ck = syntax_extract_with(current, SYMBOL_KEY);
+	ck = syntax_extract_with(target, SYMBOL_KEY);
 	if (ck)
 	{
-		symbol_t *root = current->parent;
+		symbol_t *root = target->parent;
 		if (root)
 		{
 			symbol_t *a;
-			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			for (a = root->begin;(a != root->end) && (a != target);a = a->next)
 			{
 				if (symbol_check_type(a, SYMBOL_MEMBER))
 				{
@@ -6422,13 +6406,13 @@ syntax_member(program_t *program, symbol_t *current)
 		}
 		else
 		{
-			syntax_error(program, current, "emum member without parent");
+			syntax_error(program, target, "emum member without parent");
 			return -1;
 		}
 	}
 	else
 	{
-		syntax_error(program, current, "emum member without key");
+		syntax_error(program, target, "emum member without key");
 		return -1;
 	}
 
@@ -6436,10 +6420,10 @@ syntax_member(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_members(program_t *program, symbol_t *current)
+syntax_members(program_t *program, symbol_t *target)
 {
 	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
+	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		int32_t result;
 		result = syntax_member(program, a);
@@ -6452,17 +6436,17 @@ syntax_members(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_enum(program_t *program, symbol_t *current)
+syntax_enum(program_t *program, symbol_t *target)
 {
 	symbol_t *ck;
-	ck = syntax_extract_with(current, SYMBOL_KEY);
+	ck = syntax_extract_with(target, SYMBOL_KEY);
 	if (ck)
 	{
-		symbol_t *root = current->parent;
+		symbol_t *root = target->parent;
 		if (root)
 		{
 			symbol_t *a;
-			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			for (a = root->begin;(a != root->end) && (a != target);a = a->next)
 			{
 				if (symbol_check_type(a, SYMBOL_CLASS))
 				{
@@ -6843,18 +6827,18 @@ syntax_enum(program_t *program, symbol_t *current)
 		}
 		else
 		{
-			syntax_error(program, current, "enum without parent");
+			syntax_error(program, target, "enum without parent");
 			return -1;
 		}
 	}
 	else
 	{
-		syntax_error(program, current, "enum without key");
+		syntax_error(program, target, "enum without key");
 		return -1;
 	}
 
 	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
+	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		if (symbol_check_type(a, SYMBOL_MEMBERS))
 		{
@@ -6871,17 +6855,17 @@ syntax_enum(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_property(program_t *program, symbol_t *current)
+syntax_property(program_t *program, symbol_t *target)
 {
 	symbol_t *ck;
-	ck = syntax_extract_with(current, SYMBOL_KEY);
+	ck = syntax_extract_with(target, SYMBOL_KEY);
 	if (ck)
 	{
-		symbol_t *root = current->parent;
+		symbol_t *root = target->parent;
 		if (root)
 		{
 			symbol_t *a;
-			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			for (a = root->begin;(a != root->end) && (a != target);a = a->next)
 			{
 				if (symbol_check_type(a, SYMBOL_CLASS))
 				{
@@ -7238,13 +7222,13 @@ syntax_property(program_t *program, symbol_t *current)
 		}
 		else
 		{
-			syntax_error(program, current, "property without parent");
+			syntax_error(program, target, "property without parent");
 			return -1;
 		}
 	}
 	else
 	{
-		syntax_error(program, current, "property without key");
+		syntax_error(program, target, "property without key");
 		return -1;
 	}
 
@@ -7252,10 +7236,10 @@ syntax_property(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_function(program_t *program, symbol_t *current)
+syntax_function(program_t *program, symbol_t *target)
 {
 	symbol_t *ck;
-	ck = syntax_extract_with(current, SYMBOL_KEY);
+	ck = syntax_extract_with(target, SYMBOL_KEY);
 	if (ck)
 	{
 		int32_t result;
@@ -7263,10 +7247,10 @@ syntax_function(program_t *program, symbol_t *current)
 		if (result == 0)
 		{
 			symbol_t *gs;
-			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			gs = syntax_only_with(target, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "constructor with generic");
+				syntax_error(program, target, "constructor with generic");
 				return -1;
 			}
 		}
@@ -7275,20 +7259,20 @@ syntax_function(program_t *program, symbol_t *current)
 		if (result == 0)
 		{
 			symbol_t *gs;
-			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			gs = syntax_only_with(target, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "operator + with generics");
+				syntax_error(program, target, "operator + with generics");
 				return -1;
 			}
 
 			symbol_t *ps;
-			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			ps = syntax_only_with(target, SYMBOL_PARAMETERS);
 			if (ps)
 			{
 				if (symbol_count(ps) > 1)
 				{
-					syntax_error(program, current, "operator + with multiple parameters");
+					syntax_error(program, target, "operator + with multiple parameters");
 					return -1;
 				}
 			}
@@ -7298,20 +7282,20 @@ syntax_function(program_t *program, symbol_t *current)
 		if (result == 0)
 		{
 			symbol_t *gs;
-			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			gs = syntax_only_with(target, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "operator - with generics");
+				syntax_error(program, target, "operator - with generics");
 				return -1;
 			}
 
 			symbol_t *ps;
-			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			ps = syntax_only_with(target, SYMBOL_PARAMETERS);
 			if (ps)
 			{
 				if (symbol_count(ps) > 1)
 				{
-					syntax_error(program, current, "operator + with multiple parameters");
+					syntax_error(program, target, "operator + with multiple parameters");
 					return -1;
 				}
 			}
@@ -7321,20 +7305,20 @@ syntax_function(program_t *program, symbol_t *current)
 		if (result == 0)
 		{
 			symbol_t *gs;
-			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			gs = syntax_only_with(target, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "operator * with generics");
+				syntax_error(program, target, "operator * with generics");
 				return -1;
 			}
 
 			symbol_t *ps;
-			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			ps = syntax_only_with(target, SYMBOL_PARAMETERS);
 			if (ps)
 			{
 				if (symbol_count(ps) > 1)
 				{
-					syntax_error(program, current, "operator * with multiple parameters");
+					syntax_error(program, target, "operator * with multiple parameters");
 					return -1;
 				}
 			}
@@ -7344,20 +7328,20 @@ syntax_function(program_t *program, symbol_t *current)
 		if (result == 0)
 		{
 			symbol_t *gs;
-			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			gs = syntax_only_with(target, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "operator / with generics");
+				syntax_error(program, target, "operator / with generics");
 				return -1;
 			}
 
 			symbol_t *ps;
-			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			ps = syntax_only_with(target, SYMBOL_PARAMETERS);
 			if (ps)
 			{
 				if (symbol_count(ps) > 1)
 				{
-					syntax_error(program, current, "operator / with multiple parameters");
+					syntax_error(program, target, "operator / with multiple parameters");
 					return -1;
 				}
 			}
@@ -7367,20 +7351,20 @@ syntax_function(program_t *program, symbol_t *current)
 		if (result == 0)
 		{
 			symbol_t *gs;
-			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			gs = syntax_only_with(target, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "operator ** with generics");
+				syntax_error(program, target, "operator ** with generics");
 				return -1;
 			}
 
 			symbol_t *ps;
-			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			ps = syntax_only_with(target, SYMBOL_PARAMETERS);
 			if (ps)
 			{
 				if (symbol_count(ps) > 1)
 				{
-					syntax_error(program, current, "operator ** with multiple parameters");
+					syntax_error(program, target, "operator ** with multiple parameters");
 					return -1;
 				}
 			}
@@ -7390,20 +7374,20 @@ syntax_function(program_t *program, symbol_t *current)
 		if (result == 0)
 		{
 			symbol_t *gs;
-			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			gs = syntax_only_with(target, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "operator %% with generics");
+				syntax_error(program, target, "operator %% with generics");
 				return -1;
 			}
 
 			symbol_t *ps;
-			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			ps = syntax_only_with(target, SYMBOL_PARAMETERS);
 			if (ps)
 			{
 				if (symbol_count(ps) > 1)
 				{
-					syntax_error(program, current, "operator %% with multiple parameters");
+					syntax_error(program, target, "operator %% with multiple parameters");
 					return -1;
 				}
 			}
@@ -7413,20 +7397,20 @@ syntax_function(program_t *program, symbol_t *current)
 		if (result == 0)
 		{
 			symbol_t *gs;
-			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			gs = syntax_only_with(target, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "operator & with generics");
+				syntax_error(program, target, "operator & with generics");
 				return -1;
 			}
 
 			symbol_t *ps;
-			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			ps = syntax_only_with(target, SYMBOL_PARAMETERS);
 			if (ps)
 			{
 				if (symbol_count(ps) > 1)
 				{
-					syntax_error(program, current, "operator & with multiple parameters");
+					syntax_error(program, target, "operator & with multiple parameters");
 					return -1;
 				}
 			}
@@ -7436,20 +7420,20 @@ syntax_function(program_t *program, symbol_t *current)
 		if (result == 0)
 		{
 			symbol_t *gs;
-			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			gs = syntax_only_with(target, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "operator | with generics");
+				syntax_error(program, target, "operator | with generics");
 				return -1;
 			}
 
 			symbol_t *ps;
-			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			ps = syntax_only_with(target, SYMBOL_PARAMETERS);
 			if (ps)
 			{
 				if (symbol_count(ps) > 1)
 				{
-					syntax_error(program, current, "operator | with multiple parameters");
+					syntax_error(program, target, "operator | with multiple parameters");
 					return -1;
 				}
 			}
@@ -7459,20 +7443,20 @@ syntax_function(program_t *program, symbol_t *current)
 		if (result == 0)
 		{
 			symbol_t *gs;
-			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			gs = syntax_only_with(target, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "operator ^ with generics");
+				syntax_error(program, target, "operator ^ with generics");
 				return -1;
 			}
 
 			symbol_t *ps;
-			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			ps = syntax_only_with(target, SYMBOL_PARAMETERS);
 			if (ps)
 			{
 				if (symbol_count(ps) > 1)
 				{
-					syntax_error(program, current, "operator ^ with multiple parameters");
+					syntax_error(program, target, "operator ^ with multiple parameters");
 					return -1;
 				}
 			}
@@ -7482,20 +7466,20 @@ syntax_function(program_t *program, symbol_t *current)
 		if (result == 0)
 		{
 			symbol_t *gs;
-			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			gs = syntax_only_with(target, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "operator >> with generics");
+				syntax_error(program, target, "operator >> with generics");
 				return -1;
 			}
 
 			symbol_t *ps;
-			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			ps = syntax_only_with(target, SYMBOL_PARAMETERS);
 			if (ps)
 			{
 				if (symbol_count(ps) > 1)
 				{
-					syntax_error(program, current, "operator >> with multiple parameters");
+					syntax_error(program, target, "operator >> with multiple parameters");
 					return -1;
 				}
 			}
@@ -7505,20 +7489,20 @@ syntax_function(program_t *program, symbol_t *current)
 		if (result == 0)
 		{
 			symbol_t *gs;
-			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			gs = syntax_only_with(target, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "operator << with generics");
+				syntax_error(program, target, "operator << with generics");
 				return -1;
 			}
 
 			symbol_t *ps;
-			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			ps = syntax_only_with(target, SYMBOL_PARAMETERS);
 			if (ps)
 			{
 				if (symbol_count(ps) > 1)
 				{
-					syntax_error(program, current, "operator << with multiple parameters");
+					syntax_error(program, target, "operator << with multiple parameters");
 					return -1;
 				}
 			}
@@ -7528,20 +7512,20 @@ syntax_function(program_t *program, symbol_t *current)
 		if (result == 0)
 		{
 			symbol_t *gs;
-			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			gs = syntax_only_with(target, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "operator > with generics");
+				syntax_error(program, target, "operator > with generics");
 				return -1;
 			}
 
 			symbol_t *ps;
-			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			ps = syntax_only_with(target, SYMBOL_PARAMETERS);
 			if (ps)
 			{
 				if (symbol_count(ps) > 1)
 				{
-					syntax_error(program, current, "operator > with multiple parameters");
+					syntax_error(program, target, "operator > with multiple parameters");
 					return -1;
 				}
 			}
@@ -7551,20 +7535,20 @@ syntax_function(program_t *program, symbol_t *current)
 		if (result == 0)
 		{
 			symbol_t *gs;
-			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			gs = syntax_only_with(target, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "operator < with generics");
+				syntax_error(program, target, "operator < with generics");
 				return -1;
 			}
 
 			symbol_t *ps;
-			ps = syntax_only_with(current, SYMBOL_PARAMETERS);
+			ps = syntax_only_with(target, SYMBOL_PARAMETERS);
 			if (ps)
 			{
 				if (symbol_count(ps) > 1)
 				{
-					syntax_error(program, current, "operator < with multiple parameters");
+					syntax_error(program, target, "operator < with multiple parameters");
 					return -1;
 				}
 			}
@@ -7574,19 +7558,19 @@ syntax_function(program_t *program, symbol_t *current)
 		if (result == 0)
 		{
 			symbol_t *gs;
-			gs = syntax_only_with(current, SYMBOL_GENERICS);
+			gs = syntax_only_with(target, SYMBOL_GENERICS);
 			if (gs)
 			{
-				syntax_error(program, current, "operator [] with generics");
+				syntax_error(program, target, "operator [] with generics");
 				return -1;
 			}
 		}
 
-		symbol_t *root = current->parent;
+		symbol_t *root = target->parent;
 		if (root)
 		{
 			symbol_t *a;
-			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			for (a = root->begin;(a != root->end) && (a != target);a = a->next)
 			{
 				if (symbol_check_type(a, SYMBOL_CLASS))
 				{
@@ -7597,7 +7581,7 @@ syntax_function(program_t *program, symbol_t *current)
 						if (syntax_idcmp(ck, ak) == 0)
 						{
 							symbol_t *cgs;
-							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							cgs = syntax_only_with(target, SYMBOL_GENERICS);
 							if (cgs)
 							{
 								symbol_t *ags;
@@ -7625,7 +7609,7 @@ syntax_function(program_t *program, symbol_t *current)
 													if (syntax_idstrcmp(bk2, "constructor") == 0)
 													{
 														symbol_t *bps1;
-														bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+														bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 														if (bps1)
 														{
 															symbol_t *bps2;
@@ -7738,7 +7722,7 @@ syntax_function(program_t *program, symbol_t *current)
 													if (syntax_idstrcmp(bk2, "constructor") == 0)
 													{
 														symbol_t *bps1;
-														bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+														bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 														if (bps1)
 														{
 															symbol_t *bps2;
@@ -7855,7 +7839,7 @@ syntax_function(program_t *program, symbol_t *current)
 													if (syntax_idstrcmp(bk2, "constructor") == 0)
 													{
 														symbol_t *bps1;
-														bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+														bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 														if (bps1)
 														{
 															symbol_t *bps2;
@@ -7951,7 +7935,7 @@ syntax_function(program_t *program, symbol_t *current)
 												if (syntax_idstrcmp(bk2, "constructor") == 0)
 												{
 													symbol_t *bps1;
-													bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+													bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 													if (bps1)
 													{
 														symbol_t *bps2;
@@ -8054,7 +8038,7 @@ syntax_function(program_t *program, symbol_t *current)
 						if (syntax_idcmp(ck, ak) == 0)
 						{
 							symbol_t *cgs;
-							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							cgs = syntax_only_with(target, SYMBOL_GENERICS);
 							if (cgs)
 							{
 								symbol_t *ags;
@@ -8071,7 +8055,7 @@ syntax_function(program_t *program, symbol_t *current)
 									if (result == 1)
 									{
 										symbol_t *bps1;
-										bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+										bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 										if (bps1)
 										{
 											symbol_t *bps2;
@@ -8169,7 +8153,7 @@ syntax_function(program_t *program, symbol_t *current)
 									{
 										// check parameters
 										symbol_t *bps1;
-										bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+										bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 										if (bps1)
 										{
 											symbol_t *bps2;
@@ -8271,7 +8255,7 @@ syntax_function(program_t *program, symbol_t *current)
 									{
 										// check parameters
 										symbol_t *bps1;
-										bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+										bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 										if (bps1)
 										{
 											symbol_t *bps2;
@@ -8352,7 +8336,7 @@ syntax_function(program_t *program, symbol_t *current)
 								{
 									// check parameters
 									symbol_t *bps1;
-									bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+									bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 									if (bps1)
 									{
 										symbol_t *bps2;
@@ -8451,7 +8435,7 @@ syntax_function(program_t *program, symbol_t *current)
 						if (syntax_idcmp(ck, ak) == 0)
 						{
 							symbol_t *cgs;
-							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							cgs = syntax_only_with(target, SYMBOL_GENERICS);
 							if (cgs)
 							{
 								int32_t generic_without_value = 0;
@@ -8473,7 +8457,7 @@ syntax_function(program_t *program, symbol_t *current)
 								{
 									// check parameters
 									symbol_t *bps1;
-									bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+									bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 									if (bps1)
 									{
 										symbol_t *bps2;
@@ -8554,7 +8538,7 @@ syntax_function(program_t *program, symbol_t *current)
 							{
 								// check parameters
 								symbol_t *bps1;
-								bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+								bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 								if (bps1)
 								{
 									symbol_t *bps2;
@@ -8652,7 +8636,7 @@ syntax_function(program_t *program, symbol_t *current)
 						if (syntax_idcmp(ck, ak) == 0)
 						{
 							symbol_t *cgs;
-							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							cgs = syntax_only_with(target, SYMBOL_GENERICS);
 							if (cgs)
 							{
 								int32_t generic_without_value = 0;
@@ -8674,7 +8658,7 @@ syntax_function(program_t *program, symbol_t *current)
 								{
 									// check parameters
 									symbol_t *bps1;
-									bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+									bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 									if (bps1)
 									{
 										symbol_t *bps2;
@@ -8755,7 +8739,7 @@ syntax_function(program_t *program, symbol_t *current)
 							{
 								// check parameters
 								symbol_t *bps1;
-								bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+								bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 								if (bps1)
 								{
 									symbol_t *bps2;
@@ -8853,7 +8837,7 @@ syntax_function(program_t *program, symbol_t *current)
 						if (syntax_idcmp(ck, ak) == 0)
 						{
 							symbol_t *cgs;
-							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							cgs = syntax_only_with(target, SYMBOL_GENERICS);
 							if (cgs)
 							{
 								int32_t generic_without_value = 0;
@@ -8875,7 +8859,7 @@ syntax_function(program_t *program, symbol_t *current)
 								{
 									// check parameters
 									symbol_t *bps1;
-									bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+									bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 									if (bps1)
 									{
 										symbol_t *bps2;
@@ -8956,7 +8940,7 @@ syntax_function(program_t *program, symbol_t *current)
 							{
 								// check parameters
 								symbol_t *bps1;
-								bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+								bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 								if (bps1)
 								{
 									symbol_t *bps2;
@@ -9059,7 +9043,7 @@ syntax_function(program_t *program, symbol_t *current)
 								if (syntax_idcmp(ck, dk) == 0)
 								{
 									symbol_t *cgs;
-									cgs = syntax_only_with(current, SYMBOL_GENERICS);
+									cgs = syntax_only_with(target, SYMBOL_GENERICS);
 									if (cgs)
 									{
 										int32_t generic_without_value = 0;
@@ -9081,7 +9065,7 @@ syntax_function(program_t *program, symbol_t *current)
 										{
 											// check parameters
 											symbol_t *bps1;
-											bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+											bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 											if (bps1)
 											{
 												symbol_t *bps2;
@@ -9162,7 +9146,7 @@ syntax_function(program_t *program, symbol_t *current)
 									{
 										// check parameters
 										symbol_t *bps1;
-										bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+										bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 										if (bps1)
 										{
 											symbol_t *bps2;
@@ -9267,7 +9251,7 @@ syntax_function(program_t *program, symbol_t *current)
 								if (syntax_idcmp(ck, dk) == 0)
 								{
 									symbol_t *cgs;
-									cgs = syntax_only_with(current, SYMBOL_GENERICS);
+									cgs = syntax_only_with(target, SYMBOL_GENERICS);
 									if (cgs)
 									{
 										int32_t generic_without_value = 0;
@@ -9289,7 +9273,7 @@ syntax_function(program_t *program, symbol_t *current)
 										{
 											// check parameters
 											symbol_t *bps1;
-											bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+											bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 											if (bps1)
 											{
 												symbol_t *bps2;
@@ -9370,7 +9354,7 @@ syntax_function(program_t *program, symbol_t *current)
 									{
 										// check parameters
 										symbol_t *bps1;
-										bps1 = syntax_only_with(current, SYMBOL_PARAMETERS);
+										bps1 = syntax_only_with(target, SYMBOL_PARAMETERS);
 										if (bps1)
 										{
 											symbol_t *bps2;
@@ -9464,18 +9448,18 @@ syntax_function(program_t *program, symbol_t *current)
 		}
 		else
 		{
-			syntax_error(program, current, "function without parent");
+			syntax_error(program, target, "function without parent");
 			return -1;
 		}
 	}
 	else
 	{
-		syntax_error(program, current, "function without key");
+		syntax_error(program, target, "function without key");
 		return -1;
 	}
 
 	symbol_t *a;
-	for (a = current->begin;a != current->end;a = a->next)
+	for (a = target->begin;a != target->end;a = a->next)
 	{
 		if (symbol_check_type(a, SYMBOL_PARAMETERS))
 		{
@@ -9513,17 +9497,17 @@ syntax_function(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_class(program_t *program, symbol_t *current)
+syntax_class(program_t *program, symbol_t *target)
 {
 	symbol_t *ck;
-	ck = syntax_extract_with(current, SYMBOL_KEY);
+	ck = syntax_extract_with(target, SYMBOL_KEY);
 	if (ck)
 	{
-		symbol_t *root = current->parent;
+		symbol_t *root = target->parent;
 		if (root)
 		{
 			symbol_t *a;
-			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			for (a = root->begin;(a != root->end) && (a != target);a = a->next)
 			{
 				if (symbol_check_type(a, SYMBOL_CLASS))
 				{
@@ -9534,7 +9518,7 @@ syntax_class(program_t *program, symbol_t *current)
 						if (syntax_idcmp(ck, ak) == 0)
 						{
 							symbol_t *cgs;
-							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							cgs = syntax_only_with(target, SYMBOL_GENERICS);
 							if (cgs)
 							{
 								symbol_t *ags;
@@ -9551,7 +9535,7 @@ syntax_class(program_t *program, symbol_t *current)
 									if (result == 1)
 									{
 										symbol_t *b1;
-										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 										{
 											if (symbol_check_type(b1, SYMBOL_FUNCTION))
 											{
@@ -9679,7 +9663,7 @@ syntax_class(program_t *program, symbol_t *current)
 									{
 										// check parameters
 										symbol_t *b1;
-										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 										{
 											if (symbol_check_type(b1, SYMBOL_FUNCTION))
 											{
@@ -9811,7 +9795,7 @@ syntax_class(program_t *program, symbol_t *current)
 									{
 										// check parameters
 										symbol_t *b1;
-										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 										{
 											if (symbol_check_type(b1, SYMBOL_FUNCTION))
 											{
@@ -9922,7 +9906,7 @@ syntax_class(program_t *program, symbol_t *current)
 								{
 									// check parameters
 									symbol_t *b1;
-									for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+									for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 									{
 										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
@@ -10051,7 +10035,7 @@ syntax_class(program_t *program, symbol_t *current)
 						if (syntax_idcmp(ck, ak) == 0)
 						{
 							symbol_t *cgs;
-							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							cgs = syntax_only_with(target, SYMBOL_GENERICS);
 							if (cgs)
 							{
 								symbol_t *ags;
@@ -10068,7 +10052,7 @@ syntax_class(program_t *program, symbol_t *current)
 									if (result == 1)
 									{
 										symbol_t *b1;
-										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 										{
 											if (symbol_check_type(b1, SYMBOL_FUNCTION))
 											{
@@ -10181,7 +10165,7 @@ syntax_class(program_t *program, symbol_t *current)
 									{
 										// check parameters
 										symbol_t *b1;
-										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 										{
 											if (symbol_check_type(b1, SYMBOL_FUNCTION))
 											{
@@ -10298,7 +10282,7 @@ syntax_class(program_t *program, symbol_t *current)
 									{
 										// check parameters
 										symbol_t *b1;
-										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 										{
 											if (symbol_check_type(b1, SYMBOL_FUNCTION))
 											{
@@ -10394,7 +10378,7 @@ syntax_class(program_t *program, symbol_t *current)
 								{
 									// check parameters
 									symbol_t *b1;
-									for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+									for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 									{
 										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
@@ -10508,7 +10492,7 @@ syntax_class(program_t *program, symbol_t *current)
 						if (syntax_idcmp(ck, ak) == 0)
 						{
 							symbol_t *cgs;
-							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							cgs = syntax_only_with(target, SYMBOL_GENERICS);
 							if (cgs)
 							{
 								int32_t generic_without_value = 0;
@@ -10530,7 +10514,7 @@ syntax_class(program_t *program, symbol_t *current)
 								{
 									// check parameters
 									symbol_t *b1;
-									for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+									for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 									{
 										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
@@ -10626,7 +10610,7 @@ syntax_class(program_t *program, symbol_t *current)
 							{
 								// check parameters
 								symbol_t *b1;
-								for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+								for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 								{
 									if (symbol_check_type(b1, SYMBOL_FUNCTION))
 									{
@@ -10739,7 +10723,7 @@ syntax_class(program_t *program, symbol_t *current)
 						if (syntax_idcmp(ck, ak) == 0)
 						{
 							symbol_t *cgs;
-							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							cgs = syntax_only_with(target, SYMBOL_GENERICS);
 							if (cgs)
 							{
 								int32_t generic_without_value = 0;
@@ -10761,7 +10745,7 @@ syntax_class(program_t *program, symbol_t *current)
 								{
 									// check parameters
 									symbol_t *b1;
-									for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+									for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 									{
 										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
@@ -10857,7 +10841,7 @@ syntax_class(program_t *program, symbol_t *current)
 							{
 								// check parameters
 								symbol_t *b1;
-								for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+								for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 								{
 									if (symbol_check_type(b1, SYMBOL_FUNCTION))
 									{
@@ -10970,7 +10954,7 @@ syntax_class(program_t *program, symbol_t *current)
 						if (syntax_idcmp(ck, ak) == 0)
 						{
 							symbol_t *cgs;
-							cgs = syntax_only_with(current, SYMBOL_GENERICS);
+							cgs = syntax_only_with(target, SYMBOL_GENERICS);
 							if (cgs)
 							{
 								int32_t generic_without_value = 0;
@@ -10992,7 +10976,7 @@ syntax_class(program_t *program, symbol_t *current)
 								{
 									// check parameters
 									symbol_t *b1;
-									for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+									for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 									{
 										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
@@ -11088,7 +11072,7 @@ syntax_class(program_t *program, symbol_t *current)
 							{
 								// check parameters
 								symbol_t *b1;
-								for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+								for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 								{
 									if (symbol_check_type(b1, SYMBOL_FUNCTION))
 									{
@@ -11206,7 +11190,7 @@ syntax_class(program_t *program, symbol_t *current)
 								if (syntax_idcmp(ck, dk) == 0)
 								{
 									symbol_t *cgs;
-									cgs = syntax_only_with(current, SYMBOL_GENERICS);
+									cgs = syntax_only_with(target, SYMBOL_GENERICS);
 									if (cgs)
 									{
 										int32_t generic_without_value = 0;
@@ -11228,7 +11212,7 @@ syntax_class(program_t *program, symbol_t *current)
 										{
 											// check parameters
 											symbol_t *b1;
-											for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+											for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 											{
 												if (symbol_check_type(b1, SYMBOL_FUNCTION))
 												{
@@ -11324,7 +11308,7 @@ syntax_class(program_t *program, symbol_t *current)
 									{
 										// check parameters
 										symbol_t *b1;
-										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 										{
 											if (symbol_check_type(b1, SYMBOL_FUNCTION))
 											{
@@ -11441,10 +11425,10 @@ syntax_class(program_t *program, symbol_t *current)
 							dk = syntax_extract_with(d, SYMBOL_KEY);
 							if (dk)
 							{
-								if ((syntax_idcmp(ck, dk) == 0) && (current != a))
+								if ((syntax_idcmp(ck, dk) == 0) && (target != a))
 								{
 									symbol_t *cgs;
-									cgs = syntax_only_with(current, SYMBOL_GENERICS);
+									cgs = syntax_only_with(target, SYMBOL_GENERICS);
 									if (cgs)
 									{
 										int32_t generic_without_value = 0;
@@ -11466,7 +11450,7 @@ syntax_class(program_t *program, symbol_t *current)
 										{
 											// check parameters
 											symbol_t *b1;
-											for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+											for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 											{
 												if (symbol_check_type(b1, SYMBOL_FUNCTION))
 												{
@@ -11562,7 +11546,7 @@ syntax_class(program_t *program, symbol_t *current)
 									{
 										// check parameters
 										symbol_t *b1;
-										for (b1 = current->begin;b1 != current->end;b1 = b1->next)
+										for (b1 = target->begin;b1 != target->end;b1 = b1->next)
 										{
 											if (symbol_check_type(b1, SYMBOL_FUNCTION))
 											{
@@ -11671,18 +11655,18 @@ syntax_class(program_t *program, symbol_t *current)
 		}
 		else
 		{
-			syntax_error(program, current, "class without parent");
+			syntax_error(program, target, "class without parent");
 			return -1;
 		}
 	}
 	else
 	{
-		syntax_error(program, current, "class without key");
+		syntax_error(program, target, "class without key");
 		return -1;
 	}
 
 	symbol_t *a;
-	for (a = current->begin;a != current->end;a = a->next)
+	for (a = target->begin;a != target->end;a = a->next)
 	{
 		if (symbol_check_type(a, SYMBOL_HERITAGES))
 		{
@@ -11760,17 +11744,17 @@ syntax_class(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_field(program_t *program, symbol_t *current)
+syntax_field(program_t *program, symbol_t *target)
 {
 	symbol_t *ck;
-	ck = syntax_extract_with(current, SYMBOL_KEY);
+	ck = syntax_extract_with(target, SYMBOL_KEY);
 	if (ck)
 	{
-		symbol_t *root = current->parent;
+		symbol_t *root = target->parent;
 		if (root)
 		{
 			symbol_t *a;
-			for (a = root->begin;(a != root->end) && (a != current);a = a->next)
+			for (a = root->begin;(a != root->end) && (a != target);a = a->next)
 			{
 				if (symbol_check_type(a, SYMBOL_FIELD))
 				{
@@ -11912,13 +11896,13 @@ syntax_field(program_t *program, symbol_t *current)
 		}
 		else
 		{
-			syntax_error(program, current, "field without parent");
+			syntax_error(program, target, "field without parent");
 			return -1;
 		}
 	}
 	else
 	{
-		syntax_error(program, current, "field without key");
+		syntax_error(program, target, "field without key");
 		return -1;
 	}
 
@@ -11926,10 +11910,10 @@ syntax_field(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_fields(program_t *program, symbol_t *current)
+syntax_fields(program_t *program, symbol_t *target)
 {
 	symbol_t *a;
-	for (a = current->begin;(a != current->end); a = a->next)
+	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		if (symbol_check_type(a, SYMBOL_FIELD))
 		{
@@ -11944,7 +11928,7 @@ syntax_fields(program_t *program, symbol_t *current)
 			ak = syntax_extract_with(a, SYMBOL_KEY);
 			if (ak)
 			{
-				symbol_t *parent = current->parent;
+				symbol_t *parent = target->parent;
 				if (parent)
 				{
 					symbol_t *root = parent->parent;
@@ -12061,7 +12045,7 @@ syntax_fields(program_t *program, symbol_t *current)
 				}
 				else
 				{
-					syntax_error(program, current, "fields without parent");
+					syntax_error(program, target, "fields without parent");
 					return -1;
 				}
 			}
@@ -12078,10 +12062,10 @@ syntax_fields(program_t *program, symbol_t *current)
 }
 
 static int32_t
-syntax_import(program_t *program, symbol_t *current)
+syntax_import(program_t *program, symbol_t *target)
 {
 	symbol_t *a;
-	for(a = current->begin; a != current->end; a = a->next)
+	for(a = target->begin; a != target->end; a = a->next)
 	{
 		if (symbol_check_type(a, SYMBOL_PATH))
 		{
@@ -12186,7 +12170,7 @@ syntax_import(program_t *program, symbol_t *current)
 					return -1;
 				}
 
-				if(!symbol_link(current, current->end, root))
+				if(!symbol_link(target, target->end, root))
 				{
 					return -1;
 				}
@@ -12195,7 +12179,7 @@ syntax_import(program_t *program, symbol_t *current)
 			}
 			else
 			{
-				syntax_error(program, current, "unable to access path");
+				syntax_error(program, target, "unable to access path");
 				return -1;	
 			}
 		}
@@ -12212,17 +12196,17 @@ syntax_import(program_t *program, symbol_t *current)
 		}
 	}
 
-	symbol_set_flag(current, SYMBOL_FLAG_SYNTAX);
+	symbol_set_flag(target, SYMBOL_FLAG_SYNTAX);
 
 	return 1;
 }
 
 
 static int32_t
-syntax_module(program_t *program, symbol_t *current)
+syntax_module(program_t *program, symbol_t *target)
 {
 	symbol_t *a;
-	for(a = current->begin; a != current->end; a = a->next)
+	for(a = target->begin; a != target->end; a = a->next)
 	{
 		if (symbol_check_type(a, SYMBOL_IMPORT))
 		{
@@ -12276,7 +12260,7 @@ syntax_module(program_t *program, symbol_t *current)
 		}
 	}
 
-	symbol_set_flag(current, SYMBOL_FLAG_SYNTAX);
+	symbol_set_flag(target, SYMBOL_FLAG_SYNTAX);
 	return 1;
 }
 

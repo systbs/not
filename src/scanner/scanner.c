@@ -598,24 +598,6 @@ scanner_advance(scanner_t *scanner)
 					break;
 				}
 
-				if (scanner->ch == '.')
-				{
-					scanner_set_token(scanner, (token_t){
-																				 .type = TOKEN_DOT_DOT,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->file_source->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line}});
-
-					if (scanner_next(scanner) == -1)
-				{
-					return -1;
-				}
-					return 1;
-				}
-
 				return 1;
 			}
 			else if (scanner->ch == ':')
@@ -645,24 +627,6 @@ scanner_advance(scanner_t *scanner)
 				if (scanner->ch == eof)
 				{
 					break;
-				}
-
-				if (scanner->ch == '=')
-				{
-					scanner_set_token(scanner, (token_t){
-																				 .type = TOKEN_COLON_EQ,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->file_source->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line}});
-
-					if (scanner_next(scanner) == -1)
-					{
-						return -1;
-					}
-					return 1;
 				}
 
 				return 1;
