@@ -5,7 +5,7 @@
 typedef struct ilist {
     struct ilist *previous;
     struct ilist *next;
-    uint64_t value;
+    void *value;
 } ilist_t;
 
 typedef struct list {
@@ -14,16 +14,10 @@ typedef struct list {
 } list_t;
 
 list_t *
-list_apply(list_t *lst);
-
-list_t *
 list_create();
 
 int
-list_isempty(list_t *lst);
-
-uint64_t
-list_content(ilist_t *current);
+list_isempty(list_t *res);
 
 ilist_t*
 list_next(ilist_t *current);
@@ -32,54 +26,45 @@ ilist_t*
 list_previous(ilist_t *current);
 
 uint64_t
-list_count(list_t *lst);
+list_count(list_t *res);
 
-int
-list_query(list_t *lst, int (*f)(ilist_t*));
-
-void
-list_destroy(list_t *lst);
+int32_t
+list_query(list_t *res, int (*f)(ilist_t*));
 
 void
-list_free_it(ilist_t *it);
+list_destroy(list_t *res);
 
-ilist_t *
-list_create_iterior(uint64_t value);
+void
+list_link(list_t *res, ilist_t *current, ilist_t *it);
 
-ilist_t*
-list_link(list_t *lst, ilist_t *current, ilist_t *it);
+void
+list_unlink(list_t *res, ilist_t* it);
 
-ilist_t*
-list_unlink(list_t *lst, ilist_t* it);
+void
+list_sort(list_t *res, int (*f)(ilist_t *, ilist_t *));
 
-ilist_t*
-list_sort(list_t *lst, int (*f)(ilist_t *, ilist_t *));
+void
+list_unlink_by(list_t *res, int (*f)(ilist_t *));
 
-ilist_t*
-list_remove(list_t *lst, int (*f)(ilist_t *));
-
-list_t*
-list_clear(list_t *lst);
+void
+list_clear(list_t *res);
 
 ilist_t*
-list_rpop(list_t *lst);
+list_rpop(list_t *res);
 
 ilist_t *
-list_rpush(list_t *lst, uint64_t value);
+list_rpush(list_t *res, void *value);
 
 ilist_t*
-list_lpop(list_t *lst);
+list_lpop(list_t *res);
 
 ilist_t *
-list_lpush(list_t *lst, uint64_t value);
+list_lpush(list_t *res, void *value);
 
 ilist_t *
-list_at(list_t *lst, uint64_t key);
+list_first(list_t *res);
 
 ilist_t *
-list_first(list_t *lst);
+list_last(list_t *res);
 
-ilist_t *
-list_last(list_t *lst);
-
-#endif //__LIST_H__
+#endif

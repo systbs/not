@@ -46,7 +46,7 @@ graph_error(program_t *program, node_t *node, const char *format, ...)
 		return NULL;
 	}
 
-	if (list_rpush(program->errors, (uint64_t)error))
+	if (list_rpush(program->errors, error))
 	{
 		return NULL;
 	}
@@ -95,7 +95,7 @@ graph_id(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -111,7 +111,7 @@ graph_number(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -128,7 +128,7 @@ graph_string(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -145,7 +145,7 @@ graph_char(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -162,7 +162,7 @@ graph_null(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -179,7 +179,7 @@ graph_true(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -196,7 +196,7 @@ graph_false(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -228,7 +228,7 @@ graph_array(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -253,7 +253,7 @@ graph_parenthesis(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -287,7 +287,7 @@ graph_lambda(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 		}
@@ -315,7 +315,7 @@ graph_lambda(program_t *program, symbol_t *parent, node_t *node)
 				}
 				else
 				{
-					graph_error(program, node, "low memory");
+					fprintf(stderr, "unable to allocate memory");
 					return -1;
 				}
 			}
@@ -325,7 +325,7 @@ graph_lambda(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -355,7 +355,7 @@ graph_object_property(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 		}
@@ -374,7 +374,7 @@ graph_object_property(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 		}
@@ -383,7 +383,7 @@ graph_object_property(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -413,7 +413,7 @@ graph_object(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 	return 1;
@@ -573,7 +573,7 @@ graph_argument(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}	
 		}
@@ -592,7 +592,7 @@ graph_argument(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 		}
@@ -601,7 +601,7 @@ graph_argument(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -630,7 +630,7 @@ graph_composite(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 		}
@@ -654,7 +654,7 @@ graph_composite(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 		}
@@ -663,7 +663,7 @@ graph_composite(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -678,12 +678,12 @@ graph_call(program_t *program, symbol_t *parent, node_t *node)
 		node_composite_t *node_composite;
 		node_composite = (node_composite_t *)node->value;
 
-		symbol_t *name;
-		name = symbol_rpush(symbol, SYMBOL_NAME, NULL);
-		if(name)
+		symbol_t *key;
+		key = symbol_rpush(symbol, SYMBOL_KEY, NULL);
+		if(key)
 		{
 			int32_t result;
-			result = graph_postfix(program, name, node_composite->base);
+			result = graph_postfix(program, key, node_composite->base);
 			if (result == -1)
 			{
 				return -1;
@@ -691,7 +691,7 @@ graph_call(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 
@@ -712,17 +712,18 @@ graph_call(program_t *program, symbol_t *parent, node_t *node)
 					}
 				}
 			}
-			else
-			{
-				graph_error(program, node, "low memory");
-				return -1;
-			}
 		}
+		else
+		{
+			fprintf(stderr, "unable to allocate memory");
+			return -1;
+		}
+
 		return 1;
 	}
 	else 
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -737,12 +738,12 @@ graph_item(program_t *program, symbol_t *parent, node_t *node)
 		node_composite_t *node_composite;
 		node_composite = (node_composite_t *)node->value;
 		
-		symbol_t *name;
-		name = symbol_rpush(symbol, SYMBOL_NAME, NULL);
-		if(name)
+		symbol_t *key;
+		key = symbol_rpush(symbol, SYMBOL_KEY, NULL);
+		if(key)
 		{
 			int32_t result;
-			result = graph_postfix(program, name, node_composite->base);
+			result = graph_postfix(program, key, node_composite->base);
 			if (result == -1)
 			{
 				return -1;
@@ -750,7 +751,7 @@ graph_item(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 
@@ -773,7 +774,7 @@ graph_item(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 		}
@@ -782,7 +783,7 @@ graph_item(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -812,7 +813,7 @@ graph_attribute(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 		}
@@ -831,7 +832,7 @@ graph_attribute(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;	
 			}
 		}
@@ -839,7 +840,7 @@ graph_attribute(program_t *program, symbol_t *parent, node_t *node)
 	}
 	else
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 }
@@ -930,13 +931,13 @@ graph_prefix(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -965,13 +966,13 @@ graph_prefix(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1001,13 +1002,13 @@ graph_prefix(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1037,13 +1038,13 @@ graph_prefix(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1073,13 +1074,13 @@ graph_prefix(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1109,13 +1110,13 @@ graph_prefix(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1157,7 +1158,7 @@ graph_power(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1173,7 +1174,7 @@ graph_power(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1181,7 +1182,7 @@ graph_power(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1222,7 +1223,7 @@ graph_multiplicative(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1238,7 +1239,7 @@ graph_multiplicative(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1246,7 +1247,7 @@ graph_multiplicative(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1273,7 +1274,7 @@ graph_multiplicative(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1289,7 +1290,7 @@ graph_multiplicative(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1297,7 +1298,7 @@ graph_multiplicative(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1324,7 +1325,7 @@ graph_multiplicative(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1340,7 +1341,7 @@ graph_multiplicative(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1348,7 +1349,7 @@ graph_multiplicative(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1375,7 +1376,7 @@ graph_multiplicative(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1391,7 +1392,7 @@ graph_multiplicative(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1399,7 +1400,7 @@ graph_multiplicative(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1440,7 +1441,7 @@ graph_addative(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1456,7 +1457,7 @@ graph_addative(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1464,7 +1465,7 @@ graph_addative(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1491,7 +1492,7 @@ graph_addative(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1507,7 +1508,7 @@ graph_addative(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1515,7 +1516,7 @@ graph_addative(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1556,7 +1557,7 @@ graph_shifting(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1572,7 +1573,7 @@ graph_shifting(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1580,7 +1581,7 @@ graph_shifting(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1607,7 +1608,7 @@ graph_shifting(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1623,7 +1624,7 @@ graph_shifting(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1631,7 +1632,7 @@ graph_shifting(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1672,7 +1673,7 @@ graph_relational(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1688,7 +1689,7 @@ graph_relational(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1696,7 +1697,7 @@ graph_relational(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1723,7 +1724,7 @@ graph_relational(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1739,7 +1740,7 @@ graph_relational(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1747,7 +1748,7 @@ graph_relational(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1774,7 +1775,7 @@ graph_relational(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1790,7 +1791,7 @@ graph_relational(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1798,7 +1799,7 @@ graph_relational(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1825,7 +1826,7 @@ graph_relational(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1841,7 +1842,7 @@ graph_relational(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1849,7 +1850,7 @@ graph_relational(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1890,7 +1891,7 @@ graph_equality(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1906,7 +1907,7 @@ graph_equality(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -1914,58 +1915,7 @@ graph_equality(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
-			return -1;
-		}
-	}
-	else 
-	if(node->kind == NODE_KIND_IN)
-	{
-		symbol_t *symbol;
-		symbol = symbol_rpush(parent, SYMBOL_IN, node);
-		if(symbol)
-		{
-			node_binary_t *node_binary;
-			node_binary = (node_binary_t *)node->value;
-
-			symbol_t *left, *right;
-			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
-			if(left)
-			{
-				int32_t result;
-				result = graph_equality(program, left, node_binary->left);
-				if (result == -1)
-				{
-					return -1;
-				}
-			}
-			else
-			{
-				graph_error(program, node, "low memory");
-				return -1;
-			}
-
-			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
-			if(right)
-			{
-				int32_t result;
-				result = graph_relational(program, right, node_binary->right);
-				if (result == -1)
-				{
-					return -1;
-				}
-			}
-			else
-			{
-				graph_error(program, node, "low memory");
-				return -1;
-			}
-
-			return 1;
-		}
-		else
-		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -1992,7 +1942,7 @@ graph_equality(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2008,7 +1958,7 @@ graph_equality(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2016,7 +1966,7 @@ graph_equality(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -2069,7 +2019,7 @@ graph_bitwise_and(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2085,7 +2035,7 @@ graph_bitwise_and(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2093,7 +2043,7 @@ graph_bitwise_and(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -2146,7 +2096,7 @@ graph_bitwise_xor(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2162,7 +2112,7 @@ graph_bitwise_xor(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2170,7 +2120,7 @@ graph_bitwise_xor(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -2223,7 +2173,7 @@ graph_bitwise_or(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2239,7 +2189,7 @@ graph_bitwise_or(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2247,7 +2197,7 @@ graph_bitwise_or(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -2300,7 +2250,7 @@ graph_logical_and(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2316,7 +2266,7 @@ graph_logical_and(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2324,7 +2274,7 @@ graph_logical_and(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -2377,7 +2327,7 @@ graph_logical_or(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2393,7 +2343,7 @@ graph_logical_or(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2401,7 +2351,7 @@ graph_logical_or(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -2442,16 +2392,16 @@ graph_conditional(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
-			symbol_t *symbol_true, *symbol_false;
-			symbol_true = symbol_rpush(symbol, SYMBOL_TRUE, NULL);
-			if(symbol_true)
+			symbol_t *left, *right;
+			left = symbol_rpush(symbol, SYMBOL_LEFT, NULL);
+			if(left)
 			{
 				int32_t result;
-				result = graph_conditional(program, symbol_true, node_triple->left);
+				result = graph_conditional(program, left, node_triple->left);
 				if (result == -1)
 				{
 					return -1;
@@ -2459,15 +2409,15 @@ graph_conditional(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
-			symbol_false = symbol_rpush(symbol, SYMBOL_FALSE, NULL);
-			if(symbol_false)
+			right = symbol_rpush(symbol, SYMBOL_RIGHT, NULL);
+			if(right)
 			{
 				int32_t result;
-				result = graph_conditional(program, symbol_false, node_triple->right);
+				result = graph_conditional(program, right, node_triple->right);
 				if (result == -1)
 				{
 					return -1;
@@ -2475,13 +2425,13 @@ graph_conditional(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 
@@ -2530,7 +2480,7 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2546,14 +2496,14 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 			return 1;
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -2581,7 +2531,7 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2597,14 +2547,14 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 			return 1;
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -2632,7 +2582,7 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2648,14 +2598,14 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 			return 1;
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -2683,7 +2633,7 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2699,14 +2649,14 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 			return 1;
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -2734,7 +2684,7 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2750,14 +2700,14 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 			return 1;
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -2785,7 +2735,7 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2801,14 +2751,14 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 			return 1;
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -2836,7 +2786,7 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2852,14 +2802,14 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 			return 1;
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -2887,7 +2837,7 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2903,14 +2853,14 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 			return 1;
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -2938,7 +2888,7 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -2954,14 +2904,14 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 			return 1;
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -2989,7 +2939,7 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -3005,14 +2955,14 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 			return 1;
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -3040,7 +2990,7 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 
@@ -3056,14 +3006,14 @@ graph_assign(program_t *program, symbol_t *parent, node_t *node)
 			}
 			else
 			{
-				graph_error(program, node, "low memory");
+				fprintf(stderr, "unable to allocate memory");
 				return -1;
 			}
 			return 1;
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -3985,7 +3935,7 @@ graph_func(program_t *program, symbol_t *parent, node_t *node)
 	symbol = symbol_rpush(parent, SYMBOL_FUNCTION, node);
 	if(!symbol)
 	{
-		graph_error(program, node, "low memory");
+		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
 
@@ -4007,7 +3957,7 @@ graph_func(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -4031,7 +3981,7 @@ graph_func(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}
@@ -4054,7 +4004,7 @@ graph_func(program_t *program, symbol_t *parent, node_t *node)
 		}
 		else
 		{
-			graph_error(program, node, "low memory");
+			fprintf(stderr, "unable to allocate memory");
 			return -1;
 		}
 	}

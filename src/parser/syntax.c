@@ -13,7 +13,6 @@
 
 #include "../types/types.h"
 #include "../container/list.h"
-#include "../container/response.h"
 #include "../token/position.h"
 #include "../token/token.h"
 #include "../program.h"
@@ -28,6 +27,7 @@
 #include "symbol.h"
 #include "graph.h"
 #include "syntax.h"
+#include "table.h"
 
 
 
@@ -59,7 +59,7 @@ syntax_error(program_t *program, symbol_t *current, const char *format, ...)
 		return NULL;
 	}
 
-	if (list_rpush(program->errors, (uint64_t)error))
+	if (list_rpush(program->errors, error))
 	{
 		return NULL;
 	}
@@ -75,9 +75,6 @@ static int32_t
 syntax_block(program_t *program, symbol_t *current);
 
 static int32_t
-syntax_assign(program_t *program, symbol_t *current);
-
-static int32_t
 syntax_import(program_t *program, symbol_t *current);
 
 static int32_t
@@ -91,6 +88,12 @@ syntax_fields(program_t *program, symbol_t *current);
 
 static int32_t
 syntax_field(program_t *program, symbol_t *current);
+
+static int32_t
+syntax_expression(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag);
+
+static int32_t
+syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag);
 
 
 
@@ -259,7 +262,7 @@ syntax_match_gsast(program_t *program, symbol_t *gs1, symbol_t *as1)
 }
 
 static int32_t
-syntax_find_in_scope(program_t *program, symbol_t *base, symbol_t *t1, symbol_t *arguments, int32_t route, symbol_t *applicant, symbol_t *response)
+syntax_find_in_scope(program_t *program, symbol_t *base, symbol_t *t1, symbol_t *arguments, int32_t route, symbol_t *response)
 {
 	symbol_t *a;
 	for (a = base->begin;(a != base->end);a = a->next)
@@ -287,29 +290,6 @@ syntax_find_in_scope(program_t *program, symbol_t *base, symbol_t *t1, symbol_t 
 							else
 							if (result == 1)
 							{
-								symbol_t *nearest = a->parent;
-								while (nearest)
-								{
-									if (symbol_check_type(nearest, SYMBOL_CLASS))
-									{
-										break;
-									}
-									nearest = nearest->parent;
-								}
-
-								if (nearest)
-								{
-									if (nearest->id != applicant->id)
-									{
-										node_class_t *class = response->declaration->value;
-										if ((class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
-										{
-											syntax_error(program, response, "private access");
-											return -1;
-										}
-									}
-								}
-
 								*response = *a;
 								return 1;
 							}
@@ -333,30 +313,6 @@ syntax_find_in_scope(program_t *program, symbol_t *base, symbol_t *t1, symbol_t 
 							}
 							if (no_value == 0)
 							{
-								symbol_t *nearest;
-								nearest = a->parent;
-								while (nearest)
-								{
-									if (symbol_check_type(nearest, SYMBOL_CLASS))
-									{
-										break;
-									}
-									nearest = nearest->parent;
-								}
-
-								if (nearest)
-								{
-									if (nearest->id != applicant->id)
-									{
-										node_class_t *class = response->declaration->value;
-										if ((class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
-										{
-											syntax_error(program, response, "private access");
-											return -1;
-										}
-									}
-								}
-
 								*response = *a;
 								return 1;
 							}
@@ -366,30 +322,6 @@ syntax_find_in_scope(program_t *program, symbol_t *base, symbol_t *t1, symbol_t 
 					{
 						if (!arguments)
 						{
-							symbol_t *nearest;
-							nearest = a->parent;
-							while (nearest)
-							{
-								if (symbol_check_type(nearest, SYMBOL_CLASS))
-								{
-									break;
-								}
-								nearest = nearest->parent;
-							}
-
-							if (nearest)
-							{
-								if (nearest->id != applicant->id)
-								{
-									node_class_t *class = response->declaration->value;
-									if ((class->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
-									{
-										syntax_error(program, response, "private access");
-										return -1;
-									}
-								}
-							}
-
 							*response = *a;
 							return 1;
 						}
@@ -432,11 +364,11 @@ syntax_find_in_scope(program_t *program, symbol_t *base, symbol_t *t1, symbol_t 
 		return 0;
 	}
 
-	return syntax_find_in_scope(program, base->parent, t1, arguments, route, applicant, response);
+	return syntax_find_in_scope(program, base->parent, t1, arguments, route, response);
 }
 
 static int32_t
-syntax_find_by_arguments(program_t *program, symbol_t *base, symbol_t *t1, symbol_t *arguments, int32_t route, symbol_t *applicant, symbol_t *response)
+syntax_find_by_arguments(program_t *program, symbol_t *base, symbol_t *t1, symbol_t *arguments, int32_t route, symbol_t *response)
 {
 	if (symbol_check_type(t1, SYMBOL_ATTR))
 	{
@@ -450,11 +382,11 @@ syntax_find_by_arguments(program_t *program, symbol_t *base, symbol_t *t1, symbo
 			{
 				symbol_t r1;
 				int32_t result;
-				result = syntax_find_by_arguments(program, base, left, NULL, route, applicant, &r1);
+				result = syntax_find_by_arguments(program, base, left, NULL, route, &r1);
 				if (result == 1)
 				{
 					symbol_t r2;
-					result = syntax_find_by_arguments(program, &r1, right, arguments, SYNTAX_ROUTE_FORWARD, applicant, &r2);
+					result = syntax_find_by_arguments(program, &r1, right, arguments, SYNTAX_ROUTE_FORWARD, &r2);
 					if (result == 1)
 					{
 						*response = r2;
@@ -505,7 +437,7 @@ syntax_find_by_arguments(program_t *program, symbol_t *base, symbol_t *t1, symbo
 			{
 				symbol_t r1;
 				int32_t result;
-				result = syntax_find_by_arguments(program, base, key, arguments1, route, applicant, &r1);
+				result = syntax_find_by_arguments(program, base, key, arguments1, route, &r1);
 				if (result == 1)
 				{
 					*response = r1;
@@ -537,7 +469,7 @@ syntax_find_by_arguments(program_t *program, symbol_t *base, symbol_t *t1, symbo
 	if (symbol_check_type(t1, SYMBOL_ID))
 	{
 		int32_t result;
-		result = syntax_find_in_scope(program, base, t1, arguments, route, applicant, response);
+		result = syntax_find_in_scope(program, base, t1, arguments, route, response);
 		if (result == 1)
 		{
 			return 1;
@@ -562,20 +494,7 @@ syntax_find_by_arguments(program_t *program, symbol_t *base, symbol_t *t1, symbo
 static int32_t
 syntax_find(program_t *program, symbol_t *p, symbol_t *response)
 {
-	symbol_t *applicant;
-	applicant = p->parent;
-	while (applicant)
-	{
-		if (symbol_check_type(applicant, SYMBOL_CLASS))
-		{
-			break;
-		}
-		if (applicant->parent)
-		{
-			applicant = applicant->parent;
-		}
-	}
-	return syntax_find_by_arguments(program, p->parent, p, NULL, SYNTAX_ROUTE_NONE, applicant, response);
+	return syntax_find_by_arguments(program, p->parent, p, NULL, SYNTAX_ROUTE_NONE, response);
 }
 
 static void
@@ -876,20 +795,4474 @@ syntax_equal_psps(program_t *program, symbol_t *ps1, symbol_t *ps2)
 	}
 }
 
-
-
-
 static int32_t
-syntax_expression(program_t *program, symbol_t *current)
+syntax_match_psasv(program_t *program, symbol_t *ps1, symbol_t *as1)
 {
 	return 1;
 }
 
 static int32_t
-syntax_assign(program_t *program, symbol_t *current)
+syntax_match_pst(program_t *program, symbol_t *ps1, symbol_t *s1)
 {
 	return 1;
 }
+
+
+
+static int32_t
+syntax_id(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+{
+	itable_t *it1;
+	for (it1 = frame->begin;(it1 != frame->end);it1 = it1->next)
+	{
+		if (it1->original != NULL)
+		{
+			symbol_t *key;
+			key = syntax_extract_with(it1->original, SYMBOL_KEY);
+			if (key != NULL)
+			{
+				if (syntax_idcmp(key, target) == 0)
+				{
+					it1->reference += 1;
+					ilist_t *r1;
+					r1 = list_rpush(response, it1->original);
+					if (r1 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory");
+						return -1;
+					}
+				}
+			}
+		}
+	}
+
+	if(frame->parent)
+	{
+		return syntax_id(program, frame->parent, target, response, flag);
+	}
+
+	if (list_count(response) > 0)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+static int32_t
+syntax_number(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+{
+	itable_t *it1;
+	for (it1 = frame->begin;(it1 != frame->end);it1 = it1->next)
+	{
+		if (it1->original != NULL)
+		{
+			symbol_t *key;
+			key = syntax_extract_with(it1->original, SYMBOL_KEY);
+			if (key != NULL)
+			{
+				if (syntax_idstrcmp(key, "Int") == 0)
+				{
+					it1->reference += 1;
+					ilist_t *r1;
+					r1 = list_rpush(response, it1->original);
+					if (r1 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory");
+						return -1;
+					}
+					continue;
+				}
+			}
+		}
+	}
+
+	if(frame->parent)
+	{
+		return syntax_number(program, frame->parent, target, response, flag);
+	}
+
+	if (list_count(response) > 0)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+static int32_t
+syntax_string(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+{
+	itable_t *it1;
+	for (it1 = frame->begin;(it1 != frame->end);it1 = it1->next)
+	{
+		if (it1->original != NULL)
+		{
+			symbol_t *key;
+			key = syntax_extract_with(it1->original, SYMBOL_KEY);
+			if (key != NULL)
+			{
+				if (syntax_idstrcmp(key, "String") == 0)
+				{
+					it1->reference += 1;
+					ilist_t *r1;
+					r1 = list_rpush(response, it1->original);
+					if (r1 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory");
+						return -1;
+					}
+					continue;
+				}
+			}
+		}
+	}
+
+	if(frame->parent)
+	{
+		return syntax_string(program, frame->parent, target, response, flag);
+	}
+
+	if (list_count(response) > 0)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+static int32_t
+syntax_char(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+{
+	itable_t *it1;
+	for (it1 = frame->begin;(it1 != frame->end);it1 = it1->next)
+	{
+		if (it1->original != NULL)
+		{
+			symbol_t *key;
+			key = syntax_extract_with(it1->original, SYMBOL_KEY);
+			if (key != NULL)
+			{
+				if (syntax_idstrcmp(key, "Char") == 0)
+				{
+					it1->reference += 1;
+					ilist_t *r1;
+					r1 = list_rpush(response, it1->original);
+					if (r1 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory");
+						return -1;
+					}
+					continue;
+				}
+			}
+		}
+	}
+
+	if(frame->parent)
+	{
+		return syntax_char(program, frame->parent, target, response, flag);
+	}
+
+	if (list_count(response) > 0)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+static int32_t
+syntax_null(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+{
+	itable_t *it1;
+	for (it1 = frame->begin;(it1 != frame->end);it1 = it1->next)
+	{
+		if (it1->original != NULL)
+		{
+			symbol_t *key;
+			key = syntax_extract_with(it1->original, SYMBOL_KEY);
+			if (key != NULL)
+			{
+				if (syntax_idstrcmp(key, "Null") == 0)
+				{
+					it1->reference += 1;
+					ilist_t *r1;
+					r1 = list_rpush(response, it1->original);
+					if (r1 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory");
+						return -1;
+					}
+					continue;
+				}
+			}
+		}
+	}
+
+	if(frame->parent)
+	{
+		return syntax_null(program, frame->parent, target, response, flag);
+	}
+
+	if (list_count(response) > 0)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+static int32_t
+syntax_true(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+{
+	itable_t *it1;
+	for (it1 = frame->begin;(it1 != frame->end);it1 = it1->next)
+	{
+		if (it1->original != NULL)
+		{
+			symbol_t *key;
+			key = syntax_extract_with(it1->original, SYMBOL_KEY);
+			if (key != NULL)
+			{
+				if (syntax_idstrcmp(key, "Boolean") == 0)
+				{
+					it1->reference += 1;
+					ilist_t *r1;
+					r1 = list_rpush(response, it1->original);
+					if (r1 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory");
+						return -1;
+					}
+					continue;
+				}
+			}
+		}
+	}
+
+	if(frame->parent)
+	{
+		return syntax_true(program, frame->parent, target, response, flag);
+	}
+
+	if (list_count(response) > 0)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+static int32_t
+syntax_false(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+{
+	itable_t *it1;
+	for (it1 = frame->begin;(it1 != frame->end);it1 = it1->next)
+	{
+		if (it1->original != NULL)
+		{
+			symbol_t *key;
+			key = syntax_extract_with(it1->original, SYMBOL_KEY);
+			if (key != NULL)
+			{
+				if (syntax_idstrcmp(key, "Boolean") == 0)
+				{
+					it1->reference += 1;
+					ilist_t *r1;
+					r1 = list_rpush(response, it1->original);
+					if (r1 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory");
+						return -1;
+					}
+					continue;
+				}
+			}
+		}
+	}
+
+	if(frame->parent)
+	{
+		return syntax_false(program, frame->parent, target, response, flag);
+	}
+
+	if (list_count(response) > 0)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+static int32_t
+syntax_primary(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(target, SYMBOL_ID))
+	{
+		return syntax_id(program, frame, target, response, flag);
+	}
+	else
+	if (symbol_check_type(target, SYMBOL_NUMBER))
+	{
+		return syntax_number(program, frame, target, response, flag);
+	}
+	else
+	if (symbol_check_type(target, SYMBOL_STRING))
+	{
+		return syntax_string(program, frame, target, response, flag);
+	}
+	else
+	if (symbol_check_type(target, SYMBOL_CHAR))
+	{
+		return syntax_char(program, frame, target, response, flag);
+	}
+	else
+	if (symbol_check_type(target, SYMBOL_NULL))
+	{
+		return syntax_null(program, frame, target, response, flag);
+	}
+	else
+	if (symbol_check_type(target, SYMBOL_TRUE))
+	{
+		return syntax_true(program, frame, target, response, flag);
+	}
+	else
+	if (symbol_check_type(target, SYMBOL_FALSE))
+	{
+		return syntax_false(program, frame, target, response, flag);
+	}
+	else
+	if (symbol_check_type(target, SYMBOL_PARENTHESIS))
+	{
+		return syntax_expression(program, frame, syntax_only(target), response, flag);
+	}
+	else
+	{
+		ilist_t *r1;
+		r1 = list_rpush(response, target);
+		if (r1 == NULL)
+		{
+			fprintf(stderr, "unable to allocate memory");
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_attribute_class(program_t *program, table_t *frame, symbol_t *base, symbol_t *target, list_t *response, uint64_t flag)
+{
+	symbol_t *a1;
+	for (a1 = base->begin;a1 != base->end;a1 = a1->next)
+	{
+		if (symbol_check_type(a1, SYMBOL_CLASS))
+		{
+			symbol_t *ak1;
+			ak1 = syntax_extract_with(a1, SYMBOL_KEY);
+			if (ak1 != NULL)
+			{
+				if (syntax_idcmp(ak1, target) == 0)
+				{
+					ilist_t *r1;
+					r1 = list_rpush(response, a1);
+					if (r1 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory");
+						return -1;
+					}
+				}
+			}
+		}
+	}
+
+	symbol_t *hs1;
+	hs1 = syntax_only_with(base, SYMBOL_HERITAGES);
+	if (hs1 != NULL)
+	{
+		symbol_t *h1;
+		for (h1 = hs1->begin;h1 != hs1->end;h1 = h1->next)
+		{
+			if (symbol_check_type(h1, SYMBOL_HERITAGE))
+			{
+				symbol_t *ht1;
+				ht1 = syntax_extract_with(h1, SYMBOL_TYPE);
+				if (ht1 != NULL)
+				{
+					list_t response1;
+					int32_t r1;
+					r1 = syntax_expression(program, frame, ht1, &response1, flag);
+					if (r1 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r1 == 0)
+					{
+						syntax_error(program, ht1, "reference not found");
+						return -1;
+					}
+					else
+					{
+						if (list_count(&response1) > 1)
+						{
+							syntax_error(program, ht1, "multiple reference");
+							return -1;
+						}
+						ilist_t *il1;
+						il1 = list_lpop(&response1);
+						if (il1 != NULL)
+						{
+							symbol_t *r2;
+							r2 = (symbol_t *)il1->value;
+							if (symbol_check_type(r2, SYMBOL_CLASS))
+							{
+								int32_t r3;
+								r3 = syntax_attribute_class(program, frame, r2, target, response, flag);
+								if (r3 == -1)
+								{
+									return -1;
+								}
+							}
+							else
+							{
+								syntax_error(program, r2, "reference not a class");
+								return -1;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (list_count(response) > 0)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+static int32_t
+syntax_attribute(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+{
+	symbol_t *left;
+	left = syntax_extract_with(target, SYMBOL_LEFT);
+	if (left)
+	{
+		list_t response1;
+		int32_t r1;
+		r1 = syntax_expression(program, frame, left, &response1, flag);
+		if (r1 == -1)
+		{
+			return -1;
+		}
+		else
+		if (r1 == 0)
+		{
+			syntax_error(program, left, "reference not found");
+			return -1;
+		}
+		else
+		{
+			symbol_t *right;
+			right = syntax_extract_with(target, SYMBOL_RIGHT);
+			if (right)
+			{
+				ilist_t *a1;
+				for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+				{
+					itable_t *it1 = (itable_t *)a1->value;
+					if (it1->original != NULL)
+					{
+						symbol_t *s1 = it1->original;
+						if (symbol_check_type(s1, SYMBOL_CLASS))
+						{
+							int32_t r2;
+							r2 = syntax_attribute_class(program, frame, s1, target, response, flag);
+							if (r2 == -1)
+							{
+								return -1;
+							}
+						}
+						else
+						{
+							syntax_error(program, s1, "must refer to a {class/enum/object}");
+							return -1;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (list_count(response) > 0)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+static int32_t
+syntax_composite(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	symbol_t *key;
+	key = syntax_extract_with(current, SYMBOL_KEY);
+	if (key)
+	{
+		list_t response1;
+		int32_t r1;
+		r1 = syntax_expression(program, frame, key, &response1, flag);
+		if (r1 == -1)
+		{
+			return -1;
+		}
+		else
+		if (r1 == 0)
+		{
+			syntax_error(program, key, "reference not found");
+			return -1;
+		}
+		else
+		{
+			symbol_t *arguments;
+			arguments = syntax_extract_with(current, SYMBOL_ARGUMENTS);
+			if (arguments)
+			{
+				ilist_t *a1;
+				for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+				{
+					symbol_t *s1 = (symbol_t *)a1->value;
+					if (symbol_check_type(s1, SYMBOL_CLASS))
+					{
+						symbol_t *gs;
+						gs = syntax_only_with(s1, SYMBOL_GENERICS);
+						if (gs)
+						{
+							int32_t r2;
+							r2 = syntax_match_gsast(program, gs, arguments);
+							if (r2 == 1)
+							{
+								ilist_t *r3;
+								r3 = list_rpush(response, s1);
+								if (r3 == NULL)
+								{
+									fprintf(stderr, "unable to allocate memory");
+									return -1;
+								}
+							}
+						}
+					}
+					else
+					if (symbol_check_type(s1, SYMBOL_FUNCTION))
+					{
+						symbol_t *gs;
+						gs = syntax_only_with(s1, SYMBOL_GENERICS);
+						if (gs)
+						{
+							int32_t r2;
+							r2 = syntax_match_gsast(program, gs, arguments);
+							if (r2 == 1)
+							{
+								ilist_t *r3;
+								r3 = list_rpush(response, s1);
+								if (r3 == NULL)
+								{
+									fprintf(stderr, "unable to allocate memory");
+									return -1;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (list_count(response) > 0)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+static int32_t
+syntax_call(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	symbol_t *key;
+	key = syntax_extract_with(current, SYMBOL_KEY);
+	if (key)
+	{
+		list_t response1;
+		int32_t r1;
+		r1 = syntax_expression(program, frame, key, &response1, flag);
+		if (r1 == -1)
+		{
+			return -1;
+		}
+		else
+		if (r1 == 0)
+		{
+			syntax_error(program, key, "reference not found");
+			return -1;
+		}
+		else
+		{
+			symbol_t *arguments;
+			arguments = syntax_extract_with(current, SYMBOL_ARGUMENTS);
+			if (arguments)
+			{
+				ilist_t *a1;
+				for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+				{
+					symbol_t *s1 = (symbol_t *)a1->value;
+					if (symbol_check_type(s1, SYMBOL_CLASS))
+					{
+						symbol_t *b1;
+						for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+						{
+							if (symbol_check_type(b1, SYMBOL_FUNCTION))
+							{
+								symbol_t *bk1;
+								bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+								if (bk1)
+								{
+									if (syntax_idstrcmp(bk1, "constructor") == 0)
+									{
+										symbol_t *ps;
+										ps = syntax_only_with(b1, SYMBOL_PARAMETERS);
+										if (ps)
+										{
+											int32_t r2;
+											r2 = syntax_match_psasv(program, ps, arguments);
+											if (r2 == 1)
+											{
+												ilist_t *r3;
+												r3 = list_rpush(response, s1);
+												if (r3 == NULL)
+												{
+													fprintf(stderr, "unable to allocate memory");
+													return -1;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					else
+					if (symbol_check_type(s1, SYMBOL_FUNCTION))
+					{
+						symbol_t *ps;
+						ps = syntax_only_with(s1, SYMBOL_PARAMETERS);
+						if (ps)
+						{
+							int32_t r2;
+							r2 = syntax_match_psasv(program, ps, arguments);
+							if (r2 == 1)
+							{
+								ilist_t *r3;
+								r3 = list_rpush(response, s1);
+								if (r3 == NULL)
+								{
+									fprintf(stderr, "unable to allocate memory");
+									return -1;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (list_count(response) > 0)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+static int32_t
+syntax_postfix(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(current, SYMBOL_ATTR))
+	{
+		return syntax_attribute(program, frame, current, response, flag);
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_COMPOSITE))
+	{
+		return syntax_composite(program, frame, current, response, flag);
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_CALL))
+	{
+		return syntax_call(program, frame, current, response, flag);
+	}
+	else
+	{
+		return syntax_primary(program, frame, current, response, flag);
+	}
+}
+
+static int32_t
+syntax_prefix(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(current, SYMBOL_TILDE))
+	{
+		symbol_t *right;
+		right = syntax_extract_with(current, SYMBOL_RIGHT);
+		if (right)
+		{
+			return syntax_prefix(program, frame, right, response, flag);
+		}
+		return 0;
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_NOT))
+	{
+		symbol_t *right;
+		right = syntax_extract_with(current, SYMBOL_RIGHT);
+		if (right)
+		{
+			return syntax_prefix(program, frame, right, response, flag);
+		}
+		return 0;
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_NEG))
+	{
+		symbol_t *right;
+		right = syntax_extract_with(current, SYMBOL_RIGHT);
+		if (right)
+		{
+			return syntax_prefix(program, frame, right, response, flag);
+		}
+		return 0;
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_POS))
+	{
+		symbol_t *right;
+		right = syntax_extract_with(current, SYMBOL_RIGHT);
+		if (right)
+		{
+			return syntax_prefix(program, frame, right, response, flag);
+		}
+		return 0;
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_TYPEOF))
+	{
+		symbol_t *right;
+		right = syntax_extract_with(current, SYMBOL_RIGHT);
+		if (right)
+		{
+			return syntax_prefix(program, frame, right, response, flag);
+		}
+		return 0;
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_SIZEOF))
+	{
+		return syntax_number(program, frame, current, response, flag);
+	}
+	else
+	{
+		return syntax_postfix(program, frame, current, response, flag);
+	}
+}
+
+static int32_t
+syntax_get_return(program_t *program, table_t *frame, symbol_t *t1, list_t *response)
+{
+	return 1;
+}
+
+static int32_t
+syntax_power(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(current, SYMBOL_POW))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "**") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		return syntax_prefix(program, frame, current, response, flag);
+	}
+}
+
+static int32_t
+syntax_multiplicative(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(current, SYMBOL_MUL))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "*") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_DIV))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "/") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_MOD))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "%") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_EPI))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "\\") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		return syntax_prefix(program, frame, current, response, flag);
+	}
+}
+
+static int32_t
+syntax_addative(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(current, SYMBOL_PLUS))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "+") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_MINUS))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "-") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		return syntax_multiplicative(program, frame, current, response, flag);
+	}
+}
+
+static int32_t
+syntax_shifting(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(current, SYMBOL_SHL))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "<<") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_SHR))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, ">>") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		return syntax_addative(program, frame, current, response, flag);
+	}
+}
+
+static int32_t
+syntax_relational(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(current, SYMBOL_LT))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "<") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_GT))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, ">") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_LE))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "<=") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_GE))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, ">=") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		return syntax_shifting(program, frame, current, response, flag);
+	}
+}
+
+static int32_t
+syntax_equality(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(current, SYMBOL_EQ))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "==") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_NEQ))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "!=") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		return syntax_relational(program, frame, current, response, flag);
+	}
+}
+
+static int32_t
+syntax_bitwise_and(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(current, SYMBOL_AND))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "&") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		return syntax_equality(program, frame, current, response, flag);
+	}
+}
+
+static int32_t
+syntax_bitwise_xor(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(current, SYMBOL_XOR))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "^") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		return syntax_bitwise_and(program, frame, current, response, flag);
+	}
+}
+
+static int32_t
+syntax_bitwise_or(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(current, SYMBOL_OR))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "|") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		return syntax_bitwise_xor(program, frame, current, response, flag);
+	}
+}
+
+static int32_t
+syntax_logical_and(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(current, SYMBOL_LAND))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "&&") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		return syntax_bitwise_or(program, frame, current, response, flag);
+	}
+}
+
+static int32_t
+syntax_logical_or(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(current, SYMBOL_LOR))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "||") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		return syntax_logical_and(program, frame, current, response, flag);
+	}
+}
+
+static int32_t
+syntax_conditional(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(current, SYMBOL_CONDITIONAL))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, response, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, response, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		return syntax_logical_or(program, frame, current, response, flag);
+	}
+}
+
+static int32_t
+syntax_expression(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	return syntax_conditional(program, frame, current, response, flag);
+}
+
+static int32_t
+syntax_assign(program_t *program, table_t *frame, symbol_t *current, list_t *response, uint64_t flag)
+{
+	if (symbol_check_type(current, SYMBOL_DEFINE))
+	{
+		symbol_t *right;
+		right = syntax_extract_with(current, SYMBOL_RIGHT);
+		if (right)
+		{
+			int32_t r1;
+			r1 = syntax_expression(program, frame, right, response, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, right, "reference not found");
+				return -1;
+			}
+			else
+			{
+				return 1;
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_ASSIGN))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "=") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, response);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_ADD_ASSIGN))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "+") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																list_t response3;
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, &response3);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+																if (r4 == 0)
+																{
+																	syntax_error(program, b1, "no return");
+																	return -1;
+																}
+																else
+																{
+																	ilist_t *a3;
+																	for (a3 = response3.begin;a3 != response3.end;a3 = a3->next)
+																	{
+																		symbol_t *s3 = (symbol_t *)a3->value;
+																		if (symbol_check_type(s3, SYMBOL_CLASS))
+																		{
+																			symbol_t *b2;
+																			for (b2 = s3->begin;b2 != s3->end;b2 = b2->next)
+																			{
+																				if (symbol_check_type(b2, SYMBOL_FUNCTION))
+																				{
+																					symbol_t *bk2;
+																					bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+																					if (bk2)
+																					{
+																						if (syntax_idstrcmp(bk2, "=") == 0)
+																						{
+																							symbol_t *bps2;
+																							bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																							if (bps2)
+																							{
+																								ilist_t *a4;
+																								for (a4 = response2.begin;a4 != response2.end;a4 = a4->next)
+																								{
+																									symbol_t *s4 = (symbol_t *)a4->value;
+																									if (symbol_check_type(s4, SYMBOL_CLASS))
+																									{
+																										int32_t r4;
+																										r4 = syntax_match_pst(program, bps2, s4);
+																										if (r4 == -1)
+																										{
+																											return -1;
+																										}
+																										else
+																										if (r4 == 1)
+																										{
+																											int32_t r5;
+																											r5 = syntax_get_return(program, frame, b2, response);
+																											if (r5 == -1)
+																											{
+																												return -1;
+																											}
+																										}
+																									}
+																								}
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_SUB_ASSIGN))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "-") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																list_t response3;
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, &response3);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+																if (r4 == 0)
+																{
+																	syntax_error(program, b1, "no return");
+																	return -1;
+																}
+																else
+																{
+																	ilist_t *a3;
+																	for (a3 = response3.begin;a3 != response3.end;a3 = a3->next)
+																	{
+																		symbol_t *s3 = (symbol_t *)a3->value;
+																		if (symbol_check_type(s3, SYMBOL_CLASS))
+																		{
+																			symbol_t *b2;
+																			for (b2 = s3->begin;b2 != s3->end;b2 = b2->next)
+																			{
+																				if (symbol_check_type(b2, SYMBOL_FUNCTION))
+																				{
+																					symbol_t *bk2;
+																					bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+																					if (bk2)
+																					{
+																						if (syntax_idstrcmp(bk2, "=") == 0)
+																						{
+																							symbol_t *bps2;
+																							bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																							if (bps2)
+																							{
+																								ilist_t *a4;
+																								for (a4 = response2.begin;a4 != response2.end;a4 = a4->next)
+																								{
+																									symbol_t *s4 = (symbol_t *)a4->value;
+																									if (symbol_check_type(s4, SYMBOL_CLASS))
+																									{
+																										int32_t r4;
+																										r4 = syntax_match_pst(program, bps2, s4);
+																										if (r4 == -1)
+																										{
+																											return -1;
+																										}
+																										else
+																										if (r4 == 1)
+																										{
+																											int32_t r5;
+																											r5 = syntax_get_return(program, frame, b2, response);
+																											if (r5 == -1)
+																											{
+																												return -1;
+																											}
+																										}
+																									}
+																								}
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_MUL_ASSIGN))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "*") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																list_t response3;
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, &response3);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+																if (r4 == 0)
+																{
+																	syntax_error(program, b1, "no return");
+																	return -1;
+																}
+																else
+																{
+																	ilist_t *a3;
+																	for (a3 = response3.begin;a3 != response3.end;a3 = a3->next)
+																	{
+																		symbol_t *s3 = (symbol_t *)a3->value;
+																		if (symbol_check_type(s3, SYMBOL_CLASS))
+																		{
+																			symbol_t *b2;
+																			for (b2 = s3->begin;b2 != s3->end;b2 = b2->next)
+																			{
+																				if (symbol_check_type(b2, SYMBOL_FUNCTION))
+																				{
+																					symbol_t *bk2;
+																					bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+																					if (bk2)
+																					{
+																						if (syntax_idstrcmp(bk2, "=") == 0)
+																						{
+																							symbol_t *bps2;
+																							bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																							if (bps2)
+																							{
+																								ilist_t *a4;
+																								for (a4 = response2.begin;a4 != response2.end;a4 = a4->next)
+																								{
+																									symbol_t *s4 = (symbol_t *)a4->value;
+																									if (symbol_check_type(s4, SYMBOL_CLASS))
+																									{
+																										int32_t r4;
+																										r4 = syntax_match_pst(program, bps2, s4);
+																										if (r4 == -1)
+																										{
+																											return -1;
+																										}
+																										else
+																										if (r4 == 1)
+																										{
+																											int32_t r5;
+																											r5 = syntax_get_return(program, frame, b2, response);
+																											if (r5 == -1)
+																											{
+																												return -1;
+																											}
+																										}
+																									}
+																								}
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_DIV_ASSIGN))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "/") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																list_t response3;
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, &response3);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+																if (r4 == 0)
+																{
+																	syntax_error(program, b1, "no return");
+																	return -1;
+																}
+																else
+																{
+																	ilist_t *a3;
+																	for (a3 = response3.begin;a3 != response3.end;a3 = a3->next)
+																	{
+																		symbol_t *s3 = (symbol_t *)a3->value;
+																		if (symbol_check_type(s3, SYMBOL_CLASS))
+																		{
+																			symbol_t *b2;
+																			for (b2 = s3->begin;b2 != s3->end;b2 = b2->next)
+																			{
+																				if (symbol_check_type(b2, SYMBOL_FUNCTION))
+																				{
+																					symbol_t *bk2;
+																					bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+																					if (bk2)
+																					{
+																						if (syntax_idstrcmp(bk2, "=") == 0)
+																						{
+																							symbol_t *bps2;
+																							bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																							if (bps2)
+																							{
+																								ilist_t *a4;
+																								for (a4 = response2.begin;a4 != response2.end;a4 = a4->next)
+																								{
+																									symbol_t *s4 = (symbol_t *)a4->value;
+																									if (symbol_check_type(s4, SYMBOL_CLASS))
+																									{
+																										int32_t r4;
+																										r4 = syntax_match_pst(program, bps2, s4);
+																										if (r4 == -1)
+																										{
+																											return -1;
+																										}
+																										else
+																										if (r4 == 1)
+																										{
+																											int32_t r5;
+																											r5 = syntax_get_return(program, frame, b2, response);
+																											if (r5 == -1)
+																											{
+																												return -1;
+																											}
+																										}
+																									}
+																								}
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_MOD_ASSIGN))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "%") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																list_t response3;
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, &response3);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+																if (r4 == 0)
+																{
+																	syntax_error(program, b1, "no return");
+																	return -1;
+																}
+																else
+																{
+																	ilist_t *a3;
+																	for (a3 = response3.begin;a3 != response3.end;a3 = a3->next)
+																	{
+																		symbol_t *s3 = (symbol_t *)a3->value;
+																		if (symbol_check_type(s3, SYMBOL_CLASS))
+																		{
+																			symbol_t *b2;
+																			for (b2 = s3->begin;b2 != s3->end;b2 = b2->next)
+																			{
+																				if (symbol_check_type(b2, SYMBOL_FUNCTION))
+																				{
+																					symbol_t *bk2;
+																					bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+																					if (bk2)
+																					{
+																						if (syntax_idstrcmp(bk2, "=") == 0)
+																						{
+																							symbol_t *bps2;
+																							bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																							if (bps2)
+																							{
+																								ilist_t *a4;
+																								for (a4 = response2.begin;a4 != response2.end;a4 = a4->next)
+																								{
+																									symbol_t *s4 = (symbol_t *)a4->value;
+																									if (symbol_check_type(s4, SYMBOL_CLASS))
+																									{
+																										int32_t r4;
+																										r4 = syntax_match_pst(program, bps2, s4);
+																										if (r4 == -1)
+																										{
+																											return -1;
+																										}
+																										else
+																										if (r4 == 1)
+																										{
+																											int32_t r5;
+																											r5 = syntax_get_return(program, frame, b2, response);
+																											if (r5 == -1)
+																											{
+																												return -1;
+																											}
+																										}
+																									}
+																								}
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_AND_ASSIGN))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "&") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																list_t response3;
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, &response3);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+																if (r4 == 0)
+																{
+																	syntax_error(program, b1, "no return");
+																	return -1;
+																}
+																else
+																{
+																	ilist_t *a3;
+																	for (a3 = response3.begin;a3 != response3.end;a3 = a3->next)
+																	{
+																		symbol_t *s3 = (symbol_t *)a3->value;
+																		if (symbol_check_type(s3, SYMBOL_CLASS))
+																		{
+																			symbol_t *b2;
+																			for (b2 = s3->begin;b2 != s3->end;b2 = b2->next)
+																			{
+																				if (symbol_check_type(b2, SYMBOL_FUNCTION))
+																				{
+																					symbol_t *bk2;
+																					bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+																					if (bk2)
+																					{
+																						if (syntax_idstrcmp(bk2, "=") == 0)
+																						{
+																							symbol_t *bps2;
+																							bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																							if (bps2)
+																							{
+																								ilist_t *a4;
+																								for (a4 = response2.begin;a4 != response2.end;a4 = a4->next)
+																								{
+																									symbol_t *s4 = (symbol_t *)a4->value;
+																									if (symbol_check_type(s4, SYMBOL_CLASS))
+																									{
+																										int32_t r4;
+																										r4 = syntax_match_pst(program, bps2, s4);
+																										if (r4 == -1)
+																										{
+																											return -1;
+																										}
+																										else
+																										if (r4 == 1)
+																										{
+																											int32_t r5;
+																											r5 = syntax_get_return(program, frame, b2, response);
+																											if (r5 == -1)
+																											{
+																												return -1;
+																											}
+																										}
+																									}
+																								}
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_OR_ASSIGN))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "|") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																list_t response3;
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, &response3);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+																if (r4 == 0)
+																{
+																	syntax_error(program, b1, "no return");
+																	return -1;
+																}
+																else
+																{
+																	ilist_t *a3;
+																	for (a3 = response3.begin;a3 != response3.end;a3 = a3->next)
+																	{
+																		symbol_t *s3 = (symbol_t *)a3->value;
+																		if (symbol_check_type(s3, SYMBOL_CLASS))
+																		{
+																			symbol_t *b2;
+																			for (b2 = s3->begin;b2 != s3->end;b2 = b2->next)
+																			{
+																				if (symbol_check_type(b2, SYMBOL_FUNCTION))
+																				{
+																					symbol_t *bk2;
+																					bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+																					if (bk2)
+																					{
+																						if (syntax_idstrcmp(bk2, "=") == 0)
+																						{
+																							symbol_t *bps2;
+																							bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																							if (bps2)
+																							{
+																								ilist_t *a4;
+																								for (a4 = response2.begin;a4 != response2.end;a4 = a4->next)
+																								{
+																									symbol_t *s4 = (symbol_t *)a4->value;
+																									if (symbol_check_type(s4, SYMBOL_CLASS))
+																									{
+																										int32_t r4;
+																										r4 = syntax_match_pst(program, bps2, s4);
+																										if (r4 == -1)
+																										{
+																											return -1;
+																										}
+																										else
+																										if (r4 == 1)
+																										{
+																											int32_t r5;
+																											r5 = syntax_get_return(program, frame, b2, response);
+																											if (r5 == -1)
+																											{
+																												return -1;
+																											}
+																										}
+																									}
+																								}
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_SHL_ASSIGN))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, "<<") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																list_t response3;
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, &response3);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+																if (r4 == 0)
+																{
+																	syntax_error(program, b1, "no return");
+																	return -1;
+																}
+																else
+																{
+																	ilist_t *a3;
+																	for (a3 = response3.begin;a3 != response3.end;a3 = a3->next)
+																	{
+																		symbol_t *s3 = (symbol_t *)a3->value;
+																		if (symbol_check_type(s3, SYMBOL_CLASS))
+																		{
+																			symbol_t *b2;
+																			for (b2 = s3->begin;b2 != s3->end;b2 = b2->next)
+																			{
+																				if (symbol_check_type(b2, SYMBOL_FUNCTION))
+																				{
+																					symbol_t *bk2;
+																					bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+																					if (bk2)
+																					{
+																						if (syntax_idstrcmp(bk2, "=") == 0)
+																						{
+																							symbol_t *bps2;
+																							bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																							if (bps2)
+																							{
+																								ilist_t *a4;
+																								for (a4 = response2.begin;a4 != response2.end;a4 = a4->next)
+																								{
+																									symbol_t *s4 = (symbol_t *)a4->value;
+																									if (symbol_check_type(s4, SYMBOL_CLASS))
+																									{
+																										int32_t r4;
+																										r4 = syntax_match_pst(program, bps2, s4);
+																										if (r4 == -1)
+																										{
+																											return -1;
+																										}
+																										else
+																										if (r4 == 1)
+																										{
+																											int32_t r5;
+																											r5 = syntax_get_return(program, frame, b2, response);
+																											if (r5 == -1)
+																											{
+																												return -1;
+																											}
+																										}
+																									}
+																								}
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	if (symbol_check_type(current, SYMBOL_SHR_ASSIGN))
+	{
+		symbol_t *left;
+		left = syntax_extract_with(current, SYMBOL_LEFT);
+		if (left)
+		{
+			list_t response1;
+			int32_t r1;
+			r1 = syntax_expression(program, frame, left, &response1, flag);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+			else
+			if (r1 == 0)
+			{
+				syntax_error(program, left, "reference not found");
+				return -1;
+			}
+			else
+			{
+				symbol_t *right;
+				right = syntax_extract_with(current, SYMBOL_RIGHT);
+				if (right)
+				{
+					list_t response2;
+					int32_t r2;
+					r2 = syntax_expression(program, frame, right, &response2, flag);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 0)
+					{
+						syntax_error(program, right, "reference not found");
+						return -1;
+					}
+					else
+					{
+						ilist_t *a1;
+						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						{
+							symbol_t *s1 = (symbol_t *)a1->value;
+							if (symbol_check_type(s1, SYMBOL_CLASS))
+							{
+								symbol_t *b1;
+								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								{
+									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									{
+										symbol_t *bk1;
+										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+										if (bk1)
+										{
+											if (syntax_idstrcmp(bk1, ">>") == 0)
+											{
+												symbol_t *bps1;
+												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+												if (bps1)
+												{
+													ilist_t *a2;
+													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													{
+														symbol_t *s2 = (symbol_t *)a2->value;
+														if (symbol_check_type(s2, SYMBOL_CLASS))
+														{
+															int32_t r3;
+															r3 = syntax_match_pst(program, bps1, s2);
+															if (r3 == -1)
+															{
+																return -1;
+															}
+															else
+															if (r3 == 1)
+															{
+																list_t response3;
+																int32_t r4;
+																r4 = syntax_get_return(program, frame, b1, &response3);
+																if (r4 == -1)
+																{
+																	return -1;
+																}
+																if (r4 == 0)
+																{
+																	syntax_error(program, b1, "no return");
+																	return -1;
+																}
+																else
+																{
+																	ilist_t *a3;
+																	for (a3 = response3.begin;a3 != response3.end;a3 = a3->next)
+																	{
+																		symbol_t *s3 = (symbol_t *)a3->value;
+																		if (symbol_check_type(s3, SYMBOL_CLASS))
+																		{
+																			symbol_t *b2;
+																			for (b2 = s3->begin;b2 != s3->end;b2 = b2->next)
+																			{
+																				if (symbol_check_type(b2, SYMBOL_FUNCTION))
+																				{
+																					symbol_t *bk2;
+																					bk2 = syntax_extract_with(b2, SYMBOL_KEY);
+																					if (bk2)
+																					{
+																						if (syntax_idstrcmp(bk2, "=") == 0)
+																						{
+																							symbol_t *bps2;
+																							bps2 = syntax_only_with(b2, SYMBOL_PARAMETERS);
+																							if (bps2)
+																							{
+																								ilist_t *a4;
+																								for (a4 = response2.begin;a4 != response2.end;a4 = a4->next)
+																								{
+																									symbol_t *s4 = (symbol_t *)a4->value;
+																									if (symbol_check_type(s4, SYMBOL_CLASS))
+																									{
+																										int32_t r4;
+																										r4 = syntax_match_pst(program, bps2, s4);
+																										if (r4 == -1)
+																										{
+																											return -1;
+																										}
+																										else
+																										if (r4 == 1)
+																										{
+																											int32_t r5;
+																											r5 = syntax_get_return(program, frame, b2, response);
+																											if (r5 == -1)
+																											{
+																												return -1;
+																											}
+																										}
+																									}
+																								}
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		return syntax_expression(program, frame, current, response, flag);
+	}
+}
+
+
+
+
 
 static int32_t
 syntax_return(program_t *program, symbol_t *current)
@@ -900,6 +5273,7 @@ syntax_return(program_t *program, symbol_t *current)
 static int32_t
 syntax_continue(program_t *program, symbol_t *current)
 {
+	/*
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
@@ -910,6 +5284,7 @@ syntax_continue(program_t *program, symbol_t *current)
 			return -1;
 		}
 	}
+	*/
 
 	return 1;
 }
@@ -917,6 +5292,7 @@ syntax_continue(program_t *program, symbol_t *current)
 static int32_t
 syntax_break(program_t *program, symbol_t *current)
 {
+	/*
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
@@ -927,12 +5303,14 @@ syntax_break(program_t *program, symbol_t *current)
 			return -1;
 		}
 	}
+	*/
 	return 1;
 }
 
 static int32_t
 syntax_throw(program_t *program, symbol_t *current)
 {
+	/*
 	symbol_t *a;
 	for (a = current->begin;(a != current->end); a = a->next)
 	{
@@ -943,6 +5321,7 @@ syntax_throw(program_t *program, symbol_t *current)
 			return -1;
 		}
 	}
+	*/
 
 	return 1;
 }
@@ -1409,12 +5788,14 @@ syntax_for(program_t *program, symbol_t *current)
 				}
 				if (symbol_check_type(a, SYMBOL_ASSIGN))
 				{
+					/*
 					int32_t result;
 					result = syntax_assign(program, b);
 					if (result == -1)
 					{
 						return -1;
 					}
+					*/
 					continue;
 				}
 			}
@@ -1422,12 +5803,14 @@ syntax_for(program_t *program, symbol_t *current)
 		}
 		if (symbol_check_type(a, SYMBOL_CONDITION))
 		{
+			/*
 			int32_t result;
 			result = syntax_expression(program, a);
 			if (result == -1)
 			{
 				return -1;
 			}
+			*/
 			continue;
 		}
 		if (symbol_check_type(a, SYMBOL_INCREMENTOR))
@@ -1437,12 +5820,14 @@ syntax_for(program_t *program, symbol_t *current)
 			{
 				if (symbol_check_type(a, SYMBOL_ASSIGN))
 				{
+					/*
 					int32_t result;
 					result = syntax_assign(program, b);
 					if (result == -1)
 					{
 						return -1;
 					}
+					*/
 					continue;
 				}
 			}
@@ -1585,12 +5970,14 @@ syntax_forin(program_t *program, symbol_t *current)
 		}
 		if (symbol_check_type(a, SYMBOL_EXPRESSION))
 		{
+			/*
 			int32_t result;
 			result = syntax_expression(program, a);
 			if (result == -1)
 			{
 				return -1;
 			}
+			*/
 			continue;
 		}
 		if (symbol_check_type(a, SYMBOL_BLOCK))
@@ -1668,7 +6055,9 @@ syntax_statement(program_t *program, symbol_t *current)
 	}
 	else
 	{
+		/*
 		result = syntax_assign(program, current);
+		*/
 	}
 
 	return result;
@@ -7775,7 +12164,13 @@ syntax_import(program_t *program, symbol_t *current)
 					return -1;
 				}
 
-				list_rpush(program->imports, (uint64_t)root);
+				ilist_t *r1;
+				r1 = list_rpush(program->imports, root);
+				if (r1 == NULL)
+				{
+					fprintf(stderr, "unable to allocate memory");
+					return -1;
+				}
 
 				int32_t graph_result;
 				graph_result = graph_run(program, root, node);

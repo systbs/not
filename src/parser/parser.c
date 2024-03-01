@@ -76,7 +76,7 @@ parser_save(program_t *program, parser_t *parser)
 	state->token = scanner->token;
 	state->count_error = list_count(program->errors);
 
-	if (!list_rpush(parser->states, (uint64_t)state))
+	if (!list_rpush(parser->states, state))
 	{
 		return -1;
 	}
@@ -90,8 +90,14 @@ parser_restore(program_t *program, parser_t *parser)
 	scanner_t *scanner;
 	scanner = parser->scanner;
 
+	ilist_t *r1 = list_rpop(parser->states);
+	if (r1 == NULL)
+	{
+		return -1;
+	}
+
 	parser_state_t *state;
-	state = (parser_state_t *)list_content(list_rpop(parser->states));
+	state = (parser_state_t *)r1->value;
 	if (!state)
 	{
 		return -1;
@@ -124,8 +130,14 @@ parser_restore(program_t *program, parser_t *parser)
 int32_t
 parser_release(program_t *program, parser_t *parser)
 {
+	ilist_t *r1 = list_rpop(parser->states);
+	if (r1 == NULL)
+	{
+		return -1;
+	}
+
 	parser_state_t *state;
-	state = (parser_state_t *)list_content(list_rpop(parser->states));
+	state = (parser_state_t *)r1->value;
 	if (!state)
 	{
 		return -1;
@@ -160,7 +172,7 @@ parser_error(program_t *program, position_t position, const char *format, ...)
 		return NULL;
 	}
 
-	if (list_rpush(program->errors, (uint64_t)error))
+	if (list_rpush(program->errors, error))
 	{
 		return NULL;
 	}
@@ -207,7 +219,7 @@ parser_expected(program_t *program, parser_t *parser, int32_t type)
 		return NULL;
 	}
 
-	if (list_rpush(program->errors, (uint64_t)error))
+	if (list_rpush(program->errors, error))
 	{
 		return NULL;
 	}
@@ -563,7 +575,7 @@ parser_array(program_t *program, parser_t *parser)
 				return NULL;
 			}
 
-			if (!list_rpush(expr_list, (uint64_t)expr))
+			if (!list_rpush(expr_list, expr))
 			{
 				return NULL;
 			}
@@ -645,7 +657,7 @@ parser_object(program_t *program, parser_t *parser, uint64_t flag)
 				return NULL;
 			}
 
-			if (!list_rpush(property_list, (uint64_t)property))
+			if (!list_rpush(property_list, property))
 			{
 				return NULL;
 			}
@@ -855,7 +867,7 @@ parser_arguments(program_t *program, parser_t *parser)
 			return NULL;
 		}
 
-		if (!list_rpush(arguments, (uint64_t)node))
+		if (!list_rpush(arguments, node))
 		{
 			return NULL;
 		}
@@ -2121,7 +2133,7 @@ parser_for_stmt(program_t *program, parser_t *parser, uint64_t flag)
 			return NULL;
 		}
 
-		if (!list_rpush(initializer, (uint64_t)node))
+		if (!list_rpush(initializer, node))
 		{
 			return NULL;
 		}
@@ -2182,7 +2194,7 @@ parser_for_stmt(program_t *program, parser_t *parser, uint64_t flag)
 			return NULL;
 		}
 
-		if (!list_rpush(incrementor, (uint64_t)node))
+		if (!list_rpush(incrementor, node))
 		{
 			return NULL;
 		}
@@ -2354,7 +2366,7 @@ parser_catchs(program_t *program, parser_t *parser)
 			return NULL;
 		}
 
-		if (!list_rpush(list, (uint64_t)node))
+		if (!list_rpush(list, node))
 		{
 			return NULL;
 		}
@@ -2478,7 +2490,7 @@ parser_block_stmt(program_t *program, parser_t *parser)
 			return NULL;
 		}
 
-		if (!list_rpush(stmt_list, (uint64_t)stmt))
+		if (!list_rpush(stmt_list, stmt))
 		{
 			return NULL;
 		}
@@ -2572,7 +2584,7 @@ parser_parameters(program_t *program, parser_t *parser)
 			return NULL;
 		}
 
-		if (!list_rpush(parameters, (uint64_t)node))
+		if (!list_rpush(parameters, node))
 		{
 			return NULL;
 		}
@@ -2652,7 +2664,7 @@ parser_generics(program_t *program, parser_t *parser)
 			return NULL;
 		}
 
-		if (!list_rpush(generics, (uint64_t)node))
+		if (!list_rpush(generics, node))
 		{
 			return NULL;
 		}
@@ -2975,7 +2987,7 @@ parser_enum(program_t *program, parser_t *parser, uint64_t flag)
 				return NULL;
 			}
 
-			if (!list_rpush(members, (uint64_t)member))
+			if (!list_rpush(members, member))
 			{
 				return NULL;
 			}
@@ -3399,7 +3411,7 @@ parser_class_block(program_t *program, parser_t *parser)
 			return NULL;
 		}
 
-		if (!(list_rpush(list, (uint64_t)decl)))
+		if (!(list_rpush(list, decl)))
 		{
 			return NULL;
 		}
@@ -3459,7 +3471,7 @@ parser_heritages(program_t *program, parser_t *parser)
 			return NULL;
 		}
 
-		if (!list_rpush(heritage_list, (uint64_t)node))
+		if (!list_rpush(heritage_list, node))
 		{
 			return NULL;
 		}
@@ -3612,7 +3624,7 @@ parser_fields(program_t *program, parser_t *parser)
 			return NULL;
 		}
 
-		if (!list_rpush(fields, (uint64_t)node))
+		if (!list_rpush(fields, node))
 		{
 			return NULL;
 		}
@@ -3795,7 +3807,7 @@ parser_module(program_t *program, parser_t *parser)
 			return NULL;
 		}
 
-		if (!list_rpush(members, (uint64_t)decl))
+		if (!list_rpush(members, decl))
 		{
 			return NULL;
 		}

@@ -2,284 +2,230 @@
 #include <stdlib.h>
 
 #include "../types/types.h"
+#include "../container/list.h"
+#include "../token/position.h"
+#include "../token/token.h"
+#include "../program.h"
+#include "../scanner/file.h"
+#include "../scanner/scanner.h"
+#include "../ast/node.h"
+#include "../parser/symbol.h"
 #include "list.h"
 
 list_t *
-list_apply(list_t *lst)
+list_apply(list_t *res)
 {
-    ilist_t *it;
+  ilist_t *it = (ilist_t *)malloc(sizeof(ilist_t));
+  if(it == NULL) {
+    return NULL;
+  }
 
-    if(!(it = (ilist_t *)malloc(sizeof(ilist_t)))) {
-        return NULL;
-    }
-    memset(it, 0, sizeof(ilist_t));
+  memset(it, 0, sizeof(ilist_t));
 
-    it->next = it->previous = it;
-    lst->end = lst->begin = it;
+  it->next = it->previous = it;
+  res->end = res->begin = it;
 
-    return lst;
+  return res;
 }
 
 list_t *
 list_create()
 {
-    list_t *lst;
+  list_t *res = (list_t *)malloc(sizeof(*res));
+  if(!res) {
+    return NULL;
+  }
+  memset(res, 0, sizeof(list_t));
 
-    if(!(lst = (list_t *)malloc(sizeof(*lst)))) {
-        return NULL;
-    }
-    memset(lst, 0, sizeof(list_t));
-
-    return list_apply(lst);
+  return list_apply(res);
 }
 
-int
-list_isempty(list_t *lst)
+int32_t
+list_isempty(list_t *res)
 {
-    return (lst->begin == lst->end);
-}
-
-uint64_t
-list_content(ilist_t *current){
-    return current ? current->value : 0;
+  return (res->begin == res->end);
 }
 
 ilist_t*
 list_next(ilist_t *current)
 {
-    return current->next;
+  return current->next;
 }
 
 ilist_t*
 list_previous(ilist_t *current)
 {
-    return current->previous;
+  return current->previous;
 }
 
 uint64_t
-list_count(list_t *lst)
+list_count(list_t *res)
 {
-    uint64_t cnt = 0;
-    ilist_t *b;
-    for(b = lst->begin; b && (b != lst->end); b = b->next){
-        cnt++;
-    }
-    return cnt;
+  uint64_t cnt = 0;
+  ilist_t *b;
+  for(b = res->begin; b && (b != res->end); b = b->next){
+    cnt++;
+  }
+  return cnt;
 }
 
-int
-list_query(list_t *lst, int (*f)(ilist_t*))
+int32_t
+list_query(list_t *res, int (*f)(ilist_t*))
 {
-    if (list_isempty(lst))
-        return 0;
+  if (list_isempty(res))
+  {
+    return 0;
+  }
 
-    ilist_t *b, *n;
-    for(b = lst->begin; b && (b != lst->end); b = n){
-        n = b->next;
-        if(!(*f)(b)){
-          return 0;
-        }
+  ilist_t *b, *n;
+  for(b = res->begin; b && (b != res->end); b = n){
+    n = b->next;
+    if(!(*f)(b)){
+      return 0;
     }
+  }
 
-    return 1;
+  return 1;
 }
 
 void
-list_destroy(list_t *lst)
+list_destroy(list_t *res)
 {
-    list_clear(lst);
-    free (lst);
+  list_clear(res);
+  free (res);
 }
 
 void
-list_free_it(ilist_t *it)
+list_link(list_t *res, ilist_t *current, ilist_t *it)
 {
-    free (it);
+  it->next = current;
+  it->previous = current->previous;
+  current->previous->next = it;
+  current->previous = it;
+
+  if(res->begin == current)
+  {
+      res->begin = it;
+  }
+}
+
+void
+list_unlink(list_t *res, ilist_t* it)
+{
+  if (it == res->end)
+  {
+    return;
+  }
+
+  if (it == res->begin)
+  {
+    res->begin = it->next;
+  }
+
+  it->next->previous = it->previous;
+  it->previous->next = it->next;
+}
+
+void
+list_sort(list_t *res, int (*f)(ilist_t *, ilist_t *))
+{
+  ilist_t *b, *n;
+  for(b = res->begin; b != res->end; b = n){
+    n = b->next;
+    if(n != res->end){
+      if((*f)(b, n)){
+        list_unlink(res, b);
+        list_link(res, n, b);
+      }
+    }
+  }
+}
+
+void
+list_unlink_by(list_t *res, int (*f)(ilist_t *))
+{
+  ilist_t *b, *n;
+  for(b = res->begin; b != res->end; b = n) {
+    n = b->next;
+    if ((*f)(b)) {
+      list_unlink(res, b);
+      break;
+    }
+  }
+}
+
+void
+list_clear(list_t *res)
+{
+  ilist_t *b, *n;
+  for(b = res->begin; b != res->end; b = n){
+    n = b->next;
+    list_unlink(res, b);
+    free(b);
+  }
 }
 
 ilist_t *
-list_create_iterior(uint64_t value){
-	ilist_t *it;
-    if(!(it = (ilist_t *)malloc(sizeof(*it)))) {
-        return NULL;
-    }
-    memset(it, 0, sizeof(ilist_t));
-
-    it->value = value;
-    
-    return it;
-}
-
-ilist_t*
-list_link(list_t *lst, ilist_t *current, ilist_t *it)
+list_rpop(list_t *res)
 {
-    it->next = current;
-    it->previous = current->previous;
-    current->previous->next = it;
-    current->previous = it;
-
-    if(lst->begin == current){
-        lst->begin = it;
-    }
-
-    return it;
-}
-
-ilist_t*
-list_unlink(list_t *lst, ilist_t* it)
-{
-    if (it == lst->end){
-        return 0;
-    }
-
-    if (it == lst->begin){
-        lst->begin = it->next;
-    }
-
-    it->next->previous = it->previous;
-    it->previous->next = it->next;
-
-    return it;
-}
-
-ilist_t*
-list_sort(list_t *lst, int (*f)(ilist_t *, ilist_t *))
-{
-    ilist_t *b, *n;
-    for(b = lst->begin; b != lst->end; b = n){
-        n = b->next;
-        if(n != lst->end){
-            if((*f)(b, n)){
-                list_unlink(lst, b);
-                list_link(lst, n, b);
-            }
-        }
-    }
-    return 0;
-}
-
-ilist_t*
-list_remove(list_t *lst, int (*f)(ilist_t *))
-{
-    ilist_t *b, *n;
-    for(b = lst->begin; b != lst->end; b = n){
-        n = b->next;
-        if((*f)(b)){
-            return list_unlink(lst, b);
-        }
-    }
-    return 0;
-}
-
-list_t*
-list_clear(list_t *lst)
-{
-    ilist_t *b, *n;
-    for(b = lst->begin; b != lst->end; b = n){
-        n = b->next;
-        list_unlink(lst, b);
-        free(b);
-    }
-    return lst;
-}
-
-ilist_t*
-list_rpop(list_t *lst)
-{
-	if(list_isempty(lst)){
+	if(list_isempty(res)){
 		return NULL;
 	}
-    return list_unlink(lst, lst->end->previous);
+  ilist_t *it = res->end->previous;
+  list_unlink(res, it);
+  return it;
 }
 
 ilist_t *
-list_rpush(list_t *lst, uint64_t value)
+list_rpush(list_t *res, void *value)
 {
-    ilist_t *it;
-    if(!(it = (ilist_t *)malloc(sizeof(*it)))) {
-        return NULL;
-    }
-    memset(it, 0, sizeof(ilist_t));
+  ilist_t *it = (ilist_t *)malloc(sizeof(*it));
+  if(it == NULL) {
+      return NULL;
+  }
+  memset(it, 0, sizeof(ilist_t));
 
-    it->value = value;
+  it->value = value;
 
-    return list_link(lst, lst->end, it);
-}
-
-ilist_t*
-list_lpop(list_t *lst)
-{
-    return list_unlink(lst, lst->begin);
+  list_link(res, res->end, it);
+  return it;
 }
 
 ilist_t *
-list_lpush(list_t *lst, uint64_t value)
+list_lpop(list_t *res)
 {
-    ilist_t *it;
-
-    if(!(it = (ilist_t *)malloc(sizeof(*it)))) {
-        return NULL;
-    }
-    memset(it, 0, sizeof(ilist_t));
-
-    it->value = value;
-
-    return list_link(lst, lst->begin, it);
+  ilist_t *it = res->begin;
+  list_unlink(res, it);
+  return it;
 }
 
 ilist_t *
-list_at(list_t *lst, uint64_t key)
+list_lpush(list_t *res, void *value)
 {
-    ilist_t *b, *n;
-    for(b = lst->begin; b && (b != lst->end); b = n){
-        n = b->next;
-        if (key-- <= 0){
-            return b;
-        }
-    }
-
-    if(b == lst->end){
-        return NULL;
-    }
-
-    ilist_t *it;
-    if(!(it = (ilist_t *)malloc(sizeof(*it)))) {
-        return NULL;
-    }
-
-    it->value = 0;
-
-    if (lst->begin == lst->end)
-    {
-        it->next = lst->end;
-        it->previous = lst->end;
-        lst->begin = it;
-        lst->end->next = it;
-        lst->end->previous = it;
-    }
-    else
-    {
-        it->next = lst->end;
-        it->previous = lst->end->previous;
-        lst->end->previous->next = it;
-        lst->end->previous = it;
-    }
-
-    return it;
-}
-
-ilist_t *
-list_first(list_t *lst)
-{
-    if(lst->begin != 0)
-        return lst->begin;
+  ilist_t *it = (ilist_t *)malloc(sizeof(*it));
+  if(it == NULL) {
     return NULL;
+  }
+  memset(it, 0, sizeof(ilist_t));
+
+  it->value = value;
+
+  list_link(res, res->begin, it);
+  return it;
 }
 
 ilist_t *
-list_last(list_t *lst)
+list_first(list_t *res)
 {
-    if(lst->end->previous != 0 && lst->end->previous != lst->end)
-        return lst->end->previous;
-    return NULL;
+  if(res->begin != 0)
+    return res->begin;
+  return NULL;
+}
+
+ilist_t *
+list_last(list_t *res)
+{
+  if(res->end->previous != 0 && res->end->previous != res->end)
+    return res->end->previous;
+  return NULL;
 }

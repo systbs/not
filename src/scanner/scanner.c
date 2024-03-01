@@ -43,9 +43,9 @@ scanner_set_token(scanner_t *scanner, token_t token)
 scanner_t *
 scanner_create(file_source_t *file_source, list_t *errors)
 {
-	scanner_t *scanner;
+	scanner_t *scanner = (scanner_t *)malloc(sizeof(scanner_t));
 
-	if (!(scanner = (scanner_t *)malloc(sizeof(scanner_t))))
+	if (scanner == NULL)
 	{
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(scanner_t));
 		return NULL;
@@ -98,7 +98,7 @@ scanner_error(scanner_t *scanner, position_t position, const char *format, ...)
 		return NULL;
 	}
 
-	if (list_rpush(scanner->errors, (uint64_t)error))
+	if (list_rpush(scanner->errors, error))
 	{
 		return NULL;
 	}
