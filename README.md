@@ -1,5 +1,4 @@
 # qalam
-interpreter
 
 
 
