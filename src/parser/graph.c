@@ -331,61 +331,49 @@ graph_lambda(program_t *program, symbol_t *parent, node_t *node)
 }
 
 static int32_t
-graph_object_property(program_t *program, symbol_t *parent, node_t *node)
+graph_member(program_t *program, symbol_t *parent, node_t *node)
 {
-	symbol_t *symbol;
-	symbol = symbol_rpush(parent, SYMBOL_OBJECT_PROPERTY, node);
-	if(symbol)
+	node_member_t *node_member = (node_member_t *)node->value;
+
+	symbol_t *symbol = symbol_rpush(parent, SYMBOL_MEMBER, node);
+	if(!symbol)
 	{
-		node_object_property_t *node_object_property;
-		node_object_property = (node_object_property_t *)node->value;
-
-		int32_t result;
-		if(node_object_property->name)
-		{
-			symbol_t *name;
-			name = symbol_rpush(symbol, SYMBOL_NAME, NULL);
-			if(name)
-			{
-				result = graph_expression(program, name, node_object_property->name);
-				if (result == -1)
-				{
-					return -1;
-				}	
-			}
-			else
-			{
-				fprintf(stderr, "unable to allocate memory");
-				return -1;
-			}
-		}
-
-		if (node_object_property->value)
-		{
-			symbol_t *value;
-			value = symbol_rpush(symbol, SYMBOL_VALUE, NULL);
-			if(value)
-			{
-				result = graph_expression(program, value, node_object_property->value);
-				if (result == -1)
-				{
-					return -1;
-				}
-			}
-			else
-			{
-				fprintf(stderr, "unable to allocate memory");
-				return -1;
-			}
-		}
-
-		return 1;
-	}
-	else
-	{
-		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
+
+	int32_t result;
+	if (node_member->key)
+	{
+		symbol_t *key = symbol_rpush(symbol, SYMBOL_KEY, NULL);
+		if(!key)
+		{
+			return -1;
+		}
+		
+		result = graph_id(program, key, node_member->key);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_member->value)
+	{
+		symbol_t *value;
+		value = symbol_rpush(symbol, SYMBOL_VALUE, NULL);
+		if(!value)
+		{
+			return -1;
+		}
+
+		result = graph_expression(program, value, node_member->value);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	return 1;
 }
 
 static int32_t
@@ -393,29 +381,28 @@ graph_object(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_OBJECT, node);
-	if(symbol)
-	{
-		node_object_t *node_object;
-		node_object = (node_object_t *)node->value;
 
-		int32_t result;
-		ilist_t *a;
-		for (a = node_object->list->begin; a != node_object->list->end; a = a->next)
-		{
-			node_t *temp = (node_t *)a->value;
-			result = graph_object_property(program, symbol, temp);
-			if (result == -1)
-			{
-				return -1;
-			}
-		}
-		return 1;
-	}
-	else
+	node_object_t *node_object;
+	node_object = (node_object_t *)node->value;
+
+	if(symbol == NULL)
 	{
 		fprintf(stderr, "unable to allocate memory");
 		return -1;
 	}
+
+	int32_t result;
+	ilist_t *a;
+	for (a = node_object->list->begin; a != node_object->list->end; a = a->next)
+	{
+		node_t *member = (node_t *)a->value;
+		result = graph_member(program, symbol, member);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
 	return 1;
 }
 
@@ -2458,57 +2445,6 @@ graph_expression(program_t *program, symbol_t *parent, node_t *node)
 static int32_t
 graph_assign(program_t *program, symbol_t *parent, node_t *node)
 {
-	if(node->kind == NODE_KIND_DEFINE)
-	{
-		symbol_t *symbol;
-		symbol = symbol_rpush(parent, SYMBOL_DEFINE, node);
-		if(symbol)
-		{
-			node_binary_t *node_binary;
-			node_binary = (node_binary_t *)node->value;
-
-			symbol_t *left, *right;
-			left = symbol_rpush(symbol, SYMBOL_NAME, NULL);
-			if(left)
-			{
-				int32_t result;
-				result = graph_expression(program, left, node_binary->left);
-				if (result == -1)
-				{
-					return -1;
-				}
-			}
-			else
-			{
-				fprintf(stderr, "unable to allocate memory");
-				return -1;
-			}
-
-			right = symbol_rpush(symbol, SYMBOL_VALUE, NULL);
-			if(right)
-			{
-				int32_t result;
-				result = graph_expression(program, right, node_binary->right);
-				if (result == -1)
-				{
-					return -1;
-				}
-			}
-			else
-			{
-				fprintf(stderr, "unable to allocate memory");
-				return -1;
-			}
-			return 1;
-		}
-		else
-		{
-			fprintf(stderr, "unable to allocate memory");
-			return -1;
-		}
-	}
-
-	else 
 	if (node->kind == NODE_KIND_ASSIGN)
 	{
 		symbol_t *symbol;
@@ -3644,52 +3580,6 @@ graph_generic(program_t *program, symbol_t *parent, node_t *node)
 		}
 
 		result = graph_expression(program, value, node_generic->value);
-		if (result == -1)
-		{
-			return -1;
-		}
-	}
-
-	return 1;
-}
-
-static int32_t
-graph_member(program_t *program, symbol_t *parent, node_t *node)
-{
-	node_member_t *node_member = (node_member_t *)node->value;
-
-	symbol_t *symbol = symbol_rpush(parent, SYMBOL_MEMBER, node);
-	if(!symbol)
-	{
-		return -1;
-	}
-
-	int32_t result;
-	if (node_member->key)
-	{
-		symbol_t *key = symbol_rpush(symbol, SYMBOL_KEY, NULL);
-		if(!key)
-		{
-			return -1;
-		}
-		
-		result = graph_id(program, key, node_member->key);
-		if (result == -1)
-		{
-			return -1;
-		}
-	}
-
-	if (node_member->value)
-	{
-		symbol_t *value;
-		value = symbol_rpush(symbol, SYMBOL_VALUE, NULL);
-		if(!value)
-		{
-			return -1;
-		}
-
-		result = graph_expression(program, value, node_member->value);
 		if (result == -1)
 		{
 			return -1;

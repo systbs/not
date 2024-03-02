@@ -14,6 +14,9 @@ typedef struct list {
 } list_t;
 
 list_t *
+list_apply(list_t *res);
+
+list_t *
 list_create();
 
 int

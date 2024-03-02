@@ -69,31 +69,31 @@ syntax_error(program_t *program, symbol_t *target, const char *format, ...)
 
 
 static int32_t
-syntax_function(program_t *program, symbol_t *target);
+syntax_function(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag);
 
 static int32_t
-syntax_block(program_t *program, symbol_t *target);
+syntax_block(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag);
 
 static int32_t
-syntax_import(program_t *program, symbol_t *target);
+syntax_import(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag);
 
 static int32_t
-syntax_generics(program_t *program, symbol_t *target);
+syntax_generics(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag);
 
 static int32_t
-syntax_generic(program_t *program, symbol_t *target);
+syntax_generic(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag);
 
 static int32_t
-syntax_fields(program_t *program, symbol_t *target);
+syntax_fields(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag);
 
 static int32_t
-syntax_field(program_t *program, symbol_t *target);
+syntax_field(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag);
 
 static int32_t
-syntax_expression(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag);
+syntax_expression(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag);
 
 static int32_t
-syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag);
+syntax_assign(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag);
 
 
 
@@ -815,12 +815,12 @@ syntax_match_pst(program_t *program, symbol_t *ps1, symbol_t *s1)
 
 
 static int32_t
-syntax_id(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_id(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	itable_t *it1;
 	for (it1 = frame->begin;(it1 != frame->end);it1 = it1->next)
 	{
-		if (it1->original != NULL)
+		if ((it1->original != NULL) && ((it1->flag & ITABLE_FLAG_TEMPORARY) != ITABLE_FLAG_TEMPORARY))
 		{
 			symbol_t *key;
 			key = syntax_extract_with(it1->original, SYMBOL_KEY);
@@ -828,16 +828,11 @@ syntax_id(program_t *program, table_t *frame, symbol_t *target, list_t *response
 			{
 				if (syntax_idcmp(key, target) == 0)
 				{
-					it1->reference += 1;
-					if ((flag & SYNTAX_FLAG_INIT) == SYNTAX_FLAG_INIT)
-					{
-						it1->initalize = 1;
-					}
 					ilist_t *r1;
-					r1 = list_rpush(response, it1->original);
+					r1 = list_rpush(response, it1);
 					if (r1 == NULL)
 					{
-						fprintf(stderr, "unable to allocate memory");
+						fprintf(stderr, "unable to allocate memory\n");
 						return -1;
 					}
 				}
@@ -847,7 +842,7 @@ syntax_id(program_t *program, table_t *frame, symbol_t *target, list_t *response
 
 	if(frame->parent)
 	{
-		return syntax_id(program, frame->parent, target, response, flag);
+		return syntax_id(program, scope, frame->parent, target, response, flag);
 	}
 
 	if (list_count(response) > 0)
@@ -858,12 +853,12 @@ syntax_id(program_t *program, table_t *frame, symbol_t *target, list_t *response
 }
 
 static int32_t
-syntax_number(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_number(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	itable_t *it1;
 	for (it1 = frame->begin;(it1 != frame->end);it1 = it1->next)
 	{
-		if (it1->original != NULL)
+		if ((it1->original != NULL) && ((it1->flag & ITABLE_FLAG_TEMPORARY) != ITABLE_FLAG_TEMPORARY))
 		{
 			symbol_t *key;
 			key = syntax_extract_with(it1->original, SYMBOL_KEY);
@@ -871,12 +866,11 @@ syntax_number(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 			{
 				if (syntax_idstrcmp(key, "Int") == 0)
 				{
-					it1->reference += 1;
 					ilist_t *r1;
-					r1 = list_rpush(response, it1->original);
+					r1 = list_rpush(response, it1);
 					if (r1 == NULL)
 					{
-						fprintf(stderr, "unable to allocate memory");
+						fprintf(stderr, "unable to allocate memory\n");
 						return -1;
 					}
 					continue;
@@ -887,7 +881,7 @@ syntax_number(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 
 	if(frame->parent)
 	{
-		return syntax_number(program, frame->parent, target, response, flag);
+		return syntax_number(program, scope, frame->parent, target, response, flag);
 	}
 
 	if (list_count(response) > 0)
@@ -898,12 +892,12 @@ syntax_number(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 }
 
 static int32_t
-syntax_string(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_string(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	itable_t *it1;
 	for (it1 = frame->begin;(it1 != frame->end);it1 = it1->next)
 	{
-		if (it1->original != NULL)
+		if ((it1->original != NULL) && ((it1->flag & ITABLE_FLAG_TEMPORARY) != ITABLE_FLAG_TEMPORARY))
 		{
 			symbol_t *key;
 			key = syntax_extract_with(it1->original, SYMBOL_KEY);
@@ -911,12 +905,11 @@ syntax_string(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 			{
 				if (syntax_idstrcmp(key, "String") == 0)
 				{
-					it1->reference += 1;
 					ilist_t *r1;
-					r1 = list_rpush(response, it1->original);
+					r1 = list_rpush(response, it1);
 					if (r1 == NULL)
 					{
-						fprintf(stderr, "unable to allocate memory");
+						fprintf(stderr, "unable to allocate memory\n");
 						return -1;
 					}
 					continue;
@@ -927,7 +920,7 @@ syntax_string(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 
 	if(frame->parent)
 	{
-		return syntax_string(program, frame->parent, target, response, flag);
+		return syntax_string(program, scope, frame->parent, target, response, flag);
 	}
 
 	if (list_count(response) > 0)
@@ -938,12 +931,12 @@ syntax_string(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 }
 
 static int32_t
-syntax_char(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_char(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	itable_t *it1;
 	for (it1 = frame->begin;(it1 != frame->end);it1 = it1->next)
 	{
-		if (it1->original != NULL)
+		if ((it1->original != NULL) && ((it1->flag & ITABLE_FLAG_TEMPORARY) != ITABLE_FLAG_TEMPORARY))
 		{
 			symbol_t *key;
 			key = syntax_extract_with(it1->original, SYMBOL_KEY);
@@ -951,12 +944,11 @@ syntax_char(program_t *program, table_t *frame, symbol_t *target, list_t *respon
 			{
 				if (syntax_idstrcmp(key, "Char") == 0)
 				{
-					it1->reference += 1;
 					ilist_t *r1;
-					r1 = list_rpush(response, it1->original);
+					r1 = list_rpush(response, it1);
 					if (r1 == NULL)
 					{
-						fprintf(stderr, "unable to allocate memory");
+						fprintf(stderr, "unable to allocate memory\n");
 						return -1;
 					}
 					continue;
@@ -967,7 +959,7 @@ syntax_char(program_t *program, table_t *frame, symbol_t *target, list_t *respon
 
 	if(frame->parent)
 	{
-		return syntax_char(program, frame->parent, target, response, flag);
+		return syntax_char(program, scope, frame->parent, target, response, flag);
 	}
 
 	if (list_count(response) > 0)
@@ -978,12 +970,12 @@ syntax_char(program_t *program, table_t *frame, symbol_t *target, list_t *respon
 }
 
 static int32_t
-syntax_null(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_null(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	itable_t *it1;
 	for (it1 = frame->begin;(it1 != frame->end);it1 = it1->next)
 	{
-		if (it1->original != NULL)
+		if ((it1->original != NULL) && ((it1->flag & ITABLE_FLAG_TEMPORARY) != ITABLE_FLAG_TEMPORARY))
 		{
 			symbol_t *key;
 			key = syntax_extract_with(it1->original, SYMBOL_KEY);
@@ -991,12 +983,11 @@ syntax_null(program_t *program, table_t *frame, symbol_t *target, list_t *respon
 			{
 				if (syntax_idstrcmp(key, "Null") == 0)
 				{
-					it1->reference += 1;
 					ilist_t *r1;
-					r1 = list_rpush(response, it1->original);
+					r1 = list_rpush(response, it1);
 					if (r1 == NULL)
 					{
-						fprintf(stderr, "unable to allocate memory");
+						fprintf(stderr, "unable to allocate memory\n");
 						return -1;
 					}
 					continue;
@@ -1007,7 +998,7 @@ syntax_null(program_t *program, table_t *frame, symbol_t *target, list_t *respon
 
 	if(frame->parent)
 	{
-		return syntax_null(program, frame->parent, target, response, flag);
+		return syntax_null(program, scope, frame->parent, target, response, flag);
 	}
 
 	if (list_count(response) > 0)
@@ -1018,12 +1009,12 @@ syntax_null(program_t *program, table_t *frame, symbol_t *target, list_t *respon
 }
 
 static int32_t
-syntax_true(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_true(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	itable_t *it1;
 	for (it1 = frame->begin;(it1 != frame->end);it1 = it1->next)
 	{
-		if (it1->original != NULL)
+		if ((it1->original != NULL) && ((it1->flag & ITABLE_FLAG_TEMPORARY) != ITABLE_FLAG_TEMPORARY))
 		{
 			symbol_t *key;
 			key = syntax_extract_with(it1->original, SYMBOL_KEY);
@@ -1031,12 +1022,11 @@ syntax_true(program_t *program, table_t *frame, symbol_t *target, list_t *respon
 			{
 				if (syntax_idstrcmp(key, "Boolean") == 0)
 				{
-					it1->reference += 1;
 					ilist_t *r1;
-					r1 = list_rpush(response, it1->original);
+					r1 = list_rpush(response, it1);
 					if (r1 == NULL)
 					{
-						fprintf(stderr, "unable to allocate memory");
+						fprintf(stderr, "unable to allocate memory\n");
 						return -1;
 					}
 					continue;
@@ -1047,7 +1037,7 @@ syntax_true(program_t *program, table_t *frame, symbol_t *target, list_t *respon
 
 	if(frame->parent)
 	{
-		return syntax_true(program, frame->parent, target, response, flag);
+		return syntax_true(program, scope, frame->parent, target, response, flag);
 	}
 
 	if (list_count(response) > 0)
@@ -1058,12 +1048,12 @@ syntax_true(program_t *program, table_t *frame, symbol_t *target, list_t *respon
 }
 
 static int32_t
-syntax_false(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_false(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	itable_t *it1;
 	for (it1 = frame->begin;(it1 != frame->end);it1 = it1->next)
 	{
-		if (it1->original != NULL)
+		if ((it1->original != NULL) && ((it1->flag & ITABLE_FLAG_TEMPORARY) != ITABLE_FLAG_TEMPORARY))
 		{
 			symbol_t *key;
 			key = syntax_extract_with(it1->original, SYMBOL_KEY);
@@ -1071,12 +1061,11 @@ syntax_false(program_t *program, table_t *frame, symbol_t *target, list_t *respo
 			{
 				if (syntax_idstrcmp(key, "Boolean") == 0)
 				{
-					it1->reference += 1;
 					ilist_t *r1;
-					r1 = list_rpush(response, it1->original);
+					r1 = list_rpush(response, it1);
 					if (r1 == NULL)
 					{
-						fprintf(stderr, "unable to allocate memory");
+						fprintf(stderr, "unable to allocate memory\n");
 						return -1;
 					}
 					continue;
@@ -1087,7 +1076,7 @@ syntax_false(program_t *program, table_t *frame, symbol_t *target, list_t *respo
 
 	if(frame->parent)
 	{
-		return syntax_false(program, frame->parent, target, response, flag);
+		return syntax_false(program, scope, frame->parent, target, response, flag);
 	}
 
 	if (list_count(response) > 0)
@@ -1098,54 +1087,64 @@ syntax_false(program_t *program, table_t *frame, symbol_t *target, list_t *respo
 }
 
 static int32_t
-syntax_primary(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_primary(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_ID))
 	{
-		return syntax_id(program, frame, target, response, flag);
+		return syntax_id(program, scope, frame, target, response, flag);
 	}
 	else
 	if (symbol_check_type(target, SYMBOL_NUMBER))
 	{
-		return syntax_number(program, frame, target, response, flag);
+		return syntax_number(program, scope, frame, target, response, flag);
 	}
 	else
 	if (symbol_check_type(target, SYMBOL_STRING))
 	{
-		return syntax_string(program, frame, target, response, flag);
+		return syntax_string(program, scope, frame, target, response, flag);
 	}
 	else
 	if (symbol_check_type(target, SYMBOL_CHAR))
 	{
-		return syntax_char(program, frame, target, response, flag);
+		return syntax_char(program, scope, frame, target, response, flag);
 	}
 	else
 	if (symbol_check_type(target, SYMBOL_NULL))
 	{
-		return syntax_null(program, frame, target, response, flag);
+		return syntax_null(program, scope, frame, target, response, flag);
 	}
 	else
 	if (symbol_check_type(target, SYMBOL_TRUE))
 	{
-		return syntax_true(program, frame, target, response, flag);
+		return syntax_true(program, scope, frame, target, response, flag);
 	}
 	else
 	if (symbol_check_type(target, SYMBOL_FALSE))
 	{
-		return syntax_false(program, frame, target, response, flag);
+		return syntax_false(program, scope, frame, target, response, flag);
 	}
 	else
 	if (symbol_check_type(target, SYMBOL_PARENTHESIS))
 	{
-		return syntax_expression(program, frame, syntax_only(target), response, flag);
+		return syntax_expression(program, scope, frame, syntax_only(target), response, flag);
 	}
 	else
 	{
+		itable_t *it1;
+		it1 = table_new();
+		if (it1 == NULL)
+		{
+			fprintf(stderr, "unable to allocate memory\n");
+			return -1;
+		}
+		it1->flag |= ITABLE_FLAG_TEMPORARY;
+		it1->original = target;
+
 		ilist_t *r1;
-		r1 = list_rpush(response, target);
+		r1 = list_rpush(response, it1);
 		if (r1 == NULL)
 		{
-			fprintf(stderr, "unable to allocate memory");
+			fprintf(stderr, "unable to allocate memory\n");
 			return -1;
 		}
 		return 1;
@@ -1153,7 +1152,7 @@ syntax_primary(program_t *program, table_t *frame, symbol_t *target, list_t *res
 }
 
 static int32_t
-syntax_redirect(program_t *program, table_t *frame, symbol_t *base, symbol_t *target, list_t *response, uint64_t flag)
+syntax_hierarchy(program_t *program, list_t *scope, table_t *frame, symbol_t *base, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *a1;
 	for (a1 = base->begin;a1 != base->end;a1 = a1->next)
@@ -1166,11 +1165,20 @@ syntax_redirect(program_t *program, table_t *frame, symbol_t *base, symbol_t *ta
 			{
 				if (syntax_idcmp(ak1, target) == 0)
 				{
+					itable_t *it1;
+					it1 = table_rpush(frame, a1);
+					if (it1 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+					it1->flag |= ITABLE_FLAG_TEMPORARY;
+
 					ilist_t *r1;
-					r1 = list_rpush(response, a1);
+					r1 = list_rpush(response, it1);
 					if (r1 == NULL)
 					{
-						fprintf(stderr, "unable to allocate memory");
+						fprintf(stderr, "unable to allocate memory\n");
 						return -1;
 					}
 				}
@@ -1192,8 +1200,9 @@ syntax_redirect(program_t *program, table_t *frame, symbol_t *base, symbol_t *ta
 				if (ht1 != NULL)
 				{
 					list_t response1;
+
 					int32_t r1;
-					r1 = syntax_expression(program, frame, ht1, &response1, flag);
+					r1 = syntax_expression(program, scope, frame, ht1, &response1, flag);
 					if (r1 == -1)
 					{
 						return -1;
@@ -1206,30 +1215,27 @@ syntax_redirect(program_t *program, table_t *frame, symbol_t *base, symbol_t *ta
 					}
 					else
 					{
-						if (list_count(&response1) > 1)
+						ilist_t *b1;
+						for (b1 = response1.begin;b1 != response1.end;b1 = b1->next)
 						{
-							syntax_error(program, ht1, "multiple reference");
-							return -1;
-						}
-						ilist_t *il1;
-						il1 = list_lpop(&response1);
-						if (il1 != NULL)
-						{
-							symbol_t *r2;
-							r2 = (symbol_t *)il1->value;
-							if (symbol_check_type(r2, SYMBOL_CLASS))
+							ilist_t *br1 = (ilist_t *)b1->value;
+							if (br1 != NULL)
 							{
-								int32_t r3;
-								r3 = syntax_redirect(program, frame, r2, target, response, flag);
-								if (r3 == -1)
+								symbol_t *brs1 = (symbol_t *)br1->value;
+								if (symbol_check_type(brs1, SYMBOL_CLASS))
 								{
+									int32_t r2;
+									r2 = syntax_hierarchy(program, scope, frame, brs1, target, response, flag);
+									if (r2 == -1)
+									{
+										return -1;
+									}
+								}
+								else
+								{
+									syntax_error(program, brs1, "reference not a class");
 									return -1;
 								}
-							}
-							else
-							{
-								syntax_error(program, r2, "reference not a class");
-								return -1;
 							}
 						}
 					}
@@ -1246,15 +1252,24 @@ syntax_redirect(program_t *program, table_t *frame, symbol_t *base, symbol_t *ta
 }
 
 static int32_t
-syntax_attribute(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_attribute(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *left;
 	left = syntax_extract_with(target, SYMBOL_LEFT);
 	if (left)
 	{
 		list_t response1;
+		
+		list_t *r0;
+		r0 = list_apply(&response1);
+		if (r0 == NULL)
+		{
+			fprintf(stderr, "unable to allocate memory\n");
+			return -1;
+		}
+
 		int32_t r1;
-		r1 = syntax_expression(program, frame, left, &response1, flag);
+		r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 		if (r1 == -1)
 		{
 			return -1;
@@ -1267,31 +1282,297 @@ syntax_attribute(program_t *program, table_t *frame, symbol_t *target, list_t *r
 		}
 		else
 		{
-			symbol_t *right;
-			right = syntax_extract_with(target, SYMBOL_RIGHT);
-			if (right)
+			ilist_t *a1;
+			for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 			{
-				ilist_t *a1;
-				for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+				itable_t *it1 = (itable_t *)a1->value;
+				if (it1->original != NULL)
 				{
-					itable_t *it1 = (itable_t *)a1->value;
-					if (it1->original != NULL)
+					symbol_t *s1 = it1->original;
+					if (symbol_check_type(s1, SYMBOL_CLASS))
 					{
-						symbol_t *s1 = it1->original;
-						if (symbol_check_type(s1, SYMBOL_CLASS))
+						symbol_t *right;
+						right = syntax_extract_with(target, SYMBOL_RIGHT);
+						if (right)
 						{
-							int32_t r2;
-							r2 = syntax_redirect(program, frame, s1, target, response, flag);
-							if (r2 == -1)
+							list_t response2;
+		
+							list_t *r2;
+							r2 = list_apply(&response2);
+							if (r2 == NULL)
+							{
+								fprintf(stderr, "unable to allocate memory\n");
+								return -1;
+							}
+
+							int32_t r3;
+							r3 = syntax_hierarchy(program, scope, frame, s1, right, &response2, flag);
+							if (r3 == -1)
 							{
 								return -1;
+							}
+							else
+							if (r3 == 1)
+							{
+								it1->reference += 1;
+							}
+
+							ilist_t *a2;
+							for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+							{
+								itable_t *it2 = (itable_t *)a2->value;
+								if (it2 != NULL)
+								{
+									ilist_t *r4;
+									r4 = list_rpush(response, it2);
+									if (r4 == NULL)
+									{
+										fprintf(stderr, "unable to allocate memory\n");
+										return -1;
+									}
+								}
+							}
+							list_clear(&response2);
+						}
+					}
+					else
+					if (symbol_check_type(s1, SYMBOL_ENUM))
+					{
+						symbol_t *right;
+						right = syntax_extract_with(target, SYMBOL_RIGHT);
+						if (right)
+						{
+							symbol_t *ms1;
+							ms1 = syntax_extract_with(s1, SYMBOL_MEMBERS);
+							if (ms1 != NULL)
+							{
+								symbol_t *m1;
+								for (m1 = ms1->begin;m1 != ms1->end;m1 = m1->next)
+								{
+									if (symbol_check_type(m1, SYMBOL_MEMBER))
+									{
+										symbol_t *mk1;
+										mk1 = syntax_extract_with(m1, SYMBOL_KEY);
+										if (mk1)
+										{
+											if (syntax_idcmp(mk1, right) == 0)
+											{
+												itable_t *it2;
+												it2 = table_rpush(frame, m1);
+												if (it2 == NULL)
+												{
+													fprintf(stderr, "unable to allocate memory\n");
+													return -1;
+												}
+												it2->flag |= ITABLE_FLAG_TEMPORARY;
+
+												ilist_t *r2;
+												r2 = list_rpush(response, it2);
+												if (r2 == NULL)
+												{
+													fprintf(stderr, "unable to allocate memory\n");
+													return -1;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					else
+					if (symbol_check_type(s1, SYMBOL_OBJECT))
+					{
+						symbol_t *right;
+						right = syntax_extract_with(target, SYMBOL_RIGHT);
+						if (right)
+						{
+							symbol_t *m1;
+							for (m1 = s1->begin;m1 != s1->end;m1 = m1->next)
+							{
+								if (symbol_check_type(m1, SYMBOL_MEMBER))
+								{
+									symbol_t *mk1;
+									mk1 = syntax_extract_with(m1, SYMBOL_KEY);
+									if (mk1)
+									{
+										if (syntax_idcmp(mk1, right) == 0)
+										{
+											itable_t *it2;
+											it2 = table_rpush(frame, m1);
+											if (it2 == NULL)
+											{
+												fprintf(stderr, "unable to allocate memory\n");
+												return -1;
+											}
+											it2->flag |= ITABLE_FLAG_TEMPORARY;
+
+											ilist_t *r2;
+											r2 = list_rpush(response, it2);
+											if (r2 == NULL)
+											{
+												fprintf(stderr, "unable to allocate memory\n");
+												return -1;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					else
+					if (symbol_check_type(s1, SYMBOL_VAR))
+					{
+						symbol_t *s2 = it1->refer;
+						if (s2 != NULL)
+						{
+							symbol_t *right;
+							right = syntax_extract_with(target, SYMBOL_RIGHT);
+							if (right)
+							{
+								if (symbol_check_type(s2, SYMBOL_CLASS))
+								{
+									symbol_t *right;
+									right = syntax_extract_with(target, SYMBOL_RIGHT);
+									if (right)
+									{
+										list_t response2;
+					
+										list_t *r2;
+										r2 = list_apply(&response2);
+										if (r2 == NULL)
+										{
+											fprintf(stderr, "unable to allocate memory\n");
+											return -1;
+										}
+
+										int32_t r3;
+										r3 = syntax_hierarchy(program, scope, frame, s2, right, &response2, flag);
+										if (r3 == -1)
+										{
+											return -1;
+										}
+										else
+										if (r3 == 1)
+										{
+											it1->reference += 1;
+										}
+
+										ilist_t *a2;
+										for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+										{
+											itable_t *it2 = (itable_t *)a2->value;
+											if (it2 != NULL)
+											{
+												ilist_t *r4;
+												r4 = list_rpush(response, it2);
+												if (r4 == NULL)
+												{
+													fprintf(stderr, "unable to allocate memory\n");
+													return -1;
+												}
+											}
+										}
+										list_clear(&response2);
+									}
+								}
+								else
+								if (symbol_check_type(s2, SYMBOL_ENUM))
+								{
+									symbol_t *right;
+									right = syntax_extract_with(target, SYMBOL_RIGHT);
+									if (right)
+									{
+										symbol_t *ms1;
+										ms1 = syntax_extract_with(s2, SYMBOL_MEMBERS);
+										if (ms1 != NULL)
+										{
+											symbol_t *m1;
+											for (m1 = ms1->begin;m1 != ms1->end;m1 = m1->next)
+											{
+												if (symbol_check_type(m1, SYMBOL_MEMBER))
+												{
+													symbol_t *mk1;
+													mk1 = syntax_extract_with(m1, SYMBOL_KEY);
+													if (mk1)
+													{
+														if (syntax_idcmp(mk1, right) == 0)
+														{
+															itable_t *it2;
+															it2 = table_rpush(frame, m1);
+															if (it2 == NULL)
+															{
+																fprintf(stderr, "unable to allocate memory\n");
+																return -1;
+															}
+															it2->flag |= ITABLE_FLAG_TEMPORARY;
+
+															ilist_t *r2;
+															r2 = list_rpush(response, it2);
+															if (r2 == NULL)
+															{
+																fprintf(stderr, "unable to allocate memory\n");
+																return -1;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+								else
+								if (symbol_check_type(s2, SYMBOL_OBJECT))
+								{
+									symbol_t *right;
+									right = syntax_extract_with(target, SYMBOL_RIGHT);
+									if (right)
+									{
+										symbol_t *m1;
+										for (m1 = s2->begin;m1 != s2->end;m1 = m1->next)
+										{
+											if (symbol_check_type(m1, SYMBOL_MEMBER))
+											{
+												symbol_t *mk1;
+												mk1 = syntax_extract_with(m1, SYMBOL_KEY);
+												if (mk1)
+												{
+													if (syntax_idcmp(mk1, right) == 0)
+													{
+														itable_t *it2;
+														it2 = table_rpush(frame, m1);
+														if (it2 == NULL)
+														{
+															fprintf(stderr, "unable to allocate memory\n");
+															return -1;
+														}
+														it2->flag |= ITABLE_FLAG_TEMPORARY;
+
+														ilist_t *r2;
+														r2 = list_rpush(response, it2);
+														if (r2 == NULL)
+														{
+															fprintf(stderr, "unable to allocate memory\n");
+															return -1;
+														}
+													}
+												}
+											}
+										}
+									}
+								}
 							}
 						}
 						else
 						{
-							syntax_error(program, s1, "must refer to a {class/enum/object}");
+							syntax_error(program, s1, "not initialized");
 							return -1;
 						}
+					}
+					else
+					{
+						syntax_error(program, s1, "not a route");
+						return -1;
 					}
 				}
 			}
@@ -1306,15 +1587,24 @@ syntax_attribute(program_t *program, table_t *frame, symbol_t *target, list_t *r
 }
 
 static int32_t
-syntax_composite(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_composite(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *key;
 	key = syntax_extract_with(target, SYMBOL_KEY);
 	if (key)
 	{
 		list_t response1;
+
+		list_t *r0;
+		r0 = list_apply(&response1);
+		if (r0 == NULL)
+		{
+			fprintf(stderr, "unable to allocate memory\n");
+			return -1;
+		}
+
 		int32_t r1;
-		r1 = syntax_expression(program, frame, key, &response1, flag);
+		r1 = syntax_expression(program, scope, frame, key, &response1, flag);
 		if (r1 == -1)
 		{
 			return -1;
@@ -1327,30 +1617,48 @@ syntax_composite(program_t *program, table_t *frame, symbol_t *target, list_t *r
 		}
 		else
 		{
-			symbol_t *arguments;
-			arguments = syntax_extract_with(target, SYMBOL_ARGUMENTS);
-			if (arguments)
+			ilist_t *a1;
+			for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 			{
-				ilist_t *a1;
-				for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+				itable_t *it1 = (itable_t *)a1->value;
+				if (it1->original != NULL)
 				{
-					symbol_t *s1 = (symbol_t *)a1->value;
+					symbol_t *s1 = it1->original;
 					if (symbol_check_type(s1, SYMBOL_CLASS))
 					{
-						symbol_t *gs;
-						gs = syntax_only_with(s1, SYMBOL_GENERICS);
-						if (gs)
+						symbol_t *gs1;
+						gs1 = syntax_only_with(s1, SYMBOL_GENERICS);
+						if (gs1 != NULL)
 						{
-							int32_t r2;
-							r2 = syntax_match_gsast(program, gs, arguments);
-							if (r2 == 1)
+							symbol_t *arguments;
+							arguments = syntax_extract_with(target, SYMBOL_ARGUMENTS);
+							if (arguments)
 							{
-								ilist_t *r3;
-								r3 = list_rpush(response, s1);
-								if (r3 == NULL)
+								int32_t r2;
+								r2 = syntax_match_gsast(program, gs1, arguments);
+								if (r2 == -1)
 								{
-									fprintf(stderr, "unable to allocate memory");
 									return -1;
+								}
+								else
+								if (r2 == 1)
+								{
+									itable_t *it2;
+									it2 = table_rpush(frame, s1);
+									if (it2 == NULL)
+									{
+										fprintf(stderr, "unable to allocate memory\n");
+										return -1;
+									}
+									it2->flag |= ITABLE_FLAG_TEMPORARY;
+
+									ilist_t *r3;
+									r3 = list_rpush(response, it2);
+									if (r3 == NULL)
+									{
+										fprintf(stderr, "unable to allocate memory\n");
+										return -1;
+									}
 								}
 							}
 						}
@@ -1362,16 +1670,30 @@ syntax_composite(program_t *program, table_t *frame, symbol_t *target, list_t *r
 						gs = syntax_only_with(s1, SYMBOL_GENERICS);
 						if (gs)
 						{
-							int32_t r2;
-							r2 = syntax_match_gsast(program, gs, arguments);
-							if (r2 == 1)
+							symbol_t *arguments;
+							arguments = syntax_extract_with(target, SYMBOL_ARGUMENTS);
+							if (arguments)
 							{
-								ilist_t *r3;
-								r3 = list_rpush(response, s1);
-								if (r3 == NULL)
+								int32_t r2;
+								r2 = syntax_match_gsast(program, gs, arguments);
+								if (r2 == 1)
 								{
-									fprintf(stderr, "unable to allocate memory");
-									return -1;
+									itable_t *it2;
+									it2 = table_rpush(frame, s1);
+									if (it2 == NULL)
+									{
+										fprintf(stderr, "unable to allocate memory\n");
+										return -1;
+									}
+									it2->flag |= ITABLE_FLAG_TEMPORARY;
+
+									ilist_t *r3;
+									r3 = list_rpush(response, it2);
+									if (r3 == NULL)
+									{
+										fprintf(stderr, "unable to allocate memory\n");
+										return -1;
+									}
 								}
 							}
 						}
@@ -1389,15 +1711,24 @@ syntax_composite(program_t *program, table_t *frame, symbol_t *target, list_t *r
 }
 
 static int32_t
-syntax_call(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_call(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *key;
 	key = syntax_extract_with(target, SYMBOL_KEY);
 	if (key)
 	{
 		list_t response1;
+
+		list_t *r0;
+		r0 = list_apply(&response1);
+		if (r0 == NULL)
+		{
+			fprintf(stderr, "unable to allocate memory\n");
+			return -1;
+		}
+
 		int32_t r1;
-		r1 = syntax_expression(program, frame, key, &response1, flag);
+		r1 = syntax_expression(program, scope, frame, key, &response1, flag);
 		if (r1 == -1)
 		{
 			return -1;
@@ -1410,14 +1741,13 @@ syntax_call(program_t *program, table_t *frame, symbol_t *target, list_t *respon
 		}
 		else
 		{
-			symbol_t *arguments;
-			arguments = syntax_extract_with(target, SYMBOL_ARGUMENTS);
-			if (arguments)
+			ilist_t *a1;
+			for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 			{
-				ilist_t *a1;
-				for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+				itable_t *it1 = (itable_t *)a1->value;
+				if (it1->original != NULL)
 				{
-					symbol_t *s1 = (symbol_t *)a1->value;
+					symbol_t *s1 = it1->original;
 					if (symbol_check_type(s1, SYMBOL_CLASS))
 					{
 						symbol_t *b1;
@@ -1427,24 +1757,38 @@ syntax_call(program_t *program, table_t *frame, symbol_t *target, list_t *respon
 							{
 								symbol_t *bk1;
 								bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-								if (bk1)
+								if (bk1 != NULL)
 								{
 									if (syntax_idstrcmp(bk1, "constructor") == 0)
 									{
-										symbol_t *ps;
-										ps = syntax_only_with(b1, SYMBOL_PARAMETERS);
-										if (ps)
+										symbol_t *ps1;
+										ps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+										if (ps1 != NULL)
 										{
-											int32_t r2;
-											r2 = syntax_match_psasv(program, ps, arguments);
-											if (r2 == 1)
+											symbol_t *arguments;
+											arguments = syntax_extract_with(target, SYMBOL_ARGUMENTS);
+											if (arguments)
 											{
-												ilist_t *r3;
-												r3 = list_rpush(response, s1);
-												if (r3 == NULL)
+												int32_t r2;
+												r2 = syntax_match_psasv(program, ps1, arguments);
+												if (r2 == 1)
 												{
-													fprintf(stderr, "unable to allocate memory");
-													return -1;
+													itable_t *it2;
+													it2 = table_rpush(frame, s1);
+													if (it2 == NULL)
+													{
+														fprintf(stderr, "unable to allocate memory\n");
+														return -1;
+													}
+													it2->flag |= ITABLE_FLAG_TEMPORARY;
+
+													ilist_t *r3;
+													r3 = list_rpush(response, it2);
+													if (r3 == NULL)
+													{
+														fprintf(stderr, "unable to allocate memory\n");
+														return -1;
+													}
 												}
 											}
 										}
@@ -1456,26 +1800,41 @@ syntax_call(program_t *program, table_t *frame, symbol_t *target, list_t *respon
 					else
 					if (symbol_check_type(s1, SYMBOL_FUNCTION))
 					{
-						symbol_t *ps;
-						ps = syntax_only_with(s1, SYMBOL_PARAMETERS);
-						if (ps)
+						symbol_t *ps1;
+						ps1 = syntax_only_with(s1, SYMBOL_PARAMETERS);
+						if (ps1 != NULL)
 						{
-							int32_t r2;
-							r2 = syntax_match_psasv(program, ps, arguments);
-							if (r2 == 1)
+							symbol_t *arguments;
+							arguments = syntax_extract_with(target, SYMBOL_ARGUMENTS);
+							if (arguments)
 							{
-								ilist_t *r3;
-								r3 = list_rpush(response, s1);
-								if (r3 == NULL)
+								int32_t r2;
+								r2 = syntax_match_psasv(program, ps1, arguments);
+								if (r2 == 1)
 								{
-									fprintf(stderr, "unable to allocate memory");
-									return -1;
+									itable_t *it2;
+									it2 = table_rpush(frame, s1);
+									if (it2 == NULL)
+									{
+										fprintf(stderr, "unable to allocate memory\n");
+										return -1;
+									}
+									it2->flag |= ITABLE_FLAG_TEMPORARY;
+
+									ilist_t *r3;
+									r3 = list_rpush(response, it2);
+									if (r3 == NULL)
+									{
+										fprintf(stderr, "unable to allocate memory\n");
+										return -1;
+									}
 								}
 							}
 						}
 					}
 				}
 			}
+			
 		}
 	}
 
@@ -1487,30 +1846,30 @@ syntax_call(program_t *program, table_t *frame, symbol_t *target, list_t *respon
 }
 
 static int32_t
-syntax_postfix(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_postfix(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_ATTR))
 	{
-		return syntax_attribute(program, frame, target, response, flag);
+		return syntax_attribute(program, scope, frame, target, response, flag);
 	}
 	else
 	if (symbol_check_type(target, SYMBOL_COMPOSITE))
 	{
-		return syntax_composite(program, frame, target, response, flag);
+		return syntax_composite(program, scope, frame, target, response, flag);
 	}
 	else
 	if (symbol_check_type(target, SYMBOL_CALL))
 	{
-		return syntax_call(program, frame, target, response, flag);
+		return syntax_call(program, scope, frame, target, response, flag);
 	}
 	else
 	{
-		return syntax_primary(program, frame, target, response, flag);
+		return syntax_primary(program, scope, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_prefix(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_prefix(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_TILDE))
 	{
@@ -1518,7 +1877,7 @@ syntax_prefix(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 		right = syntax_extract_with(target, SYMBOL_RIGHT);
 		if (right)
 		{
-			return syntax_prefix(program, frame, right, response, flag);
+			return syntax_prefix(program, scope, frame, right, response, flag);
 		}
 		return 0;
 	}
@@ -1529,7 +1888,7 @@ syntax_prefix(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 		right = syntax_extract_with(target, SYMBOL_RIGHT);
 		if (right)
 		{
-			return syntax_prefix(program, frame, right, response, flag);
+			return syntax_prefix(program, scope, frame, right, response, flag);
 		}
 		return 0;
 	}
@@ -1540,7 +1899,7 @@ syntax_prefix(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 		right = syntax_extract_with(target, SYMBOL_RIGHT);
 		if (right)
 		{
-			return syntax_prefix(program, frame, right, response, flag);
+			return syntax_prefix(program, scope, frame, right, response, flag);
 		}
 		return 0;
 	}
@@ -1551,7 +1910,7 @@ syntax_prefix(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 		right = syntax_extract_with(target, SYMBOL_RIGHT);
 		if (right)
 		{
-			return syntax_prefix(program, frame, right, response, flag);
+			return syntax_prefix(program, scope, frame, right, response, flag);
 		}
 		return 0;
 	}
@@ -1562,29 +1921,23 @@ syntax_prefix(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 		right = syntax_extract_with(target, SYMBOL_RIGHT);
 		if (right)
 		{
-			return syntax_prefix(program, frame, right, response, flag);
+			return syntax_prefix(program, scope, frame, right, response, flag);
 		}
 		return 0;
 	}
 	else
 	if (symbol_check_type(target, SYMBOL_SIZEOF))
 	{
-		return syntax_number(program, frame, target, response, flag);
+		return syntax_number(program, scope, frame, target, response, flag);
 	}
 	else
 	{
-		return syntax_postfix(program, frame, target, response, flag);
+		return syntax_postfix(program, scope, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_get_return(program_t *program, table_t *frame, symbol_t *t1, list_t *response)
-{
-	return 1;
-}
-
-static int32_t
-syntax_power(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_power(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_POW))
 	{
@@ -1593,8 +1946,17 @@ syntax_power(program_t *program, table_t *frame, symbol_t *target, list_t *respo
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -1611,16 +1973,24 @@ syntax_power(program_t *program, table_t *frame, symbol_t *target, list_t *respo
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -1630,44 +2000,52 @@ syntax_power(program_t *program, table_t *frame, symbol_t *target, list_t *respo
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "**") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "**") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -1686,12 +2064,12 @@ syntax_power(program_t *program, table_t *frame, symbol_t *target, list_t *respo
 	}
 	else
 	{
-		return syntax_prefix(program, frame, target, response, flag);
+		return syntax_prefix(program, scope, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_multiplicative(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_multiplicative(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_MUL))
 	{
@@ -1700,8 +2078,17 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *target, list
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -1718,16 +2105,24 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *target, list
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -1737,44 +2132,52 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *target, list
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "*") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "*") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -1799,8 +2202,17 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *target, list
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -1817,16 +2229,24 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *target, list
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -1836,44 +2256,52 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *target, list
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "/") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "/") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -1898,8 +2326,17 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *target, list
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -1916,16 +2353,24 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *target, list
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -1935,44 +2380,52 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *target, list
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "%") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "%") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -1997,8 +2450,17 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *target, list
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -2015,16 +2477,24 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *target, list
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -2034,44 +2504,52 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *target, list
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "\\") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "\\") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -2090,12 +2568,12 @@ syntax_multiplicative(program_t *program, table_t *frame, symbol_t *target, list
 	}
 	else
 	{
-		return syntax_prefix(program, frame, target, response, flag);
+		return syntax_prefix(program, scope, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_addative(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_addative(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_PLUS))
 	{
@@ -2104,8 +2582,17 @@ syntax_addative(program_t *program, table_t *frame, symbol_t *target, list_t *re
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -2122,16 +2609,24 @@ syntax_addative(program_t *program, table_t *frame, symbol_t *target, list_t *re
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -2141,44 +2636,52 @@ syntax_addative(program_t *program, table_t *frame, symbol_t *target, list_t *re
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "+") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "+") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -2203,8 +2706,17 @@ syntax_addative(program_t *program, table_t *frame, symbol_t *target, list_t *re
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -2221,16 +2733,24 @@ syntax_addative(program_t *program, table_t *frame, symbol_t *target, list_t *re
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -2240,44 +2760,52 @@ syntax_addative(program_t *program, table_t *frame, symbol_t *target, list_t *re
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "-") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "-") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -2296,12 +2824,12 @@ syntax_addative(program_t *program, table_t *frame, symbol_t *target, list_t *re
 	}
 	else
 	{
-		return syntax_multiplicative(program, frame, target, response, flag);
+		return syntax_multiplicative(program, scope, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_shifting(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_shifting(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_SHL))
 	{
@@ -2310,8 +2838,17 @@ syntax_shifting(program_t *program, table_t *frame, symbol_t *target, list_t *re
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -2328,16 +2865,24 @@ syntax_shifting(program_t *program, table_t *frame, symbol_t *target, list_t *re
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -2347,44 +2892,52 @@ syntax_shifting(program_t *program, table_t *frame, symbol_t *target, list_t *re
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "<<") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "<<") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -2409,8 +2962,17 @@ syntax_shifting(program_t *program, table_t *frame, symbol_t *target, list_t *re
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -2427,16 +2989,24 @@ syntax_shifting(program_t *program, table_t *frame, symbol_t *target, list_t *re
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -2446,44 +3016,52 @@ syntax_shifting(program_t *program, table_t *frame, symbol_t *target, list_t *re
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, ">>") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, ">>") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -2502,12 +3080,12 @@ syntax_shifting(program_t *program, table_t *frame, symbol_t *target, list_t *re
 	}
 	else
 	{
-		return syntax_addative(program, frame, target, response, flag);
+		return syntax_addative(program, scope, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_relational(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_relational(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_LT))
 	{
@@ -2516,8 +3094,17 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *target, list_t *
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -2534,16 +3121,24 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *target, list_t *
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -2553,44 +3148,52 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *target, list_t *
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "<") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "<") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -2615,8 +3218,17 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *target, list_t *
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -2633,16 +3245,24 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *target, list_t *
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -2652,44 +3272,52 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *target, list_t *
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, ">") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, ">") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -2714,8 +3342,17 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *target, list_t *
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -2732,16 +3369,24 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *target, list_t *
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -2751,44 +3396,52 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *target, list_t *
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "<=") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "<=") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -2813,8 +3466,17 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *target, list_t *
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -2831,16 +3493,24 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *target, list_t *
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -2850,44 +3520,52 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *target, list_t *
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, ">=") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, ">=") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -2906,12 +3584,12 @@ syntax_relational(program_t *program, table_t *frame, symbol_t *target, list_t *
 	}
 	else
 	{
-		return syntax_shifting(program, frame, target, response, flag);
+		return syntax_shifting(program, scope, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_equality(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_equality(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_EQ))
 	{
@@ -2920,8 +3598,17 @@ syntax_equality(program_t *program, table_t *frame, symbol_t *target, list_t *re
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -2938,16 +3625,24 @@ syntax_equality(program_t *program, table_t *frame, symbol_t *target, list_t *re
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -2957,44 +3652,52 @@ syntax_equality(program_t *program, table_t *frame, symbol_t *target, list_t *re
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "==") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "==") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -3019,8 +3722,17 @@ syntax_equality(program_t *program, table_t *frame, symbol_t *target, list_t *re
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -3037,16 +3749,24 @@ syntax_equality(program_t *program, table_t *frame, symbol_t *target, list_t *re
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -3056,44 +3776,52 @@ syntax_equality(program_t *program, table_t *frame, symbol_t *target, list_t *re
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "!=") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "!=") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -3112,12 +3840,12 @@ syntax_equality(program_t *program, table_t *frame, symbol_t *target, list_t *re
 	}
 	else
 	{
-		return syntax_relational(program, frame, target, response, flag);
+		return syntax_relational(program, scope, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_bitwise_and(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_bitwise_and(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_AND))
 	{
@@ -3126,8 +3854,17 @@ syntax_bitwise_and(program_t *program, table_t *frame, symbol_t *target, list_t 
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -3144,16 +3881,24 @@ syntax_bitwise_and(program_t *program, table_t *frame, symbol_t *target, list_t 
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -3163,44 +3908,52 @@ syntax_bitwise_and(program_t *program, table_t *frame, symbol_t *target, list_t 
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "&") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "&") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -3219,12 +3972,12 @@ syntax_bitwise_and(program_t *program, table_t *frame, symbol_t *target, list_t 
 	}
 	else
 	{
-		return syntax_equality(program, frame, target, response, flag);
+		return syntax_equality(program, scope, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_bitwise_xor(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_bitwise_xor(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_XOR))
 	{
@@ -3233,8 +3986,17 @@ syntax_bitwise_xor(program_t *program, table_t *frame, symbol_t *target, list_t 
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -3251,16 +4013,24 @@ syntax_bitwise_xor(program_t *program, table_t *frame, symbol_t *target, list_t 
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -3270,44 +4040,52 @@ syntax_bitwise_xor(program_t *program, table_t *frame, symbol_t *target, list_t 
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "^") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "^") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -3326,12 +4104,12 @@ syntax_bitwise_xor(program_t *program, table_t *frame, symbol_t *target, list_t 
 	}
 	else
 	{
-		return syntax_bitwise_and(program, frame, target, response, flag);
+		return syntax_bitwise_and(program, scope, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_bitwise_or(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_bitwise_or(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_OR))
 	{
@@ -3340,8 +4118,17 @@ syntax_bitwise_or(program_t *program, table_t *frame, symbol_t *target, list_t *
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -3358,16 +4145,24 @@ syntax_bitwise_or(program_t *program, table_t *frame, symbol_t *target, list_t *
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -3377,44 +4172,52 @@ syntax_bitwise_or(program_t *program, table_t *frame, symbol_t *target, list_t *
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "|") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "|") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -3433,12 +4236,12 @@ syntax_bitwise_or(program_t *program, table_t *frame, symbol_t *target, list_t *
 	}
 	else
 	{
-		return syntax_bitwise_xor(program, frame, target, response, flag);
+		return syntax_bitwise_xor(program, scope, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_logical_and(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_logical_and(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_LAND))
 	{
@@ -3447,8 +4250,17 @@ syntax_logical_and(program_t *program, table_t *frame, symbol_t *target, list_t 
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -3465,16 +4277,24 @@ syntax_logical_and(program_t *program, table_t *frame, symbol_t *target, list_t 
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -3484,44 +4304,52 @@ syntax_logical_and(program_t *program, table_t *frame, symbol_t *target, list_t 
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "&&") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "&&") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -3540,12 +4368,12 @@ syntax_logical_and(program_t *program, table_t *frame, symbol_t *target, list_t 
 	}
 	else
 	{
-		return syntax_bitwise_or(program, frame, target, response, flag);
+		return syntax_bitwise_or(program, scope, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_logical_or(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_logical_or(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_LOR))
 	{
@@ -3554,8 +4382,17 @@ syntax_logical_or(program_t *program, table_t *frame, symbol_t *target, list_t *
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -3572,16 +4409,24 @@ syntax_logical_or(program_t *program, table_t *frame, symbol_t *target, list_t *
 				right = syntax_extract_with(target, SYMBOL_RIGHT);
 				if (right)
 				{
-
 					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+
+					list_t *r2;
+					r2 = list_apply(&response2);
+					if (r2 == NULL)
+					{
+						fprintf(stderr, "unable to allocate memory\n");
+						return -1;
+					}
+			
+					int32_t r3;
+					r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+					if (r3 == -1)
 					{
 						return -1;
 					}
 					else
-					if (r2 == 0)
+					if (r3 == 0)
 					{
 						syntax_error(program, right, "reference not found");
 						return -1;
@@ -3591,44 +4436,52 @@ syntax_logical_or(program_t *program, table_t *frame, symbol_t *target, list_t *
 						ilist_t *a1;
 						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							itable_t *it1 = (itable_t *)a1->value;
+							if (it1->original != NULL)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								symbol_t *s1 = it1->original;
+								if (symbol_check_type(s1, SYMBOL_CLASS))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *b1;
+									for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (symbol_check_type(b1, SYMBOL_FUNCTION))
 										{
-											if (syntax_idstrcmp(bk1, "||") == 0)
+											symbol_t *bk1;
+											bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+											if (bk1 != NULL)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												if (syntax_idstrcmp(bk1, "||") == 0)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													symbol_t *bps1;
+													bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+													if (bps1 != NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r4;
+																	r4 = syntax_match_pst(program, bps1, s2);
+																	if (r4 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r4 == 1)
+																	{
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, response, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
@@ -3647,12 +4500,12 @@ syntax_logical_or(program_t *program, table_t *frame, symbol_t *target, list_t *
 	}
 	else
 	{
-		return syntax_logical_and(program, frame, target, response, flag);
+		return syntax_logical_and(program, scope, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_conditional(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_conditional(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_CONDITIONAL))
 	{
@@ -3661,7 +4514,7 @@ syntax_conditional(program_t *program, table_t *frame, symbol_t *target, list_t 
 		if (left)
 		{
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, response, flag);
+			r1 = syntax_expression(program, scope, frame, left, response, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -3679,7 +4532,7 @@ syntax_conditional(program_t *program, table_t *frame, symbol_t *target, list_t 
 				if (right)
 				{
 					int32_t r2;
-					r2 = syntax_expression(program, frame, right, response, flag);
+					r2 = syntax_expression(program, scope, frame, right, response, flag);
 					if (r2 == -1)
 					{
 						return -1;
@@ -3696,18 +4549,18 @@ syntax_conditional(program_t *program, table_t *frame, symbol_t *target, list_t 
 	}
 	else
 	{
-		return syntax_logical_or(program, frame, target, response, flag);
+		return syntax_logical_or(program, scope, frame, target, response, flag);
 	}
 }
 
 static int32_t
-syntax_expression(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_expression(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
-	return syntax_conditional(program, frame, target, response, flag);
+	return syntax_conditional(program, scope, frame, target, response, flag);
 }
 
 static int32_t
-syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+syntax_assign(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	if (symbol_check_type(target, SYMBOL_ASSIGN))
 	{
@@ -3716,8 +4569,17 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 		if (left)
 		{
 			list_t response1;
+
+			list_t *r0;
+			r0 = list_apply(&response1);
+			if (r0 == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag | SYNTAX_FLAG_INIT);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag | SYNTAX_FLAG_INIT);
 			if (r1 == -1)
 			{
 				return -1;
@@ -3730,72 +4592,103 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 			}
 			else
 			{
-				symbol_t *right;
-				right = syntax_extract_with(target, SYMBOL_RIGHT);
-				if (right)
+				ilist_t *a1;
+				for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
 				{
-
-					list_t response2;
-					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
-					if (r2 == -1)
+					itable_t *it1 = (itable_t *)a1->value;
+					if (it1->original != NULL)
 					{
-						return -1;
-					}
-					else
-					if (r2 == 0)
-					{
-						syntax_error(program, right, "reference not found");
-						return -1;
-					}
-					else
-					{
-						ilist_t *a1;
-						for (a1 = response1.begin;a1 != response1.end;a1 = a1->next)
+						symbol_t *s1 = it1->original;
+						if (symbol_check_type(s1, SYMBOL_CLASS))
 						{
-							symbol_t *s1 = (symbol_t *)a1->value;
-							if (symbol_check_type(s1, SYMBOL_CLASS))
+							symbol_t *b1;
+							for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
 							{
-								symbol_t *b1;
-								for (b1 = s1->begin;b1 != s1->end;b1 = b1->next)
+								if (symbol_check_type(b1, SYMBOL_FUNCTION))
 								{
-									if (symbol_check_type(b1, SYMBOL_FUNCTION))
+									symbol_t *bk1;
+									bk1 = syntax_extract_with(b1, SYMBOL_KEY);
+									if (bk1)
 									{
-										symbol_t *bk1;
-										bk1 = syntax_extract_with(b1, SYMBOL_KEY);
-										if (bk1)
+										if (syntax_idstrcmp(bk1, "=") == 0)
 										{
-											if (syntax_idstrcmp(bk1, "=") == 0)
+											symbol_t *bps1;
+											bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
+											if (bps1)
 											{
-												symbol_t *bps1;
-												bps1 = syntax_only_with(b1, SYMBOL_PARAMETERS);
-												if (bps1)
+												symbol_t *right;
+												right = syntax_extract_with(target, SYMBOL_RIGHT);
+												if (right)
 												{
-													ilist_t *a2;
-													for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
+													list_t response2;
+
+													list_t *r2;
+													r2 = list_apply(&response2);
+													if (r2 == NULL)
 													{
-														symbol_t *s2 = (symbol_t *)a2->value;
-														if (symbol_check_type(s2, SYMBOL_CLASS))
+														fprintf(stderr, "unable to allocate memory\n");
+														return -1;
+													}
+
+													int32_t r3;
+													r3 = syntax_expression(program, scope, frame, right, &response2, flag);
+													if (r3 == -1)
+													{
+														return -1;
+													}
+													else
+													if (r3 == 0)
+													{
+														syntax_error(program, right, "reference not found");
+														return -1;
+													}
+													else
+													{
+														ilist_t *a2;
+														for (a2 = response2.begin;a2 != response2.end;a2 = a2->next)
 														{
-															int32_t r3;
-															r3 = syntax_match_pst(program, bps1, s2);
-															if (r3 == -1)
+															itable_t *it2 = (itable_t *)a2->value;
+															if (it2->original != NULL)
 															{
-																return -1;
-															}
-															else
-															if (r3 == 1)
-															{
-																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, response);
-																if (r4 == -1)
+																symbol_t *s2 = it2->original;
+																if (symbol_check_type(s2, SYMBOL_CLASS))
 																{
-																	return -1;
+																	int32_t r3;
+																	r3 = syntax_match_pst(program, bps1, s2);
+																	if (r3 == -1)
+																	{
+																		return -1;
+																	}
+																	else
+																	if (r3 == 1)
+																	{
+																		list_t response3;
+
+																		list_t *r4;
+																		r4 = list_apply(&response3);
+																		if (r4 == NULL)
+																		{
+																			fprintf(stderr, "unable to allocate memory\n");
+																			return -1;
+																		}
+
+																		int32_t r5;
+																		r5 = syntax_function(program, scope, frame, b1, &response3, flag);
+																		if (r5 == -1)
+																		{
+																			return -1;
+																		}
+																	}
 																}
 															}
 														}
 													}
 												}
+											}
+											else
+											{
+												syntax_error(program, b1, "function must have parameters");
+												return -1;
 											}
 										}
 									}
@@ -3816,7 +4709,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 		{
 			list_t response1;
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -3835,7 +4728,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 				{
 					list_t response2;
 					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
+					r2 = syntax_expression(program, scope, frame, right, &response2, flag);
 					if (r2 == -1)
 					{
 						return -1;
@@ -3886,7 +4779,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 															{
 																list_t response3;
 																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, &response3);
+																r4 = syntax_function(program, scope, frame, b1, &response3, flag);
 																if (r4 == -1)
 																{
 																	return -1;
@@ -3935,7 +4828,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 																										if (r4 == 1)
 																										{
 																											int32_t r5;
-																											r5 = syntax_get_return(program, frame, b2, response);
+																											r5 = syntax_function(program, scope, frame, b2, response, flag);
 																											if (r5 == -1)
 																											{
 																												return -1;
@@ -3975,7 +4868,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 		{
 			list_t response1;
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -3994,7 +4887,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 				{
 					list_t response2;
 					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
+					r2 = syntax_expression(program, scope, frame, right, &response2, flag);
 					if (r2 == -1)
 					{
 						return -1;
@@ -4045,7 +4938,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 															{
 																list_t response3;
 																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, &response3);
+																r4 = syntax_function(program, scope, frame, b1, &response3, flag);
 																if (r4 == -1)
 																{
 																	return -1;
@@ -4094,7 +4987,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 																										if (r4 == 1)
 																										{
 																											int32_t r5;
-																											r5 = syntax_get_return(program, frame, b2, response);
+																											r5 = syntax_function(program, scope, frame, b2, response, flag);
 																											if (r5 == -1)
 																											{
 																												return -1;
@@ -4134,7 +5027,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 		{
 			list_t response1;
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -4153,7 +5046,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 				{
 					list_t response2;
 					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
+					r2 = syntax_expression(program, scope, frame, right, &response2, flag);
 					if (r2 == -1)
 					{
 						return -1;
@@ -4204,7 +5097,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 															{
 																list_t response3;
 																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, &response3);
+																r4 = syntax_function(program, scope, frame, b1, &response3, flag);
 																if (r4 == -1)
 																{
 																	return -1;
@@ -4253,7 +5146,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 																										if (r4 == 1)
 																										{
 																											int32_t r5;
-																											r5 = syntax_get_return(program, frame, b2, response);
+																											r5 = syntax_function(program, scope, frame, b2, response, flag);
 																											if (r5 == -1)
 																											{
 																												return -1;
@@ -4293,7 +5186,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 		{
 			list_t response1;
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -4312,7 +5205,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 				{
 					list_t response2;
 					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
+					r2 = syntax_expression(program, scope, frame, right, &response2, flag);
 					if (r2 == -1)
 					{
 						return -1;
@@ -4363,7 +5256,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 															{
 																list_t response3;
 																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, &response3);
+																r4 = syntax_function(program, scope, frame, b1, &response3, flag);
 																if (r4 == -1)
 																{
 																	return -1;
@@ -4412,7 +5305,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 																										if (r4 == 1)
 																										{
 																											int32_t r5;
-																											r5 = syntax_get_return(program, frame, b2, response);
+																											r5 = syntax_function(program, scope, frame, b2, response, flag);
 																											if (r5 == -1)
 																											{
 																												return -1;
@@ -4452,7 +5345,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 		{
 			list_t response1;
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -4471,7 +5364,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 				{
 					list_t response2;
 					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
+					r2 = syntax_expression(program, scope, frame, right, &response2, flag);
 					if (r2 == -1)
 					{
 						return -1;
@@ -4522,7 +5415,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 															{
 																list_t response3;
 																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, &response3);
+																r4 = syntax_function(program, scope, frame, b1, &response3, flag);
 																if (r4 == -1)
 																{
 																	return -1;
@@ -4571,7 +5464,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 																										if (r4 == 1)
 																										{
 																											int32_t r5;
-																											r5 = syntax_get_return(program, frame, b2, response);
+																											r5 = syntax_function(program, scope, frame, b2, response, flag);
 																											if (r5 == -1)
 																											{
 																												return -1;
@@ -4611,7 +5504,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 		{
 			list_t response1;
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -4630,7 +5523,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 				{
 					list_t response2;
 					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
+					r2 = syntax_expression(program, scope, frame, right, &response2, flag);
 					if (r2 == -1)
 					{
 						return -1;
@@ -4681,7 +5574,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 															{
 																list_t response3;
 																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, &response3);
+																r4 = syntax_function(program, scope, frame, b1, &response3, flag);
 																if (r4 == -1)
 																{
 																	return -1;
@@ -4730,7 +5623,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 																										if (r4 == 1)
 																										{
 																											int32_t r5;
-																											r5 = syntax_get_return(program, frame, b2, response);
+																											r5 = syntax_function(program, scope, frame, b2, response, flag);
 																											if (r5 == -1)
 																											{
 																												return -1;
@@ -4770,7 +5663,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 		{
 			list_t response1;
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -4789,7 +5682,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 				{
 					list_t response2;
 					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
+					r2 = syntax_expression(program, scope, frame, right, &response2, flag);
 					if (r2 == -1)
 					{
 						return -1;
@@ -4840,7 +5733,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 															{
 																list_t response3;
 																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, &response3);
+																r4 = syntax_function(program, scope, frame, b1, &response3, flag);
 																if (r4 == -1)
 																{
 																	return -1;
@@ -4889,7 +5782,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 																										if (r4 == 1)
 																										{
 																											int32_t r5;
-																											r5 = syntax_get_return(program, frame, b2, response);
+																											r5 = syntax_function(program, scope, frame, b2, response, flag);
 																											if (r5 == -1)
 																											{
 																												return -1;
@@ -4929,7 +5822,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 		{
 			list_t response1;
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -4948,7 +5841,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 				{
 					list_t response2;
 					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
+					r2 = syntax_expression(program, scope, frame, right, &response2, flag);
 					if (r2 == -1)
 					{
 						return -1;
@@ -4999,7 +5892,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 															{
 																list_t response3;
 																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, &response3);
+																r4 = syntax_function(program, scope, frame, b1, &response3, flag);
 																if (r4 == -1)
 																{
 																	return -1;
@@ -5048,7 +5941,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 																										if (r4 == 1)
 																										{
 																											int32_t r5;
-																											r5 = syntax_get_return(program, frame, b2, response);
+																											r5 = syntax_function(program, scope, frame, b2, response, flag);
 																											if (r5 == -1)
 																											{
 																												return -1;
@@ -5088,7 +5981,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 		{
 			list_t response1;
 			int32_t r1;
-			r1 = syntax_expression(program, frame, left, &response1, flag);
+			r1 = syntax_expression(program, scope, frame, left, &response1, flag);
 			if (r1 == -1)
 			{
 				return -1;
@@ -5107,7 +6000,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 				{
 					list_t response2;
 					int32_t r2;
-					r2 = syntax_expression(program, frame, right, &response2, flag);
+					r2 = syntax_expression(program, scope, frame, right, &response2, flag);
 					if (r2 == -1)
 					{
 						return -1;
@@ -5158,7 +6051,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 															{
 																list_t response3;
 																int32_t r4;
-																r4 = syntax_get_return(program, frame, b1, &response3);
+																r4 = syntax_function(program, scope, frame, b1, &response3, flag);
 																if (r4 == -1)
 																{
 																	return -1;
@@ -5207,7 +6100,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 																										if (r4 == 1)
 																										{
 																											int32_t r5;
-																											r5 = syntax_get_return(program, frame, b2, response);
+																											r5 = syntax_function(program, scope, frame, b2, response, flag);
 																											if (r5 == -1)
 																											{
 																												return -1;
@@ -5240,7 +6133,7 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 	}
 	else
 	{
-		return syntax_expression(program, frame, target, response, flag);
+		return syntax_expression(program, scope, frame, target, response, flag);
 	}
 }
 
@@ -5249,50 +6142,13 @@ syntax_assign(program_t *program, table_t *frame, symbol_t *target, list_t *resp
 
 
 static int32_t
-syntax_return(program_t *program, symbol_t *target)
+syntax_return(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	return 1;
 }
 
 static int32_t
-syntax_continue(program_t *program, symbol_t *target)
-{
-	/*
-	symbol_t *a;
-	for (a = target->begin;(a != target->end); a = a->next)
-	{
-		int32_t result;
-		result = syntax_expression(program, a);
-		if (result == -1)
-		{
-			return -1;
-		}
-	}
-	*/
-
-	return 1;
-}
-
-static int32_t
-syntax_break(program_t *program, symbol_t *target)
-{
-	/*
-	symbol_t *a;
-	for (a = target->begin;(a != target->end); a = a->next)
-	{
-		int32_t result;
-		result = syntax_expression(program, a);
-		if (result == -1)
-		{
-			return -1;
-		}
-	}
-	*/
-	return 1;
-}
-
-static int32_t
-syntax_throw(program_t *program, symbol_t *target)
+syntax_continue(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	/*
 	symbol_t *a;
@@ -5311,7 +6167,44 @@ syntax_throw(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_var(program_t *program, symbol_t *target)
+syntax_break(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+{
+	/*
+	symbol_t *a;
+	for (a = target->begin;(a != target->end); a = a->next)
+	{
+		int32_t result;
+		result = syntax_expression(program, a);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+	*/
+	return 1;
+}
+
+static int32_t
+syntax_throw(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
+{
+	/*
+	symbol_t *a;
+	for (a = target->begin;(a != target->end); a = a->next)
+	{
+		int32_t result;
+		result = syntax_expression(program, a);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+	*/
+
+	return 1;
+}
+
+static int32_t
+syntax_var(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *ck;
 	ck = syntax_extract_with(target, SYMBOL_KEY);
@@ -5436,7 +6329,7 @@ syntax_var(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_if(program_t *program, symbol_t *target)
+syntax_if(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *ck;
 	ck = syntax_extract_with(target, SYMBOL_KEY);
@@ -5544,7 +6437,7 @@ syntax_if(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_CONDITION))
 		{
 			int32_t result;
-			result = syntax_block(program, a);
+			result = syntax_block(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -5554,7 +6447,7 @@ syntax_if(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_BLOCK))
 		{
 			int32_t result;
-			result = syntax_block(program, a);
+			result = syntax_block(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -5569,7 +6462,7 @@ syntax_if(program_t *program, symbol_t *target)
 				if (symbol_check_type(b, SYMBOL_IF))
 				{
 					int32_t result;
-					result = syntax_if(program, b);
+					result = syntax_if(program, scope, frame, b, response, flag);
 					if (result == -1)
 					{
 						return -1;
@@ -5578,7 +6471,7 @@ syntax_if(program_t *program, symbol_t *target)
 				else
 				{
 					int32_t result;
-					result = syntax_block(program, b);
+					result = syntax_block(program, scope, frame, b, response, flag);
 					if (result == -1)
 					{
 						return -1;
@@ -5592,7 +6485,7 @@ syntax_if(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_catch(program_t *program, symbol_t *target)
+syntax_catch(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *a;
 	for (a = target->begin;(a != target->end); a = a->next)
@@ -5600,7 +6493,7 @@ syntax_catch(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_BLOCK))
 		{
 			int32_t result;
-			result = syntax_block(program, a);
+			result = syntax_block(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -5612,7 +6505,7 @@ syntax_catch(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_try(program_t *program, symbol_t *target)
+syntax_try(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *a;
 	for (a = target->begin;(a != target->end); a = a->next)
@@ -5620,7 +6513,7 @@ syntax_try(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_BLOCK))
 		{
 			int32_t result;
-			result = syntax_block(program, a);
+			result = syntax_block(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -5635,7 +6528,7 @@ syntax_try(program_t *program, symbol_t *target)
 				if (symbol_check_type(b, SYMBOL_CATCH))
 				{
 					int32_t result;
-					result = syntax_catch(program, b);
+					result = syntax_catch(program, scope, frame, b, response, flag);
 					if (result == -1)
 					{
 						return -1;
@@ -5651,7 +6544,7 @@ syntax_try(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_for(program_t *program, symbol_t *target)
+syntax_for(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *ck;
 	ck = syntax_extract_with(target, SYMBOL_KEY);
@@ -5763,7 +6656,7 @@ syntax_for(program_t *program, symbol_t *target)
 				if (symbol_check_type(a, SYMBOL_VAR))
 				{
 					int32_t result;
-					result = syntax_var(program, b);
+					result = syntax_var(program, scope, frame, b, response, flag);
 					if (result == -1)
 					{
 						return -1;
@@ -5774,7 +6667,7 @@ syntax_for(program_t *program, symbol_t *target)
 				{
 					/*
 					int32_t result;
-					result = syntax_assign(program, b);
+					result = syntax_assign(program, scope, frame, b, response, flag);
 					if (result == -1)
 					{
 						return -1;
@@ -5789,7 +6682,7 @@ syntax_for(program_t *program, symbol_t *target)
 		{
 			/*
 			int32_t result;
-			result = syntax_expression(program, a);
+			result = syntax_expression(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -5806,7 +6699,7 @@ syntax_for(program_t *program, symbol_t *target)
 				{
 					/*
 					int32_t result;
-					result = syntax_assign(program, b);
+					result = syntax_assign(program, scope, frame, b, response, flag);
 					if (result == -1)
 					{
 						return -1;
@@ -5819,7 +6712,7 @@ syntax_for(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_BLOCK))
 		{
 			int32_t result;
-			result = syntax_block(program, a);
+			result = syntax_block(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -5831,7 +6724,7 @@ syntax_for(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_forin(program_t *program, symbol_t *target)
+syntax_forin(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *ck;
 	ck = syntax_extract_with(target, SYMBOL_KEY);
@@ -5943,7 +6836,7 @@ syntax_forin(program_t *program, symbol_t *target)
 				if (symbol_check_type(a, SYMBOL_VAR))
 				{
 					int32_t result;
-					result = syntax_var(program, b);
+					result = syntax_var(program, scope, frame, b, response, flag);
 					if (result == -1)
 					{
 						return -1;
@@ -5956,7 +6849,7 @@ syntax_forin(program_t *program, symbol_t *target)
 		{
 			/*
 			int32_t result;
-			result = syntax_expression(program, a);
+			result = syntax_expression(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -5967,7 +6860,7 @@ syntax_forin(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_BLOCK))
 		{
 			int32_t result;
-			result = syntax_block(program, a);
+			result = syntax_block(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -5979,68 +6872,68 @@ syntax_forin(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_statement(program_t *program, symbol_t *target)
+syntax_statement(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	int32_t result = 1;
 
 	if (symbol_check_type(target, SYMBOL_BLOCK))
 	{
-		result = syntax_block(program, target);
+		result = syntax_block(program, scope, frame, target, response, flag);
 	}
 	else 
 	if (symbol_check_type(target, SYMBOL_IF))
 	{
-		result = syntax_if(program, target);
+		result = syntax_if(program, scope, frame, target, response, flag);
 	}
 	else 
 	if (symbol_check_type(target, SYMBOL_TRY))
 	{
-		result = syntax_try(program, target);
+		result = syntax_try(program, scope, frame, target, response, flag);
 	}
 	else 
 	if (symbol_check_type(target, SYMBOL_FOR))
 	{
-		result = syntax_for(program, target);
+		result = syntax_for(program, scope, frame, target, response, flag);
 	}
 	else 
 	if (symbol_check_type(target, SYMBOL_FORIN))
 	{
-		result = syntax_forin(program, target);
+		result = syntax_forin(program, scope, frame, target, response, flag);
 	}
 	else 
 	if (symbol_check_type(target, SYMBOL_FUNCTION))
 	{
-		result = syntax_function(program, target);
+		result = syntax_function(program, scope, frame, target, response, flag);
 	}
 	else 
 	if (symbol_check_type(target, SYMBOL_CONTINUE))
 	{
-		result = syntax_continue(program, target);
+		result = syntax_continue(program, scope, frame, target, response, flag);
 	}
 	else 
 	if (symbol_check_type(target, SYMBOL_BREAK))
 	{
-		result = syntax_break(program, target);
+		result = syntax_break(program, scope, frame, target, response, flag);
 	}
 	else 
 	if (symbol_check_type(target, SYMBOL_RETURN))
 	{
-		result = syntax_return(program, target);
+		result = syntax_return(program, scope, frame, target, response, flag);
 	}
 	else 
 	if (symbol_check_type(target, SYMBOL_THROW))
 	{
-		result = syntax_throw(program, target);
+		result = syntax_throw(program, scope, frame, target, response, flag);
 	}
 	else 
 	if (symbol_check_type(target, SYMBOL_VAR))
 	{
-		result = syntax_var(program, target);
+		result = syntax_var(program, scope, frame, target, response, flag);
 	}
 	else
 	{
 		/*
-		result = syntax_assign(program, target);
+		result = syntax_assign(program, scope, frame, target, response, flag);
 		*/
 	}
 
@@ -6048,13 +6941,13 @@ syntax_statement(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_block(program_t *program, symbol_t *target)
+syntax_block(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *a;
 	for (a = target->begin;(a != target->end);a = a->next)
 	{
 		int32_t result;
-		result = syntax_statement(program, a);
+		result = syntax_statement(program, scope, frame, a, response, flag);
 		if (result == -1)
 		{
 			return -1;
@@ -6066,7 +6959,7 @@ syntax_block(program_t *program, symbol_t *target)
 
 
 static int32_t
-syntax_generic(program_t *program, symbol_t *target)
+syntax_generic(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *ck;
 	ck = syntax_extract_with(target, SYMBOL_KEY);
@@ -6118,13 +7011,13 @@ syntax_generic(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_generics(program_t *program, symbol_t *target)
+syntax_generics(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *a;
 	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		int32_t result;
-		result = syntax_generic(program, a);
+		result = syntax_generic(program, scope, frame, a, response, flag);
 		if (result == -1)
 		{
 			return -1;
@@ -6135,7 +7028,7 @@ syntax_generics(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_parameter(program_t *program, symbol_t *target)
+syntax_parameter(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *ck;
 	ck = syntax_extract_with(target, SYMBOL_KEY);
@@ -6187,13 +7080,13 @@ syntax_parameter(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_parameters(program_t *program, symbol_t *target)
+syntax_parameters(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *a;
 	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		int32_t result;
-		result = syntax_parameter(program, a);
+		result = syntax_parameter(program, scope, frame, a, response, flag);
 		if (result == -1)
 		{
 			return -1;
@@ -6247,7 +7140,7 @@ syntax_parameters(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_heritage(program_t *program, symbol_t *target)
+syntax_heritage(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *ck;
 	ck = syntax_extract_with(target, SYMBOL_KEY);
@@ -6307,13 +7200,13 @@ syntax_heritage(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_heritages(program_t *program, symbol_t *target)
+syntax_heritages(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *a;
 	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		int32_t result;
-		result = syntax_heritage(program, a);
+		result = syntax_heritage(program, scope, frame, a, response, flag);
 		if (result == -1)
 		{
 			return -1;
@@ -6367,7 +7260,7 @@ syntax_heritages(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_member(program_t *program, symbol_t *target)
+syntax_member(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *ck;
 	ck = syntax_extract_with(target, SYMBOL_KEY);
@@ -6420,13 +7313,13 @@ syntax_member(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_members(program_t *program, symbol_t *target)
+syntax_members(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *a;
 	for (a = target->begin;(a != target->end); a = a->next)
 	{
 		int32_t result;
-		result = syntax_member(program, a);
+		result = syntax_member(program, scope, frame, a, response, flag);
 		if (result == -1)
 		{
 			return -1;
@@ -6436,7 +7329,7 @@ syntax_members(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_enum(program_t *program, symbol_t *target)
+syntax_enum(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *ck;
 	ck = syntax_extract_with(target, SYMBOL_KEY);
@@ -6843,7 +7736,7 @@ syntax_enum(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_MEMBERS))
 		{
 			int32_t result;
-			result = syntax_members(program, a);
+			result = syntax_members(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -6855,7 +7748,7 @@ syntax_enum(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_property(program_t *program, symbol_t *target)
+syntax_property(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *ck;
 	ck = syntax_extract_with(target, SYMBOL_KEY);
@@ -7236,7 +8129,7 @@ syntax_property(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_function(program_t *program, symbol_t *target)
+syntax_function(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *ck;
 	ck = syntax_extract_with(target, SYMBOL_KEY);
@@ -9464,7 +10357,7 @@ syntax_function(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_PARAMETERS))
 		{
 			int32_t result;
-			result = syntax_parameters(program, a);
+			result = syntax_parameters(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -9474,7 +10367,7 @@ syntax_function(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_GENERICS))
 		{
 			int32_t result;
-			result = syntax_generics(program, a);
+			result = syntax_generics(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -9484,7 +10377,7 @@ syntax_function(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_BLOCK))
 		{
 			int32_t result;
-			result = syntax_block(program, a);
+			result = syntax_block(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -9497,7 +10390,7 @@ syntax_function(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_class(program_t *program, symbol_t *target)
+syntax_class(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *ck;
 	ck = syntax_extract_with(target, SYMBOL_KEY);
@@ -11671,7 +12564,7 @@ syntax_class(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_HERITAGES))
 		{
 			int32_t result;
-			result = syntax_heritages(program, a);
+			result = syntax_heritages(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -11681,7 +12574,7 @@ syntax_class(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_PARAMETERS))
 		{
 			int32_t result;
-			result = syntax_parameters(program, a);
+			result = syntax_parameters(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -11691,7 +12584,7 @@ syntax_class(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_GENERICS))
 		{
 			int32_t result;
-			result = syntax_generics(program, a);
+			result = syntax_generics(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -11701,7 +12594,7 @@ syntax_class(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_PROPERTY))
 		{
 			int32_t result;
-			result = syntax_property(program, a);
+			result = syntax_property(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -11711,7 +12604,7 @@ syntax_class(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_CLASS))
 		{
 			int32_t result;
-			result = syntax_class(program, a);
+			result = syntax_class(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -11721,7 +12614,7 @@ syntax_class(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_ENUM))
 		{
 			int32_t result;
-			result = syntax_enum(program, a);
+			result = syntax_enum(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -11731,7 +12624,7 @@ syntax_class(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_FUNCTION))
 		{
 			int32_t result;
-			result = syntax_function(program, a);
+			result = syntax_function(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -11744,7 +12637,7 @@ syntax_class(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_field(program_t *program, symbol_t *target)
+syntax_field(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *ck;
 	ck = syntax_extract_with(target, SYMBOL_KEY);
@@ -11910,7 +12803,7 @@ syntax_field(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_fields(program_t *program, symbol_t *target)
+syntax_fields(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *a;
 	for (a = target->begin;(a != target->end); a = a->next)
@@ -11918,7 +12811,7 @@ syntax_fields(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_FIELD))
 		{
 			int32_t result;
-			result = syntax_field(program, a);
+			result = syntax_field(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -12062,7 +12955,7 @@ syntax_fields(program_t *program, symbol_t *target)
 }
 
 static int32_t
-syntax_import(program_t *program, symbol_t *target)
+syntax_import(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *a;
 	for(a = target->begin; a != target->end; a = a->next)
@@ -12152,7 +13045,7 @@ syntax_import(program_t *program, symbol_t *target)
 				r1 = list_rpush(program->imports, root);
 				if (r1 == NULL)
 				{
-					fprintf(stderr, "unable to allocate memory");
+					fprintf(stderr, "unable to allocate memory\n");
 					return -1;
 				}
 
@@ -12187,7 +13080,7 @@ syntax_import(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_FIELDS))
 		{
 			int32_t result;
-			result = syntax_fields(program, a);
+			result = syntax_fields(program, scope, frame, a, response, flag);
 			if (result == -1)
 			{
 				return -1;
@@ -12203,7 +13096,7 @@ syntax_import(program_t *program, symbol_t *target)
 
 
 static int32_t
-syntax_module(program_t *program, symbol_t *target)
+syntax_module(program_t *program, list_t *scope, table_t *frame, symbol_t *target, list_t *response, uint64_t flag)
 {
 	symbol_t *a;
 	for(a = target->begin; a != target->end; a = a->next)
@@ -12211,7 +13104,7 @@ syntax_module(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_IMPORT))
 		{
 			int32_t result;
-			result = syntax_import(program, a);
+			result = syntax_import(program, scope, frame, a, response, flag);
 			if(result == -1)
 			{
 				return -1;
@@ -12221,7 +13114,7 @@ syntax_module(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_CLASS))
 		{
 			int32_t result;
-			result = syntax_class(program, a);
+			result = syntax_class(program, scope, frame, a, response, flag);
 			if(result == -1)
 			{
 				return -1;
@@ -12231,7 +13124,7 @@ syntax_module(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_ENUM))
 		{
 			int32_t result;
-			result = syntax_enum(program, a);
+			result = syntax_enum(program, scope, frame, a, response, flag);
 			if(result == -1)
 			{
 				return -1;
@@ -12241,7 +13134,7 @@ syntax_module(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_VAR))
 		{
 			int32_t result;
-			result = syntax_var(program, a);
+			result = syntax_var(program, scope, frame, a, response, flag);
 			if(result == -1)
 			{
 				return -1;
@@ -12251,7 +13144,7 @@ syntax_module(program_t *program, symbol_t *target)
 		if (symbol_check_type(a, SYMBOL_FUNCTION))
 		{
 			int32_t result;
-			result = syntax_function(program, a);
+			result = syntax_function(program, scope, frame, a, response, flag);
 			if(result == -1)
 			{
 				return -1;
@@ -12272,8 +13165,30 @@ syntax_run(program_t *program, symbol_t *root)
 	{
 		if (symbol_check_type(a, SYMBOL_MODULE))
 		{
+			list_t *response = list_create();
+			if (response == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
+			list_t *scope = list_create();
+			if (scope == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+
+			table_t *frame = table_create();
+			if (frame == NULL)
+			{
+				fprintf(stderr, "unable to allocate memory\n");
+				return -1;
+			}
+			
+
 			int32_t result;
-			result = syntax_module(program, a);
+			result = syntax_module(program, scope, frame, a, response, SYNTAX_FLAG_NONE);
 			if(result == -1)
 			{
 				return -1;

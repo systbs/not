@@ -7,11 +7,13 @@ typedef struct itable {
     struct itable *next;
     
     symbol_t *original;
-    symbol_t *refer;
     symbol_t *scope;
+    symbol_t *refer;
+
+    symbol_t *generics;
+    symbol_t *parameters;
 
     uint64_t reference;
-    uint64_t initalize;
     uint64_t flag;
 } itable_t;
 
@@ -25,8 +27,12 @@ typedef struct table {
 typedef enum itable_flag
 {
 	ITABLE_FLAG_NONE 	      = 1 << 0,
-	ITABLE_FLAG_TEMPORARY 	= 1 << 1
+	ITABLE_FLAG_TEMPORARY 	= 1 << 1,
+  ITABLE_FLAG_INITALIZE 	= 1 << 2
 } itable_flag_t;
+
+table_t *
+table_apply(table_t *res);
 
 table_t *
 table_create();
