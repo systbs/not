@@ -2996,14 +2996,14 @@ graph_if(program_t *program, symbol_t *parent, node_t *node)
 
 	if (node_if->condition)
 	{
-		symbol_t *symbol_condition;
-		symbol_condition = symbol_rpush(symbol, SYMBOL_CONDITION, node_if->condition);
-		if(!symbol_condition)
+		symbol_t *condition;
+		condition = symbol_rpush(symbol, SYMBOL_CONDITION, NULL);
+		if(!condition)
 		{
 			return -1;
 		}
 		
-		result = graph_expression(program, symbol_condition, node_if->condition);
+		result = graph_expression(program, condition, node_if->condition);
 		if (result == -1)
 		{
 			return -1;
