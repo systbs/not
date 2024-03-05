@@ -187,7 +187,7 @@ table_lpop(table_t *res)
 }
 
 itable_t *
-table_rpush(table_t *res, symbol_t *original)
+table_rpush(table_t *res, node_t *original)
 {
   itable_t *it = (itable_t *)malloc(sizeof(*it));
   if(it == NULL)
@@ -203,7 +203,7 @@ table_rpush(table_t *res, symbol_t *original)
 }
 
 itable_t *
-table_lpush(table_t *res, symbol_t *original)
+table_lpush(table_t *res, node_t *original)
 {
   itable_t *it = (itable_t *)malloc(sizeof(*it));
   if(it == NULL)

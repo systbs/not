@@ -115,9 +115,7 @@ typedef enum symbol_type {
 
 typedef enum symbol_flag {
     SYMBOL_FLAG_NONE            = 0 << 0,
-    SYMBOL_FLAG_CHECKING        = 1 << 0,
-    SYMBOL_FLAG_SYNTAX          = 1 << 1,
-    SYMBOL_FLAG_REFERENCE       = 1 << 2
+    SYMBOL_FLAG_INITIALIZE      = 1 << 0,
 } symbol_flag_t;
 
 typedef struct symbol {

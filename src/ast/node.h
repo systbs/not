@@ -9,9 +9,9 @@ typedef struct node {
 	void *value;
 	
 	position_t position;
-	list_t *locals;
 
 	struct node *parent;
+	struct node *scope;
 } node_t;
 
 typedef enum node_kind {
@@ -286,237 +286,238 @@ typedef struct node_import {
 
 typedef struct node_module {
 	char *path;
-	list_t *members;
+	list_t *objects;
 } node_module_t;
 
 
-
+node_t *
+node_create(node_t *scope, node_t *parent, position_t position);
 
 node_t *
-node_make_id(position_t position, char *value);
+node_make_id(node_t *node, char *value);
 
 node_t *
-node_make_number(position_t position, char *value);
+node_make_number(node_t *node, char *value);
 
 node_t *
-node_make_char(position_t position, char *value);
+node_make_char(node_t *node, char *value);
 
 node_t *
-node_make_string(position_t position, char *value);
+node_make_string(node_t *node, char *value);
 
 node_t *
-node_make_null(position_t position);
+node_make_null(node_t *node);
 
 node_t *
-node_make_true(position_t position);
+node_make_true(node_t *node);
 
 node_t *
-node_make_false(position_t position);
+node_make_false(node_t *node);
 
 node_t *
-node_make_infinity(position_t position);
+node_make_infinity(node_t *node);
 
 node_t *
-node_make_this(position_t position);
+node_make_this(node_t *node);
 
 node_t *
-node_make_array(position_t position, list_t *expr_list);
+node_make_array(node_t *node, list_t *expr_list);
 
 node_t *
-node_make_object_property(position_t position, node_t *name, node_t *value);
+node_make_object_property(node_t *node, node_t *name, node_t *value);
 
 node_t *
-node_make_object(position_t position, uint64_t flag, list_t *property_list);
+node_make_object(node_t *node, uint64_t flag, list_t *property_list);
 
 node_t *
-node_make_composite(position_t position, node_t *base, list_t *arguments);
+node_make_composite(node_t *node, node_t *base, list_t *arguments);
 
 
 node_t *
-node_make_in(position_t position, node_t *left, node_t *right);
+node_make_in(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_typeof(position_t position, node_t *right);
+node_make_typeof(node_t *node, node_t *right);
 
 node_t *
-node_make_sizeof(position_t position, node_t *right);
+node_make_sizeof(node_t *node, node_t *right);
 
 node_t *
-node_make_parenthesis(position_t position, node_t *right);
+node_make_parenthesis(node_t *node, node_t *right);
 
 
 
 
 node_t *
-node_make_argument(position_t position, node_t *name, node_t *value);
+node_make_argument(node_t *node, node_t *name, node_t *value);
 
 node_t *
-node_make_call(position_t position, node_t *name, list_t *arguments);
+node_make_call(node_t *node, node_t *name, list_t *arguments);
 
 node_t *
-node_make_item(position_t position, node_t *base, list_t *arguments);
+node_make_item(node_t *node, node_t *base, list_t *arguments);
 
 node_t *
-node_make_attribute(position_t position, node_t *left, node_t *right);
+node_make_attribute(node_t *node, node_t *left, node_t *right);
 
 
 
 node_t *
-node_make_tilde(position_t position, node_t *right);
+node_make_tilde(node_t *node, node_t *right);
 
 node_t *
-node_make_not(position_t position, node_t *right);
+node_make_not(node_t *node, node_t *right);
 
 node_t *
-node_make_neg(position_t position, node_t *right);
+node_make_neg(node_t *node, node_t *right);
 
 node_t *
-node_make_pos(position_t position, node_t *right);
+node_make_pos(node_t *node, node_t *right);
 
 node_t *
-node_make_ellipsis(position_t position, node_t *right);
+node_make_ellipsis(node_t *node, node_t *right);
 
 
 
 node_t *
-node_make_pow(position_t position, node_t *left, node_t *right);
+node_make_pow(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_epi(position_t position, node_t *left, node_t *right);
+node_make_epi(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_mul(position_t position, node_t *left, node_t *right);
+node_make_mul(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_div(position_t position, node_t *left, node_t *right);
+node_make_div(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_mod(position_t position, node_t *left, node_t *right);
+node_make_mod(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_plus(position_t position, node_t *left, node_t *right);
+node_make_plus(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_minus(position_t position, node_t *left, node_t *right);
+node_make_minus(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_shl(position_t position, node_t *left, node_t *right);
+node_make_shl(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_shr(position_t position, node_t *left, node_t *right);
+node_make_shr(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_lt(position_t position, node_t *left, node_t *right);
+node_make_lt(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_le(position_t position, node_t *left, node_t *right);
+node_make_le(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_gt(position_t position, node_t *left, node_t *right);
+node_make_gt(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_ge(position_t position, node_t *left, node_t *right);
+node_make_ge(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_eq(position_t position, node_t *left, node_t *right);
+node_make_eq(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_neq(position_t position, node_t *left, node_t *right);
+node_make_neq(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_and(position_t position, node_t *left, node_t *right);
+node_make_and(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_xor(position_t position, node_t *left, node_t *right);
+node_make_xor(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_or(position_t position, node_t *left, node_t *right);
+node_make_or(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_land(position_t position, node_t *left, node_t *right);
+node_make_land(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_lor(position_t position, node_t *left, node_t *right);
+node_make_lor(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_conditional(position_t position, node_t *condition, node_t *true_expression, node_t *false_expression);
+node_make_conditional(node_t *node, node_t *condition, node_t *true_expression, node_t *false_expression);
 
 node_t *
-node_make_assign(position_t position, node_t *left, node_t *right);
+node_make_assign(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_define(position_t position, node_t *left, node_t *right);
+node_make_define(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_add_assign(position_t position, node_t *left, node_t *right);
+node_make_add_assign(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_sub_assign(position_t position, node_t *left, node_t *right);
+node_make_sub_assign(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_mul_assign(position_t position, node_t *left, node_t *right);
+node_make_mul_assign(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_div_assign(position_t position, node_t *left, node_t *right);
+node_make_div_assign(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_mod_assign(position_t position, node_t *left, node_t *right);
+node_make_mod_assign(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_and_assign(position_t position, node_t *left, node_t *right);
+node_make_and_assign(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_or_assign(position_t position, node_t *left, node_t *right);
+node_make_or_assign(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_shl_assign(position_t position, node_t *left, node_t *right);
+node_make_shl_assign(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_shr_assign(position_t position, node_t *left, node_t *right);
+node_make_shr_assign(node_t *node, node_t *left, node_t *right);
 
 node_t *
-node_make_if(position_t position, node_t *name, node_t *condition, node_t *then_body, node_t *else_body);
+node_make_if(node_t *node, node_t *name, node_t *condition, node_t *then_body, node_t *else_body);
 
 node_t *
-node_make_for(position_t position, uint64_t flag, node_t *name, list_t *initializer, node_t *condition, list_t *incrementor, node_t *body);
+node_make_for(node_t *node, uint64_t flag, node_t *name, list_t *initializer, node_t *condition, list_t *incrementor, node_t *body);
 
 node_t *
-node_make_forin(position_t position, uint64_t flag, node_t *name, list_t *initializer, node_t *expression, node_t *body);
+node_make_forin(node_t *node, uint64_t flag, node_t *name, list_t *initializer, node_t *expression, node_t *body);
 
 node_t *
-node_make_break(position_t position, node_t *expression);
+node_make_break(node_t *node, node_t *expression);
 
 node_t *
-node_make_continue(position_t position, node_t *expression);
+node_make_continue(node_t *node, node_t *expression);
 
 node_t *
-node_make_catch(position_t position, list_t *parameters, node_t *body);
+node_make_catch(node_t *node, list_t *parameters, node_t *body);
 
 node_t *
-node_make_try(position_t position, node_t *body, list_t *catchs);
+node_make_try(node_t *node, node_t *body, list_t *catchs);
 
 node_t *
-node_make_return(position_t position, node_t *expr);
+node_make_return(node_t *node, node_t *expr);
 
 node_t *
-node_make_throw(position_t position, list_t *arguments);
+node_make_throw(node_t *node, list_t *arguments);
 
 node_t *
-node_make_var(position_t position, uint64_t flag, node_t *name, node_t *type, node_t *value);
+node_make_var(node_t *node, uint64_t flag, node_t *name, node_t *type, node_t *value);
 
 
 node_t *
-node_make_parameter(position_t position, uint64_t flag, node_t *name, node_t *type, node_t *value);
+node_make_parameter(node_t *node, uint64_t flag, node_t *name, node_t *type, node_t *value);
 
 node_t *
-node_make_field(position_t position, node_t *key, node_t *value);
+node_make_field(node_t *node, node_t *key, node_t *value);
 
 node_t *
-node_make_generic(position_t position, node_t *key, node_t *type, node_t *value);
+node_make_generic(node_t *node, node_t *key, node_t *type, node_t *value);
 
 node_t *
 node_make_func(
-	position_t position,
+	node_t *node,
 	uint64_t flag,
 	node_t *key, 
 	list_t *generics, 
@@ -524,17 +525,17 @@ node_make_func(
 	node_t *block);
 
 node_t *
-node_make_lambda(position_t position, list_t *parameters, node_t *block);
+node_make_lambda(node_t *node, list_t *parameters, node_t *block);
 
 node_t *
-node_make_heritage(position_t position, node_t *key, node_t *type);
+node_make_heritage(node_t *node, node_t *key, node_t *type);
 
 node_t *
-node_make_property(position_t position, uint64_t flag, node_t *name, node_t *type, node_t *value);
+node_make_property(node_t *node, uint64_t flag, node_t *name, node_t *type, node_t *value);
 
 node_t *
 node_make_class(
-	position_t position,
+	node_t *node,
 	uint64_t flag,
 	node_t *name, 
 	list_t *generics, 
@@ -542,18 +543,18 @@ node_make_class(
 	list_t *body);
 
 node_t *
-node_make_member(position_t position, node_t *name, node_t *value);
+node_make_member(node_t *node, node_t *name, node_t *value);
 
 node_t *
-node_make_enum(position_t position, uint64_t flag, node_t *name, list_t *body);
+node_make_enum(node_t *node, uint64_t flag, node_t *name, list_t *body);
 
 node_t *
-node_make_block(position_t position, list_t *stmt_list);
+node_make_block(node_t *node, list_t *stmt_list);
 
 node_t *
-node_make_import(position_t position, node_t *path, list_t *fields);
+node_make_import(node_t *node, node_t *path, list_t *fields);
 
 node_t *
-node_make_module(position_t position, char *path, list_t *members);
+node_make_module(node_t *node, char *path, list_t *members);
 
 #endif /* __NODE_H__ */

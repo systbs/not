@@ -336,7 +336,7 @@ graph_member(program_t *program, symbol_t *parent, node_t *node)
 	node_member_t *node_member = (node_member_t *)node->value;
 
 	symbol_t *symbol = symbol_rpush(parent, SYMBOL_MEMBER, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -2974,7 +2974,7 @@ graph_if(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_IF, node);
-	if (!symbol)
+	if (symbol == NULL)
 	{
 		return -1;
 	}
@@ -3053,7 +3053,7 @@ graph_catch(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_CATCH, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -3097,7 +3097,7 @@ graph_try(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_TRY, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -3141,7 +3141,7 @@ graph_for(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_FOR, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -3253,7 +3253,7 @@ graph_forin(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_FORIN, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -3343,7 +3343,7 @@ graph_break(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_BREAK, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -3365,7 +3365,7 @@ graph_continue(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_CONTINUE, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -3387,7 +3387,7 @@ graph_return(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_RETURN, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -3406,7 +3406,7 @@ graph_throw(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_THROW, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -3505,7 +3505,7 @@ graph_block(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_BLOCK, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -3534,7 +3534,7 @@ graph_generic(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_GENERIC, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -3597,7 +3597,7 @@ graph_enum(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_ENUM, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -3649,7 +3649,7 @@ graph_property(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_PROPERTY, node);
-	if (!symbol)
+	if (symbol == NULL)
 	{
 		return -1;
 	}
@@ -3713,7 +3713,7 @@ graph_parameter(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_PARAMETER, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -3777,7 +3777,7 @@ graph_heritage(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_HERITAGE, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -3823,7 +3823,7 @@ graph_func(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_FUNCTION, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		fprintf(stderr, "unable to allocate memory");
 		return -1;
@@ -3916,7 +3916,7 @@ graph_class(program_t *program, symbol_t *parent, node_t *node)
 {
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_CLASS, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -4022,7 +4022,7 @@ graph_var(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_VAR, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -4087,7 +4087,7 @@ graph_field(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_FIELD, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}
@@ -4134,7 +4134,7 @@ graph_import(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_IMPORT, node);
-	if (!symbol)
+	if (symbol == NULL)
 	{
 		return -1;
 	}
@@ -4187,7 +4187,7 @@ graph_module(program_t *program, symbol_t *parent, node_t *node)
 
 	symbol_t *symbol;
 	symbol = symbol_rpush(parent, SYMBOL_MODULE, node);
-	if(!symbol)
+	if(symbol == NULL)
 	{
 		return -1;
 	}

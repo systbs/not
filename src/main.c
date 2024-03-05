@@ -13,8 +13,6 @@
 #include "ast/node.h"
 #include "parser/parser.h"
 #include "parser/error.h"
-#include "parser/symbol.h"
-#include "parser/graph.h"
 #include "parser/syntax.h"
 #include "utils/utils.h"
 #include "utils/path.h"
@@ -88,22 +86,10 @@ main(int argc, char **argv)
 			}
     	return -1;
     }
-
-		node_t *node_path;
-		node_path = node_make_string(node->position, base_file);
-
-    symbol_t *root;
-		root = symbol_create(SYMBOL_ROOT, node_path);
-		if(!root)
-		{
-			return -1;
-		}
-
-		list_rpush(program.imports, root);
-
-    int32_t graph_result;
-    graph_result = graph_run(&program, root, node);
-    if(graph_result == -1)
+  /*
+    int32_t result;
+    result = syntax_run(&program, node);
+    if(result == -1)
     {
         if(list_count(program.errors) > 0)
         {
@@ -111,17 +97,7 @@ main(int argc, char **argv)
         }
     	return -1;
     }
-
-    int32_t syntax_result;
-    syntax_result = syntax_run(&program, root);
-    if(syntax_result == -1)
-    {
-        if(list_count(program.errors) > 0)
-        {
-            goto print_error;
-        }
-    	return -1;
-    }
+  */
 
     return 0;
 

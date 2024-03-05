@@ -6,12 +6,9 @@ typedef struct itable {
     struct itable *previous;
     struct itable *next;
     
-    symbol_t *original;
-    symbol_t *scope;
-    symbol_t *refer;
-
-    symbol_t *generics;
-    symbol_t *parameters;
+    node_t *original;
+    node_t *scope;
+    node_t *value;
 
     uint64_t reference;
     uint64_t flag;
@@ -27,8 +24,7 @@ typedef struct table {
 typedef enum itable_flag
 {
 	ITABLE_FLAG_NONE 	      = 1 << 0,
-	ITABLE_FLAG_TEMPORARY 	= 1 << 1,
-  ITABLE_FLAG_INITALIZE 	= 1 << 2
+  ITABLE_FLAG_INITALIZE 	= 1 << 1
 } itable_flag_t;
 
 table_t *
@@ -77,10 +73,10 @@ itable_t*
 table_lpop(table_t *res);
 
 itable_t *
-table_rpush(table_t *res, symbol_t *original);
+table_rpush(table_t *res, node_t *original);
 
 itable_t *
-table_lpush(table_t *res, symbol_t *original);
+table_lpush(table_t *res, node_t *original);
 
 itable_t *
 table_first(table_t *res);

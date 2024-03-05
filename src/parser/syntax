@@ -1,0 +1,2556 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdarg.h>
+
+#include "../types/types.h"
+#include "../container/list.h"
+#include "../token/position.h"
+#include "../token/token.h"
+#include "../program.h"
+#include "../scanner/file.h"
+#include "../scanner/scanner.h"
+#include "../ast/node.h"
+#include "../utils/utils.h"
+#include "../utils/path.h"
+#include "parser.h"
+#include "error.h"
+#include "table.h"
+#include "syntax.h"
+
+
+#define max(a, b) a > b ? a : b
+
+static error_t *
+syntax_error(program_t *program, node_t *node, const char *format, ...)
+{
+	char *message;
+	message = malloc(1024);
+	if (!message)
+	{
+		return NULL;
+	}
+
+	va_list arg;
+	if (format)
+	{
+		va_start(arg, format);
+		vsprintf(message, format, arg);
+		va_end(arg);
+	}
+
+	error_t *error;
+	error = error_create(node->position, message);
+	if (!error)
+	{
+		return NULL;
+	}
+
+	if (list_rpush(program->errors, error))
+	{
+		return NULL;
+	}
+
+	return error;
+}
+
+
+
+
+static int32_t
+syntax_func(program_t *program, node_t *scope, node_t *node);
+
+static int32_t
+syntax_parameter(program_t *program, node_t *scope, node_t *node);
+
+static int32_t
+syntax_generic(program_t *program, node_t *scope, node_t *node);
+
+static int32_t
+syntax_block(program_t *program, node_t *scope, node_t *node);
+
+static int32_t
+syntax_var(program_t *program, node_t *scope, node_t *node);
+
+
+static int32_t
+syntax_expression(program_t *program, node_t *scope, node_t *node, list_t *response);
+
+static int32_t
+syntax_prefix(program_t *program, node_t *scope, node_t *node, list_t *response);
+
+static int32_t
+syntax_postfix(program_t *program, node_t *scope, node_t *node, list_t *response);
+
+
+
+
+
+static int32_t
+syntax_id(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+    node_t *parent = node->parent;
+	return 1;
+}
+
+static int32_t
+syntax_number(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	return 1;
+}
+
+static int32_t
+syntax_string(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	return 1;
+}
+
+static int32_t
+syntax_char(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	return 1;
+}
+
+static int32_t
+syntax_null(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	return 1;
+}
+
+static int32_t
+syntax_true(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	return 1;
+}
+
+static int32_t
+syntax_false(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	return 1;
+}
+
+static int32_t
+syntax_array(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	node_array_t *node_array = (node_array_t *)node->value;
+
+    ilist_t *a;
+    for (a = node_array->list->begin; a != node_array->list->end; a = a->next)
+    {
+        node_t *temp = (node_t *)a->value;
+        int32_t result;
+        result = syntax_expression(program, scope, temp);
+        if (result == -1)
+        {
+            return -1;
+        }
+    }
+    return 1;
+}
+
+static int32_t
+syntax_parenthesis(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	node_unary_t *node_unary = (node_unary_t *)node->value;
+
+    int32_t result;
+    result = syntax_expression(program, scope, node_unary->right);
+    if (result == -1)
+    {
+        return -1;
+    }
+
+    return 1;
+}
+
+static int32_t
+syntax_lambda(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+    node_lambda_t *lambda = (node_lambda_t *)node->value;
+    int32_t result;
+    if (lambda->parameters)
+    {
+        ilist_t *a;
+        for (a = lambda->parameters->begin; a != lambda->parameters->end; a = a->next)
+        {
+            node_t *parameter = (node_t *)a->value;
+
+            result = syntax_parameter(program, parameters, parameter);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+    }
+
+	if (lambda->body)
+    {
+        if(lambda->body->kind == NODE_KIND_BLOCK)
+        {
+            result = syntax_block(program, symbol, lambda->body);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+        else
+        {
+            result = syntax_expression(program, value, lambda->body);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+    }
+    
+    return 1;
+}
+
+static int32_t
+syntax_member(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	node_member_t *node_member = (node_member_t *)node->value;
+
+	if (node_member->key)
+	{
+        int32_t result;
+		result = syntax_id(program, scope, node_member->key);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_member->value)
+	{
+        int32_t result;
+		result = syntax_expression(program, scope, node_member->value);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_object(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	node_object_t *node_object = (node_object_t *)node->value;
+
+	ilist_t *a;
+	for (a = node_object->list->begin; a != node_object->list->end; a = a->next)
+	{
+		node_t *member = (node_t *)a->value;
+        if (member != NULL)
+        {
+            int32_t result;
+            result = syntax_member(program, scope, member);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_primary(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	if (node->kind == NODE_KIND_ID)
+	{
+		int32_t result;
+		result = syntax_id(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_NUMBER)
+	{
+		int32_t result;
+		result = syntax_number(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_STRING)
+	{
+		int32_t result;
+		result = syntax_string(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_CHAR)
+	{
+		int32_t result;
+		result = syntax_char(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_NULL)
+	{
+		int32_t result;
+		result = syntax_null(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_TRUE)
+	{
+		int32_t result;
+		result = syntax_true(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_FALSE)
+	{
+		int32_t result;
+		result = syntax_false(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_ARRAY)
+	{
+		int32_t result;
+		result = syntax_array(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_OBJECT)
+	{
+		int32_t result;
+		result = syntax_object(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_LAMBDA)
+	{
+		int32_t result;
+		result = syntax_lambda(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_parenthesis(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_argument(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+    node_argument_t *node_argument = (node_argument_t *)node->value;
+
+    if (node_argument->key)
+    {
+        int32_t result;
+       result = syntax_expression(program, scope, node_argument->key);
+        if (result == -1)
+        {
+            return -1;
+        }
+    }
+
+    if (node_argument->value)
+    {
+        int32_t result;
+        result = syntax_expression(program, scope, node_argument->value);
+        if (result == -1)
+        {
+            return -1;
+        }
+    }
+
+    return 1;
+}
+
+static int32_t
+syntax_composite(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	node_composite_t *node_composite = (node_composite_t *)node->value;
+
+    int32_t result;
+    result = syntax_expression(program, scope, node_composite->base);
+    if (result == -1)
+    {
+        return -1;
+    }
+
+    if (node_composite->arguments)
+    {
+        list_t *arguments = node_composite->arguments;
+        if(arguments)
+        {
+            ilist_t *a;
+            for (a = arguments->begin; a != arguments->end; a = a->next)
+            {
+                node_t *argument = (node_t *)a->value;
+
+                result = syntax_argument(program, scope, argument);
+                if (result == -1)
+                {
+                    return -1;
+                }
+            }
+        }
+    }
+
+    return 1;
+
+}
+
+static int32_t
+syntax_call(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+    node_composite_t *node_composite = (node_composite_t *)node->value;
+
+    int32_t result;
+    result = syntax_postfix(program, key, node_composite->base);
+    if (result == -1)
+    {
+        return -1;
+    }
+
+    if (node_composite->arguments)
+    {
+        list_t *arguments = node_composite->arguments;
+        if(arguments != NULL)
+        {
+            ilist_t *a;
+            for (a = node_composite->arguments->begin; a != node_composite->arguments->end; a = a->next)
+            {
+                node_t *argument = (node_t *)a->value;
+                int32_t result;
+                result = syntax_argument(program, arguments, argument);
+                if (result == -1)
+                {
+                    return -1;
+                }
+            }
+        }
+    }
+
+    return 1;
+
+}
+
+static int32_t
+syntax_item(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	node_composite_t *node_composite = (node_composite_t *)node->value;
+
+    int32_t result;
+    result = syntax_postfix(program, key, node_composite->base);
+    if (result == -1)
+    {
+        return -1;
+    }
+
+    if (node_composite->arguments)
+    {
+        list_t *arguments = node_composite->arguments;
+        ilist_t *a;
+        for (a = arguments->begin; a != arguments->end; a = a->next)
+        {
+            node_t *argument = (node_t *)a->value;
+            if (argument != NULL)
+            {
+                int32_t result;
+                result = syntax_argument(program, scope, argument);
+                if (result == -1)
+                {
+                    return -1;
+                }
+            }
+        }
+    }
+}
+
+static int32_t
+syntax_attribute(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+    node_binary_t *node_binary = (node_binary_t *)node->value;
+
+    int32_t result;
+    result = syntax_postfix(program, left, node_binary->left);
+    if (result == -1)
+    {
+        return -1;
+    }
+
+    result = syntax_id(program, right, node_binary->right);
+    if (result == -1)
+    {
+        return -1;
+    }
+}
+
+static int32_t
+syntax_postfix(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	if (node->kind == NODE_KIND_COMPOSITE)
+	{
+		int32_t result;
+		result = syntax_composite(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_CALL)
+	{
+		int32_t result;
+		result = syntax_call(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_GET_ITEM)
+	{
+		int32_t result;
+		result = syntax_item(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	if (node->kind == NODE_KIND_ATTRIBUTE)
+	{
+		int32_t result;
+		result = syntax_attribute(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_primary(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_prefix(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	if(node->kind == NODE_KIND_TILDE)
+	{
+		node_unary_t *node_unary = (node_unary_t *)node->value;
+
+        int32_t result;
+        result = syntax_prefix(program, scope, node_unary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else 
+	if(node->kind == NODE_KIND_NOT)
+	{
+		node_unary_t *node_unary = (node_unary_t *)node->value;
+
+        int32_t result;
+        result = syntax_prefix(program, scope, node_unary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else 
+	if(node->kind == NODE_KIND_NEG)
+	{
+		node_unary_t *node_unary = (node_unary_t *)node->value;
+
+        int32_t result;
+        result = syntax_prefix(program, scope, node_unary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else 
+	if(node->kind == NODE_KIND_POS)
+	{
+		node_unary_t *node_unary = (node_unary_t *)node->value;
+
+        int32_t result;
+        result = syntax_prefix(program, scope, node_unary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else 
+	if(node->kind == NODE_KIND_SIZEOF)
+	{
+		node_unary_t *node_unary = (node_unary_t *)node->value;
+
+        int32_t result;
+        result = syntax_prefix(program, scope, node_unary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else 
+	if(node->kind == NODE_KIND_TYPEOF)
+	{
+        node_unary_t *node_unary = (node_unary_t *)node->value;
+
+        int32_t result;
+        result = syntax_prefix(program, scope, node_unary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_postfix(program, parent, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_power(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	
+	if(node->kind == NODE_KIND_POW)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_power(program, left, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_prefix(program, right, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+        return 1;
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_prefix(program, parent, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_multiplicative(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	if(node->kind == NODE_KIND_MUL)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_multiplicative(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_power(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+        return 1;
+	}
+	else 
+	if(node->kind == NODE_KIND_DIV)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_multiplicative(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_power(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+        return 1;
+	}
+	else 
+	if(node->kind == NODE_KIND_MOD)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_multiplicative(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_power(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+        return 1;
+	}
+	else 
+	if(node->kind == NODE_KIND_EPI)
+	{
+        node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_multiplicative(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_power(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+        return 1;
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_power(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_addative(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	if(node->kind == NODE_KIND_PLUS)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_addative(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_multiplicative(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+        
+        return 1;
+	}
+	else
+	if(node->kind == NODE_KIND_MINUS)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_addative(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_multiplicative(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_multiplicative(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_shifting(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	if(node->kind == NODE_KIND_SHL)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_shifting(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_addative(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else 
+	if(node->kind == NODE_KIND_SHR)
+	{
+        node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_shifting(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_addative(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_addative(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_relational(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	if(node->kind == NODE_KIND_LT)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+        int32_t result;
+        result = syntax_relational(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_shifting(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else 
+	if(node->kind == NODE_KIND_GT)
+	{
+        node_binary_t *node_binary = (node_binary_t *)node->value;
+        int32_t result;
+        result = syntax_relational(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_shifting(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else 
+	if(node->kind == NODE_KIND_LE)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+        int32_t result;
+        result = syntax_relational(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_shifting(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else 
+	if(node->kind == NODE_KIND_GE)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_relational(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_shifting(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_shifting(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_equality(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	if(node->kind == NODE_KIND_EQ)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_equality(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_relational(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else 
+	if(node->kind == NODE_KIND_NEQ)
+	{
+        node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_equality(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_relational(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_relational(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_bitwise_and(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	if (node->kind == NODE_KIND_AND)
+	{
+        node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_bitwise_and(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+		int32_t result;
+        result = syntax_equality(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+		
+        return 1;
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_equality(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_bitwise_xor(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	if (node->kind == NODE_KIND_XOR)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_bitwise_xor(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_bitwise_and(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_bitwise_and(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_bitwise_or(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	if (node->kind == NODE_KIND_OR)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_bitwise_or(program, left, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_bitwise_xor(program, right, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_bitwise_xor(program, parent, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_logical_and(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	if (node->kind == NODE_KIND_LAND)
+	{
+        node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_logical_and(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_bitwise_or(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+		return 1;
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_bitwise_or(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_logical_or(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	if (node->kind == NODE_KIND_LOR)
+	{
+        node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        int32_t result;
+        result = syntax_logical_or(program, scope, node_binary->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_logical_and(program, scope, node_binary->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        return 1;
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_logical_and(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_conditional(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	if (node->kind == NODE_KIND_CONDITIONAL)
+	{
+		node_triple_t *node_triple = (node_triple_t *)node->value;
+
+        int32_t result;
+        result = syntax_logical_or(program, scope, node_triple->base);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_conditional(program, scope, node_triple->left);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        int32_t result;
+        result = syntax_conditional(program, scope, node_triple->right);
+        if (result == -1)
+        {
+            return -1;
+        }
+
+		return 1;
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_logical_or(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_expression(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	return syntax_conditional(program, parent, node);
+}
+
+static int32_t
+syntax_assign(program_t *program, node_t *scope, node_t *node)
+{
+	if (node->kind == NODE_KIND_ASSIGN)
+	{
+        node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        if (node_binary->left != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->left);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+
+        if (node_binary->right != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->right);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+    }
+	else 
+	if (node->kind == NODE_KIND_ADD_ASSIGN)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        if (node_binary->left != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->left);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+
+        if (node_binary->right != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->right);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+	}
+	else 
+	if (node->kind == NODE_KIND_SUB_ASSIGN)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        if (node_binary->left != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->left);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+
+        if (node_binary->right != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->right);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+	}
+	else 
+	if (node->kind == NODE_KIND_DIV_ASSIGN)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        if (node_binary->left != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->left);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+
+        if (node_binary->right != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->right);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+	}
+	else 
+	if (node->kind == NODE_KIND_MUL_ASSIGN)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        if (node_binary->left != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->left);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+
+        if (node_binary->right != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->right);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+	}
+	else 
+	if (node->kind == NODE_KIND_MOD_ASSIGN)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        if (node_binary->left != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->left);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+
+        if (node_binary->right != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->right);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+	}
+	else 
+	if (node->kind == NODE_KIND_AND_ASSIGN)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        if (node_binary->left != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->left);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+
+        if (node_binary->right != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->right);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+	}
+	else 
+	if (node->kind == NODE_KIND_OR_ASSIGN)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        if (node_binary->left != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->left);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+
+        if (node_binary->right != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->right);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+	}
+	else 
+	if (node->kind == NODE_KIND_SHL_ASSIGN)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        if (node_binary->left != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->left);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+
+        if (node_binary->right != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->right);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+	}
+	else 
+	if (node->kind == NODE_KIND_SHR_ASSIGN)
+	{
+		node_binary_t *node_binary = (node_binary_t *)node->value;
+
+        if (node_binary->left != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->left);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+
+        if (node_binary->right != NULL)
+        {
+            int32_t result;
+            result = syntax_expression(program, scope, node_binary->right);
+            if (result == -1)
+            {
+                return -1;
+            }
+        }
+	}
+	else
+	{
+		int32_t result;
+		result = syntax_expression(program, scope, node);
+		if (result == -1)
+		{
+			return -1;
+		}
+		return 1;
+	}
+}
+
+static int32_t
+syntax_if(program_t *program, node_t *scope, node_t *node)
+{
+	node_if_t *node_if = (node_if_t *)node->value;
+
+	if (node_if->key)
+	{
+        int32_t result;
+		result = syntax_id(program, scope, node_if->key);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_if->condition)
+	{
+        int32_t result;
+		result = syntax_expression(program, scope, node_if->condition);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_if->then_body)
+	{
+        int32_t result;
+		result = syntax_block(program, scope, node_if->then_body);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_if->else_body)
+	{
+        int32_t result;
+		if(node_if->else_body->kind == NODE_KIND_IF)
+		{
+			result = syntax_if(program, scope, node_if->else_body);
+		} 
+		else 
+		{
+			result = syntax_block(program, scope, node_if->else_body);
+		}
+
+		if (result == -1)
+        {
+			return -1;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_catch(program_t *program, node_t *scope, node_t *node)
+{
+	node_catch_t *node_catch = (node_catch_t *)node->value;
+
+	if (node_catch->parameters)
+	{
+		ilist_t *a;
+		for (a = node_catch->parameters->begin; a != node_catch->parameters->end; a = a->next)
+		{
+			node_t *parameter = (node_t *)a->value;
+            int32_t result;
+			result = syntax_parameter(program, scope, parameter);
+			if (result == -1)
+			{
+				return -1;
+			}
+		}
+	}
+
+	if (node_catch->body)
+	{
+        int32_t result;
+		result = syntax_block(program, scope, node_catch->body);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_try(program_t *program, node_t *scope, node_t *node)
+{
+	node_try_t *node_try = (node_try_t *)node->value;
+
+    if (node_try->body != NULL)
+    {
+        int32_t result;
+        result = syntax_block(program, scope, node_try->body);
+        if (result == -1)
+        {
+            return -1;
+        }
+    }
+
+	if (node_try->catchs)
+	{
+        list_t *catchs = node_try->catchs;
+		ilist_t *a;
+		for (a = catchs->begin; a != catchs->end; a = a->next)
+		{
+			node_t *object = (node_t *)a->value;
+            if (object != NULL)
+            {
+                int32_t result;
+                result = syntax_catch(program, scope, object);
+                if (result == -1)
+                {
+                    return -1;
+                }
+            }
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_for(program_t *program, node_t *scope, node_t *node)
+{
+	node_for_t *node_for = (node_for_t *)node->value;
+
+	if (node_for->key)
+	{
+        int32_t result;
+		result = syntax_id(program, scope, node_for->key);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_for->initializer)
+	{
+        list_t *initializer = node_for->initializer;
+        ilist_t *a;
+        for (a = initializer->begin; a != initializer->end; a = a->next)
+        {
+            node_t *object = (node_t *)a->value;
+            if (object != NULL)
+            {
+                if (object->kind == NODE_KIND_VAR)
+                {
+                    int32_t result;
+                    result = syntax_var(program, scope, object);
+                    if (result == -1)
+                    {
+                        return -1;
+                    }
+                }
+                else
+                {
+                    int32_t result;
+                    result = syntax_assign(program, scope, object);
+                    if (result == -1)
+                    {
+                        return -1;
+                    }
+                }
+            }
+        }
+	}
+
+	if (node_for->condition)
+	{
+        int32_t result;
+		result = syntax_expression(program, scope, node_for->condition);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_for->incrementor)
+	{
+        list_t *incrementor = node_for->incrementor;
+		ilist_t *a;
+		for (a = incrementor->begin; a != incrementor->end; a = a->next)
+		{
+			node_t *object = (node_t *)a->value;
+            if (object != NULL)
+            {
+                int32_t result;
+                result = syntax_assign(program, scope, object);
+                if (result == -1)
+                {
+                    return -1;
+                }
+            }
+		}
+	}
+	
+	if (node_for->body)
+	{
+        int32_t result;
+		result = syntax_block(program, scope, node_for->body);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_forin(program_t *program, node_t *scope, node_t *node)
+{
+	node_forin_t *node_forin = (node_forin_t *)node->value;
+
+	
+	if (node_forin->key)
+	{
+        int32_t result;
+		result = syntax_id(program, scope, node_forin->key);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_forin->initializer)
+	{
+        list_t *initializer = node_forin->initializer;
+		ilist_t *a;
+		for (a = initializer->begin; a != initializer->end; a = a->next)
+		{
+			node_t *object = (node_t *)a->value;
+
+			if (object->kind == NODE_KIND_VAR)
+			{
+                int32_t result;
+				result = syntax_var(program, scope, object);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+			else
+			{
+                int32_t result;
+				result = syntax_assign(program, scope, object);
+				if (result == -1)
+				{
+					return -1;
+				}
+			}
+		}
+	}
+
+	if (node_forin->expression)
+	{
+        int32_t result;
+		result = syntax_expression(program, scope, node_forin->expression);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_forin->body)
+	{
+        int32_t result;
+		result = syntax_block(program, scope, node_forin->body);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_break(program_t *program, node_t *scope, node_t *node)
+{
+	node_unary_t *node_unary = (node_unary_t *)node->value;
+
+	int32_t result;
+    result = syntax_expression(program, scope, node_unary->right);
+	if (result == -1)
+	{
+		return -1;
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_continue(program_t *program, node_t *scope, node_t *node)
+{
+	node_unary_t *node_unary = (node_unary_t *)node->value;
+
+	int32_t result;
+    result = syntax_expression(program, scope, node_unary->right);
+	if (result == -1)
+	{
+		return -1;
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_return(program_t *program, node_t *scope, node_t *node)
+{
+	node_unary_t *node_unary = (node_unary_t *)node->value;
+
+	int32_t result;
+    result = syntax_expression(program, scope, node_unary->right);
+	if (result == -1)
+	{
+		return -1;
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_throw(program_t *program, node_t *scope, node_t *node)
+{
+	node_throw_t *node_throw = (node_throw_t *)node->value;
+
+	if (node_throw->arguments != NULL)
+	{
+        list_t *arguments = node_throw->arguments;
+		ilist_t *a;
+		for (a = arguments->begin; a != arguments->end; a = a->next)
+		{
+			node_t *argument = (node_t *)a->value;
+            if (argument != NULL)
+            {
+                int32_t result;
+                result = syntax_argument(program, scope, argument);
+                if (result == -1)
+                {
+                    return -1;
+                }
+            }
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_statement(program_t *program, node_t *scope, node_t *node)
+{
+	if (node->kind = NODE_KIND_BLOCK)
+	{
+        return syntax_block(program, scope, node);
+    }
+    else
+    if (node->kind = NODE_KIND_IF)
+	{
+        return syntax_if(program, scope, node);
+    }
+    else
+    if (node->kind = NODE_KIND_TRY)
+	{
+        return syntax_try(program, scope, node);
+    }
+    else
+    if (node->kind = NODE_KIND_FOR)
+	{
+        return syntax_for(program, scope, node);
+    }
+    else
+    if (node->kind = NODE_KIND_FORIN)
+	{
+        return syntax_forin(program, scope, node);
+    }
+    else
+    if (node->kind = NODE_KIND_VAR)
+	{
+        return syntax_var(program, scope, node);
+    }
+    else
+    if (node->kind = NODE_KIND_BREAK)
+	{
+        return syntax_break(program, scope, node);
+    }
+    else
+    if (node->kind = NODE_KIND_CONTINUE)
+	{
+        return syntax_continue(program, scope, node);
+    }
+    else
+    if (node->kind = NODE_KIND_RETURN)
+	{
+        return syntax_return(program, scope, node);
+    }
+    else
+    if (node->kind = NODE_KIND_THROW)
+	{
+        return syntax_throw(program, scope, node);
+    }
+    else
+    if (node->kind = NODE_KIND_FUNC)
+	{
+        return syntax_func(program, scope, node);
+    }
+    else
+	{
+        return syntax_assign(program, scope, node);
+    }
+}
+
+static int32_t
+syntax_block(program_t *program, node_t *scope, node_t *node)
+{
+	node_block_t *node_block = (node_block_t *)node->value;
+
+    if (node_block->list != NULL)
+    {
+        list_t *block = node_block->list;
+        ilist_t *a;
+        for (a = block->begin; a != block->end; a = a->next)
+        {
+            node_t *object = (node_t *)a->value;
+            if (object != NULL)
+            {
+                int32_t result;
+                result = syntax_statement(program, scope, object);
+                if (result == -1)
+                {
+                    return -1;
+                }
+            }
+        }
+    }
+
+
+	return 1;
+}
+
+static int32_t
+syntax_generic(program_t *program, node_t *scope, node_t *node)
+{
+	node_generic_t *node_generic = (node_generic_t *)node->value;
+
+	if (node_generic->key != NULL)
+	{
+		int32_t result;
+		result = syntax_id(program, scope, node_generic->key);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_generic->type != NULL)
+	{
+		int32_t result;
+		result = syntax_expression(program, scope, node_generic->type);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_generic->value != NULL)
+	{
+		int32_t result;
+		result = syntax_expression(program, scope, node_generic->value);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_enum(program_t *program, node_t *scope, node_t *node)
+{
+	node_enum_t *node_enum = (node_enum_t *)node->value;
+	
+	if (node_enum->key != NULL)
+	{
+		int32_t result;
+		result = syntax_id(program, scope, node_enum->key);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_enum->body != NULL)
+	{
+        list_t *body = node_enum->body;
+		ilist_t *a;
+		for (a = body->begin; a != body->end; a = a->next)
+		{
+			node_t *member = (node_t *)a->value;
+            if (member != NULL)
+            {
+                int32_t result;
+                result = syntax_member(program, scope, member);
+                if (result == -1)
+                {
+                    return -1;
+                }
+            }
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_property(program_t *program, node_t *scope, node_t *node)
+{
+	node_property_t *node_property = (node_property_t *)node->value;
+
+	if (node_property->key != NULL)
+	{
+		int32_t result;
+		result = syntax_id(program, scope, node_property->key);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_property->type != NULL)
+	{
+		int32_t result;
+		result = syntax_expression(program, scope, node_property->type);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_property->value != NULL)
+	{
+		int32_t result;
+		result = syntax_expression(program, scope, node_property->value);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_parameter(program_t *program, node_t *scope, node_t *node)
+{
+	node_parameter_t *node_parameter = (node_parameter_t *)node->value;
+
+	if (node_parameter->key != NULL)
+	{
+        int32_t result;
+		result = syntax_id(program, scope, node_parameter->key);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_parameter->type != NULL)
+	{
+        int32_t result;
+		result = syntax_expression(program, scope, node_parameter->type);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_parameter->value != NULL)
+	{
+		int32_t result;
+		result = syntax_expression(program, scope, node_parameter->value);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_heritage(program_t *program, node_t *scope, node_t *node)
+{
+	node_heritage_t *node_heritage = (node_heritage_t *)node->value;
+
+	if (node_heritage->key != NULL)
+	{
+        int32_t result
+		result = syntax_id(program, scope, node_heritage->key);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_heritage->type != NULL)
+	{
+        int32_t result;
+		result = syntax_expression(program, scope, node_heritage->type);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_func(program_t *program, node_t *scope, node_t *node)
+{
+	node_func_t *node_func = (node_func_t *)node->value;
+
+	if (node_func->key != NULL)
+	{
+		int32_t result;
+        result = syntax_id(program, scope, node_func->key);
+        if (result == -1)
+        {
+            return -1;
+        }
+	}
+
+	if (node_func->generics != NULL)
+	{
+        list_t *generics = node_func->generics;
+        if (generics != NULL)
+        {
+            ilist_t *a;
+            for (a = generics->begin; a != generics->end; a = a->next)
+            {
+                node_t *generic = (node_t *)a->value;
+                if (generic != NULL)
+                {
+                    int32_t result;
+                    result = syntax_generic(program, scope, generic);
+                    if (result == -1)
+                    {
+                        return -1;
+                    }
+                }
+            }
+        }
+	}
+
+	if (node_func->parameters != NULL)
+	{
+        list_t *parameters = node_func->parameters;
+        if (parameters != NULL)
+        {
+            for (a = parameters->begin; a != parameters->end; a = a->next)
+            {
+                node_t *parameter = (node_t *)a->value;
+                if (parameter != NULL)
+                {
+                    int32_t result;
+                    result = syntax_parameter(program, scope, parameter);
+                    if (result == -1)
+                    {
+                        return -1;
+                    }
+                }
+            }
+        }
+	}
+
+	if (node_func->body != NULL)
+	{
+        int32_t result;
+		result = syntax_block(program, scope, node_func->body);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_class(program_t *program, node_t *scope, node_t *node)
+{
+	node_class_t *node_class = (node_class_t *)node->value;
+
+	if (node_class->key != NULL)
+	{
+        int32_t result;
+		result = syntax_id(program, scope, node_class->key);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	
+	if (node_class->heritages != NULL)
+	{
+        ilist_t *a;
+		for (a = node_class->heritages->begin; a != node_class->heritages->end; a = a->next)
+		{
+			node_t *heritage = (node_t *)a->value;
+            if (heritage != NULL)
+            {
+                int32_t result;
+                result = syntax_heritage(program, scope, heritage);
+                if (result == -1)
+                {
+                    return -1;
+                }
+            }
+		}
+	}
+
+	if (node_class->generics != NULL)
+	{
+        ilist_t *a;
+		for (a = node_class->generics->begin; a != node_class->generics->end; a = a->next)
+		{
+			node_t *generic = (node_t *)a->value;
+            int32_t result;
+			result = syntax_generic(program, scope, generic);
+			if (result == -1)
+			{
+				return -1;
+			}
+		}
+	}
+
+    if (node_class->body != NULL)
+    {
+        list_t *body = node_class->body;
+        for (a = body->begin; a != body->end; a = a->next)
+        {
+            node_t *object = (node_t *)a->value;
+            if (object != NULL)
+            {
+                if (object->kind == NODE_KIND_CLASS)
+                {
+                    int32_t result;
+                    result = syntax_class(program, scope, object);
+                    if (result == -1)
+                    {
+                        return -1;
+                    }
+                }
+                else
+                if (object->kind == NODE_KIND_ENUM)
+                {
+                    int32_t result;
+                    result = syntax_enum(program, scope, object);
+                    if (result == -1)
+                    {
+                        return -1;
+                    }
+                }
+                else
+                if (object->kind == NODE_KIND_PROPERTY)
+                {
+                    int32_t result;
+                    result = syntax_property(program, scope, object);
+                    if (result == -1)
+                    {
+                        return -1;
+                    }
+                }
+                else
+                if (object->kind == NODE_KIND_FUNC)
+                {
+                    int32_t result;
+                    result = syntax_func(program, scope, object);
+                    if (result == -1)
+                    {
+                        return -1;
+                    }
+                }
+            }
+        }
+    }
+
+	return 1;
+}
+
+static int32_t
+syntax_var(program_t *program, node_t *scope, node_t *node)
+{
+	node_var_t *node_var = (node_var_t *)node->value;
+	
+	if (node_var->key != NULL)
+	{
+        int32_t result;
+		result = syntax_id(program, scope, node_var->key);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_var->type != NULL)
+	{
+        int32_t result;
+		result = syntax_expression(program, scope, node_var->type);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	if (node_var->value)
+	{
+        int32_t result;
+		result = syntax_expression(program, scope, node_var->value);
+		if (result == -1)
+		{
+			return -1;
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_field(program_t *program, node_t *scope, node_t *node)
+{
+	node_field_t *node_field = (node_field_t *)node->value;
+
+	if (node_field->key)
+	{
+        /*
+        int32_t result;
+		result = syntax_expression(program, scope, node_field->key);
+		if (result == -1)
+		{
+			return -1;
+		}
+        */
+	}
+
+	if (node_field->type)
+	{
+        /*
+        int32_t result;
+		result = syntax_expression(program, scope, node_field->type);
+		if (result == -1)
+		{
+			return -1;
+		}
+        */
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_import(program_t *program, node_t *scope, node_t *node)
+{
+	node_import_t *node_import = (node_import_t *)node->value;
+
+	if (node_import->fields)
+	{
+        list_t *fields = node_import->fields;
+        ilist_t *a;
+        for (a = fields->begin; a != fields->end; a = a->next)
+        {
+            node_t *field = (node_t *)a->value;
+            if (field != NULL)
+            {
+                int32_t result;
+                result = syntax_field(program, scope, field);
+                if (result == -1)
+                {
+                    return -1;
+                }
+            }
+        }
+	}
+
+	return 1;
+}
+
+static int32_t
+syntax_module(program_t *program, node_t *scope, node_t *node)
+{
+	node_module_t node_module = (node_module_t *)node->value;
+    
+    if (node_module->members != NULL)
+    {
+        list_t *members = node_module->members;
+        ilist_t *a;
+        for (a = members->begin; a != members->end; a = a->next)
+        {
+            node_t *member = (node_t *)a->value;
+            if (member != NULL)
+            {
+                if (member->kind == NODE_KIND_IMPORT)
+                {
+                    int32_t result;
+                    result = syntax_import(program, scope, member);
+                    if (result == -1)
+                    {
+                        return -1;
+                    }
+                }
+                else
+                if (member->kind == NODE_KIND_CLASS)
+                {
+                    int32_t result;
+                    result = syntax_class(program, scope, member);
+                    if (result == -1)
+                    {
+                        return -1;
+                    }
+                }
+                else
+                if (member->kind == NODE_KIND_ENUM)
+                {
+                    int32_t result;
+                    result = syntax_enum(program, scope, member);
+                    if (result == -1)
+                    {
+                        return -1;
+                    }
+                }
+                else
+                if (member->kind == NODE_KIND_FUNC)
+                {
+                    int32_t result;
+                    result = syntax_func(program, scope, member);
+                    if (result == -1)
+                    {
+                        return -1;
+                    }
+                }
+                else
+                if (member->kind == NODE_KIND_VAR)
+                {
+                    int32_t result;
+                    result = syntax_var(program, scope, member);
+                    if (result == -1)
+                    {
+                        return -1;
+                    }
+                }
+            }
+        }
+    }
+
+	return 1;
+}
+
+int32_t
+syntax_run(program_t *program, node_t *node)
+{
+    node_t *scope = list_create();
+    if (scope == NULL)
+    {
+        fprintf(stderr, "unable to allocate memory\n");
+        return -1;
+    }
+
+    table_t *frame = table_create();
+    if (frame == NULL)
+    {
+        fprintf(stderr, "unable to allocate memory\n");
+        return -1;
+    }
+
+	int32_t result = syntax_module(program, scope, frame, node);
+	if(result == -1)
+	{
+		return -1;
+	}
+	return 1;
+}
