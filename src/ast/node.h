@@ -10,6 +10,12 @@ typedef struct node {
 	
 	position_t position;
 
+	struct node *next;
+	struct node *previous;
+
+	struct node *begin;
+	struct node *end;
+
 	struct node *parent;
 	struct node *scope;
 } node_t;
@@ -34,8 +40,6 @@ typedef enum node_kind {
 	NODE_KIND_SIZEOF,
 	NODE_KIND_PARENTHESIS,
 	
-	NODE_KIND_BODY_PROPERTY,
-	NODE_KIND_BODY,
 	NODE_KIND_CALL,
 	NODE_KIND_GET_ITEM,
 	NODE_KIND_ATTRIBUTE,
@@ -94,7 +98,7 @@ typedef enum node_kind {
 	NODE_KIND_BREAK,
 	NODE_KIND_CONTINUE,
 	NODE_KIND_CATCH,
-	NODE_KIND_CATCH_LIST,
+	NODE_KIND_CATCHS,
 	NODE_KIND_TRY,
 	NODE_KIND_RETURN,
 	NODE_KIND_THROW,
@@ -102,19 +106,27 @@ typedef enum node_kind {
 	NODE_KIND_THIS,
 	NODE_KIND_VAR,
 	NODE_KIND_TYPE,
-	NODE_KIND_ARGUMENT,
-	NODE_KIND_PARAMETER,
-	NODE_KIND_FIELD,
-	NODE_KIND_GENERIC,
 	NODE_KIND_LAMBDA,
 	NODE_KIND_FUNC,
-	NODE_KIND_PROPERTY,
-	NODE_KIND_METHOD,
 	NODE_KIND_CLASS,
+	NODE_KIND_METHOD,
+	NODE_KIND_PROPERTY,
+	NODE_KIND_PROPERTIES,
+	NODE_KIND_ARGUMENT,
+	NODE_KIND_ARGUMENTS,
+	NODE_KIND_PARAMETER,
+	NODE_KIND_PARAMETERS,
+	NODE_KIND_FIELD,
+	NODE_KIND_FIELDS,
+	NODE_KIND_GENERIC,
+	NODE_KIND_GENERICS,
 	NODE_KIND_HERITAGE,
+	NODE_KIND_HERITAGES,
 	NODE_KIND_MEMBER,
+	NODE_KIND_MEMBERS,
 	NODE_KIND_ENUM,
 	NODE_KIND_BLOCK,
+	NODE_KIND_BODY,
 	NODE_KIND_IMPORT,
 	NODE_KIND_MODULE,
 	NODE_KIND_DOC
@@ -181,28 +193,28 @@ typedef struct node_if {
 typedef struct node_for {
 	uint64_t flag;
 	node_t *key;
-	list_t *initializer;
+	node_t *initializer;
 	node_t *condition;
-	list_t *incrementor;
+	node_t *incrementor;
 	node_t *body;
 } node_for_t;
 
 typedef struct node_forin {
 	uint64_t flag;
 	node_t *key;
-	list_t *initializer;
+	node_t *initializer;
 	node_t *expression;
 	node_t *body;
 } node_forin_t;
 
 typedef struct node_catch {
-	list_t *parameters;
+	node_t *parameters;
 	node_t *body;
 } node_catch_t;
 
 typedef struct node_try {
 	node_t *body;
-	list_t *catchs;
+	node_t *catchs;
 } node_try_t;
 
 typedef struct node_var {
@@ -241,15 +253,15 @@ typedef struct node_generic {
 } node_generic_t;
 
 typedef struct node_lambda {
-	list_t *parameters;
+	node_t *parameters;
 	node_t *body;
 } node_lambda_t;
 
 typedef struct node_func {
 	uint64_t flag;
-	list_t *generics;
+	node_t *generics;
 	node_t *key;
-	list_t *parameters;
+	node_t *parameters;
 	node_t *body;
 } node_func_t;
 
@@ -263,9 +275,9 @@ typedef struct node_property {
 typedef struct node_class {
 	uint64_t flag;
 	node_t *key;
-	list_t *heritages;
-	list_t *generics;
-	list_t *body;
+	node_t *heritages;
+	node_t *generics;
+	node_t *block;
 } node_class_t;
 
 typedef struct node_member {
@@ -276,17 +288,17 @@ typedef struct node_member {
 typedef struct node_enum {
 	uint64_t flag;
 	node_t *key;
-	list_t *body;
+	node_t *members;
 } node_enum_t;
 
 typedef struct node_import {
 	node_t *path;
-	list_t *fields;
+	node_t *fields;
 } node_import_t;
 
 typedef struct node_module {
 	char *path;
-	list_t *objects;
+	node_t *block;
 } node_module_t;
 
 
@@ -479,10 +491,10 @@ node_t *
 node_make_if(node_t *node, node_t *name, node_t *condition, node_t *then_body, node_t *else_body);
 
 node_t *
-node_make_for(node_t *node, uint64_t flag, node_t *name, list_t *initializer, node_t *condition, list_t *incrementor, node_t *body);
+node_make_for(node_t *node, uint64_t flag, node_t *name, node_t *initializer, node_t *condition, node_t *incrementor, node_t *body);
 
 node_t *
-node_make_forin(node_t *node, uint64_t flag, node_t *name, list_t *initializer, node_t *expression, node_t *body);
+node_make_forin(node_t *node, uint64_t flag, node_t *name, node_t *initializer, node_t *expression, node_t *body);
 
 node_t *
 node_make_break(node_t *node, node_t *expression);
@@ -491,10 +503,13 @@ node_t *
 node_make_continue(node_t *node, node_t *expression);
 
 node_t *
-node_make_catch(node_t *node, list_t *parameters, node_t *body);
+node_make_catch(node_t *node, node_t *parameters, node_t *body);
 
 node_t *
-node_make_try(node_t *node, node_t *body, list_t *catchs);
+node_make_catchs(node_t *node, list_t *list);
+
+node_t *
+node_make_try(node_t *node, node_t *body, node_t *catchs);
 
 node_t *
 node_make_return(node_t *node, node_t *expr);
@@ -505,56 +520,64 @@ node_make_throw(node_t *node, list_t *arguments);
 node_t *
 node_make_var(node_t *node, uint64_t flag, node_t *name, node_t *type, node_t *value);
 
-
 node_t *
 node_make_parameter(node_t *node, uint64_t flag, node_t *name, node_t *type, node_t *value);
+
+node_t *
+node_make_parameters(node_t *node, list_t *list);
 
 node_t *
 node_make_field(node_t *node, node_t *key, node_t *value);
 
 node_t *
+node_make_fields(node_t *node, list_t *list);
+
+node_t *
 node_make_generic(node_t *node, node_t *key, node_t *type, node_t *value);
 
 node_t *
-node_make_func(
-	node_t *node,
-	uint64_t flag,
-	node_t *key, 
-	list_t *generics, 
-	list_t *parameters, 
-	node_t *block);
+node_make_generics(node_t *node, list_t *list);
 
 node_t *
-node_make_lambda(node_t *node, list_t *parameters, node_t *block);
+node_make_func(node_t *node,uint64_t flag,node_t *key, node_t *generics, node_t *parameters, node_t *block);
+
+node_t *
+node_make_lambda(node_t *node, node_t *parameters, node_t *block);
 
 node_t *
 node_make_heritage(node_t *node, node_t *key, node_t *type);
 
 node_t *
+node_make_heritages(node_t *node, list_t *list);
+
+node_t *
 node_make_property(node_t *node, uint64_t flag, node_t *name, node_t *type, node_t *value);
 
 node_t *
-node_make_class(
-	node_t *node,
-	uint64_t flag,
-	node_t *name, 
-	list_t *generics, 
-	list_t *heritages, 
-	list_t *body);
+node_make_properties(node_t *node, list_t *list);
+
+node_t *
+node_make_class(node_t *node, uint64_t flag, node_t *name, node_t *generics, node_t *heritages, node_t *block);
 
 node_t *
 node_make_member(node_t *node, node_t *name, node_t *value);
 
 node_t *
-node_make_enum(node_t *node, uint64_t flag, node_t *name, list_t *body);
+node_make_members(node_t *node, list_t *list);
 
 node_t *
-node_make_block(node_t *node, list_t *stmt_list);
+node_make_enum(node_t *node, uint64_t flag, node_t *name, node_t *members);
 
 node_t *
-node_make_import(node_t *node, node_t *path, list_t *fields);
+node_make_body(node_t *node, list_t *objects);
 
 node_t *
-node_make_module(node_t *node, char *path, list_t *members);
+node_make_block(node_t *node, list_t *stmt);
+
+node_t *
+node_make_import(node_t *node, node_t *path, node_t *fields);
+
+node_t *
+node_make_module(node_t *node, char *path, node_t *block);
 
 #endif /* __NODE_H__ */
