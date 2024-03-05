@@ -571,10 +571,6 @@ scanner_advance(scanner_t *scanner)
 			}
 			else if (scanner->ch == '.')
 			{
-				uint64_t offset = scanner->offset;
-				uint64_t column = scanner->column;
-				uint64_t line = scanner->line;
-
 				scanner_set_token(scanner, (token_t){
 																			 .type = TOKEN_DOT,
 																			 .value = NULL,
@@ -602,10 +598,6 @@ scanner_advance(scanner_t *scanner)
 			}
 			else if (scanner->ch == ':')
 			{
-				uint64_t offset = scanner->offset;
-				uint64_t column = scanner->column;
-				uint64_t line = scanner->line;
-
 				scanner_set_token(scanner, (token_t){
 																			 .type = TOKEN_COLON,
 																			 .value = NULL,

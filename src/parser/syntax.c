@@ -58,79 +58,79 @@ syntax_error(program_t *program, node_t *node, const char *format, ...)
 
 
 static int32_t
-syntax_func(program_t *program, node_t *scope, node_t *node);
+syntax_func(program_t *program, node_t *node);
 
 static int32_t
-syntax_parameter(program_t *program, node_t *scope, node_t *node);
+syntax_parameter(program_t *program, node_t *node);
 
 static int32_t
-syntax_generic(program_t *program, node_t *scope, node_t *node);
+syntax_generic(program_t *program, node_t *node);
 
 static int32_t
-syntax_block(program_t *program, node_t *scope, node_t *node);
+syntax_block(program_t *program, node_t *node);
 
 static int32_t
-syntax_var(program_t *program, node_t *scope, node_t *node);
-
-
-static int32_t
-syntax_expression(program_t *program, node_t *scope, node_t *node, list_t *response);
-
-static int32_t
-syntax_prefix(program_t *program, node_t *scope, node_t *node, list_t *response);
-
-static int32_t
-syntax_postfix(program_t *program, node_t *scope, node_t *node, list_t *response);
-
-
-
+syntax_var(program_t *program, node_t *node);
 
 
 static int32_t
-syntax_id(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_expression(program_t *program, node_t *node, list_t *response);
+
+static int32_t
+syntax_prefix(program_t *program, node_t *node, list_t *response);
+
+static int32_t
+syntax_postfix(program_t *program, node_t *node, list_t *response);
+
+
+
+
+
+static int32_t
+syntax_id(program_t *program, node_t *node, list_t *response)
 {
     node_t *parent = node->parent;
 	return 1;
 }
 
 static int32_t
-syntax_number(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_number(program_t *program, node_t *node, list_t *response)
 {
 	return 1;
 }
 
 static int32_t
-syntax_string(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_string(program_t *program, node_t *node, list_t *response)
 {
 	return 1;
 }
 
 static int32_t
-syntax_char(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_char(program_t *program, node_t *node, list_t *response)
 {
 	return 1;
 }
 
 static int32_t
-syntax_null(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_null(program_t *program, node_t *node, list_t *response)
 {
 	return 1;
 }
 
 static int32_t
-syntax_true(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_true(program_t *program, node_t *node, list_t *response)
 {
 	return 1;
 }
 
 static int32_t
-syntax_false(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_false(program_t *program, node_t *node, list_t *response)
 {
 	return 1;
 }
 
 static int32_t
-syntax_array(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_array(program_t *program, node_t *node, list_t *response)
 {
 	node_array_t *node_array = (node_array_t *)node->value;
 
@@ -149,7 +149,7 @@ syntax_array(program_t *program, node_t *scope, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_parenthesis(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_parenthesis(program_t *program, node_t *node, list_t *response)
 {
 	node_unary_t *node_unary = (node_unary_t *)node->value;
 
@@ -164,7 +164,7 @@ syntax_parenthesis(program_t *program, node_t *scope, node_t *node, list_t *resp
 }
 
 static int32_t
-syntax_lambda(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_lambda(program_t *program, node_t *node, list_t *response)
 {
     node_lambda_t *lambda = (node_lambda_t *)node->value;
     int32_t result;
@@ -207,7 +207,7 @@ syntax_lambda(program_t *program, node_t *scope, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_member(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_member(program_t *program, node_t *node, list_t *response)
 {
 	node_member_t *node_member = (node_member_t *)node->value;
 
@@ -235,7 +235,7 @@ syntax_member(program_t *program, node_t *scope, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_object(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_object(program_t *program, node_t *node, list_t *response)
 {
 	node_object_t *node_object = (node_object_t *)node->value;
 
@@ -258,7 +258,7 @@ syntax_object(program_t *program, node_t *scope, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_primary(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_primary(program_t *program, node_t *node, list_t *response)
 {
 	if (node->kind == NODE_KIND_ID)
 	{
@@ -382,7 +382,7 @@ syntax_primary(program_t *program, node_t *scope, node_t *node, list_t *response
 }
 
 static int32_t
-syntax_argument(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_argument(program_t *program, node_t *node, list_t *response)
 {
     node_argument_t *node_argument = (node_argument_t *)node->value;
 
@@ -410,7 +410,7 @@ syntax_argument(program_t *program, node_t *scope, node_t *node, list_t *respons
 }
 
 static int32_t
-syntax_composite(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_composite(program_t *program, node_t *node, list_t *response)
 {
 	node_composite_t *node_composite = (node_composite_t *)node->value;
 
@@ -445,7 +445,7 @@ syntax_composite(program_t *program, node_t *scope, node_t *node, list_t *respon
 }
 
 static int32_t
-syntax_call(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_call(program_t *program, node_t *node, list_t *response)
 {
     node_composite_t *node_composite = (node_composite_t *)node->value;
 
@@ -480,7 +480,7 @@ syntax_call(program_t *program, node_t *scope, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_item(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_item(program_t *program, node_t *node, list_t *response)
 {
 	node_composite_t *node_composite = (node_composite_t *)node->value;
 
@@ -512,7 +512,7 @@ syntax_item(program_t *program, node_t *scope, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_attribute(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_attribute(program_t *program, node_t *node, list_t *response)
 {
     node_binary_t *node_binary = (node_binary_t *)node->value;
 
@@ -531,7 +531,7 @@ syntax_attribute(program_t *program, node_t *scope, node_t *node, list_t *respon
 }
 
 static int32_t
-syntax_postfix(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_postfix(program_t *program, node_t *node, list_t *response)
 {
 	if (node->kind == NODE_KIND_COMPOSITE)
 	{
@@ -589,7 +589,7 @@ syntax_postfix(program_t *program, node_t *scope, node_t *node, list_t *response
 }
 
 static int32_t
-syntax_prefix(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_prefix(program_t *program, node_t *node, list_t *response)
 {
 	if(node->kind == NODE_KIND_TILDE)
 	{
@@ -687,7 +687,7 @@ syntax_prefix(program_t *program, node_t *scope, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_power(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_power(program_t *program, node_t *node, list_t *response)
 {
 	
 	if(node->kind == NODE_KIND_POW)
@@ -722,7 +722,7 @@ syntax_power(program_t *program, node_t *scope, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_multiplicative(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_multiplicative(program_t *program, node_t *node, list_t *response)
 {
 	if(node->kind == NODE_KIND_MUL)
 	{
@@ -816,7 +816,7 @@ syntax_multiplicative(program_t *program, node_t *scope, node_t *node, list_t *r
 }
 
 static int32_t
-syntax_addative(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_addative(program_t *program, node_t *node, list_t *response)
 {
 	if(node->kind == NODE_KIND_PLUS)
 	{
@@ -872,7 +872,7 @@ syntax_addative(program_t *program, node_t *scope, node_t *node, list_t *respons
 }
 
 static int32_t
-syntax_shifting(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_shifting(program_t *program, node_t *node, list_t *response)
 {
 	if(node->kind == NODE_KIND_SHL)
 	{
@@ -928,7 +928,7 @@ syntax_shifting(program_t *program, node_t *scope, node_t *node, list_t *respons
 }
 
 static int32_t
-syntax_relational(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_relational(program_t *program, node_t *node, list_t *response)
 {
 	if(node->kind == NODE_KIND_LT)
 	{
@@ -1023,7 +1023,7 @@ syntax_relational(program_t *program, node_t *scope, node_t *node, list_t *respo
 }
 
 static int32_t
-syntax_equality(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_equality(program_t *program, node_t *node, list_t *response)
 {
 	if(node->kind == NODE_KIND_EQ)
 	{
@@ -1079,7 +1079,7 @@ syntax_equality(program_t *program, node_t *scope, node_t *node, list_t *respons
 }
 
 static int32_t
-syntax_bitwise_and(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_bitwise_and(program_t *program, node_t *node, list_t *response)
 {
 	if (node->kind == NODE_KIND_AND)
 	{
@@ -1114,7 +1114,7 @@ syntax_bitwise_and(program_t *program, node_t *scope, node_t *node, list_t *resp
 }
 
 static int32_t
-syntax_bitwise_xor(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_bitwise_xor(program_t *program, node_t *node, list_t *response)
 {
 	if (node->kind == NODE_KIND_XOR)
 	{
@@ -1149,7 +1149,7 @@ syntax_bitwise_xor(program_t *program, node_t *scope, node_t *node, list_t *resp
 }
 
 static int32_t
-syntax_bitwise_or(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_bitwise_or(program_t *program, node_t *node, list_t *response)
 {
 	if (node->kind == NODE_KIND_OR)
 	{
@@ -1184,7 +1184,7 @@ syntax_bitwise_or(program_t *program, node_t *scope, node_t *node, list_t *respo
 }
 
 static int32_t
-syntax_logical_and(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_logical_and(program_t *program, node_t *node, list_t *response)
 {
 	if (node->kind == NODE_KIND_LAND)
 	{
@@ -1219,7 +1219,7 @@ syntax_logical_and(program_t *program, node_t *scope, node_t *node, list_t *resp
 }
 
 static int32_t
-syntax_logical_or(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_logical_or(program_t *program, node_t *node, list_t *response)
 {
 	if (node->kind == NODE_KIND_LOR)
 	{
@@ -1254,7 +1254,7 @@ syntax_logical_or(program_t *program, node_t *scope, node_t *node, list_t *respo
 }
 
 static int32_t
-syntax_conditional(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_conditional(program_t *program, node_t *node, list_t *response)
 {
 	if (node->kind == NODE_KIND_CONDITIONAL)
 	{
@@ -1296,13 +1296,13 @@ syntax_conditional(program_t *program, node_t *scope, node_t *node, list_t *resp
 }
 
 static int32_t
-syntax_expression(program_t *program, node_t *scope, node_t *node, list_t *response)
+syntax_expression(program_t *program, node_t *node, list_t *response)
 {
 	return syntax_conditional(program, parent, node);
 }
 
 static int32_t
-syntax_assign(program_t *program, node_t *scope, node_t *node)
+syntax_assign(program_t *program, node_t *node)
 {
 	if (node->kind == NODE_KIND_ASSIGN)
 	{
@@ -1566,7 +1566,7 @@ syntax_assign(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_if(program_t *program, node_t *scope, node_t *node)
+syntax_if(program_t *program, node_t *node)
 {
 	node_if_t *node_if = (node_if_t *)node->value;
 
@@ -1622,7 +1622,7 @@ syntax_if(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_catch(program_t *program, node_t *scope, node_t *node)
+syntax_catch(program_t *program, node_t *node)
 {
 	node_catch_t *node_catch = (node_catch_t *)node->value;
 
@@ -1655,7 +1655,7 @@ syntax_catch(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_try(program_t *program, node_t *scope, node_t *node)
+syntax_try(program_t *program, node_t *node)
 {
 	node_try_t *node_try = (node_try_t *)node->value;
 
@@ -1692,7 +1692,7 @@ syntax_try(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_for(program_t *program, node_t *scope, node_t *node)
+syntax_for(program_t *program, node_t *node)
 {
 	node_for_t *node_for = (node_for_t *)node->value;
 
@@ -1780,7 +1780,7 @@ syntax_for(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_forin(program_t *program, node_t *scope, node_t *node)
+syntax_forin(program_t *program, node_t *node)
 {
 	node_forin_t *node_forin = (node_forin_t *)node->value;
 
@@ -1848,7 +1848,7 @@ syntax_forin(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_break(program_t *program, node_t *scope, node_t *node)
+syntax_break(program_t *program, node_t *node)
 {
 	node_unary_t *node_unary = (node_unary_t *)node->value;
 
@@ -1863,7 +1863,7 @@ syntax_break(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_continue(program_t *program, node_t *scope, node_t *node)
+syntax_continue(program_t *program, node_t *node)
 {
 	node_unary_t *node_unary = (node_unary_t *)node->value;
 
@@ -1878,7 +1878,7 @@ syntax_continue(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_return(program_t *program, node_t *scope, node_t *node)
+syntax_return(program_t *program, node_t *node)
 {
 	node_unary_t *node_unary = (node_unary_t *)node->value;
 
@@ -1893,7 +1893,7 @@ syntax_return(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_throw(program_t *program, node_t *scope, node_t *node)
+syntax_throw(program_t *program, node_t *node)
 {
 	node_throw_t *node_throw = (node_throw_t *)node->value;
 
@@ -1920,7 +1920,7 @@ syntax_throw(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_statement(program_t *program, node_t *scope, node_t *node)
+syntax_statement(program_t *program, node_t *node)
 {
 	if (node->kind = NODE_KIND_BLOCK)
 	{
@@ -1983,7 +1983,7 @@ syntax_statement(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_block(program_t *program, node_t *scope, node_t *node)
+syntax_block(program_t *program, node_t *node)
 {
 	node_block_t *node_block = (node_block_t *)node->value;
 
@@ -2011,7 +2011,7 @@ syntax_block(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_generic(program_t *program, node_t *scope, node_t *node)
+syntax_generic(program_t *program, node_t *node)
 {
 	node_generic_t *node_generic = (node_generic_t *)node->value;
 
@@ -2049,7 +2049,7 @@ syntax_generic(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_enum(program_t *program, node_t *scope, node_t *node)
+syntax_enum(program_t *program, node_t *node)
 {
 	node_enum_t *node_enum = (node_enum_t *)node->value;
 	
@@ -2086,7 +2086,7 @@ syntax_enum(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_property(program_t *program, node_t *scope, node_t *node)
+syntax_property(program_t *program, node_t *node)
 {
 	node_property_t *node_property = (node_property_t *)node->value;
 
@@ -2124,7 +2124,7 @@ syntax_property(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_parameter(program_t *program, node_t *scope, node_t *node)
+syntax_parameter(program_t *program, node_t *node)
 {
 	node_parameter_t *node_parameter = (node_parameter_t *)node->value;
 
@@ -2162,7 +2162,7 @@ syntax_parameter(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_heritage(program_t *program, node_t *scope, node_t *node)
+syntax_heritage(program_t *program, node_t *node)
 {
 	node_heritage_t *node_heritage = (node_heritage_t *)node->value;
 
@@ -2190,7 +2190,7 @@ syntax_heritage(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_func(program_t *program, node_t *scope, node_t *node)
+syntax_func(program_t *program, node_t *node)
 {
 	node_func_t *node_func = (node_func_t *)node->value;
 
@@ -2261,7 +2261,7 @@ syntax_func(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_class(program_t *program, node_t *scope, node_t *node)
+syntax_class(program_t *program, node_t *node)
 {
 	node_class_t *node_class = (node_class_t *)node->value;
 
@@ -2364,7 +2364,7 @@ syntax_class(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_var(program_t *program, node_t *scope, node_t *node)
+syntax_var(program_t *program, node_t *node)
 {
 	node_var_t *node_var = (node_var_t *)node->value;
 	
@@ -2402,7 +2402,7 @@ syntax_var(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_field(program_t *program, node_t *scope, node_t *node)
+syntax_field(program_t *program, node_t *node)
 {
 	node_field_t *node_field = (node_field_t *)node->value;
 
@@ -2434,7 +2434,7 @@ syntax_field(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_import(program_t *program, node_t *scope, node_t *node)
+syntax_import(program_t *program, node_t *node)
 {
 	node_import_t *node_import = (node_import_t *)node->value;
 
@@ -2461,7 +2461,7 @@ syntax_import(program_t *program, node_t *scope, node_t *node)
 }
 
 static int32_t
-syntax_module(program_t *program, node_t *scope, node_t *node)
+syntax_module(program_t *program, node_t *node)
 {
 	node_module_t node_module = (node_module_t *)node->value;
     
