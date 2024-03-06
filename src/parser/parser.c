@@ -267,8 +267,14 @@ parser_next_gt(program_t *program, parser_t *parser)
 	{
 		return -1;
 	}
+	if (scanner_advance(parser->scanner) == -1)
+	{
+		return -1;
+	}
 	return 1;
 }
+
+
 
 static node_t *
 parser_id(program_t *program, parser_t *parser, node_t *scope, node_t *parent)

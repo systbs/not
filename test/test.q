@@ -21,6 +21,6 @@ export class String extends (v : Int)
 
 func constructor<T>(args:Int) -> Int
 {
-  return teacher<Int<Int>>(10);
+  return teacher<Int<Int<Int>>>(10);
 }
 
