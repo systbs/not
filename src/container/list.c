@@ -9,7 +9,6 @@
 #include "../scanner/file.h"
 #include "../scanner/scanner.h"
 #include "../ast/node.h"
-#include "../parser/symbol.h"
 #include "list.h"
 
 list_t *

@@ -14,6 +14,77 @@
 
 uint64_t node_counter = 0;
 
+int32_t
+node_isempty(node_t *node)
+{
+  return (node->begin == node->end);
+}
+
+void
+node_link(node_t *node, node_t *current, node_t *it)
+{
+  it->next = current;
+  it->previous = current->previous;
+  current->previous->next = it;
+  current->previous = it;
+
+  if(node->begin == current)
+  {
+      node->begin = it;
+  }
+}
+
+void
+node_unlink(node_t *node, node_t* it)
+{
+  if (it == node->end)
+  {
+    return;
+  }
+
+  if (it == node->begin)
+  {
+    node->begin = it->next;
+  }
+
+  it->next->previous = it->previous;
+  it->previous->next = it->next;
+}
+
+void
+node_clear(node_t *node)
+{
+  inode_t *b, *n;
+  for(b = node->begin; b != node->end; b = n){
+    n = b->next;
+    node_unlink(node, b);
+    free(b);
+  }
+}
+
+void
+node_destroy(node_t *node)
+{
+  node_clear(node);
+  free (node);
+}
+
+static node_t *
+node_apply(node_t *node)
+{
+  node_t *it = (node_t *)malloc(sizeof(node_t));
+  if(it == NULL) {
+    return NULL;
+  }
+
+  memset(it, 0, sizeof(node_t));
+
+  it->next = it->previous = it;
+  node->end = node->begin = it;
+
+  return node;
+}
+
 node_t *
 node_create(node_t *scope, node_t *parent, position_t position)
 {
@@ -30,43 +101,11 @@ node_create(node_t *scope, node_t *parent, position_t position)
 	node->parent = parent;
 	node->scope = scope;
 
-	if (parent)
-	{
-		if ((node->next == NULL) && (node->previous == NULL))
-		{
-			node->next = node->previous = node;
-		}
-
-		if ((parent->begin == NULL) && (parent->end == NULL))
-		{
-			parent->end = parent->begin = node;
-		}
-
-		node_t *current = parent->end;
-
-		node->next = current;
-		node->previous = current->previous;
-		current->previous->next = node;
-		current->previous = node;
-
-		if(parent->begin == current)
-		{
-			parent->begin = node;
-		}
-	}
-	else
-	{
-		if ((node->next == NULL) && (node->previous == NULL))
-		{
-			node->next = node->previous = node;
-		}
-	}
-
-	return node;
+	return node_apply(node);
 }
 
 static void
-node_apply(node_t *node, int32_t kind, void *value)
+node_update(node_t *node, int32_t kind, void *value)
 {
 	node->value = value;
 	node->kind = kind;
@@ -84,7 +123,7 @@ node_make_id(node_t *node, char *value)
 	memset(basic, 0, sizeof(node_basic_t));
 	basic->value = value;
 
-	node_apply(node, NODE_KIND_ID, basic);
+	node_update(node, NODE_KIND_ID, basic);
 	return node;
 }
 
@@ -100,7 +139,7 @@ node_make_number(node_t *node, char *value)
 	memset(basic, 0, sizeof(node_basic_t));
 	basic->value = value;
 	
-	node_apply(node, NODE_KIND_NUMBER, basic);
+	node_update(node, NODE_KIND_NUMBER, basic);
 	return node;
 }
 
@@ -116,7 +155,7 @@ node_make_char(node_t *node, char *value)
 	memset(basic, 0, sizeof(node_basic_t));
 	basic->value = value;
 	
-	node_apply(node, NODE_KIND_CHAR, basic);
+	node_update(node, NODE_KIND_CHAR, basic);
 	return node;
 }
 
@@ -132,41 +171,41 @@ node_make_string(node_t *node, char *value)
 	memset(basic, 0, sizeof(node_basic_t));
 	basic->value = value;
 	
-	node_apply(node, NODE_KIND_STRING, basic);
+	node_update(node, NODE_KIND_STRING, basic);
 	return node;
 }
 
 node_t *
 node_make_null(node_t *node)
 {
-	node_apply(node, NODE_KIND_NULL, NULL);
+	node_update(node, NODE_KIND_NULL, NULL);
 	return node;
 }
 
 node_t *
 node_make_true(node_t *node)
 {
-	node_apply(node, NODE_KIND_TRUE, NULL);
+	node_update(node, NODE_KIND_TRUE, NULL);
 	return node;
 }
 
 node_t *
 node_make_false(node_t *node)
 {
-	node_apply(node, NODE_KIND_FALSE, NULL);
+	node_update(node, NODE_KIND_FALSE, NULL);
 	return node;
 }
 
 node_t *
 node_make_infinity(node_t *node)
 {
-	node_apply(node, NODE_KIND_INFINITY, NULL);
+	node_update(node, NODE_KIND_INFINITY, NULL);
 	return node;
 }
 
 node_t *
 node_make_this(node_t *node){
-	node_apply(node, NODE_KIND_THIS, NULL);
+	node_update(node, NODE_KIND_THIS, NULL);
 	return node;
 }
 
@@ -181,7 +220,7 @@ node_make_array(node_t *node, list_t *list){
 	memset(basic, 0, sizeof(node_array_t));
 	basic->list = list;
 	
-	node_apply(node, NODE_KIND_ARRAY, basic);
+	node_update(node, NODE_KIND_ARRAY, basic);
 	return node;
 }
 
@@ -197,7 +236,7 @@ node_make_object_property(node_t *node, node_t *name, node_t *value){
 	basic->name = name;
 	basic->value = value;
 	
-	node_apply(node, NODE_KIND_OBJECT_PROPERTY, basic);
+	node_update(node, NODE_KIND_OBJECT_PROPERTY, basic);
 	return node;
 }
 
@@ -212,12 +251,12 @@ node_make_object(node_t *node, uint64_t flag, list_t *list){
 	basic->flag = flag;
 	basic->list = list;
 	
-	node_apply(node, NODE_KIND_OBJECT, basic);
+	node_update(node, NODE_KIND_OBJECT, basic);
 	return node;
 }
 
 node_t *
-node_make_composite(node_t *node, node_t *base, list_t *arguments)
+node_make_composite(node_t *node, node_t *base, node_t *arguments)
 {
 	node_composite_t *basic = (node_composite_t *)malloc(sizeof(node_composite_t));
 	if(basic == NULL)
@@ -229,7 +268,7 @@ node_make_composite(node_t *node, node_t *base, list_t *arguments)
 	basic->base = base;
 	basic->arguments = arguments;
 	
-	node_apply(node, NODE_KIND_COMPOSITE, basic);
+	node_update(node, NODE_KIND_COMPOSITE, basic);
 	return node;
 }
 
@@ -251,7 +290,7 @@ node_make_in(node_t *node, node_t *left, node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_IN, basic);
+	node_update(node, NODE_KIND_IN, basic);
 	return node;
 }
 
@@ -266,7 +305,7 @@ node_make_typeof(node_t *node, node_t *right){
 	memset(basic, 0, sizeof(node_unary_t));
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_TYPEOF, basic);
+	node_update(node, NODE_KIND_TYPEOF, basic);
 	return node;
 }
 
@@ -281,7 +320,7 @@ node_make_sizeof(node_t *node, node_t *right){
 	memset(basic, 0, sizeof(node_unary_t));
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_SIZEOF, basic);
+	node_update(node, NODE_KIND_SIZEOF, basic);
 	return node;
 }
 
@@ -297,12 +336,12 @@ node_make_parenthesis(node_t *node, node_t *value)
 	memset(basic, 0, sizeof(node_unary_t));
 	basic->right = value;
 	
-	node_apply(node, NODE_KIND_PARENTHESIS, basic);
+	node_update(node, NODE_KIND_PARENTHESIS, basic);
 	return node;
 }
 
 node_t *
-node_make_call(node_t *node, node_t *base, list_t *arguments)
+node_make_call(node_t *node, node_t *base, node_t *arguments)
 {
 	node_composite_t *basic = (node_composite_t *)malloc(sizeof(node_composite_t));
 	if(basic == NULL)
@@ -314,12 +353,12 @@ node_make_call(node_t *node, node_t *base, list_t *arguments)
 	basic->base = base;
 	basic->arguments = arguments;
 	
-	node_apply(node, NODE_KIND_CALL, basic);
+	node_update(node, NODE_KIND_CALL, basic);
 	return node;
 }
 
 node_t *
-node_make_item(node_t *node, node_t *base, list_t *arguments)
+node_make_item(node_t *node, node_t *base, node_t *arguments)
 {
 	node_composite_t *basic = (node_composite_t *)malloc(sizeof(node_composite_t));
 	if(basic == NULL)
@@ -331,7 +370,7 @@ node_make_item(node_t *node, node_t *base, list_t *arguments)
 	basic->base = base;
 	basic->arguments = arguments;
 	
-	node_apply(node, NODE_KIND_GET_ITEM, basic);
+	node_update(node, NODE_KIND_GET_ITEM, basic);
 	return node;
 }
 
@@ -348,7 +387,7 @@ node_make_attribute(node_t *node, node_t *left, node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_ATTRIBUTE, basic);
+	node_update(node, NODE_KIND_ATTRIBUTE, basic);
 	return node;
 }
 
@@ -364,7 +403,7 @@ node_make_tilde(node_t *node, node_t *right)
 	memset(basic, 0, sizeof(node_unary_t));
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_TILDE, basic);
+	node_update(node, NODE_KIND_TILDE, basic);
 	return node;
 }
 
@@ -379,7 +418,7 @@ node_make_not(node_t *node, node_t *right){
 	memset(basic, 0, sizeof(node_unary_t));
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_NOT, basic);
+	node_update(node, NODE_KIND_NOT, basic);
 	return node;
 }
 
@@ -394,7 +433,7 @@ node_make_neg(node_t *node, node_t *right){
 	memset(basic, 0, sizeof(node_unary_t));
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_NEG, basic);
+	node_update(node, NODE_KIND_NEG, basic);
 	return node;
 }
 
@@ -409,7 +448,7 @@ node_make_pos(node_t *node, node_t *right){
 	memset(basic, 0, sizeof(node_unary_t));
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_POS, basic);
+	node_update(node, NODE_KIND_POS, basic);
 	return node;
 }
 
@@ -424,7 +463,7 @@ node_make_ellipsis(node_t *node, node_t *right){
 	memset(basic, 0, sizeof(node_unary_t));
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_ELLIPSIS, basic);
+	node_update(node, NODE_KIND_ELLIPSIS, basic);
 	return node;
 }
 
@@ -442,7 +481,7 @@ node_make_pow(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_POW, basic);
+	node_update(node, NODE_KIND_POW, basic);
 	return node;
 }
 
@@ -458,7 +497,7 @@ node_make_epi(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_EPI, basic);
+	node_update(node, NODE_KIND_EPI, basic);
 	return node;
 }
 
@@ -474,7 +513,7 @@ node_make_mul(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_MUL, basic);
+	node_update(node, NODE_KIND_MUL, basic);
 	return node;
 }
 
@@ -490,7 +529,7 @@ node_make_div(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_DIV, basic);
+	node_update(node, NODE_KIND_DIV, basic);
 	return node;
 }
 
@@ -506,7 +545,7 @@ node_make_mod(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_MOD, basic);
+	node_update(node, NODE_KIND_MOD, basic);
 	return node;
 }
 
@@ -522,7 +561,7 @@ node_make_plus(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_PLUS, basic);
+	node_update(node, NODE_KIND_PLUS, basic);
 	return node;
 }
 
@@ -538,7 +577,7 @@ node_make_minus(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_MINUS, basic);
+	node_update(node, NODE_KIND_MINUS, basic);
 	return node;
 }
 
@@ -554,7 +593,7 @@ node_make_shl(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_SHL, basic);
+	node_update(node, NODE_KIND_SHL, basic);
 	return node;
 }
 
@@ -570,7 +609,7 @@ node_make_shr(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_SHR, basic);
+	node_update(node, NODE_KIND_SHR, basic);
 	return node;
 }
 
@@ -586,7 +625,7 @@ node_make_lt(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_LT, basic);
+	node_update(node, NODE_KIND_LT, basic);
 	return node;
 }
 
@@ -602,7 +641,7 @@ node_make_le(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_LE, basic);
+	node_update(node, NODE_KIND_LE, basic);
 	return node;
 }
 
@@ -618,7 +657,7 @@ node_make_gt(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_GT, basic);
+	node_update(node, NODE_KIND_GT, basic);
 	return node;
 }
 
@@ -634,7 +673,7 @@ node_make_ge(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_GE, basic);
+	node_update(node, NODE_KIND_GE, basic);
 	return node;
 }
 
@@ -650,7 +689,7 @@ node_make_eq(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_EQ, basic);
+	node_update(node, NODE_KIND_EQ, basic);
 	return node;
 }
 
@@ -666,7 +705,7 @@ node_make_neq(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_NEQ, basic);
+	node_update(node, NODE_KIND_NEQ, basic);
 	return node;
 }
 
@@ -682,7 +721,7 @@ node_make_and(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_AND, basic);
+	node_update(node, NODE_KIND_AND, basic);
 	return node;
 }
 
@@ -698,7 +737,7 @@ node_make_xor(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_XOR, basic);
+	node_update(node, NODE_KIND_XOR, basic);
 	return node;
 }
 
@@ -714,7 +753,7 @@ node_make_or(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_OR, basic);
+	node_update(node, NODE_KIND_OR, basic);
 	return node;
 }
 
@@ -730,7 +769,7 @@ node_make_land(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_LAND, basic);
+	node_update(node, NODE_KIND_LAND, basic);
 	return node;
 }
 
@@ -746,7 +785,7 @@ node_make_lor(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_LOR, basic);
+	node_update(node, NODE_KIND_LOR, basic);
 	return node;
 }
 
@@ -764,7 +803,7 @@ node_make_conditional(node_t *node, node_t *condition, node_t *true_expression, 
 	node_triple->left = true_expression;
 	node_triple->right = false_expression;
 	
-	node_apply(node, NODE_KIND_CONDITIONAL, node_triple);
+	node_update(node, NODE_KIND_CONDITIONAL, node_triple);
 	return node;
 }
 
@@ -782,7 +821,7 @@ node_make_assign(node_t *node, node_t *left, node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_ASSIGN, basic);
+	node_update(node, NODE_KIND_ASSIGN, basic);
 	return node;
 }
 
@@ -799,7 +838,7 @@ node_make_define(node_t *node, node_t *left, node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_DEFINE, basic);
+	node_update(node, NODE_KIND_DEFINE, basic);
 	return node;
 }
 
@@ -815,7 +854,7 @@ node_make_add_assign(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_ADD_ASSIGN, basic);
+	node_update(node, NODE_KIND_ADD_ASSIGN, basic);
 	return node;
 }
 
@@ -831,7 +870,7 @@ node_make_sub_assign(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_SUB_ASSIGN, basic);
+	node_update(node, NODE_KIND_SUB_ASSIGN, basic);
 	return node;
 }
 
@@ -847,7 +886,7 @@ node_make_div_assign(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_DIV_ASSIGN, basic);
+	node_update(node, NODE_KIND_DIV_ASSIGN, basic);
 	return node;
 }
 
@@ -863,7 +902,7 @@ node_make_mul_assign(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_MUL_ASSIGN, basic);
+	node_update(node, NODE_KIND_MUL_ASSIGN, basic);
 	return node;
 }
 
@@ -879,7 +918,7 @@ node_make_mod_assign(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_MOD_ASSIGN, basic);
+	node_update(node, NODE_KIND_MOD_ASSIGN, basic);
 	return node;
 }
 
@@ -895,7 +934,7 @@ node_make_and_assign(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_AND_ASSIGN, basic);
+	node_update(node, NODE_KIND_AND_ASSIGN, basic);
 	return node;
 }
 
@@ -911,7 +950,7 @@ node_make_or_assign(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_OR_ASSIGN, basic);
+	node_update(node, NODE_KIND_OR_ASSIGN, basic);
 	return node;
 }
 
@@ -927,7 +966,7 @@ node_make_shl_assign(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_SHL_ASSIGN, basic);
+	node_update(node, NODE_KIND_SHL_ASSIGN, basic);
 	return node;
 }
 
@@ -943,7 +982,7 @@ node_make_shr_assign(node_t *node, node_t *left, node_t *right){
 	basic->left = left;
 	basic->right = right;
 	
-	node_apply(node, NODE_KIND_SHR_ASSIGN, basic);
+	node_update(node, NODE_KIND_SHR_ASSIGN, basic);
 	return node;
 }
 
@@ -966,7 +1005,7 @@ node_make_if(node_t *node, node_t *key, node_t *condition, node_t *then_body, no
 	basic->then_body = then_body;
 	basic->else_body = else_body;
 	
-	node_apply(node, NODE_KIND_IF, basic);
+	node_update(node, NODE_KIND_IF, basic);
 	return node;
 }
 
@@ -988,7 +1027,7 @@ node_make_for(node_t *node, uint64_t flag, node_t *key, node_t *initializer, nod
 	basic->incrementor = incrementor;
 	basic->body = body;
 	
-	node_apply(node, NODE_KIND_FOR, basic);
+	node_update(node, NODE_KIND_FOR, basic);
 	return node;
 }
 
@@ -1009,7 +1048,7 @@ node_make_forin(node_t *node, uint64_t flag, node_t *key, node_t *initializer, n
 	basic->expression = expression;
 	basic->body = body;
 	
-	node_apply(node, NODE_KIND_FORIN, basic);
+	node_update(node, NODE_KIND_FORIN, basic);
 	return node;
 }
 
@@ -1025,7 +1064,7 @@ node_make_break(node_t *node, node_t *expression)
 	memset(basic, 0, sizeof(node_unary_t));
 	basic->right = expression;
 
-	node_apply(node, NODE_KIND_BREAK, basic);
+	node_update(node, NODE_KIND_BREAK, basic);
 	return node;
 }
 
@@ -1041,7 +1080,7 @@ node_make_continue(node_t *node, node_t *expression)
 	memset(basic, 0, sizeof(node_unary_t));
 	basic->right = expression;
 
-	node_apply(node, NODE_KIND_CONTINUE, basic);
+	node_update(node, NODE_KIND_CONTINUE, basic);
 	return node;
 }
 
@@ -1058,7 +1097,7 @@ node_make_catch(node_t *node, node_t *parameters, node_t *body)
 	basic->parameters = parameters;
 	basic->body = body;
 	
-	node_apply(node, NODE_KIND_CATCH, basic);
+	node_update(node, NODE_KIND_CATCH, basic);
 	return node;
 }
 
@@ -1074,7 +1113,7 @@ node_make_catchs(node_t *node, list_t *list)
 	memset(basic, 0, sizeof(node_block_t));
 	basic->list = list;
 	
-	node_apply(node, NODE_KIND_CATCHS, basic);
+	node_update(node, NODE_KIND_CATCHS, basic);
 	return node;
 }
 
@@ -1091,7 +1130,7 @@ node_make_try(node_t *node, node_t *body, node_t *catchs)
 	basic->body = body;
 	basic->catchs = catchs;
 	
-	node_apply(node, NODE_KIND_TRY, basic);
+	node_update(node, NODE_KIND_TRY, basic);
 	return node;
 }
 
@@ -1107,12 +1146,12 @@ node_make_return(node_t *node, node_t *expression)
 	memset(basic, 0, sizeof(node_unary_t));
 	basic->right = expression;
 	
-	node_apply(node, NODE_KIND_RETURN, basic);
+	node_update(node, NODE_KIND_RETURN, basic);
 	return node;
 }
 
 node_t *
-node_make_throw(node_t *node, list_t *arguments)
+node_make_throw(node_t *node, node_t *arguments)
 {
 	node_throw_t *basic;
 	if(!(basic = (node_throw_t *)malloc(sizeof(node_throw_t)))){
@@ -1122,7 +1161,7 @@ node_make_throw(node_t *node, list_t *arguments)
 	memset(basic, 0, sizeof(node_throw_t));
 	basic->arguments = arguments;
 	
-	node_apply(node, NODE_KIND_THROW, basic);
+	node_update(node, NODE_KIND_THROW, basic);
 	return node;
 }
 
@@ -1139,7 +1178,7 @@ node_make_var(node_t *node, uint64_t flag, node_t *key, node_t *type, node_t *va
 	basic->type = type;
 	basic->value = value;
 	
-	node_apply(node, NODE_KIND_VAR, basic);
+	node_update(node, NODE_KIND_VAR, basic);
 	return node;
 }
 
@@ -1155,7 +1194,7 @@ node_make_argument(node_t *node, node_t *key, node_t *value)
 	basic->key = key;
 	basic->value = value;
 	
-	node_apply(node, NODE_KIND_ARGUMENT, basic);
+	node_update(node, NODE_KIND_ARGUMENT, basic);
 	return node;
 }
 
@@ -1171,7 +1210,39 @@ node_make_arguments(node_t *node, list_t *list)
 	memset(basic, 0, sizeof(node_block_t));
 	basic->list = list;
 	
-	node_apply(node, NODE_KIND_ARGUMENTS, basic);
+	node_update(node, NODE_KIND_ARGUMENTS, basic);
+	return node;
+}
+
+node_t *
+node_make_datatype(node_t *node, node_t *key, node_t *value)
+{
+	node_datatype_t *basic = (node_datatype_t *)malloc(sizeof(node_datatype_t));
+	if(basic == NULL){
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_datatype_t));
+		return NULL;
+	}
+	memset(basic, 0, sizeof(node_datatype_t));
+	basic->key = key;
+	basic->value = value;
+	
+	node_update(node, NODE_KIND_DATATYPE, basic);
+	return node;
+}
+
+node_t *
+node_make_datatypes(node_t *node, list_t *list)
+{
+	node_block_t *basic = (node_block_t *)malloc(sizeof(node_block_t));
+	if(basic == NULL)
+	{
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_block_t));
+		return NULL;
+	}
+	memset(basic, 0, sizeof(node_block_t));
+	basic->list = list;
+	
+	node_update(node, NODE_KIND_DATATYPES, basic);
 	return node;
 }
 
@@ -1188,7 +1259,7 @@ node_make_parameter(node_t *node, uint64_t flag, node_t *key, node_t *type, node
 	basic->type = type;
 	basic->value = value;
 	
-	node_apply(node, NODE_KIND_PARAMETER, basic);
+	node_update(node, NODE_KIND_PARAMETER, basic);
 	return node;
 }
 
@@ -1204,7 +1275,7 @@ node_make_parameters(node_t *node, list_t *list)
 	memset(basic, 0, sizeof(node_block_t));
 	basic->list = list;
 	
-	node_apply(node, NODE_KIND_PARAMETERS, basic);
+	node_update(node, NODE_KIND_PARAMETERS, basic);
 	return node;
 }
 
@@ -1221,7 +1292,7 @@ node_make_field(node_t *node, node_t *key, node_t *type)
 	basic->key = key;
 	basic->type = type;
 	
-	node_apply(node, NODE_KIND_FIELD, basic);
+	node_update(node, NODE_KIND_FIELD, basic);
 	return node;
 }
 
@@ -1237,7 +1308,7 @@ node_make_fields(node_t *node, list_t *list)
 	memset(basic, 0, sizeof(node_block_t));
 	basic->list = list;
 	
-	node_apply(node, NODE_KIND_FIELDS, basic);
+	node_update(node, NODE_KIND_FIELDS, basic);
 	return node;
 }
 
@@ -1255,7 +1326,7 @@ node_make_generic(node_t *node, node_t *key, node_t *type, node_t *value)
 	basic->type = type;
 	basic->value = value;
 	
-	node_apply(node, NODE_KIND_GENERIC, basic);
+	node_update(node, NODE_KIND_GENERIC, basic);
 	return node;
 }
 
@@ -1271,12 +1342,12 @@ node_make_generics(node_t *node, list_t *list)
 	memset(basic, 0, sizeof(node_block_t));
 	basic->list = list;
 	
-	node_apply(node, NODE_KIND_GENERICS, basic);
+	node_update(node, NODE_KIND_GENERICS, basic);
 	return node;
 }
 
 node_t *
-node_make_func(node_t *node, uint64_t flag, node_t *key, node_t *generics, node_t *parameters, node_t *body)
+node_make_func(node_t *node, uint64_t flag, node_t *key, node_t *generics, node_t *parameters, node_t *results, node_t *body)
 {
 	node_func_t *basic;
 	if(!(basic = (node_func_t *)malloc(sizeof(node_func_t))))
@@ -1289,9 +1360,10 @@ node_make_func(node_t *node, uint64_t flag, node_t *key, node_t *generics, node_
 	basic->key = key;
 	basic->generics = generics;
 	basic->parameters = parameters;
+	basic->results = results;
 	basic->body = body;
 	
-	node_apply(node, NODE_KIND_FUNC, basic);
+	node_update(node, NODE_KIND_FUNC, basic);
 	return node;
 }
 
@@ -1308,7 +1380,7 @@ node_make_lambda(node_t *node, node_t *parameters, node_t *body)
 	basic->parameters = parameters;
 	basic->body = body;
 	
-	node_apply(node, NODE_KIND_LAMBDA, basic);
+	node_update(node, NODE_KIND_LAMBDA, basic);
 	return node;
 }
 
@@ -1327,7 +1399,7 @@ node_make_property(node_t *node, uint64_t flag, node_t *key, node_t *type, node_
 	basic->type = type;
 	basic->value = value;
 	
-	node_apply(node, NODE_KIND_PROPERTY, basic);
+	node_update(node, NODE_KIND_PROPERTY, basic);
 	return node;
 }
 
@@ -1343,7 +1415,7 @@ node_make_properties(node_t *node, list_t *list)
 	memset(basic, 0, sizeof(node_block_t));
 	basic->list = list;
 	
-	node_apply(node, NODE_KIND_PROPERTIES, basic);
+	node_update(node, NODE_KIND_PROPERTIES, basic);
 	return node;
 }
 
@@ -1360,7 +1432,7 @@ node_make_heritage(node_t *node, node_t *key, node_t *type)
 	basic->key = key;
 	basic->type = type;
 	
-	node_apply(node, NODE_KIND_HERITAGE, basic);
+	node_update(node, NODE_KIND_HERITAGE, basic);
 	return node;
 }
 
@@ -1376,7 +1448,7 @@ node_make_heritages(node_t *node, list_t *list)
 	memset(basic, 0, sizeof(node_block_t));
 	basic->list = list;
 	
-	node_apply(node, NODE_KIND_HERITAGES, basic);
+	node_update(node, NODE_KIND_HERITAGES, basic);
 	return node;
 }
 
@@ -1396,7 +1468,7 @@ node_make_class(node_t *node, uint64_t flag, node_t *key, node_t *generics, node
 	basic->heritages = heritages;
 	basic->block = block;
 	
-	node_apply(node, NODE_KIND_CLASS, basic);
+	node_update(node, NODE_KIND_CLASS, basic);
 	return node;
 }
 
@@ -1411,7 +1483,7 @@ node_make_member(node_t *node, node_t *key, node_t *value){
 	basic->key = key;
 	basic->value = value;
 	
-	node_apply(node, NODE_KIND_MEMBER, basic);
+	node_update(node, NODE_KIND_MEMBER, basic);
 	return node;
 }
 
@@ -1427,7 +1499,7 @@ node_make_members(node_t *node, list_t *list)
 	memset(basic, 0, sizeof(node_block_t));
 	basic->list = list;
 	
-	node_apply(node, NODE_KIND_MEMBERS, basic);
+	node_update(node, NODE_KIND_MEMBERS, basic);
 	return node;
 }
 
@@ -1445,7 +1517,7 @@ node_make_enum(node_t *node, uint64_t flag, node_t *key, node_t *members)
 	basic->key = key;
 	basic->members = members;
 	
-	node_apply(node, NODE_KIND_ENUM, basic);
+	node_update(node, NODE_KIND_ENUM, basic);
 	return node;
 }
 
@@ -1461,7 +1533,7 @@ node_make_block(node_t *node, list_t *list)
 	memset(basic, 0, sizeof(node_block_t));
 	basic->list = list;
 	
-	node_apply(node, NODE_KIND_BLOCK, basic);
+	node_update(node, NODE_KIND_BLOCK, basic);
 	return node;
 }
 
@@ -1477,7 +1549,7 @@ node_make_body(node_t *node, list_t *list)
 	memset(basic, 0, sizeof(node_block_t));
 	basic->list = list;
 	
-	node_apply(node, NODE_KIND_BODY, basic);
+	node_update(node, NODE_KIND_BODY, basic);
 	return node;
 }
 
@@ -1494,7 +1566,7 @@ node_make_import(node_t *node, node_t *path, node_t *fields)
 	basic->path = path;
 	basic->fields = fields;
 	
-	node_apply(node, NODE_KIND_IMPORT, basic);
+	node_update(node, NODE_KIND_IMPORT, basic);
 	return node;
 }
 
@@ -1511,6 +1583,6 @@ node_make_module(node_t *node, char *path, node_t *block)
 	basic->block = block;
 	basic->path = path;
 	
-	node_apply(node, NODE_KIND_MODULE, basic);
+	node_update(node, NODE_KIND_MODULE, basic);
 	return node;
 }

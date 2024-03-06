@@ -1,7 +1,26 @@
-
-
-func constructor()
+export class Int<T>
 {
- return 1;
+  func constructor (value:String) -> Int
+  {
+   
+  }
+
+  func >> (value:Int) -> Int
+  {
+    
+  }
+}
+
+export class String extends (v : Int)
+{
+  func constructor (value:String) -> String
+  {
+    
+  }
+}
+
+func constructor(args:Int) -> Int
+{
+  return teacher<Int<Int>>(10);
 }
 

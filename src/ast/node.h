@@ -114,6 +114,8 @@ typedef enum node_kind {
 	NODE_KIND_PROPERTIES,
 	NODE_KIND_ARGUMENT,
 	NODE_KIND_ARGUMENTS,
+	NODE_KIND_DATATYPE,
+	NODE_KIND_DATATYPES,
 	NODE_KIND_PARAMETER,
 	NODE_KIND_PARAMETERS,
 	NODE_KIND_FIELD,
@@ -153,12 +155,12 @@ typedef struct node_object {
 
 
 typedef struct node_throw {
-	list_t *arguments;
+	node_t *arguments;
 } node_throw_t;
 
 typedef struct node_composite {
 	node_t *base;
-	list_t *arguments;
+	node_t *arguments;
 } node_composite_t;
 
 typedef struct node_unary {
@@ -229,6 +231,11 @@ typedef struct node_argument {
 	node_t *value;
 } node_argument_t;
 
+typedef struct node_datatype {
+	node_t *key;
+	node_t *value;
+} node_datatype_t;
+
 typedef struct node_parameter {
 	uint64_t flag;
 	node_t *key;
@@ -262,6 +269,7 @@ typedef struct node_func {
 	node_t *generics;
 	node_t *key;
 	node_t *parameters;
+	node_t *results;
 	node_t *body;
 } node_func_t;
 
@@ -301,6 +309,18 @@ typedef struct node_module {
 	node_t *block;
 } node_module_t;
 
+
+void
+node_link(node_t *node, node_t *current, node_t *it);
+
+void
+node_unlink(node_t *node, node_t* it);
+
+void
+node_clear(node_t *node);
+
+void
+node_destroy(node_t *node);
 
 node_t *
 node_create(node_t *scope, node_t *parent, position_t position);
@@ -342,7 +362,7 @@ node_t *
 node_make_object(node_t *node, uint64_t flag, list_t *property_list);
 
 node_t *
-node_make_composite(node_t *node, node_t *base, list_t *arguments);
+node_make_composite(node_t *node, node_t *base, node_t *arguments);
 
 
 node_t *
@@ -364,10 +384,19 @@ node_t *
 node_make_argument(node_t *node, node_t *name, node_t *value);
 
 node_t *
-node_make_call(node_t *node, node_t *name, list_t *arguments);
+node_make_arguments(node_t *node, list_t *list);
 
 node_t *
-node_make_item(node_t *node, node_t *base, list_t *arguments);
+node_make_datatype(node_t *node, node_t *name, node_t *value);
+
+node_t *
+node_make_datatypes(node_t *node, list_t *list);
+
+node_t *
+node_make_call(node_t *node, node_t *name, node_t *arguments);
+
+node_t *
+node_make_item(node_t *node, node_t *base, node_t *arguments);
 
 node_t *
 node_make_attribute(node_t *node, node_t *left, node_t *right);
@@ -515,7 +544,7 @@ node_t *
 node_make_return(node_t *node, node_t *expr);
 
 node_t *
-node_make_throw(node_t *node, list_t *arguments);
+node_make_throw(node_t *node, node_t *arguments);
 
 node_t *
 node_make_var(node_t *node, uint64_t flag, node_t *name, node_t *type, node_t *value);
@@ -539,7 +568,7 @@ node_t *
 node_make_generics(node_t *node, list_t *list);
 
 node_t *
-node_make_func(node_t *node,uint64_t flag,node_t *key, node_t *generics, node_t *parameters, node_t *block);
+node_make_func(node_t *node,uint64_t flag,node_t *key, node_t *generics, node_t *parameters, node_t *results, node_t *block);
 
 node_t *
 node_make_lambda(node_t *node, node_t *parameters, node_t *block);

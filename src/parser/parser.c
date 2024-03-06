@@ -54,6 +54,11 @@ parser_object(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 static node_t *
 parser_export(program_t *program, parser_t *parser, node_t *scope, node_t *parent);
 
+static node_t *
+parser_route(program_t *program, parser_t *parser, node_t *scope, node_t *parent);
+
+
+
 int32_t
 parser_save(program_t *program, parser_t *parser)
 {
@@ -255,8 +260,15 @@ parser_next(program_t *program, parser_t *parser)
 	return 1;
 }
 
-
-
+static int32_t
+parser_next_gt(program_t *program, parser_t *parser)
+{
+	if (scanner_next_gt(parser->scanner) == -1)
+	{
+		return -1;
+	}
+	return 1;
+}
 
 static node_t *
 parser_id(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
@@ -266,6 +278,8 @@ parser_id(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	node_t *node2 = node_make_id(node, parser->token->value);
 	if (!node2)
@@ -290,6 +304,8 @@ parser_number(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	node_t *node2 = node_make_number(node, parser->token->value);
 	if (!node2)
 	{
@@ -312,6 +328,8 @@ parser_char(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	node_t *node2 = node_make_char(node, parser->token->value);
 	if (!node2)
@@ -336,6 +354,8 @@ parser_string(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	node_t *node2 = node_make_string(node, parser->token->value);
 	if (!node2)
 	{
@@ -358,6 +378,8 @@ parser_null(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	node_t *node2 = node_make_null(node);
 	if (!node2)
@@ -382,6 +404,8 @@ parser_true(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	node_t *node2 = node_make_true(node);
 	if (!node2)
 	{
@@ -404,6 +428,8 @@ parser_false(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	node_t *node2 = node_make_false(node);
 	if (!node2)
@@ -428,6 +454,8 @@ parser_infinity(program_t *program, parser_t *parser, node_t *scope, node_t *par
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	node_t *node2 = node_make_infinity(node);
 	if (!node2)
 	{
@@ -451,6 +479,8 @@ parser_this(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	node_t *node2 = node_make_this(node);
 	if (!node2)
 	{
@@ -473,6 +503,8 @@ parser_operator(program_t *program, parser_t *parser, node_t *scope, node_t *par
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	char *operator = NULL;
 	if (parser->token->type == TOKEN_PLUS)
@@ -628,6 +660,8 @@ parser_array(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	if (parser_match(program, parser, TOKEN_LBRACKET) == -1)
 	{
 		return NULL;
@@ -683,6 +717,8 @@ parser_object_property(program_t *program, parser_t *parser, node_t *scope, node
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	node_t *name = parser_expression(program, parser, scope, node);
 	if (!name)
 	{
@@ -716,13 +752,15 @@ parser_object(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	if (parser_match(program, parser, TOKEN_LBRACE) == -1)
 	{
 		return NULL;
 	}
 
-	list_t *property_list = list_create();
-	if (!property_list)
+	list_t *properties = list_create();
+	if (!properties)
 	{
 		return NULL;
 	}
@@ -737,7 +775,7 @@ parser_object(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 				return NULL;
 			}
 
-			if (!list_rpush(property_list, property))
+			if (!list_rpush(properties, property))
 			{
 				return NULL;
 			}
@@ -758,7 +796,7 @@ parser_object(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 		return NULL;
 	}
 
-	return node_make_object(node, flag, property_list);
+	return node_make_object(node, flag, properties);
 }
 
 static node_t *
@@ -769,6 +807,8 @@ parser_parenthesis(program_t *program, parser_t *parser, node_t *scope, node_t *
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	if (parser_match(program, parser, TOKEN_LPAREN) == -1)
 	{
@@ -919,6 +959,87 @@ parser_argument(program_t *program, parser_t *parser, node_t *scope, node_t *par
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
+	node_t *key = parser_route(program, parser, scope, node);
+	if (!key)
+	{
+		return NULL;
+	}
+
+	node_t *value = NULL;
+	if (parser->token->type == TOKEN_EQ)
+	{
+		if (parser_next(program, parser) == -1)
+		{
+			return NULL;
+		}
+
+		value = parser_route(program, parser, scope, node);
+		if (!value)
+		{
+			return NULL;
+		}
+	}
+
+	return node_make_argument(node, key, value);
+}
+
+static node_t *
+parser_arguments(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
+{
+	node_t *node = node_create(scope, parent, parser->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_link(parent, parent->end, node);
+
+	list_t *arguments = list_create();
+	if (arguments == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2;
+	while (true)
+	{
+		node2 = parser_argument(program, parser, scope, parent);
+		if (node2 == NULL)
+		{
+			return NULL;
+		}
+
+		if (!list_rpush(arguments, node2))
+		{
+			return NULL;
+		}
+
+		if (parser->token->type != TOKEN_COMMA)
+		{
+			break;
+		}
+		if (parser_next(program, parser) == -1)
+		{
+			return NULL;
+		}
+	}
+
+	return node_make_arguments(node, arguments);
+}
+
+static node_t *
+parser_datatype(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
+{
+	node_t *node = node_create(scope, parent, parser->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_link(parent, parent->end, node);
+
 	node_t *key = parser_expression(program, parser, scope, node);
 	if (!key)
 	{
@@ -940,28 +1061,36 @@ parser_argument(program_t *program, parser_t *parser, node_t *scope, node_t *par
 		}
 	}
 
-	return node_make_argument(node, key, value);
+	return node_make_datatype(node, key, value);
 }
 
-static list_t *
-parser_arguments(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
+static node_t *
+parser_datatypes(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
-	list_t *arguments = list_create();
-	if (!arguments)
+	node_t *node = node_create(scope, parent, parser->token->position);
+	if (node == NULL)
 	{
 		return NULL;
 	}
 
-	node_t *node;
+	node_link(parent, parent->end, node);
+
+	list_t *datatypes = list_create();
+	if (datatypes == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2;
 	while (true)
 	{
-		node = parser_argument(program, parser, scope, parent);
-		if (!node)
+		node2 = parser_datatype(program, parser, scope, parent);
+		if (node2 == NULL)
 		{
 			return NULL;
 		}
 
-		if (!list_rpush(arguments, node))
+		if (!list_rpush(datatypes, node2))
 		{
 			return NULL;
 		}
@@ -976,7 +1105,7 @@ parser_arguments(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 		}
 	}
 
-	return arguments;
+	return node_make_datatypes(node, datatypes);
 }
 
 static node_t *
@@ -990,32 +1119,109 @@ parser_route(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 
 	while (node2 != NULL)
 	{
-		if (parser->token->type == TOKEN_LBRACE)
+		if (parser->token->type == TOKEN_LT)
 		{
+			int32_t result = parser_save(program, parser);
+			if (result == -1)
+			{
+				return NULL;
+			}
+
 			node_t *node = node_create(scope, parent, parser->token->position);
 			if (node == NULL)
 			{
 				return NULL;
 			}
 
+			node_link(parent, parent->end, node);
+
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
 
-			if (parser->token->type == TOKEN_RBRACE)
+			if (parser->token->type == TOKEN_GT)
+			{
+				parser_error(program, parser->token->position, "empty type arguments");
+				return NULL;
+			}
+			else
+			if (parser->token->type == TOKEN_GT_EQ)
+			{
+				parser_error(program, parser->token->position, "empty type arguments");
+				return NULL;
+			}
+			else
+			if (parser->token->type == TOKEN_GT_GT)
+			{
+				parser_error(program, parser->token->position, "empty type arguments");
+				return NULL;
+			}
+			else
+			if (parser->token->type == TOKEN_GT_GT_EQ)
 			{
 				parser_error(program, parser->token->position, "empty type arguments");
 				return NULL;
 			}
 
-			list_t *arguments = parser_arguments(program, parser, scope, parent);
+			node_t *arguments = parser_arguments(program, parser, scope, parent);
 			if (arguments == NULL)
 			{
-				return NULL;
+				result = parser_restore(program, parser);
+				if (result == -1)
+				{
+					return NULL;
+				}
+				node_unlink(parent, node);
+				node_destroy(node);
+				return node2;
 			}
 
-			if (parser_match(program, parser, TOKEN_RBRACE) == -1)
+			if (parser->token->type == TOKEN_GT)
+			{
+				if (parser_match(program, parser, TOKEN_GT) == -1)
+				{
+					return NULL;
+				}
+			}
+			else
+			if (parser->token->type == TOKEN_GT_GT)
+			{
+				if (parser_next_gt(program, parser) == -1)
+				{
+					return NULL;
+				}
+			}
+			else
+			if (parser->token->type == TOKEN_GT_EQ)
+			{
+				if (parser_next_gt(program, parser) == -1)
+				{
+					return NULL;
+				}
+			}
+			else
+			if (parser->token->type == TOKEN_GT_GT_EQ)
+			{
+				if (parser_next_gt(program, parser) == -1)
+				{
+					return NULL;
+				}
+			}
+			else
+			{
+				result = parser_restore(program, parser);
+				if (result == -1)
+				{
+					return NULL;
+				}
+				node_unlink(parent, node);
+				node_destroy(node);
+				return node2;
+			}
+
+			result = parser_release(program, parser);
+			if (result == -1)
 			{
 				return NULL;
 			}
@@ -1032,12 +1238,14 @@ parser_route(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 				return NULL;
 			}
 
+			node_link(parent, parent->end, node);
+
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
 
-			list_t *arguments = NULL;
+			node_t *arguments = NULL;
 			if (parser->token->type != TOKEN_RBRACKET)
 			{
 				arguments = parser_arguments(program, parser, scope, parent);
@@ -1064,6 +1272,8 @@ parser_route(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 				return NULL;
 			}
 
+			node_link(parent, parent->end, node);
+			
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
@@ -1106,16 +1316,18 @@ parser_postfix(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 				return NULL;
 			}
 
+			node_link(parent, parent->end, node);
+
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
 			}
 
-			list_t *arguments = NULL;
+			node_t *datatypes = NULL;
 			if (parser->token->type != TOKEN_RPAREN)
 			{
-				arguments = parser_arguments(program, parser, scope, node);
-				if (!(arguments))
+				datatypes = parser_datatypes(program, parser, scope, node);
+				if (!(datatypes))
 				{
 					return NULL;
 				}
@@ -1126,7 +1338,7 @@ parser_postfix(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 				return NULL;
 			}
 
-			node2 = node_make_call(node, node2, arguments);
+			node2 = node_make_call(node, node2, datatypes);
 			continue;
 		}
 		else
@@ -1148,6 +1360,8 @@ parser_prefix(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 		{
 			return NULL;
 		}
+		
+		node_link(parent, parent->end, node);
 
 		if (parser_next(program, parser) == -1)
 		{
@@ -1171,6 +1385,8 @@ parser_prefix(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 			return NULL;
 		}
 
+		node_link(parent, parent->end, node);
+
 		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
@@ -1192,6 +1408,8 @@ parser_prefix(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 		{
 			return NULL;
 		}
+
+		node_link(parent, parent->end, node);
 
 		if (parser_next(program, parser) == -1)
 		{
@@ -1215,6 +1433,8 @@ parser_prefix(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 			return NULL;
 		}
 
+		node_link(parent, parent->end, node);
+
 		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
@@ -1237,6 +1457,8 @@ parser_prefix(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 			return NULL;
 		}
 
+		node_link(parent, parent->end, node);
+
 		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
@@ -1258,6 +1480,8 @@ parser_prefix(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 		{
 			return NULL;
 		}
+
+		node_link(parent, parent->end, node);
 
 		if (parser_next(program, parser) == -1)
 		{
@@ -1296,7 +1520,9 @@ parser_power(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 			{
 				return NULL;
 			}
-			
+
+			node_link(parent, parent->end, node);
+
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
@@ -1338,7 +1564,9 @@ parser_multiplicative(program_t *program, parser_t *parser, node_t *scope, node_
 			{
 				return NULL;
 			}
-			
+
+			node_link(parent, parent->end, node);
+
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
@@ -1361,6 +1589,8 @@ parser_multiplicative(program_t *program, parser_t *parser, node_t *scope, node_
 			{
 				return NULL;
 			}
+
+			node_link(parent, parent->end, node);
 			
 			if (parser_next(program, parser) == -1)
 			{
@@ -1384,6 +1614,8 @@ parser_multiplicative(program_t *program, parser_t *parser, node_t *scope, node_
 			{
 				return NULL;
 			}
+
+			node_link(parent, parent->end, node);
 			
 			if (parser_next(program, parser) == -1)
 			{
@@ -1407,6 +1639,8 @@ parser_multiplicative(program_t *program, parser_t *parser, node_t *scope, node_
 			{
 				return NULL;
 			}
+
+			node_link(parent, parent->end, node);
 			
 			if (parser_next(program, parser) == -1)
 			{
@@ -1449,6 +1683,8 @@ parser_addative(program_t *program, parser_t *parser, node_t *scope, node_t *par
 			{
 				return NULL;
 			}
+
+			node_link(parent, parent->end, node);
 			
 			if (parser_next(program, parser) == -1)
 			{
@@ -1472,6 +1708,8 @@ parser_addative(program_t *program, parser_t *parser, node_t *scope, node_t *par
 			{
 				return NULL;
 			}
+
+			node_link(parent, parent->end, node);
 			
 			if (parser_next(program, parser) == -1)
 			{
@@ -1514,6 +1752,8 @@ parser_shifting(program_t *program, parser_t *parser, node_t *scope, node_t *par
 			{
 				return NULL;
 			}
+
+			node_link(parent, parent->end, node);
 			
 			if (parser_next(program, parser) == -1)
 			{
@@ -1537,7 +1777,9 @@ parser_shifting(program_t *program, parser_t *parser, node_t *scope, node_t *par
 			{
 				return NULL;
 			}
-			
+
+			node_link(parent, parent->end, node);
+
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
@@ -1579,7 +1821,9 @@ parser_relational(program_t *program, parser_t *parser, node_t *scope, node_t *p
 			{
 				return NULL;
 			}
-			
+
+			node_link(parent, parent->end, node);
+
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
@@ -1602,7 +1846,9 @@ parser_relational(program_t *program, parser_t *parser, node_t *scope, node_t *p
 			{
 				return NULL;
 			}
-			
+
+			node_link(parent, parent->end, node);
+
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
@@ -1625,7 +1871,9 @@ parser_relational(program_t *program, parser_t *parser, node_t *scope, node_t *p
 			{
 				return NULL;
 			}
-			
+
+			node_link(parent, parent->end, node);
+
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
@@ -1648,7 +1896,9 @@ parser_relational(program_t *program, parser_t *parser, node_t *scope, node_t *p
 			{
 				return NULL;
 			}
-			
+
+			node_link(parent, parent->end, node);
+
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
@@ -1690,6 +1940,8 @@ parser_equality(program_t *program, parser_t *parser, node_t *scope, node_t *par
 			{
 				return NULL;
 			}
+
+			node_link(parent, parent->end, node);
 			
 			if (parser_next(program, parser) == -1)
 			{
@@ -1713,6 +1965,8 @@ parser_equality(program_t *program, parser_t *parser, node_t *scope, node_t *par
 			{
 				return NULL;
 			}
+
+			node_link(parent, parent->end, node);
 			
 			if (parser_next(program, parser) == -1)
 			{
@@ -1755,7 +2009,9 @@ parser_bitwise_and(program_t *program, parser_t *parser, node_t *scope, node_t *
 			{
 				return NULL;
 			}
-			
+
+			node_link(parent, parent->end, node);
+
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
@@ -1797,7 +2053,9 @@ parser_bitwise_xor(program_t *program, parser_t *parser, node_t *scope, node_t *
 			{
 				return NULL;
 			}
-			
+
+			node_link(parent, parent->end, node);
+
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
@@ -1839,6 +2097,8 @@ parser_bitwise_or(program_t *program, parser_t *parser, node_t *scope, node_t *p
 			{
 				return NULL;
 			}
+
+			node_link(parent, parent->end, node);
 
 			if (parser_next(program, parser) == -1)
 			{
@@ -1882,6 +2142,8 @@ parser_logical_and(program_t *program, parser_t *parser, node_t *scope, node_t *
 				return NULL;
 			}
 
+			node_link(parent, parent->end, node);
+
 			node_t *right = parser_bitwise_or(program, parser, scope, node);
 			if (!right)
 			{
@@ -1919,6 +2181,8 @@ parser_logical_or(program_t *program, parser_t *parser, node_t *scope, node_t *p
 				return NULL;
 			}
 
+			node_link(parent, parent->end, node);
+
 			node_t *right = parser_logical_and(program, parser, scope, node);
 			if (!right)
 			{
@@ -1954,6 +2218,8 @@ parser_conditional(program_t *program, parser_t *parser, node_t *scope, node_t *
 		{
 			return NULL;
 		}
+
+		node_link(parent, parent->end, node);
 
 		node_t *true_expression = parser_conditional(program, parser, scope, node);
 		if (!true_expression)
@@ -1996,11 +2262,13 @@ parser_assign_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *
 	if (parser->token->type == TOKEN_EQ)
 	{
 		node_t *node = node_create(scope, parent, parser->token->position);
-
+		
 		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
+
+		node_link(parent, parent->end, node);
 
 		node_t *right = parser_expression(program, parser, scope, node);
 		if (!right)
@@ -2019,6 +2287,8 @@ parser_assign_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *
 		{
 			return NULL;
 		}
+
+		node_link(parent, parent->end, node);
 		
 		node_t *right = parser_expression(program, parser, scope, node);
 		if (!right)
@@ -2037,6 +2307,8 @@ parser_assign_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *
 		{
 			return NULL;
 		}
+
+		node_link(parent, parent->end, node);
 		
 		node_t *right = parser_expression(program, parser, scope, node);
 		if (!right)
@@ -2055,6 +2327,8 @@ parser_assign_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *
 		{
 			return NULL;
 		}
+
+		node_link(parent, parent->end, node);
 		
 		node_t *right = parser_expression(program, parser, scope, node);
 		if (!right)
@@ -2073,6 +2347,8 @@ parser_assign_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *
 		{
 			return NULL;
 		}
+
+		node_link(parent, parent->end, node);
 		
 		node_t *right = parser_expression(program, parser, scope, node);
 		if (!right)
@@ -2091,6 +2367,8 @@ parser_assign_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *
 		{
 			return NULL;
 		}
+
+		node_link(parent, parent->end, node);
 		
 		node_t *right = parser_expression(program, parser, scope, node);
 		if (!right)
@@ -2109,6 +2387,8 @@ parser_assign_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *
 		{
 			return NULL;
 		}
+
+		node_link(parent, parent->end, node);
 		
 		node_t *right = parser_expression(program, parser, scope, node);
 		if (!right)
@@ -2127,6 +2407,8 @@ parser_assign_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *
 		{
 			return NULL;
 		}
+
+		node_link(parent, parent->end, node);
 		
 		node_t *right = parser_expression(program, parser, scope, node);
 		if (!right)
@@ -2145,6 +2427,8 @@ parser_assign_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *
 		{
 			return NULL;
 		}
+
+		node_link(parent, parent->end, node);
 		
 		node_t *right = parser_expression(program, parser, scope, node);
 		if (!right)
@@ -2164,6 +2448,8 @@ parser_assign_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *
 			return NULL;
 		}
 
+		node_link(parent, parent->end, node);
+
 		node_t *right = parser_expression(program, parser, scope, node);
 		if (!right)
 		{
@@ -2180,6 +2466,13 @@ static node_t *
 parser_if_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
+		
+	if (parser_next(program, parser) == -1)
+	{
+		return NULL;
+	}
+
+	node_link(parent, parent->end, node);
 
 	if (parser_match(program, parser, TOKEN_IF_KEYWORD) == -1)
 	{
@@ -2251,6 +2544,13 @@ static node_t *
 parser_var_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *parent, uint64_t flag)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
+		
+	if (parser_next(program, parser) == -1)
+	{
+		return NULL;
+	}
+
+	node_link(parent, parent->end, node);
 
 	if (parser_match(program, parser, TOKEN_VAR_KEYWORD) == -1)
 	{
@@ -2300,6 +2600,13 @@ static node_t *
 parser_for_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *parent, uint64_t flag)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
+		
+	if (parser_next(program, parser) == -1)
+	{
+		return NULL;
+	}
+
+	node_link(parent, parent->end, node);
 
 	if (parser_match(program, parser, TOKEN_FOR_KEYWORD) == -1)
 	{
@@ -2544,6 +2851,13 @@ static node_t *
 parser_break_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
+		
+	if (parser_next(program, parser) == -1)
+	{
+		return NULL;
+	}
+
+	node_link(parent, parent->end, node);
 
 	if (parser_match(program, parser, TOKEN_BREAK_KEYWORD) == -1)
 	{
@@ -2567,6 +2881,13 @@ static node_t *
 parser_continue_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
+		
+	if (parser_next(program, parser) == -1)
+	{
+		return NULL;
+	}
+
+	node_link(parent, parent->end, node);
 
 	if (parser_match(program, parser, TOKEN_CONTINUE_KEYWORD) == -1)
 	{
@@ -2590,6 +2911,13 @@ static node_t *
 parser_catch_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
+		
+	if (parser_next(program, parser) == -1)
+	{
+		return NULL;
+	}
+
+	node_link(parent, parent->end, node);
 
 	if (parser_match(program, parser, TOKEN_CATCH_KEYWORD) == -1)
 	{
@@ -2636,6 +2964,8 @@ parser_catchs_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	list_t *list = list_create();
 	if (!list)
 	{
@@ -2668,6 +2998,8 @@ parser_try_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *par
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	if (parser_match(program, parser, TOKEN_TRY_KEYWORD) == -1)
 	{
@@ -2702,6 +3034,8 @@ parser_return_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	if (parser_match(program, parser, TOKEN_RETURN_KEYWORD) == -1)
 	{
 		return NULL;
@@ -2726,6 +3060,8 @@ parser_throw_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *p
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	if (parser_match(program, parser, TOKEN_THROW_KEYWORD) == -1)
 	{
 		return NULL;
@@ -2735,7 +3071,7 @@ parser_throw_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *p
 	{
 		return NULL;
 	}
-	list_t *arguments;
+	node_t *arguments;
 	arguments = parser_arguments(program, parser, scope, node);
 	if (!arguments)
 	{
@@ -2757,6 +3093,8 @@ parser_body_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	if (parser_match(program, parser, TOKEN_LBRACE) == -1)
 	{
@@ -2809,6 +3147,8 @@ parser_parameter(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	uint64_t flag = PARSER_MODIFIER_NONE;
 	if (parser->token->type == TOKEN_REFERENCE_KEYWORD)
@@ -2873,6 +3213,8 @@ parser_parameters(program_t *program, parser_t *parser, node_t *scope, node_t *p
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	list_t *parameters = list_create();
 	if (!parameters)
 	{
@@ -2914,6 +3256,8 @@ parser_generic(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	node_t *key;
 	key = parser_id(program, parser, scope, node);
@@ -2962,6 +3306,8 @@ parser_generics(program_t *program, parser_t *parser, node_t *scope, node_t *par
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	list_t *generics = list_create();
 	if (!generics)
 	{
@@ -3004,20 +3350,46 @@ parser_func_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	if (parser_match(program, parser, TOKEN_FUNC_KEYWORD) == -1)
 	{
 		return NULL;
 	}
-  
+
+	node_t *key = parser_id(program, parser, scope, node);
+	if (!key)
+	{
+		return NULL;
+	}
+
 	node_t *generics = NULL;
-	if (parser->token->type == TOKEN_LBRACE)
+	if (parser->token->type == TOKEN_LT)
 	{
 		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
 
-		if (parser->token->type == TOKEN_RBRACE)
+		if (parser->token->type == TOKEN_GT)
+		{
+			parser_error(program, parser->token->position, "empty generics");
+			return NULL;
+		}
+		else
+		if (parser->token->type == TOKEN_GT_EQ)
+		{
+			parser_error(program, parser->token->position, "empty generics");
+			return NULL;
+		}
+		else
+		if (parser->token->type == TOKEN_GT_GT)
+		{
+			parser_error(program, parser->token->position, "empty generics");
+			return NULL;
+		}
+		else
+		if (parser->token->type == TOKEN_GT_GT_EQ)
 		{
 			parser_error(program, parser->token->position, "empty generics");
 			return NULL;
@@ -3029,16 +3401,36 @@ parser_func_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 			return NULL;
 		}
 
-		if (parser_match(program, parser, TOKEN_RBRACE) == -1)
+		if (parser->token->type == TOKEN_GT_GT)
 		{
-			return NULL;
+			if (parser_next_gt(program, parser) == -1)
+			{
+				return NULL;
+			}
 		}
-	}
-
-	node_t *key = parser_id(program, parser, scope, node);
-	if (!key)
-	{
-		return NULL;
+		else
+		if (parser->token->type == TOKEN_GT_EQ)
+		{
+			if (parser_next_gt(program, parser) == -1)
+			{
+				return NULL;
+			}
+		}
+		else
+		if (parser->token->type == TOKEN_GT_GT_EQ)
+		{
+			if (parser_next_gt(program, parser) == -1)
+			{
+				return NULL;
+			}
+		}
+		else
+		{
+			if (parser_match(program, parser, TOKEN_GT) == -1)
+			{
+				return NULL;
+			}
+		}
 	}
 
 	node_t *parameters = NULL;
@@ -3064,13 +3456,19 @@ parser_func_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 		}
 	}
 
+	if (parser_match(program, parser, TOKEN_MINUS_GT) == -1)
+	{
+		return NULL;
+	}
+	node_t *results = parser_route(program, parser, node, node);
+
 	node_t *body = parser_body_stmt(program, parser, scope, node);
 	if (!body)
 	{
 		return NULL;
 	}
 
-	return node_make_func(node, flag, key, generics, parameters, body);
+	return node_make_func(node, flag, key, generics, parameters, results, body);
 }
 
 static node_t *
@@ -3265,6 +3663,8 @@ parser_member(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	node_t *key = parser_id(program, parser, scope, node);
 	if (!key)
 	{
@@ -3297,6 +3697,8 @@ parser_members(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	list_t *properties = list_create();
 	if (!properties)
@@ -3340,6 +3742,8 @@ parser_enum(program_t *program, parser_t *parser, node_t *scope, node_t *parent,
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	if (parser_match(program, parser, TOKEN_ENUM_KEYWORD) == -1)
 	{
 		return NULL;
@@ -3381,35 +3785,7 @@ parser_class_func(program_t *program, parser_t *parser, node_t *scope, node_t *p
 		return NULL;
 	}
 
-	int32_t generic_used = 0;
-	node_t *generics = NULL;
-	if (parser->token->type == TOKEN_LBRACE)
-	{
-		if (parser_next(program, parser) == -1)
-		{
-			return NULL;
-		}
-
-		if (parser->token->type == TOKEN_RBRACE)
-		{
-			parser_error(program, parser->token->position, "empty generic");
-			return NULL;
-		}
-
-		generics = parser_generics(program, parser, scope, node);
-		if (!generics)
-		{
-			return NULL;
-		}
-
-		if (parser_match(program, parser, TOKEN_RBRACE) == -1)
-		{
-			return NULL;
-		}
-
-		generic_used = 1;
-	}
-
+	int32_t operator_used = 0;
 	node_t *key = NULL;
 	if (parser->token->type == TOKEN_ID)
 	{
@@ -3426,12 +3802,85 @@ parser_class_func(program_t *program, parser_t *parser, node_t *scope, node_t *p
 		{
 			return NULL;
 		}
-		if (generic_used == 1)
+		operator_used = 1;
+	}
+	
+	node_t *generics = NULL;
+	if (parser->token->type == TOKEN_LT)
+	{
+		if (parser_next(program, parser) == -1)
+		{
+			return NULL;
+		}
+
+		if (parser->token->type == TOKEN_GT)
+		{
+			parser_error(program, parser->token->position, "empty generics");
+			return NULL;
+		}
+		else
+		if (parser->token->type == TOKEN_GT_EQ)
+		{
+			parser_error(program, parser->token->position, "empty generics");
+			return NULL;
+		}
+		else
+		if (parser->token->type == TOKEN_GT_GT)
+		{
+			parser_error(program, parser->token->position, "empty generics");
+			return NULL;
+		}
+		else
+		if (parser->token->type == TOKEN_GT_GT_EQ)
+		{
+			parser_error(program, parser->token->position, "empty generics");
+			return NULL;
+		}
+
+		generics = parser_generics(program, parser, scope, node);
+		if (!generics)
+		{
+			return NULL;
+		}
+
+		if (parser->token->type == TOKEN_GT_GT)
+		{
+			if (parser_next_gt(program, parser) == -1)
+			{
+				return NULL;
+			}
+		}
+		else
+		if (parser->token->type == TOKEN_GT_EQ)
+		{
+			if (parser_next_gt(program, parser) == -1)
+			{
+				return NULL;
+			}
+		}
+		else
+		if (parser->token->type == TOKEN_GT_GT_EQ)
+		{
+			if (parser_next_gt(program, parser) == -1)
+			{
+				return NULL;
+			}
+		}
+		else
+		{
+			if (parser_match(program, parser, TOKEN_GT) == -1)
+			{
+				return NULL;
+			}
+		}
+
+		if (operator_used == 1)
 		{
 			parser_error(program, parser->token->position, "operator with generic");
 			return NULL;
 		}
 	}
+
 
 	node_t *parameters = NULL;
 	if (parser->token->type == TOKEN_LPAREN)
@@ -3456,14 +3905,19 @@ parser_class_func(program_t *program, parser_t *parser, node_t *scope, node_t *p
 		}
 	}
 
-	node_t *body;
-	body = parser_body_stmt(program, parser, node, node);
+	if (parser_match(program, parser, TOKEN_MINUS_GT) == -1)
+	{
+		return NULL;
+	}
+	node_t *results = parser_route(program, parser, node, node);
+
+	node_t *body = parser_body_stmt(program, parser, node, node);
 	if (!body)
 	{
 		return NULL;
 	}
 
-	return node_make_func(node, flag, key, generics, parameters, body);
+	return node_make_func(node, flag, key, generics, parameters, results, body);
 }
 
 static node_t *
@@ -3474,6 +3928,8 @@ parser_class_property(program_t *program, parser_t *parser, node_t *scope, node_
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	node_t *key = parser_id(program, parser, scope, node);
 	if (!key)
@@ -3714,6 +4170,8 @@ parser_class_block(program_t *program, parser_t *parser, node_t *scope, node_t *
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	list_t *list = list_create();
 	if (!list)
 	{
@@ -3791,6 +4249,8 @@ parser_heritage(program_t *program, parser_t *parser, node_t *scope, node_t *par
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	node_t *key = parser_id(program, parser, scope, node);
 	if (!key)
 	{
@@ -3819,6 +4279,8 @@ parser_heritages(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	list_t *heritage = list_create();
 	if (!heritage)
@@ -3862,41 +4324,87 @@ parser_class(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	if (parser_match(program, parser, TOKEN_CLASS_KEYWORD) == -1)
 	{
 		return NULL;
-	}
-
-	node_t *generics = NULL;
-	if (parser->token->type == TOKEN_LBRACE)
-	{
-		if (parser_next(program, parser) == -1)
-		{
-			return NULL;
-		}
-
-		if (parser->token->type == TOKEN_RBRACE)
-		{
-			parser_error(program, parser->token->position, "empty generic");
-			return NULL;
-		}
-
-		generics = parser_generics(program, parser, node, node);
-		if (!generics)
-		{
-			return NULL;
-		}
-
-		if (parser_match(program, parser, TOKEN_RBRACE) == -1)
-		{
-			return NULL;
-		}
 	}
 
 	node_t *key = parser_id(program, parser, scope, node);
 	if (!key)
 	{
 		return NULL;
+	}
+
+	node_t *generics = NULL;
+	if (parser->token->type == TOKEN_LT)
+	{
+		if (parser_next(program, parser) == -1)
+		{
+			return NULL;
+		}
+
+		if (parser->token->type == TOKEN_GT)
+		{
+			parser_error(program, parser->token->position, "empty generics");
+			return NULL;
+		}
+		else
+		if (parser->token->type == TOKEN_GT_EQ)
+		{
+			parser_error(program, parser->token->position, "empty generics");
+			return NULL;
+		}
+		else
+		if (parser->token->type == TOKEN_GT_GT)
+		{
+			parser_error(program, parser->token->position, "empty generics");
+			return NULL;
+		}
+		else
+		if (parser->token->type == TOKEN_GT_GT_EQ)
+		{
+			parser_error(program, parser->token->position, "empty generics");
+			return NULL;
+		}
+
+		generics = parser_generics(program, parser, scope, node);
+		if (!generics)
+		{
+			return NULL;
+		}
+
+		if (parser->token->type == TOKEN_GT_GT)
+		{
+			if (parser_next_gt(program, parser) == -1)
+			{
+				return NULL;
+			}
+		}
+		else
+		if (parser->token->type == TOKEN_GT_EQ)
+		{
+			if (parser_next_gt(program, parser) == -1)
+			{
+				return NULL;
+			}
+		}
+		else
+		if (parser->token->type == TOKEN_GT_GT_EQ)
+		{
+			if (parser_next_gt(program, parser) == -1)
+			{
+				return NULL;
+			}
+		}
+		else
+		{
+			if (parser_match(program, parser, TOKEN_GT) == -1)
+			{
+				return NULL;
+			}
+		}
 	}
 
 	node_t *heritages = NULL;
@@ -3950,6 +4458,8 @@ parser_field(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 		return NULL;
 	}
 
+	node_link(parent, parent->end, node);
+
 	node_t *key;
 	key = parser_expression(program, parser, scope, node);
 	if (!key)
@@ -3983,6 +4493,8 @@ parser_fields(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	list_t *fields = list_create();
 	if (!fields)
@@ -4025,6 +4537,8 @@ parser_import(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	if (parser_match(program, parser, TOKEN_IMPORT_KEYWORD) == -1)
 	{
@@ -4130,6 +4644,8 @@ parser_module_block(program_t *program, parser_t *parser, node_t *scope, node_t 
 	{
 		return NULL;
 	}
+
+	node_link(parent, parent->end, node);
 
 	list_t *objects = list_create();
 	if (!objects)
