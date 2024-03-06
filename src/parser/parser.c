@@ -274,6 +274,13 @@ parser_next_gt(program_t *program, parser_t *parser)
 	return 1;
 }
 
+static int32_t
+parser_idstrcmp(node_t *n1, char *name)
+{
+	node_basic_t *nb1 = (node_basic_t *)n1->value;
+	return strcmp(nb1->value, name);
+}
+
 
 
 static node_t *
@@ -1251,11 +1258,11 @@ parser_route(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 				return NULL;
 			}
 
-			node_t *arguments = NULL;
+			node_t *datatypes = NULL;
 			if (parser->token->type != TOKEN_RBRACKET)
 			{
-				arguments = parser_arguments(program, parser, scope, parent);
-				if (!(arguments))
+				datatypes = parser_datatypes(program, parser, scope, parent);
+				if (!(datatypes))
 				{
 					return NULL;
 				}
@@ -1266,7 +1273,7 @@ parser_route(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 				return NULL;
 			}
 
-			node2 = node_make_item(node, node2, arguments);
+			node2 = node_make_item(node, node2, datatypes);
 			continue;
 		}
 		else
@@ -3369,6 +3376,12 @@ parser_func_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 		return NULL;
 	}
 
+	int32_t used_constructor = 0;
+	if (parser_idstrcmp(key, "constructor") == 0)
+	{
+		used_constructor = 1;
+	}
+
 	node_t *generics = NULL;
 	if (parser->token->type == TOKEN_LT)
 	{
@@ -3462,11 +3475,15 @@ parser_func_stmt(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 		}
 	}
 
-	if (parser_match(program, parser, TOKEN_MINUS_GT) == -1)
+	node_t *results = NULL;
+	if (used_constructor == 0)
 	{
-		return NULL;
+		if (parser_match(program, parser, TOKEN_MINUS_GT) == -1)
+		{
+			return NULL;
+		}
+		results = parser_route(program, parser, node, node);
 	}
-	node_t *results = parser_route(program, parser, node, node);
 
 	node_t *body = parser_body_stmt(program, parser, scope, node);
 	if (!body)
@@ -3791,7 +3808,8 @@ parser_class_func(program_t *program, parser_t *parser, node_t *scope, node_t *p
 		return NULL;
 	}
 
-	int32_t operator_used = 0;
+	int32_t used_operator = 0;
+	int32_t used_constructor = 0;
 	node_t *key = NULL;
 	if (parser->token->type == TOKEN_ID)
 	{
@@ -3799,6 +3817,11 @@ parser_class_func(program_t *program, parser_t *parser, node_t *scope, node_t *p
 		if (!key)
 		{
 			return NULL;
+		}
+		
+		if (parser_idstrcmp(key, "constructor") == 0)
+		{
+			used_constructor = 1;
 		}
 	}
 	else
@@ -3808,7 +3831,7 @@ parser_class_func(program_t *program, parser_t *parser, node_t *scope, node_t *p
 		{
 			return NULL;
 		}
-		operator_used = 1;
+		used_operator = 1;
 	}
 	
 	node_t *generics = NULL;
@@ -3880,7 +3903,7 @@ parser_class_func(program_t *program, parser_t *parser, node_t *scope, node_t *p
 			}
 		}
 
-		if (operator_used == 1)
+		if (used_operator == 1)
 		{
 			parser_error(program, parser->token->position, "operator with generic");
 			return NULL;
@@ -3911,11 +3934,15 @@ parser_class_func(program_t *program, parser_t *parser, node_t *scope, node_t *p
 		}
 	}
 
-	if (parser_match(program, parser, TOKEN_MINUS_GT) == -1)
+	node_t *results = NULL;
+	if (used_constructor == 0)
 	{
-		return NULL;
+		if (parser_match(program, parser, TOKEN_MINUS_GT) == -1)
+		{
+			return NULL;
+		}
+		results = parser_route(program, parser, node, node);
 	}
-	node_t *results = parser_route(program, parser, node, node);
 
 	node_t *body = parser_body_stmt(program, parser, node, node);
 	if (!body)

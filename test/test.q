@@ -1,6 +1,6 @@
 export class Int<T>
 {
-  func constructor (value:String) -> Int
+  func constructor (value:String)
   {
    
   }
@@ -13,13 +13,13 @@ export class Int<T>
 
 export class String extends (v : Int)
 {
-  func constructor (value:String) -> String
+  func constructor (value:String)
   {
     
   }
 }
 
-func constructor<T>(args:Int) -> Int
+func constructor<T>(args:Int)
 {
   return teacher<Int<Int<Int>>>(10);
 }

@@ -158,10 +158,10 @@ typedef struct node_throw {
 	node_t *arguments;
 } node_throw_t;
 
-typedef struct node_composite {
+typedef struct node_carrier {
 	node_t *base;
 	node_t *arguments;
-} node_composite_t;
+} node_carrier_t;
 
 typedef struct node_unary {
 	node_t *right;

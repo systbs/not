@@ -788,7 +788,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                         node_t *nps1 = f1->parameters;
                         if (nps1 != NULL)
                         {
-                            int32_t r2 = syntax_match_psas(program, nps1, node_call->arguments);
+                            int32_t r2 = syntax_match_psds(program, nps1, node_call->arguments);
                             if (r2 == -1)
                             {
                                 return -1;
@@ -816,7 +816,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
             node_t *nps1 = f1->parameters;
             if (nps1 != NULL)
             {
-                int32_t r2 = syntax_match_psas(program, nps1, node_call->arguments);
+                int32_t r2 = syntax_match_psds(program, nps1, node_call->arguments);
                 if (r2 == -1)
                 {
                     return -1;
@@ -888,7 +888,7 @@ syntax_item(program_t *program, node_t *node, list_t *response)
                         node_t *nps1 = f1->parameters;
                         if (nps1 != NULL)
                         {
-                            int32_t r2 = syntax_match_psas(program, nps1, node_call->arguments);
+                            int32_t r2 = syntax_match_psds(program, nps1, node_call->arguments);
                             if (r2 == -1)
                             {
                                 return -1;
@@ -896,6 +896,10 @@ syntax_item(program_t *program, node_t *node, list_t *response)
                             else
                             if (r2 == 1)
                             {
+                                if(f1->results != NULL)
+                                {
+                                    
+                                }
                                 ilist_t *r3 = list_rpush(response, rn1);
                                 if (r3 == NULL)
                                 {

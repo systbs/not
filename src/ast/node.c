@@ -210,7 +210,8 @@ node_make_this(node_t *node){
 }
 
 node_t *
-node_make_array(node_t *node, list_t *list){
+node_make_array(node_t *node, list_t *list)
+{
 	node_array_t *basic = (node_array_t *)malloc(sizeof(node_array_t));
 	if(basic == NULL)
 	{
@@ -225,7 +226,8 @@ node_make_array(node_t *node, list_t *list){
 }
 
 node_t *
-node_make_object_property(node_t *node, node_t *name, node_t *value){
+node_make_object_property(node_t *node, node_t *name, node_t *value)
+{
 	node_object_property_t *basic = (node_object_property_t *)malloc(sizeof(node_object_property_t));
 	if(basic == NULL)
 	{
@@ -241,7 +243,8 @@ node_make_object_property(node_t *node, node_t *name, node_t *value){
 }
 
 node_t *
-node_make_object(node_t *node, uint64_t flag, list_t *list){
+node_make_object(node_t *node, uint64_t flag, list_t *list)
+{
 	node_object_t *basic = (node_object_t *)malloc(sizeof(node_object_t));
 	if(basic == NULL){
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_object_t));
@@ -258,13 +261,13 @@ node_make_object(node_t *node, uint64_t flag, list_t *list){
 node_t *
 node_make_composite(node_t *node, node_t *base, node_t *arguments)
 {
-	node_composite_t *basic = (node_composite_t *)malloc(sizeof(node_composite_t));
+	node_carrier_t *basic = (node_carrier_t *)malloc(sizeof(node_carrier_t));
 	if(basic == NULL)
 	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_composite_t));
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_carrier_t));
 		return NULL;
 	}
-	memset(basic, 0, sizeof(node_composite_t));
+	memset(basic, 0, sizeof(node_carrier_t));
 	basic->base = base;
 	basic->arguments = arguments;
 	
@@ -295,7 +298,8 @@ node_make_in(node_t *node, node_t *left, node_t *right)
 }
 
 node_t *
-node_make_typeof(node_t *node, node_t *right){
+node_make_typeof(node_t *node, node_t *right)
+{
 	node_unary_t *basic = (node_unary_t *)malloc(sizeof(node_unary_t));
 	if(basic == NULL)
 	{
@@ -310,7 +314,8 @@ node_make_typeof(node_t *node, node_t *right){
 }
 
 node_t *
-node_make_sizeof(node_t *node, node_t *right){
+node_make_sizeof(node_t *node, node_t *right)
+{
 	node_unary_t *basic = (node_unary_t *)malloc(sizeof(node_unary_t));
 	if(basic == NULL)
 	{
@@ -343,13 +348,13 @@ node_make_parenthesis(node_t *node, node_t *value)
 node_t *
 node_make_call(node_t *node, node_t *base, node_t *arguments)
 {
-	node_composite_t *basic = (node_composite_t *)malloc(sizeof(node_composite_t));
+	node_carrier_t *basic = (node_carrier_t *)malloc(sizeof(node_carrier_t));
 	if(basic == NULL)
 	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_composite_t));
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_carrier_t));
 		return NULL;
 	}
-	memset(basic, 0, sizeof(node_composite_t));
+	memset(basic, 0, sizeof(node_carrier_t));
 	basic->base = base;
 	basic->arguments = arguments;
 	
@@ -360,13 +365,13 @@ node_make_call(node_t *node, node_t *base, node_t *arguments)
 node_t *
 node_make_item(node_t *node, node_t *base, node_t *arguments)
 {
-	node_composite_t *basic = (node_composite_t *)malloc(sizeof(node_composite_t));
+	node_carrier_t *basic = (node_carrier_t *)malloc(sizeof(node_carrier_t));
 	if(basic == NULL)
 	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_composite_t));
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_carrier_t));
 		return NULL;
 	}
-	memset(basic, 0, sizeof(node_composite_t));
+	memset(basic, 0, sizeof(node_carrier_t));
 	basic->base = base;
 	basic->arguments = arguments;
 	
@@ -408,7 +413,8 @@ node_make_tilde(node_t *node, node_t *right)
 }
 
 node_t *
-node_make_not(node_t *node, node_t *right){
+node_make_not(node_t *node, node_t *right)
+{
 	node_unary_t *basic = (node_unary_t *)malloc(sizeof(node_unary_t));
 	if(basic == NULL)
 	{
@@ -423,7 +429,8 @@ node_make_not(node_t *node, node_t *right){
 }
 
 node_t *
-node_make_neg(node_t *node, node_t *right){
+node_make_neg(node_t *node, node_t *right)
+{
 	node_unary_t *basic = (node_unary_t *)malloc(sizeof(node_unary_t));
 	if(basic == NULL)
 	{
@@ -438,7 +445,8 @@ node_make_neg(node_t *node, node_t *right){
 }
 
 node_t *
-node_make_pos(node_t *node, node_t *right){
+node_make_pos(node_t *node, node_t *right)
+{
 	node_unary_t *basic = (node_unary_t *)malloc(sizeof(node_unary_t));
 	if(basic == NULL)
 	{
@@ -453,7 +461,8 @@ node_make_pos(node_t *node, node_t *right){
 }
 
 node_t *
-node_make_ellipsis(node_t *node, node_t *right){
+node_make_ellipsis(node_t *node, node_t *right)
+{
 	node_unary_t *basic = (node_unary_t *)malloc(sizeof(node_unary_t));
 	if(basic == NULL)
 	{
@@ -470,7 +479,8 @@ node_make_ellipsis(node_t *node, node_t *right){
 
 
 node_t *
-node_make_pow(node_t *node, node_t *left, node_t *right){
+node_make_pow(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -486,7 +496,8 @@ node_make_pow(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_epi(node_t *node, node_t *left, node_t *right){
+node_make_epi(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -502,7 +513,8 @@ node_make_epi(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_mul(node_t *node, node_t *left, node_t *right){
+node_make_mul(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -518,7 +530,8 @@ node_make_mul(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_div(node_t *node, node_t *left, node_t *right){
+node_make_div(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -534,7 +547,8 @@ node_make_div(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_mod(node_t *node, node_t *left, node_t *right){
+node_make_mod(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -550,7 +564,8 @@ node_make_mod(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_plus(node_t *node, node_t *left, node_t *right){
+node_make_plus(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -566,7 +581,8 @@ node_make_plus(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_minus(node_t *node, node_t *left, node_t *right){
+node_make_minus(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -582,7 +598,8 @@ node_make_minus(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_shl(node_t *node, node_t *left, node_t *right){
+node_make_shl(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -598,7 +615,8 @@ node_make_shl(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_shr(node_t *node, node_t *left, node_t *right){
+node_make_shr(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -614,7 +632,8 @@ node_make_shr(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_lt(node_t *node, node_t *left, node_t *right){
+node_make_lt(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -630,7 +649,8 @@ node_make_lt(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_le(node_t *node, node_t *left, node_t *right){
+node_make_le(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -646,7 +666,8 @@ node_make_le(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_gt(node_t *node, node_t *left, node_t *right){
+node_make_gt(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -662,7 +683,8 @@ node_make_gt(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_ge(node_t *node, node_t *left, node_t *right){
+node_make_ge(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -678,7 +700,8 @@ node_make_ge(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_eq(node_t *node, node_t *left, node_t *right){
+node_make_eq(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -694,7 +717,8 @@ node_make_eq(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_neq(node_t *node, node_t *left, node_t *right){
+node_make_neq(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -710,7 +734,8 @@ node_make_neq(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_and(node_t *node, node_t *left, node_t *right){
+node_make_and(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -726,7 +751,8 @@ node_make_and(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_xor(node_t *node, node_t *left, node_t *right){
+node_make_xor(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -742,7 +768,8 @@ node_make_xor(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_or(node_t *node, node_t *left, node_t *right){
+node_make_or(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -758,7 +785,8 @@ node_make_or(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_land(node_t *node, node_t *left, node_t *right){
+node_make_land(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -774,7 +802,8 @@ node_make_land(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_lor(node_t *node, node_t *left, node_t *right){
+node_make_lor(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -843,7 +872,8 @@ node_make_define(node_t *node, node_t *left, node_t *right)
 }
 
 node_t *
-node_make_add_assign(node_t *node, node_t *left, node_t *right){
+node_make_add_assign(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -859,7 +889,8 @@ node_make_add_assign(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_sub_assign(node_t *node, node_t *left, node_t *right){
+node_make_sub_assign(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -875,7 +906,8 @@ node_make_sub_assign(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_div_assign(node_t *node, node_t *left, node_t *right){
+node_make_div_assign(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -891,7 +923,8 @@ node_make_div_assign(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_mul_assign(node_t *node, node_t *left, node_t *right){
+node_make_mul_assign(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -907,7 +940,8 @@ node_make_mul_assign(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_mod_assign(node_t *node, node_t *left, node_t *right){
+node_make_mod_assign(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -923,7 +957,8 @@ node_make_mod_assign(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_and_assign(node_t *node, node_t *left, node_t *right){
+node_make_and_assign(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -939,7 +974,8 @@ node_make_and_assign(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_or_assign(node_t *node, node_t *left, node_t *right){
+node_make_or_assign(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -955,7 +991,8 @@ node_make_or_assign(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_shl_assign(node_t *node, node_t *left, node_t *right){
+node_make_shl_assign(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
@@ -971,7 +1008,8 @@ node_make_shl_assign(node_t *node, node_t *left, node_t *right){
 }
 
 node_t *
-node_make_shr_assign(node_t *node, node_t *left, node_t *right){
+node_make_shr_assign(node_t *node, node_t *left, node_t *right)
+{
 	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
 	if(basic == NULL)
 	{
