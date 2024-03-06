@@ -19,7 +19,7 @@ export class String extends (v : Int)
   }
 }
 
-func constructor(args:Int) -> Int
+func constructor<T>(args:Int) -> Int
 {
   return teacher<Int<Int>>(10);
 }

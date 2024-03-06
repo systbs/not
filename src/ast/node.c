@@ -54,7 +54,7 @@ node_unlink(node_t *node, node_t* it)
 void
 node_clear(node_t *node)
 {
-  inode_t *b, *n;
+  node_t *b, *n;
   for(b = node->begin; b != node->end; b = n){
     n = b->next;
     node_unlink(node, b);
