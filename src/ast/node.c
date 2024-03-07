@@ -10,79 +10,13 @@
 #include "../scanner/file.h"
 #include "../scanner/scanner.h"
 #include "node.h"
-#include "../parser/parser.h"
 
 uint64_t node_counter = 0;
-
-int32_t
-node_isempty(node_t *node)
-{
-  return (node->begin == node->end);
-}
-
-void
-node_link(node_t *node, node_t *current, node_t *it)
-{
-  it->next = current;
-  it->previous = current->previous;
-  current->previous->next = it;
-  current->previous = it;
-
-  if(node->begin == current)
-  {
-      node->begin = it;
-  }
-}
-
-void
-node_unlink(node_t *node, node_t* it)
-{
-  if (it == node->end)
-  {
-    return;
-  }
-
-  if (it == node->begin)
-  {
-    node->begin = it->next;
-  }
-
-  it->next->previous = it->previous;
-  it->previous->next = it->next;
-}
-
-void
-node_clear(node_t *node)
-{
-  node_t *b, *n;
-  for(b = node->begin; b != node->end; b = n){
-    n = b->next;
-    node_unlink(node, b);
-    free(b);
-  }
-}
 
 void
 node_destroy(node_t *node)
 {
-  node_clear(node);
   free (node);
-}
-
-static node_t *
-node_apply(node_t *node)
-{
-  node_t *it = (node_t *)malloc(sizeof(node_t));
-  if(it == NULL) {
-    return NULL;
-  }
-
-  memset(it, 0, sizeof(node_t));
-
-  it->next = it->previous = it;
-  node->end = node->begin = it;
-
-  return node;
 }
 
 node_t *
@@ -100,8 +34,10 @@ node_create(node_t *scope, node_t *parent, position_t position)
 	node->position = position;
 	node->parent = parent;
 	node->scope = scope;
+	node->attachments = list_create();
+	node->flag = NODE_FLAG_NONE;
 
-	return node_apply(node);
+	return node;
 }
 
 static void
@@ -109,6 +45,29 @@ node_update(node_t *node, int32_t kind, void *value)
 {
 	node->value = value;
 	node->kind = kind;
+}
+
+node_t *
+node_clone(node_t *source)
+{
+	node_t *node = (node_t *)malloc(sizeof(node_t));
+	if(node == NULL)
+	{
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_t));
+		return NULL;
+	}
+	memset(node, 0, sizeof(node_t));
+
+	node->id = source->id;
+	node->position = source->position;
+	node->parent = source->parent;
+	node->scope = source->scope;
+	node->value = source->value;
+	node->kind = source->kind;
+	node->attachments = source->attachments;
+	node->flag = NODE_FLAG_TEMPORARY;
+
+	return node;
 }
 
 node_t *

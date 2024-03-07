@@ -5,20 +5,21 @@
 typedef struct node {
 	int32_t kind;
 	uint64_t id;
-	
-	void *value;
-	
+	uint64_t flag;
 	position_t position;
 
-	struct node *next;
-	struct node *previous;
+	void *value;
 
-	struct node *begin;
-	struct node *end;
-
+	list_t *attachments;
+	
 	struct node *parent;
 	struct node *scope;
 } node_t;
+
+typedef enum node_flag {
+	NODE_FLAG_NONE 			= 0,
+	NODE_FLAG_TEMPORARY 	= 1 << 0
+} node_flag_t;
 
 typedef enum node_kind {
 	NODE_KIND_ID,
@@ -310,20 +311,15 @@ typedef struct node_module {
 } node_module_t;
 
 
-void
-node_link(node_t *node, node_t *current, node_t *it);
-
-void
-node_unlink(node_t *node, node_t* it);
-
-void
-node_clear(node_t *node);
 
 void
 node_destroy(node_t *node);
 
 node_t *
 node_create(node_t *scope, node_t *parent, position_t position);
+
+node_t *
+node_clone(node_t *source);
 
 node_t *
 node_make_id(node_t *node, char *value);
