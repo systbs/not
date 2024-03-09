@@ -86,7 +86,7 @@ main(int argc, char **argv)
 			}
     	return -1;
     }
-  /*
+
     int32_t result;
     result = syntax_run(&program, node);
     if(result == -1)
@@ -97,7 +97,6 @@ main(int argc, char **argv)
         }
     	return -1;
     }
-  */
 
     return 0;
 

@@ -11,7 +11,7 @@ typedef struct node {
 	void *value;
 
 	list_t *attachments;
-	
+
 	struct node *parent;
 	struct node *scope;
 } node_t;
@@ -143,13 +143,7 @@ typedef struct node_array {
 	list_t *list;
 } node_array_t;
 
-typedef struct node_object_property {
-	node_t *name;
-	node_t *value;
-} node_object_property_t;
-
 typedef struct node_object {
-	uint64_t flag;
 	list_t *list;
 } node_object_t;
 
@@ -270,7 +264,6 @@ typedef struct node_func {
 	node_t *generics;
 	node_t *key;
 	node_t *parameters;
-	node_t *results;
 	node_t *body;
 } node_func_t;
 
@@ -352,10 +345,7 @@ node_t *
 node_make_array(node_t *node, list_t *expr_list);
 
 node_t *
-node_make_object_property(node_t *node, node_t *name, node_t *value);
-
-node_t *
-node_make_object(node_t *node, uint64_t flag, list_t *property_list);
+node_make_object(node_t *node, list_t *properties);
 
 node_t *
 node_make_composite(node_t *node, node_t *base, node_t *arguments);
@@ -564,7 +554,7 @@ node_t *
 node_make_generics(node_t *node, list_t *list);
 
 node_t *
-node_make_func(node_t *node,uint64_t flag,node_t *key, node_t *generics, node_t *parameters, node_t *results, node_t *block);
+node_make_func(node_t *node,uint64_t flag,node_t *key, node_t *generics, node_t *parameters, node_t *block);
 
 node_t *
 node_make_lambda(node_t *node, node_t *parameters, node_t *block);

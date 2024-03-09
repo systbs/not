@@ -1,26 +1,26 @@
-export class Int<T>
+func Int3(args:Int)
+{
+  var {a, b} = object;
+  return teacher{T}(10);
+}
+
+export class {T} Int
 {
   func constructor (value:String)
   {
    
   }
 
-  func >> (value:Int) -> Int
+  func >> (value:Int) 
   {
     
   }
 }
 
-export class String extends (v : Int)
+export class Int2 extends (v : Int)
 {
-  func constructor (value:String)
-  {
-    
-  }
+  
 }
 
-func constructor<T>(args:Int)
-{
-  return teacher<Int<Int<Int>>>(10);
-}
+
 

@@ -2334,21 +2334,4 @@ scanner_advance(scanner_t *scanner)
 	return 1;
 }
 
-int32_t
-scanner_next_gt(scanner_t *scanner)
-{
-	scanner->token.type = TOKEN_GT;
-	scanner->offset = scanner->token.position.offset;
-	scanner->column = scanner->token.position.column;
-	scanner->line = scanner->token.position.line;
-	scanner->reading_offset = scanner->token.position.offset + 1;
-	if (scanner_next(scanner) == -1)
-	{
-		return -1;
-	}
-	if(scanner_skip_trivial(scanner) == -1)
-	{
-		return -1;
-	}
-	return 1;
-}
+

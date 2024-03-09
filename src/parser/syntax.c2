@@ -53,7 +53,11 @@ syntax_error(program_t *program, node_t *node, const char *format, ...)
 }
 
 
-
+typedef enum syntax_flag {
+    SYNTAX_FLAG_NONE = 0 << 0,
+    SYNTAX_FLAG_NEW = 1 << 0,
+    SYNTAX_FLAG_CALL = 1 << 1
+} syntax_flag_t;
 
 static int32_t
 syntax_func(program_t *program, node_t *node);
@@ -115,7 +119,7 @@ syntax_idstrcmp(node_t *n1, char *name)
 
 
 static int32_t
-syntax_id(program_t *program, node_t *node, list_t *response)
+syntax_id(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
     node_t *parent = node->parent;
     node_t *subroot = parent->end;
@@ -277,16 +281,24 @@ syntax_id(program_t *program, node_t *node, list_t *response)
             if (n1->kind == NODE_KIND_VAR)
             {
                 node_var_t *v1 = (node_var_t *)n1->value;
-                if (syntax_idcmp(node, v1->key) == 0)
+                if (v1->key->kind == NODE_KIND_ID)
                 {
-                    ilist_t *r1 = list_rpush(response, n1);
-                    if (r1 == NULL)
+                    if (syntax_idcmp(node, v1->key) == 0)
                     {
-                        fprintf(stderr, "unable to allocate memory\n");
-                        return -1;
+                        ilist_t *r1 = list_rpush(response, n1);
+                        if (r1 == NULL)
+                        {
+                            fprintf(stderr, "unable to allocate memory\n");
+                            return -1;
+                        }
                     }
+                    continue;
                 }
-                continue;
+                else
+                {
+                    syntax_error(program, n1, "under construction");
+                    return -1;
+                }
             }
             else
             if (n1->kind == NODE_KIND_IF)
@@ -355,7 +367,7 @@ syntax_id(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_number(program_t *program, node_t *node, list_t *response)
+syntax_number(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
     ilist_t *r1 = list_rpush(response, node);
     if (r1 == NULL)
@@ -367,7 +379,7 @@ syntax_number(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_string(program_t *program, node_t *node, list_t *response)
+syntax_string(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
 	ilist_t *r1 = list_rpush(response, node);
     if (r1 == NULL)
@@ -379,7 +391,7 @@ syntax_string(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_char(program_t *program, node_t *node, list_t *response)
+syntax_char(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
 	ilist_t *r1 = list_rpush(response, node);
     if (r1 == NULL)
@@ -391,7 +403,7 @@ syntax_char(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_null(program_t *program, node_t *node, list_t *response)
+syntax_null(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
 	ilist_t *r1 = list_rpush(response, node);
     if (r1 == NULL)
@@ -403,7 +415,7 @@ syntax_null(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_true(program_t *program, node_t *node, list_t *response)
+syntax_true(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
 	ilist_t *r1 = list_rpush(response, node);
     if (r1 == NULL)
@@ -415,7 +427,7 @@ syntax_true(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_false(program_t *program, node_t *node, list_t *response)
+syntax_false(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
 	ilist_t *r1 = list_rpush(response, node);
     if (r1 == NULL)
@@ -427,7 +439,7 @@ syntax_false(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_array(program_t *program, node_t *node, list_t *response)
+syntax_array(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
     ilist_t *r1 = list_rpush(response, node);
     if (r1 == NULL)
@@ -439,7 +451,7 @@ syntax_array(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_object(program_t *program, node_t *node, list_t *response)
+syntax_object(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
 	ilist_t *r1 = list_rpush(response, node);
     if (r1 == NULL)
@@ -451,18 +463,18 @@ syntax_object(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_parenthesis(program_t *program, node_t *node, list_t *response)
+syntax_parenthesis(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
 	node_unary_t *unary = (node_unary_t *)node->value;
     if (unary != NULL)
     {
-        return syntax_expression(program, unary->right, response);
+        return syntax_expression(program, unary->right, response, flag);
     }
     return 0;
 }
 
 static int32_t
-syntax_lambda(program_t *program, node_t *node, list_t *response)
+syntax_lambda(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
     node_lambda_t *lambda = (node_lambda_t *)node->value;
     
@@ -480,7 +492,7 @@ syntax_lambda(program_t *program, node_t *node, list_t *response)
                 fprintf(stderr, "unable to allocate memory\n");
                 return -1;
             }
-            int32_t result = syntax_parameter(program, parameter, response2);
+            int32_t result = syntax_parameter(program, parameter, response2, flag);
             if (result == -1)
             {
                 return -1;
@@ -525,7 +537,7 @@ syntax_lambda(program_t *program, node_t *node, list_t *response)
                 return -1;
             }
 
-            int32_t result = syntax_body(program, body, response2);
+            int32_t result = syntax_body(program, body, response2, flag);
             if (result == -1)
             {
                 return -1;
@@ -565,7 +577,7 @@ syntax_lambda(program_t *program, node_t *node, list_t *response)
                 return -1;
             }
 
-            int32_t result = syntax_expression(program, body, response2);
+            int32_t result = syntax_expression(program, body, response2, flag);
              if (result == -1)
             {
                 return -1;
@@ -602,67 +614,73 @@ syntax_lambda(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_primary(program_t *program, node_t *node, list_t *response)
+syntax_primary(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
 	if (node->kind == NODE_KIND_ID)
 	{
-		return syntax_id(program, node, response);
+		return syntax_id(program, node, response, flag);
 	}
 	else
 	if (node->kind == NODE_KIND_NUMBER)
 	{
-		return syntax_number(program, node, response);
+		return syntax_number(program, node, response, flag);
 	}
 	else
 	if (node->kind == NODE_KIND_STRING)
 	{
-		return syntax_string(program, node, response);
+		return syntax_string(program, node, response, flag);
 	}
 	else
 	if (node->kind == NODE_KIND_CHAR)
 	{
-		return syntax_char(program, node, response);
+		return syntax_char(program, node, response, flag);
 	}
 	else
 	if (node->kind == NODE_KIND_NULL)
 	{
-		return syntax_null(program, node, response);
+		return syntax_null(program, node, response, flag);
 	}
 	else
 	if (node->kind == NODE_KIND_TRUE)
 	{
-		return syntax_true(program, node, response);
+		return syntax_true(program, node, response, flag);
 	}
 	else
 	if (node->kind == NODE_KIND_FALSE)
 	{
-		return syntax_false(program, node, response);
+		return syntax_false(program, node, response, flag);
 	}
 	else
 	if (node->kind == NODE_KIND_ARRAY)
 	{
-		return syntax_array(program, node, response);
+		return syntax_array(program, node, response, flag);
 	}
 	else
 	if (node->kind == NODE_KIND_OBJECT)
 	{
-		return syntax_object(program, node, response);
+		return syntax_object(program, node, response, flag);
 	}
 	else
 	if (node->kind == NODE_KIND_LAMBDA)
 	{
-		return syntax_lambda(program, node, response);
+		return syntax_lambda(program, node, response, flag);
 	}
 	else
 	{
-		return syntax_parenthesis(program, node, response);
+		return syntax_parenthesis(program, node, response, flag);
 	}
 }
 
 static int32_t
-syntax_composite(program_t *program, node_t *node, list_t *response)
+syntax_match_gsas(program_t *program, node_t *gs1, node_t *as1)
 {
-	node_composite_t *node_composite = (node_composite_t *)node->value;
+    return 1;
+}
+
+static int32_t
+syntax_composite(program_t *program, node_t *node, list_t *response, uint64_t flag)
+{
+	node_composite_t *nc1 = (node_composite_t *)node->value;
 
     list_t *response2 = list_create();
     if (response2 == NULL)
@@ -672,7 +690,7 @@ syntax_composite(program_t *program, node_t *node, list_t *response)
     }
 
     int32_t result;
-    result = syntax_expression(program, node_composite->base, response2);
+    result = syntax_expression(program, nc1->base, response2, flag);
     if (result == -1)
     {
         return -1;
@@ -686,11 +704,11 @@ syntax_composite(program_t *program, node_t *node, list_t *response)
         node_t *rn1 = (node_t *)r1->value;
         if (rn1->kind == NODE_KIND_CLASS)
         {
-            node_class_t *nc1 = (node_class_t *)r1->value;
-            node_t *ngs1 = nc1->generics;
+            node_class_t *nc2 = (node_class_t *)r1->value;
+            node_t *ngs1 = nc2->generics;
             if (ngs1 != NULL)
             {
-                int32_t r2 = syntax_match_gsas(program, ngs1, node_composite->arguments);
+                int32_t r2 = syntax_match_gsas(program, ngs1, nc1->arguments);
                 if (r2 == -1)
                 {
                     return -1;
@@ -711,11 +729,11 @@ syntax_composite(program_t *program, node_t *node, list_t *response)
         else
         if (rn1->kind == NODE_KIND_FUNC)
         {
-            node_func_t *nc1 = (node_func_t *)r1->value;
-            node_t *ngs1 = nc1->generics;
+            node_func_t *nf1 = (node_func_t *)r1->value;
+            node_t *ngs1 = nf1->generics;
             if (ngs1 != NULL)
             {
-                int32_t r2 = syntax_match_gsas(program, ngs1, node_composite->arguments);
+                int32_t r2 = syntax_match_gsas(program, ngs1, nc1->arguments);
                 if (r2 == -1)
                 {
                     return -1;
@@ -744,9 +762,33 @@ syntax_composite(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_call(program_t *program, node_t *node, list_t *response)
+syntax_upper_access(program_t *program, node_t *target, node_t *current)
 {
-	node_carrier_t *node_carrier = (node_carrier_t *)node->value;
+    if (current->id == target->id)
+    {
+        return 1;
+    }
+    else
+    if (current->scope != NULL)
+    {
+        return syntax_upper_access(program, target, current->scope);
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+static int32_t
+syntax_match_psds(program_t *program, node_t *ps1, node_t *ds1)
+{
+    return 1;
+}
+
+static int32_t
+syntax_call(program_t *program, node_t *node, list_t *response, uint64_t flag)
+{
+	node_carrier_t *nc1 = (node_carrier_t *)node->value;
 
     list_t *response2 = list_create();
     if (response2 == NULL)
@@ -756,7 +798,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
     }
 
     int32_t result;
-    result = syntax_expression(program, node_carrier->base, response2);
+    result = syntax_expression(program, nc1->base, response2, flag);
     if (result == -1)
     {
         return -1;
@@ -778,8 +820,8 @@ syntax_call(program_t *program, node_t *node, list_t *response)
             node_t *rn1 = (node_t *)r1->value;
             if (rn1->kind == NODE_KIND_CLASS)
             {
-                node_class_t *nc1 = (node_class_t *)r1->value;
-                node_t *n1 = nc1->block;
+                node_class_t *nc2 = (node_class_t *)r1->value;
+                node_t *n1 = nc2->block;
                 node_block_t *nb1 = (node_block_t *)n1->value;
 
                 ilist_t *a1;
@@ -794,7 +836,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                             node_t *nps1 = f1->parameters;
                             if (nps1 != NULL)
                             {
-                                int32_t r2 = syntax_match_psds(program, nps1, node_carrier->arguments);
+                                int32_t r2 = syntax_match_psds(program, nps1, nc1->arguments);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -802,6 +844,34 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                                 else
                                 if (r2 == 1)
                                 {
+                                    int32_t r4 = syntax_upper_access(program, rn1->scope, nc1->base->scope);
+                                    if (r4 == 0)
+                                    {
+                                        if (nc2->flag & PARSER_MODIFIER_EXPORT != PARSER_MODIFIER_EXPORT)
+                                        {
+                                            syntax_error(program, rn1, "limited access");
+                                            return -1;
+                                        }
+
+                                        if (nc2->flag & PARSER_MODIFIER_PROTECTED == PARSER_MODIFIER_PROTECTED)
+                                        {
+                                            syntax_error(program, rn1, "limited access");
+                                            return -1;
+                                        }
+
+                                        if (f1->flag & PARSER_MODIFIER_EXPORT != PARSER_MODIFIER_EXPORT)
+                                        {
+                                            syntax_error(program, an1, "limited access");
+                                            return -1;
+                                        }
+
+                                        if (f1->flag & PARSER_MODIFIER_PROTECTED == PARSER_MODIFIER_PROTECTED)
+                                        {
+                                            syntax_error(program, an1, "limited access");
+                                            return -1;
+                                        }
+                                    }
+
                                     node_t *clone1 = node_clone(rn1);
                                     ilist_t *r3 = list_rpush(response, clone1);
                                     if (r3 == NULL)
@@ -828,7 +898,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                 node_t *nps1 = f1->parameters;
                 if (nps1 != NULL)
                 {
-                    int32_t r2 = syntax_match_psds(program, nps1, node_carrier->arguments);
+                    int32_t r2 = syntax_match_psds(program, nps1, nc1->arguments);
                     if (r2 == -1)
                     {
                         return -1;
@@ -843,48 +913,247 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                             return -1;
                         }
 
-                        int32_t result2;
-                        result2 = syntax_expression(program, f1->results, response3);
-                        if (result2 == -1)
+                        int32_t r3;
+                        r3 = syntax_func(program, f1, response3, flag);
+                        if (r3 == -1)
                         {
                             return -1;
                         }
                         else
-                        if (result2 == 0)
+                        if (r3 == 0)
                         {
-                            syntax_error(program, f1->results, "reference not found");
+                            syntax_error(program, f1, "reference not found");
                             return -1;
                         }
                         else
                         {
-                            uint64_t cnt1 = 0;
-                            ilist_t *r2, *rr2;
-                            for (r2 = response3->begin; r2 != response3->end; r2 = rr2)
+                            ilist_t *r4, *rp4;
+                            for (r4 = response3->begin; r4 != response3->end; r4 = rp4)
                             {
-                                rr2 = r2->next;
-                                node_t *rn2 = (node_t *)r2->value;
-                                ilist_t *r3 = list_rpush(response, rn2);
-                                if (r3 == NULL)
+                                rp4 = r4->next;
+                                node_t *rn2 = (node_t *)r4->value;
+                                ilist_t *r5 = list_rpush(response, rn2);
+                                if (r5 == NULL)
                                 {
                                     fprintf(stderr, "unable to allocate memory\n");
                                     return -1;
                                 }
-                                list_unlink(response2, r2);
+                                list_unlink(response2, r4);
                                 if ((rn2->flag & NODE_FLAG_TEMPORARY) == NODE_FLAG_TEMPORARY)
                                 {
                                     node_destroy(rn2);
                                 }
                                 impression += 1;
-                                cnt1 += 1;
                             }
+                        }
+                    }
+                }
+            }
+            else
+            if (rn1->kind == NODE_KIND_GENERIC)
+            {
+                node_generic_t *ng = (node_generic_t *)rn1->value;
+                if (ng->type != NULL)
+                {
+                    list_t *response3 = list_create();
+                    if (response3 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
 
-                            if (cnt1 > 1)
+                    int32_t result2;
+                    result2 = syntax_expression(program, ng->type, response3, flag);
+                    if (result2 == -1)
+                    {
+                        return -1;
+                    }
+                    else
+                    if (result2 == 0)
+                    {
+                        syntax_error(program, ng->type, "reference not found");
+                        return -1;
+                    }
+                    else
+                    {
+                        uint64_t cnt1 = 0;
+                        ilist_t *r2, *rr2;
+                        for (r2 = response3->begin; r2 != response3->end; r2 = rr2)
+                        {
+                            rr2 = r2->next;
+                            node_t *rn2 = (node_t *)r2->value;
+                            if (rn2->kind == NODE_KIND_CLASS)
                             {
-                                syntax_error(program, f1->results, "multiple reference");
+                                node_class_t *nc1 = (node_class_t *)rn2->value;
+                                node_t *n1 = nc1->block;
+                                node_block_t *nb1 = (node_block_t *)n1->value;
+
+                                ilist_t *a1;
+                                for (a1 = nb1->list->begin; a1 != nb1->list->end; a1 = a1->next)
+                                {
+                                    node_t *an1 = (node_t *)a1->value;
+                                    if (an1->kind == NODE_KIND_FUNC)
+                                    {
+                                        node_func_t *f1 = (node_func_t *)an1->value;
+                                        if (syntax_idstrcmp(f1->key, "constructor") == 0)
+                                        {
+                                            node_t *nps1 = f1->parameters;
+                                            if (nps1 != NULL)
+                                            {
+                                                int32_t r3 = syntax_match_psds(program, nps1, nc1->arguments);
+                                                if (r3 == -1)
+                                                {
+                                                    return -1;
+                                                }
+                                                else
+                                                if (r3 == 1)
+                                                {
+                                                    if (nc1->flag & PARSER_MODIFIER_EXPORT != PARSER_MODIFIER_EXPORT)
+                                                    {
+                                                        syntax_error(program, rn2, "limited access");
+                                                        return -1;
+                                                    }
+
+                                                    if (f1->flag & PARSER_MODIFIER_EXPORT != PARSER_MODIFIER_EXPORT)
+                                                    {
+                                                        syntax_error(program, an1, "limited access");
+                                                        return -1;
+                                                    }
+
+                                                    node_t *clone1 = node_clone(rn2);
+                                                    ilist_t *r4 = list_rpush(response, clone1);
+                                                    if (r4 == NULL)
+                                                    {
+                                                        fprintf(stderr, "unable to allocate memory\n");
+                                                        return -1;
+                                                    }
+                                                    list_unlink(response3, r2);
+                                                    if ((rn2->flag & NODE_FLAG_TEMPORARY) == NODE_FLAG_TEMPORARY)
+                                                    {
+                                                        node_destroy(rn2);
+                                                    }
+                                                    impression += 1;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                syntax_error(program, ng->type, "generic type not valid");
                                 return -1;
                             }
                         }
                     }
+                }
+                else
+                {
+                    syntax_error(program, rn1, "call generic without specified type");
+                    return -1;
+                }
+            }
+            else
+            if (rn1->kind == NODE_KIND_HERITAGE)
+            {
+                node_heritage_t *nh1 = (node_heritage_t *)rn1->value;
+                if (nh1->type != NULL)
+                {
+                    list_t *response3 = list_create();
+                    if (response3 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+
+                    int32_t result2;
+                    result2 = syntax_expression(program, nh1->type, response3, flag);
+                    if (result2 == -1)
+                    {
+                        return -1;
+                    }
+                    else
+                    if (result2 == 0)
+                    {
+                        syntax_error(program, nh1->type, "reference not found");
+                        return -1;
+                    }
+                    else
+                    {
+                        ilist_t *r2, *rr2;
+                        for (r2 = response3->begin; r2 != response3->end; r2 = rr2)
+                        {
+                            rr2 = r2->next;
+                            node_t *rn2 = (node_t *)r2->value;
+                            if (rn2->kind == NODE_KIND_CLASS)
+                            {
+                                node_class_t *nc1 = (node_class_t *)rn2->value;
+                                node_t *n1 = nc1->block;
+                                node_block_t *nb1 = (node_block_t *)n1->value;
+
+                                ilist_t *a1;
+                                for (a1 = nb1->list->begin; a1 != nb1->list->end; a1 = a1->next)
+                                {
+                                    node_t *an1 = (node_t *)a1->value;
+                                    if (an1->kind == NODE_KIND_FUNC)
+                                    {
+                                        node_func_t *f1 = (node_func_t *)an1->value;
+                                        if (syntax_idstrcmp(f1->key, "constructor") == 0)
+                                        {
+                                            node_t *nps1 = f1->parameters;
+                                            if (nps1 != NULL)
+                                            {
+                                                int32_t r3 = syntax_match_psds(program, nps1, nc1->arguments);
+                                                if (r3 == -1)
+                                                {
+                                                    return -1;
+                                                }
+                                                else
+                                                if (r3 == 1)
+                                                {
+                                                    if (nc1->flag & PARSER_MODIFIER_EXPORT != PARSER_MODIFIER_EXPORT)
+                                                    {
+                                                        syntax_error(program, rn2, "limited access");
+                                                        return -1;
+                                                    }
+
+                                                    if (f1->flag & PARSER_MODIFIER_EXPORT != PARSER_MODIFIER_EXPORT)
+                                                    {
+                                                        syntax_error(program, an1, "limited access");
+                                                        return -1;
+                                                    }
+
+                                                    node_t *clone1 = node_clone(rn2);
+                                                    ilist_t *r4 = list_rpush(response, clone1);
+                                                    if (r4 == NULL)
+                                                    {
+                                                        fprintf(stderr, "unable to allocate memory\n");
+                                                        return -1;
+                                                    }
+                                                    list_unlink(response3, r2);
+                                                    if ((rn2->flag & NODE_FLAG_TEMPORARY) == NODE_FLAG_TEMPORARY)
+                                                    {
+                                                        node_destroy(rn2);
+                                                    }
+                                                    impression += 1;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                syntax_error(program, nh->type, "heritage type not valid");
+                                return -1;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    syntax_error(program, rn1, "call generic without specified type");
+                    return -1;
                 }
             }
             else
@@ -894,19 +1163,17 @@ syntax_call(program_t *program, node_t *node, list_t *response)
             }
         }
 
-    }
-
-    if (impression > 0)
-    {
-        return 1;
+        if (impression > 0)
+        {
+            return 1;
+        }
     }
 
     return 0;
-
 }
 
 static int32_t
-syntax_item(program_t *program, node_t *node, list_t *response)
+syntax_item(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
 	node_carrier_t *node_carrier = (node_carrier_t *)node->value;
 
@@ -918,46 +1185,79 @@ syntax_item(program_t *program, node_t *node, list_t *response)
     }
 
     int32_t result;
-    result = syntax_expression(program, node_carrier->base, response2);
+    result = syntax_expression(program, node_carrier->base, response2, flag);
     if (result == -1)
     {
         return -1;
     }
-
-    int32_t *impression = 0;
-
-    ilist_t *r1;
-    for (r1 = response2->begin; r1 != response2->end; r1 = r1->next)
+    else
+    if (result == 0)
     {
-        node_t *rn1 = (node_t *)r1->value;
-        if (rn1->kind == NODE_KIND_CLASS)
-        {
-            node_class_t *nc1 = (node_class_t *)r1->value;
-            node_t *n1 = nc1->block;
-            node_block_t *nb1 = (node_block_t *)n1->value;
+        syntax_error(program, node, "reference not found");
+        return -1;
+    }
+    else
+    {
+        int32_t *impression = 0;
 
-            ilist_t *a1;
-            for (a1 = nb1->list->begin; a1 != nb1->list->end; a1 = a1->next)
+        ilist_t *r1;
+        for (r1 = response2->begin; r1 != response2->end; r1 = r1->next)
+        {
+            node_t *rn1 = (node_t *)r1->value;
+            if (rn1->kind == NODE_KIND_CLASS)
             {
-                node_t *an1 = (node_t *)a1->value;
-                if (an1->kind == NODE_KIND_FUNC)
+                node_class_t *nc1 = (node_class_t *)r1->value;
+                node_t *n1 = nc1->block;
+                node_block_t *nb1 = (node_block_t *)n1->value;
+
+                ilist_t *a1;
+                for (a1 = nb1->list->begin; a1 != nb1->list->end; a1 = a1->next)
                 {
-                    node_func_t *f1 = (node_func_t *)an1->value;
-                    if (syntax_idstrcmp(f1->key, "[]") == 0)
+                    node_t *an1 = (node_t *)a1->value;
+                    if (an1->kind == NODE_KIND_FUNC)
                     {
-                        node_t *nps1 = f1->parameters;
-                        if (nps1 != NULL)
+                        node_func_t *f1 = (node_func_t *)an1->value;
+                        if (syntax_idstrcmp(f1->key, "[]") == 0)
                         {
-                            int32_t r2 = syntax_match_psds(program, nps1, node_carrier->arguments);
-                            if (r2 == -1)
+                            node_t *nps1 = f1->parameters;
+                            if (nps1 != NULL)
                             {
-                                return -1;
-                            }
-                            else
-                            if (r2 == 1)
-                            {
-                                if(f1->results != NULL)
+                                int32_t r2 = syntax_match_psds(program, nps1, node_carrier->arguments);
+                                if (r2 == -1)
                                 {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    int32_t r3 = syntax_upper_access(program, rn1->scope, node_carrier->base->scope);
+                                    if (r3 == 0)
+                                    {
+                                        if (nc1->flag & PARSER_MODIFIER_EXPORT != PARSER_MODIFIER_EXPORT)
+                                        {
+                                            syntax_error(program, rn1, "limited access");
+                                            return -1;
+                                        }
+
+                                        if (nc1->flag & PARSER_MODIFIER_PROTECTED == PARSER_MODIFIER_PROTECTED)
+                                        {
+                                            syntax_error(program, rn1, "limited access");
+                                            return -1;
+                                        }
+
+                                        if (f1->flag & PARSER_MODIFIER_EXPORT != PARSER_MODIFIER_EXPORT)
+                                        {
+                                            syntax_error(program, an1, "limited access");
+                                            return -1;
+                                        }
+
+                                        if (f1->flag & PARSER_MODIFIER_PROTECTED == PARSER_MODIFIER_PROTECTED)
+                                        {
+                                            syntax_error(program, an1, "limited access");
+                                            return -1;
+                                        }
+                                    }
+
                                     list_t *response3 = list_create();
                                     if (response3 == NULL)
                                     {
@@ -965,32 +1265,24 @@ syntax_item(program_t *program, node_t *node, list_t *response)
                                         return -1;
                                     }
 
-                                    int32_t result2;
-                                    result2 = syntax_expression(program, f1->results, response3);
-                                    if (result2 == -1)
+                                    int32_t r4 = syntax_func(program, f1, response3, flag);
+                                    if (r4 == -1)
                                     {
                                         return -1;
                                     }
 
-                                    uint64_t cnt1 = 0;
-                                    ilist_t *r3;
-                                    for (r3 = response3->begin; r3 != response3->end; r3 = r3->next)
+                                    ilist_t *r5;
+                                    for (r5 = response3->begin; r5 != response3->end; r5 = r5->next)
                                     {
-                                        node_t *rn2 = (node_t *)r3->value;
+                                        node_t *rn2 = (node_t *)r5->value;
 
-                                        ilist_t *r4 = list_rpush(response, rn2);
-                                        if (r4 == NULL)
+                                        ilist_t *r6 = list_rpush(response, rn2);
+                                        if (r6 == NULL)
                                         {
                                             fprintf(stderr, "unable to allocate memory\n");
                                             return -1;
                                         }
                                         impression += 1;
-                                        cnt1 += 1;
-                                    }
-                                    if (cnt1 > 1)
-                                    {
-                                        syntax_error(program, node, "multiple response");
-                                        return -1;
                                     }
                                 }
                             }
@@ -998,21 +1290,234 @@ syntax_item(program_t *program, node_t *node, list_t *response)
                     }
                 }
             }
+            else
+            if (rn1->kind == NODE_KIND_ARRAY)
+            {
+                syntax_error(program, node, "yet not made");
+                return -1;
+            }
+            else
+            {
+                syntax_error(program, node, "unexpected, got array/class");
+                return -1;
+            }
         }
-        else
-        if (rn1->kind == NODE_KIND_ARRAY)
+
+        if (impression > 0)
         {
-            syntax_error(program, node, "yet not made");
-            return -1;
-        }
-        else
-        {
-            syntax_error(program, node, "unexpected, got array/class");
-            return -1;
+            return 1;
         }
     }
 
-    if (impression > 0)
+    return 0;
+}
+
+static int32_t
+syntax_nest(program_t *program, node_t *base, node_t *node, list_t *response, uint64_t flag)
+{
+    node_class_t *nc1 = (node_class_t *)base->value;
+    node_t *n1 = nc1->block;
+    node_block_t *nb1 = (node_block_t *)n1->value;
+    
+    ilist_t *b1;
+    for (b1 = nb1->list->begin;b1 != nb1->list->end;b1 = b1->next)
+    {
+        node_t *n2 = (node_t *)b1->value;
+        if (n2->kind == NODE_KIND_CLASS)
+        {
+            node_class_t *nc2 = (node_class_t *)n2->value;
+            if (syntax_idcmp(node, nc2->key) == 0)
+            {
+                if ((flag & SYNTAX_FLAG_NEW) != SYNTAX_FLAG_NEW)
+                {
+                    if (nc2->flag & PARSER_MODIFIER_STATIC != PARSER_MODIFIER_STATIC)
+                    {
+                        syntax_error(program, n2, "non-static access");
+                        return -1;
+                    }
+                }
+
+                if (nc2->flag & PARSER_MODIFIER_EXPORT != PARSER_MODIFIER_EXPORT)
+                {
+                    syntax_error(program, n2, "limited access");
+                    return -1;
+                }
+
+                if (nc2->flag & PARSER_MODIFIER_PROTECTED == PARSER_MODIFIER_PROTECTED)
+                {
+                    syntax_error(program, n2, "limited access");
+                    return -1;
+                }
+
+                ilist_t *r1 = list_rpush(response, n2);
+                if (r1 == NULL)
+                {
+                    fprintf(stderr, "unable to allocate memory\n");
+                    return -1;
+                }
+            }
+            continue;
+        }
+        else
+        if (n2->kind == NODE_KIND_ENUM)
+        {
+            node_enum_t *ne1 = (node_enum_t *)n2->value;
+            if (syntax_idcmp(node, ne1->key) == 0)
+            {
+                if ((flag & SYNTAX_FLAG_NEW) != SYNTAX_FLAG_NEW)
+                {
+                    if (ne1->flag & PARSER_MODIFIER_STATIC != PARSER_MODIFIER_STATIC)
+                    {
+                        syntax_error(program, n2, "non-static access");
+                        return -1;
+                    }
+                }
+
+                if (ne1->flag & PARSER_MODIFIER_EXPORT != PARSER_MODIFIER_EXPORT)
+                {
+                    syntax_error(program, n2, "limited access");
+                    return -1;
+                }
+
+                if (ne1->flag & PARSER_MODIFIER_PROTECTED == PARSER_MODIFIER_PROTECTED)
+                {
+                    syntax_error(program, n2, "limited access");
+                    return -1;
+                }
+
+                ilist_t *r1 = list_rpush(response, n2);
+                if (r1 == NULL)
+                {
+                    fprintf(stderr, "unable to allocate memory\n");
+                    return -1;
+                }
+            }
+            continue;
+        }
+        else
+        if (n2->kind == NODE_KIND_PROPERTY)
+        {
+            node_property_t *np1 = (node_property_t *)n2->value;
+            if (syntax_idcmp(node, np1->key) == 0)
+            {
+                if ((flag & SYNTAX_FLAG_NEW) != SYNTAX_FLAG_NEW)
+                {
+                    if (np1->flag & PARSER_MODIFIER_STATIC != PARSER_MODIFIER_STATIC)
+                    {
+                        syntax_error(program, n2, "non-static access");
+                        return -1;
+                    }
+                }
+
+                if (np1->flag & PARSER_MODIFIER_EXPORT != PARSER_MODIFIER_EXPORT)
+                {
+                    syntax_error(program, n2, "limited access");
+                    return -1;
+                }
+
+                if (np1->flag & PARSER_MODIFIER_PROTECTED == PARSER_MODIFIER_PROTECTED)
+                {
+                    syntax_error(program, n2, "limited access");
+                    return -1;
+                }
+
+                ilist_t *r1 = list_rpush(response, n2);
+                if (r1 == NULL)
+                {
+                    fprintf(stderr, "unable to allocate memory\n");
+                    return -1;
+                }
+            }
+            continue;
+        }
+        else
+        if (n2->kind == NODE_KIND_FUNC)
+        {
+            node_func_t *nf1 = (node_func_t *)n2->value;
+            if (syntax_idcmp(node, nf1->key) == 0)
+            {
+                if ((flag & SYNTAX_FLAG_NEW) != SYNTAX_FLAG_NEW)
+                {
+                    if (nf1->flag & PARSER_MODIFIER_STATIC != PARSER_MODIFIER_STATIC)
+                    {
+                        syntax_error(program, n2, "non-static access");
+                        return -1;
+                    }
+                }
+
+                if (nf1->flag & PARSER_MODIFIER_EXPORT != PARSER_MODIFIER_EXPORT)
+                {
+                    syntax_error(program, n2, "limited access");
+                    return -1;
+                }
+
+                if (nf1->flag & PARSER_MODIFIER_PROTECTED == PARSER_MODIFIER_PROTECTED)
+                {
+                    syntax_error(program, n2, "limited access");
+                    return -1;
+                }
+
+                ilist_t *r1 = list_rpush(response, n2);
+                if (r1 == NULL)
+                {
+                    fprintf(stderr, "unable to allocate memory\n");
+                    return -1;
+                }
+            }
+            continue;
+        }
+    }
+
+    node_t *n2 = nc1->heritages;
+    node_block_t *nb2 = (node_block_t *)n2->value;
+    ilist_t *b2;
+    for (b2 = nb2->list->begin;b2 != nb2->list->end;b2 = b2->next)
+    {
+        node_t *n3 = (node_t *)b2->value;
+        node_heritage_t *nb2 = (node_heritage_t *)n3->value;
+
+        list_t *response2 = list_create();
+        if (response2 == NULL)
+        {
+            fprintf(stderr, "unable to allocate memory\n");
+            return -1;
+        }
+
+        int32_t r1;
+        r1 = syntax_expression(program, nh1->type, response2, flag);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        if (r1 == 0)
+        {
+            syntax_error(program, nh1->type, "reference not found");
+            return -1;
+        }
+        else
+        {
+            ilist_t *r2, *rr2;
+            for (r2 = response2->end; r2 != response2->begin; r2 = rr2)
+            {
+                rr2 = r2->previous;
+                node_t *rn1 = (node_t *)r2->value;
+
+                int32_t r3 = syntax_nest(program, rn1, node, response, flag);
+                if (r3 == -1)
+                {
+                    return -1;
+                }
+                else
+                if (r3 == 1)
+                {
+                    return 1;
+                }
+            }
+        }
+    }
+
+    if (list_count(response) > 0)
     {
         return 1;
     }
@@ -1021,7 +1526,7 @@ syntax_item(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_attribute(program_t *program, node_t *node, list_t *response)
+syntax_attribute(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
     node_binary_t *node_binary = (node_binary_t *)node->value;
 
@@ -1033,13 +1538,11 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
     }
 
     int32_t result;
-    result = syntax_expression(program, node_binary->left, response2);
+    result = syntax_expression(program, node_binary->left, response2, flag);
     if (result == -1)
     {
         return -1;
     }
-
-    int32_t *impression = 0;
 
     ilist_t *r1;
     for (r1 = response2->begin; r1 != response2->end; r1 = r1->next)
@@ -1054,24 +1557,13 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
             }
         }
         else
-        if (rn1->kind == NODE_KIND_FUNC)
         {
-            node_func_t *f1 = (node_func_t *)rn1->value;
-
-            if (syntax_idcmp(f1->key, node_binary->right) == 0)
-            {
-                ilist_t *r2 = list_rpush(response, rn1);
-                if (r2 == NULL)
-                {
-                    fprintf(stderr, "unable to allocate memory\n");
-                    return -1;
-                }
-                impression += 1;
-            }
+            syntax_error(program, rn1, "non-class access");
+            return -1;
         }
     }
 
-    if (impression > 0)
+    if (list_count(response) > 0)
     {
         return 1;
     }
@@ -1080,13 +1572,12 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_postfix(program_t *program, node_t *node, list_t *response)
+syntax_postfix(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
 	if (node->kind == NODE_KIND_COMPOSITE)
 	{
-		int32_t result;
-		result = syntax_composite(program, scope, node);
-		if (result == -1)
+		int32_t r1 = syntax_composite(program, node, response, flag);
+		if (r1 == -1)
 		{
 			return -1;
 		}
@@ -1095,9 +1586,8 @@ syntax_postfix(program_t *program, node_t *node, list_t *response)
 	else
 	if (node->kind == NODE_KIND_CALL)
 	{
-		int32_t result;
-		result = syntax_call(program, scope, node);
-		if (result == -1)
+		int32_t r1 = syntax_call(program, node, response, flag);
+		if (r1 == -1)
 		{
 			return -1;
 		}
@@ -1106,9 +1596,8 @@ syntax_postfix(program_t *program, node_t *node, list_t *response)
 	else
 	if (node->kind == NODE_KIND_GET_ITEM)
 	{
-		int32_t result;
-		result = syntax_item(program, scope, node);
-		if (result == -1)
+		int32_t r1 = syntax_item(program, node, response, flag);
+		if (r1 == -1)
 		{
 			return -1;
 		}
@@ -1117,9 +1606,8 @@ syntax_postfix(program_t *program, node_t *node, list_t *response)
 	else
 	if (node->kind == NODE_KIND_ATTRIBUTE)
 	{
-		int32_t result;
-		result = syntax_attribute(program, scope, node);
-		if (result == -1)
+		int32_t r1 = syntax_attribute(program, node, response, flag);
+		if (r1 == -1)
 		{
 			return -1;
 		}
@@ -1127,9 +1615,8 @@ syntax_postfix(program_t *program, node_t *node, list_t *response)
 	}
 	else
 	{
-		int32_t result;
-		result = syntax_primary(program, scope, node);
-		if (result == -1)
+		int32_t r1 = syntax_primary(program, node, response, flag);
+		if (r1 == -1)
 		{
 			return -1;
 		}
@@ -1138,85 +1625,487 @@ syntax_postfix(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_prefix(program_t *program, node_t *node, list_t *response)
+syntax_prefix(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
 	if(node->kind == NODE_KIND_TILDE)
 	{
-		node_unary_t *node_unary = (node_unary_t *)node->value;
+		node_unary_t *nu1 = (node_unary_t *)node->value;
 
-        int32_t result;
-        result = syntax_prefix(program, scope, node_unary->right);
-        if (result == -1)
+        list_t *response2 = list_create();
+        if (response2 == NULL)
         {
+            fprintf(stderr, "unable to allocate memory\n");
             return -1;
         }
 
-        return 1;
+        int32_t r1 = syntax_prefix(program, nu1->right, response2, flag);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        if (r1 == 0)
+        {
+            syntax_error(program, nu1->right, "reference not found")
+            return -1;
+        }
+        else
+        {
+            ilist_t *r2, *rr1;
+            for (r2 = response2->begin; r2 != response2->end; r2 = rr1)
+            {
+                rr1 = r2->next;
+                node_t *rn1 = (node_t *)r2->value;
+                if (rn1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *nc1 = (node_class_t *)r2->value;
+                    node_t *n1 = nc1->block;
+                    node_block_t *nb1 = (node_block_t *)n1->value;
+
+                    int32_t *impression = 0;
+
+                    ilist_t *a1;
+                    for (a1 = nb1->list->begin; a1 != nb1->list->end; a1 = a1->next)
+                    {
+                        node_t *an1 = (node_t *)a1->value;
+                        if (an1->kind == NODE_KIND_FUNC)
+                        {
+                            node_func_t *f1 = (node_func_t *)an1->value;
+                            if (syntax_idstrcmp(f1->key, "~") == 0)
+                            {
+                                list_t *response3 = list_create();
+                                if (response3 == NULL)
+                                {
+                                    fprintf(stderr, "unable to allocate memory\n");
+                                    return -1;
+                                }
+
+                                int32_t r3 = syntax_func(program, f1, response3, flag);
+                                if (r3 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r3 == 0)
+                                {
+                                    syntax_error(program, f1, "reference not found");
+                                    return -1;
+                                }
+                                else
+                                {
+                                    ilist_t *r4, *rp3;
+                                    for (r4 = response3->begin; r4 != response3->end; r4 = rp3)
+                                    {
+                                        rp3 = r4->next;
+                                        node_t *rn3 = (node_t *)r4->value;
+                                        ilist_t *r5 = list_rpush(response, rn3);
+                                        if (r5 == NULL)
+                                        {
+                                            fprintf(stderr, "unable to allocate memory\n");
+                                            return -1;
+                                        }
+                                        list_unlink(response2, r4);
+                                        if ((rn2->flag & NODE_FLAG_TEMPORARY) == NODE_FLAG_TEMPORARY)
+                                        {
+                                            node_destroy(rn3);
+                                        }
+                                        impression += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (impression > 0)
+                    {
+                        return 1;
+                    }
+
+                    return 0;
+                }
+                else
+                if (rn1->kind == NODE_KIND_NUMBER)
+                {
+                    ilist_t *r3 = list_rpush(response, rn1);
+                    if (r3 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                    return 1;
+                }
+                else
+                {
+                    syntax_error(program, rn1, "prefix with non-number/class");
+                    return -1;
+                }
+            }
+        }
+
+        return 0;
 	}
 	else 
 	if(node->kind == NODE_KIND_NOT)
 	{
-		node_unary_t *node_unary = (node_unary_t *)node->value;
+		node_unary_t *nu1 = (node_unary_t *)node->value;
 
-        int32_t result;
-        result = syntax_prefix(program, scope, node_unary->right);
-        if (result == -1)
+        list_t *response2 = list_create();
+        if (response2 == NULL)
         {
+            fprintf(stderr, "unable to allocate memory\n");
             return -1;
         }
 
-        return 1;
+        int32_t r1 = syntax_prefix(program, nu1->right, response2, flag);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        if (r1 == 0)
+        {
+            syntax_error(program, nu1->right, "reference not found")
+            return -1;
+        }
+        else
+        {
+            ilist_t *r2, *rr1;
+            for (r2 = response2->begin; r2 != response2->end; r2 = rr1)
+            {
+                rr1 = r2->next;
+                node_t *rn1 = (node_t *)r2->value;
+                if (rn1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *nc1 = (node_class_t *)r2->value;
+                    node_t *n1 = nc1->block;
+                    node_block_t *nb1 = (node_block_t *)n1->value;
+
+                    int32_t *impression = 0;
+
+                    ilist_t *a1;
+                    for (a1 = nb1->list->begin; a1 != nb1->list->end; a1 = a1->next)
+                    {
+                        node_t *an1 = (node_t *)a1->value;
+                        if (an1->kind == NODE_KIND_FUNC)
+                        {
+                            node_func_t *f1 = (node_func_t *)an1->value;
+                            if (syntax_idstrcmp(f1->key, "!") == 0)
+                            {
+                                list_t *response3 = list_create();
+                                if (response3 == NULL)
+                                {
+                                    fprintf(stderr, "unable to allocate memory\n");
+                                    return -1;
+                                }
+
+                                int32_t r3 = syntax_func(program, f1, response3, flag);
+                                if (r3 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r3 == 0)
+                                {
+                                    syntax_error(program, f1, "reference not found");
+                                    return -1;
+                                }
+                                else
+                                {
+                                    ilist_t *r4, *rp3;
+                                    for (r4 = response3->begin; r4 != response3->end; r4 = rp3)
+                                    {
+                                        rp3 = r4->next;
+                                        node_t *rn3 = (node_t *)r4->value;
+                                        ilist_t *r5 = list_rpush(response, rn3);
+                                        if (r5 == NULL)
+                                        {
+                                            fprintf(stderr, "unable to allocate memory\n");
+                                            return -1;
+                                        }
+                                        list_unlink(response2, r4);
+                                        if ((rn2->flag & NODE_FLAG_TEMPORARY) == NODE_FLAG_TEMPORARY)
+                                        {
+                                            node_destroy(rn3);
+                                        }
+                                        impression += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (impression > 0)
+                    {
+                        return 1;
+                    }
+
+                    return 0;
+                }
+                else
+                if (rn1->kind == NODE_KIND_NUMBER)
+                {
+                    ilist_t *r3 = list_rpush(response, rn1);
+                    if (r3 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                    return 1;
+                }
+                else
+                {
+                    syntax_error(program, rn1, "prefix with non-number/class");
+                    return -1;
+                }
+            }
+        }
+
+        return 0;
 	}
 	else 
 	if(node->kind == NODE_KIND_NEG)
 	{
-		node_unary_t *node_unary = (node_unary_t *)node->value;
+		node_unary_t *nu1 = (node_unary_t *)node->value;
 
-        int32_t result;
-        result = syntax_prefix(program, scope, node_unary->right);
-        if (result == -1)
+        list_t *response2 = list_create();
+        if (response2 == NULL)
         {
+            fprintf(stderr, "unable to allocate memory\n");
             return -1;
         }
 
-        return 1;
+        int32_t r1 = syntax_prefix(program, nu1->right, response2, flag);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        if (r1 == 0)
+        {
+            syntax_error(program, nu1->right, "reference not found")
+            return -1;
+        }
+        else
+        {
+            ilist_t *r2, *rr1;
+            for (r2 = response2->begin; r2 != response2->end; r2 = rr1)
+            {
+                rr1 = r2->next;
+                node_t *rn1 = (node_t *)r2->value;
+                if (rn1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *nc1 = (node_class_t *)r2->value;
+                    node_t *n1 = nc1->block;
+                    node_block_t *nb1 = (node_block_t *)n1->value;
+
+                    int32_t *impression = 0;
+
+                    ilist_t *a1;
+                    for (a1 = nb1->list->begin; a1 != nb1->list->end; a1 = a1->next)
+                    {
+                        node_t *an1 = (node_t *)a1->value;
+                        if (an1->kind == NODE_KIND_FUNC)
+                        {
+                            node_func_t *f1 = (node_func_t *)an1->value;
+                            if (syntax_idstrcmp(f1->key, "-") == 0)
+                            {
+                                list_t *response3 = list_create();
+                                if (response3 == NULL)
+                                {
+                                    fprintf(stderr, "unable to allocate memory\n");
+                                    return -1;
+                                }
+
+                                int32_t r3 = syntax_func(program, f1, response3, flag);
+                                if (r3 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r3 == 0)
+                                {
+                                    syntax_error(program, f1, "reference not found");
+                                    return -1;
+                                }
+                                else
+                                {
+                                    ilist_t *r4, *rp3;
+                                    for (r4 = response3->begin; r4 != response3->end; r4 = rp3)
+                                    {
+                                        rp3 = r4->next;
+                                        node_t *rn3 = (node_t *)r4->value;
+                                        ilist_t *r5 = list_rpush(response, rn3);
+                                        if (r5 == NULL)
+                                        {
+                                            fprintf(stderr, "unable to allocate memory\n");
+                                            return -1;
+                                        }
+                                        list_unlink(response2, r4);
+                                        if ((rn2->flag & NODE_FLAG_TEMPORARY) == NODE_FLAG_TEMPORARY)
+                                        {
+                                            node_destroy(rn3);
+                                        }
+                                        impression += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (impression > 0)
+                    {
+                        return 1;
+                    }
+
+                    return 0;
+                }
+                else
+                if (rn1->kind == NODE_KIND_NUMBER)
+                {
+                    ilist_t *r3 = list_rpush(response, rn1);
+                    if (r3 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                    return 1;
+                }
+                else
+                {
+                    syntax_error(program, rn1, "prefix with non-number/class");
+                    return -1;
+                }
+            }
+        }
+
+        return 0;
 	}
 	else 
 	if(node->kind == NODE_KIND_POS)
 	{
-		node_unary_t *node_unary = (node_unary_t *)node->value;
+		node_unary_t *nu1 = (node_unary_t *)node->value;
 
-        int32_t result;
-        result = syntax_prefix(program, scope, node_unary->right);
-        if (result == -1)
+        list_t *response2 = list_create();
+        if (response2 == NULL)
         {
+            fprintf(stderr, "unable to allocate memory\n");
             return -1;
         }
 
-        return 1;
-	}
-	else 
-	if(node->kind == NODE_KIND_SIZEOF)
-	{
-		node_unary_t *node_unary = (node_unary_t *)node->value;
-
-        int32_t result;
-        result = syntax_prefix(program, scope, node_unary->right);
-        if (result == -1)
+        int32_t r1 = syntax_prefix(program, nu1->right, response2, flag);
+        if (r1 == -1)
         {
             return -1;
         }
+        else
+        if (r1 == 0)
+        {
+            syntax_error(program, nu1->right, "reference not found")
+            return -1;
+        }
+        else
+        {
+            ilist_t *r2, *rr1;
+            for (r2 = response2->begin; r2 != response2->end; r2 = rr1)
+            {
+                rr1 = r2->next;
+                node_t *rn1 = (node_t *)r2->value;
+                if (rn1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *nc1 = (node_class_t *)r2->value;
+                    node_t *n1 = nc1->block;
+                    node_block_t *nb1 = (node_block_t *)n1->value;
 
-        return 1;
+                    int32_t *impression = 0;
+
+                    ilist_t *a1;
+                    for (a1 = nb1->list->begin; a1 != nb1->list->end; a1 = a1->next)
+                    {
+                        node_t *an1 = (node_t *)a1->value;
+                        if (an1->kind == NODE_KIND_FUNC)
+                        {
+                            node_func_t *f1 = (node_func_t *)an1->value;
+                            if (syntax_idstrcmp(f1->key, "+") == 0)
+                            {
+                                list_t *response3 = list_create();
+                                if (response3 == NULL)
+                                {
+                                    fprintf(stderr, "unable to allocate memory\n");
+                                    return -1;
+                                }
+
+                                int32_t r3 = syntax_func(program, f1, response3, flag);
+                                if (r3 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r3 == 0)
+                                {
+                                    syntax_error(program, f1, "reference not found");
+                                    return -1;
+                                }
+                                else
+                                {
+                                    ilist_t *r4, *rp3;
+                                    for (r4 = response3->begin; r4 != response3->end; r4 = rp3)
+                                    {
+                                        rp3 = r4->next;
+                                        node_t *rn3 = (node_t *)r4->value;
+                                        ilist_t *r5 = list_rpush(response, rn3);
+                                        if (r5 == NULL)
+                                        {
+                                            fprintf(stderr, "unable to allocate memory\n");
+                                            return -1;
+                                        }
+                                        list_unlink(response2, r4);
+                                        if ((rn2->flag & NODE_FLAG_TEMPORARY) == NODE_FLAG_TEMPORARY)
+                                        {
+                                            node_destroy(rn3);
+                                        }
+                                        impression += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (impression > 0)
+                    {
+                        return 1;
+                    }
+
+                    return 0;
+                }
+                else
+                if (rn1->kind == NODE_KIND_NUMBER)
+                {
+                    ilist_t *r3 = list_rpush(response, rn1);
+                    if (r3 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                    return 1;
+                }
+                else
+                {
+                    syntax_error(program, rn1, "prefix with non-number/class");
+                    return -1;
+                }
+            }
+        }
+
+        return 0;
 	}
 	else 
 	if(node->kind == NODE_KIND_TYPEOF)
 	{
         node_unary_t *node_unary = (node_unary_t *)node->value;
 
-        int32_t result;
-        result = syntax_prefix(program, scope, node_unary->right);
-        if (result == -1)
+        int32_t r1;
+        r1 = syntax_prefix(program, node_unary->right, response, flag);
+        if (r1 == -1)
         {
             return -1;
         }
@@ -1225,9 +2114,9 @@ syntax_prefix(program_t *program, node_t *node, list_t *response)
 	}
 	else
 	{
-		int32_t result;
-		result = syntax_postfix(program, parent, node);
-		if (result == -1)
+		int32_t r1;
+		r1 = syntax_postfix(program, node_unary->right, response, flag);
+		if (r1 == -1)
 		{
 			return -1;
 		}
@@ -1236,27 +2125,83 @@ syntax_prefix(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_power(program_t *program, node_t *node, list_t *response)
+syntax_power(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
-	
 	if(node->kind == NODE_KIND_POW)
 	{
-		node_binary_t *node_binary = (node_binary_t *)node->value;
+		node_binary_t *nb1 = (node_binary_t *)node->value;
 
-        int32_t result;
-        result = syntax_power(program, left, node_binary->left);
-        if (result == -1)
+        list_t *response2 = list_create();
+        if (response2 == NULL)
         {
+            fprintf(stderr, "unable to allocate memory\n");
             return -1;
         }
 
-        int32_t result;
-        result = syntax_prefix(program, right, node_binary->right);
-        if (result == -1)
+        int32_t r1 = syntax_power(program, nb1->left, response2, flag);
+        if (r1 == -1)
         {
             return -1;
         }
-        return 1;
+        else
+        if (r1 == 0)
+        {
+            syntax_error(program, node_unary->right, "reference not found")
+            return -1;
+        }
+        else
+        {
+            ilist_t *r2, *rp2;
+            for (r2 = response2->begin; r2 != response2->end; r2 = rp2)
+            {
+                rp2 = r2->next;
+                node_t *rn1 = (node_t *)r2->value;
+                if (rn1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *nc1 = (node_class_t *)r2->value;
+                    node_t *n1 = nc1->block;
+                    node_block_t *nb2 = (node_block_t *)n1->value;
+
+                    ilist_t *a1;
+                    for (a1 = nb2->list->begin; a1 != nb2->list->end; a1 = a1->next)
+                    {
+                        node_t *an1 = (node_t *)a1->value;
+                        if (an1->kind == NODE_KIND_FUNC)
+                        {
+                            node_func_t *f1 = (node_func_t *)an1->value;
+                            if (syntax_idstrcmp(f1->key, "**") == 0)
+                            {
+
+                                list_t *response3 = list_create();
+                                if (response3 == NULL)
+                                {
+                                    fprintf(stderr, "unable to allocate memory\n");
+                                    return -1;
+                                }
+
+                                int32_t r3 = syntax_power(program, nb1->right, response3, flag);
+                                if (r3 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r3 == 0)
+                                {
+                                    syntax_error(program, nb1->right, "reference not found")
+                                    return -1;
+                                }
+                                else
+                                {
+
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return 0;
 	}
 	else
 	{

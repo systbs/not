@@ -185,24 +185,7 @@ node_make_array(node_t *node, list_t *list)
 }
 
 node_t *
-node_make_object_property(node_t *node, node_t *name, node_t *value)
-{
-	node_object_property_t *basic = (node_object_property_t *)malloc(sizeof(node_object_property_t));
-	if(basic == NULL)
-	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_object_property_t));
-		return NULL;
-	}
-	memset(basic, 0, sizeof(node_object_property_t));
-	basic->name = name;
-	basic->value = value;
-	
-	node_update(node, NODE_KIND_OBJECT_PROPERTY, basic);
-	return node;
-}
-
-node_t *
-node_make_object(node_t *node, uint64_t flag, list_t *list)
+node_make_object(node_t *node, list_t *list)
 {
 	node_object_t *basic = (node_object_t *)malloc(sizeof(node_object_t));
 	if(basic == NULL){
@@ -210,7 +193,6 @@ node_make_object(node_t *node, uint64_t flag, list_t *list)
 		return NULL;
 	}
 	memset(basic, 0, sizeof(node_object_t));
-	basic->flag = flag;
 	basic->list = list;
 	
 	node_update(node, NODE_KIND_OBJECT, basic);
@@ -1344,7 +1326,7 @@ node_make_generics(node_t *node, list_t *list)
 }
 
 node_t *
-node_make_func(node_t *node, uint64_t flag, node_t *key, node_t *generics, node_t *parameters, node_t *results, node_t *body)
+node_make_func(node_t *node, uint64_t flag, node_t *key, node_t *generics, node_t *parameters, node_t *body)
 {
 	node_func_t *basic;
 	if(!(basic = (node_func_t *)malloc(sizeof(node_func_t))))
@@ -1357,7 +1339,6 @@ node_make_func(node_t *node, uint64_t flag, node_t *key, node_t *generics, node_
 	basic->key = key;
 	basic->generics = generics;
 	basic->parameters = parameters;
-	basic->results = results;
 	basic->body = body;
 	
 	node_update(node, NODE_KIND_FUNC, basic);
