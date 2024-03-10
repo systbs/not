@@ -1,12 +1,6 @@
-func Int3(args:Int)
-{
-  var {a, b} = object;
-  return teacher{T}(10);
-}
-
 var {a, b} = object;
 
-export class {T, T} Int
+export class {T} Int
 {
   func constructor (value:String)
   {
@@ -20,3 +14,8 @@ export class {T, T} Int
 }
 
 
+func {T} Int2(args:Int)
+{
+  var {T, b} = object;
+  return teacher{T}(10);
+}

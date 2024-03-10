@@ -1936,6 +1936,11 @@ parser_logical_and(program_t *program, parser_t *parser, node_t *scope, node_t *
 		if (parser->token->type == TOKEN_AND_AND)
 		{
 			node_t *node = node_create(scope, parent, parser->token->position);
+			if (node == NULL)
+			{
+				return NULL;
+			}
+
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
@@ -1973,6 +1978,11 @@ parser_logical_or(program_t *program, parser_t *parser, node_t *scope, node_t *p
 		if (parser->token->type == TOKEN_OR_OR)
 		{
 			node_t *node = node_create(scope, parent, parser->token->position);
+			if (node == NULL)
+			{
+				return NULL;
+			}
+
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
@@ -2239,8 +2249,7 @@ static node_t *
 parser_if(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
-		
-	if (parser_next(program, parser) == -1)
+	if (node == NULL)
 	{
 		return NULL;
 	}
@@ -2325,6 +2334,7 @@ parser_var(program_t *program, parser_t *parser, node_t *scope, node_t *parent, 
 		return NULL;
 	}
 
+	int32_t object_used = 0;
 	node_t *key = NULL;
 	if (parser->token->type != TOKEN_ID)
 	{
@@ -2333,6 +2343,7 @@ parser_var(program_t *program, parser_t *parser, node_t *scope, node_t *parent, 
 		{
 			return NULL;
 		}
+		object_used = 1;
 	}
 	else
 	{
@@ -2348,6 +2359,11 @@ parser_var(program_t *program, parser_t *parser, node_t *scope, node_t *parent, 
 	{
 		if (parser_next(program, parser) == -1)
 		{
+			return NULL;
+		}
+		if (object_used == 1)
+		{
+			parser_error(program, parser->token->position, "multiple variables with type");
 			return NULL;
 		}
 		type = parser_expression(program, parser, scope, node);
@@ -2379,7 +2395,11 @@ static node_t *
 parser_for(program_t *program, parser_t *parser, node_t *scope, node_t *parent, uint64_t flag)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
-		
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
 	if (parser_next(program, parser) == -1)
 	{
 		return NULL;
@@ -2626,7 +2646,11 @@ static node_t *
 parser_break(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
-		
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
 	if (parser_next(program, parser) == -1)
 	{
 		return NULL;
@@ -2654,7 +2678,11 @@ static node_t *
 parser_continue(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
-		
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
 	if (parser_next(program, parser) == -1)
 	{
 		return NULL;
@@ -2682,7 +2710,11 @@ static node_t *
 parser_catch(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
-		
+	if (node == NULL)
+	{
+		return NULL;
+	}
+	
 	if (parser_next(program, parser) == -1)
 	{
 		return NULL;
@@ -3262,11 +3294,6 @@ static node_t *
 parser_statement(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = NULL;
-	if (parser->token->type == TOKEN_LBRACE)
-	{
-		node = parser_body(program, parser, scope, parent);
-	}
-	else
 	if (parser->token->type == TOKEN_IF_KEYWORD)
 	{
 		node = parser_if(program, parser, scope, parent);
@@ -3355,11 +3382,6 @@ parser_statement(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 		{
 			return NULL;
 		}
-	}
-	else
-	if (parser->token->type == TOKEN_FUNC_KEYWORD)
-	{
-		node = parser_func(program, parser, scope, parent, PARSER_MODIFIER_NONE);
 	}
 	else
 	{
