@@ -941,7 +941,74 @@ syntax_for(program_t *program, node_t *node)
             if (parent->kind == NODE_KIND_FOR)
             {
                 node_for_t *for1 = (node_for_t *)parent->value;
-                
+                if (for1->initializer != NULL)
+                {
+                    node_t *node3 = for1->initializer;
+                    node_block_t *initializer = (node_block_t *)node3->value;
+                    ilist_t *a1;
+                    for (a1 = initializer->list->begin;a1 != initializer->list->end;a1 = a1->next)
+                    {
+                        node_t *item1 = (node_t *)a1->value;
+                        
+                        if (item1->kind == NODE_KIND_VAR)
+                        {
+                            
+                            node_var_t *var1 = (node_var_t *)item1->value;
+                            if (var1->key->kind == NODE_KIND_ID)
+                            {
+                                if (syntax_idcmp(node_for1->key, var1->key) == 0)
+                                {
+                                    node_t *ngs1 = NULL;
+                                    node_t *ngs2 = NULL;
+                                    int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                    if (r1 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r1 == 1)
+                                    {
+                                        node_t *nps1 = NULL;
+                                        node_t *nps2 = NULL;
+                                        int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r2 == 1)
+                                        {
+                                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                item1->position.line, item1->position.column);
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                node_t response;
+                                int32_t r1 = syntax_objectkey(program, item1, node_for1->key, &response);
+                                if (r1 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r1 == 1)
+                                {
+                                    syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
+                                        item1->position.line, item1->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            if (parent->kind == NODE_KIND_FORIN)
+            {
+                node_forin_t *for1 = (node_forin_t *)parent->value;
                 if (for1->initializer != NULL)
                 {
                     node_t *node3 = for1->initializer;
@@ -1311,7 +1378,142 @@ syntax_forin(program_t *program, node_t *node)
                     }
                 }
             }
-
+            else
+            if (parent->kind == NODE_KIND_FOR)
+            {
+                node_for_t *for1 = (node_for_t *)parent->value;
+                if (for1->initializer != NULL)
+                {
+                    node_t *node3 = for1->initializer;
+                    node_block_t *initializer = (node_block_t *)node3->value;
+                    ilist_t *a1;
+                    for (a1 = initializer->list->begin;a1 != initializer->list->end;a1 = a1->next)
+                    {
+                        node_t *item1 = (node_t *)a1->value;
+                        
+                        if (item1->kind == NODE_KIND_VAR)
+                        {
+                            
+                            node_var_t *var1 = (node_var_t *)item1->value;
+                            if (var1->key->kind == NODE_KIND_ID)
+                            {
+                                if (syntax_idcmp(node_forin1->key, var1->key) == 0)
+                                {
+                                    node_t *ngs1 = NULL;
+                                    node_t *ngs2 = NULL;
+                                    int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                    if (r1 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r1 == 1)
+                                    {
+                                        node_t *nps1 = NULL;
+                                        node_t *nps2 = NULL;
+                                        int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r2 == 1)
+                                        {
+                                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                item1->position.line, item1->position.column);
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                node_t response;
+                                int32_t r1 = syntax_objectkey(program, item1, node_forin1->key, &response);
+                                if (r1 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r1 == 1)
+                                {
+                                    syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
+                                        item1->position.line, item1->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            if (parent->kind == NODE_KIND_FORIN)
+            {
+                node_forin_t *for1 = (node_forin_t *)parent->value;
+                if (for1->initializer != NULL)
+                {
+                    node_t *node3 = for1->initializer;
+                    node_block_t *initializer = (node_block_t *)node3->value;
+                    ilist_t *a1;
+                    for (a1 = initializer->list->begin;a1 != initializer->list->end;a1 = a1->next)
+                    {
+                        node_t *item1 = (node_t *)a1->value;
+                        
+                        if (item1->kind == NODE_KIND_VAR)
+                        {
+                            
+                            node_var_t *var1 = (node_var_t *)item1->value;
+                            if (var1->key->kind == NODE_KIND_ID)
+                            {
+                                if (syntax_idcmp(node_forin1->key, var1->key) == 0)
+                                {
+                                    node_t *ngs1 = NULL;
+                                    node_t *ngs2 = NULL;
+                                    int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                    if (r1 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r1 == 1)
+                                    {
+                                        node_t *nps1 = NULL;
+                                        node_t *nps2 = NULL;
+                                        int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r2 == 1)
+                                        {
+                                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                item1->position.line, item1->position.column);
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                node_t response;
+                                int32_t r1 = syntax_objectkey(program, item1, node_forin1->key, &response);
+                                if (r1 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r1 == 1)
+                                {
+                                    syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
+                                        item1->position.line, item1->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         
         if (parent->parent != NULL)
@@ -1702,6 +1904,142 @@ syntax_var(program_t *program, node_t *node)
                             {
                                 syntax_error(program, node, "already defined, previous in (%lld:%lld)",
                                     response.position.line, response.position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else
+        if (parent->kind == NODE_KIND_FOR)
+        {
+            node_for_t *for1 = (node_for_t *)parent->value;
+            if (for1->initializer != NULL)
+            {
+                node_t *node3 = for1->initializer;
+                node_block_t *initializer = (node_block_t *)node3->value;
+                ilist_t *a1;
+                for (a1 = initializer->list->begin;a1 != initializer->list->end;a1 = a1->next)
+                {
+                    node_t *item1 = (node_t *)a1->value;
+                    
+                    if (item1->kind == NODE_KIND_VAR)
+                    {
+                        
+                        node_var_t *var1 = (node_var_t *)item1->value;
+                        if ((var1->key->kind == NODE_KIND_ID) && (node_var1->key->kind == NODE_KIND_ID))
+                        {
+                            if (syntax_idcmp(node_var1->key, var1->key) == 0)
+                            {
+                                node_t *ngs1 = NULL;
+                                node_t *ngs2 = NULL;
+                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                if (r1 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r1 == 1)
+                                {
+                                    node_t *nps1 = NULL;
+                                    node_t *nps2 = NULL;
+                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                    if (r2 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r2 == 1)
+                                    {
+                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                            item1->position.line, item1->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            node_t response;
+                            int32_t r1 = syntax_objectkey(program, item1, node_var1->key, &response);
+                            if (r1 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r1 == 1)
+                            {
+                                syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
+                                    item1->position.line, item1->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else
+        if (parent->kind == NODE_KIND_FORIN)
+        {
+            node_forin_t *for1 = (node_forin_t *)parent->value;
+            if (for1->initializer != NULL)
+            {
+                node_t *node3 = for1->initializer;
+                node_block_t *initializer = (node_block_t *)node3->value;
+                ilist_t *a1;
+                for (a1 = initializer->list->begin;a1 != initializer->list->end;a1 = a1->next)
+                {
+                    node_t *item1 = (node_t *)a1->value;
+                    
+                    if (item1->kind == NODE_KIND_VAR)
+                    {
+                        
+                        node_var_t *var1 = (node_var_t *)item1->value;
+                        if ((var1->key->kind == NODE_KIND_ID) && (node_var1->key->kind == NODE_KIND_ID))
+                        {
+                            if (syntax_idcmp(node_var1->key, var1->key) == 0)
+                            {
+                                node_t *ngs1 = NULL;
+                                node_t *ngs2 = NULL;
+                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                if (r1 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r1 == 1)
+                                {
+                                    node_t *nps1 = NULL;
+                                    node_t *nps2 = NULL;
+                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                    if (r2 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r2 == 1)
+                                    {
+                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                            item1->position.line, item1->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            node_t response;
+                            int32_t r1 = syntax_objectkey(program, item1, node_var1->key, &response);
+                            if (r1 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r1 == 1)
+                            {
+                                syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
+                                    item1->position.line, item1->position.column);
                                 return -1;
                             }
                         }
