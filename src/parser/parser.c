@@ -2400,11 +2400,6 @@ parser_for(program_t *program, parser_t *parser, node_t *scope, node_t *parent, 
 		return NULL;
 	}
 
-	if (parser_next(program, parser) == -1)
-	{
-		return NULL;
-	}
-
 	if (parser_match(program, parser, TOKEN_FOR_KEYWORD) == -1)
 	{
 		return NULL;
@@ -2445,13 +2440,25 @@ parser_for(program_t *program, parser_t *parser, node_t *scope, node_t *parent, 
 
 		parser->loop_depth -= 1;
 
-		node_t *initializer_block = node_make_block(node, initializer);
+		node_t *node2 = node_create(scope, node, parser->token->position);
+		if (node2 == NULL)
+		{
+			return NULL;
+		}
+
+		node_t *initializer_block = node_make_block(node2, initializer);
 		if (initializer_block == NULL)
 		{
 			return NULL;
 		}
 
-		node_t *incrementor_block = node_make_block(node, incrementor);
+		node_t *node3 = node_create(scope, node, parser->token->position);
+		if (node3 == NULL)
+		{
+			return NULL;
+		}
+
+		node_t *incrementor_block = node_make_block(node3, incrementor);
 		if (incrementor_block == NULL)
 		{
 			return NULL;
@@ -2594,13 +2601,25 @@ parser_for(program_t *program, parser_t *parser, node_t *scope, node_t *parent, 
 
 	parser->loop_depth -= 1;
 
-	node_t *initializer_block = node_make_block(node, initializer);
+	node_t *node2 = node_create(scope, node, parser->token->position);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *initializer_block = node_make_block(node2, initializer);
 	if (initializer_block == NULL)
 	{
 		return NULL;
 	}
 
-	node_t *incrementor_block = node_make_block(node, incrementor);
+	node_t *node3 = node_create(scope, node, parser->token->position);
+	if (node3 == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *incrementor_block = node_make_block(node3, incrementor);
 	if (incrementor_block == NULL)
 	{
 		return NULL;
@@ -2633,7 +2652,8 @@ parser_for(program_t *program, parser_t *parser, node_t *scope, node_t *parent, 
 		return NULL;
 	}
 
-	parser->loop_depth -= 1;	initializer_block = node_make_block(node, initializer);
+	parser->loop_depth -= 1;
+	initializer_block = node_make_block(node, initializer);
 	if (initializer_block == NULL)
 	{
 		return NULL;
@@ -2714,7 +2734,7 @@ parser_catch(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 	{
 		return NULL;
 	}
-	
+
 	if (parser_next(program, parser) == -1)
 	{
 		return NULL;

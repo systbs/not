@@ -68,6 +68,13 @@ syntax_idstrcmp(node_t *n1, char *name)
 	return strcmp(nb1->value, name);
 }
 
+static int32_t
+syntax_statement(program_t *program, node_t *node);
+
+
+
+
+
 
 static int32_t
 syntax_expression(program_t *program, node_t *node, list_t *response)
@@ -677,6 +684,7 @@ syntax_for(program_t *program, node_t *node)
                     {
                         break;
                     }
+
                     if (item->kind == NODE_KIND_VAR)
                     {
                         node_var_t *node_var2 = (node_var_t *)item->value;
@@ -929,7 +937,75 @@ syntax_for(program_t *program, node_t *node)
                     }
                 }
             }
-
+            else
+            if (parent->kind == NODE_KIND_FOR)
+            {
+                node_for_t *for1 = (node_for_t *)parent->value;
+                
+                if (for1->initializer != NULL)
+                {
+                    node_t *node3 = for1->initializer;
+                    node_block_t *initializer = (node_block_t *)node3->value;
+                    ilist_t *a1;
+                    for (a1 = initializer->list->begin;a1 != initializer->list->end;a1 = a1->next)
+                    {
+                        node_t *item1 = (node_t *)a1->value;
+                        
+                        if (item1->kind == NODE_KIND_VAR)
+                        {
+                            
+                            node_var_t *var1 = (node_var_t *)item1->value;
+                            if (var1->key->kind == NODE_KIND_ID)
+                            {
+                                if (syntax_idcmp(node_for1->key, var1->key) == 0)
+                                {
+                                    node_t *ngs1 = NULL;
+                                    node_t *ngs2 = NULL;
+                                    int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                    if (r1 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r1 == 1)
+                                    {
+                                        node_t *nps1 = NULL;
+                                        node_t *nps2 = NULL;
+                                        int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r2 == 1)
+                                        {
+                                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                item1->position.line, item1->position.column);
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                node_t response;
+                                int32_t r1 = syntax_objectkey(program, item1, node_for1->key, &response);
+                                if (r1 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r1 == 1)
+                                {
+                                    syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
+                                        item1->position.line, item1->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         
         if (parent->parent != NULL)
@@ -943,6 +1019,20 @@ syntax_for(program_t *program, node_t *node)
         }
         region_end:
         return 1;
+    }
+
+    node_t *body = node_for1->body;
+    node_block_t *node_block = (node_block_t *)body->value;
+    ilist_t *a1;
+    for (a1 = node_block->list->begin;a1 != node_block->list->end;a1 = a1->next)
+    {
+        node_t *item = (node_t *)a1->value;
+        int32_t result;
+        result = syntax_statement(program, item);
+        if (result == -1)
+        {
+            return -1;
+        }
     }
 
 	return 1;
