@@ -1562,59 +1562,48 @@ parser_shifting(program_t *program, parser_t *parser, node_t *scope, node_t *par
 		return NULL;
 	}
 	
-	while (node2 != NULL)
+	if (parser->token->type == TOKEN_LT_LT)
 	{
-		if (parser->token->type == TOKEN_LT_LT)
+		node_t *node = node_create(scope, parent, parser->token->position);
+		if (node == NULL)
 		{
-			node_t *node = node_create(scope, parent, parser->token->position);
-			if (node == NULL)
-			{
-				return NULL;
-			}
-
-			if (parser_next(program, parser) == -1)
-			{
-				return NULL;
-			}
-
-			node_t *right = parser_addative(program, parser, scope, node);
-			if (!right)
-			{
-				return NULL;
-			}
-
-			node2 = node_make_shl(node, node2, right);
-			continue;
+			return NULL;
 		}
-		else
-		if (parser->token->type == TOKEN_GT_GT)
+
+		if (parser_next(program, parser) == -1)
 		{
-			node_t *node = node_create(scope, parent, parser->token->position);
-			if (node == NULL)
-			{
-				return NULL;
-			}
-
-			
-
-			if (parser_next(program, parser) == -1)
-			{
-				return NULL;
-			}
-
-			node_t *right = parser_addative(program, parser, scope, node);
-			if (!right)
-			{
-				return NULL;
-			}
-
-			node2 = node_make_shr(node, node2, right);
-			continue;
+			return NULL;
 		}
-		else
+
+		node_t *right = parser_addative(program, parser, scope, node);
+		if (!right)
 		{
-			break;
+			return NULL;
 		}
+
+		return node_make_shl(node, node2, right);
+	}
+	else
+	if (parser->token->type == TOKEN_GT_GT)
+	{
+		node_t *node = node_create(scope, parent, parser->token->position);
+		if (node == NULL)
+		{
+			return NULL;
+		}
+
+		if (parser_next(program, parser) == -1)
+		{
+			return NULL;
+		}
+
+		node_t *right = parser_addative(program, parser, scope, node);
+		if (!right)
+		{
+			return NULL;
+		}
+
+		return node_make_shr(node, node2, right);
 	}
 
 	return node2;
@@ -1629,103 +1618,92 @@ parser_relational(program_t *program, parser_t *parser, node_t *scope, node_t *p
 		return NULL;
 	}
 	
-	while (node2 != NULL)
+	if (parser->token->type == TOKEN_LT)
 	{
-		if (parser->token->type == TOKEN_LT)
+		node_t *node = node_create(scope, parent, parser->token->position);
+		if (node == NULL)
 		{
-			node_t *node = node_create(scope, parent, parser->token->position);
-			if (node == NULL)
-			{
-				return NULL;
-			}
-
-			if (parser_next(program, parser) == -1)
-			{
-				return NULL;
-			}
-
-			node_t *right = parser_shifting(program, parser, scope, node);
-			if (!right)
-			{
-				return NULL;
-			}
-
-			node2 = node_make_lt(node, node2, right);
-			continue;
+			return NULL;
 		}
-		else
-		if (parser->token->type == TOKEN_LT_EQ)
+
+		if (parser_next(program, parser) == -1)
 		{
-			node_t *node = node_create(scope, parent, parser->token->position);
-			if (node == NULL)
-			{
-				return NULL;
-			}
-
-			if (parser_next(program, parser) == -1)
-			{
-				return NULL;
-			}
-
-			node_t *right = parser_shifting(program, parser, scope, node);
-			if (!right)
-			{
-				return NULL;
-			}
-
-			node2 = node_make_le(node, node2, right);
-			continue;
+			return NULL;
 		}
-		else
-		if (parser->token->type == TOKEN_GT)
+
+		node_t *right = parser_shifting(program, parser, scope, node);
+		if (!right)
 		{
-			node_t *node = node_create(scope, parent, parser->token->position);
-			if (node == NULL)
-			{
-				return NULL;
-			}
-
-			if (parser_next(program, parser) == -1)
-			{
-				return NULL;
-			}
-
-			node_t *right = parser_shifting(program, parser, scope, node);
-			if (!right)
-			{
-				return NULL;
-			}
-
-			node2 = node_make_gt(node, node2, right);
-			continue;
+			return NULL;
 		}
-		else
-		if (parser->token->type == TOKEN_GT_EQ)
+
+		return node_make_lt(node, node2, right);
+	}
+	else
+	if (parser->token->type == TOKEN_LT_EQ)
+	{
+		node_t *node = node_create(scope, parent, parser->token->position);
+		if (node == NULL)
 		{
-			node_t *node = node_create(scope, parent, parser->token->position);
-			if (node == NULL)
-			{
-				return NULL;
-			}
-
-			if (parser_next(program, parser) == -1)
-			{
-				return NULL;
-			}
-
-			node_t *right = parser_shifting(program, parser, scope, node);
-			if (!right)
-			{
-				return NULL;
-			}
-
-			node2 = node_make_ge(node, node2, right);
-			continue;
+			return NULL;
 		}
-		else
+
+		if (parser_next(program, parser) == -1)
 		{
-			break;
+			return NULL;
 		}
+
+		node_t *right = parser_shifting(program, parser, scope, node);
+		if (!right)
+		{
+			return NULL;
+		}
+
+		return node_make_le(node, node2, right);
+	}
+	else
+	if (parser->token->type == TOKEN_GT)
+	{
+		node_t *node = node_create(scope, parent, parser->token->position);
+		if (node == NULL)
+		{
+			return NULL;
+		}
+
+		if (parser_next(program, parser) == -1)
+		{
+			return NULL;
+		}
+
+		node_t *right = parser_shifting(program, parser, scope, node);
+		if (!right)
+		{
+			return NULL;
+		}
+
+		return node_make_gt(node, node2, right);
+	}
+	else
+	if (parser->token->type == TOKEN_GT_EQ)
+	{
+		node_t *node = node_create(scope, parent, parser->token->position);
+		if (node == NULL)
+		{
+			return NULL;
+		}
+
+		if (parser_next(program, parser) == -1)
+		{
+			return NULL;
+		}
+
+		node_t *right = parser_shifting(program, parser, scope, node);
+		if (!right)
+		{
+			return NULL;
+		}
+
+		return node_make_ge(node, node2, right);
 	}
 
 	return node2;
@@ -1740,57 +1718,48 @@ parser_equality(program_t *program, parser_t *parser, node_t *scope, node_t *par
 		return NULL;
 	}
 	
-	while (node2 != NULL)
+	if (parser->token->type == TOKEN_EQ_EQ)
 	{
-		if (parser->token->type == TOKEN_EQ_EQ)
+		node_t *node = node_create(scope, parent, parser->token->position);
+		if (node == NULL)
 		{
-			node_t *node = node_create(scope, parent, parser->token->position);
-			if (node == NULL)
-			{
-				return NULL;
-			}
-
-			if (parser_next(program, parser) == -1)
-			{
-				return NULL;
-			}
-
-			node_t *right = parser_relational(program, parser, scope, node);
-			if (!right)
-			{
-				return NULL;
-			}
-
-			node2 = node_make_eq(node, node2, right);
-			continue;
+			return NULL;
 		}
-		else
-		if (parser->token->type == TOKEN_NOT_EQ)
+
+		if (parser_next(program, parser) == -1)
 		{
-			node_t *node = node_create(scope, parent, parser->token->position);
-			if (node == NULL)
-			{
-				return NULL;
-			}
-
-			if (parser_next(program, parser) == -1)
-			{
-				return NULL;
-			}
-
-			node_t *right = parser_relational(program, parser, scope, node);
-			if (!right)
-			{
-				return NULL;
-			}
-
-			node2 = node_make_neq(node, node2, right);
-			continue;
+			return NULL;
 		}
-		else
+
+		node_t *right = parser_relational(program, parser, scope, node);
+		if (!right)
 		{
-			break;
+			return NULL;
 		}
+
+		return node_make_eq(node, node2, right);
+	}
+	else
+	if (parser->token->type == TOKEN_NOT_EQ)
+	{
+		node_t *node = node_create(scope, parent, parser->token->position);
+		if (node == NULL)
+		{
+			return NULL;
+		}
+
+		if (parser_next(program, parser) == -1)
+		{
+			return NULL;
+		}
+
+		node_t *right = parser_relational(program, parser, scope, node);
+		if (!right)
+		{
+			return NULL;
+		}
+
+		return node_make_neq(node, node2, right);
 	}
 
 	return node2;
