@@ -264,6 +264,7 @@ typedef struct node_func {
 	node_t *generics;
 	node_t *key;
 	node_t *parameters;
+	node_t *result;
 	node_t *body;
 } node_func_t;
 
@@ -554,7 +555,7 @@ node_t *
 node_make_generics(node_t *node, list_t *list);
 
 node_t *
-node_make_func(node_t *node,uint64_t flag,node_t *key, node_t *generics, node_t *parameters, node_t *block);
+node_make_func(node_t *node,uint64_t flag,node_t *key, node_t *generics, node_t *parameters, node_t *result, node_t *block);
 
 node_t *
 node_make_lambda(node_t *node, node_t *parameters, node_t *block);

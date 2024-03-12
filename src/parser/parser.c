@@ -3183,7 +3183,7 @@ parser_func(program_t *program, parser_t *parser, node_t *scope, node_t *parent,
 	else
 	{
 		key = parser_operator(program, parser, node, node);
-		if (!key)
+		if (key == NULL)
 		{
 			return NULL;
 		}
@@ -3262,13 +3262,27 @@ parser_func(program_t *program, parser_t *parser, node_t *scope, node_t *parent,
 		}
 	}
 
+	node_t *result = NULL;
+	if (used_constructor == 0)
+	{
+		if (parser_match(program, parser, TOKEN_COLON) == -1)
+		{
+			return NULL;
+		}
+		result = parser_expression(program, parser, scope, node);
+		if (result == NULL)
+		{
+			return NULL;
+		}
+	}
+
 	node_t *body = parser_body(program, parser, scope, node);
 	if (!body)
 	{
 		return NULL;
 	}
 
-	return node_make_func(node, flag, key, generics, parameters, body);
+	return node_make_func(node, flag, key, generics, parameters, result, body);
 }
 
 static node_t *
