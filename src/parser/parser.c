@@ -57,6 +57,10 @@ parser_object(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 static node_t *
 parser_export(program_t *program, parser_t *parser, node_t *scope, node_t *parent);
 
+static node_t *
+parser_postfix(program_t *program, parser_t *parser, node_t *scope, node_t *parent);
+
+
 
 
 int32_t
@@ -258,6 +262,13 @@ parser_next(program_t *program, parser_t *parser)
 		return -1;
 	}
 	return 1;
+}
+
+static void
+parser_gt(program_t *program, parser_t *parser)
+{
+	scanner_gt(parser->scanner);
+	return;
 }
 
 static int32_t
@@ -896,7 +907,7 @@ parser_argument(program_t *program, parser_t *parser, node_t *scope, node_t *par
 		return NULL;
 	}
 
-	node_t *key = parser_expression(program, parser, scope, node);
+	node_t *key = parser_postfix(program, parser, scope, node);
 	if (!key)
 	{
 		return NULL;
@@ -910,7 +921,7 @@ parser_argument(program_t *program, parser_t *parser, node_t *scope, node_t *par
 			return NULL;
 		}
 
-		value = parser_expression(program, parser, scope, node);
+		value = parser_postfix(program, parser, scope, node);
 		if (!value)
 		{
 			return NULL;

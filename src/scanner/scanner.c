@@ -2335,3 +2335,42 @@ scanner_advance(scanner_t *scanner)
 }
 
 
+void
+scanner_gt (scanner_t *scanner)
+{
+	if (scanner->token.type == TOKEN_GT_EQ)
+	{
+		scanner->token.type = TOKEN_GT;
+		scanner->line = scanner->token.position.line;
+		scanner->column = scanner->token.position.column;
+		scanner->offset = scanner->token.position.offset;
+		int32_t r = (int32_t)(scanner->source[scanner->offset]);
+		scanner->ch = r;
+		scanner->reading_offset = scanner->token.position.offset + 1;
+		return;
+	}
+	else
+	if (scanner->token.type == TOKEN_GT_GT)
+	{
+		scanner->token.type = TOKEN_GT;
+		scanner->line = scanner->token.position.line;
+		scanner->column = scanner->token.position.column;
+		scanner->offset = scanner->token.position.offset;
+		int32_t r = (int32_t)(scanner->source[scanner->offset]);
+		scanner->ch = r;
+		scanner->reading_offset = scanner->token.position.offset + 1;
+		return;
+	}
+	else
+	if (scanner->token.type == TOKEN_GT_GT_EQ)
+	{
+		scanner->token.type = TOKEN_GT;
+		scanner->line = scanner->token.position.line;
+		scanner->column = scanner->token.position.column;
+		scanner->offset = scanner->token.position.offset;
+		int32_t r = (int32_t)(scanner->source[scanner->offset]);
+		scanner->ch = r;
+		scanner->reading_offset = scanner->token.position.offset + 1;
+		return;
+	}
+}

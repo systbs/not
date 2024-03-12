@@ -16,6 +16,6 @@ export class {T} Int
 
 func {T} Int2(args:Int)
 {
-  var {a, b} = 1 != 2 > 3;
-  return teacher{T}(10);
+  var {a, b} = (1 != 2) > (3 == 1);
+  return teacher{Int{Int{Int{T}}}}(10);
 }

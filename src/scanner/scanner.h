@@ -33,4 +33,7 @@ scanner_set_token(scanner_t *scanner, token_t token);
 int32_t
 scanner_advance(scanner_t *scanner);
 
+void
+scanner_gt (scanner_t *scanner);
+
 #endif // __scanner_H__
