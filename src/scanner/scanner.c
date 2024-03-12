@@ -2335,10 +2335,10 @@ scanner_advance(scanner_t *scanner)
 }
 
 
-void
+int32_t
 scanner_gt (scanner_t *scanner)
 {
-	if (scanner->token.type == TOKEN_GT_EQ)
+	if ((scanner->token.type == TOKEN_GT_EQ) || (scanner->token.type == TOKEN_GT_GT_EQ) || (scanner->token.type == TOKEN_GT_GT))
 	{
 		scanner->token.type = TOKEN_GT;
 		scanner->line = scanner->token.position.line;
@@ -2346,31 +2346,17 @@ scanner_gt (scanner_t *scanner)
 		scanner->offset = scanner->token.position.offset;
 		int32_t r = (int32_t)(scanner->source[scanner->offset]);
 		scanner->ch = r;
-		scanner->reading_offset = scanner->token.position.offset + 1;
-		return;
+		scanner->reading_offset = scanner->offset + 1;
+		if (scanner_next(scanner) == -1)
+		{
+			return -1;
+		}
+
+		if(scanner_skip_trivial(scanner) == -1)
+		{
+			return -1;
+		}
 	}
-	else
-	if (scanner->token.type == TOKEN_GT_GT)
-	{
-		scanner->token.type = TOKEN_GT;
-		scanner->line = scanner->token.position.line;
-		scanner->column = scanner->token.position.column;
-		scanner->offset = scanner->token.position.offset;
-		int32_t r = (int32_t)(scanner->source[scanner->offset]);
-		scanner->ch = r;
-		scanner->reading_offset = scanner->token.position.offset + 1;
-		return;
-	}
-	else
-	if (scanner->token.type == TOKEN_GT_GT_EQ)
-	{
-		scanner->token.type = TOKEN_GT;
-		scanner->line = scanner->token.position.line;
-		scanner->column = scanner->token.position.column;
-		scanner->offset = scanner->token.position.offset;
-		int32_t r = (int32_t)(scanner->source[scanner->offset]);
-		scanner->ch = r;
-		scanner->reading_offset = scanner->token.position.offset + 1;
-		return;
-	}
+
+	return 1;
 }

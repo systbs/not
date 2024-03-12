@@ -1,6 +1,6 @@
 var {a, b} = object;
 
-export class {T} Int
+export class Int<T>
 {
   func constructor (value:String)
   {
@@ -14,8 +14,8 @@ export class {T} Int
 }
 
 
-func {T} Int2(args:Int)
+func Int2<T>(args:Int)
 {
   var {a, b} = (1 != 2) > (3 == 1);
-  return teacher{Int{Int{Int{T}}}}(10);
+  return teacher<Int<Int<Int<Int<T>>>>>(10);
 }
