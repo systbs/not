@@ -581,73 +581,9 @@ syntax_if(program_t *program, node_t *node)
                         {
                             if (syntax_objidcmp(if1->key, forin2->key) == 1)
                             {
-<<<<<<< HEAD
                                 syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
                                     item2->position.line, item2->position.column);
                                 return -1;
-=======
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item->position.line, item->position.column);
-                                        return -1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
-                    if (item->kind == NODE_KIND_FORIN)
-                    {
-                        node_forin_t *node_forin2 = (node_forin_t *)item->value;
-                        if (node_forin2->key != N
-                                }ULL)
-                        {
-                            if (syntax_idcmp(node_if1->key, node_forin2->key) == 1)
-                            {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item->position.line, item->position.column);
-                                        return -1;
-                                    }
-                                }
->>>>>>> b4dba93c7d56cc89ba14c539ef8ef0ba1fb0b829
                             }
                         }
                     }
