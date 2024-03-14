@@ -599,7 +599,8 @@ syntax_if(program_t *program, node_t *node)
                     if (item->kind == NODE_KIND_FORIN)
                     {
                         node_forin_t *node_forin2 = (node_forin_t *)item->value;
-                        if (node_forin2->key != NULL)
+                        if (node_forin2->key != N
+                                }ULL)
                         {
                             if (syntax_idcmp(node_if1->key, node_forin2->key) == 1)
                             {
@@ -609,7 +610,6 @@ syntax_if(program_t *program, node_t *node)
                                 if (r1 == -1)
                                 {
                                     return -1;
-                                }
                                 else
                                 if (r1 == 1)
                                 {
