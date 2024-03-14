@@ -1091,6 +1091,7 @@ parser_postfix(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 					return NULL;
 				}
 				node_destroy(node);
+				return node2;
 			}
 			else
 			{
@@ -1106,6 +1107,7 @@ parser_postfix(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 						return NULL;
 					}
 					node_destroy(node);
+					return node2;
 				}
 				else
 				{

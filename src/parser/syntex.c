@@ -455,289 +455,523 @@ static int32_t
 syntax_if(program_t *program, node_t *node)
 {
     node_if_t *node_if1 = (node_if_t *)node->value;
-    if (node_if1->key != NULL)
+    node_t *node1 = node_if1->then_body;
+    node_block_t *block1 = (node_block_t *)node1->value;
+
+    ilist_t *a1;
+    for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
     {
-        node_t *parent = node->parent;
-        region_start:
-        if (parent != NULL)
+        node_t *item1 = (node_t *)a1->value;
+    
+        ilist_t *a2;
+        for (a2 = block1->list->begin; a2 != block1->list->end; a2 = a2->next)
         {
-            if (parent->kind == NODE_KIND_BODY)
+            node_t *item2 = (node_t *)a2->value;
+
+            if (item1->id == item2->id)
             {
-                node_block_t *block = (node_block_t *)parent->value;
-                ilist_t *a1;
-                for (a1 = block->list->begin;a1 != block->list->end;a1 = a1->next)
+                break;
+            }
+
+            if (item1->kind == NODE_KIND_VAR)
+            {
+                node_var_t *var1 = (node_var_t *)item1->value;
+                if (item2->kind == NODE_KIND_VAR)
                 {
-                    node_t *item = (node_t *)a1->value;
-                    if (node->id == item->id)
+                    node_var_t *var2 = (node_var_t *)item2->value;
+                    if (syntax_objidcmp(var1->key, var2->key) == 1)
                     {
-                        break;
+                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                            item2->position.line, item2->position.column);
+                        return -1;
                     }
-                    if (item->kind == NODE_KIND_VAR)
+                }
+                else
+                if (item2->kind == NODE_KIND_IF)
+                {
+                    node_if_t *if1 = (node_if_t *)item2->value;
+                    if (if1->key != NULL)
                     {
-                        node_var_t *node_var2 = (node_var_t *)item->value;
-                        if (node_var2->key->kind == NODE_KIND_ID)
+                        if (syntax_objidcmp(var1->key, if1->key) == 1)
                         {
-                            if (syntax_idcmp(node_if1->key, node_var2->key) == 1)
-                            {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item->position.line, item->position.column);
-                                        return -1;
-                                    }
-                                }
-                            }
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
                         }
-                        else
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_FOR)
+                {
+                    node_for_t *for1 = (node_for_t *)item2->value;
+                    if (for1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, for1->key) == 1)
                         {
-                            node_t response;
-                            int32_t r1 = syntax_objectkey(program, item, node_if1->key, &response);
-                            if (r1 == -1)
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_FORIN)
+                {
+                    node_forin_t *forin1 = (node_forin_t *)item2->value;
+                    if (forin1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, forin1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_IF)
+            {
+                node_if_t *if1 = (node_if_t *)item1->value;
+                if (if1->key != NULL)
+                {
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(if1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(if1->key, if2->key) == 1)
                             {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
                                 return -1;
                             }
-                            else
-                            if (r1 == 1)
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
+                    {
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
+                        {
+                            if (syntax_objidcmp(if1->key, for2->key) == 1)
                             {
-                                syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
-                                    item->position.line, item->position.column);
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
                                 return -1;
                             }
                         }
                     }
                     else
-                    if (item->kind == NODE_KIND_IF)
+                    if (item2->kind == NODE_KIND_FORIN)
                     {
-                        node_if_t *node_if2 = (node_if_t *)item->value;
-                        if (node_if2->key != NULL)
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
                         {
-                            if (syntax_idcmp(node_if1->key, node_if2->key) == 1)
+                            if (syntax_objidcmp(if1->key, forin2->key) == 1)
                             {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item->position.line, item->position.column);
-                                        return -1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
-                    if (item->kind == NODE_KIND_FOR)
-                    {
-                        node_for_t *node_for2 = (node_for_t *)item->value;
-                        if (node_for2->key != NULL)
-                        {
-                            if (syntax_idcmp(node_if1->key, node_for2->key) == 1)
-                            {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item->position.line, item->position.column);
-                                        return -1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
-                    if (item->kind == NODE_KIND_FORIN)
-                    {
-                        node_forin_t *node_forin2 = (node_forin_t *)item->value;
-                        if (node_forin2->key != NULL)
-                        {
-                            if (syntax_idcmp(node_if1->key, node_forin2->key) == 1)
-                            {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item->position.line, item->position.column);
-                                        return -1;
-                                    }
-                                }
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
                             }
                         }
                     }
                 }
             }
             else
-            if (parent->kind == NODE_KIND_FUNC)
+            if (item1->kind == NODE_KIND_FOR)
             {
-                node_func_t *func1 = (node_func_t *)parent->value;
-
-                if (func1->generics != NULL)
+                node_for_t *for1 = (node_for_t *)item1->value;
+                if (for1->key != NULL)
                 {
-                    node_t *node3 = func1->generics;
-                    node_block_t *generics = (node_block_t *)node3->value;
-                    ilist_t *a1;
-                    for (a1 = generics->list->begin;a1 != generics->list->end;a1 = a1->next)
+                    if (item2->kind == NODE_KIND_VAR)
                     {
-                        node_t *item1 = (node_t *)a1->value;
-                        if (item1->kind == NODE_KIND_GENERIC)
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(for1->key, var2->key) == 1)
                         {
-                            node_generic_t *generic1 = (node_generic_t *)item1->value;
-                            if (syntax_idcmp(node_if1->key, generic1->key) == 1)
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(for1->key, if2->key) == 1)
                             {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item1->position.line, item1->position.column);
-                                        return -1;
-                                    }
-                                }
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
                             }
                         }
                     }
-                }
-
-                if (func1->parameters != NULL)
-                {
-                    node_t *node3 = func1->parameters;
-                    node_block_t *parameters = (node_block_t *)node3->value;
-                    ilist_t *a1;
-                    for (a1 = parameters->list->begin;a1 != parameters->list->end;a1 = a1->next)
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
                     {
-                        node_t *item1 = (node_t *)a1->value;
-                        if (item1->kind == NODE_KIND_PARAMETER)
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
                         {
-                            node_parameter_t *parameter1 = (node_parameter_t *)item1->value;
-                            if (syntax_idcmp(node_if1->key, parameter1->key) == 1)
+                            if (syntax_objidcmp(for1->key, for2->key) == 1)
                             {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item1->position.line, item1->position.column);
-                                        return -1;
-                                    }
-                                }
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FORIN)
+                    {
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
+                        {
+                            if (syntax_objidcmp(for1->key, forin2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
                             }
                         }
                     }
                 }
             }
-
+            else
+            if (item1->kind == NODE_KIND_FORIN)
+            {
+                node_forin_t *forin1 = (node_forin_t *)item1->value;
+                if (forin1->key != NULL)
+                {
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(forin1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(forin1->key, if2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
+                    {
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
+                        {
+                            if (syntax_objidcmp(forin1->key, for2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FORIN)
+                    {
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
+                        {
+                            if (syntax_objidcmp(forin1->key, forin2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
         }
-        
-        if (parent->parent != NULL)
+    }
+
+    if (node_if1->else_body != NULL)
+    {
+        if (node_if1->else_body->kind == NODE_KIND_BODY)
         {
-            if ((parent->kind == NODE_KIND_CLASS) || (parent->kind == NODE_KIND_MODULE) || (parent->kind == NODE_KIND_FUNC))
+            node1 = node_if1->else_body;
+            block1 = (node_block_t *)node1->value;
+
+            for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
             {
-                goto region_end;
+                node_t *item1 = (node_t *)a1->value;
+            
+                ilist_t *a2;
+                for (a2 = block1->list->begin; a2 != block1->list->end; a2 = a2->next)
+                {
+                    node_t *item2 = (node_t *)a2->value;
+
+                    if (item1->id == item2->id)
+                    {
+                        break;
+                    }
+
+                    if (item1->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var1 = (node_var_t *)item1->value;
+                        if (item2->kind == NODE_KIND_VAR)
+                        {
+                            node_var_t *var2 = (node_var_t *)item2->value;
+                            if (syntax_objidcmp(var1->key, var2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                        else
+                        if (item2->kind == NODE_KIND_IF)
+                        {
+                            node_if_t *if1 = (node_if_t *)item2->value;
+                            if (if1->key != NULL)
+                            {
+                                if (syntax_objidcmp(var1->key, if1->key) == 1)
+                                {
+                                    syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                        item2->position.line, item2->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                        else
+                        if (item2->kind == NODE_KIND_FOR)
+                        {
+                            node_for_t *for1 = (node_for_t *)item2->value;
+                            if (for1->key != NULL)
+                            {
+                                if (syntax_objidcmp(var1->key, for1->key) == 1)
+                                {
+                                    syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                        item2->position.line, item2->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                        else
+                        if (item2->kind == NODE_KIND_FORIN)
+                        {
+                            node_forin_t *forin1 = (node_forin_t *)item2->value;
+                            if (forin1->key != NULL)
+                            {
+                                if (syntax_objidcmp(var1->key, forin1->key) == 1)
+                                {
+                                    syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                        item2->position.line, item2->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if1 = (node_if_t *)item1->value;
+                        if (if1->key != NULL)
+                        {
+                            if (item2->kind == NODE_KIND_VAR)
+                            {
+                                node_var_t *var2 = (node_var_t *)item2->value;
+                                if (syntax_objidcmp(if1->key, var2->key) == 1)
+                                {
+                                    syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                        item2->position.line, item2->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_IF)
+                            {
+                                node_if_t *if2 = (node_if_t *)item2->value;
+                                if (if2->key != NULL)
+                                {
+                                    if (syntax_objidcmp(if1->key, if2->key) == 1)
+                                    {
+                                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                            item2->position.line, item2->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_FOR)
+                            {
+                                node_for_t *for2 = (node_for_t *)item2->value;
+                                if (for2->key != NULL)
+                                {
+                                    if (syntax_objidcmp(if1->key, for2->key) == 1)
+                                    {
+                                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                            item2->position.line, item2->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_FORIN)
+                            {
+                                node_forin_t *forin2 = (node_forin_t *)item2->value;
+                                if (forin2->key != NULL)
+                                {
+                                    if (syntax_objidcmp(if1->key, forin2->key) == 1)
+                                    {
+                                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                            item2->position.line, item2->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_FOR)
+                    {
+                        node_for_t *for1 = (node_for_t *)item1->value;
+                        if (for1->key != NULL)
+                        {
+                            if (item2->kind == NODE_KIND_VAR)
+                            {
+                                node_var_t *var2 = (node_var_t *)item2->value;
+                                if (syntax_objidcmp(for1->key, var2->key) == 1)
+                                {
+                                    syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                        item2->position.line, item2->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_IF)
+                            {
+                                node_if_t *if2 = (node_if_t *)item2->value;
+                                if (if2->key != NULL)
+                                {
+                                    if (syntax_objidcmp(for1->key, if2->key) == 1)
+                                    {
+                                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                            item2->position.line, item2->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_FOR)
+                            {
+                                node_for_t *for2 = (node_for_t *)item2->value;
+                                if (for2->key != NULL)
+                                {
+                                    if (syntax_objidcmp(for1->key, for2->key) == 1)
+                                    {
+                                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                            item2->position.line, item2->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_FORIN)
+                            {
+                                node_forin_t *forin2 = (node_forin_t *)item2->value;
+                                if (forin2->key != NULL)
+                                {
+                                    if (syntax_objidcmp(for1->key, forin2->key) == 1)
+                                    {
+                                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                            item2->position.line, item2->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_FORIN)
+                    {
+                        node_forin_t *forin1 = (node_forin_t *)item1->value;
+                        if (forin1->key != NULL)
+                        {
+                            if (item2->kind == NODE_KIND_VAR)
+                            {
+                                node_var_t *var2 = (node_var_t *)item2->value;
+                                if (syntax_objidcmp(forin1->key, var2->key) == 1)
+                                {
+                                    syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                        item2->position.line, item2->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_IF)
+                            {
+                                node_if_t *if2 = (node_if_t *)item2->value;
+                                if (if2->key != NULL)
+                                {
+                                    if (syntax_objidcmp(forin1->key, if2->key) == 1)
+                                    {
+                                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                            item2->position.line, item2->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_FOR)
+                            {
+                                node_for_t *for2 = (node_for_t *)item2->value;
+                                if (for2->key != NULL)
+                                {
+                                    if (syntax_objidcmp(forin1->key, for2->key) == 1)
+                                    {
+                                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                            item2->position.line, item2->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_FORIN)
+                            {
+                                node_forin_t *forin2 = (node_forin_t *)item2->value;
+                                if (forin2->key != NULL)
+                                {
+                                    if (syntax_objidcmp(forin1->key, forin2->key) == 1)
+                                    {
+                                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                            item2->position.line, item2->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            parent = parent->parent;
-            goto region_start;
         }
-        region_end:
-        return 1;
     }
 
     int32_t result = syntax_body(program, node_if1->then_body);
@@ -762,425 +996,363 @@ static int32_t
 syntax_for(program_t *program, node_t *node)
 {
     node_for_t *node_for1 = (node_for_t *)node->value;
-    if (node_for1->key != NULL)
+    node_t *node1 = node_for1->body;
+    node_block_t *block1 = (node_block_t *)node1->value;
+    
+    ilist_t *a1;
+    for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
     {
-        node_t *parent = node->parent;
-        region_start:
-        if (parent != NULL)
+        node_t *item1 = (node_t *)a1->value;
+        if (item1->kind == NODE_KIND_VAR)
         {
-            if (parent->kind == NODE_KIND_BODY)
+            node_var_t *var1 = (node_var_t *)item1->value;
+            
+            node_t *node2 = node_for1->initializer;
+            node_block_t *block2 = (node_block_t *)node2->value;
+            
+            ilist_t *b1;
+            for (b1 = block2->list->begin; b1 != block2->list->end; b1 = b1->next)
             {
-                node_block_t *block = (node_block_t *)parent->value;
-                ilist_t *a1;
-                for (a1 = block->list->begin;a1 != block->list->end;a1 = a1->next)
+                node_t *item3 = (node_t *)b1->value;
+                if (item3->kind == NODE_KIND_VAR)
                 {
-                    node_t *item = (node_t *)a1->value;
-                    if (node->id == item->id)
+                    node_var_t *var3 = (node_var_t *)item3->value;
+                    if (syntax_objidcmp(var1->key, var3->key) == 1)
                     {
-                        break;
+                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                            item3->position.line, item3->position.column);
+                        return -1;
                     }
-
-                    if (item->kind == NODE_KIND_VAR)
+                }
+            }
+        }
+        else
+        if (item1->kind == NODE_KIND_IF)
+        {
+            node_if_t *if1 = (node_if_t *)item1->value;
+            if (if1->key != NULL)
+            {
+                node_t *node2 = node_for1->initializer;
+                node_block_t *block2 = (node_block_t *)node2->value;
+                
+                ilist_t *b1;
+                for (b1 = block2->list->begin; b1 != block2->list->end; b1 = b1->next)
+                {
+                    node_t *item3 = (node_t *)b1->value;
+                    if (item3->kind == NODE_KIND_VAR)
                     {
-                        node_var_t *node_var2 = (node_var_t *)item->value;
-                        if (node_var2->key->kind == NODE_KIND_ID)
+                        node_var_t *var3 = (node_var_t *)item3->value;
+                        if (syntax_objidcmp(if1->key, var3->key) == 1)
                         {
-                            if (syntax_idcmp(node_for1->key, node_var2->key) == 1)
-                            {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item->position.line, item->position.column);
-                                        return -1;
-                                    }
-                                }
-                            }
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item3->position.line, item3->position.column);
+                            return -1;
                         }
-                        else
+                    }
+                }
+            }
+        }
+        else
+        if (item1->kind == NODE_KIND_FOR)
+        {
+            node_for_t *for1 = (node_for_t *)item1->value;
+            if (for1->key != NULL)
+            {
+                node_t *node2 = node_for1->initializer;
+                node_block_t *block2 = (node_block_t *)node2->value;
+                
+                ilist_t *b1;
+                for (b1 = block2->list->begin; b1 != block2->list->end; b1 = b1->next)
+                {
+                    node_t *item3 = (node_t *)b1->value;
+                    if (item3->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var3 = (node_var_t *)item3->value;
+                        if (syntax_objidcmp(for1->key, var3->key) == 1)
                         {
-                            node_t response;
-                            int32_t r1 = syntax_objectkey(program, item, node_for1->key, &response);
-                            if (r1 == -1)
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item3->position.line, item3->position.column);
+                            return -1;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        if (item1->kind == NODE_KIND_FORIN)
+        {
+            node_forin_t *forin1 = (node_forin_t *)item1->value;
+            if (forin1->key != NULL)
+            {
+                node_t *node2 = node_for1->initializer;
+                node_block_t *block2 = (node_block_t *)node2->value;
+                
+                ilist_t *b1;
+                for (b1 = block2->list->begin; b1 != block2->list->end; b1 = b1->next)
+                {
+                    node_t *item3 = (node_t *)b1->value;
+                    if (item3->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var3 = (node_var_t *)item3->value;
+                        if (syntax_objidcmp(forin1->key, var3->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item3->position.line, item3->position.column);
+                            return -1;
+                        }
+                    }
+                }
+            }
+        }
+
+        ilist_t *a2;
+        for (a2 = block1->list->begin; a2 != block1->list->end; a2 = a2->next)
+        {
+            node_t *item2 = (node_t *)a2->value;
+
+            if (item1->id == item2->id)
+            {
+                break;
+            }
+            
+            if (item1->kind == NODE_KIND_VAR)
+            {
+                node_var_t *var1 = (node_var_t *)item1->value;
+
+                if (item2->kind == NODE_KIND_VAR)
+                {
+                    node_var_t *var2 = (node_var_t *)item2->value;
+                    if (syntax_objidcmp(var1->key, var2->key) == 1)
+                    {
+                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                            item2->position.line, item2->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_IF)
+                {
+                    node_if_t *if1 = (node_if_t *)item2->value;
+                    if (if1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, if1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_FOR)
+                {
+                    node_for_t *for1 = (node_for_t *)item2->value;
+                    if (for1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, for1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_FORIN)
+                {
+                    node_forin_t *forin1 = (node_forin_t *)item2->value;
+                    if (forin1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, forin1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_IF)
+            {
+                node_if_t *if1 = (node_if_t *)item1->value;
+                if (if1->key != NULL)
+                {
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(if1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(if1->key, if2->key) == 1)
                             {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
                                 return -1;
                             }
-                            else
-                            if (r1 == 1)
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
+                    {
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
+                        {
+                            if (syntax_objidcmp(if1->key, for2->key) == 1)
                             {
-                                syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
-                                    item->position.line, item->position.column);
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
                                 return -1;
                             }
                         }
                     }
                     else
-                    if (item->kind == NODE_KIND_IF)
+                    if (item2->kind == NODE_KIND_FORIN)
                     {
-                        node_if_t *node_if2 = (node_if_t *)item->value;
-                        if (node_if2->key != NULL)
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
                         {
-                            if (syntax_idcmp(node_for1->key, node_if2->key) == 1)
+                            if (syntax_objidcmp(if1->key, forin2->key) == 1)
                             {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item->position.line, item->position.column);
-                                        return -1;
-                                    }
-                                }
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_FOR)
+            {
+                node_for_t *for1 = (node_for_t *)item1->value;
+                if (for1->key != NULL)
+                {
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(for1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(for1->key, if2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
                             }
                         }
                     }
                     else
-                    if (item->kind == NODE_KIND_FOR)
+                    if (item2->kind == NODE_KIND_FOR)
                     {
-                        node_for_t *node_for2 = (node_for_t *)item->value;
-                        if (node_for2->key != NULL)
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
                         {
-                            if (syntax_idcmp(node_for1->key, node_for2->key) == 1)
+                            if (syntax_objidcmp(for1->key, for2->key) == 1)
                             {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item->position.line, item->position.column);
-                                        return -1;
-                                    }
-                                }
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
                             }
                         }
                     }
                     else
-                    if (item->kind == NODE_KIND_FORIN)
+                    if (item2->kind == NODE_KIND_FORIN)
                     {
-                        node_forin_t *node_forin2 = (node_forin_t *)item->value;
-                        if (node_forin2->key != NULL)
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
                         {
-                            if (syntax_idcmp(node_for1->key, node_forin2->key) == 1)
+                            if (syntax_objidcmp(for1->key, forin2->key) == 1)
                             {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item->position.line, item->position.column);
-                                        return -1;
-                                    }
-                                }
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
                             }
                         }
                     }
                 }
             }
             else
-            if (parent->kind == NODE_KIND_FUNC)
+            if (item1->kind == NODE_KIND_FORIN)
             {
-                node_func_t *func1 = (node_func_t *)parent->value;
-
-                if (func1->generics != NULL)
+                node_forin_t *forin1 = (node_forin_t *)item1->value;
+                if (forin1->key != NULL)
                 {
-                    node_t *node3 = func1->generics;
-                    node_block_t *generics = (node_block_t *)node3->value;
-                    ilist_t *a1;
-                    for (a1 = generics->list->begin;a1 != generics->list->end;a1 = a1->next)
+                    if (item2->kind == NODE_KIND_VAR)
                     {
-                        node_t *item1 = (node_t *)a1->value;
-                        if (item1->kind == NODE_KIND_GENERIC)
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(forin1->key, var2->key) == 1)
                         {
-                            node_generic_t *generic1 = (node_generic_t *)item1->value;
-                            if (syntax_idcmp(node_for1->key, generic1->key) == 1)
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(forin1->key, if2->key) == 1)
                             {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item1->position.line, item1->position.column);
-                                        return -1;
-                                    }
-                                }
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
                             }
                         }
                     }
-                }
-
-                if (func1->parameters != NULL)
-                {
-                    node_t *node3 = func1->parameters;
-                    node_block_t *parameters = (node_block_t *)node3->value;
-                    ilist_t *a1;
-                    for (a1 = parameters->list->begin;a1 != parameters->list->end;a1 = a1->next)
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
                     {
-                        node_t *item1 = (node_t *)a1->value;
-                        if (item1->kind == NODE_KIND_PARAMETER)
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
                         {
-                            node_parameter_t *parameter1 = (node_parameter_t *)item1->value;
-                            if (syntax_idcmp(node_for1->key, parameter1->key) == 1)
+                            if (syntax_objidcmp(forin1->key, for2->key) == 1)
                             {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item1->position.line, item1->position.column);
-                                        return -1;
-                                    }
-                                }
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
                             }
                         }
                     }
-                }
-            }
-            else
-            if (parent->kind == NODE_KIND_FOR)
-            {
-                node_for_t *for1 = (node_for_t *)parent->value;
-                if (for1->initializer != NULL)
-                {
-                    node_t *node3 = for1->initializer;
-                    node_block_t *initializer = (node_block_t *)node3->value;
-                    ilist_t *a1;
-                    for (a1 = initializer->list->begin;a1 != initializer->list->end;a1 = a1->next)
+                    else
+                    if (item2->kind == NODE_KIND_FORIN)
                     {
-                        node_t *item1 = (node_t *)a1->value;
-                        
-                        if (item1->kind == NODE_KIND_VAR)
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
                         {
-                            
-                            node_var_t *var1 = (node_var_t *)item1->value;
-                            if (var1->key->kind == NODE_KIND_ID)
+                            if (syntax_objidcmp(forin1->key, forin2->key) == 1)
                             {
-                                if (syntax_idcmp(node_for1->key, var1->key) == 1)
-                                {
-                                    node_t *ngs1 = NULL;
-                                    node_t *ngs2 = NULL;
-                                    int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                    if (r1 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r1 == 1)
-                                    {
-                                        node_t *nps1 = NULL;
-                                        node_t *nps2 = NULL;
-                                        int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                        if (r2 == -1)
-                                        {
-                                            return -1;
-                                        }
-                                        else
-                                        if (r2 == 1)
-                                        {
-                                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                                item1->position.line, item1->position.column);
-                                            return -1;
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                node_t response;
-                                int32_t r1 = syntax_objectkey(program, item1, node_for1->key, &response);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
-                                        item1->position.line, item1->position.column);
-                                    return -1;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            if (parent->kind == NODE_KIND_FORIN)
-            {
-                node_forin_t *for1 = (node_forin_t *)parent->value;
-                if (for1->initializer != NULL)
-                {
-                    node_t *node3 = for1->initializer;
-                    node_block_t *initializer = (node_block_t *)node3->value;
-                    ilist_t *a1;
-                    for (a1 = initializer->list->begin;a1 != initializer->list->end;a1 = a1->next)
-                    {
-                        node_t *item1 = (node_t *)a1->value;
-                        
-                        if (item1->kind == NODE_KIND_VAR)
-                        {
-                            
-                            node_var_t *var1 = (node_var_t *)item1->value;
-                            if (var1->key->kind == NODE_KIND_ID)
-                            {
-                                if (syntax_idcmp(node_for1->key, var1->key) == 1)
-                                {
-                                    node_t *ngs1 = NULL;
-                                    node_t *ngs2 = NULL;
-                                    int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                    if (r1 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r1 == 1)
-                                    {
-                                        node_t *nps1 = NULL;
-                                        node_t *nps2 = NULL;
-                                        int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                        if (r2 == -1)
-                                        {
-                                            return -1;
-                                        }
-                                        else
-                                        if (r2 == 1)
-                                        {
-                                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                                item1->position.line, item1->position.column);
-                                            return -1;
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                node_t response;
-                                int32_t r1 = syntax_objectkey(program, item1, node_for1->key, &response);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
-                                        item1->position.line, item1->position.column);
-                                    return -1;
-                                }
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
                             }
                         }
                     }
                 }
             }
         }
-        
-        if (parent->parent != NULL)
-        {
-            if ((parent->kind == NODE_KIND_CLASS) || (parent->kind == NODE_KIND_MODULE) || (parent->kind == NODE_KIND_FUNC))
-            {
-                goto region_end;
-            }
-            parent = parent->parent;
-            goto region_start;
-        }
-        region_end:
-        return 1;
     }
 
     int32_t result = syntax_body(program, node_for1->body);
@@ -1196,424 +1368,363 @@ static int32_t
 syntax_forin(program_t *program, node_t *node)
 {
     node_forin_t *node_forin1 = (node_forin_t *)node->value;
-    if (node_forin1->key != NULL)
+    node_t *node1 = node_forin1->body;
+    node_block_t *block1 = (node_block_t *)node1->value;
+    
+    ilist_t *a1;
+    for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
     {
-        node_t *parent = node->parent;
-        region_start:
-        if (parent != NULL)
+        node_t *item1 = (node_t *)a1->value;
+        if (item1->kind == NODE_KIND_VAR)
         {
-            if (parent->kind == NODE_KIND_BODY)
+            node_var_t *var1 = (node_var_t *)item1->value;
+            
+            node_t *node2 = node_forin1->initializer;
+            node_block_t *block2 = (node_block_t *)node2->value;
+            
+            ilist_t *b1;
+            for (b1 = block2->list->begin; b1 != block2->list->end; b1 = b1->next)
             {
-                node_block_t *block = (node_block_t *)parent->value;
-                ilist_t *a1;
-                for (a1 = block->list->begin;a1 != block->list->end;a1 = a1->next)
+                node_t *item3 = (node_t *)b1->value;
+                if (item3->kind == NODE_KIND_VAR)
                 {
-                    node_t *item = (node_t *)a1->value;
-                    if (node->id == item->id)
+                    node_var_t *var3 = (node_var_t *)item3->value;
+                    if (syntax_objidcmp(var1->key, var3->key) == 1)
                     {
-                        break;
+                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                            item3->position.line, item3->position.column);
+                        return -1;
                     }
-                    if (item->kind == NODE_KIND_VAR)
+                }
+            }
+        }
+        else
+        if (item1->kind == NODE_KIND_IF)
+        {
+            node_if_t *if1 = (node_if_t *)item1->value;
+            if (if1->key != NULL)
+            {
+                node_t *node2 = node_forin1->initializer;
+                node_block_t *block2 = (node_block_t *)node2->value;
+                
+                ilist_t *b1;
+                for (b1 = block2->list->begin; b1 != block2->list->end; b1 = b1->next)
+                {
+                    node_t *item3 = (node_t *)b1->value;
+                    if (item3->kind == NODE_KIND_VAR)
                     {
-                        node_var_t *node_var2 = (node_var_t *)item->value;
-                        if (node_var2->key->kind == NODE_KIND_ID)
+                        node_var_t *var3 = (node_var_t *)item3->value;
+                        if (syntax_objidcmp(if1->key, var3->key) == 1)
                         {
-                            if (syntax_idcmp(node_forin1->key, node_var2->key) == 1)
-                            {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item->position.line, item->position.column);
-                                        return -1;
-                                    }
-                                }
-                            }
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item3->position.line, item3->position.column);
+                            return -1;
                         }
-                        else
+                    }
+                }
+            }
+        }
+        else
+        if (item1->kind == NODE_KIND_FOR)
+        {
+            node_for_t *for1 = (node_for_t *)item1->value;
+            if (for1->key != NULL)
+            {
+                node_t *node2 = node_forin1->initializer;
+                node_block_t *block2 = (node_block_t *)node2->value;
+                
+                ilist_t *b1;
+                for (b1 = block2->list->begin; b1 != block2->list->end; b1 = b1->next)
+                {
+                    node_t *item3 = (node_t *)b1->value;
+                    if (item3->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var3 = (node_var_t *)item3->value;
+                        if (syntax_objidcmp(for1->key, var3->key) == 1)
                         {
-                            node_t response;
-                            int32_t r1 = syntax_objectkey(program, item, node_forin1->key, &response);
-                            if (r1 == -1)
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item3->position.line, item3->position.column);
+                            return -1;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        if (item1->kind == NODE_KIND_FORIN)
+        {
+            node_forin_t *forin1 = (node_forin_t *)item1->value;
+            if (forin1->key != NULL)
+            {
+                node_t *node2 = node_forin1->initializer;
+                node_block_t *block2 = (node_block_t *)node2->value;
+                
+                ilist_t *b1;
+                for (b1 = block2->list->begin; b1 != block2->list->end; b1 = b1->next)
+                {
+                    node_t *item3 = (node_t *)b1->value;
+                    if (item3->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var3 = (node_var_t *)item3->value;
+                        if (syntax_objidcmp(forin1->key, var3->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item3->position.line, item3->position.column);
+                            return -1;
+                        }
+                    }
+                }
+            }
+        }
+
+        ilist_t *a2;
+        for (a2 = block1->list->begin; a2 != block1->list->end; a2 = a2->next)
+        {
+            node_t *item2 = (node_t *)a2->value;
+
+            if (item1->id == item2->id)
+            {
+                break;
+            }
+
+            if (item1->kind == NODE_KIND_VAR)
+            {
+                node_var_t *var1 = (node_var_t *)item1->value;
+
+                if (item2->kind == NODE_KIND_VAR)
+                {
+                    node_var_t *var2 = (node_var_t *)item2->value;
+                    if (syntax_objidcmp(var1->key, var2->key) == 1)
+                    {
+                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                            item2->position.line, item2->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_IF)
+                {
+                    node_if_t *if1 = (node_if_t *)item2->value;
+                    if (if1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, if1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_FOR)
+                {
+                    node_for_t *for1 = (node_for_t *)item2->value;
+                    if (for1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, for1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_FORIN)
+                {
+                    node_forin_t *forin1 = (node_forin_t *)item2->value;
+                    if (forin1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, forin1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_IF)
+            {
+                node_if_t *if1 = (node_if_t *)item1->value;
+                if (if1->key != NULL)
+                {
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(if1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(if1->key, if2->key) == 1)
                             {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
                                 return -1;
                             }
-                            else
-                            if (r1 == 1)
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
+                    {
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
+                        {
+                            if (syntax_objidcmp(if1->key, for2->key) == 1)
                             {
-                                syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
-                                    item->position.line, item->position.column);
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
                                 return -1;
                             }
                         }
                     }
                     else
-                    if (item->kind == NODE_KIND_IF)
+                    if (item2->kind == NODE_KIND_FORIN)
                     {
-                        node_if_t *node_if2 = (node_if_t *)item->value;
-                        if (node_if2->key != NULL)
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
                         {
-                            if (syntax_idcmp(node_forin1->key, node_if2->key) == 1)
+                            if (syntax_objidcmp(if1->key, forin2->key) == 1)
                             {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item->position.line, item->position.column);
-                                        return -1;
-                                    }
-                                }
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_FOR)
+            {
+                node_for_t *for1 = (node_for_t *)item1->value;
+                if (for1->key != NULL)
+                {
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(for1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(for1->key, if2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
                             }
                         }
                     }
                     else
-                    if (item->kind == NODE_KIND_FOR)
+                    if (item2->kind == NODE_KIND_FOR)
                     {
-                        node_for_t *node_for2 = (node_for_t *)item->value;
-                        if (node_for2->key != NULL)
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
                         {
-                            if (syntax_idcmp(node_forin1->key, node_for2->key) == 1)
+                            if (syntax_objidcmp(for1->key, for2->key) == 1)
                             {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item->position.line, item->position.column);
-                                        return -1;
-                                    }
-                                }
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
                             }
                         }
                     }
                     else
-                    if (item->kind == NODE_KIND_FORIN)
+                    if (item2->kind == NODE_KIND_FORIN)
                     {
-                        node_forin_t *node_forin2 = (node_forin_t *)item->value;
-                        if (node_forin2->key != NULL)
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
                         {
-                            if (syntax_idcmp(node_forin1->key, node_forin2->key) == 1)
+                            if (syntax_objidcmp(for1->key, forin2->key) == 1)
                             {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item->position.line, item->position.column);
-                                        return -1;
-                                    }
-                                }
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
                             }
                         }
                     }
                 }
             }
             else
-            if (parent->kind == NODE_KIND_FUNC)
+            if (item1->kind == NODE_KIND_FORIN)
             {
-                node_func_t *func1 = (node_func_t *)parent->value;
-
-                if (func1->generics != NULL)
+                node_forin_t *forin1 = (node_forin_t *)item1->value;
+                if (forin1->key != NULL)
                 {
-                    node_t *node3 = func1->generics;
-                    node_block_t *generics = (node_block_t *)node3->value;
-                    ilist_t *a1;
-                    for (a1 = generics->list->begin;a1 != generics->list->end;a1 = a1->next)
+                    if (item2->kind == NODE_KIND_VAR)
                     {
-                        node_t *item1 = (node_t *)a1->value;
-                        if (item1->kind == NODE_KIND_GENERIC)
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(forin1->key, var2->key) == 1)
                         {
-                            node_generic_t *generic1 = (node_generic_t *)item1->value;
-                            if (syntax_idcmp(node_forin1->key, generic1->key) == 1)
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(forin1->key, if2->key) == 1)
                             {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item1->position.line, item1->position.column);
-                                        return -1;
-                                    }
-                                }
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
                             }
                         }
                     }
-                }
-
-                if (func1->parameters != NULL)
-                {
-                    node_t *node3 = func1->parameters;
-                    node_block_t *parameters = (node_block_t *)node3->value;
-                    ilist_t *a1;
-                    for (a1 = parameters->list->begin;a1 != parameters->list->end;a1 = a1->next)
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
                     {
-                        node_t *item1 = (node_t *)a1->value;
-                        if (item1->kind == NODE_KIND_PARAMETER)
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
                         {
-                            node_parameter_t *parameter1 = (node_parameter_t *)item1->value;
-                            if (syntax_idcmp(node_forin1->key, parameter1->key) == 1)
+                            if (syntax_objidcmp(forin1->key, for2->key) == 1)
                             {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item1->position.line, item1->position.column);
-                                        return -1;
-                                    }
-                                }
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
                             }
                         }
                     }
-                }
-            }
-            else
-            if (parent->kind == NODE_KIND_FOR)
-            {
-                node_for_t *for1 = (node_for_t *)parent->value;
-                if (for1->initializer != NULL)
-                {
-                    node_t *node3 = for1->initializer;
-                    node_block_t *initializer = (node_block_t *)node3->value;
-                    ilist_t *a1;
-                    for (a1 = initializer->list->begin;a1 != initializer->list->end;a1 = a1->next)
+                    else
+                    if (item2->kind == NODE_KIND_FORIN)
                     {
-                        node_t *item1 = (node_t *)a1->value;
-                        
-                        if (item1->kind == NODE_KIND_VAR)
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
                         {
-                            
-                            node_var_t *var1 = (node_var_t *)item1->value;
-                            if (var1->key->kind == NODE_KIND_ID)
+                            if (syntax_objidcmp(forin1->key, forin2->key) == 1)
                             {
-                                if (syntax_idcmp(node_forin1->key, var1->key) == 1)
-                                {
-                                    node_t *ngs1 = NULL;
-                                    node_t *ngs2 = NULL;
-                                    int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                    if (r1 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r1 == 1)
-                                    {
-                                        node_t *nps1 = NULL;
-                                        node_t *nps2 = NULL;
-                                        int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                        if (r2 == -1)
-                                        {
-                                            return -1;
-                                        }
-                                        else
-                                        if (r2 == 1)
-                                        {
-                                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                                item1->position.line, item1->position.column);
-                                            return -1;
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                node_t response;
-                                int32_t r1 = syntax_objectkey(program, item1, node_forin1->key, &response);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
-                                        item1->position.line, item1->position.column);
-                                    return -1;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            if (parent->kind == NODE_KIND_FORIN)
-            {
-                node_forin_t *for1 = (node_forin_t *)parent->value;
-                if (for1->initializer != NULL)
-                {
-                    node_t *node3 = for1->initializer;
-                    node_block_t *initializer = (node_block_t *)node3->value;
-                    ilist_t *a1;
-                    for (a1 = initializer->list->begin;a1 != initializer->list->end;a1 = a1->next)
-                    {
-                        node_t *item1 = (node_t *)a1->value;
-                        
-                        if (item1->kind == NODE_KIND_VAR)
-                        {
-                            
-                            node_var_t *var1 = (node_var_t *)item1->value;
-                            if (var1->key->kind == NODE_KIND_ID)
-                            {
-                                if (syntax_idcmp(node_forin1->key, var1->key) == 1)
-                                {
-                                    node_t *ngs1 = NULL;
-                                    node_t *ngs2 = NULL;
-                                    int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                    if (r1 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r1 == 1)
-                                    {
-                                        node_t *nps1 = NULL;
-                                        node_t *nps2 = NULL;
-                                        int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                        if (r2 == -1)
-                                        {
-                                            return -1;
-                                        }
-                                        else
-                                        if (r2 == 1)
-                                        {
-                                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                                item1->position.line, item1->position.column);
-                                            return -1;
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                node_t response;
-                                int32_t r1 = syntax_objectkey(program, item1, node_forin1->key, &response);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
-                                        item1->position.line, item1->position.column);
-                                    return -1;
-                                }
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
                             }
                         }
                     }
                 }
             }
         }
-        
-        if (parent->parent != NULL)
-        {
-            if ((parent->kind == NODE_KIND_CLASS) || (parent->kind == NODE_KIND_MODULE) || (parent->kind == NODE_KIND_FUNC))
-            {
-                goto region_end;
-            }
-            parent = parent->parent;
-            goto region_start;
-        }
-        region_end:
-        return 1;
     }
 
     int32_t result = syntax_body(program, node_forin1->body);
@@ -1693,6 +1804,263 @@ static int32_t
 syntax_catch(program_t *program, node_t *node)
 {
     node_catch_t *node_catch1 = (node_catch_t *)node->value;
+    node_t *node1 = node_catch1->body;
+    node_block_t *block1 = (node_block_t *)node1->value;
+    
+    ilist_t *a1;
+    for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
+    {
+        node_t *item1 = (node_t *)a1->value;
+
+        ilist_t *a2;
+        for (a2 = block1->list->begin; a2 != block1->list->end; a2 = a2->next)
+        {
+            node_t *item2 = (node_t *)a2->value;
+            
+            if (item1->id == item2->id)
+            {
+                break;
+            }
+
+            if (item1->kind == NODE_KIND_VAR)
+            {
+                node_var_t *var1 = (node_var_t *)item1->value;
+
+                if (item2->kind == NODE_KIND_VAR)
+                {
+                    node_var_t *var2 = (node_var_t *)item2->value;
+                    if (syntax_objidcmp(var1->key, var2->key) == 1)
+                    {
+                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                            item2->position.line, item2->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_IF)
+                {
+                    node_if_t *if1 = (node_if_t *)item2->value;
+                    if (if1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, if1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_FOR)
+                {
+                    node_for_t *for1 = (node_for_t *)item2->value;
+                    if (for1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, for1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_FORIN)
+                {
+                    node_forin_t *forin1 = (node_forin_t *)item2->value;
+                    if (forin1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, forin1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_IF)
+            {
+                node_if_t *if1 = (node_if_t *)item1->value;
+                if (if1->key != NULL)
+                {
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(if1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(if1->key, if2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
+                    {
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
+                        {
+                            if (syntax_objidcmp(if1->key, for2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FORIN)
+                    {
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
+                        {
+                            if (syntax_objidcmp(if1->key, forin2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_FOR)
+            {
+                node_for_t *for1 = (node_for_t *)item1->value;
+                if (for1->key != NULL)
+                {
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(for1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(for1->key, if2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
+                    {
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
+                        {
+                            if (syntax_objidcmp(for1->key, for2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FORIN)
+                    {
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
+                        {
+                            if (syntax_objidcmp(for1->key, forin2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_FORIN)
+            {
+                node_forin_t *forin1 = (node_forin_t *)item1->value;
+                if (forin1->key != NULL)
+                {
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(forin1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(forin1->key, if2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
+                    {
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
+                        {
+                            if (syntax_objidcmp(forin1->key, for2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FORIN)
+                    {
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
+                        {
+                            if (syntax_objidcmp(forin1->key, forin2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     if (node_catch1->parameters != NULL)
     {
@@ -1715,6 +2083,263 @@ static int32_t
 syntax_try(program_t *program, node_t *node)
 {
     node_try_t *node_try1 = (node_try_t *)node->value;
+    node_t *node1 = node_try1->body;
+    node_block_t *block1 = (node_block_t *)node1->value;
+    
+    ilist_t *a1;
+    for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
+    {
+        node_t *item1 = (node_t *)a1->value;
+
+        ilist_t *a2;
+        for (a2 = block1->list->begin; a2 != block1->list->end; a2 = a2->next)
+        {
+            node_t *item2 = (node_t *)a2->value;
+            
+            if (item1->id == item2->id)
+            {
+                break;
+            }
+
+            if (item1->kind == NODE_KIND_VAR)
+            {
+                node_var_t *var1 = (node_var_t *)item1->value;
+
+                if (item2->kind == NODE_KIND_VAR)
+                {
+                    node_var_t *var2 = (node_var_t *)item2->value;
+                    if (syntax_objidcmp(var1->key, var2->key) == 1)
+                    {
+                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                            item2->position.line, item2->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_IF)
+                {
+                    node_if_t *if1 = (node_if_t *)item2->value;
+                    if (if1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, if1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_FOR)
+                {
+                    node_for_t *for1 = (node_for_t *)item2->value;
+                    if (for1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, for1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_FORIN)
+                {
+                    node_forin_t *forin1 = (node_forin_t *)item2->value;
+                    if (forin1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, forin1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_IF)
+            {
+                node_if_t *if1 = (node_if_t *)item1->value;
+                if (if1->key != NULL)
+                {
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(if1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(if1->key, if2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
+                    {
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
+                        {
+                            if (syntax_objidcmp(if1->key, for2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FORIN)
+                    {
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
+                        {
+                            if (syntax_objidcmp(if1->key, forin2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_FOR)
+            {
+                node_for_t *for1 = (node_for_t *)item1->value;
+                if (for1->key != NULL)
+                {
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(for1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(for1->key, if2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
+                    {
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
+                        {
+                            if (syntax_objidcmp(for1->key, for2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FORIN)
+                    {
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
+                        {
+                            if (syntax_objidcmp(for1->key, forin2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_FORIN)
+            {
+                node_forin_t *forin1 = (node_forin_t *)item1->value;
+                if (forin1->key != NULL)
+                {
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(forin1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(forin1->key, if2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
+                    {
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
+                        {
+                            if (syntax_objidcmp(forin1->key, for2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FORIN)
+                    {
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
+                        {
+                            if (syntax_objidcmp(forin1->key, forin2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     int32_t result = syntax_body(program, node_try1->body);
     if (result == -1)
@@ -1744,525 +2369,6 @@ syntax_try(program_t *program, node_t *node)
 static int32_t
 syntax_var(program_t *program, node_t *node)
 {
-	node_var_t *node_var1 = (node_var_t *)node->value;
-    node_t *parent = node->parent;
-    region_start:
-    if (parent != NULL)
-    {
-        if (parent->kind == NODE_KIND_MODULE)
-        {
-            node_module_t *module = (node_module_t *)parent->value;
-            node_t *node2 = module->block;
-            node_block_t *block = (node_block_t *)node2->value;
-            ilist_t *a1;
-            for (a1 = block->list->begin;a1 != block->list->end;a1 = a1->next)
-            {
-                node_t *item = (node_t *)a1->value;
-                if (node->id == item->id)
-                {
-                    break;
-                }
-                if (item->kind == NODE_KIND_CLASS)
-                {
-                    node_class_t *node_class2 = (node_class_t *)item->value;
-                    if (node_var1->key->kind == NODE_KIND_ID)
-                    {
-                        if (syntax_idcmp(node_var1->key, node_class2->key) == 1)
-                        {
-                            node_t *ngs1 = NULL;
-                            node_t *ngs2 = node_class2->generics;
-                            int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                            if (r1 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            if (r1 == 1)
-                            {
-                                node_t *node3 = node_class2->block;
-                                node_block_t *block2 = (node_block_t *)node3->value;
-                                ilist_t *a2;
-                                for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
-                                {
-                                    node_t *item2 = (node_t *)a2->value;
-                                    if (item2->kind == NODE_KIND_FUNC)
-                                    {
-                                        node_func_t *fun1 = (node_func_t *)item2->value;
-                                        if (syntax_idstrcmp(fun1->key, "constructor") == 1)
-                                        {
-                                            node_t *nps1 = NULL;
-                                            node_t *nps2 = fun1->parameters;
-                                            int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                            if (r2 == -1)
-                                            {
-                                                return -1;
-                                            }
-                                            else
-                                            if (r2 == 1)
-                                            {
-                                                syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                                    item->position.line, item->position.column);
-                                                return -1;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        node_t response;
-                        int32_t r1 = syntax_objectkey(program, item, node_var1->key, &response);
-                        if (r1 == -1)
-                        {
-                            return -1;
-                        }
-                        else
-                        if (r1 == 1)
-                        {
-                            syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
-                                item->position.line, item->position.column);
-                            return -1;
-                        }
-                    }
-                }
-                else
-                if (item->kind == NODE_KIND_FUNC)
-                {
-                    if (node_var1->key->kind == NODE_KIND_ID)
-                    {
-                        node_func_t *node_func2 = (node_func_t *)item->value;
-                        if (syntax_idcmp(node_var1->key, node_func2->key) == 1)
-                        {
-                            node_t *ngs1 = NULL;
-                            node_t *ngs2 = node_func2->generics;
-                            int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                            if (r1 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            if (r1 == 1)
-                            {
-                                node_t *nps1 = NULL;
-                                node_t *nps2 = node_func2->parameters;
-                                int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                if (r2 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r2 == 1)
-                                {
-                                    syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                        item->position.line, item->position.column);
-                                    return -1;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        node_t response;
-                        int32_t r1 = syntax_objectkey(program, item, node_var1->key, &response);
-                        if (r1 == -1)
-                        {
-                            return -1;
-                        }
-                        else
-                        if (r1 == 1)
-                        {
-                            syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
-                                item->position.line, item->position.column);
-                            return -1;
-                        }
-                    }
-                }
-                else
-                if (item->kind == NODE_KIND_ENUM)
-                {
-                    if (node_var1->key->kind == NODE_KIND_ID)
-                    {
-                        node_enum_t *node_enum2 = (node_enum_t *)item->value;
-                        if (syntax_idcmp(node_var1->key, node_enum2->key) == 1)
-                        {
-                            node_t *ngs1 = NULL;
-                            node_t *ngs2 = NULL;
-                            int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                            if (r1 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            if (r1 == 1)
-                            {
-                                node_t *nps1 = NULL;
-                                node_t *nps2 = NULL;
-                                int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                if (r2 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r2 == 1)
-                                {
-                                    syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                        item->position.line, item->position.column);
-                                    return -1;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        node_t response;
-                        int32_t r1 = syntax_objectkey(program, item, node_var1->key, &response);
-                        if (r1 == -1)
-                        {
-                            return -1;
-                        }
-                        else
-                        if (r1 == 1)
-                        {
-                            syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
-                                item->position.line, item->position.column);
-                            return -1;
-                        }
-                    }
-                }
-                else
-                if (item->kind == NODE_KIND_VAR)
-                {
-                    if (node_var1->key->kind == NODE_KIND_ID)
-                    {
-                        node_var_t *node_var2 = (node_var_t *)item->value;
-                        if (syntax_idcmp(node_var1->key, node_var2->key) == 1)
-                        {
-                            node_t *ngs1 = NULL;
-                            node_t *ngs2 = NULL;
-                            int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                            if (r1 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            if (r1 == 1)
-                            {
-                                node_t *nps1 = NULL;
-                                node_t *nps2 = NULL;
-                                int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                if (r2 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r2 == 1)
-                                {
-                                    syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                        item->position.line, item->position.column);
-                                    return -1;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        node_t response;
-                        int32_t r1 = syntax_objectkey(program, item, node_var1->key, &response);
-                        if (r1 == -1)
-                        {
-                            return -1;
-                        }
-                        else
-                        if (r1 == 1)
-                        {
-                            syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
-                                item->position.line, item->position.column);
-                            return -1;
-                        }
-                    }
-                }
-            }
-        }
-        else
-        if (parent->kind == NODE_KIND_FUNC)
-        {
-            node_func_t *func1 = (node_func_t *)parent->value;
-            
-            if (func1->generics != NULL)
-            {
-                node_t *node3 = func1->generics;
-                node_block_t *generics = (node_block_t *)node3->value;
-                ilist_t *a1;
-                for (a1 = generics->list->begin;a1 != generics->list->end;a1 = a1->next)
-                {
-                    node_t *item1 = (node_t *)a1->value;
-                    if (item1->kind == NODE_KIND_GENERIC)
-                    {
-                        node_generic_t *generic1 = (node_generic_t *)item1->value;
-                        if (node_var1->key->kind == NODE_KIND_ID)
-                        {
-                            if (syntax_idcmp(node_var1->key, generic1->key) == 1)
-                            {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item1->position.line, item1->position.column);
-                                        return -1;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            node_t response;
-                            int32_t r1 = syntax_objectkey(program, node, generic1->key, &response);
-                            if (r1 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            if (r1 == 1)
-                            {
-                                syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                    response.position.line, response.position.column);
-                                return -1;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (func1->parameters != NULL)
-            {
-                node_t *node3 = func1->parameters;
-                node_block_t *parameters = (node_block_t *)node3->value;
-                ilist_t *a1;
-                for (a1 = parameters->list->begin;a1 != parameters->list->end;a1 = a1->next)
-                {
-                    node_t *item1 = (node_t *)a1->value;
-                    if (item1->kind == NODE_KIND_PARAMETER)
-                    {
-                        node_parameter_t *parameter1 = (node_parameter_t *)item1->value;
-                        if (node_var1->key->kind == NODE_KIND_ID)
-                        {
-                            if (syntax_idcmp(node_var1->key, parameter1->key) == 1)
-                            {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item1->position.line, item1->position.column);
-                                        return -1;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            node_t response;
-                            int32_t r1 = syntax_objectkey(program, node, parameter1->key, &response);
-                            if (r1 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            if (r1 == 1)
-                            {
-                                syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                    response.position.line, response.position.column);
-                                return -1;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        else
-        if (parent->kind == NODE_KIND_FOR)
-        {
-            node_for_t *for1 = (node_for_t *)parent->value;
-            if (for1->initializer != NULL)
-            {
-                node_t *node3 = for1->initializer;
-                node_block_t *initializer = (node_block_t *)node3->value;
-                ilist_t *a1;
-                for (a1 = initializer->list->begin;a1 != initializer->list->end;a1 = a1->next)
-                {
-                    node_t *item1 = (node_t *)a1->value;
-                    
-                    if (item1->kind == NODE_KIND_VAR)
-                    {
-                        
-                        node_var_t *var1 = (node_var_t *)item1->value;
-                        if ((var1->key->kind == NODE_KIND_ID) && (node_var1->key->kind == NODE_KIND_ID))
-                        {
-                            if (syntax_idcmp(node_var1->key, var1->key) == 1)
-                            {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item1->position.line, item1->position.column);
-                                        return -1;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            node_t response;
-                            int32_t r1 = syntax_objectkey(program, item1, node_var1->key, &response);
-                            if (r1 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            if (r1 == 1)
-                            {
-                                syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
-                                    item1->position.line, item1->position.column);
-                                return -1;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        else
-        if (parent->kind == NODE_KIND_FORIN)
-        {
-            node_forin_t *for1 = (node_forin_t *)parent->value;
-            if (for1->initializer != NULL)
-            {
-                node_t *node3 = for1->initializer;
-                node_block_t *initializer = (node_block_t *)node3->value;
-                ilist_t *a1;
-                for (a1 = initializer->list->begin;a1 != initializer->list->end;a1 = a1->next)
-                {
-                    node_t *item1 = (node_t *)a1->value;
-                    
-                    if (item1->kind == NODE_KIND_VAR)
-                    {
-                        
-                        node_var_t *var1 = (node_var_t *)item1->value;
-                        if ((var1->key->kind == NODE_KIND_ID) && (node_var1->key->kind == NODE_KIND_ID))
-                        {
-                            if (syntax_idcmp(node_var1->key, var1->key) == 1)
-                            {
-                                node_t *ngs1 = NULL;
-                                node_t *ngs2 = NULL;
-                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    node_t *nps1 = NULL;
-                                    node_t *nps2 = NULL;
-                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r2 == 1)
-                                    {
-                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                            item1->position.line, item1->position.column);
-                                        return -1;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            node_t response;
-                            int32_t r1 = syntax_objectkey(program, item1, node_var1->key, &response);
-                            if (r1 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            if (r1 == 1)
-                            {
-                                syntax_error(program, &response, "already defined, previous in (%lld:%lld)",
-                                    item1->position.line, item1->position.column);
-                                return -1;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-	if (parent->parent)
-    {
-        if ((parent->kind == NODE_KIND_CLASS) || (parent->kind == NODE_KIND_MODULE) || (parent->kind == NODE_KIND_FUNC))
-        {
-            goto region_end;
-        }
-        parent = parent->parent;
-        goto region_start;
-    }
-    region_end:
-
 	return 1;
 }
 
@@ -2447,44 +2553,255 @@ syntax_func(program_t *program, node_t *node)
     for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
     {
         node_t *item1 = (node_t *)a1->value;
-        if (item1->kind == NODE_KIND_VAR)
-        {
-            ilist_t *a2;
+    
+        ilist_t *a2;
             for (a2 = block1->list->begin; a2 != block1->list->end; a2 = a2->next)
+        {
+            node_t *item2 = (node_t *)a2->value;
+
+            if (item1->id == item2->id)
             {
-                node_t *item2 = (node_t *)a2->value;
+                break;
+            }
 
-                if (item1->id == item2->id)
-                {
-                    break;
-                }
-
+            if (item1->kind == NODE_KIND_VAR)
+            {
                 node_var_t *var1 = (node_var_t *)item1->value;
                 if (item2->kind == NODE_KIND_VAR)
                 {
-                    
+                    node_var_t *var2 = (node_var_t *)item2->value;
+                    if (syntax_objidcmp(var1->key, var2->key) == 1)
+                    {
+                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                            item2->position.line, item2->position.column);
+                        return -1;
+                    }
                 }
                 else
                 if (item2->kind == NODE_KIND_IF)
                 {
-                    node_if_t *if1 = (node_if_t *)item1->value;
+                    node_if_t *if1 = (node_if_t *)item2->value;
                     if (if1->key != NULL)
                     {
-
+                        if (syntax_objidcmp(var1->key, if1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
                     }
                 }
-
+                else
+                if (item2->kind == NODE_KIND_FOR)
+                {
+                    node_for_t *for1 = (node_for_t *)item2->value;
+                    if (for1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, for1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_FORIN)
+                {
+                    node_forin_t *forin1 = (node_forin_t *)item2->value;
+                    if (forin1->key != NULL)
+                    {
+                        if (syntax_objidcmp(var1->key, forin1->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_IF)
+            {
+                node_if_t *if1 = (node_if_t *)item1->value;
+                if (if1->key != NULL)
+                {
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(if1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(if1->key, if2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
+                    {
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
+                        {
+                            if (syntax_objidcmp(if1->key, for2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FORIN)
+                    {
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
+                        {
+                            if (syntax_objidcmp(if1->key, forin2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_FOR)
+            {
+                node_for_t *for1 = (node_for_t *)item1->value;
+                if (for1->key != NULL)
+                {
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(for1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(for1->key, if2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
+                    {
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
+                        {
+                            if (syntax_objidcmp(for1->key, for2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FORIN)
+                    {
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
+                        {
+                            if (syntax_objidcmp(for1->key, forin2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_FORIN)
+            {
+                node_forin_t *forin1 = (node_forin_t *)item1->value;
+                if (forin1->key != NULL)
+                {
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (syntax_objidcmp(forin1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_objidcmp(forin1->key, if2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
+                    {
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
+                        {
+                            if (syntax_objidcmp(forin1->key, for2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FORIN)
+                    {
+                        node_forin_t *forin2 = (node_forin_t *)item2->value;
+                        if (forin2->key != NULL)
+                        {
+                            if (syntax_objidcmp(forin1->key, forin2->key) == 1)
+                            {
+                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
-
-
-
-
-
-
-
-
 
 
 
