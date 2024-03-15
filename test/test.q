@@ -14,15 +14,14 @@ export class Int<T>
   }
 }
 
+enum enum1 {
+  key1 = 1,
+  key1 = 2
+}
 
 func Int2<T>(args:Int) : T
 {
   
-
-  for (var a = 1;a < b; a += 1)
-  {
-    var {a, b} = (1 != 2) > (3 == 1);
-  }
   
   return teacher<Int<Int<Int<Int<T>>>>>(10);
 }
