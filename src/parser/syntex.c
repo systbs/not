@@ -5,6 +5,7 @@
 
 #include "../types/types.h"
 #include "../container/list.h"
+#include "../container/table.h"
 #include "../token/position.h"
 #include "../token/token.h"
 #include "../program.h"
@@ -145,10 +146,10 @@ syntax_objidcmp(node_t *n1, node_t *n2)
 
 
 static int32_t
-syntax_statement(program_t *program, node_t *node);
+syntax_statement(program_t *program, node_t *node, list_t *frame);
 
 static int32_t
-syntax_body(program_t *program, node_t *node);
+syntax_body(program_t *program, node_t *node, list_t *frame);
 
 static int32_t
 syntax_expression(program_t *program, node_t *node, list_t *response);
@@ -177,7 +178,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
 
 
 static int32_t
-syntax_if(program_t *program, node_t *node)
+syntax_if(program_t *program, node_t *node, list_t *frame)
 {
     node_if_t *node_if1 = (node_if_t *)node->value;
     node_t *node1 = node_if1->then_body;
@@ -699,7 +700,7 @@ syntax_if(program_t *program, node_t *node)
         }
     }
 
-    int32_t result = syntax_body(program, node_if1->then_body);
+    int32_t result = syntax_body(program, node_if1->then_body, frame);
     if (result == -1)
     {
         return -1;
@@ -707,7 +708,7 @@ syntax_if(program_t *program, node_t *node)
 
     if (node_if1->else_body != NULL)
     {
-        result = syntax_body(program, node_if1->else_body);
+        result = syntax_body(program, node_if1->else_body, frame);
         if (result == -1)
         {
             return -1;
@@ -718,7 +719,7 @@ syntax_if(program_t *program, node_t *node)
 }
 
 static int32_t
-syntax_for(program_t *program, node_t *node)
+syntax_for(program_t *program, node_t *node, list_t *frame)
 {
     node_for_t *node_for1 = (node_for_t *)node->value;
     node_t *node1 = node_for1->body;
@@ -1080,7 +1081,7 @@ syntax_for(program_t *program, node_t *node)
         }
     }
 
-    int32_t result = syntax_body(program, node_for1->body);
+    int32_t result = syntax_body(program, node_for1->body, frame);
     if (result == -1)
     {
         return -1;
@@ -1090,7 +1091,7 @@ syntax_for(program_t *program, node_t *node)
 }
 
 static int32_t
-syntax_forin(program_t *program, node_t *node)
+syntax_forin(program_t *program, node_t *node, list_t *frame)
 {
     node_forin_t *node_forin1 = (node_forin_t *)node->value;
     node_t *node1 = node_forin1->body;
@@ -1452,7 +1453,7 @@ syntax_forin(program_t *program, node_t *node)
         }
     }
 
-    int32_t result = syntax_body(program, node_forin1->body);
+    int32_t result = syntax_body(program, node_forin1->body, frame);
     if (result == -1)
     {
         return -1;
@@ -1461,7 +1462,7 @@ syntax_forin(program_t *program, node_t *node)
 }
 
 static int32_t
-syntax_parameters(program_t *program, node_t *node)
+syntax_parameters(program_t *program, node_t *node, list_t *frame)
 {
 	node_block_t *parameters = (node_block_t *)node->value;
     ilist_t *a1;
@@ -1526,7 +1527,7 @@ syntax_parameters(program_t *program, node_t *node)
 }
 
 static int32_t
-syntax_catch(program_t *program, node_t *node)
+syntax_catch(program_t *program, node_t *node, list_t *frame)
 {
     node_catch_t *node_catch1 = (node_catch_t *)node->value;
     node_t *node1 = node_catch1->body;
@@ -1789,14 +1790,14 @@ syntax_catch(program_t *program, node_t *node)
 
     if (node_catch1->parameters != NULL)
     {
-        int32_t r1 = syntax_parameters(program, node_catch1->parameters);
+        int32_t r1 = syntax_parameters(program, node_catch1->parameters, frame);
         if (r1 == -1)
         {
             return -1;
         }
     }
 
-    int32_t result = syntax_body(program, node_catch1->body);
+    int32_t result = syntax_body(program, node_catch1->body, frame);
     if (result == -1)
     {
         return -1;
@@ -1805,7 +1806,7 @@ syntax_catch(program_t *program, node_t *node)
 }
 
 static int32_t
-syntax_try(program_t *program, node_t *node)
+syntax_try(program_t *program, node_t *node, list_t *frame)
 {
     node_try_t *node_try1 = (node_try_t *)node->value;
     node_t *node1 = node_try1->body;
@@ -2066,7 +2067,7 @@ syntax_try(program_t *program, node_t *node)
         }
     }
 
-    int32_t result = syntax_body(program, node_try1->body);
+    int32_t result = syntax_body(program, node_try1->body, frame);
     if (result == -1)
     {
         return -1;
@@ -2080,7 +2081,7 @@ syntax_try(program_t *program, node_t *node)
         for (a2 = node_catchs->list->begin;a2 != node_catchs->list->end;a2 = a2->next)
         {
             node_t *item = (node_t *)a2->value;
-            int32_t result = syntax_catch(program, item);
+            int32_t result = syntax_catch(program, item, frame);
             if (result == -1)
             {
                 return -1;
@@ -2092,18 +2093,18 @@ syntax_try(program_t *program, node_t *node)
 }
 
 static int32_t
-syntax_var(program_t *program, node_t *node)
+syntax_var(program_t *program, node_t *node, list_t *frame)
 {
 	return 1;
 }
 
 static int32_t
-syntax_statement(program_t *program, node_t *node)
+syntax_statement(program_t *program, node_t *node, list_t *frame)
 {
     if (node->kind == NODE_KIND_IF)
     {
         int32_t result;
-        result = syntax_if(program, node);
+        result = syntax_if(program, node, frame);
         if (result == -1)
         {
             return -1;
@@ -2113,7 +2114,7 @@ syntax_statement(program_t *program, node_t *node)
     if (node->kind == NODE_KIND_FOR)
     {
         int32_t result;
-        result = syntax_for(program, node);
+        result = syntax_for(program, node, frame);
         if (result == -1)
         {
             return -1;
@@ -2123,7 +2124,7 @@ syntax_statement(program_t *program, node_t *node)
     if (node->kind == NODE_KIND_FORIN)
     {
         int32_t result;
-        result = syntax_forin(program, node);
+        result = syntax_forin(program, node, frame);
         if (result == -1)
         {
             return -1;
@@ -2133,7 +2134,7 @@ syntax_statement(program_t *program, node_t *node)
     if (node->kind == NODE_KIND_TRY)
     {
         int32_t result;
-        result = syntax_try(program, node);
+        result = syntax_try(program, node, frame);
         if (result == -1)
         {
             return -1;
@@ -2143,7 +2144,7 @@ syntax_statement(program_t *program, node_t *node)
     if (node->kind == NODE_KIND_VAR)
     {
         int32_t result;
-        result = syntax_var(program, node);
+        result = syntax_var(program, node, frame);
         if (result == -1)
         {
             return -1;
@@ -2153,25 +2154,45 @@ syntax_statement(program_t *program, node_t *node)
 }
 
 static int32_t
-syntax_body(program_t *program, node_t *node)
+syntax_body(program_t *program, node_t *node, list_t *frame)
 {
     node_block_t *node_block = (node_block_t *)node->value;
+
+    table_t *table2 = table_create();
+    if (table2 == NULL)
+    {
+        fprintf(stderr, "unable to allocate memory\n");
+        return -1;
+    }
+
+    ilist_t *fl1 = list_lpush(frame, table2);
+    if (fl1 == NULL)
+    {
+        fprintf(stderr, "unable to allocate memory\n");
+        return -1;
+    }
+
     ilist_t *a1;
     for (a1 = node_block->list->begin;a1 != node_block->list->end;a1 = a1->next)
     {
         node_t *item = (node_t *)a1->value;
         int32_t result;
-        result = syntax_statement(program, item);
+        result = syntax_statement(program, item, frame);
         if (result == -1)
         {
             return -1;
         }
     }
+
+    ilist_t *fl2 = list_lpop(frame);
+    table_t *table3 = (table_t *)fl2->value;
+    table_destroy(table3);
+
     return 1;
 }
 
 static int32_t
-syntax_generics(program_t *program, node_t *node)
+syntax_generics(program_t *program, node_t *node, list_t *frame)
 {
 	node_block_t *generics = (node_block_t *)node->value;
     ilist_t *a1;
@@ -2267,10 +2288,24 @@ syntax_generics(program_t *program, node_t *node)
 }
 
 static int32_t
-syntax_func(program_t *program, node_t *node)
+syntax_func(program_t *program, node_t *node, list_t *frame)
 {
 	node_func_t *node_func1 = (node_func_t *)node->value;
- 
+    
+    table_t *table2 = table_create();
+    if (table2 == NULL)
+    {
+        fprintf(stderr, "unable to allocate memory\n");
+        return -1;
+    }
+
+    ilist_t *fl1 = list_lpush(frame, table2);
+    if (fl1 == NULL)
+    {
+        fprintf(stderr, "unable to allocate memory\n");
+        return -1;
+    }
+
     node_t *node1 = node_func1->body;
     node_block_t *block1 = (node_block_t *)node1->value;
 
@@ -2532,7 +2567,7 @@ syntax_func(program_t *program, node_t *node)
 
     if (node_func1->generics != NULL)
     {
-        int32_t r1 = syntax_generics(program, node_func1->generics);
+        int32_t r1 = syntax_generics(program, node_func1->generics, frame);
         if (r1 == -1)
         {
             return -1;
@@ -2541,7 +2576,7 @@ syntax_func(program_t *program, node_t *node)
 
     if (node_func1->parameters != NULL)
     {
-        int32_t r1 = syntax_parameters(program, node_func1->parameters);
+        int32_t r1 = syntax_parameters(program, node_func1->parameters, frame);
         if (r1 == -1)
         {
             return -1;
@@ -2550,18 +2585,22 @@ syntax_func(program_t *program, node_t *node)
 
     if (node_func1->body != NULL)
     {
-        int32_t r1 = syntax_body(program, node_func1->body);
+        int32_t r1 = syntax_body(program, node_func1->body, frame);
         if (r1 == -1)
         {
             return -1;
         }
     }
 
+    ilist_t *fl2 = list_lpop(frame);
+    table_t *table3 = (table_t *)fl2->value;
+    table_destroy(table3);
+
 	return 1;
 }
 
 static int32_t
-syntax_enum(program_t *program, node_t *node)
+syntax_enum(program_t *program, node_t *node, list_t *frame)
 {
 	node_enum_t *node_enum1 = (node_enum_t *)node->value;
     node_t *node1 = node_enum1->members;
@@ -2595,14 +2634,14 @@ syntax_enum(program_t *program, node_t *node)
 }
 
 static int32_t
-syntax_import(program_t *program, node_t *node)
+syntax_import(program_t *program, node_t *node, list_t *frame)
 {
 	//node_import_t *node_import = (node_import_t *)node->value;
 	return 1;
 }
 
 static int32_t
-syntax_property(program_t *program, node_t *node)
+syntax_property(program_t *program, node_t *node, list_t *frame)
 {
 	node_property_t *node_property1 = (node_property_t *)node->value;
     node_t *parent = node->parent;
@@ -2903,7 +2942,7 @@ syntax_property(program_t *program, node_t *node)
 }
 
 static int32_t
-syntax_heritages(program_t *program, node_t *node)
+syntax_heritages(program_t *program, node_t *node, list_t *frame)
 {
 	node_block_t *heritages = (node_block_t *)node->value;
     ilist_t *a1;
@@ -2968,13 +3007,29 @@ syntax_heritages(program_t *program, node_t *node)
 }
 
 static int32_t
-syntax_class(program_t *program, node_t *node)
+syntax_class(program_t *program, node_t *node, list_t *frame)
 {
 	node_class_t *node_class = (node_class_t *)node->value;
 
+
+    table_t *table2 = table_create();
+    if (table2 == NULL)
+    {
+        fprintf(stderr, "unable to allocate memory\n");
+        return -1;
+    }
+
+    ilist_t *fl1 = list_lpush(frame, table2);
+    if (fl1 == NULL)
+    {
+        fprintf(stderr, "unable to allocate memory\n");
+        return -1;
+    }
+
+
     if (node_class->generics != NULL)
     {
-        int32_t r1 = syntax_generics(program, node_class->generics);
+        int32_t r1 = syntax_generics(program, node_class->generics, frame);
         if (r1 == -1)
         {
             return -1;
@@ -2983,7 +3038,7 @@ syntax_class(program_t *program, node_t *node)
 
     if (node_class->heritages != NULL)
     {
-        int32_t r1 = syntax_heritages(program, node_class->heritages);
+        int32_t r1 = syntax_heritages(program, node_class->heritages, frame);
         if (r1 == -1)
         {
             return -1;
@@ -4070,20 +4125,10 @@ syntax_class(program_t *program, node_t *node)
     for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
     {
         node_t *item = (node_t *)a1->value;
-        if (item->kind == NODE_KIND_IMPORT)
-        {
-            int32_t result;
-            result = syntax_import(program, item);
-            if (result == -1)
-            {
-                return -1;
-            }
-        }
-        else
         if (item->kind == NODE_KIND_CLASS)
         {
             int32_t result;
-            result = syntax_class(program, item);
+            result = syntax_class(program, item, frame);
             if (result == -1)
             {
                 return -1;
@@ -4093,7 +4138,7 @@ syntax_class(program_t *program, node_t *node)
         if (item->kind == NODE_KIND_ENUM)
         {
             int32_t result;
-            result = syntax_enum(program, item);
+            result = syntax_enum(program, item, frame);
             if (result == -1)
             {
                 return -1;
@@ -4103,7 +4148,7 @@ syntax_class(program_t *program, node_t *node)
         if (item->kind == NODE_KIND_FUNC)
         {
             int32_t result;
-            result = syntax_func(program, item);
+            result = syntax_func(program, item, frame);
             if (result == -1)
             {
                 return -1;
@@ -4119,7 +4164,7 @@ syntax_class(program_t *program, node_t *node)
         if (item->kind == NODE_KIND_PROPERTY)
         {
             int32_t result;
-            result = syntax_property(program, item);
+            result = syntax_property(program, item, frame);
             if (result == -1)
             {
                 return -1;
@@ -4133,11 +4178,15 @@ syntax_class(program_t *program, node_t *node)
         return -1;
     }
 
+    ilist_t *fl2 = list_lpop(frame);
+    table_t *table3 = (table_t *)fl2->value;
+    table_destroy(table3);
+
 	return 1;
 }
 
 static int32_t
-syntax_module(program_t *program, node_t *node)
+syntax_module(program_t *program, node_t *node, list_t *frame)
 {
 	node_module_t *module = (node_module_t *)node->value;
     
@@ -4867,7 +4916,7 @@ syntax_module(program_t *program, node_t *node)
         if (item->kind == NODE_KIND_IMPORT)
         {
             int32_t result;
-            result = syntax_import(program, item);
+            result = syntax_import(program, item, frame);
             if (result == -1)
             {
                 return -1;
@@ -4877,7 +4926,7 @@ syntax_module(program_t *program, node_t *node)
         if (item->kind == NODE_KIND_CLASS)
         {
             int32_t result;
-            result = syntax_class(program, item);
+            result = syntax_class(program, item, frame);
             if (result == -1)
             {
                 return -1;
@@ -4887,7 +4936,7 @@ syntax_module(program_t *program, node_t *node)
         if (item->kind == NODE_KIND_ENUM)
         {
             int32_t result;
-            result = syntax_enum(program, item);
+            result = syntax_enum(program, item, frame);
             if (result == -1)
             {
                 return -1;
@@ -4897,7 +4946,7 @@ syntax_module(program_t *program, node_t *node)
         if (item->kind == NODE_KIND_FUNC)
         {
             int32_t result;
-            result = syntax_func(program, item);
+            result = syntax_func(program, item, frame);
             if (result == -1)
             {
                 return -1;
@@ -4907,7 +4956,7 @@ syntax_module(program_t *program, node_t *node)
         if (item->kind == NODE_KIND_VAR)
         {
             int32_t result;
-            result = syntax_var(program, item);
+            result = syntax_var(program, item, frame);
             if (result == -1)
             {
                 return -1;
@@ -4921,7 +4970,21 @@ syntax_module(program_t *program, node_t *node)
 int32_t
 syntax_run(program_t *program, node_t *node)
 {
-	int32_t result = syntax_module(program, node);
+    list_t *frame = list_create();
+    if (frame == NULL)
+    {
+        fprintf(stderr, "unable to allocate memory\n");
+        return -1;
+    }
+
+    table_t *table = table_create();
+    if (table == NULL)
+    {
+        fprintf(stderr, "unable to allocate memory\n");
+        return -1;
+    }
+
+	int32_t result = syntax_module(program, node, frame);
 	if(result == -1)
 	{
 		return -1;

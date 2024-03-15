@@ -6,12 +6,14 @@ typedef struct itable {
     struct itable *previous;
     struct itable *next;
     void *value;
-    
+    void *update;
 } itable_t;
 
 typedef struct table {
     itable_t *begin;
     itable_t *end;
+
+    struct table *parent;
 } table_t;
 
 table_t *
