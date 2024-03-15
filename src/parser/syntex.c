@@ -2290,6 +2290,15 @@ syntax_generics(program_t *program, node_t *node, list_t *frame)
 static int32_t
 syntax_func(program_t *program, node_t *node, list_t *frame)
 {
+    ilist_t *fl0 = list_first(frame);
+    table_t *table = (table_t *)fl0->value;
+    itable_t *tt1 = table_lpush(table, node);
+    if (tt1 == NULL)
+    {
+        fprintf(stderr, "unable to allocate memory\n");
+        return -1;
+    }
+
 	node_func_t *node_func1 = (node_func_t *)node->value;
     
     table_t *table2 = table_create();
@@ -2643,6 +2652,7 @@ syntax_import(program_t *program, node_t *node, list_t *frame)
 static int32_t
 syntax_property(program_t *program, node_t *node, list_t *frame)
 {
+
 	node_property_t *node_property1 = (node_property_t *)node->value;
     node_t *parent = node->parent;
     region_start:
@@ -3010,7 +3020,6 @@ static int32_t
 syntax_class(program_t *program, node_t *node, list_t *frame)
 {
 	node_class_t *node_class = (node_class_t *)node->value;
-
 
     table_t *table2 = table_create();
     if (table2 == NULL)

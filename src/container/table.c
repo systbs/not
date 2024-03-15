@@ -137,6 +137,55 @@ table_clear(table_t *res)
 }
 
 itable_t *
+table_rpop(table_t *res)
+{
+	if(table_isempty(res)){
+		return NULL;
+	}
+  itable_t *it = res->end->previous;
+  table_unlink(res, it);
+  return it;
+}
+
+itable_t *
+table_rpush(table_t *res, void *value)
+{
+  itable_t *it = (itable_t *)malloc(sizeof(*it));
+  if(it == NULL) {
+      return NULL;
+  }
+  memset(it, 0, sizeof(itable_t));
+
+  it->value = value;
+
+  table_link(res, res->end, it);
+  return it;
+}
+
+itable_t *
+table_lpop(table_t *res)
+{
+  itable_t *it = res->begin;
+  table_unlink(res, it);
+  return it;
+}
+
+itable_t *
+table_lpush(table_t *res, void *value)
+{
+  itable_t *it = (itable_t *)malloc(sizeof(*it));
+  if(it == NULL) {
+    return NULL;
+  }
+  memset(it, 0, sizeof(itable_t));
+
+  it->value = value;
+
+  table_link(res, res->begin, it);
+  return it;
+}
+
+itable_t *
 table_first(table_t *res)
 {
   if(res->begin != 0)
