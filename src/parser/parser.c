@@ -3764,37 +3764,39 @@ parser_class_export(program_t *program, parser_t *parser, node_t *scope, node_t 
 	flag |= PARSER_MODIFIER_EXPORT;
 
 	node_t *node = NULL;
-	switch (parser->token->type)
+	if (parser->token->type == TOKEN_READONLY_KEYWORD)
 	{
-	case TOKEN_READONLY_KEYWORD:
 		node = parser_class_readonly(program, parser, scope, parent, flag);
-		break;
-
-	case TOKEN_PROTECTED_KEYWORD:
+	}
+	else
+	if (parser->token->type == TOKEN_PROTECTED_KEYWORD)
+	{
 		node = parser_class_protected(program, parser, scope, parent, flag);
-		break;	case TOKEN_STATIC_KEYWORD:
+	}
+	else
+	if (parser->token->type == TOKEN_STATIC_KEYWORD)
+	{
 		node = parser_class_static(program, parser, scope, parent, flag);
-		break;
-
-	case TOKEN_ID:
-		node = parser_property(program, parser, scope, parent, flag);
-		break;
-
-	case TOKEN_FUNC_KEYWORD:
+	}
+	else
+	if (parser->token->type == TOKEN_FUNC_KEYWORD)
+	{
 		node = parser_func(program, parser, scope, parent, flag);
-		break;
-
-	case TOKEN_CLASS_KEYWORD:
+	}
+	else
+	if (parser->token->type == TOKEN_CLASS_KEYWORD)
+	{
 		node = parser_class(program, parser, scope, parent, flag);
-		break;
-
-	case TOKEN_ENUM_KEYWORD:
+	}
+	else
+	if (parser->token->type == TOKEN_ENUM_KEYWORD)
+	{
 		node = parser_enum(program, parser, scope, parent, flag);
-		break;
 
-	default:
-		parser_error(program, parser->token->position, "incorrect use of modifier 'public'");
-		break;
+	}
+	else
+	{
+		node = parser_property(program, parser, scope, parent, flag);
 	}
 
 	flag &= ~PARSER_MODIFIER_EXPORT;
@@ -4221,39 +4223,13 @@ parser_export(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 
 	node_t *object = NULL;
 
-	if (parser->token->type == TOKEN_CLASS_KEYWORD)
-	{
-		object = parser_class(program, parser, scope, parent, flag);
-	}
-	else
 	if (parser->token->type == TOKEN_ENUM_KEYWORD)
 	{
 		object = parser_enum(program, parser, scope, parent, flag);
 	}
 	else
-	if (parser->token->type == TOKEN_FUNC_KEYWORD)
 	{
-		object = parser_func(program, parser, scope, parent, flag);
-	}
-	else
-	if (parser->token->type == TOKEN_VAR_KEYWORD)
-	{
-		object = parser_var(program, parser, scope, parent, flag);
-	}
-	else
-	if (parser->token->type == TOKEN_READONLY_KEYWORD)
-	{
-		object = parser_readonly(program, parser, scope, parent, flag);
-	}
-	else
-	if (parser->token->type == TOKEN_LBRACE)
-	{
-		object = parser_object(program, parser, scope, parent, flag);
-	}
-	else
-	{
-		parser_error(program, parser->token->position, "illegal declaration");
-		return NULL;
+		object = parser_class(program, parser, scope, parent, flag);
 	}
 
 	flag &= ~PARSER_MODIFIER_EXPORT;
@@ -4308,15 +4284,6 @@ parser_module_block(program_t *program, parser_t *parser, node_t *scope, node_t 
 			}
 		}
 		else
-		if (parser->token->type == TOKEN_CLASS_KEYWORD)
-		{
-			item = parser_class(program, parser, scope, node, PARSER_MODIFIER_NONE);
-			if (item == NULL)
-			{
-				return NULL;
-			}
-		}
-		else
 		if (parser->token->type == TOKEN_ENUM_KEYWORD)
 		{
 			item = parser_enum(program, parser, scope, node, PARSER_MODIFIER_NONE);
@@ -4326,36 +4293,12 @@ parser_module_block(program_t *program, parser_t *parser, node_t *scope, node_t 
 			}
 		}
 		else
-		if (parser->token->type == TOKEN_FUNC_KEYWORD)
 		{
-			item = parser_func(program, parser, scope, node, PARSER_MODIFIER_NONE);
+			item = parser_class(program, parser, scope, node, PARSER_MODIFIER_NONE);
 			if (item == NULL)
 			{
 				return NULL;
 			}
-		}
-		else
-		if (parser->token->type == TOKEN_VAR_KEYWORD)
-		{
-			item = parser_var(program, parser, scope, node, PARSER_MODIFIER_NONE);
-			if (item == NULL)
-			{
-				return NULL;
-			}
-		}
-		else
-		if (parser->token->type == TOKEN_READONLY_KEYWORD)
-		{
-			item = parser_readonly(program, parser, scope, node, PARSER_MODIFIER_NONE);
-			if (item == NULL)
-			{
-				return NULL;
-			}
-		}
-		else
-		{
-			parser_error(program, parser->token->position, "unknown type in module");
-			return NULL;
 		}
 
 		if (!list_rpush(items, item))

@@ -12,8 +12,6 @@ typedef struct itable {
 typedef struct table {
     itable_t *begin;
     itable_t *end;
-
-    struct table *parent;
 } table_t;
 
 table_t *

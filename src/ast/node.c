@@ -171,13 +171,13 @@ node_make_this(node_t *node){
 node_t *
 node_make_array(node_t *node, list_t *list)
 {
-	node_array_t *basic = (node_array_t *)malloc(sizeof(node_array_t));
+	node_block_t *basic = (node_block_t *)malloc(sizeof(node_block_t));
 	if(basic == NULL)
 	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_array_t));
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_block_t));
 		return NULL;
 	}
-	memset(basic, 0, sizeof(node_array_t));
+	memset(basic, 0, sizeof(node_block_t));
 	basic->list = list;
 	
 	node_update(node, NODE_KIND_ARRAY, basic);
@@ -187,12 +187,12 @@ node_make_array(node_t *node, list_t *list)
 node_t *
 node_make_object(node_t *node, list_t *list)
 {
-	node_object_t *basic = (node_object_t *)malloc(sizeof(node_object_t));
+	node_block_t *basic = (node_block_t *)malloc(sizeof(node_block_t));
 	if(basic == NULL){
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_object_t));
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_block_t));
 		return NULL;
 	}
-	memset(basic, 0, sizeof(node_object_t));
+	memset(basic, 0, sizeof(node_block_t));
 	basic->list = list;
 	
 	node_update(node, NODE_KIND_OBJECT, basic);

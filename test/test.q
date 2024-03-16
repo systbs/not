@@ -1,27 +1,8 @@
-var {a, b} = object;
 
-
-export class Int<T>
+class system 
 {
-  func constructor (value:String)
+  export func constructor()
   {
-   
+
   }
-
-  func >> (value:Int) : Int
-  {
-    
-  }
-}
-
-enum enum1 {
-  key1 = 1,
-  key1 = 2
-}
-
-func Int2<T>(args:Int) : T
-{
-  
-  
-  return teacher<Int<Int<Int<Int<T>>>>>(10);
 }
