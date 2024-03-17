@@ -147,14 +147,162 @@ syntax_objidcmp(node_t *n1, node_t *n2)
 
 
 static int32_t
-syntax_expression(program_t *program, node_t *node, list_t *frame, list_t *response);
+syntax_expression(program_t *program, node_t *node, list_t *frame, node_t *response);
 
 static int32_t
 syntax_body(program_t *program, node_t *node, list_t *frame);
 
 
 
-
+static int32_t
+syntax_id(program_t *program, node_t *node, list_t *frame, node_t *nas, node_t *nps, node_t *response)
+{
+    ilist_t *a1;
+    for (a1 = frame->begin;a1 != frame->end;a1 = a1->next)
+    {
+        table_t *table1 = (table_t *)a1->value;
+        itable_t * t1;
+        for (t1 = table1->begin;t1 != table1->end;t1 = t1->next)
+        {
+            node_t *node1 = (node_t *)t1->value;
+            if (node1->kind == NODE_KIND_CLASS)
+            {
+                node_class_t *class1 = (node_class_t *)node1->value;
+                if (syntax_idcmp(class1->key, node) == 1)
+                {
+                    node_t *ngs1 = class1->generics;
+                    node_t *ngs2 = NULL;
+                    int32_t r1 = syntax_eqaul_gsas(program, ngs1, nas);
+                    if (r1 == -1)
+                    {
+                        return -1;
+                    }
+                    else
+                    if (r1 == 1)
+                    {
+                        node_t *node2 = class1->block;
+                        node_block_t *block2 = (node_block_t *)node2->value;
+                        ilist_t *b1;
+                        for (b1 = block2->list->begin;b1 != block2->list->end;b1 = b1->next)
+                        {
+                            node_t *item3 = (node_t *)b1->value;
+                            if (item3->kind == NODE_KIND_FUNC)
+                            {
+                                node_func_t *fun1 = (node_func_t *)item3->value;
+                                if (syntax_idstrcmp(fun1->key, "constructor") == 1)
+                                {
+                                    node_t *nps1 = fun1->parameters;
+                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps);
+                                    if (r2 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r2 == 1)
+                                    {
+                                        *response = *node1;
+                                        return 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            if (node1->kind == NODE_KIND_FUNC)
+            {
+                node_func_t *func1 = (node_func_t *)node1->value;
+                if (syntax_idcmp(func1->key, node) == 1)
+                {
+                    node_t *ngs1 = func1->generics;
+                    int32_t r1 = syntax_eqaul_gsas(program, ngs1, nas);
+                    if (r1 == -1)
+                    {
+                        return -1;
+                    }
+                    else
+                    if (r1 == 1)
+                    {
+                        node_t *nps1 = func1->parameters;
+                        int32_t r2 = syntax_eqaul_psps(program, nps1, nps);
+                        if (r2 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r2 == 1)
+                        {
+                            *response = *node1;
+                            return 1;
+                        }
+                    }
+                }
+            }
+            else
+            if (node1->kind == NODE_KIND_ENUM)
+            {
+                node_enum_t *enum1 = (node_enum_t *)node1->value;
+                if (syntax_idcmp(enum1->key, node) == 1)
+                {
+                    node_t *ngs1 = NULL;
+                    int32_t r1 = syntax_eqaul_gsas(program, ngs1, nas);
+                    if (r1 == -1)
+                    {
+                        return -1;
+                    }
+                    else
+                    if (r1 == 1)
+                    {
+                        node_t *nps1 = NULL;
+                        int32_t r2 = syntax_eqaul_psps(program, nps1, nps);
+                        if (r2 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r2 == 1)
+                        {
+                            *response = *node1;
+                            return 1;
+                        }
+                    }
+                }
+            }
+            else
+            if (node1->kind == NODE_KIND_PROPERTY)
+            {
+                node_property_t *property1 = (node_property_t *)node1->value;
+                if (syntax_idcmp(property1->key, node) == 1)
+                {
+                    node_t *ngs1 = NULL;
+                    int32_t r1 = syntax_eqaul_gsas(program, ngs1, nas);
+                    if (r1 == -1)
+                    {
+                        return -1;
+                    }
+                    else
+                    if (r1 == 1)
+                    {
+                        node_t *nps1 = NULL;
+                        int32_t r2 = syntax_eqaul_psps(program, nps1, nps);
+                        if (r2 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r2 == 1)
+                        {
+                            *response = *node1;
+                            return 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return 1;
+}
 
 
 static int32_t
