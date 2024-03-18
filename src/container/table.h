@@ -6,7 +6,9 @@ typedef struct itable {
     struct itable *previous;
     struct itable *next;
     void *value;
-    void *update;
+    void *referto;
+
+    int16_t created;
 } itable_t;
 
 typedef struct table {
@@ -16,6 +18,9 @@ typedef struct table {
 
 table_t *
 table_apply(table_t *res);
+
+itable_t *
+table_new();
 
 table_t *
 table_create();

@@ -27,6 +27,21 @@ table_apply(table_t *res)
   return res;
 }
 
+itable_t *
+table_new()
+{
+  itable_t *it = (itable_t *)malloc(sizeof(itable_t));
+  if(it == NULL) {
+    return NULL;
+  }
+
+  memset(it, 0, sizeof(itable_t));
+
+  it->next = it->previous = it;
+
+  return it;
+}
+
 table_t *
 table_create()
 {
