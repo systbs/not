@@ -1,1586 +1,1162 @@
-itable_t *it1;
-	for (it1 = frame->begin;(it1 != frame->end);it1 = it1->next)
-	{
-		if ((it1->original != NULL) && ((it1->flag & ITABLE_FLAG_TEMPORARY) != ITABLE_FLAG_TEMPORARY))
-		{
-			symbol_t *o1 = it1->original;
-			if (o1 != NULL)
-			{
-				symbol_t *ok1;
-				ok1 = syntax_extract_with(it1->original, SYMBOL_KEY);
-				if (ok1 != NULL)
-				{
-					symbol_t *tk1;
-					tk1 = syntax_extract_with(target, SYMBOL_KEY);
-					if (tk1 != NULL)
-					{
-						if (syntax_idcmp(ok1, tk1) == 0)
-						{
-							if (symbol_check_type(o1, SYMBOL_CLASS))
-							{
-								symbol_t *ogs1;
-								ogs1 = syntax_only_with(o1, SYMBOL_GENERICS);
-								if (ogs1 != NULL)
-								{
-									symbol_t *tgs1;
-									tgs1 = syntax_only_with(target, SYMBOL_GENERICS);
-									if (tgs1 != NULL)
-									{
-										int32_t r1;
-										r1 = syntax_equal_gsgs(program, tgs1, ogs1);
-										if (r1 == -1)
-										{
-											return -1;
-										}
-										else
-										if (r1 == 1)
-										{
-											symbol_t *ob1;
-											for (ob1 = o1->begin;ob1 != o1->end;ob1 = ob1->next)
-											{
-												if (symbol_check_type(ob1, SYMBOL_FUNCTION))
-												{
-													symbol_t *obk1;
-													obk1 = syntax_extract_with(ob1, SYMBOL_KEY);
-													if (obk1 != NULL)
-													{
-														if (syntax_idstrcmp(obk1, "constructor") == 0)
-														{
-															symbol_t *tb1;
-															for (tb1 = target->begin;tb1 != target->end;tb1 = tb1->next)
-															{
-																if (symbol_check_type(tb1, SYMBOL_FUNCTION))
-																{
-																	symbol_t *tbk1;
-																	tbk1 = syntax_extract_with(tb1, SYMBOL_KEY);
-																	if (tbk1 != NULL)
-																	{
-																		if (syntax_idstrcmp(tbk1, "constructor") == 0)
-																		{
-																			symbol_t *obps1;
-																			obps1 = syntax_only_with(ob1, SYMBOL_PARAMETERS);
-																			if (obps1 != NULL)
-																			{
-																				symbol_t *tbps1;
-																				tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-																				if (tbps1 != NULL)
-																				{
-																					int32_t r2;
-																					r2 = syntax_equal_psps(program, obps1, tbps1);
-																					if (r2 == -1)
-																					{
-																						return -1;
-																					}
-																					else 
-																					if (r2 == 1)
-																					{
-																						syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																							ok1->declaration->position.line, ok1->declaration->position.column);
-																						return -1;
-																					}
-																					else
-																					{
-																						itable_t *it2;
-																						it2 = table_rpush(frame, target);
-																						if (it2 == NULL)
-																						{
-																							fprintf(stderr, "unable to allocate memory\n");
-																							return -1;
-																						}
-																					}
-																				}
-																				else
-																				{
-																					int32_t pwv = 0;
-																					symbol_t *obp1;
-																					for (obp1 = obps1->begin;obp1 != obps1->end;obp1 = obp1->next)
-																					{
-																						symbol_t *obpv1;
-																						obpv1 = syntax_only_with(obp1, SYMBOL_VALUE);
-																						if (obpv1 == NULL)
-																						{
-																							pwv = 1;
-																							break;
-																						}
-																					}
+static int32_t
+syntax_id(program_t *program, node_t *node, list_t *response)
+{
+    ilist_t *a1;
+    for (a1 = frame->begin;a1 != frame->end;a1 = a1->next)
+    {
+        node_t *node1 = (node_t *)t1->value;
+        itable_t * t1;
+        for (t1 = table1->begin;t1 != table1->end;t1 = t1->next)
+        {
+            
+            if (node1->kind == NODE_KIND_CLASS)
+            {
+                node_class_t *class1 = (node_class_t *)node1->value;
+                if (syntax_idcmp(class1->key, node) == 1)
+                {
+                    ilist_t *il1 = list_rpush(response, t1);
+                    if (il1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                }
+                continue;
+            }
+            else
+            if (node1->kind == NODE_KIND_FUNC)
+            {
+                node_func_t *func1 = (node_func_t *)node1->value;
+                if (syntax_idcmp(func1->key, node) == 1)
+                {
+                   ilist_t *il1 = list_rpush(response, t1);
+                    if (il1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                }
+                continue;
+            }
+            else
+            if (node1->kind == NODE_KIND_ENUM)
+            {
+                node_enum_t *enum1 = (node_enum_t *)node1->value;
+                if (syntax_idcmp(enum1->key, node) == 1)
+                {
+                    ilist_t *il1 = list_rpush(response, t1);
+                    if (il1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                }
+                continue;
+            }
+            else
+            if (node1->kind == NODE_KIND_PROPERTY)
+            {
+                node_property_t *property1 = (node_property_t *)node1->value;
+                if (syntax_idcmp(property1->key, node) == 1)
+                {
+                    ilist_t *il1 = list_rpush(response, t1);
+                    if (il1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                }
+                continue;
+            }
+            else
+            if (node1->kind == NODE_KIND_GENERIC)
+            {
+                node_generic_t *generic1 = (node_generic_t *)node1->value;
+                if (syntax_idcmp(generic1->key, node) == 1)
+                {
+                    ilist_t *il1 = list_rpush(response, t1);
+                    if (il1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                }
+                continue;
+            }
+            else
+            if (node1->kind == NODE_KIND_HERITAGE)
+            {
+                node_heritage_t *heritage1 = (node_heritage_t *)node1->value;
+                if (syntax_idcmp(heritage1->key, node) == 1)
+                {
+                    ilist_t *il1 = list_rpush(response, t1);
+                    if (il1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                }
+                continue;
+            }
+            else
+            if (node1->kind == NODE_KIND_VAR)
+            {
+                node_var_t *var1 = (node_var_t *)node1->value;
+                if (syntax_idcmp(var1->key, node) == 1)
+                {
+                    ilist_t *il1 = list_rpush(response, t1);
+                    if (il1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                }
+                continue;
+            }
+        }
+    }
+    return 1;
+}
 
-																					if (pwv == 0)
-																					{
-																						syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																							ok1->declaration->position.line, ok1->declaration->position.column);
-																						return -1;
-																					}
+static int32_t
+syntax_pseudonym(program_t *program, node_t *node, list_t *response)
+{
+    node_carrier_t *carrier = (node_carrier_t *)node->value;
+    
+    list_t *response1 = list_create();
+    if (response1 == NULL)
+    {
+        fprintf(stderr, "unable to allocate memory\n");
+        return -1;
+    }
 
-																					itable_t *it2;
-																					it2 = table_rpush(frame, target);
-																					if (it2 == NULL)
-																					{
-																						fprintf(stderr, "unable to allocate memory\n");
-																						return -1;
-																					}
-																				}
-																			}
-																			else
-																			{
-																				symbol_t *tbps1;
-																				tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-																				if (tbps1 != NULL)
-																				{
-																					int32_t pwv = 0;
-																					symbol_t *tbp1;
-																					for (tbp1 = tbps1->begin;tbp1 != tbps1->end;tbp1 = tbp1->next)
-																					{
-																						symbol_t *tbpv1;
-																						tbpv1 = syntax_only_with(tbp1, SYMBOL_VALUE);
-																						if (tbpv1 == NULL)
-																						{
-																							pwv = 1;
-																							break;
-																						}
-																					}
+    int32_t r1 = syntax_postfix(program, frame, carrier->base, response1);
+    if (r1 == -1)
+    {
+        return -1;
+    }
+    else
+    if (r1 == 0)
+    {
+        syntax_error(program, node, "reference not found");
+        return -1;
+    }
+    else
+    if (r1 == 1)
+    {
+        ilist_t *a1;
+        for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+        {
+            itable_t *it1 = (itable_t *)a1->value;
+            node_t *item1 = (node_t *)it1->value;
+            if (item1->kind == NODE_KIND_CLASS)
+            {
+                node_class_t *class1 = (node_class_t *)item1;
+                node_t *ngs1 = class1->generics;
+                node_t *nas2 = carrier->data;
+                int32_t r1 = syntax_eqaul_gsas(program, ngs1, nas2);
+                if (r1 == -1)
+                {
+                    return -1;
+                }
+                else
+                if (r1 == 1)
+                {
+                    ilist_t *il1 = list_rpush(response, it1);
+                    if (il1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_FUNC)
+            {
+                node_func_t *func1 = (node_func_t *)item1;
+                node_t *ngs1 = func1->generics;
+                node_t *nas2 = carrier->data;
+                int32_t r1 = syntax_eqaul_gsas(program, ngs1, nas2);
+                if (r1 == -1)
+                {
+                    return -1;
+                }
+                else
+                if (r1 == 1)
+                {
+                    ilist_t *il1 = list_rpush(response, it1);
+                    if (il1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                }
+            }
+            else
+            {
+                syntax_error(program, node, "generic type used for (%lld:%lld)",
+                    item1->position.line, item1->position.column);
+                return -1;
+            }
+        }
+    }
+    return 1;
+}
 
-																					if (pwv == 0)
-																					{
-																						syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																							ok1->declaration->position.line, ok1->declaration->position.column);
-																						return -1;
-																					}
+static int32_t
+syntax_call(program_t *program, node_t *node, list_t *response)
+{
+    node_carrier_t *carrier = (node_carrier_t *)node->value;
+    
+    list_t *response1 = list_create();
+    if (response1 == NULL)
+    {
+        fprintf(stderr, "unable to allocate memory\n");
+        return -1;
+    }
 
-																					itable_t *it2;
-																					it2 = table_rpush(frame, target);
-																					if (it2 == NULL)
-																					{
-																						fprintf(stderr, "unable to allocate memory\n");
-																						return -1;
-																					}
-																				}
-																				else
-																				{
-																					syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																						ok1->declaration->position.line, ok1->declaration->position.column);
-																					return -1;
-																				}
-																			}
-																		}
-																	}
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-										else
-										{
-											itable_t *it2;
-											it2 = table_rpush(frame, target);
-											if (it2 == NULL)
-											{
-												fprintf(stderr, "unable to allocate memory\n");
-												return -1;
-											}
-										}
-									}
-									else
-									{
-										int32_t gwv = 0;
-										symbol_t *og1;
-										for (og1 = ogs1->begin;og1 != ogs1->end;og1 = og1->next)
-										{
-											if (symbol_check_type(og1, SYMBOL_GENERIC))
-											{
-												symbol_t *ogv1;
-												ogv1 = syntax_only_with(og1, SYMBOL_VALUE);
-												if (ogv1 != NULL)
-												{
-													gwv = 1;
-													break;
-												}
-											}
-										}
-										if (gwv == 0)
-										{
-											symbol_t *ob1;
-											for (ob1 = o1->begin;ob1 != o1->end;ob1 = ob1->next)
-											{
-												if (symbol_check_type(ob1, SYMBOL_FUNCTION))
-												{
-													symbol_t *obk1;
-													obk1 = syntax_extract_with(ob1, SYMBOL_KEY);
-													if (obk1 != NULL)
-													{
-														if (syntax_idstrcmp(obk1, "constructor") == 0)
-														{
-															symbol_t *tb1;
-															for (tb1 = target->begin;tb1 != target->end;tb1 = tb1->next)
-															{
-																if (symbol_check_type(tb1, SYMBOL_FUNCTION))
-																{
-																	symbol_t *tbk1;
-																	tbk1 = syntax_extract_with(tb1, SYMBOL_KEY);
-																	if (tbk1 != NULL)
-																	{
-																		if (syntax_idstrcmp(tbk1, "constructor") == 0)
-																		{
-																			symbol_t *obps1;
-																			obps1 = syntax_only_with(ob1, SYMBOL_PARAMETERS);
-																			if (obps1 != NULL)
-																			{
-																				symbol_t *tbps1;
-																				tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-																				if (tbps1 != NULL)
-																				{
-																					int32_t r2;
-																					r2 = syntax_equal_psps(program, obps1, tbps1);
-																					if (r2 == -1)
-																					{
-																						return -1;
-																					}
-																					else 
-																					if (r2 == 1)
-																					{
-																						syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																							ok1->declaration->position.line, ok1->declaration->position.column);
-																						return -1;
-																					}
-																					else
-																					{
-																						itable_t *it2;
-																						it2 = table_rpush(frame, target);
-																						if (it2 == NULL)
-																						{
-																							fprintf(stderr, "unable to allocate memory\n");
-																							return -1;
-																						}
-																					}
-																				}
-																				else
-																				{
-																					int32_t pwv = 0;
-																					symbol_t *obp1;
-																					for (obp1 = obps1->begin;obp1 != obps1->end;obp1 = obp1->next)
-																					{
-																						symbol_t *obpv1;
-																						obpv1 = syntax_only_with(obp1, SYMBOL_VALUE);
-																						if (obpv1 == NULL)
-																						{
-																							pwv = 1;
-																							break;
-																						}
-																					}
+    int32_t r1 = syntax_postfix(program, frame, carrier->base, response1);
+    if (r1 == -1)
+    {
+        return -1;
+    }
+    else
+    if (r1 == 0)
+    {
+        syntax_error(program, node, "reference not found");
+        return -1;
+    }
+    else
+    if (r1 == 1)
+    {
+        ilist_t *a1;
+        for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+        {
+            itable_t *it1 = (itable_t *)a1->value;
+            node_t *item1 = (node_t *)it1->value;
+            if (item1->kind == NODE_KIND_CLASS)
+            {
+                node_class_t *class1 = (node_class_t *)item1->value;
+                node_t *node2 = class1->block;
+                node_block_t *block2 = (node_block_t *)node2->value;
+                ilist_t *b1;
+                for (b1 = block2->list->begin;b1 != block2->list->end;b1 = b1->next)
+                {
+                    node_t *item3 = (node_t *)b1->value;
+                    if (item3->kind == NODE_KIND_FUNC)
+                    {
+                        node_func_t *func1 = (node_func_t *)item3->value;
+                        if (syntax_idstrcmp(func1->key, "constructor") == 1)
+                        {
+                            node_t *nps1 = func1->parameters;
+                            node_t *nds2 = carrier->data;
+                            int32_t r2 = syntax_eqaul_psds(program, nps1, nds2);
+                            if (r2 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r2 == 1)
+                            {
+                                ilist_t *il1 = list_rpush(response, it1);
+                                if (il1 == NULL)
+                                {
+                                    fprintf(stderr, "unable to allocate memory\n");
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_FUNC)
+            {
+                node_func_t *func1 = (node_func_t *)item1->value;
+                node_t *nps1 = func1->parameters;
+                node_t *nds2 = carrier->data;
+                int32_t r1 = syntax_eqaul_psds(program, nps1, nds2);
+                if (r1 == -1)
+                {
+                    return -1;
+                }
+                else
+                if (r1 == 1)
+                {
+                    ilist_t *il1 = list_rpush(response, it1);
+                    if (il1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                }
+            }
+            else
+            {
+                syntax_error(program, node, "parameter type used for (%lld:%lld)",
+                    item1->position.line, item1->position.column);
+                return -1;
+            }
+        }
+    }
+    return 1;
+}
 
-																					if (pwv == 0)
-																					{
-																						syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																							ok1->declaration->position.line, ok1->declaration->position.column);
-																						return -1;
-																					}
+static int32_t
+syntax_item(program_t *program, node_t *node, list_t *response)
+{
+    node_carrier_t *carrier = (node_carrier_t *)node->value;
+    
+    list_t *response1 = list_create();
+    if (response1 == NULL)
+    {
+        fprintf(stderr, "unable to allocate memory\n");
+        return -1;
+    }
 
-																					itable_t *it2;
-																					it2 = table_rpush(frame, target);
-																					if (it2 == NULL)
-																					{
-																						fprintf(stderr, "unable to allocate memory\n");
-																						return -1;
-																					}
-																				}
-																			}
-																			else
-																			{
-																				symbol_t *tbps1;
-																				tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-																				if (tbps1 != NULL)
-																				{
-																					int32_t pwv = 0;
-																					symbol_t *tbp1;
-																					for (tbp1 = tbps1->begin;tbp1 != tbps1->end;tbp1 = tbp1->next)
-																					{
-																						symbol_t *tbpv1;
-																						tbpv1 = syntax_only_with(tbp1, SYMBOL_VALUE);
-																						if (tbpv1 == NULL)
-																						{
-																							pwv = 1;
-																							break;
-																						}
-																					}
+    int32_t r1 = syntax_postfix(program, frame, carrier->base, response1);
+    if (r1 == -1)
+    {
+        return -1;
+    }
+    else
+    if (r1 == 0)
+    {
+        syntax_error(program, node, "reference not found");
+        return -1;
+    }
+    else
+    if (r1 == 1)
+    {
+        ilist_t *a1;
+        for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+        {
+            itable_t *it1 = (itable_t *)a1->value;
+            node_t *item1 = (node_t *)it1->value;
+            if (item1->kind == NODE_KIND_CLASS)
+            {
+                node_class_t *class1 = (node_class_t *)item1->value;
+                node_t *node2 = class1->block;
+                node_block_t *block2 = (node_block_t *)node2->value;
+                ilist_t *b1;
+                for (b1 = block2->list->begin;b1 != block2->list->end;b1 = b1->next)
+                {
+                    node_t *item3 = (node_t *)b1->value;
+                    if (item3->kind == NODE_KIND_FUNC)
+                    {
+                        node_func_t *func1 = (node_func_t *)item3->value;
+                        if (syntax_idstrcmp(func1->key, "[]") == 1)
+                        {
+                            node_t *nps1 = func1->parameters;
+                            node_t *nds2 = carrier->data;
+                            int32_t r2 = syntax_eqaul_psds(program, nps1, nds2);
+                            if (r2 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r2 == 1)
+                            {
+                                ilist_t *il1 = list_rpush(response, it1);
+                                if (il1 == NULL)
+                                {
+                                    fprintf(stderr, "unable to allocate memory\n");
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_ARRAY)
+            {
+                ilist_t *il1 = list_rpush(response, it1);
+                if (il1 == NULL)
+                {
+                    fprintf(stderr, "unable to allocate memory\n");
+                    return -1;
+                }
+            }
+            else
+            {
+                syntax_error(program, node, "parameter type used for (%lld:%lld)",
+                    item1->position.line, item1->position.column);
+                return -1;
+            }
+        }
+    }
+    return 1;
+}
 
-																					if (pwv == 0)
-																					{
-																						syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																							ok1->declaration->position.line, ok1->declaration->position.column);
-																						return -1;
-																					}
+static int32_t
+syntax_heirarchy(program_t *program, list_t *frame, node_t *base, node_t *node, list_t *response, int32_t created)
+{
+    if (base->kind == NODE_KIND_CLASS)
+    {
+        node_class_t *class1 = (node_class_t *)base->value;
+        node_block_t *block1 = (node_block_t *)class1->block;
+        ilist_t *a1;
+        for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
+        {
+            node_t *item1 = (node_t *)a1->value;
+            if (item1->kind == NODE_KIND_CLASS)
+            {
+                node_class_t *class2 = (node_class_t *)item1->value;
+                if (syntax_idcmp(class1->key, node) == 1)
+                {
+                    if ((class2->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+                    {
+                        syntax_error(program, item1, "private access");
+                        return -1;
+                    }
+                    if ((class2->flag & PARSER_MODIFIER_PROTECTED) == PARSER_MODIFIER_PROTECTED)
+                    {
+                        syntax_error(program, item1, "protected access");
+                        return -1;
+                    }
+                    if (created == 0)
+                    {
+                        if ((class2->flag & PARSER_MODIFIER_STATIC) != PARSER_MODIFIER_STATIC)
+                        {
+                            syntax_error(program, item1, "static modifier");
+                            return -1;
+                        }
+                    }
+                    ilist_t *il1 = list_rpush(response, item1);
+                    if (il1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                    return 1;
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_FUNC)
+            {
+                node_func_t *func1 = (node_func_t *)item1->value;
+                if (syntax_idcmp(func1->key, node) == 1)
+                {
+                    if ((func1->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+                    {
+                        syntax_error(program, item1, "private access");
+                        return -1;
+                    }
+                    if ((func1->flag & PARSER_MODIFIER_PROTECTED) == PARSER_MODIFIER_PROTECTED)
+                    {
+                        syntax_error(program, item1, "protected access");
+                        return -1;
+                    }
+                    if (created == 0)
+                    {
+                        if ((func1->flag & PARSER_MODIFIER_STATIC) != PARSER_MODIFIER_STATIC)
+                        {
+                            syntax_error(program, item1, "static modifier");
+                            return -1;
+                        }
+                    }
+                    ilist_t *il1 = list_rpush(response, item1);
+                    if (il1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                    return 1;
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_PROPERTY)
+            {
+                node_property_t *property1 = (node_property_t *)item1->value;
+                if (syntax_idcmp(property1->key, node) == 1)
+                {
+                    if ((property1->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+                    {
+                        syntax_error(program, item1, "private access");
+                        return -1;
+                    }
+                    if ((property1->flag & PARSER_MODIFIER_PROTECTED) == PARSER_MODIFIER_PROTECTED)
+                    {
+                        syntax_error(program, item1, "protected access");
+                        return -1;
+                    }
+                    if (created == 0)
+                    {
+                        if ((property1->flag & PARSER_MODIFIER_STATIC) != PARSER_MODIFIER_STATIC)
+                        {
+                            syntax_error(program, item1, "static modifier");
+                            return -1;
+                        }
+                    }
+                    ilist_t *il1 = list_rpush(response, item1);
+                    if (il1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                    return 1;
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_ENUM)
+            {
+                node_enum_t *enum1 = (node_enum_t *)item1->value;
+                if (syntax_idcmp(enum1->key, node) == 1)
+                {
+                    if ((enum1->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+                    {
+                        syntax_error(program, item1, "private access");
+                        return -1;
+                    }
+                    if ((enum1->flag & PARSER_MODIFIER_PROTECTED) == PARSER_MODIFIER_PROTECTED)
+                    {
+                        syntax_error(program, item1, "protected access");
+                        return -1;
+                    }
+                    if (created == 0)
+                    {
+                        if ((enum1->flag & PARSER_MODIFIER_STATIC) != PARSER_MODIFIER_STATIC)
+                        {
+                            syntax_error(program, item1, "static modifier");
+                            return -1;
+                        }
+                    }
+                    ilist_t *il1 = list_rpush(response, item1);
+                    if (il1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                    return 1;
+                }
+            }
+        }
 
-																					itable_t *it2;
-																					it2 = table_rpush(frame, target);
-																					if (it2 == NULL)
-																					{
-																						fprintf(stderr, "unable to allocate memory\n");
-																						return -1;
-																					}
-																				}
-																				else
-																				{
-																					syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																						ok1->declaration->position.line, ok1->declaration->position.column);
-																					return -1;
-																				}
-																			}
-																		}
-																	}
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-								else
-								{
-									symbol_t *tgs1;
-									tgs1 = syntax_only_with(target, SYMBOL_GENERICS);
-									if (tgs1 != NULL)
-									{
-										int32_t gwv = 0;
-										symbol_t *tg1;
-										for (tg1 = tgs1->begin;tg1 != tgs1->end;tg1 = tg1->next)
-										{
-											if (symbol_check_type(tg1, SYMBOL_GENERIC))
-											{
-												symbol_t *tgv1;
-												tgv1 = syntax_only_with(tg1, SYMBOL_VALUE);
-												if (tgv1 != NULL)
-												{
-													gwv = 1;
-													break;
-												}
-											}
-										}
-										if (gwv == 0)
-										{
-											symbol_t *ob1;
-											for (ob1 = o1->begin;ob1 != o1->end;ob1 = ob1->next)
-											{
-												if (symbol_check_type(ob1, SYMBOL_FUNCTION))
-												{
-													symbol_t *obk1;
-													obk1 = syntax_extract_with(ob1, SYMBOL_KEY);
-													if (obk1 != NULL)
-													{
-														if (syntax_idstrcmp(obk1, "constructor") == 0)
-														{
-															symbol_t *tb1;
-															for (tb1 = target->begin;tb1 != target->end;tb1 = tb1->next)
-															{
-																if (symbol_check_type(tb1, SYMBOL_FUNCTION))
-																{
-																	symbol_t *tbk1;
-																	tbk1 = syntax_extract_with(tb1, SYMBOL_KEY);
-																	if (tbk1 != NULL)
-																	{
-																		if (syntax_idstrcmp(tbk1, "constructor") == 0)
-																		{
-																			symbol_t *obps1;
-																			obps1 = syntax_only_with(ob1, SYMBOL_PARAMETERS);
-																			if (obps1 != NULL)
-																			{
-																				symbol_t *tbps1;
-																				tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-																				if (tbps1 != NULL)
-																				{
-																					int32_t r2;
-																					r2 = syntax_equal_psps(program, obps1, tbps1);
-																					if (r2 == -1)
-																					{
-																						return -1;
-																					}
-																					else 
-																					if (r2 == 1)
-																					{
-																						syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																							ok1->declaration->position.line, ok1->declaration->position.column);
-																						return -1;
-																					}
-																					else
-																					{
-																						itable_t *it2;
-																						it2 = table_rpush(frame, target);
-																						if (it2 == NULL)
-																						{
-																							fprintf(stderr, "unable to allocate memory\n");
-																							return -1;
-																						}
-																					}
-																				}
-																				else
-																				{
-																					int32_t pwv = 0;
-																					symbol_t *obp1;
-																					for (obp1 = obps1->begin;obp1 != obps1->end;obp1 = obp1->next)
-																					{
-																						symbol_t *obpv1;
-																						obpv1 = syntax_only_with(obp1, SYMBOL_VALUE);
-																						if (obpv1 == NULL)
-																						{
-																							pwv = 1;
-																							break;
-																						}
-																					}
+        node_t *node2 = class1->heritages;
+        node_block_t *block2 = (node_block_t *)node2->value;
+        ilist_t *a2;
+        for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+        {
+            node_t *item1 = (node_t *)a2->value;
+            node_heritage_t *heritage1 = (node_heritage_t *)item1->value;
 
-																					if (pwv == 0)
-																					{
-																						syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																							ok1->declaration->position.line, ok1->declaration->position.column);
-																						return -1;
-																					}
+            list_t *response1 = list_create();
+            if (response1 == NULL)
+            {
+                fprintf(stderr, "unable to allocate memory\n");
+                return -1;
+            }
 
-																					itable_t *it2;
-																					it2 = table_rpush(frame, target);
-																					if (it2 == NULL)
-																					{
-																						fprintf(stderr, "unable to allocate memory\n");
-																						return -1;
-																					}
-																				}
-																			}
-																			else
-																			{
-																				symbol_t *tbps1;
-																				tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-																				if (tbps1 != NULL)
-																				{
-																					int32_t pwv = 0;
-																					symbol_t *tbp1;
-																					for (tbp1 = tbps1->begin;tbp1 != tbps1->end;tbp1 = tbp1->next)
-																					{
-																						symbol_t *tbpv1;
-																						tbpv1 = syntax_only_with(tbp1, SYMBOL_VALUE);
-																						if (tbpv1 == NULL)
-																						{
-																							pwv = 1;
-																							break;
-																						}
-																					}
+            int32_t r1 = syntax_postfix(program, frame, heritage1->type, response1);
+            if (r1 == -1)
+            {
+                return -1;
+            }
+            else
+            if (r1 == 0)
+            {
+                syntax_error(program, item1, "reference not found");
+                return -1;
+            }
+            else
+            if (r1 == 1)
+            {
+                ilist_t *a3;
+                for (a3 = response1->begin;a3 != response1->end;a3 = a3->next)
+                {
+                    node_t *item1 = (node_t *)a3->value;
+                    if (item1->kind == NODE_KIND_CLASS)
+                    {
+                        int32_t r2 = syntax_heirarchy(program, frame, item1, node, response, created);
+                        if (r2 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r2 == 1)
+                        {
+                            return 1;
+                        }
+                    }
+                }
+            }
+            list_destroy(response1);
+        }
+    }
+    else
+    {
+        syntax_error(program, base, "not a class");
+        return -1;
+    }
+    return 0;
+}
 
-																					if (pwv == 0)
-																					{
-																						syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																							ok1->declaration->position.line, ok1->declaration->position.column);
-																						return -1;
-																					}
+static int32_t
+syntax_attribute(program_t *program, node_t *node, list_t *response)
+{
+    node_binary_t *basic = (node_binary_t *)node->value;
+    
+    list_t *response1 = list_create();
+    if (response1 == NULL)
+    {
+        fprintf(stderr, "unable to allocate memory\n");
+        return -1;
+    }
 
-																					itable_t *it2;
-																					it2 = table_rpush(frame, target);
-																					if (it2 == NULL)
-																					{
-																						fprintf(stderr, "unable to allocate memory\n");
-																						return -1;
-																					}
-																				}
-																				else
-																				{
-																					syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																						ok1->declaration->position.line, ok1->declaration->position.column);
-																					return -1;
-																				}
-																			}
-																		}
-																	}
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-									else
-									{
-										symbol_t *ob1;
-										for (ob1 = o1->begin;ob1 != o1->end;ob1 = ob1->next)
-										{
-											if (symbol_check_type(ob1, SYMBOL_FUNCTION))
-											{
-												symbol_t *obk1;
-												obk1 = syntax_extract_with(ob1, SYMBOL_KEY);
-												if (obk1 != NULL)
-												{
-													if (syntax_idstrcmp(obk1, "constructor") == 0)
-													{
-														symbol_t *tb1;
-														for (tb1 = target->begin;tb1 != target->end;tb1 = tb1->next)
-														{
-															if (symbol_check_type(tb1, SYMBOL_FUNCTION))
-															{
-																symbol_t *tbk1;
-																tbk1 = syntax_extract_with(tb1, SYMBOL_KEY);
-																if (tbk1 != NULL)
-																{
-																	if (syntax_idstrcmp(tbk1, "constructor") == 0)
-																	{
-																		symbol_t *obps1;
-																		obps1 = syntax_only_with(ob1, SYMBOL_PARAMETERS);
-																		if (obps1 != NULL)
-																		{
-																			symbol_t *tbps1;
-																			tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-																			if (tbps1 != NULL)
-																			{
-																				int32_t r2;
-																				r2 = syntax_equal_psps(program, obps1, tbps1);
-																				if (r2 == -1)
-																				{
-																					return -1;
-																				}
-																				else 
-																				if (r2 == 1)
-																				{
-																					syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																						ok1->declaration->position.line, ok1->declaration->position.column);
-																					return -1;
-																				}
-																				else
-																				{
-																					itable_t *it2;
-																					it2 = table_rpush(frame, target);
-																					if (it2 == NULL)
-																					{
-																						fprintf(stderr, "unable to allocate memory\n");
-																						return -1;
-																					}
-																				}
-																			}
-																			else
-																			{
-																				int32_t pwv = 0;
-																				symbol_t *obp1;
-																				for (obp1 = obps1->begin;obp1 != obps1->end;obp1 = obp1->next)
-																				{
-																					symbol_t *obpv1;
-																					obpv1 = syntax_only_with(obp1, SYMBOL_VALUE);
-																					if (obpv1 == NULL)
-																					{
-																						pwv = 1;
-																						break;
-																					}
-																				}
+    int32_t r1 = syntax_postfix(program, frame, basic->left, response1);
+    if (r1 == -1)
+    {
+        return -1;
+    }
+    else
+    if (r1 == 0)
+    {
+        syntax_error(program, node, "reference not found");
+        return -1;
+    }
+    else
+    if (r1 == 1)
+    {
+        ilist_t *a1;
+        for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+        {
+            itable_t *it1 = (itable_t *)a1->value;
+            node_t *item1 = (node_t *)it1->value;
+            region_kind_start:
+            if (item1->kind == NODE_KIND_CLASS)
+            {
+                list_t *response2 = list_create();
+                if (response2 == NULL)
+                {
+                    fprintf(stderr, "unable to allocate memory\n");
+                    return -1;
+                }
 
-																				if (pwv == 0)
-																				{
-																					syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																						ok1->declaration->position.line, ok1->declaration->position.column);
-																					return -1;
-																				}
+                int32_t r2 = syntax_heirarchy(program, frame, item1, basic->right, response2, it1->created);
+                if (r2 == -1)
+                {
+                    return -1;
+                }
+                if (r2 == 0)
+                {
+                    syntax_error(program, basic->right, "not found in (%lld:%lld)",
+                        item1->position.line, item1->position.column);
+                    return -1;
+                }
+                else
+                if (r2 == 1)
+                {
+                    ilist_t *a2;
+                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        itable_t *it2= table_new();
+                        if (it2 == NULL)
+                        {
+                            fprintf(stderr, "unable to allocate memory\n");
+                            return -1;
+                        }
+                        it2->value = item2;
+                        it2->created = it1->created;
 
-																				itable_t *it2;
-																				it2 = table_rpush(frame, target);
-																				if (it2 == NULL)
-																				{
-																					fprintf(stderr, "unable to allocate memory\n");
-																					return -1;
-																				}
-																			}
-																		}
-																		else
-																		{
-																			symbol_t *tbps1;
-																			tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-																			if (tbps1 != NULL)
-																			{
-																				int32_t pwv = 0;
-																				symbol_t *tbp1;
-																				for (tbp1 = tbps1->begin;tbp1 != tbps1->end;tbp1 = tbp1->next)
-																				{
-																					symbol_t *tbpv1;
-																					tbpv1 = syntax_only_with(tbp1, SYMBOL_VALUE);
-																					if (tbpv1 == NULL)
-																					{
-																						pwv = 1;
-																						break;
-																					}
-																				}
+                        ilist_t *il1 = list_rpush(response, it2);
+                        if (il1 == NULL)
+                        {
+                            fprintf(stderr, "unable to allocate memory\n");
+                            return -1;
+                        }
+                    }
+                }
+                list_destroy(response2);
+            }
+            else
+            if (item1->kind == NODE_KIND_PROPERTY)
+            {
+                if (it1->referto == NULL)
+                {
+                    syntax_error(program, item1, "uninitialized");
+                    return -1;
+                }
+                node_t *item1 = (node_t *)it1->referto;
+                goto region_kind_start;
+            }
+            else
+            if (item1->kind == NODE_KIND_VAR)
+            {
+                if (it1->referto == NULL)
+                {
+                    syntax_error(program, item1, "uninitialized");
+                    return -1;
+                }
+                node_t *item1 = (node_t *)it1->referto;
+                goto region_kind_start;
+            }
+            else
+            {
+                syntax_error(program, node, "parameter type used for (%lld:%lld)",
+                    item1->position.line, item1->position.column);
+                return -1;
+            }
+        }
+    }
+    return 1;
+}
 
-																				if (pwv == 0)
-																				{
-																					syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																						ok1->declaration->position.line, ok1->declaration->position.column);
-																					return -1;
-																				}
+static int32_t
+syntax_postfix(program_t *program, node_t *node, list_t *response)
+{
+    if (node->kind == NODE_KIND_ATTRIBUTE)
+    {
+        return syntax_attribute(program, frame, node, response);
+    }
+    else
+    if (node->kind == NODE_KIND_PSEUDONYM)
+    {
+        return syntax_pseudonym(program, frame, node, response);
+    }
+    else
+    if (node->kind == NODE_KIND_ITEM)
+    {
+        return syntax_item(program, frame, node, response);
+    }
+    else
+    if (node->kind == NODE_KIND_CALL)
+    {
+        return syntax_call(program, frame, node, response);
+    }
+    else
+    if (node->kind == NODE_KIND_ID)
+    {
+        return syntax_id(program, frame, node, response);
+    }
+    return 1;
+}
 
-																				itable_t *it2;
-																				it2 = table_rpush(frame, target);
-																				if (it2 == NULL)
-																				{
-																					fprintf(stderr, "unable to allocate memory\n");
-																					return -1;
-																				}
-																			}
-																			else
-																			{
-																				syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																					ok1->declaration->position.line, ok1->declaration->position.column);
-																				return -1;
-																			}
-																		}
-																	}
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-							else
-							if (symbol_check_type(o1, SYMBOL_FUNCTION))
-							{
-								symbol_t *ogs1;
-								ogs1 = syntax_only_with(o1, SYMBOL_GENERICS);
-								if (ogs1 != NULL)
-								{
-									symbol_t *tgs1;
-									tgs1 = syntax_only_with(target, SYMBOL_GENERICS);
-									if (tgs1 != NULL)
-									{
-										int32_t r1;
-										r1 = syntax_equal_gsgs(program, tgs1, ogs1);
-										if (r1 == -1)
-										{
-											return -1;
-										}
-										else
-										if (r1 == 1)
-										{
-											symbol_t *tb1;
-											for (tb1 = target->begin;tb1 != target->end;tb1 = tb1->next)
-											{
-												if (symbol_check_type(tb1, SYMBOL_FUNCTION))
-												{
-													symbol_t *tbk1;
-													tbk1 = syntax_extract_with(tb1, SYMBOL_KEY);
-													if (tbk1 != NULL)
-													{
-														if (syntax_idstrcmp(tbk1, "constructor") == 0)
-														{
-															symbol_t *obps1;
-															obps1 = syntax_only_with(o1, SYMBOL_PARAMETERS);
-															if (obps1 != NULL)
-															{
-																symbol_t *tbps1;
-																tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-																if (tbps1 != NULL)
-																{
-																	int32_t r2;
-																	r2 = syntax_equal_psps(program, obps1, tbps1);
-																	if (r2 == -1)
-																	{
-																		return -1;
-																	}
-																	else 
-																	if (r2 == 1)
-																	{
-																		syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																			ok1->declaration->position.line, ok1->declaration->position.column);
-																		return -1;
-																	}
-																	else
-																	{
-																		itable_t *it2;
-																		it2 = table_rpush(frame, target);
-																		if (it2 == NULL)
-																		{
-																			fprintf(stderr, "unable to allocate memory\n");
-																			return -1;
-																		}
-																	}
-																}
-																else
-																{
-																	int32_t pwv = 0;
-																	symbol_t *obp1;
-																	for (obp1 = obps1->begin;obp1 != obps1->end;obp1 = obp1->next)
-																	{
-																		symbol_t *obpv1;
-																		obpv1 = syntax_only_with(obp1, SYMBOL_VALUE);
-																		if (obpv1 == NULL)
-																		{
-																			pwv = 1;
-																			break;
-																		}
-																	}
+static int32_t
+syntax_expression(program_t *program, node_t *node, list_t *response)
+{
+    return 1;
+}
 
-																	if (pwv == 0)
-																	{
-																		syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																			ok1->declaration->position.line, ok1->declaration->position.column);
-																		return -1;
-																	}
 
-																	itable_t *it2;
-																	it2 = table_rpush(frame, target);
-																	if (it2 == NULL)
-																	{
-																		fprintf(stderr, "unable to allocate memory\n");
-																		return -1;
-																	}
-																}
-															}
-															else
-															{
-																symbol_t *tbps1;
-																tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-																if (tbps1 != NULL)
-																{
-																	int32_t pwv = 0;
-																	symbol_t *tbp1;
-																	for (tbp1 = tbps1->begin;tbp1 != tbps1->end;tbp1 = tbp1->next)
-																	{
-																		symbol_t *tbpv1;
-																		tbpv1 = syntax_only_with(tbp1, SYMBOL_VALUE);
-																		if (tbpv1 == NULL)
-																		{
-																			pwv = 1;
-																			break;
-																		}
-																	}
 
-																	if (pwv == 0)
-																	{
-																		syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																			ok1->declaration->position.line, ok1->declaration->position.column);
-																		return -1;
-																	}
 
-																	itable_t *it2;
-																	it2 = table_rpush(frame, target);
-																	if (it2 == NULL)
-																	{
-																		fprintf(stderr, "unable to allocate memory\n");
-																		return -1;
-																	}
-																}
-																else
-																{
-																	syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																		ok1->declaration->position.line, ok1->declaration->position.column);
-																	return -1;
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-										else
-										{
-											itable_t *it2;
-											it2 = table_rpush(frame, target);
-											if (it2 == NULL)
-											{
-												fprintf(stderr, "unable to allocate memory\n");
-												return -1;
-											}
-										}
-									}
-									else
-									{
-										int32_t gwv = 0;
-										symbol_t *og1;
-										for (og1 = ogs1->begin;og1 != ogs1->end;og1 = og1->next)
-										{
-											if (symbol_check_type(og1, SYMBOL_GENERIC))
-											{
-												symbol_t *ogv1;
-												ogv1 = syntax_only_with(og1, SYMBOL_VALUE);
-												if (ogv1 != NULL)
-												{
-													gwv = 1;
-													break;
-												}
-											}
-										}
-										if (gwv == 0)
-										{
-											symbol_t *tb1;
-											for (tb1 = o1->begin;tb1 != o1->end;tb1 = tb1->next)
-											{
-												if (symbol_check_type(tb1, SYMBOL_FUNCTION))
-												{
-													symbol_t *tbk1;
-													tbk1 = syntax_extract_with(tb1, SYMBOL_KEY);
-													if (tbk1 != NULL)
-													{
-														if (syntax_idstrcmp(tbk1, "constructor") == 0)
-														{
-															symbol_t *obps1;
-															obps1 = syntax_only_with(o1, SYMBOL_PARAMETERS);
-															if (obps1 != NULL)
-															{
-																symbol_t *tbps1;
-																tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-																if (tbps1 != NULL)
-																{
-																	int32_t r2;
-																	r2 = syntax_equal_psps(program, obps1, tbps1);
-																	if (r2 == -1)
-																	{
-																		return -1;
-																	}
-																	else 
-																	if (r2 == 1)
-																	{
-																		syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																			ok1->declaration->position.line, ok1->declaration->position.column);
-																		return -1;
-																	}
-																	else
-																	{
-																		itable_t *it2;
-																		it2 = table_rpush(frame, target);
-																		if (it2 == NULL)
-																		{
-																			fprintf(stderr, "unable to allocate memory\n");
-																			return -1;
-																		}
-																	}
-																}
-																else
-																{
-																	int32_t pwv = 0;
-																	symbol_t *obp1;
-																	for (obp1 = obps1->begin;obp1 != obps1->end;obp1 = obp1->next)
-																	{
-																		symbol_t *obpv1;
-																		obpv1 = syntax_only_with(obp1, SYMBOL_VALUE);
-																		if (obpv1 == NULL)
-																		{
-																			pwv = 1;
-																			break;
-																		}
-																	}
 
-																	if (pwv == 0)
-																	{
-																		syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																			ok1->declaration->position.line, ok1->declaration->position.column);
-																		return -1;
-																	}
 
-																	itable_t *it2;
-																	it2 = table_rpush(frame, target);
-																	if (it2 == NULL)
-																	{
-																		fprintf(stderr, "unable to allocate memory\n");
-																		return -1;
-																	}
-																}
-															}
-															else
-															{
-																symbol_t *tbps1;
-																tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-																if (tbps1 != NULL)
-																{
-																	int32_t pwv = 0;
-																	symbol_t *tbp1;
-																	for (tbp1 = tbps1->begin;tbp1 != tbps1->end;tbp1 = tbp1->next)
-																	{
-																		symbol_t *tbpv1;
-																		tbpv1 = syntax_only_with(tbp1, SYMBOL_VALUE);
-																		if (tbpv1 == NULL)
-																		{
-																			pwv = 1;
-																			break;
-																		}
-																	}
 
-																	if (pwv == 0)
-																	{
-																		syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																			ok1->declaration->position.line, ok1->declaration->position.column);
-																		return -1;
-																	}
 
-																	itable_t *it2;
-																	it2 = table_rpush(frame, target);
-																	if (it2 == NULL)
-																	{
-																		fprintf(stderr, "unable to allocate memory\n");
-																		return -1;
-																	}
-																}
-																else
-																{
-																	syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																		ok1->declaration->position.line, ok1->declaration->position.column);
-																	return -1;
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-								else
-								{
-									symbol_t *tgs1;
-									tgs1 = syntax_only_with(target, SYMBOL_GENERICS);
-									if (tgs1 != NULL)
-									{
-										int32_t gwv = 0;
-										symbol_t *tg1;
-										for (tg1 = tgs1->begin;tg1 != tgs1->end;tg1 = tg1->next)
-										{
-											if (symbol_check_type(tg1, SYMBOL_GENERIC))
-											{
-												symbol_t *tgv1;
-												tgv1 = syntax_only_with(tg1, SYMBOL_VALUE);
-												if (tgv1 != NULL)
-												{
-													gwv = 1;
-													break;
-												}
-											}
-										}
-										if (gwv == 0)
-										{
-											symbol_t *tb1;
-											for (tb1 = target->begin;tb1 != target->end;tb1 = tb1->next)
-											{
-												if (symbol_check_type(tb1, SYMBOL_FUNCTION))
-												{
-													symbol_t *tbk1;
-													tbk1 = syntax_extract_with(tb1, SYMBOL_KEY);
-													if (tbk1 != NULL)
-													{
-														if (syntax_idstrcmp(tbk1, "constructor") == 0)
-														{
-															symbol_t *obps1;
-															obps1 = syntax_only_with(o1, SYMBOL_PARAMETERS);
-															if (obps1 != NULL)
-															{
-																symbol_t *tbps1;
-																tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-																if (tbps1 != NULL)
-																{
-																	int32_t r2;
-																	r2 = syntax_equal_psps(program, obps1, tbps1);
-																	if (r2 == -1)
-																	{
-																		return -1;
-																	}
-																	else 
-																	if (r2 == 1)
-																	{
-																		syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																			ok1->declaration->position.line, ok1->declaration->position.column);
-																		return -1;
-																	}
-																	else
-																	{
-																		itable_t *it2;
-																		it2 = table_rpush(frame, target);
-																		if (it2 == NULL)
-																		{
-																			fprintf(stderr, "unable to allocate memory\n");
-																			return -1;
-																		}
-																	}
-																}
-																else
-																{
-																	int32_t pwv = 0;
-																	symbol_t *obp1;
-																	for (obp1 = obps1->begin;obp1 != obps1->end;obp1 = obp1->next)
-																	{
-																		symbol_t *obpv1;
-																		obpv1 = syntax_only_with(obp1, SYMBOL_VALUE);
-																		if (obpv1 == NULL)
-																		{
-																			pwv = 1;
-																			break;
-																		}
-																	}
 
-																	if (pwv == 0)
-																	{
-																		syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																			ok1->declaration->position.line, ok1->declaration->position.column);
-																		return -1;
-																	}
 
-																	itable_t *it2;
-																	it2 = table_rpush(frame, target);
-																	if (it2 == NULL)
-																	{
-																		fprintf(stderr, "unable to allocate memory\n");
-																		return -1;
-																	}
-																}
-															}
-															else
-															{
-																symbol_t *tbps1;
-																tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-																if (tbps1 != NULL)
-																{
-																	int32_t pwv = 0;
-																	symbol_t *tbp1;
-																	for (tbp1 = tbps1->begin;tbp1 != tbps1->end;tbp1 = tbp1->next)
-																	{
-																		symbol_t *tbpv1;
-																		tbpv1 = syntax_only_with(tbp1, SYMBOL_VALUE);
-																		if (tbpv1 == NULL)
-																		{
-																			pwv = 1;
-																			break;
-																		}
-																	}
 
-																	if (pwv == 0)
-																	{
-																		syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																			ok1->declaration->position.line, ok1->declaration->position.column);
-																		return -1;
-																	}
 
-																	itable_t *it2;
-																	it2 = table_rpush(frame, target);
-																	if (it2 == NULL)
-																	{
-																		fprintf(stderr, "unable to allocate memory\n");
-																		return -1;
-																	}
-																}
-																else
-																{
-																	syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																		ok1->declaration->position.line, ok1->declaration->position.column);
-																	return -1;
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-									else
-									{
-										symbol_t *tb1;
-										for (tb1 = target->begin;tb1 != target->end;tb1 = tb1->next)
-										{
-											if (symbol_check_type(tb1, SYMBOL_FUNCTION))
-											{
-												symbol_t *tbk1;
-												tbk1 = syntax_extract_with(tb1, SYMBOL_KEY);
-												if (tbk1 != NULL)
-												{
-													if (syntax_idstrcmp(tbk1, "constructor") == 0)
-													{
-														symbol_t *obps1;
-														obps1 = syntax_only_with(o1, SYMBOL_PARAMETERS);
-														if (obps1 != NULL)
-														{
-															symbol_t *tbps1;
-															tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-															if (tbps1 != NULL)
-															{
-																int32_t r2;
-																r2 = syntax_equal_psps(program, obps1, tbps1);
-																if (r2 == -1)
-																{
-																	return -1;
-																}
-																else 
-																if (r2 == 1)
-																{
-																	syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																		ok1->declaration->position.line, ok1->declaration->position.column);
-																	return -1;
-																}
-																else
-																{
-																	itable_t *it2;
-																	it2 = table_rpush(frame, target);
-																	if (it2 == NULL)
-																	{
-																		fprintf(stderr, "unable to allocate memory\n");
-																		return -1;
-																	}
-																}
-															}
-															else
-															{
-																int32_t pwv = 0;
-																symbol_t *obp1;
-																for (obp1 = obps1->begin;obp1 != obps1->end;obp1 = obp1->next)
-																{
-																	symbol_t *obpv1;
-																	obpv1 = syntax_only_with(obp1, SYMBOL_VALUE);
-																	if (obpv1 == NULL)
-																	{
-																		pwv = 1;
-																		break;
-																	}
-																}
 
-																if (pwv == 0)
-																{
-																	syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																		ok1->declaration->position.line, ok1->declaration->position.column);
-																	return -1;
-																}
 
-																itable_t *it2;
-																it2 = table_rpush(frame, target);
-																if (it2 == NULL)
-																{
-																	fprintf(stderr, "unable to allocate memory\n");
-																	return -1;
-																}
-															}
-														}
-														else
-														{
-															symbol_t *tbps1;
-															tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-															if (tbps1 != NULL)
-															{
-																int32_t pwv = 0;
-																symbol_t *tbp1;
-																for (tbp1 = tbps1->begin;tbp1 != tbps1->end;tbp1 = tbp1->next)
-																{
-																	symbol_t *tbpv1;
-																	tbpv1 = syntax_only_with(tbp1, SYMBOL_VALUE);
-																	if (tbpv1 == NULL)
-																	{
-																		pwv = 1;
-																		break;
-																	}
-																}
 
-																if (pwv == 0)
-																{
-																	syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																		ok1->declaration->position.line, ok1->declaration->position.column);
-																	return -1;
-																}
 
-																itable_t *it2;
-																it2 = table_rpush(frame, target);
-																if (it2 == NULL)
-																{
-																	fprintf(stderr, "unable to allocate memory\n");
-																	return -1;
-																}
-															}
-															else
-															{
-																syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																	ok1->declaration->position.line, ok1->declaration->position.column);
-																return -1;
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-							else
-							if (symbol_check_type(o1, SYMBOL_PROPERTY))
-							{
-								symbol_t *tgs1;
-								tgs1 = syntax_only_with(target, SYMBOL_GENERICS);
-								if (tgs1 != NULL)
-								{
-									int32_t gwv = 0;
-									symbol_t *tg1;
-									for (tg1 = tgs1->begin;tg1 != tgs1->end;tg1 = tg1->next)
-									{
-										if (symbol_check_type(tg1, SYMBOL_GENERIC))
-										{
-											symbol_t *tgv1;
-											tgv1 = syntax_only_with(tg1, SYMBOL_VALUE);
-											if (tgv1 != NULL)
-											{
-												gwv = 1;
-												break;
-											}
-										}
-									}
-									if (gwv == 0)
-									{
-										symbol_t *tb1;
-										for (tb1 = target->begin;tb1 != target->end;tb1 = tb1->next)
-										{
-											if (symbol_check_type(tb1, SYMBOL_FUNCTION))
-											{
-												symbol_t *tbk1;
-												tbk1 = syntax_extract_with(tb1, SYMBOL_KEY);
-												if (tbk1 != NULL)
-												{
-													if (syntax_idstrcmp(tbk1, "constructor") == 0)
-													{
-														symbol_t *tbps1;
-														tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-														if (tbps1 != NULL)
-														{
-															symbol_t *tbps1;
-															tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-															if (tbps1 != NULL)
-															{
-																int32_t pwv = 0;
-																symbol_t *tbp1;
-																for (tbp1 = tbps1->begin;tbp1 != tbps1->end;tbp1 = tbp1->next)
-																{
-																	symbol_t *tbpv1;
-																	tbpv1 = syntax_only_with(tbp1, SYMBOL_VALUE);
-																	if (tbpv1 == NULL)
-																	{
-																		pwv = 1;
-																		break;
-																	}
-																}
 
-																if (pwv == 0)
-																{
-																	syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																		ok1->declaration->position.line, ok1->declaration->position.column);
-																	return -1;
-																}
 
-																itable_t *it2;
-																it2 = table_rpush(frame, target);
-																if (it2 == NULL)
-																{
-																	fprintf(stderr, "unable to allocate memory\n");
-																	return -1;
-																}
-															}
-															else
-															{
-																syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																	ok1->declaration->position.line, ok1->declaration->position.column);
-																return -1;
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-								else
-								{
-									symbol_t *tb1;
-									for (tb1 = target->begin;tb1 != target->end;tb1 = tb1->next)
-									{
-										if (symbol_check_type(tb1, SYMBOL_FUNCTION))
-										{
-											symbol_t *tbk1;
-											tbk1 = syntax_extract_with(tb1, SYMBOL_KEY);
-											if (tbk1 != NULL)
-											{
-												if (syntax_idstrcmp(tbk1, "constructor") == 0)
-												{
-													symbol_t *tbps1;
-													tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-													if (tbps1 != NULL)
-													{
-														int32_t pwv = 0;
-														symbol_t *tbp1;
-														for (tbp1 = tbps1->begin;tbp1 != tbps1->end;tbp1 = tbp1->next)
-														{
-															symbol_t *tbpv1;
-															tbpv1 = syntax_only_with(tbp1, SYMBOL_VALUE);
-															if (tbpv1 == NULL)
-															{
-																pwv = 1;
-																break;
-															}
-														}
 
-														if (pwv == 0)
-														{
-															syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																ok1->declaration->position.line, ok1->declaration->position.column);
-															return -1;
-														}
 
-														itable_t *it2;
-														it2 = table_rpush(frame, target);
-														if (it2 == NULL)
-														{
-															fprintf(stderr, "unable to allocate memory\n");
-															return -1;
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-							else
-							if (symbol_check_type(o1, SYMBOL_ENUM))
-							{
-								symbol_t *tgs1;
-								tgs1 = syntax_only_with(target, SYMBOL_GENERICS);
-								if (tgs1 != NULL)
-								{
-									int32_t gwv = 0;
-									symbol_t *tg1;
-									for (tg1 = tgs1->begin;tg1 != tgs1->end;tg1 = tg1->next)
-									{
-										if (symbol_check_type(tg1, SYMBOL_GENERIC))
-										{
-											symbol_t *tgv1;
-											tgv1 = syntax_only_with(tg1, SYMBOL_VALUE);
-											if (tgv1 != NULL)
-											{
-												gwv = 1;
-												break;
-											}
-										}
-									}
-									if (gwv == 0)
-									{
-										symbol_t *tb1;
-										for (tb1 = target->begin;tb1 != target->end;tb1 = tb1->next)
-										{
-											if (symbol_check_type(tb1, SYMBOL_FUNCTION))
-											{
-												symbol_t *tbk1;
-												tbk1 = syntax_extract_with(tb1, SYMBOL_KEY);
-												if (tbk1 != NULL)
-												{
-													if (syntax_idstrcmp(tbk1, "constructor") == 0)
-													{
-														symbol_t *tbps1;
-														tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-														if (tbps1 != NULL)
-														{
-															int32_t pwv = 0;
-															symbol_t *tbp1;
-															for (tbp1 = tbps1->begin;tbp1 != tbps1->end;tbp1 = tbp1->next)
-															{
-																symbol_t *tbpv1;
-																tbpv1 = syntax_only_with(tbp1, SYMBOL_VALUE);
-																if (tbpv1 == NULL)
-																{
-																	pwv = 1;
-																	break;
-																}
-															}
 
-															if (pwv == 0)
-															{
-																syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																	ok1->declaration->position.line, ok1->declaration->position.column);
-																return -1;
-															}
 
-															itable_t *it2;
-															it2 = table_rpush(frame, target);
-															if (it2 == NULL)
-															{
-																fprintf(stderr, "unable to allocate memory\n");
-																return -1;
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-								else
-								{
-									symbol_t *tb1;
-									for (tb1 = target->begin;tb1 != target->end;tb1 = tb1->next)
-									{
-										if (symbol_check_type(tb1, SYMBOL_FUNCTION))
-										{
-											symbol_t *tbk1;
-											tbk1 = syntax_extract_with(tb1, SYMBOL_KEY);
-											if (tbk1 != NULL)
-											{
-												if (syntax_idstrcmp(tbk1, "constructor") == 0)
-												{
-													symbol_t *tbps1;
-													tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-													if (tbps1 != NULL)
-													{
-														int32_t pwv = 0;
-														symbol_t *tbp1;
-														for (tbp1 = tbps1->begin;tbp1 != tbps1->end;tbp1 = tbp1->next)
-														{
-															symbol_t *tbpv1;
-															tbpv1 = syntax_only_with(tbp1, SYMBOL_VALUE);
-															if (tbpv1 == NULL)
-															{
-																pwv = 1;
-																break;
-															}
-														}
 
-														if (pwv == 0)
-														{
-															syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																ok1->declaration->position.line, ok1->declaration->position.column);
-															return -1;
-														}
 
-														itable_t *it2;
-														it2 = table_rpush(frame, target);
-														if (it2 == NULL)
-														{
-															fprintf(stderr, "unable to allocate memory\n");
-															return -1;
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-							else
-							if (symbol_check_type(o1, SYMBOL_VAR))
-							{
-								symbol_t *tgs1;
-								tgs1 = syntax_only_with(target, SYMBOL_GENERICS);
-								if (tgs1 != NULL)
-								{
-									int32_t gwv = 0;
-									symbol_t *tg1;
-									for (tg1 = tgs1->begin;tg1 != tgs1->end;tg1 = tg1->next)
-									{
-										if (symbol_check_type(tg1, SYMBOL_GENERIC))
-										{
-											symbol_t *tgv1;
-											tgv1 = syntax_only_with(tg1, SYMBOL_VALUE);
-											if (tgv1 != NULL)
-											{
-												gwv = 1;
-												break;
-											}
-										}
-									}
-									if (gwv == 0)
-									{
-										symbol_t *tb1;
-										for (tb1 = target->begin;tb1 != target->end;tb1 = tb1->next)
-										{
-											if (symbol_check_type(tb1, SYMBOL_FUNCTION))
-											{
-												symbol_t *tbk1;
-												tbk1 = syntax_extract_with(tb1, SYMBOL_KEY);
-												if (tbk1 != NULL)
-												{
-													if (syntax_idstrcmp(tbk1, "constructor") == 0)
-													{
-														symbol_t *tbps1;
-														tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-														if (tbps1 != NULL)
-														{
-															int32_t pwv = 0;
-															symbol_t *tbp1;
-															for (tbp1 = tbps1->begin;tbp1 != tbps1->end;tbp1 = tbp1->next)
-															{
-																symbol_t *tbpv1;
-																tbpv1 = syntax_only_with(tbp1, SYMBOL_VALUE);
-																if (tbpv1 == NULL)
-																{
-																	pwv = 1;
-																	break;
-																}
-															}
 
-															if (pwv == 0)
-															{
-																syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																	ok1->declaration->position.line, ok1->declaration->position.column);
-																return -1;
-															}
 
-															itable_t *it2;
-															it2 = table_rpush(frame, target);
-															if (it2 == NULL)
-															{
-																fprintf(stderr, "unable to allocate memory\n");
-																return -1;
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-								else
-								{
-									symbol_t *tb1;
-									for (tb1 = target->begin;tb1 != target->end;tb1 = tb1->next)
-									{
-										if (symbol_check_type(tb1, SYMBOL_FUNCTION))
-										{
-											symbol_t *tbk1;
-											tbk1 = syntax_extract_with(tb1, SYMBOL_KEY);
-											if (tbk1 != NULL)
-											{
-												if (syntax_idstrcmp(tbk1, "constructor") == 0)
-												{
-													symbol_t *tbps1;
-													tbps1 = syntax_only_with(tb1, SYMBOL_PARAMETERS);
-													if (tbps1 != NULL)
-													{
-														int32_t pwv = 0;
-														symbol_t *tbp1;
-														for (tbp1 = tbps1->begin;tbp1 != tbps1->end;tbp1 = tbp1->next)
-														{
-															symbol_t *tbpv1;
-															tbpv1 = syntax_only_with(tbp1, SYMBOL_VALUE);
-															if (tbpv1 == NULL)
-															{
-																pwv = 1;
-																break;
-															}
-														}
 
-														if (pwv == 0)
-														{
-															syntax_error(program, tk1, "defination repeated, another defination in %lld:%lld",
-																ok1->declaration->position.line, ok1->declaration->position.column);
-															return -1;
-														}
 
-														itable_t *it2;
-														it2 = table_rpush(frame, target);
-														if (it2 == NULL)
-														{
-															fprintf(stderr, "unable to allocate memory\n");
-															return -1;
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    if (node_class->generics != NULL)
+    {
+        node_t *node3 = (node_t *)node_class->generics;
+        node_block_t *block3 = (node_block_t *)node3->value;
+
+        ilist_t *b1;
+        for (b1 = block3->list->begin;b1 != block3->list->end;b1 = b1->next)
+        {
+            node_t *item2 = (node_t *)b1->value;
+            if (item2->kind == NODE_KIND_GENERIC)
+            {
+                node_generic_t *generic1 = (node_generic_t *)item2->value;
+
+                ilist_t *a1;
+                for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
+                {
+                    node_t *item1 = (node_t *)a1->value;
+                    if (item1->kind == NODE_KIND_CLASS)
+                    {
+                        node_class_t *class1 = (node_class_t *)item1->value;
+                        if (syntax_idcmp(class1->key, generic1->key) == 1)
+                        {
+                            node_t *ngs1 = class1->generics;
+                            node_t *ngs2 = NULL;
+                            int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                            if (r1 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r1 == 1)
+                            {
+                                node_t *node2 = class1->block;
+                                node_block_t *block2 = (node_block_t *)node2->value;
+                                ilist_t *b1;
+                                for (b1 = block2->list->begin;b1 != block2->list->end;b1 = b1->next)
+                                {
+                                    node_t *item3 = (node_t *)b1->value;
+                                    if (item3->kind == NODE_KIND_FUNC)
+                                    {
+                                        node_func_t *fun1 = (node_func_t *)item3->value;
+                                        if (syntax_idstrcmp(fun1->key, "constructor") == 1)
+                                        {
+                                            node_t *nps1 = fun1->parameters;
+                                            node_t *nps2 = NULL;
+                                            int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                            if (r2 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r2 == 1)
+                                            {
+                                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                                    item2->position.line, item2->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_FUNC)
+                    {
+                        node_func_t *func1 = (node_func_t *)item1->value;
+                        if (syntax_idcmp(func1->key, generic1->key) == 1)
+                        {
+                            node_t *ngs1 = func1->generics;
+                            node_t *ngs2 = NULL;
+                            int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                            if (r1 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r1 == 1)
+                            {
+                                node_t *nps1 = func1->parameters;
+                                node_t *nps2 = NULL;
+                                int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                        item2->position.line, item2->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_ENUM)
+                    {
+                        node_enum_t *enum1 = (node_enum_t *)item1->value;
+                        if (syntax_idcmp(enum1->key, generic1->key) == 1)
+                        {
+                            node_t *ngs1 = NULL;
+                            node_t *ngs2 = NULL;
+                            int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                            if (r1 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r1 == 1)
+                            {
+                                node_t *nps1 = NULL;
+                                node_t *nps2 = NULL;
+                                int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                        item2->position.line, item2->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_PROPERTY)
+                    {
+                        node_property_t *property1 = (node_property_t *)item1->value;
+                        if (syntax_idcmp(property1->key, generic1->key) == 1)
+                        {
+                            node_t *ngs1 = NULL;
+                            node_t *ngs2 = NULL;
+                            int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                            if (r1 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r1 == 1)
+                            {
+                                node_t *nps1 = NULL;
+                                node_t *nps2 = NULL;
+                                int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                        item2->position.line, item2->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                }
+            
+                ilist_t *fl0 = list_first(frame);
+                if (fl0 != NULL)
+                {
+                    table_t *table = (table_t *)fl0->value;
+                    itable_t *tt1 = table_lpush(table, item2);
+                    if (tt1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                }
+                else
+                {
+                    syntax_error(program, node, "frame is empty");
+                    return -1;
+                }
+            }
+        }
+
+        int32_t r1 = syntax_generics(program, frame, node_class->generics);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+    }
+
+    if (node_class->heritages != NULL)
+    {
+        node_t *node4 = (node_t *)node_class->heritages;
+        node_block_t *block4 = (node_block_t *)node4->value;
+
+        ilist_t *b2;
+        for (b2 = block4->list->begin;b2 != block4->list->end;b2 = b2->next)
+        {
+            node_t *item2 = (node_t *)b2->value;
+            if (item2->kind == NODE_KIND_HERITAGE)
+            {
+                node_heritage_t *heritage1 = (node_heritage_t *)item2->value;
+
+                ilist_t *a1;
+                for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
+                {
+                    node_t *item1 = (node_t *)a1->value;
+                    if (item1->kind == NODE_KIND_CLASS)
+                    {
+                        node_class_t *class1 = (node_class_t *)item1->value;
+                        if (syntax_idcmp(class1->key, heritage1->key) == 1)
+                        {
+                            node_t *ngs1 = class1->generics;
+                            node_t *ngs2 = NULL;
+                            int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                            if (r1 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r1 == 1)
+                            {
+                                node_t *node2 = class1->block;
+                                node_block_t *block2 = (node_block_t *)node2->value;
+                                ilist_t *b1;
+                                for (b1 = block2->list->begin;b1 != block2->list->end;b1 = b1->next)
+                                {
+                                    node_t *item3 = (node_t *)b1->value;
+                                    if (item3->kind == NODE_KIND_FUNC)
+                                    {
+                                        node_func_t *fun1 = (node_func_t *)item3->value;
+                                        if (syntax_idstrcmp(fun1->key, "constructor") == 1)
+                                        {
+                                            node_t *nps1 = fun1->parameters;
+                                            node_t *nps2 = NULL;
+                                            int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                            if (r2 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r2 == 1)
+                                            {
+                                                syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                                    item2->position.line, item2->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_FUNC)
+                    {
+                        node_func_t *func1 = (node_func_t *)item1->value;
+                        if (syntax_idcmp(func1->key, heritage1->key) == 1)
+                        {
+                            node_t *ngs1 = func1->generics;
+                            node_t *ngs2 = NULL;
+                            int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                            if (r1 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r1 == 1)
+                            {
+                                node_t *nps1 = func1->parameters;
+                                node_t *nps2 = NULL;
+                                int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                        item2->position.line, item2->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_ENUM)
+                    {
+                        node_enum_t *enum1 = (node_enum_t *)item1->value;
+                        if (syntax_idcmp(enum1->key, heritage1->key) == 1)
+                        {
+                            node_t *ngs1 = NULL;
+                            node_t *ngs2 = NULL;
+                            int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                            if (r1 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r1 == 1)
+                            {
+                                node_t *nps1 = NULL;
+                                node_t *nps2 = NULL;
+                                int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                        item2->position.line, item2->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_PROPERTY)
+                    {
+                        node_property_t *property1 = (node_property_t *)item1->value;
+                        if (syntax_idcmp(property1->key, heritage1->key) == 1)
+                        {
+                            node_t *ngs1 = NULL;
+                            node_t *ngs2 = NULL;
+                            int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                            if (r1 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r1 == 1)
+                            {
+                                node_t *nps1 = NULL;
+                                node_t *nps2 = NULL;
+                                int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
+                                        item2->position.line, item2->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                ilist_t *fl0 = list_first(frame);
+                if (fl0 != NULL)
+                {
+                    table_t *table = (table_t *)fl0->value;
+                    itable_t *tt1 = table_lpush(table, item2);
+                    if (tt1 == NULL)
+                    {
+                        fprintf(stderr, "unable to allocate memory\n");
+                        return -1;
+                    }
+                }
+                else
+                {
+                    syntax_error(program, node, "frame is empty");
+                    return -1;
+                }
+            }
+        }
+
+        int32_t r1 = syntax_heritages(program, frame, node_class->heritages);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+    }

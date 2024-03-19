@@ -33,7 +33,7 @@ typedef enum node_kind {
 	NODE_KIND_ARRAY,
 	NODE_KIND_OBJECT_PROPERTY,
 	NODE_KIND_OBJECT,
-	NODE_KIND_COMPOSITE,
+	NODE_KIND_PSEUDONYM,
 
 	NODE_KIND_IN,
 
@@ -42,7 +42,7 @@ typedef enum node_kind {
 	NODE_KIND_PARENTHESIS,
 	
 	NODE_KIND_CALL,
-	NODE_KIND_GET_ITEM,
+	NODE_KIND_ITEM,
 	NODE_KIND_ATTRIBUTE,
 	
 	NODE_KIND_CAST,
@@ -115,8 +115,8 @@ typedef enum node_kind {
 	NODE_KIND_PROPERTIES,
 	NODE_KIND_ARGUMENT,
 	NODE_KIND_ARGUMENTS,
-	NODE_KIND_DATATYPE,
-	NODE_KIND_DATATYPES,
+	NODE_KIND_CONCEPT,
+	NODE_KIND_CONCEPTS,
 	NODE_KIND_PARAMETER,
 	NODE_KIND_PARAMETERS,
 	NODE_KIND_FIELD,
@@ -155,7 +155,7 @@ typedef struct node_throw {
 
 typedef struct node_carrier {
 	node_t *base;
-	node_t *arguments;
+	node_t *data;
 } node_carrier_t;
 
 typedef struct node_unary {
@@ -226,10 +226,10 @@ typedef struct node_argument {
 	node_t *value;
 } node_argument_t;
 
-typedef struct node_datatype {
+typedef struct node_concept {
 	node_t *key;
 	node_t *value;
-} node_datatype_t;
+} node_concept_t;
 
 typedef struct node_parameter {
 	uint64_t flag;
@@ -291,7 +291,7 @@ typedef struct node_member {
 typedef struct node_enum {
 	uint64_t flag;
 	node_t *key;
-	node_t *members;
+	node_t *block;
 } node_enum_t;
 
 typedef struct node_import {
@@ -349,7 +349,7 @@ node_t *
 node_make_object(node_t *node, list_t *properties);
 
 node_t *
-node_make_composite(node_t *node, node_t *base, node_t *arguments);
+node_make_pseudonym(node_t *node, node_t *base, node_t *arguments);
 
 
 node_t *
@@ -374,10 +374,10 @@ node_t *
 node_make_arguments(node_t *node, list_t *list);
 
 node_t *
-node_make_datatype(node_t *node, node_t *name, node_t *value);
+node_make_concept(node_t *node, node_t *name, node_t *value);
 
 node_t *
-node_make_datatypes(node_t *node, list_t *list);
+node_make_concepts(node_t *node, list_t *list);
 
 node_t *
 node_make_call(node_t *node, node_t *name, node_t *arguments);

@@ -894,7 +894,7 @@ parser_primary(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 }
 
 static node_t *
-parser_argument(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
+parser_concept(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
 	if (node == NULL)
@@ -923,11 +923,11 @@ parser_argument(program_t *program, parser_t *parser, node_t *scope, node_t *par
 		}
 	}
 
-	return node_make_argument(node, key, value);
+	return node_make_concept(node, key, value);
 }
 
 static node_t *
-parser_arguments(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
+parser_concepts(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
 	if (node == NULL)
@@ -935,8 +935,8 @@ parser_arguments(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 		return NULL;
 	}
 
-	list_t *arguments = list_create();
-	if (arguments == NULL)
+	list_t *concepts = list_create();
+	if (concepts == NULL)
 	{
 		return NULL;
 	}
@@ -944,13 +944,13 @@ parser_arguments(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 	node_t *node2;
 	while (true)
 	{
-		node2 = parser_argument(program, parser, scope, parent);
+		node2 = parser_concept(program, parser, scope, parent);
 		if (node2 == NULL)
 		{
 			return NULL;
 		}
 
-		if (!list_rpush(arguments, node2))
+		if (!list_rpush(concepts, node2))
 		{
 			return NULL;
 		}
@@ -959,17 +959,18 @@ parser_arguments(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 		{
 			break;
 		}
+
 		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
 		}
 	}
 
-	return node_make_arguments(node, arguments);
+	return node_make_concepts(node, concepts);
 }
 
 static node_t *
-parser_datatype(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
+parser_argument(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
 	if (node == NULL)
@@ -998,11 +999,11 @@ parser_datatype(program_t *program, parser_t *parser, node_t *scope, node_t *par
 		}
 	}
 
-	return node_make_datatype(node, key, value);
+	return node_make_argument(node, key, value);
 }
 
 static node_t *
-parser_datatypes(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
+parser_arguments(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
 	if (node == NULL)
@@ -1010,8 +1011,8 @@ parser_datatypes(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 		return NULL;
 	}
 
-	list_t *datatypes = list_create();
-	if (datatypes == NULL)
+	list_t *argements = list_create();
+	if (argements == NULL)
 	{
 		return NULL;
 	}
@@ -1019,13 +1020,13 @@ parser_datatypes(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 	node_t *node2;
 	while (true)
 	{
-		node2 = parser_datatype(program, parser, scope, parent);
+		node2 = parser_argument(program, parser, scope, parent);
 		if (node2 == NULL)
 		{
 			return NULL;
 		}
 
-		if (!list_rpush(datatypes, node2))
+		if (!list_rpush(argements, node2))
 		{
 			return NULL;
 		}
@@ -1040,7 +1041,7 @@ parser_datatypes(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 		}
 	}
 
-	return node_make_datatypes(node, datatypes);
+	return node_make_arguments(node, argements);
 }
 
 static node_t *
@@ -1079,12 +1080,12 @@ parser_postfix(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 
 			if (parser->token->type == TOKEN_GT)
 			{
-				parser_error(program, parser->token->position, "empty arguments");
+				parser_error(program, parser->token->position, "empty generic types");
 				return NULL;
 			}
 
-			node_t *arguments = parser_arguments(program, parser, scope, parent);
-			if (arguments == NULL)
+			node_t *concepts = parser_concepts(program, parser, scope, parent);
+			if (concepts == NULL)
 			{
 				if (parser_restore(program, parser) == -1)
 				{
@@ -1121,7 +1122,7 @@ parser_postfix(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 						return NULL;
 					}
 
-					node2 = node_make_composite(node, node2, arguments);
+					node2 = node_make_pseudonym(node, node2, concepts);
 					continue;
 				}
 			}
@@ -1141,11 +1142,11 @@ parser_postfix(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 				return NULL;
 			}
 
-			node_t *datatypes = NULL;
+			node_t *argements = NULL;
 			if (parser->token->type != TOKEN_RBRACKET)
 			{
-				datatypes = parser_datatypes(program, parser, scope, parent);
-				if (!(datatypes))
+				argements = parser_arguments(program, parser, scope, parent);
+				if (!(argements))
 				{
 					return NULL;
 				}
@@ -1156,7 +1157,7 @@ parser_postfix(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 				return NULL;
 			}
 
-			node2 = node_make_item(node, node2, datatypes);
+			node2 = node_make_item(node, node2, argements);
 			continue;
 		}
 		else
@@ -1196,11 +1197,11 @@ parser_postfix(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 				return NULL;
 			}
 
-			node_t *datatypes = NULL;
+			node_t *argements = NULL;
 			if (parser->token->type != TOKEN_RPAREN)
 			{
-				datatypes = parser_datatypes(program, parser, scope, node);
-				if (datatypes == NULL)
+				argements = parser_arguments(program, parser, scope, node);
+				if (argements == NULL)
 				{
 					return NULL;
 				}
@@ -1211,7 +1212,7 @@ parser_postfix(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 				return NULL;
 			}
 
-			node2 = node_make_call(node, node2, datatypes);
+			node2 = node_make_call(node, node2, argements);
 			continue;
 		}
 		else
@@ -2896,7 +2897,7 @@ parser_throw(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 		return NULL;
 	}
 	node_t *arguments;
-	arguments = parser_arguments(program, parser, scope, node);
+	arguments = parser_concepts(program, parser, scope, node);
 	if (!arguments)
 	{
 		return NULL;

@@ -6,3 +6,8 @@ class system
 
   }
 }
+
+class system 
+{
+  
+}

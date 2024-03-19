@@ -200,7 +200,7 @@ node_make_object(node_t *node, list_t *list)
 }
 
 node_t *
-node_make_composite(node_t *node, node_t *base, node_t *arguments)
+node_make_pseudonym(node_t *node, node_t *base, node_t *concepts)
 {
 	node_carrier_t *basic = (node_carrier_t *)malloc(sizeof(node_carrier_t));
 	if(basic == NULL)
@@ -210,9 +210,9 @@ node_make_composite(node_t *node, node_t *base, node_t *arguments)
 	}
 	memset(basic, 0, sizeof(node_carrier_t));
 	basic->base = base;
-	basic->arguments = arguments;
+	basic->data = concepts;
 	
-	node_update(node, NODE_KIND_COMPOSITE, basic);
+	node_update(node, NODE_KIND_PSEUDONYM, basic);
 	return node;
 }
 
@@ -297,7 +297,7 @@ node_make_call(node_t *node, node_t *base, node_t *arguments)
 	}
 	memset(basic, 0, sizeof(node_carrier_t));
 	basic->base = base;
-	basic->arguments = arguments;
+	basic->data = arguments;
 	
 	node_update(node, NODE_KIND_CALL, basic);
 	return node;
@@ -314,9 +314,9 @@ node_make_item(node_t *node, node_t *base, node_t *arguments)
 	}
 	memset(basic, 0, sizeof(node_carrier_t));
 	basic->base = base;
-	basic->arguments = arguments;
+	basic->data = arguments;
 	
-	node_update(node, NODE_KIND_GET_ITEM, basic);
+	node_update(node, NODE_KIND_ITEM, basic);
 	return node;
 }
 
@@ -1162,6 +1162,38 @@ node_make_var(node_t *node, uint64_t flag, node_t *key, node_t *type, node_t *va
 }
 
 node_t *
+node_make_concept(node_t *node, node_t *key, node_t *value)
+{
+	node_concept_t *basic = (node_concept_t *)malloc(sizeof(node_concept_t));
+	if(basic == NULL){
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_concept_t));
+		return NULL;
+	}
+	memset(basic, 0, sizeof(node_concept_t));
+	basic->key = key;
+	basic->value = value;
+	
+	node_update(node, NODE_KIND_CONCEPT, basic);
+	return node;
+}
+
+node_t *
+node_make_concepts(node_t *node, list_t *list)
+{
+	node_block_t *basic = (node_block_t *)malloc(sizeof(node_block_t));
+	if(basic == NULL)
+	{
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_block_t));
+		return NULL;
+	}
+	memset(basic, 0, sizeof(node_block_t));
+	basic->list = list;
+	
+	node_update(node, NODE_KIND_CONCEPTS, basic);
+	return node;
+}
+
+node_t *
 node_make_argument(node_t *node, node_t *key, node_t *value)
 {
 	node_argument_t *basic = (node_argument_t *)malloc(sizeof(node_argument_t));
@@ -1190,38 +1222,6 @@ node_make_arguments(node_t *node, list_t *list)
 	basic->list = list;
 	
 	node_update(node, NODE_KIND_ARGUMENTS, basic);
-	return node;
-}
-
-node_t *
-node_make_datatype(node_t *node, node_t *key, node_t *value)
-{
-	node_datatype_t *basic = (node_datatype_t *)malloc(sizeof(node_datatype_t));
-	if(basic == NULL){
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_datatype_t));
-		return NULL;
-	}
-	memset(basic, 0, sizeof(node_datatype_t));
-	basic->key = key;
-	basic->value = value;
-	
-	node_update(node, NODE_KIND_DATATYPE, basic);
-	return node;
-}
-
-node_t *
-node_make_datatypes(node_t *node, list_t *list)
-{
-	node_block_t *basic = (node_block_t *)malloc(sizeof(node_block_t));
-	if(basic == NULL)
-	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_block_t));
-		return NULL;
-	}
-	memset(basic, 0, sizeof(node_block_t));
-	basic->list = list;
-	
-	node_update(node, NODE_KIND_DATATYPES, basic);
 	return node;
 }
 
@@ -1494,7 +1494,7 @@ node_make_enum(node_t *node, uint64_t flag, node_t *key, node_t *members)
 	memset(basic, 0, sizeof(node_enum_t));
 	basic->flag = flag;
 	basic->key = key;
-	basic->members = members;
+	basic->block = members;
 	
 	node_update(node, NODE_KIND_ENUM, basic);
 	return node;
