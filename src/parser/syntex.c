@@ -179,6 +179,105 @@ syntax_eqaul_psds(program_t *program, node_t *nps1, node_t *nds2)
 static int32_t
 syntax_if(program_t *program, node_t *node)
 {
+    node_if_t *if1 = (node_if_t *)node->value;
+
+    if (if1->key != NULL)
+    {
+        node_t *node_current = node->parent;
+        while (node_current != NULL)
+        {
+            if (node_current->kind == NODE_KIND_BODY)
+            {
+                node_block_t *block2 = (node_block_t *)node_current->value;
+
+                ilist_t *a2;
+                for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                {
+                    node_t *item2 = (node_t *)a2->value;
+                    if (item2->id == node->id)
+                    {
+                        break;
+                    }
+
+                    if (item2->kind == NODE_KIND_IF)
+                    {
+                        node_if_t *if2 = (node_if_t *)item2->value;
+                        if (if2->key != NULL)
+                        {
+                            if (syntax_idcmp(if1->key, if2->key) == 1)
+                            {
+                                syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FOR)
+                    {
+                        node_for_t *for2 = (node_for_t *)item2->value;
+                        if (for2->key != NULL)
+                        {
+                            if (syntax_idcmp(if1->key, for2->key) == 1)
+                            {
+                                syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FORIN)
+                    {
+                        node_forin_t *for2 = (node_forin_t *)item2->value;
+                        if (for2->key != NULL)
+                        {
+                            if (syntax_idcmp(if1->key, for2->key) == 1)
+                            {
+                                syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_VAR)
+                    {
+                        node_var_t *var2 = (node_var_t *)item2->value;
+                        if (var2->key->kind == NODE_KIND_ID)
+                        {
+                        if (syntax_idcmp(if1->key, var2->key) == 1)
+                        {
+                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                item2->position.line, item2->position.column);
+                            return -1;
+                        }
+                        }
+                        else
+                        {
+                            node_t *node3 = (node_t *)var2->key;
+                            node_block_t *block3 = (node_block_t *)node3->value;
+                            ilist_t *a3;
+                            for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
+                            {
+                                node_t *item3 = (node_t *)a3->value;
+                                if (item3->kind == NODE_KIND_PROPERTY)
+                                {
+                                    
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+            else
+            {
+                node_current = node_current->parent;
+            }
+        }
+    }
+
 	return 1;
 }
 
@@ -195,6 +294,115 @@ syntax_forin(program_t *program, node_t *node)
 }
 
 static int32_t
+syntax_parameter(program_t *program, node_t *node)
+{
+    node_parameter_t *parameter1 = (node_parameter_t *)node->value;
+    
+    node_t *node_current = node->parent;
+    while (node_current != NULL)
+    {
+        if (node_current->kind == NODE_KIND_PARAMETERS)
+        {
+            node_block_t *block2 = (node_block_t *)node_current->value;
+
+            ilist_t *a2;
+            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+            {
+                node_t *item2 = (node_t *)a2->value;
+                if (item2->id == node->id)
+                {
+                    break;
+                }
+
+                if (item2->kind == NODE_KIND_PARAMETER)
+                {
+                    node_parameter_t *parameter3 = (node_parameter_t *)item2->value;
+                    if (syntax_idcmp(parameter1->key, parameter3->key) == 1)
+                    {
+                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                            item2->position.line, item2->position.column);
+                        return -1;
+                    }
+                }
+            }
+            node_current = node_current->parent;
+        }
+        else
+        if (node_current->kind == NODE_KIND_CLASS)
+        {
+            node_class_t *class2 = (node_class_t *)node_current->value;
+
+            if (class2->generics != NULL)
+            {
+                node_t *node2 = class2->generics;
+                node_block_t *block3 = (node_block_t *)node2->value;
+
+                ilist_t *a3;
+                for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
+                {
+                    node_t *item3 = (node_t *)a3->value;
+                    if (item3->id == node->id)
+                    {
+                        break;
+                    }
+
+                    if (item3->kind == NODE_KIND_GENERIC)
+                    {
+                        node_generic_t *generic3 = (node_generic_t *)item3->value;
+                        if (syntax_idcmp(parameter1->key, generic3->key) == 1)
+                        {
+                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                item3->position.line, item3->position.column);
+                            return -1;
+                        }
+                    }
+                }
+            }
+            break;
+        }
+        else
+        if (node_current->kind == NODE_KIND_FUNC)
+        {
+            node_func_t *func2 = (node_func_t *)node_current->value;
+
+            if (func2->generics != NULL)
+            {
+                node_t *node2 = func2->generics;
+                node_block_t *block3 = (node_block_t *)node2->value;
+
+                ilist_t *a3;
+                for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
+                {
+                    node_t *item3 = (node_t *)a3->value;
+                    if (item3->id == node->id)
+                    {
+                        break;
+                    }
+
+                    if (item3->kind == NODE_KIND_GENERIC)
+                    {
+                        node_generic_t *generic3 = (node_generic_t *)item3->value;
+                        if (syntax_idcmp(parameter1->key, generic3->key) == 1)
+                        {
+                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                item3->position.line, item3->position.column);
+                            return -1;
+                        }
+                    }
+                }
+            }
+            break;
+        }
+        else
+        {
+            node_current = node_current->parent;
+        }
+    }
+
+    return 1;
+}
+
+static int32_t
 syntax_parameters(program_t *program, node_t *node)
 {
 	node_block_t *parameters = (node_block_t *)node->value;
@@ -202,13 +410,11 @@ syntax_parameters(program_t *program, node_t *node)
     for (a1 = parameters->list->begin;a1 != parameters->list->end;a1 = a1->next)
     {
         node_t *item1 = (node_t *)a1->value;
-        if (item1->kind == NODE_KIND_PARAMETER)
+        int32_t result;
+        result = syntax_parameter(program, item1);
+        if (result == -1)
         {
-            node_parameter_t *parameter1 = (node_parameter_t *)item1->value;
-            if (parameter1->type != NULL)
-            {
-                
-            } 
+            return -1;
         }
     }
 	return 1;
@@ -306,6 +512,217 @@ syntax_body(program_t *program, node_t *node)
 }
 
 static int32_t
+syntax_generic(program_t *program, node_t *node)
+{
+    node_generic_t *generic1 = (node_generic_t *)node->value;
+    
+    node_t *node_current = node->parent;
+    while (node_current != NULL)
+    {
+        if (node_current->kind == NODE_KIND_GENERICS)
+        {
+            node_block_t *block2 = (node_block_t *)node_current->value;
+
+            ilist_t *a2;
+            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+            {
+                node_t *item2 = (node_t *)a2->value;
+                if (item2->id == node->id)
+                {
+                    break;
+                }
+
+                if (item2->kind == NODE_KIND_GENERIC)
+                {
+                    node_generic_t *generic3 = (node_generic_t *)item2->value;
+                    if (syntax_idcmp(generic1->key, generic3->key) == 1)
+                    {
+                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                            item2->position.line, item2->position.column);
+                        return -1;
+                    }
+                }
+            }
+            node_current = node_current->parent;
+        }
+        else
+        if (node_current->kind == NODE_KIND_CLASS)
+        {
+            node_class_t *class2 = (node_class_t *)node_current->value;
+            node_t *node2 = class2->block;
+            node_block_t *block2 = (node_block_t *)node2->value;
+
+            ilist_t *a2;
+            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+            {
+                node_t *item2 = (node_t *)a2->value;
+                
+                if (item2->id == node->id)
+                {
+                    break;
+                }
+
+                if (item2->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class3 = (node_class_t *)item2->value;
+                    if (syntax_idcmp(generic1->key, class3->key) == 1)
+                    {
+                        node_t *ngs1 = NULL;
+                        node_t *ngs2 = class3->generics;
+                        int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r1 == 1)
+                        {
+                            node_t *node3 = class3->block;
+                            node_block_t *block3 = (node_block_t *)node3->value;
+                            ilist_t *b3;
+                            for (b3 = block3->list->begin;b3 != block3->list->end;b3 = b3->next)
+                            {
+                                node_t *item3 = (node_t *)b3->value;
+                                if (item3->kind == NODE_KIND_FUNC)
+                                {
+                                    node_func_t *func3 = (node_func_t *)item3->value;
+                                    if (syntax_idstrcmp(func3->key, "constructor") == 1)
+                                    {
+                                        node_t *nps1 = NULL;
+                                        node_t *nps2 = func3->parameters;
+                                        int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r2 == 1)
+                                        {
+                                            syntax_error(program, item2, "already defined, previous in (%lld:%lld)",
+                                                node->position.line, node->position.column);
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_FUNC)
+                {
+                    node_func_t *func2 = (node_func_t *)item2->value;
+
+                    if (syntax_idcmp(generic1->key, func2->key) == 1)
+                    {
+                        node_t *ngs1 = NULL;
+                        node_t *ngs2 = func2->generics;
+                        int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r1 == 1)
+                        {
+                            node_t *nps1 = NULL;
+                            node_t *nps2 = func2->parameters;
+                            int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                            if (r2 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r2 == 1)
+                            {
+                                syntax_error(program, item2, "already defined, previous in (%lld:%lld)",
+                                    node->position.line, node->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_ENUM)
+                {
+                    node_enum_t *enum2 = (node_enum_t *)item2->value;
+
+                    if (syntax_idcmp(generic1->key, enum2->key) == 1)
+                    {
+                        node_t *ngs1 = NULL;
+                        node_t *ngs2 = NULL;
+                        int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r1 == 1)
+                        {
+                            node_t *nps1 = NULL;
+                            node_t *nps2 = NULL;
+                            int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                            if (r2 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r2 == 1)
+                            {
+                                syntax_error(program, item2, "already defined, previous in (%lld:%lld)",
+                                    node->position.line, node->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_PROPERTY)
+                {
+                    node_property_t *property2 = (node_property_t *)item2->value;
+
+                    if (syntax_idcmp(generic1->key, property2->key) == 1)
+                    {
+                        node_t *ngs1 = NULL;
+                        node_t *ngs2 = NULL;
+                        int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r1 == 1)
+                        {
+                            node_t *nps1 = NULL;
+                            node_t *nps2 = NULL;
+                            int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                            if (r2 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r2 == 1)
+                            {
+                                syntax_error(program, item2, "already defined, previous in (%lld:%lld)",
+                                    node->position.line, node->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+        }
+        else
+        {
+            node_current = node_current->parent;
+        }
+    }
+
+    return 1;
+}
+
+static int32_t
 syntax_generics(program_t *program, node_t *node)
 {
 	node_block_t *generics = (node_block_t *)node->value;
@@ -313,28 +730,11 @@ syntax_generics(program_t *program, node_t *node)
     for (a1 = generics->list->begin;a1 != generics->list->end;a1 = a1->next)
     {
         node_t *item1 = (node_t *)a1->value;
-        if (item1->kind == NODE_KIND_GENERIC)
+        int32_t result;
+        result = syntax_generic(program, item1);
+        if (result == -1)
         {
-            node_generic_t *generic1 = (node_generic_t *)item1->value;
-            ilist_t *a2;
-            for (a2 = generics->list->begin;a2 != generics->list->end;a2 = a2->next)
-            {
-                node_t *item2 = (node_t *)a2->value;
-                if (item2->kind == NODE_KIND_GENERIC)
-                {
-                    node_generic_t *generic2 = (node_generic_t *)item2->value;
-                    if (item1->id == item2->id)
-                    {
-                        break;
-                    }
-                    if (syntax_idcmp(generic1->key, generic2->key) == 1)
-                    {
-                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
-                            item2->position.line, item2->position.column);
-                        return -1;
-                    }
-                }
-            }      
+            return -1;
         }
     }
 	return 1;
@@ -975,6 +1375,245 @@ syntax_property(program_t *program, node_t *node)
 }
 
 static int32_t
+syntax_heritage(program_t *program, node_t *node)
+{
+    node_heritage_t *heritage1 = (node_heritage_t *)node->value;
+    
+    node_t *node_current = node->parent;
+    while (node_current != NULL)
+    {
+        if (node_current->kind == NODE_KIND_HERITAGES)
+        {
+            node_block_t *block2 = (node_block_t *)node_current->value;
+
+            ilist_t *a2;
+            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+            {
+                node_t *item2 = (node_t *)a2->value;
+                if (item2->id == node->id)
+                {
+                    break;
+                }
+
+                if (item2->kind == NODE_KIND_HERITAGE)
+                {
+                    node_heritage_t *heritage3 = (node_heritage_t *)item2->value;
+                    if (syntax_idcmp(heritage1->key, heritage3->key) == 1)
+                    {
+                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                            item2->position.line, item2->position.column);
+                        return -1;
+                    }
+                }
+            }
+            node_current = node_current->parent;
+        }
+        else
+        if (node_current->kind == NODE_KIND_CLASS)
+        {
+            node_class_t *class2 = (node_class_t *)node_current->value;
+
+            if (class2->generics != NULL)
+            {
+                node_t *node2 = class2->generics;
+                node_block_t *block3 = (node_block_t *)node2->value;
+
+                ilist_t *a3;
+                for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
+                {
+                    node_t *item3 = (node_t *)a3->value;
+                    if (item3->id == node->id)
+                    {
+                        break;
+                    }
+
+                    if (item3->kind == NODE_KIND_GENERIC)
+                    {
+                        node_generic_t *generic3 = (node_generic_t *)item3->value;
+                        if (syntax_idcmp(heritage1->key, generic3->key) == 1)
+                        {
+                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                item3->position.line, item3->position.column);
+                            return -1;
+                        }
+                    }
+                }
+            }
+
+            node_t *node2 = class2->block;
+            node_block_t *block2 = (node_block_t *)node2->value;
+
+            ilist_t *a2;
+            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+            {
+                node_t *item2 = (node_t *)a2->value;
+                
+                if (item2->id == node->id)
+                {
+                    break;
+                }
+
+                if (item2->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class3 = (node_class_t *)item2->value;
+                    if (syntax_idcmp(heritage1->key, class3->key) == 1)
+                    {
+                        node_t *ngs1 = NULL;
+                        node_t *ngs2 = class3->generics;
+                        int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r1 == 1)
+                        {
+                            node_t *node3 = class3->block;
+                            node_block_t *block3 = (node_block_t *)node3->value;
+                            ilist_t *b3;
+                            for (b3 = block3->list->begin;b3 != block3->list->end;b3 = b3->next)
+                            {
+                                node_t *item3 = (node_t *)b3->value;
+                                if (item3->kind == NODE_KIND_FUNC)
+                                {
+                                    node_func_t *func3 = (node_func_t *)item3->value;
+                                    if (syntax_idstrcmp(func3->key, "constructor") == 1)
+                                    {
+                                        node_t *nps1 = NULL;
+                                        node_t *nps2 = func3->parameters;
+                                        int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r2 == 1)
+                                        {
+                                            syntax_error(program, item2, "already defined, previous in (%lld:%lld)",
+                                                node->position.line, node->position.column);
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_FUNC)
+                {
+                    node_func_t *func2 = (node_func_t *)item2->value;
+
+                    if (syntax_idcmp(heritage1->key, func2->key) == 1)
+                    {
+                        node_t *ngs1 = NULL;
+                        node_t *ngs2 = func2->generics;
+                        int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r1 == 1)
+                        {
+                            node_t *nps1 = NULL;
+                            node_t *nps2 = func2->parameters;
+                            int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                            if (r2 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r2 == 1)
+                            {
+                                syntax_error(program, item2, "already defined, previous in (%lld:%lld)",
+                                    node->position.line, node->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_ENUM)
+                {
+                    node_enum_t *enum2 = (node_enum_t *)item2->value;
+
+                    if (syntax_idcmp(heritage1->key, enum2->key) == 1)
+                    {
+                        node_t *ngs1 = NULL;
+                        node_t *ngs2 = NULL;
+                        int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r1 == 1)
+                        {
+                            node_t *nps1 = NULL;
+                            node_t *nps2 = NULL;
+                            int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                            if (r2 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r2 == 1)
+                            {
+                                syntax_error(program, item2, "already defined, previous in (%lld:%lld)",
+                                    node->position.line, node->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_PROPERTY)
+                {
+                    node_property_t *property2 = (node_property_t *)item2->value;
+
+                    if (syntax_idcmp(heritage1->key, property2->key) == 1)
+                    {
+                        node_t *ngs1 = NULL;
+                        node_t *ngs2 = NULL;
+                        int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r1 == 1)
+                        {
+                            node_t *nps1 = NULL;
+                            node_t *nps2 = NULL;
+                            int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                            if (r2 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r2 == 1)
+                            {
+                                syntax_error(program, item2, "already defined, previous in (%lld:%lld)",
+                                    node->position.line, node->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+        }
+        else
+        {
+            node_current = node_current->parent;
+        }
+    }
+
+    return 1;
+}
+
+static int32_t
 syntax_heritages(program_t *program, node_t *node)
 {
 	node_block_t *heritages = (node_block_t *)node->value;
@@ -982,28 +1621,11 @@ syntax_heritages(program_t *program, node_t *node)
     for (a1 = heritages->list->begin;a1 != heritages->list->end;a1 = a1->next)
     {
         node_t *item1 = (node_t *)a1->value;
-        if (item1->kind == NODE_KIND_HERITAGE)
+        int32_t result;
+        result = syntax_heritage(program, item1);
+        if (result == -1)
         {
-            node_generic_t *heritage1 = (node_generic_t *)item1->value;
-            ilist_t *a2;
-            for (a2 = heritages->list->begin;a2 != heritages->list->end;a2 = a2->next)
-            {
-                node_t *item2 = (node_t *)a2->value;
-                if (item2->kind == NODE_KIND_HERITAGE)
-                {
-                    node_generic_t *heritage2 = (node_generic_t *)item2->value;
-                    if (item1->id == item2->id)
-                    {
-                        break;
-                    }
-                    if (syntax_idcmp(heritage1->key, heritage2->key) == 1)
-                    {
-                        syntax_error(program, item1, "already defined, previous in (%lld:%lld)",
-                            item2->position.line, item2->position.column);
-                        return -1;
-                    }
-                }
-            }
+            return -1;
         }
     }
 	return 1;
@@ -1360,6 +1982,24 @@ syntax_class(program_t *program, node_t *node)
         else
         {
             node_current = node_current->parent;
+        }
+    }
+
+    if (class1->generics != NULL)
+    {
+        int32_t r1 = syntax_generics(program, class1->generics);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+    }
+
+    if (class1->heritages != NULL)
+    {
+        int32_t r1 = syntax_heritages(program, class1->heritages);
+        if (r1 == -1)
+        {
+            return -1;
         }
     }
 

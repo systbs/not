@@ -1,13 +1,12 @@
 
-class system 
+class system
 {
   export func constructor()
   {
 
   }
-}
 
-class system 
-{
-  
+  func action<T> (T:T) : Int {
+
+  }
 }

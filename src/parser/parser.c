@@ -52,9 +52,6 @@ static node_t *
 parser_prefix(program_t *program, parser_t *parser, node_t *scope, node_t *parent);
 
 static node_t *
-parser_object(program_t *program, parser_t *parser, node_t *scope, node_t *parent, uint64_t flag);
-
-static node_t *
 parser_export(program_t *program, parser_t *parser, node_t *scope, node_t *parent);
 
 static node_t *
@@ -693,7 +690,36 @@ parser_array(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 }
 
 static node_t *
-parser_object(program_t *program, parser_t *parser, node_t *scope, node_t *parent, uint64_t flag)
+parser_pair(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
+{
+	node_t *node = node_create(scope, parent, parser->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *key = parser_id(program, parser, scope, node);
+	if (!key)
+	{
+		return NULL;
+	}
+
+	if (parser_match(program, parser, TOKEN_COLON) == -1)
+	{
+		return NULL;
+	}
+
+	node_t *value = parser_expression(program, parser, scope, node);
+	if (!value)
+	{
+		return NULL;
+	}
+
+	return node_make_pair(node, key, value);
+}
+
+static node_t *
+parser_object(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
 	if (node == NULL)
@@ -706,8 +732,8 @@ parser_object(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 		return NULL;
 	}
 
-	list_t *properties = list_create();
-	if (!properties)
+	list_t *object = list_create();
+	if (!object)
 	{
 		return NULL;
 	}
@@ -716,13 +742,13 @@ parser_object(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 	{
 		while (true)
 		{
-			node_t *property = parser_property(program, parser, scope, node, flag);
-			if (!property)
+			node_t *pair = parser_pair(program, parser, scope, node);
+			if (pair == NULL)
 			{
 				return NULL;
 			}
 
-			if (!list_rpush(properties, property))
+			if (list_rpush(object, pair) == NULL)
 			{
 				return NULL;
 			}
@@ -731,6 +757,7 @@ parser_object(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 			{
 				break;
 			}
+
 			if (parser_next(program, parser) == -1)
 			{
 				return NULL;
@@ -743,7 +770,7 @@ parser_object(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 		return NULL;
 	}
 
-	return node_make_object(node, properties);
+	return node_make_object(node, object);
 }
 
 static node_t *
@@ -878,7 +905,7 @@ parser_primary(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 	else 
 	if (parser->token->type == TOKEN_LBRACE)
 	{
-		return parser_object(program, parser, scope, parent, PARSER_MODIFIER_NONE);
+		return parser_object(program, parser, scope, parent);
 	}
 	else 
 	if (parser->token->type == TOKEN_LPAREN)
@@ -2337,6 +2364,60 @@ parser_if(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 }
 
 static node_t *
+parser_set(program_t *program, parser_t *parser, node_t *scope, node_t *parent, uint64_t flag)
+{
+	node_t *node = node_create(scope, parent, parser->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	if (parser_match(program, parser, TOKEN_LBRACE) == -1)
+	{
+		return NULL;
+	}
+
+	list_t *properties = list_create();
+	if (!properties)
+	{
+		return NULL;
+	}
+
+	if (parser->token->type != TOKEN_RBRACE)
+	{
+		while (true)
+		{
+			node_t *property = parser_property(program, parser, scope, node, flag);
+			if (!property)
+			{
+				return NULL;
+			}
+
+			if (!list_rpush(properties, property))
+			{
+				return NULL;
+			}
+
+			if (parser->token->type != TOKEN_COMMA)
+			{
+				break;
+			}
+			if (parser_next(program, parser) == -1)
+			{
+				return NULL;
+			}
+		}
+	}
+
+	if (parser_match(program, parser, TOKEN_RBRACE) == -1)
+	{
+		return NULL;
+	}
+
+	return node_make_set(node, properties);
+}
+
+static node_t *
 parser_var(program_t *program, parser_t *parser, node_t *scope, node_t *parent, uint64_t flag)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
@@ -2354,7 +2435,7 @@ parser_var(program_t *program, parser_t *parser, node_t *scope, node_t *parent, 
 	node_t *key = NULL;
 	if (parser->token->type != TOKEN_ID)
 	{
-		key = parser_object(program, parser, scope, node, flag);
+		key = parser_set(program, parser, scope, node, flag);
 		if (!key)
 		{
 			return NULL;

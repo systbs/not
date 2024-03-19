@@ -31,9 +31,9 @@ typedef enum node_kind {
 	NODE_KIND_FALSE,
 	NODE_KIND_INFINITY,
 	NODE_KIND_ARRAY,
-	NODE_KIND_OBJECT_PROPERTY,
 	NODE_KIND_OBJECT,
 	NODE_KIND_PSEUDONYM,
+	NODE_KIND_SET,
 
 	NODE_KIND_IN,
 
@@ -111,6 +111,7 @@ typedef enum node_kind {
 	NODE_KIND_FUNC,
 	NODE_KIND_CLASS,
 	NODE_KIND_METHOD,
+	NODE_KIND_PAIR,
 	NODE_KIND_PROPERTY,
 	NODE_KIND_PROPERTIES,
 	NODE_KIND_ARGUMENT,
@@ -221,16 +222,6 @@ typedef struct node_var {
 	node_t *value;
 } node_var_t;
 
-typedef struct node_argument {
-	node_t *key;
-	node_t *value;
-} node_argument_t;
-
-typedef struct node_concept {
-	node_t *key;
-	node_t *value;
-} node_concept_t;
-
 typedef struct node_parameter {
 	uint64_t flag;
 	node_t *key;
@@ -274,6 +265,11 @@ typedef struct node_property {
 	node_t *type;
 	node_t *value;
 } node_property_t;
+
+typedef struct node_pair {
+	node_t *key;
+	node_t *value;
+} node_pair_t;
 
 typedef struct node_class {
 	uint64_t flag;
@@ -534,6 +530,9 @@ node_t *
 node_make_throw(node_t *node, node_t *arguments);
 
 node_t *
+node_make_set(node_t *node, list_t *properties);
+
+node_t *
 node_make_var(node_t *node, uint64_t flag, node_t *name, node_t *type, node_t *value);
 
 node_t *
@@ -568,6 +567,9 @@ node_make_heritages(node_t *node, list_t *list);
 
 node_t *
 node_make_property(node_t *node, uint64_t flag, node_t *name, node_t *type, node_t *value);
+
+node_t *
+node_make_pair(node_t *node, node_t *key, node_t *value);
 
 node_t *
 node_make_properties(node_t *node, list_t *list);
