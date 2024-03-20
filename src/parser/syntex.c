@@ -246,12 +246,12 @@ syntax_if(program_t *program, node_t *node)
                         node_var_t *var2 = (node_var_t *)item2->value;
                         if (var2->key->kind == NODE_KIND_ID)
                         {
-                        if (syntax_idcmp(if1->key, var2->key) == 1)
-                        {
-                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
-                                item2->position.line, item2->position.column);
-                            return -1;
-                        }
+                            if (syntax_idcmp(if1->key, var2->key) == 1)
+                            {
+                                syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                    item2->position.line, item2->position.column);
+                                return -1;
+                            }
                         }
                         else
                         {
@@ -263,7 +263,33 @@ syntax_if(program_t *program, node_t *node)
                                 node_t *item3 = (node_t *)a3->value;
                                 if (item3->kind == NODE_KIND_PROPERTY)
                                 {
-                                    
+                                    node_property_t *property1 = (node_property_t *)item3->value;
+                                    if (property1->type == NULL)
+                                    {
+                                        if (syntax_idcmp(if1->key, property1->key) == 1)
+                                        {
+                                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                item3->position.line, item3->position.column);
+                                            return -1;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (property1->type->kind == NODE_KIND_ID)
+                                        {
+                                            if (syntax_idcmp(if1->key, property1->type) == 1)
+                                            {
+                                                syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                    item3->position.line, item3->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            syntax_error(program, property1->type, "not an identifier");
+                                            return -1;
+                                        }
+                                    }
                                 }
                             }
                         }

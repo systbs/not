@@ -827,27 +827,31 @@ parser_parenthesis(program_t *program, parser_t *parser, node_t *scope, node_t *
 		return NULL;
 	}
 
-	node_t *body = NULL;
-	if (parser->token->type == TOKEN_MINUS_GT)
+	if (parser_match(program, parser, TOKEN_MINUS_GT) == -1)
 	{
-		if (parser_next(program, parser) == -1)
-		{
-			return NULL;
-		}
-		body = parser_expression(program, parser, scope, node);
-		if (!body)
-		{
-			return NULL;
-		}
+		return NULL;
 	}
-	else
+
+	node_t *body = NULL;
+	if (parser->token->type == TOKEN_LBRACE)
 	{
 		body = parser_body(program, parser, scope, node);
 		if (!body)
 		{
 			return NULL;
 		}
-	}	return node_make_lambda(node, parameters, body);
+		
+	}
+	else
+	{
+		body = parser_expression(program, parser, scope, node);
+		if (!body)
+		{
+			return NULL;
+		}
+	}	
+	
+	return node_make_lambda(node, parameters, body);
 }
 
 static node_t *

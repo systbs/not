@@ -1379,6 +1379,23 @@ node_make_lambda(node_t *node, node_t *parameters, node_t *body)
 }
 
 node_t *
+node_make_fn(node_t *node, node_t *parameters, node_t *result)
+{
+	node_fn_t *basic = (node_fn_t *)malloc(sizeof(node_fn_t));
+	if(basic == NULL)
+	{
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_lambda_t));
+		return NULL;
+	}
+	memset(basic, 0, sizeof(node_lambda_t));
+	basic->parameters = parameters;
+	basic->result = result;
+	
+	node_update(node, NODE_KIND_FN, basic);
+	return node;
+}
+
+node_t *
 node_make_property(node_t *node, uint64_t flag, node_t *key, node_t *type, node_t *value)
 {
 	node_property_t *basic;

@@ -108,6 +108,7 @@ typedef enum node_kind {
 	NODE_KIND_VAR,
 	NODE_KIND_TYPE,
 	NODE_KIND_LAMBDA,
+	NODE_KIND_FN,
 	NODE_KIND_FUNC,
 	NODE_KIND_CLASS,
 	NODE_KIND_METHOD,
@@ -249,6 +250,11 @@ typedef struct node_lambda {
 	node_t *parameters;
 	node_t *body;
 } node_lambda_t;
+
+typedef struct node_fn {
+	node_t *parameters;
+	node_t *result;
+} node_fn_t;
 
 typedef struct node_func {
 	uint64_t flag;
@@ -558,6 +564,9 @@ node_make_func(node_t *node,uint64_t flag,node_t *key, node_t *generics, node_t 
 
 node_t *
 node_make_lambda(node_t *node, node_t *parameters, node_t *block);
+
+node_t *
+node_make_fn(node_t *node, node_t *parameters, node_t *result);
 
 node_t *
 node_make_heritage(node_t *node, node_t *key, node_t *type);

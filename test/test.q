@@ -6,7 +6,9 @@ class system
 
   }
 
-  func action<T> (T:T) : Int {
+  func action<T> (T: (t:T) -> Int) : Int {
+    arry.foreach((a:Int) -> {
 
+    });
   }
 }
