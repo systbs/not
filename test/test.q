@@ -1,3 +1,5 @@
+import ("~/types/statics", Short, Int, Long, Double, Float, String);
+import ("~/types/container", Array<T>);
 
 class system
 {
@@ -6,9 +8,8 @@ class system
 
   }
 
-  func action<T> (T: (t:T) -> Int) : Int {
-    arry.foreach((a:Int) -> {
-
-    });
+  func action () : Int {
+    var {norm3:norm} = 1;
+    var {norm2:norm} = 1;
   }
 }
