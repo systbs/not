@@ -389,52 +389,6 @@ parser_null(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 }
 
 static node_t *
-parser_true(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
-{
-	node_t *node = node_create(scope, parent, parser->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	node_t *node2 = node_make_true(node);
-	if (!node2)
-	{
-		return NULL;
-	}
-
-	if (parser_match(program, parser, TOKEN_TRUE_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
-
-static node_t *
-parser_false(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
-{
-	node_t *node = node_create(scope, parent, parser->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	node_t *node2 = node_make_false(node);
-	if (!node2)
-	{
-		return NULL;
-	}
-
-	if (parser_match(program, parser, TOKEN_FALSE_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
-
-static node_t *
 parser_infinity(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
@@ -450,29 +404,6 @@ parser_infinity(program_t *program, parser_t *parser, node_t *scope, node_t *par
 	}
 
 	if (parser_match(program, parser, TOKEN_INFINITY_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
-
-static node_t *
-parser_this(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
-{
-	node_t *node = node_create(scope, parent, parser->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	node_t *node2 = node_make_this(node);
-	if (!node2)
-	{
-		return NULL;
-	}
-
-	if (parser_match(program, parser, TOKEN_THIS_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -881,24 +812,9 @@ parser_primary(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 		return parser_null(program, parser, scope, parent);
 	}
 	else 
-	if (parser->token->type == TOKEN_TRUE_KEYWORD)
-	{
-		return parser_true(program, parser, scope, parent);
-	}
-	else 
-	if (parser->token->type == TOKEN_FALSE_KEYWORD)
-	{
-		return parser_false(program, parser, scope, parent);
-	}
-	else 
 	if (parser->token->type == TOKEN_INFINITY_KEYWORD)
 	{
 		return parser_infinity(program, parser, scope, parent);
-	}
-	else 
-	if (parser->token->type == TOKEN_THIS_KEYWORD)
-	{
-		return parser_this(program, parser, scope, parent);
 	}
 	else 
 	if (parser->token->type == TOKEN_LBRACKET)
@@ -1455,7 +1371,9 @@ parser_multiplicative(program_t *program, parser_t *parser, node_t *scope, node_
 	if (node2 == NULL)
 	{
 		return NULL;
-	}	while (node2 != NULL)
+	}
+	
+	while (node2 != NULL)
 	{
 		if (parser->token->type == TOKEN_STAR)
 		{
@@ -3794,7 +3712,7 @@ parser_class_protected(program_t *program, parser_t *parser, node_t *scope, node
 		return NULL;
 	}
 
-	flag |= PARSER_MODIFIER_PROTECTED;
+	flag |= PARSER_MODIFIER_PROTECT;
 
 	node_t *node = NULL;
 	switch (parser->token->type)
@@ -3828,7 +3746,7 @@ parser_class_protected(program_t *program, parser_t *parser, node_t *scope, node
 		break;
 	}
 
-	flag &= ~PARSER_MODIFIER_PROTECTED;
+	flag &= ~PARSER_MODIFIER_PROTECT;
 
 	if (!node)
 	{
