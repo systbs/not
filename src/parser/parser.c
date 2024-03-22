@@ -648,9 +648,8 @@ parser_array(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 		return NULL;
 	}
 
-	list_t *expr_list;
-	expr_list = list_create();
-	if (!expr_list)
+	list_t *items = list_create();
+	if (!items)
 	{
 		return NULL;
 	}
@@ -665,7 +664,7 @@ parser_array(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 				return NULL;
 			}
 
-			if (!list_rpush(expr_list, expr))
+			if (!list_rpush(items, expr))
 			{
 				return NULL;
 			}
@@ -686,7 +685,7 @@ parser_array(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 		return NULL;
 	}
 
-	return node_make_array(node, expr_list);
+	return node_make_array(node, items);
 }
 
 static node_t *
@@ -1266,8 +1265,6 @@ parser_prefix(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 			return NULL;
 		}
 		
-		
-
 		if (parser_next(program, parser) == -1)
 		{
 			return NULL;
@@ -1414,7 +1411,9 @@ parser_power(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 	if (node2 == NULL)
 	{
 		return NULL;
-	}	while (node2 != NULL)
+	}
+	
+	while (node2 != NULL)
 	{
 		if (parser->token->type == TOKEN_POWER)
 		{

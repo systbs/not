@@ -37,7 +37,8 @@
         "table.h": "c",
         "syntax1": "c",
         "syntax": "c",
-        "*.c2": "c"
+        "*.c2": "c",
+        "text": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

@@ -34,7 +34,6 @@ node_create(node_t *scope, node_t *parent, position_t position)
 	node->position = position;
 	node->parent = parent;
 	node->scope = scope;
-	node->attachments = list_create();
 	node->flag = NODE_FLAG_NONE;
 
 	return node;
@@ -64,7 +63,8 @@ node_clone(node_t *source)
 	node->scope = source->scope;
 	node->value = source->value;
 	node->kind = source->kind;
-	node->attachments = source->attachments;
+	node->arguments = source->arguments;
+	node->concepts = source->concepts;
 	node->flag = NODE_FLAG_TEMPORARY;
 
 	return node;
@@ -340,8 +340,8 @@ node_make_attribute(node_t *node, node_t *left, node_t *right)
 node_t *
 node_make_tilde(node_t *node, node_t *right)
 {
-	node_unary_t *basic;
-	if(!(basic = (node_unary_t *)malloc(sizeof(node_unary_t))))
+	node_unary_t *basic = (node_unary_t *)malloc(sizeof(node_unary_t));
+	if(basic == NULL)
 	{
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_unary_t));
 		return NULL;

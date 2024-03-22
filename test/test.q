@@ -1,7 +1,7 @@
 import ("~/types/statics", Short, Int, Long, Double, Float, String);
 import ("~/types/container", Array<T>);
 
-class system
+class System
 {
   export func constructor()
   {

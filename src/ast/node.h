@@ -10,7 +10,10 @@ typedef struct node {
 
 	void *value;
 
-	list_t *attachments;
+	struct node *referto;
+
+	struct node *arguments;
+	struct node *concepts;
 
 	struct node *parent;
 	struct node *scope;
