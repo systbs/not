@@ -1,16 +1,23 @@
 import ("~/types/statics", Short, Int, Long, Double, Float, String);
 import ("~/types/container", Array<T>);
 
-class Int2 {
+class Int3 {
   export func constructor()
   {
 
   }
-  export protected class Long {
+  export protect class Long {
     export func constructor()
     {
 
     }
+  }
+}
+
+class Int2 extends (int3:Int3) {
+  export func constructor()
+  {
+
   }
 }
 
@@ -28,7 +35,7 @@ class System
 
   }
 
-  func action (a:Int.Long) : Int {
-    var {norm3:norm} = 1;
+  func action (a:Int) : Int {
+    var {norm3:norm} = 1.1;
   }
 }

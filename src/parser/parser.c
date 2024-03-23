@@ -2646,7 +2646,7 @@ parser_for(program_t *program, parser_t *parser, node_t *scope, node_t *parent, 
 	return node_make_for(node, flag, key, initializer_block, condition, incrementor_block, body);
 
 	region_forin:
-	if (parser_match(program, parser, TOKEN_IN_KEYWORD) == -1)
+	if (parser_match(program, parser, TOKEN_COLON) == -1)
 	{
 		return NULL;
 	}
@@ -4271,7 +4271,7 @@ parser_module_block(program_t *program, parser_t *parser, node_t *scope, node_t 
 
 		if (parser->token->type == TOKEN_EXPORT_KEYWORD)
 		{
-			item = parser_export(program, parser, scope, node);
+			item = parser_export(program, parser, scope, parent);
 			if (item == NULL)
 			{
 				return NULL;
@@ -4280,7 +4280,7 @@ parser_module_block(program_t *program, parser_t *parser, node_t *scope, node_t 
 		else
 		if (parser->token->type == TOKEN_IMPORT_KEYWORD)
 		{
-			item = parser_import(program, parser, scope, node);
+			item = parser_import(program, parser, scope, parent);
 			if (item == NULL)
 			{
 				return NULL;
@@ -4289,7 +4289,7 @@ parser_module_block(program_t *program, parser_t *parser, node_t *scope, node_t 
 		else
 		if (parser->token->type == TOKEN_ENUM_KEYWORD)
 		{
-			item = parser_enum(program, parser, scope, node, PARSER_MODIFIER_NONE);
+			item = parser_enum(program, parser, scope, parent, PARSER_MODIFIER_NONE);
 			if (item == NULL)
 			{
 				return NULL;
@@ -4297,7 +4297,7 @@ parser_module_block(program_t *program, parser_t *parser, node_t *scope, node_t 
 		}
 		else
 		{
-			item = parser_class(program, parser, scope, node, PARSER_MODIFIER_NONE);
+			item = parser_class(program, parser, scope, parent, PARSER_MODIFIER_NONE);
 			if (item == NULL)
 			{
 				return NULL;

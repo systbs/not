@@ -154,6 +154,17 @@ static int32_t
 syntax_body(program_t *program, node_t *node);
 
 
+static int32_t
+syntax_eqaul_fsfs(program_t *program, node_t *nfs1, node_t *nfs2)
+{
+    return 1;
+}
+
+static int32_t
+syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
+{
+    return 1;
+}
 
 static int32_t
 syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
@@ -180,12 +191,13 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nds2)
 }
 
 
+
 static int32_t
 syntax_select(program_t *program, node_t *root, char *name, list_t *response, node_t *applicant)
 {
     if (applicant->id == root->id)
     {
-        return 2;
+        return 1;
     }
     if (root->kind == NODE_KIND_CLASS)
     {
@@ -253,87 +265,122 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response, no
 
         if (class1->heritages != NULL)
         {
-            node_t *node2 = class1->heritages;
-            node_block_t *block2 = (node_block_t *)node2->value;
+            node_t *base = class1->heritages;
 
-            ilist_t *a2;
-            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+            list_t *repository1 = list_create();
+            if (repository1 == NULL)
             {
-                node_t *item2 = (node_t *)a2->value;
+                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                return -1;
+            }
 
-                if (item2->kind == NODE_KIND_HERITAGE)
+            while (base != NULL)
+            {
+
+                node_block_t *block2 = (node_block_t *)base->value;
+
+                ilist_t *a2;
+                for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
                 {
-                    node_heritage_t *heritage3 = (node_heritage_t *)item2->value;
-                    
-                    list_t *response2 = list_create();
-                    if (response2 == NULL)
+                    node_t *item2 = (node_t *)a2->value;
+
+                    if (item2->kind == NODE_KIND_HERITAGE)
                     {
-                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                        return -1;
-                    }
-                    int32_t r1 = syntax_postfix(program, heritage3->type, response2, root);
-                    if (r1 == -1)
-                    {
-                        return -1;
-                    }
-                    else
-                    if (r1 == 0)
-                    {
-                        syntax_error(program, heritage3->type, "reference not found");
-                        return -1;
-                    }
-                    else
-                    if (r1 == 1)
-                    {
-                        ilist_t *a3;
-                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                        node_heritage_t *heritage3 = (node_heritage_t *)item2->value;
+                        
+                        list_t *response2 = list_create();
+                        if (response2 == NULL)
                         {
-                            node_t *item3 = (node_t *)a3->value;
-                            if (item3->kind == NODE_KIND_CLASS)
+                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+                        
+                        int32_t r1 = syntax_postfix(program, heritage3->type, response2, root);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r1 == 0)
+                        {
+                            syntax_error(program, heritage3->type, "reference not found");
+                            return -1;
+                        }
+                        else
+                        if (r1 == 1)
+                        {
+                            ilist_t *a3;
+                            for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
                             {
-                                node_class_t *class4 = (node_class_t *)item3->value;
-                                node_t *node4 = class4->block;
-                                node_block_t *block4 = (node_block_t *)node4->value;
-                                ilist_t *a4;
-                                for (a4 = block4->list->begin;a4 != block4->list->end;a4 = a4->next)
+                                node_t *item3 = (node_t *)a3->value;
+                                if (item3->kind == NODE_KIND_CLASS)
                                 {
-                                    node_t *item4 = (node_t *)a4->value;
-                                    if (item4->kind == NODE_KIND_CLASS)
+                                    node_class_t *class4 = (node_class_t *)item3->value;
+                                    node_t *node4 = class4->block;
+                                    node_block_t *block4 = (node_block_t *)node4->value;
+
+                                    ilist_t *a4;
+                                    for (a4 = block4->list->begin;a4 != block4->list->end;a4 = a4->next)
                                     {
-                                        node_class_t *class5 = (node_class_t *)item4->value;
-                                        if (syntax_idstrcmp(class5->key, name) == 1)
+                                        node_t *item4 = (node_t *)a4->value;
+                                        if (item4->kind == NODE_KIND_CLASS)
                                         {
-                                            ilist_t *r1 = list_rpush(response, item4);
-                                            if (r1 == NULL)
+                                            node_class_t *class5 = (node_class_t *)item4->value;
+                                            if (syntax_idstrcmp(class5->key, name) == 1)
                                             {
-                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                                return -1;
+                                                ilist_t *r1 = list_rpush(response, item4);
+                                                if (r1 == NULL)
+                                                {
+                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                    return -1;
+                                                }
+                                            }
+                                        }
+                                        else
+                                        if (item4->kind == NODE_KIND_ENUM)
+                                        {
+                                            node_enum_t *enum1 = (node_enum_t *)item4->value;
+                                            if (syntax_idstrcmp(enum1->key, name) == 1)
+                                            {
+                                                ilist_t *r1 = list_rpush(response, item4);
+                                                if (r1 == NULL)
+                                                {
+                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                    return -1;
+                                                }
                                             }
                                         }
                                     }
-                                    else
-                                    if (item4->kind == NODE_KIND_ENUM)
+
+                                    ilist_t *r2 = list_rpush(repository1, class4->heritages);
+                                    if (r2 == NULL)
                                     {
-                                        node_enum_t *enum1 = (node_enum_t *)item4->value;
-                                        if (syntax_idstrcmp(enum1->key, name) == 1)
-                                        {
-                                            ilist_t *r1 = list_rpush(response, item4);
-                                            if (r1 == NULL)
-                                            {
-                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                                return -1;
-                                            }
-                                        }
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
                                     }
                                 }
                             }
                         }
-                    }
 
-                    list_destroy(response2);
+                        list_destroy(response2);
+                    }
                 }
+
+                ilist_t *r1 = list_rpop(repository1);
+                if (r1 != NULL)
+                {
+                    base = (node_t *)r1->value;
+                    continue;
+                }
+                else
+                {
+                    base = NULL;
+                    break;
+                }
+
             }
 
+            list_destroy(repository1);
         }
     }
     else
@@ -447,6 +494,11 @@ syntax_primary(program_t *program, node_t *node, list_t *response, node_t *appli
 static int32_t
 syntax_pseudonym(program_t *program, node_t *node, list_t *response, node_t *applicant)
 {
+    if (applicant->id == node->id)
+    {
+        return 1;
+    }
+
     node_carrier_t *carrier = (node_carrier_t *)node->value;
     
     list_t *response1 = list_create();
@@ -493,8 +545,6 @@ syntax_pseudonym(program_t *program, node_t *node, list_t *response, node_t *app
                         fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                         return -1;
                     }
-                    list_destroy(response1);
-                    return 1;
                 }
             }
             else
@@ -507,12 +557,23 @@ syntax_pseudonym(program_t *program, node_t *node, list_t *response, node_t *app
     }
 
     list_destroy(response1);
+
+    if (list_count(response) > 0)
+    {
+        return 1;
+    }
+
     return 0;
 }
 
 static int32_t
 syntax_attribute(program_t *program, node_t *node, list_t *response, node_t *applicant)
 {
+    if (applicant->id == node->id)
+    {
+        return 1;
+    }
+
     node_binary_t *basic = (node_binary_t *)node->value;
     
     list_t *response1 = list_create();
@@ -595,189 +656,152 @@ syntax_attribute(program_t *program, node_t *node, list_t *response, node_t *app
 
                 if (class2->heritages != NULL)
                 {
-                    node_t *node3 = class2->heritages;
-                    node_block_t *block3 = (node_block_t *)node3->value;
-
-                    list_t *repository = list_create();
-                    if (repository == NULL)
-                    {
-                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                        return -1;
-                    }
-                    list_t *repository_list = list_create();
-                    if (repository_list == NULL)
+                    node_t *root = class2->heritages;
+                    list_t *repository1 = list_create();
+                    if (repository1 == NULL)
                     {
                         fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                         return -1;
                     }
 
-                    int32_t start_new = 0;
-
-                    ilist_t *a3 = block3->list->begin;
-                    while (a3 != NULL)
+                    while (root != NULL)
                     {
-                        node_t *item3 = (node_t *)a3->value;
+                        node_block_t *block3 = (node_block_t *)root->value;
 
-                        if (item3->kind == NODE_KIND_HERITAGE)
+                        ilist_t *a3;
+                        for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                         {
-                            node_heritage_t *heritage3 = (node_heritage_t *)item3->value;
-
-                            list_t *response3 = list_create();
-                            if (response3 == NULL)
-                            {
-                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
+                            node_t *item3 = (node_t *)a3->value;
                             
-                            int32_t r3 = syntax_postfix(program, heritage3->type, response3, node);
-                            if (r3 == -1)
+                            if (item3->kind == NODE_KIND_HERITAGE)
                             {
-                                return -1;
-                            }
-                            else
-                            if (r3 == 0)
-                            {
-                                syntax_error(program, heritage3->type, "reference not found");
-                                return -1;
-                            }
-                            else
-                            if (r3 == 1)
-                            {
-                                ilist_t *a4;
-                                for (a4 = response3->begin;a4 != response3->end;a4 = a4->next)
+                                node_heritage_t *heritage4 = (node_heritage_t *)item3->value;
+                                
+                                list_t *response4 = list_create();
+                                if (response4 == NULL)
                                 {
-                                    node_t *item4 = (node_t *)a4->value;
-                                    if (item4->kind == NODE_KIND_CLASS)
+                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                    return -1;
+                                }
+                                
+                                int32_t r4 = syntax_postfix(program, heritage4->type, response4, node);
+                                if (r4 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r4 == 0)
+                                {
+                                    syntax_error(program, heritage4->type, "reference not found");
+                                    return -1;
+                                }
+                                else
+                                if (r4 == 1)
+                                {
+                                    ilist_t *a5;
+                                    for (a5 = response4->begin;a5 != response4->end;a5 = a5->next)
                                     {
-                                        node_class_t *class4 = (node_class_t *)item4->value;
-                                        node_t *node4 = class4->block;
-                                        node_block_t *block4 = (node_block_t *)node4->value;
-                                        ilist_t *a4;
-                                        for (a4 = block4->list->begin;a4 != block4->list->end;a4 = a4->next)
+                                        node_t *item5 = (node_t *)a5->value;
+                                        
+                                        if (item5->kind == NODE_KIND_CLASS)
                                         {
-                                            node_t *item4 = (node_t *)a4->value;
-                                            if (item4->kind == NODE_KIND_CLASS)
+                                            node_class_t *class5 = (node_class_t *)item5->value;
+                                            node_t *node5 = class5->block;
+                                            node_block_t *block5 = (node_block_t *)node5->value;
+
+                                            ilist_t *a6;
+                                            for (a6 = block5->list->begin;a6 != block5->list->end;a6 = a6->next)
                                             {
-                                                node_class_t *class5 = (node_class_t *)item4->value;
-                                                if (syntax_idcmp(basic->right, class5->key) == 1)
+                                                node_t *item6 = (node_t *)a6->value;
+                                                if (item6->kind == NODE_KIND_CLASS)
                                                 {
-                                                    if ((class5->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+                                                    node_class_t *class6 = (node_class_t *)item6->value;
+                                                    if (syntax_idcmp(class6->key, basic->right) == 1)
                                                     {
-                                                        syntax_error(program, item4, "private access, in (%lld:%lld)",
-                                                            node->position.line, node->position.column);
-                                                        return -1;
-                                                    }
+                                                        if ((class6->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+                                                        {
+                                                            syntax_error(program, item6, "private access, in (%lld:%lld)",
+                                                                node->position.line, node->position.column);
+                                                            return -1;
+                                                        }
 
-                                                    if ((class5->flag & PARSER_MODIFIER_PROTECT) == PARSER_MODIFIER_PROTECT)
+                                                        if ((class6->flag & PARSER_MODIFIER_PROTECT) == PARSER_MODIFIER_PROTECT)
+                                                        {
+                                                            syntax_error(program, item6, "protect access, in (%lld:%lld)",
+                                                                node->position.line, node->position.column);
+                                                            return -1;
+                                                        }
+
+                                                        ilist_t *r6 = list_rpush(response, item6);
+                                                        if (r6 == NULL)
+                                                        {
+                                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                            return -1;
+                                                        }
+                                                        list_destroy(response4);
+                                                        return 1;
+                                                    }
+                                                }
+                                                else
+                                                if (item6->kind == NODE_KIND_ENUM)
+                                                {
+                                                    node_enum_t *enum1 = (node_enum_t *)item6->value;
+                                                    if (syntax_idcmp(enum1->key, basic->right) == 1)
                                                     {
-                                                        syntax_error(program, item4, "protect access, in (%lld:%lld)",
-                                                            node->position.line, node->position.column);
-                                                        return -1;
-                                                    }
+                                                        if ((enum1->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
+                                                        {
+                                                            syntax_error(program, item6, "private access, in (%lld:%lld)",
+                                                                node->position.line, node->position.column);
+                                                            return -1;
+                                                        }
 
-                                                    ilist_t *r1 = list_rpush(response, item4);
-                                                    if (r1 == NULL)
-                                                    {
-                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                                        return -1;
-                                                    }
+                                                        if ((enum1->flag & PARSER_MODIFIER_PROTECT) == PARSER_MODIFIER_PROTECT)
+                                                        {
+                                                            syntax_error(program, item6, "protect access, in (%lld:%lld)",
+                                                                node->position.line, node->position.column);
+                                                            return -1;
+                                                        }
 
-                                                    list_destroy(repository_list);
-                                                    list_destroy(repository);
-                                                    list_destroy(response3);
-                                                    list_destroy(response1);
-                                                    return 1;
+                                                        ilist_t *r1 = list_rpush(response, item6);
+                                                        if (r1 == NULL)
+                                                        {
+                                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                            return -1;
+                                                        }
+                                                        list_destroy(response4);
+                                                        return 1;
+                                                    }
                                                 }
                                             }
-                                            else
-                                            if (item4->kind == NODE_KIND_ENUM)
+
+                                            ilist_t *r3 = list_rpush(repository1, class5->heritages);
+                                            if (r3 == NULL)
                                             {
-                                                node_enum_t *enum1 = (node_enum_t *)item4->value;
-                                                if (syntax_idcmp(basic->right, enum1->key) == 1)
-                                                {
-                                                    if ((enum1->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
-                                                    {
-                                                        syntax_error(program, item4, "private access, in (%lld:%lld)",
-                                                            node->position.line, node->position.column);
-                                                        return -1;
-                                                    }
-
-                                                    if ((enum1->flag & PARSER_MODIFIER_PROTECT) == PARSER_MODIFIER_PROTECT)
-                                                    {
-                                                        syntax_error(program, item4, "protect access, in (%lld:%lld)",
-                                                            node->position.line, node->position.column);
-                                                        return -1;
-                                                    }
-
-                                                    ilist_t *r1 = list_rpush(response, item4);
-                                                    if (r1 == NULL)
-                                                    {
-                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                                        return -1;
-                                                    }
-                                                    list_destroy(repository_list);
-                                                    list_destroy(repository);
-                                                    list_destroy(response3);
-                                                    list_destroy(response1);
-                                                    return 1;
-                                                }
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
                                             }
                                         }
-
-                                        ilist_t *r5 = list_rpush(repository_list, a3);
-                                        if (r5 == NULL)
-                                        {
-                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                            return -1;
-                                        }
-
-                                        ilist_t *r6 = list_rpush(repository, node3);
-                                        if (r6 == NULL)
-                                        {
-                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                            return -1;
-                                        }
-
-                                        node3 = class4->heritages;
-                                        block3 = (node_block_t *)node3->value;
-                                        a3 = block3->list->begin;
-                                        start_new = 1;
-                                        break;
                                     }
                                 }
-                            }
-                            
-                            list_destroy(response3);
-                        }
 
-                        if (a3 == block2->list->end)
+                                list_destroy(response4);
+                            }
+                        }
+                    
+                        ilist_t *r1 = list_rpop(repository1);
+                        if (r1 != NULL)
                         {
-                            ilist_t *r5 = list_rpop(repository_list);
-                            if (r5 != NULL)
-                            {
-                                a2 = (ilist_t *)r5->value;
-                            }
-                            ilist_t *r6 = list_rpop(repository);
-                            if (r6 != NULL)
-                            {
-                                node3 = (node_t *)r6->value;
-                                block3 = (node_block_t *)node3->value;
-                                continue;
-                            }
-                            break;
+                            root = (node_t *)r1->value;
+                            continue;
                         }
                         else
                         {
-                            if (start_new != 1)
-                            {
-                                a2 = a2->next;
-                            }
-                            start_new = 0;
+                            root = NULL;
+                            break;
                         }
                     }
 
-                    list_destroy(repository_list);
-                    list_destroy(repository);
+                    list_destroy(repository1);
                 }
             }
             else
@@ -822,18 +846,19 @@ syntax_if(program_t *program, node_t *node)
 
     if (if1->key != NULL)
     {
-        node_t *node_current = node->parent;
-        while (node_current != NULL)
+        node_t *sub = node;
+        node_t *current = node->parent;
+        while (current != NULL)
         {
-            if (node_current->kind == NODE_KIND_BODY)
+            if (current->kind == NODE_KIND_BODY)
             {
-                node_block_t *block2 = (node_block_t *)node_current->value;
+                node_block_t *block2 = (node_block_t *)current->value;
 
                 ilist_t *a2;
                 for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
                 {
                     node_t *item2 = (node_t *)a2->value;
-                    if (item2->id == node->id)
+                    if (item2->id == sub->id)
                     {
                         break;
                     }
@@ -934,12 +959,14 @@ syntax_if(program_t *program, node_t *node)
                         }
                     }
                 }
-                node_current = node_current->parent;
+                
+                sub = current;
+                current = current->parent;
             }
             else
-            if (node_current->kind == NODE_KIND_FUNC)
+            if (current->kind == NODE_KIND_FUNC)
             {
-                node_func_t *func2 = (node_func_t *)node_current->value;
+                node_func_t *func2 = (node_func_t *)current->value;
                 if (func2->generics != NULL)
                 {
                     node_t *node2 = func2->generics;
@@ -997,7 +1024,8 @@ syntax_if(program_t *program, node_t *node)
             }
             else
             {
-                node_current = node_current->parent;
+                sub = current;
+                current = current->parent;
             }
         }
     }
@@ -1012,18 +1040,19 @@ syntax_for(program_t *program, node_t *node)
 
     if (for1->key != NULL)
     {
-        node_t *node_current = node->parent;
-        while (node_current != NULL)
+        node_t *sub = node;
+        node_t *current = node->parent;
+        while (current != NULL)
         {
-            if (node_current->kind == NODE_KIND_BODY)
+            if (current->kind == NODE_KIND_BODY)
             {
-                node_block_t *block2 = (node_block_t *)node_current->value;
+                node_block_t *block2 = (node_block_t *)current->value;
 
                 ilist_t *a2;
                 for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
                 {
                     node_t *item2 = (node_t *)a2->value;
-                    if (item2->id == node->id)
+                    if (item2->id == sub->id)
                     {
                         break;
                     }
@@ -1124,12 +1153,14 @@ syntax_for(program_t *program, node_t *node)
                         }
                     }
                 }
-                node_current = node_current->parent;
+
+                sub = current;
+                current = current->parent;
             }
             else
-            if (node_current->kind == NODE_KIND_FUNC)
+            if (current->kind == NODE_KIND_FUNC)
             {
-                node_func_t *func2 = (node_func_t *)node_current->value;
+                node_func_t *func2 = (node_func_t *)current->value;
 
                 if (func2->generics != NULL)
                 {
@@ -1188,7 +1219,8 @@ syntax_for(program_t *program, node_t *node)
             }
             else
             {
-                node_current = node_current->parent;
+                sub = current;
+                current = current->parent;
             }
         }
     }
@@ -1202,18 +1234,19 @@ syntax_forin(program_t *program, node_t *node)
 
     if (for1->key != NULL)
     {
-        node_t *node_current = node->parent;
-        while (node_current != NULL)
+        node_t *sub = node;
+        node_t *current = node->parent;
+        while (current != NULL)
         {
-            if (node_current->kind == NODE_KIND_BODY)
+            if (current->kind == NODE_KIND_BODY)
             {
-                node_block_t *block2 = (node_block_t *)node_current->value;
+                node_block_t *block2 = (node_block_t *)current->value;
 
                 ilist_t *a2;
                 for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
                 {
                     node_t *item2 = (node_t *)a2->value;
-                    if (item2->id == node->id)
+                    if (item2->id == sub->id)
                     {
                         break;
                     }
@@ -1314,12 +1347,14 @@ syntax_forin(program_t *program, node_t *node)
                         }
                     }
                 }
-                node_current = node_current->parent;
+                
+                sub = current;
+                current = current->parent;
             }
             else
-            if (node_current->kind == NODE_KIND_FUNC)
+            if (current->kind == NODE_KIND_FUNC)
             {
-                node_func_t *func2 = (node_func_t *)node_current->value;
+                node_func_t *func2 = (node_func_t *)current->value;
 
                 if (func2->generics != NULL)
                 {
@@ -1378,7 +1413,8 @@ syntax_forin(program_t *program, node_t *node)
             }
             else
             {
-                node_current = node_current->parent;
+                sub = current;
+                current = current->parent;
             }
         }
     }
@@ -1390,18 +1426,19 @@ syntax_parameter(program_t *program, node_t *node)
 {
     node_parameter_t *parameter1 = (node_parameter_t *)node->value;
     
-    node_t *node_current = node->parent;
-    while (node_current != NULL)
+    node_t *sub = node;
+    node_t *current = node->parent;
+    while (current != NULL)
     {
-        if (node_current->kind == NODE_KIND_PARAMETERS)
+        if (current->kind == NODE_KIND_PARAMETERS)
         {
-            node_block_t *block2 = (node_block_t *)node_current->value;
+            node_block_t *block2 = (node_block_t *)current->value;
 
             ilist_t *a2;
             for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
             {
                 node_t *item2 = (node_t *)a2->value;
-                if (item2->id == node->id)
+                if (item2->id == sub->id)
                 {
                     break;
                 }
@@ -1417,12 +1454,14 @@ syntax_parameter(program_t *program, node_t *node)
                     }
                 }
             }
-            node_current = node_current->parent;
+            
+            sub = current;
+            current = current->parent;
         }
         else
-        if (node_current->kind == NODE_KIND_CLASS)
+        if (current->kind == NODE_KIND_CLASS)
         {
-            node_class_t *class2 = (node_class_t *)node_current->value;
+            node_class_t *class2 = (node_class_t *)current->value;
 
             if (class2->generics != NULL)
             {
@@ -1453,9 +1492,9 @@ syntax_parameter(program_t *program, node_t *node)
             break;
         }
         else
-        if (node_current->kind == NODE_KIND_FUNC)
+        if (current->kind == NODE_KIND_FUNC)
         {
-            node_func_t *func2 = (node_func_t *)node_current->value;
+            node_func_t *func2 = (node_func_t *)current->value;
 
             if (func2->generics != NULL)
             {
@@ -1487,7 +1526,8 @@ syntax_parameter(program_t *program, node_t *node)
         }
         else
         {
-            node_current = node_current->parent;
+            sub = current;
+            current = current->parent;
         }
     }
 
@@ -1550,12 +1590,12 @@ syntax_var(program_t *program, node_t *node)
 {
     node_var_t *var1 = (node_var_t *)node->value;
 
-    node_t *node_current = node->parent;
-    while (node_current != NULL)
+    node_t *current = node->parent;
+    while (current != NULL)
     {
-        if (node_current->kind == NODE_KIND_BODY)
+        if (current->kind == NODE_KIND_BODY)
         {
-            node_block_t *block2 = (node_block_t *)node_current->value;
+            node_block_t *block2 = (node_block_t *)current->value;
 
             ilist_t *a2;
             for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
@@ -1944,12 +1984,12 @@ syntax_var(program_t *program, node_t *node)
                     }
                 }
             }
-            node_current = node_current->parent;
+            current = current->parent;
         }
         else
-        if (node_current->kind == NODE_KIND_FUNC)
+        if (current->kind == NODE_KIND_FUNC)
         {
-            node_func_t *func2 = (node_func_t *)node_current->value;
+            node_func_t *func2 = (node_func_t *)current->value;
 
             if (func2->generics != NULL)
             {
@@ -2093,7 +2133,7 @@ syntax_var(program_t *program, node_t *node)
         }
         else
         {
-            node_current = node_current->parent;
+            current = current->parent;
         }
     }
 
@@ -2178,12 +2218,13 @@ syntax_generic(program_t *program, node_t *node)
 {
     node_generic_t *generic1 = (node_generic_t *)node->value;
     
-    node_t *node_current = node->parent;
-    while (node_current != NULL)
+    node_t *sub = node;
+    node_t *current = node->parent;
+    while (current != NULL)
     {
-        if (node_current->kind == NODE_KIND_GENERICS)
+        if (current->kind == NODE_KIND_GENERICS)
         {
-            node_block_t *block2 = (node_block_t *)node_current->value;
+            node_block_t *block2 = (node_block_t *)current->value;
 
             ilist_t *a2;
             for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
@@ -2205,12 +2246,14 @@ syntax_generic(program_t *program, node_t *node)
                     }
                 }
             }
-            node_current = node_current->parent;
+            
+            sub = current;
+            current = current->parent;
         }
         else
-        if (node_current->kind == NODE_KIND_CLASS)
+        if (current->kind == NODE_KIND_CLASS)
         {
-            node_class_t *class2 = (node_class_t *)node_current->value;
+            node_class_t *class2 = (node_class_t *)current->value;
             node_t *node2 = class2->block;
             node_block_t *block2 = (node_block_t *)node2->value;
 
@@ -2377,9 +2420,31 @@ syntax_generic(program_t *program, node_t *node)
         }
         else
         {
-            node_current = node_current->parent;
+            sub = current;
+            current = current->parent;
         }
     }
+    
+    list_t *response1 = list_create();
+    if (response1 == NULL)
+    {
+        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+        return -1;
+    }
+
+    int32_t r1 = syntax_postfix(program, generic1->type, response1, node);
+    if (r1 == -1)
+    {
+        return -1;
+    }
+    else
+    if (r1 == 0)
+    {
+        syntax_error(program, generic1->type, "reference not found");
+        return -1;
+    }
+
+    list_destroy(response1);
 
     return 1;
 }
@@ -2407,12 +2472,12 @@ syntax_func(program_t *program, node_t *node)
 {
 	node_func_t *func1 = (node_func_t *)node->value;
 
-    node_t *node_current = node->parent;
-    while (node_current != NULL)
+    node_t *current = node->parent;
+    while (current != NULL)
     {
-        if (node_current->kind == NODE_KIND_MODULE)
+        if (current->kind == NODE_KIND_MODULE)
         {
-            node_module_t *module2 = (node_module_t *)node_current->value;
+            node_module_t *module2 = (node_module_t *)current->value;
             node_t *node2 = module2->block;
             node_block_t *block2 = (node_block_t *)node2->value;
 
@@ -2509,9 +2574,9 @@ syntax_func(program_t *program, node_t *node)
             break;
         }
         else
-        if (node_current->kind == NODE_KIND_CLASS)
+        if (current->kind == NODE_KIND_CLASS)
         {
-            node_class_t *class2 = (node_class_t *)node_current->value;
+            node_class_t *class2 = (node_class_t *)current->value;
             node_t *node2 = class2->block;
             node_block_t *block2 = (node_block_t *)node2->value;
 
@@ -2678,7 +2743,7 @@ syntax_func(program_t *program, node_t *node)
         }
         else
         {
-            node_current = node_current->parent;
+            current = current->parent;
         }
     }
 
@@ -2719,12 +2784,12 @@ syntax_enum(program_t *program, node_t *node)
     node_t *node1 = enum1->block;
     node_block_t *block1 = (node_block_t *)node1->value;
     
-    node_t *node_current = node->parent;
-    while (node_current != NULL)
+    node_t *current = node->parent;
+    while (current != NULL)
     {
-        if (node_current->kind == NODE_KIND_MODULE)
+        if (current->kind == NODE_KIND_MODULE)
         {
-            node_module_t *module2 = (node_module_t *)node_current->value;
+            node_module_t *module2 = (node_module_t *)current->value;
             node_t *node2 = module2->block;
             node_block_t *block2 = (node_block_t *)node2->value;
 
@@ -2737,6 +2802,100 @@ syntax_enum(program_t *program, node_t *node)
                     break;
                 }
 
+                if (item2->kind == NODE_KIND_IMPORT)
+                {
+                    node_import_t *import1 = (node_import_t *)item2->value;
+                    node_t *fields1 = import1->fields;
+                    node_block_t *block3 = (node_block_t *)fields1->value;
+                    ilist_t *a3;
+                    for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
+                    {
+                        node_t *item3 = (node_t *)a3->value;
+                        if (item3->kind == NODE_KIND_FIELD)
+                        {
+                            node_field_t *field1 = (node_field_t *)item3->value;
+                            if (field1->type != NULL)
+                            {
+                                node_t *type1 = field1->type;
+                                if (type1->kind == NODE_KIND_ID)
+                                {
+                                    if (syntax_idcmp(type1, enum1->key) == 1)
+                                    {
+                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                            type1->position.line, type1->position.column);
+                                        return -1;
+                                    }
+                                }
+                                else
+                                if (type1->kind == NODE_KIND_PSEUDONYM)
+                                {
+                                    node_carrier_t *carrier1 = (node_carrier_t *)type1->value;
+                                    node_t *key1 = carrier1->base;
+                                    if (key1->kind == NODE_KIND_ID)
+                                    {
+                                        if (syntax_idcmp(key1, enum1->key) == 1)
+                                        {
+                                            node_t *ngs1 = NULL;
+                                            node_t *nfs2 = carrier1->data;
+                                            int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                            if (r1 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r1 == 1)
+                                            {
+                                                syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                    type1->position.line, type1->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                node_t *key1 = field1->key;
+                                if (key1->kind == NODE_KIND_ID)
+                                {
+                                    if (syntax_idcmp(key1, enum1->key) == 1)
+                                    {
+                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                            key1->position.line, key1->position.column);
+                                        return -1;
+                                    }
+                                }
+                                else
+                                if (key1->kind == NODE_KIND_PSEUDONYM)
+                                {
+                                    node_carrier_t *carrier1 = (node_carrier_t *)key1->value;
+                                    node_t *key2 = carrier1->base;
+                                    if (key2->kind == NODE_KIND_ID)
+                                    {
+                                        if (syntax_idcmp(key2, enum1->key) == 1)
+                                        {
+                                            node_t *ngs1 = NULL;
+                                            node_t *nfs2 = carrier1->data;
+                                            int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                            if (r1 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r1 == 1)
+                                            {
+                                                syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                    key1->position.line, key1->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
                 if (item2->kind == NODE_KIND_CLASS)
                 {
                     node_class_t *class3 = (node_class_t *)item2->value;
@@ -2821,9 +2980,9 @@ syntax_enum(program_t *program, node_t *node)
             break;
         }
         else
-        if (node_current->kind == NODE_KIND_CLASS)
+        if (current->kind == NODE_KIND_CLASS)
         {
-            node_class_t *class2 = (node_class_t *)node_current->value;
+            node_class_t *class2 = (node_class_t *)current->value;
             node_t *node2 = class2->block;
             node_block_t *block2 = (node_block_t *)node2->value;
 
@@ -2990,7 +3149,7 @@ syntax_enum(program_t *program, node_t *node)
         }
         else
         {
-            node_current = node_current->parent;
+            current = current->parent;
         }
     }
 
@@ -3022,9 +3181,1489 @@ syntax_enum(program_t *program, node_t *node)
 }
 
 static int32_t
+syntax_field(program_t *program, node_t *node)
+{
+    node_field_t *field1 = (node_field_t *)node->value;
+    
+    node_t *sub = node;
+    node_t *current = node->parent;
+    while (current != NULL)
+    {
+        if (current->kind == NODE_KIND_IMPORT)
+        {
+            node_import_t *import1 = (node_import_t *)current->value;
+            node_t *node3 = import1->fields;
+            node_block_t *block3 = (node_block_t *)node3->value;
+
+            ilist_t *a3;
+            for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
+            {
+                node_t *item3 = (node_t *)a3->value;
+                if (item3->kind == NODE_KIND_FIELD)
+                {
+                    if (item3->id == node->id)
+                    {
+                        break;
+                    }
+
+                    node_field_t *field3 = (node_field_t *)item3->value;
+                    if (field1->type != NULL)
+                    {
+                        node_t *type1 = field1->type;
+                        if (field3->type != NULL)
+                        {
+                            node_t *type3 = field3->type;
+                            if (type1->kind == NODE_KIND_ID)
+                            {
+                                if (type3->kind == NODE_KIND_ID)
+                                {
+                                    if (syntax_idcmp(type1, type3) == 1)
+                                    {
+                                        node_t *ngs1 = NULL;
+                                        node_t *ngs2 = NULL;
+                                        int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                        if (r1 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r1 == 1)
+                                        {
+                                            node_t *nps1 = NULL;
+                                            node_t *nps2 = NULL;
+                                            int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                            if (r2 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r2 == 1)
+                                            {
+                                                syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                    type3->position.line, type3->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                if (type3->kind == NODE_KIND_PSEUDONYM)
+                                {
+                                    node_carrier_t *carrier3 = (node_carrier_t *)type3->value;
+                                    node_t *base3 = carrier3->base;
+                                    if (base3->kind == NODE_KIND_ID)
+                                    {
+                                        if (syntax_idcmp(type1, base3) == 1)
+                                        {
+                                            node_t *ngs1 = NULL;
+                                            node_t *nfs2 = carrier3->data;
+                                            int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                            if (r1 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r1 == 1)
+                                            {
+                                                syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                    type3->position.line, type3->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_PSEUDONYM)
+                            {
+                                if (type3->kind == NODE_KIND_ID)
+                                {
+                                    node_carrier_t *carrier1 = (node_carrier_t *)type1->value;
+                                    node_t *base1 = carrier1->base;
+                                    if (base1->kind == NODE_KIND_ID)
+                                    {
+                                        if (syntax_idcmp(base1, type3) == 1)
+                                        {
+                                            node_t *ngs1 = NULL;
+                                            node_t *nfs2 = carrier1->data;
+                                            int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                            if (r1 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r1 == 1)
+                                            {
+                                                syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                    type3->position.line, type3->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                if (type3->kind == NODE_KIND_PSEUDONYM)
+                                {
+                                    node_carrier_t *carrier1 = (node_carrier_t *)type1->value;
+                                    node_t *base1 = carrier1->base;
+                                    if (base1->kind == NODE_KIND_ID)
+                                    {
+                                        node_carrier_t *carrier3 = (node_carrier_t *)type3->value;
+                                        node_t *base3 = carrier3->base;
+                                        if (base3->kind == NODE_KIND_ID)
+                                        {
+                                            if (syntax_idcmp(base1, base3) == 1)
+                                            {
+                                                node_t *nfs1 = carrier1->data;
+                                                node_t *nfs2 = carrier3->data;
+                                                int32_t r1 = syntax_eqaul_fsfs(program, nfs1, nfs2);
+                                                if (r1 == -1)
+                                                {
+                                                    return -1;
+                                                }
+                                                else
+                                                if (r1 == 1)
+                                                {
+                                                    syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                        type3->position.line, type3->position.column);
+                                                    return -1;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            node_t *key3 = field3->key;
+                            if (type1->kind == NODE_KIND_ID)
+                            {
+                                if (key3->kind == NODE_KIND_ID)
+                                {
+                                    if (syntax_idcmp(type1, key3) == 1)
+                                    {
+                                        node_t *ngs1 = NULL;
+                                        node_t *ngs2 = NULL;
+                                        int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                        if (r1 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r1 == 1)
+                                        {
+                                            node_t *nps1 = NULL;
+                                            node_t *nps2 = NULL;
+                                            int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                            if (r2 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r2 == 1)
+                                            {
+                                                syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                    key3->position.line, key3->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                if (key3->kind == NODE_KIND_PSEUDONYM)
+                                {
+                                    node_carrier_t *carrier3 = (node_carrier_t *)key3->value;
+                                    node_t *base3 = carrier3->base;
+                                    if (base3->kind == NODE_KIND_ID)
+                                    {
+                                        if (syntax_idcmp(type1, base3) == 1)
+                                        {
+                                            node_t *ngs1 = NULL;
+                                            node_t *nfs2 = carrier3->data;
+                                            int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                            if (r1 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r1 == 1)
+                                            {
+                                                syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                    key3->position.line, key3->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_PSEUDONYM)
+                            {
+                                if (key3->kind == NODE_KIND_ID)
+                                {
+                                    node_carrier_t *carrier1 = (node_carrier_t *)type1->value;
+                                    node_t *base1 = carrier1->base;
+                                    if (base1->kind == NODE_KIND_ID)
+                                    {
+                                        if (syntax_idcmp(base1, key3) == 1)
+                                        {
+                                            node_t *ngs1 = NULL;
+                                            node_t *nfs2 = carrier1->data;
+                                            int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                            if (r1 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r1 == 1)
+                                            {
+                                                syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                    key3->position.line, key3->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                if (key3->kind == NODE_KIND_PSEUDONYM)
+                                {
+                                    node_carrier_t *carrier1 = (node_carrier_t *)type1->value;
+                                    node_t *base1 = carrier1->base;
+                                    if (base1->kind == NODE_KIND_ID)
+                                    {
+                                        node_carrier_t *carrier3 = (node_carrier_t *)key3->value;
+                                        node_t *base3 = carrier3->base;
+                                        if (base3->kind == NODE_KIND_ID)
+                                        {
+                                            if (syntax_idcmp(base1, base3) == 1)
+                                            {
+                                                node_t *nfs1 = carrier1->data;
+                                                node_t *nfs2 = carrier3->data;
+                                                int32_t r1 = syntax_eqaul_fsfs(program, nfs1, nfs2);
+                                                if (r1 == -1)
+                                                {
+                                                    return -1;
+                                                }
+                                                else
+                                                if (r1 == 1)
+                                                {
+                                                    syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                        key3->position.line, key3->position.column);
+                                                    return -1;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        node_t *key1 = field1->key;
+                        if (field3->type != NULL)
+                        {
+                            node_t *type3 = field3->type;
+                            if (key1->kind == NODE_KIND_ID)
+                            {
+                                if (type3->kind == NODE_KIND_ID)
+                                {
+                                    if (syntax_idcmp(key1, type3) == 1)
+                                    {
+                                        node_t *ngs1 = NULL;
+                                        node_t *ngs2 = NULL;
+                                        int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                        if (r1 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r1 == 1)
+                                        {
+                                            node_t *nps1 = NULL;
+                                            node_t *nps2 = NULL;
+                                            int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                            if (r2 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r2 == 1)
+                                            {
+                                                syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                    type3->position.line, type3->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                if (type3->kind == NODE_KIND_PSEUDONYM)
+                                {
+                                    node_carrier_t *carrier3 = (node_carrier_t *)type3->value;
+                                    node_t *base3 = carrier3->base;
+                                    if (base3->kind == NODE_KIND_ID)
+                                    {
+                                        if (syntax_idcmp(key1, base3) == 1)
+                                        {
+                                            node_t *ngs1 = NULL;
+                                            node_t *nfs2 = carrier3->data;
+                                            int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                            if (r1 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r1 == 1)
+                                            {
+                                                syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                    type3->position.line, type3->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            if (key1->kind == NODE_KIND_PSEUDONYM)
+                            {
+                                if (type3->kind == NODE_KIND_ID)
+                                {
+                                    
+                                    node_carrier_t *carrier1 = (node_carrier_t *)key1->value;
+                                    node_t *base1 = carrier1->base;
+                                    if (base1->kind == NODE_KIND_ID)
+                                    {
+                                        if (syntax_idcmp(base1, type3) == 1)
+                                        {
+                                            node_t *ngs1 = NULL;
+                                            node_t *nfs2 = carrier1->data;
+                                            int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                            if (r1 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r1 == 1)
+                                            {
+                                                syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                    type3->position.line, type3->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                if (type3->kind == NODE_KIND_PSEUDONYM)
+                                {
+                                    node_carrier_t *carrier1 = (node_carrier_t *)key1->value;
+                                    node_t *base1 = carrier1->base;
+                                    if (base1->kind == NODE_KIND_ID)
+                                    {
+                                        node_carrier_t *carrier3 = (node_carrier_t *)type3->value;
+                                        node_t *base3 = carrier3->base;
+                                        if (base3->kind == NODE_KIND_ID)
+                                        {
+                                            if (syntax_idcmp(base1, base3) == 1)
+                                            {
+                                                node_t *nfs1 = carrier1->data;
+                                                node_t *nfs2 = carrier3->data;
+                                                int32_t r1 = syntax_eqaul_fsfs(program, nfs1, nfs2);
+                                                if (r1 == -1)
+                                                {
+                                                    return -1;
+                                                }
+                                                else
+                                                if (r1 == 1)
+                                                {
+                                                    syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                        type3->position.line, type3->position.column);
+                                                    return -1;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            node_t *key3 = field3->key;
+                            if (key1->kind == NODE_KIND_ID)
+                            {
+                                if (key3->kind == NODE_KIND_ID)
+                                {
+                                    if (syntax_idcmp(key1, key3) == 1)
+                                    {
+                                        node_t *ngs1 = NULL;
+                                        node_t *ngs2 = NULL;
+                                        int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                        if (r1 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r1 == 1)
+                                        {
+                                            node_t *nps1 = NULL;
+                                            node_t *nps2 = NULL;
+                                            int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                            if (r2 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r2 == 1)
+                                            {
+                                                syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                    key3->position.line, key3->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                if (key3->kind == NODE_KIND_PSEUDONYM)
+                                {
+                                    node_carrier_t *carrier3 = (node_carrier_t *)key3->value;
+                                    node_t *base3 = carrier3->base;
+                                    if (base3->kind == NODE_KIND_ID)
+                                    {
+                                        if (syntax_idcmp(key1, base3) == 1)
+                                        {
+                                            node_t *ngs1 = NULL;
+                                            node_t *nfs2 = carrier3->data;
+                                            int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                            if (r1 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r1 == 1)
+                                            {
+                                                syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                    key3->position.line, key3->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            if (key1->kind == NODE_KIND_PSEUDONYM)
+                            {
+                                if (key3->kind == NODE_KIND_ID)
+                                {
+                                    node_carrier_t *carrier1 = (node_carrier_t *)key1->value;
+                                    node_t *base1 = carrier1->base;
+                                    if (base1->kind == NODE_KIND_ID)
+                                    {
+                                        if (syntax_idcmp(base1, key3) == 1)
+                                        {
+                                            node_t *ngs1 = NULL;
+                                            node_t *nfs2 = carrier1->data;
+                                            int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                            if (r1 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r1 == 1)
+                                            {
+                                                syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                    key3->position.line, key3->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                if (key3->kind == NODE_KIND_PSEUDONYM)
+                                {
+                                    node_carrier_t *carrier1 = (node_carrier_t *)key1->value;
+                                    node_t *base1 = carrier1->base;
+                                    if (base1->kind == NODE_KIND_ID)
+                                    {
+                                        node_carrier_t *carrier3 = (node_carrier_t *)key3->value;
+                                        node_t *base3 = carrier3->base;
+                                        if (base3->kind == NODE_KIND_ID)
+                                        {
+                                            if (syntax_idcmp(base1, base3) == 1)
+                                            {
+                                                node_t *nfs1 = carrier1->data;
+                                                node_t *nfs2 = carrier3->data;
+                                                int32_t r1 = syntax_eqaul_fsfs(program, nfs1, nfs2);
+                                                if (r1 == -1)
+                                                {
+                                                    return -1;
+                                                }
+                                                else
+                                                if (r1 == 1)
+                                                {
+                                                    syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                        key3->position.line, key3->position.column);
+                                                    return -1;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            sub = current;
+            current = current->parent;
+        }
+        else
+        if (current->kind == NODE_KIND_MODULE)
+        {
+            node_module_t *module2 = (node_module_t *)current->value;
+            node_t *node2 = module2->block;
+            node_block_t *block2 = (node_block_t *)node2->value;
+
+            ilist_t *a2;
+            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+            {
+                node_t *item2 = (node_t *)a2->value;
+                
+                if (item2->id == sub->id)
+                {
+                    break;
+                }
+
+                if (item2->kind == NODE_KIND_IMPORT)
+                {
+                    node_import_t *import1 = (node_import_t *)item2->value;
+                    node_t *node3 = import1->fields;
+                    node_block_t *block3 = (node_block_t *)node3->value;
+
+                    ilist_t *a3;
+                    for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
+                    {
+                        node_t *item3 = (node_t *)a3->value;
+                        if (item3->kind == NODE_KIND_FIELD)
+                        {
+                            if (item3->id == node->id)
+                            {
+                                break;
+                            }
+
+                            node_field_t *field3 = (node_field_t *)item3->value;
+                            if (field1->type != NULL)
+                            {
+                                node_t *type1 = field1->type;
+                                if (field3->type != NULL)
+                                {
+                                    node_t *type3 = field3->type;
+                                    if (type1->kind == NODE_KIND_ID)
+                                    {
+                                        if (type3->kind == NODE_KIND_ID)
+                                        {
+                                            if (syntax_idcmp(type1, type3) == 1)
+                                            {
+                                                node_t *ngs1 = NULL;
+                                                node_t *ngs2 = NULL;
+                                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                                if (r1 == -1)
+                                                {
+                                                    return -1;
+                                                }
+                                                else
+                                                if (r1 == 1)
+                                                {
+                                                    node_t *nps1 = NULL;
+                                                    node_t *nps2 = NULL;
+                                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                                    if (r2 == -1)
+                                                    {
+                                                        return -1;
+                                                    }
+                                                    else
+                                                    if (r2 == 1)
+                                                    {
+                                                        syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                            type3->position.line, type3->position.column);
+                                                        return -1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else
+                                        if (type3->kind == NODE_KIND_PSEUDONYM)
+                                        {
+                                            node_carrier_t *carrier3 = (node_carrier_t *)type3->value;
+                                            node_t *base3 = carrier3->base;
+                                            if (base3->kind == NODE_KIND_ID)
+                                            {
+                                                if (syntax_idcmp(type1, base3) == 1)
+                                                {
+                                                    node_t *ngs1 = NULL;
+                                                    node_t *nfs2 = carrier3->data;
+                                                    int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                                    if (r1 == -1)
+                                                    {
+                                                        return -1;
+                                                    }
+                                                    else
+                                                    if (r1 == 1)
+                                                    {
+                                                        syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                            type3->position.line, type3->position.column);
+                                                        return -1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    if (type1->kind == NODE_KIND_PSEUDONYM)
+                                    {
+                                        if (type3->kind == NODE_KIND_ID)
+                                        {
+                                            node_carrier_t *carrier1 = (node_carrier_t *)type1->value;
+                                            node_t *base1 = carrier1->base;
+                                            if (base1->kind == NODE_KIND_ID)
+                                            {
+                                                if (syntax_idcmp(base1, type3) == 1)
+                                                {
+                                                    node_t *ngs1 = NULL;
+                                                    node_t *nfs2 = carrier1->data;
+                                                    int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                                    if (r1 == -1)
+                                                    {
+                                                        return -1;
+                                                    }
+                                                    else
+                                                    if (r1 == 1)
+                                                    {
+                                                        syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                            type3->position.line, type3->position.column);
+                                                        return -1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else
+                                        if (type3->kind == NODE_KIND_PSEUDONYM)
+                                        {
+                                            node_carrier_t *carrier1 = (node_carrier_t *)type1->value;
+                                            node_t *base1 = carrier1->base;
+                                            if (base1->kind == NODE_KIND_ID)
+                                            {
+                                                node_carrier_t *carrier3 = (node_carrier_t *)type3->value;
+                                                node_t *base3 = carrier3->base;
+                                                if (base3->kind == NODE_KIND_ID)
+                                                {
+                                                    if (syntax_idcmp(base1, base3) == 1)
+                                                    {
+                                                        node_t *nfs1 = carrier1->data;
+                                                        node_t *nfs2 = carrier3->data;
+                                                        int32_t r1 = syntax_eqaul_fsfs(program, nfs1, nfs2);
+                                                        if (r1 == -1)
+                                                        {
+                                                            return -1;
+                                                        }
+                                                        else
+                                                        if (r1 == 1)
+                                                        {
+                                                            syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                                type3->position.line, type3->position.column);
+                                                            return -1;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    node_t *key3 = field3->key;
+                                    if (type1->kind == NODE_KIND_ID)
+                                    {
+                                        if (key3->kind == NODE_KIND_ID)
+                                        {
+                                            if (syntax_idcmp(type1, key3) == 1)
+                                            {
+                                                node_t *ngs1 = NULL;
+                                                node_t *ngs2 = NULL;
+                                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                                if (r1 == -1)
+                                                {
+                                                    return -1;
+                                                }
+                                                else
+                                                if (r1 == 1)
+                                                {
+                                                    node_t *nps1 = NULL;
+                                                    node_t *nps2 = NULL;
+                                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                                    if (r2 == -1)
+                                                    {
+                                                        return -1;
+                                                    }
+                                                    else
+                                                    if (r2 == 1)
+                                                    {
+                                                        syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                            key3->position.line, key3->position.column);
+                                                        return -1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else
+                                        if (key3->kind == NODE_KIND_PSEUDONYM)
+                                        {
+                                            node_carrier_t *carrier3 = (node_carrier_t *)key3->value;
+                                            node_t *base3 = carrier3->base;
+                                            if (base3->kind == NODE_KIND_ID)
+                                            {
+                                                if (syntax_idcmp(type1, base3) == 1)
+                                                {
+                                                    node_t *ngs1 = NULL;
+                                                    node_t *nfs2 = carrier3->data;
+                                                    int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                                    if (r1 == -1)
+                                                    {
+                                                        return -1;
+                                                    }
+                                                    else
+                                                    if (r1 == 1)
+                                                    {
+                                                        syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                            key3->position.line, key3->position.column);
+                                                        return -1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    if (type1->kind == NODE_KIND_PSEUDONYM)
+                                    {
+                                        if (key3->kind == NODE_KIND_ID)
+                                        {
+                                            node_carrier_t *carrier1 = (node_carrier_t *)type1->value;
+                                            node_t *base1 = carrier1->base;
+                                            if (base1->kind == NODE_KIND_ID)
+                                            {
+                                                if (syntax_idcmp(base1, key3) == 1)
+                                                {
+                                                    node_t *ngs1 = NULL;
+                                                    node_t *nfs2 = carrier1->data;
+                                                    int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                                    if (r1 == -1)
+                                                    {
+                                                        return -1;
+                                                    }
+                                                    else
+                                                    if (r1 == 1)
+                                                    {
+                                                        syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                            key3->position.line, key3->position.column);
+                                                        return -1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else
+                                        if (key3->kind == NODE_KIND_PSEUDONYM)
+                                        {
+                                            node_carrier_t *carrier1 = (node_carrier_t *)type1->value;
+                                            node_t *base1 = carrier1->base;
+                                            if (base1->kind == NODE_KIND_ID)
+                                            {
+                                                node_carrier_t *carrier3 = (node_carrier_t *)key3->value;
+                                                node_t *base3 = carrier3->base;
+                                                if (base3->kind == NODE_KIND_ID)
+                                                {
+                                                    if (syntax_idcmp(base1, base3) == 1)
+                                                    {
+                                                        node_t *nfs1 = carrier1->data;
+                                                        node_t *nfs2 = carrier3->data;
+                                                        int32_t r1 = syntax_eqaul_fsfs(program, nfs1, nfs2);
+                                                        if (r1 == -1)
+                                                        {
+                                                            return -1;
+                                                        }
+                                                        else
+                                                        if (r1 == 1)
+                                                        {
+                                                            syntax_error(program, type1, "already defined, previous in (%lld:%lld)",
+                                                                key3->position.line, key3->position.column);
+                                                            return -1;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                node_t *key1 = field1->key;
+                                if (field3->type != NULL)
+                                {
+                                    node_t *type3 = field3->type;
+                                    if (key1->kind == NODE_KIND_ID)
+                                    {
+                                        if (type3->kind == NODE_KIND_ID)
+                                        {
+                                            if (syntax_idcmp(key1, type3) == 1)
+                                            {
+                                                node_t *ngs1 = NULL;
+                                                node_t *ngs2 = NULL;
+                                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                                if (r1 == -1)
+                                                {
+                                                    return -1;
+                                                }
+                                                else
+                                                if (r1 == 1)
+                                                {
+                                                    node_t *nps1 = NULL;
+                                                    node_t *nps2 = NULL;
+                                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                                    if (r2 == -1)
+                                                    {
+                                                        return -1;
+                                                    }
+                                                    else
+                                                    if (r2 == 1)
+                                                    {
+                                                        syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                            type3->position.line, type3->position.column);
+                                                        return -1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else
+                                        if (type3->kind == NODE_KIND_PSEUDONYM)
+                                        {
+                                            node_carrier_t *carrier3 = (node_carrier_t *)type3->value;
+                                            node_t *base3 = carrier3->base;
+                                            if (base3->kind == NODE_KIND_ID)
+                                            {
+                                                if (syntax_idcmp(key1, base3) == 1)
+                                                {
+                                                    node_t *ngs1 = NULL;
+                                                    node_t *nfs2 = carrier3->data;
+                                                    int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                                    if (r1 == -1)
+                                                    {
+                                                        return -1;
+                                                    }
+                                                    else
+                                                    if (r1 == 1)
+                                                    {
+                                                        syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                            type3->position.line, type3->position.column);
+                                                        return -1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    if (key1->kind == NODE_KIND_PSEUDONYM)
+                                    {
+                                        if (type3->kind == NODE_KIND_ID)
+                                        {
+                                            
+                                            node_carrier_t *carrier1 = (node_carrier_t *)key1->value;
+                                            node_t *base1 = carrier1->base;
+                                            if (base1->kind == NODE_KIND_ID)
+                                            {
+                                                if (syntax_idcmp(base1, type3) == 1)
+                                                {
+                                                    node_t *ngs1 = NULL;
+                                                    node_t *nfs2 = carrier1->data;
+                                                    int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                                    if (r1 == -1)
+                                                    {
+                                                        return -1;
+                                                    }
+                                                    else
+                                                    if (r1 == 1)
+                                                    {
+                                                        syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                            type3->position.line, type3->position.column);
+                                                        return -1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else
+                                        if (type3->kind == NODE_KIND_PSEUDONYM)
+                                        {
+                                            node_carrier_t *carrier1 = (node_carrier_t *)key1->value;
+                                            node_t *base1 = carrier1->base;
+                                            if (base1->kind == NODE_KIND_ID)
+                                            {
+                                                node_carrier_t *carrier3 = (node_carrier_t *)type3->value;
+                                                node_t *base3 = carrier3->base;
+                                                if (base3->kind == NODE_KIND_ID)
+                                                {
+                                                    if (syntax_idcmp(base1, base3) == 1)
+                                                    {
+                                                        node_t *nfs1 = carrier1->data;
+                                                        node_t *nfs2 = carrier3->data;
+                                                        int32_t r1 = syntax_eqaul_fsfs(program, nfs1, nfs2);
+                                                        if (r1 == -1)
+                                                        {
+                                                            return -1;
+                                                        }
+                                                        else
+                                                        if (r1 == 1)
+                                                        {
+                                                            syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                                type3->position.line, type3->position.column);
+                                                            return -1;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    node_t *key3 = field3->key;
+                                    if (key1->kind == NODE_KIND_ID)
+                                    {
+                                        if (key3->kind == NODE_KIND_ID)
+                                        {
+                                            if (syntax_idcmp(key1, key3) == 1)
+                                            {
+                                                node_t *ngs1 = NULL;
+                                                node_t *ngs2 = NULL;
+                                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                                if (r1 == -1)
+                                                {
+                                                    return -1;
+                                                }
+                                                else
+                                                if (r1 == 1)
+                                                {
+                                                    node_t *nps1 = NULL;
+                                                    node_t *nps2 = NULL;
+                                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                                    if (r2 == -1)
+                                                    {
+                                                        return -1;
+                                                    }
+                                                    else
+                                                    if (r2 == 1)
+                                                    {
+                                                        syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                            key3->position.line, key3->position.column);
+                                                        return -1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else
+                                        if (key3->kind == NODE_KIND_PSEUDONYM)
+                                        {
+                                            node_carrier_t *carrier3 = (node_carrier_t *)key3->value;
+                                            node_t *base3 = carrier3->base;
+                                            if (base3->kind == NODE_KIND_ID)
+                                            {
+                                                if (syntax_idcmp(key1, base3) == 1)
+                                                {
+                                                    node_t *ngs1 = NULL;
+                                                    node_t *nfs2 = carrier3->data;
+                                                    int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                                    if (r1 == -1)
+                                                    {
+                                                        return -1;
+                                                    }
+                                                    else
+                                                    if (r1 == 1)
+                                                    {
+                                                        syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                            key3->position.line, key3->position.column);
+                                                        return -1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    if (key1->kind == NODE_KIND_PSEUDONYM)
+                                    {
+                                        if (key3->kind == NODE_KIND_ID)
+                                        {
+                                            node_carrier_t *carrier1 = (node_carrier_t *)key1->value;
+                                            node_t *base1 = carrier1->base;
+                                            if (base1->kind == NODE_KIND_ID)
+                                            {
+                                                if (syntax_idcmp(base1, key3) == 1)
+                                                {
+                                                    node_t *ngs1 = NULL;
+                                                    node_t *nfs2 = carrier1->data;
+                                                    int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                                    if (r1 == -1)
+                                                    {
+                                                        return -1;
+                                                    }
+                                                    else
+                                                    if (r1 == 1)
+                                                    {
+                                                        syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                            key3->position.line, key3->position.column);
+                                                        return -1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else
+                                        if (key3->kind == NODE_KIND_PSEUDONYM)
+                                        {
+                                            node_carrier_t *carrier1 = (node_carrier_t *)key1->value;
+                                            node_t *base1 = carrier1->base;
+                                            if (base1->kind == NODE_KIND_ID)
+                                            {
+                                                node_carrier_t *carrier3 = (node_carrier_t *)key3->value;
+                                                node_t *base3 = carrier3->base;
+                                                if (base3->kind == NODE_KIND_ID)
+                                                {
+                                                    if (syntax_idcmp(base1, base3) == 1)
+                                                    {
+                                                        node_t *nfs1 = carrier1->data;
+                                                        node_t *nfs2 = carrier3->data;
+                                                        int32_t r1 = syntax_eqaul_fsfs(program, nfs1, nfs2);
+                                                        if (r1 == -1)
+                                                        {
+                                                            return -1;
+                                                        }
+                                                        else
+                                                        if (r1 == 1)
+                                                        {
+                                                            syntax_error(program, key1, "already defined, previous in (%lld:%lld)",
+                                                                key3->position.line, key3->position.column);
+                                                            return -1;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class3 = (node_class_t *)item2->value;
+
+                    if (field1->type != NULL)
+                    {
+                        node_t *type1 = field1->type;
+                        if (type1->kind == NODE_KIND_ID)
+                        {
+                            if (syntax_idcmp(type1, class3->key) == 1)
+                            {
+                                node_t *ngs1 = class3->generics;
+                                node_t *ngs2 = NULL;
+                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                if (r1 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r1 == 1)
+                                {
+                                    node_t *node3 = class3->block;
+                                    node_block_t *block3 = (node_block_t *)node3->value;
+                                    ilist_t *b3;
+                                    for (b3 = block3->list->begin;b3 != block3->list->end;b3 = b3->next)
+                                    {
+                                        node_t *item3 = (node_t *)b3->value;
+                                        if (item3->kind == NODE_KIND_FUNC)
+                                        {
+                                            node_func_t *func3 = (node_func_t *)item3->value;
+                                            if (syntax_idstrcmp(func3->key, "constructor") == 1)
+                                            {
+                                                node_t *nps1 = func3->parameters;
+                                                node_t *nps2 = NULL;
+                                                int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                                if (r2 == -1)
+                                                {
+                                                    return -1;
+                                                }
+                                                else
+                                                if (r2 == 1)
+                                                {
+                                                    syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                        type1->position.line, type1->position.column);
+                                                    return -1;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        if (type1->kind == NODE_KIND_PSEUDONYM)
+                        {
+                            node_carrier_t *carrier1 = (node_carrier_t *)type1->value;
+                            node_t *base1 = carrier1->base;
+                            if (base1->kind == NODE_KIND_ID)
+                            {
+                                if (syntax_idcmp(base1, class3->key) == 1)
+                                {
+                                    node_t *ngs1 = class3->generics;
+                                    node_t *nfs2 = carrier1->data;
+                                    int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                    if (r1 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r1 == 1)
+                                    {
+                                        node_t *node3 = class3->block;
+                                        node_block_t *block3 = (node_block_t *)node3->value;
+                                        ilist_t *b3;
+                                        for (b3 = block3->list->begin;b3 != block3->list->end;b3 = b3->next)
+                                        {
+                                            node_t *item3 = (node_t *)b3->value;
+                                            if (item3->kind == NODE_KIND_FUNC)
+                                            {
+                                                node_func_t *func3 = (node_func_t *)item3->value;
+                                                if (syntax_idstrcmp(func3->key, "constructor") == 1)
+                                                {
+                                                    node_t *nps1 = func3->parameters;
+                                                    node_t *nps2 = NULL;
+                                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                                    if (r2 == -1)
+                                                    {
+                                                        return -1;
+                                                    }
+                                                    else
+                                                    if (r2 == 1)
+                                                    {
+                                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                            type1->position.line, type1->position.column);
+                                                        return -1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        node_t *key1 = field1->key;
+                        if (key1->kind == NODE_KIND_ID)
+                        {
+                            if (syntax_idcmp(key1, class3->key) == 1)
+                            {
+                                node_t *ngs1 = class3->generics;
+                                node_t *ngs2 = NULL;
+                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                if (r1 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r1 == 1)
+                                {
+                                    node_t *node3 = class3->block;
+                                    node_block_t *block3 = (node_block_t *)node3->value;
+                                    ilist_t *b3;
+                                    for (b3 = block3->list->begin;b3 != block3->list->end;b3 = b3->next)
+                                    {
+                                        node_t *item3 = (node_t *)b3->value;
+                                        if (item3->kind == NODE_KIND_FUNC)
+                                        {
+                                            node_func_t *func3 = (node_func_t *)item3->value;
+                                            if (syntax_idstrcmp(func3->key, "constructor") == 1)
+                                            {
+                                                node_t *nps1 = func3->parameters;
+                                                node_t *nps2 = NULL;
+                                                int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                                if (r2 == -1)
+                                                {
+                                                    return -1;
+                                                }
+                                                else
+                                                if (r2 == 1)
+                                                {
+                                                    syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                        key1->position.line, key1->position.column);
+                                                    return -1;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        if (key1->kind == NODE_KIND_PSEUDONYM)
+                        {
+                            node_carrier_t *carrier1 = (node_carrier_t *)key1->value;
+                            node_t *base1 = carrier1->base;
+                            if (base1->kind == NODE_KIND_ID)
+                            {
+                                if (syntax_idcmp(base1, class3->key) == 1)
+                                {
+                                    node_t *ngs1 = class3->generics;
+                                    node_t *nfs2 = carrier1->data;
+                                    int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                    if (r1 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r1 == 1)
+                                    {
+                                        node_t *node3 = class3->block;
+                                        node_block_t *block3 = (node_block_t *)node3->value;
+                                        ilist_t *b3;
+                                        for (b3 = block3->list->begin;b3 != block3->list->end;b3 = b3->next)
+                                        {
+                                            node_t *item3 = (node_t *)b3->value;
+                                            if (item3->kind == NODE_KIND_FUNC)
+                                            {
+                                                node_func_t *func3 = (node_func_t *)item3->value;
+                                                if (syntax_idstrcmp(func3->key, "constructor") == 1)
+                                                {
+                                                    node_t *nps1 = func3->parameters;
+                                                    node_t *nps2 = NULL;
+                                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                                    if (r2 == -1)
+                                                    {
+                                                        return -1;
+                                                    }
+                                                    else
+                                                    if (r2 == 1)
+                                                    {
+                                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                            key1->position.line, key1->position.column);
+                                                        return -1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_ENUM)
+                {
+                    node_enum_t *enum2 = (node_enum_t *)item2->value;
+
+                    if (field1->type != NULL)
+                    {
+                        node_t *type1 = field1->type;
+                        if (type1->kind == NODE_KIND_ID)
+                        {
+                            if (syntax_idcmp(type1, enum2->key) == 1)
+                            {
+                                node_t *ngs1 = NULL;
+                                node_t *ngs2 = NULL;
+                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                if (r1 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r1 == 1)
+                                {
+                                    node_t *nps1 = NULL;
+                                    node_t *nps2 = NULL;
+                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                    if (r2 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r2 == 1)
+                                    {
+                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                            type1->position.line, type1->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        if (type1->kind == NODE_KIND_PSEUDONYM)
+                        {
+                            node_carrier_t *carrier1 = (node_carrier_t *)type1->value;
+                            node_t *base1 = carrier1->base;
+                            if (base1->kind == NODE_KIND_ID)
+                            {
+                                if (syntax_idcmp(base1, enum2->key) == 1)
+                                {
+                                    node_t *ngs1 = NULL;
+                                    node_t *nfs2 = carrier1->data;
+                                    int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                    if (r1 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r1 == 1)
+                                    {
+                                        node_t *nps1 = NULL;
+                                        node_t *nps2 = NULL;
+                                        int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r2 == 1)
+                                        {
+                                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                type1->position.line, type1->position.column);
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        node_t *key1 = field1->key;
+                        if (key1->kind == NODE_KIND_ID)
+                        {
+                            if (syntax_idcmp(key1, enum2->key) == 1)
+                            {
+                                node_t *ngs1 = NULL;
+                                node_t *ngs2 = NULL;
+                                int32_t r1 = syntax_eqaul_gsgs(program, ngs1, ngs2);
+                                if (r1 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r1 == 1)
+                                {
+                                    node_t *nps1 = NULL;
+                                    node_t *nps2 = NULL;
+                                    int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                    if (r2 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r2 == 1)
+                                    {
+                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                            key1->position.line, key1->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        if (key1->kind == NODE_KIND_PSEUDONYM)
+                        {
+                            node_carrier_t *carrier1 = (node_carrier_t *)key1->value;
+                            node_t *base1 = carrier1->base;
+                            if (base1->kind == NODE_KIND_ID)
+                            {
+                                if (syntax_idcmp(base1, enum2->key) == 1)
+                                {
+                                    node_t *ngs1 = NULL;
+                                    node_t *nfs2 = carrier1->data;
+                                    int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                    if (r1 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r1 == 1)
+                                    {
+                                        node_t *nps1 = NULL;
+                                        node_t *nps2 = NULL;
+                                        int32_t r2 = syntax_eqaul_psps(program, nps1, nps2);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r2 == 1)
+                                        {
+                                            syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                key1->position.line, key1->position.column);
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                }
+            }
+            break;
+        }
+        else
+        {
+            sub = current;
+            current = current->parent;
+        }
+    }
+
+    return 1;
+}
+
+static int32_t
+syntax_fields(program_t *program, node_t *node)
+{
+    node_block_t *fields = (node_block_t *)node->value;
+    
+	ilist_t *a1;
+    for (a1 = fields->list->begin;a1 != fields->list->end;a1 = a1->next)
+    {
+        node_t *item1 = (node_t *)a1->value;
+        int32_t result;
+        result = syntax_field(program, item1);
+        if (result == -1)
+        {
+            return -1;
+        }
+    }
+	return 1;
+}
+
+static int32_t
 syntax_import(program_t *program, node_t *node)
 {
-	//node_import_t *node_import = (node_import_t *)node->value;
+	node_import_t *import1 = (node_import_t *)node->value;
+
+	if (import1->fields != NULL)
+    {
+        int32_t r1 = syntax_fields(program, import1->fields);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+    }
+
 	return 1;
 }
 
@@ -3033,12 +4672,13 @@ syntax_property(program_t *program, node_t *node)
 {
     node_property_t *property1 = (node_property_t *)node->value;
     
-    node_t *node_current = node->parent;
-    while (node_current != NULL)
+    node_t *sub = node;
+    node_t *current = node->parent;
+    while (current != NULL)
     {
-        if (node_current->kind == NODE_KIND_CLASS)
+        if (current->kind == NODE_KIND_CLASS)
         {
-            node_class_t *class2 = (node_class_t *)node_current->value;
+            node_class_t *class2 = (node_class_t *)current->value;
 
             if (class2->generics != NULL)
             {
@@ -3102,7 +4742,7 @@ syntax_property(program_t *program, node_t *node)
             {
                 node_t *item2 = (node_t *)a2->value;
                 
-                if (item2->id == node->id)
+                if (item2->id == sub->id)
                 {
                     break;
                 }
@@ -3260,9 +4900,32 @@ syntax_property(program_t *program, node_t *node)
         }
         else
         {
-            node_current = node_current->parent;
+            sub = current;
+            current = current->parent;
         }
     }
+    
+    list_t *response1 = list_create();
+    if (response1 == NULL)
+    {
+        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+        return -1;
+    }
+
+    int32_t r1 = syntax_postfix(program, property1->type, response1, node);
+    if (r1 == -1)
+    {
+        return -1;
+    }
+    else
+    if (r1 == 0)
+    {
+        syntax_error(program, property1->type, "reference not found");
+        return -1;
+    }
+
+    list_destroy(response1);
+
     return 1;
 }
 
@@ -3271,18 +4934,19 @@ syntax_heritage(program_t *program, node_t *node)
 {
     node_heritage_t *heritage1 = (node_heritage_t *)node->value;
     
-    node_t *node_current = node->parent;
-    while (node_current != NULL)
+    node_t *sub = node;
+    node_t *current = node->parent;
+    while (current != NULL)
     {
-        if (node_current->kind == NODE_KIND_HERITAGES)
+        if (current->kind == NODE_KIND_HERITAGES)
         {
-            node_block_t *block2 = (node_block_t *)node_current->value;
+            node_block_t *block2 = (node_block_t *)current->value;
 
             ilist_t *a2;
             for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
             {
                 node_t *item2 = (node_t *)a2->value;
-                if (item2->id == node->id)
+                if (item2->id == sub->id)
                 {
                     break;
                 }
@@ -3298,12 +4962,14 @@ syntax_heritage(program_t *program, node_t *node)
                     }
                 }
             }
-            node_current = node_current->parent;
+            
+            sub = current;
+            current = current->parent;
         }
         else
-        if (node_current->kind == NODE_KIND_CLASS)
+        if (current->kind == NODE_KIND_CLASS)
         {
-            node_class_t *class2 = (node_class_t *)node_current->value;
+            node_class_t *class2 = (node_class_t *)current->value;
 
             if (class2->generics != NULL)
             {
@@ -3340,7 +5006,7 @@ syntax_heritage(program_t *program, node_t *node)
             {
                 node_t *item2 = (node_t *)a2->value;
                 
-                if (item2->id == node->id)
+                if (item2->id == sub->id)
                 {
                     break;
                 }
@@ -3498,7 +5164,8 @@ syntax_heritage(program_t *program, node_t *node)
         }
         else
         {
-            node_current = node_current->parent;
+            sub = current;
+            current = current->parent;
         }
     }
 
@@ -3530,12 +5197,12 @@ syntax_class(program_t *program, node_t *node)
     node_t *node1 = class1->block;
     node_block_t *block1 = (node_block_t *)node1->value;
 
-    node_t *node_current = node->parent;
-    while (node_current != NULL)
+    node_t *current = node->parent;
+    while (current != NULL)
     {
-        if (node_current->kind == NODE_KIND_MODULE)
+        if (current->kind == NODE_KIND_MODULE)
         {
-            node_module_t *module2 = (node_module_t *)node_current->value;
+            node_module_t *module2 = (node_module_t *)current->value;
             node_t *node2 = module2->block;
             node_block_t *block2 = (node_block_t *)node2->value;
 
@@ -3547,7 +5214,101 @@ syntax_class(program_t *program, node_t *node)
                 {
                     break;
                 }
-
+                
+                if (item2->kind == NODE_KIND_IMPORT)
+                {
+                    node_import_t *import1 = (node_import_t *)item2->value;
+                    node_t *fields1 = import1->fields;
+                    node_block_t *block3 = (node_block_t *)fields1->value;
+                    ilist_t *a3;
+                    for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
+                    {
+                        node_t *item3 = (node_t *)a3->value;
+                        if (item3->kind == NODE_KIND_FIELD)
+                        {
+                            node_field_t *field1 = (node_field_t *)item3->value;
+                            if (field1->type != NULL)
+                            {
+                                node_t *type1 = field1->type;
+                                if (type1->kind == NODE_KIND_ID)
+                                {
+                                    if (syntax_idcmp(type1, class1->key) == 1)
+                                    {
+                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                            type1->position.line, type1->position.column);
+                                        return -1;
+                                    }
+                                }
+                                else
+                                if (type1->kind == NODE_KIND_PSEUDONYM)
+                                {
+                                    node_carrier_t *carrier1 = (node_carrier_t *)type1->value;
+                                    node_t *key1 = carrier1->base;
+                                    if (key1->kind == NODE_KIND_ID)
+                                    {
+                                        if (syntax_idcmp(key1, class1->key) == 1)
+                                        {
+                                            node_t *ngs1 = class1->generics;
+                                            node_t *nfs2 = carrier1->data;
+                                            int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                            if (r1 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r1 == 1)
+                                            {
+                                                syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                    type1->position.line, type1->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                node_t *key1 = field1->key;
+                                if (key1->kind == NODE_KIND_ID)
+                                {
+                                    if (syntax_idcmp(key1, class1->key) == 1)
+                                    {
+                                        syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                            key1->position.line, key1->position.column);
+                                        return -1;
+                                    }
+                                }
+                                else
+                                if (key1->kind == NODE_KIND_PSEUDONYM)
+                                {
+                                    node_carrier_t *carrier1 = (node_carrier_t *)key1->value;
+                                    node_t *key2 = carrier1->base;
+                                    if (key2->kind == NODE_KIND_ID)
+                                    {
+                                        if (syntax_idcmp(key2, class1->key) == 1)
+                                        {
+                                            node_t *ngs1 = class1->generics;
+                                            node_t *nfs2 = carrier1->data;
+                                            int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                                            if (r1 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r1 == 1)
+                                            {
+                                                syntax_error(program, node, "already defined, previous in (%lld:%lld)",
+                                                    key1->position.line, key1->position.column);
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
                 if (item2->kind == NODE_KIND_CLASS)
                 {
                     node_class_t *class3 = (node_class_t *)item2->value;
@@ -3656,9 +5417,9 @@ syntax_class(program_t *program, node_t *node)
             break;
         }
         else
-        if (node_current->kind == NODE_KIND_CLASS)
+        if (current->kind == NODE_KIND_CLASS)
         {
-            node_class_t *class2 = (node_class_t *)node_current->value;
+            node_class_t *class2 = (node_class_t *)current->value;
             node_t *node2 = class2->block;
             node_block_t *block2 = (node_block_t *)node2->value;
 
@@ -3873,7 +5634,7 @@ syntax_class(program_t *program, node_t *node)
         }
         else
         {
-            node_current = node_current->parent;
+            current = current->parent;
         }
     }
 

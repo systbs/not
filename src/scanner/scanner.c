@@ -1538,9 +1538,9 @@ scanner_advance(scanner_t *scanner)
 				{
 				case 'x':
 					if (scanner_next(scanner) == -1)
-				{
-					return -1;
-				}
+					{
+						return -1;
+					}
 					if (!isspace(scanner->ch))
 					{
 						while (!isspace(scanner->ch))
@@ -1554,6 +1554,51 @@ scanner_advance(scanner_t *scanner)
 							}
 							else
 							{
+								if (scanner->ch == 'S')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'L')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'F')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'D')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'j')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+
 								if (isalpha(scanner->ch))
 								{
 									scanner_error(scanner, (position_t){.path = scanner->file_source->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "wrong hexadecimal number format");
@@ -1588,6 +1633,51 @@ scanner_advance(scanner_t *scanner)
 							}
 							else
 							{
+								if (scanner->ch == 'S')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'L')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'F')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'D')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'j')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+
 								if (isalpha(scanner->ch))
 								{
 									scanner_error(scanner, (position_t){.path = scanner->file_source->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "wrong binary number format");
@@ -1622,6 +1712,51 @@ scanner_advance(scanner_t *scanner)
 							}
 							else
 							{
+								if (scanner->ch == 'S')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'L')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'F')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'D')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'j')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+
 								if (isalpha(scanner->ch))
 								{
 									scanner_error(scanner, (position_t){.path = scanner->file_source->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "wrong octal number format");
@@ -1671,6 +1806,51 @@ scanner_advance(scanner_t *scanner)
 							}
 							else
 							{
+								if (scanner->ch == 'S')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'L')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'F')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'D')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'j')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+
 								if (isalpha(scanner->ch))
 								{
 									scanner_error(scanner, (position_t){.path = scanner->file_source->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "wrong number format");
@@ -1709,6 +1889,51 @@ scanner_advance(scanner_t *scanner)
 							}
 							else
 							{
+								if (scanner->ch == 'S')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'L')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'F')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'D')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								else
+								if (scanner->ch == 'j')
+								{
+									if (scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+									break;
+								}
+								
 								if (isalpha(scanner->ch))
 								{
 									scanner_error(scanner, (position_t){.path = scanner->file_source->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "wrong octal number format");
@@ -1796,6 +2021,51 @@ scanner_advance(scanner_t *scanner)
 					}
 					else
 					{
+						if (scanner->ch == 'S')
+						{
+							if (scanner_next(scanner) == -1)
+							{
+								return -1;
+							}
+							break;
+						}
+						else
+						if (scanner->ch == 'L')
+						{
+							if (scanner_next(scanner) == -1)
+							{
+								return -1;
+							}
+							break;
+						}
+						else
+						if (scanner->ch == 'F')
+						{
+							if (scanner_next(scanner) == -1)
+							{
+								return -1;
+							}
+							break;
+						}
+						else
+						if (scanner->ch == 'D')
+						{
+							if (scanner_next(scanner) == -1)
+							{
+								return -1;
+							}
+							break;
+						}
+						else
+						if (scanner->ch == 'j')
+						{
+							if (scanner_next(scanner) == -1)
+							{
+								return -1;
+							}
+							break;
+						}
+
 						if (isalpha(scanner->ch))
 						{
 							scanner_error(scanner, (position_t){.path = scanner->file_source->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "wrong number format");
@@ -1842,22 +2112,6 @@ scanner_advance(scanner_t *scanner)
 			{
 				scanner_set_token(scanner, (token_t){
 					.type = TOKEN_FOR_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->file_source->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
-						}
-					});
-
-				return 1;
-			}
-			else 
-			if (strncmp(scanner->source + start_offset, "in", max(length, 2)) == 0)
-			{
-				scanner_set_token(scanner, (token_t){
-					.type = TOKEN_IN_KEYWORD,
 					.value = NULL,
 					.position = {
 							.path = scanner->file_source->path,
@@ -1966,7 +2220,7 @@ scanner_advance(scanner_t *scanner)
 				return 1;
 			}
 			else 
-			if (strncmp(scanner->source + start_offset, "protected", max(length, 9)) == 0)
+			if (strncmp(scanner->source + start_offset, "protect", max(length, 7)) == 0)
 			{
 				scanner_set_token(scanner, (token_t){
 					.type = TOKEN_PROTECTED_KEYWORD,
@@ -2106,20 +2360,6 @@ scanner_advance(scanner_t *scanner)
 			{
 				scanner_set_token(scanner, (token_t){
 																			 .type = TOKEN_FALSE_KEYWORD,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->file_source->path,
-																					 .offset = scanner->offset - length,
-																					 .column = scanner->column - (scanner->offset - start_offset),
-																					 .line = scanner->line}});
-
-				return 1;
-			}
-			else 
-			if (strncmp(scanner->source + start_offset, "this", max(length, 4)) == 0)
-			{
-				scanner_set_token(scanner, (token_t){
-																			 .type = TOKEN_THIS_KEYWORD,
 																			 .value = NULL,
 																			 .position = {
 																					 .path = scanner->file_source->path,
