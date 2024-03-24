@@ -1177,38 +1177,6 @@ node_make_var(node_t *node, uint64_t flag, node_t *key, node_t *type, node_t *va
 }
 
 node_t *
-node_make_concept(node_t *node, node_t *key, node_t *value)
-{
-	node_pair_t *basic = (node_pair_t *)malloc(sizeof(node_pair_t));
-	if(basic == NULL){
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_pair_t));
-		return NULL;
-	}
-	memset(basic, 0, sizeof(node_pair_t));
-	basic->key = key;
-	basic->value = value;
-	
-	node_update(node, NODE_KIND_CONCEPT, basic);
-	return node;
-}
-
-node_t *
-node_make_concepts(node_t *node, list_t *list)
-{
-	node_block_t *basic = (node_block_t *)malloc(sizeof(node_block_t));
-	if(basic == NULL)
-	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_block_t));
-		return NULL;
-	}
-	memset(basic, 0, sizeof(node_block_t));
-	basic->list = list;
-	
-	node_update(node, NODE_KIND_CONCEPTS, basic);
-	return node;
-}
-
-node_t *
 node_make_argument(node_t *node, node_t *key, node_t *value)
 {
 	node_pair_t *basic = (node_pair_t *)malloc(sizeof(node_pair_t));
@@ -1274,17 +1242,17 @@ node_make_parameters(node_t *node, list_t *list)
 }
 
 node_t *
-node_make_field(node_t *node, node_t *key, node_t *type)
+node_make_field(node_t *node, node_t *key, node_t *value)
 {
-	node_field_t *basic;
-	if(!(basic = (node_field_t *)malloc(sizeof(node_field_t))))
+	node_pair_t *basic;
+	if(!(basic = (node_pair_t *)malloc(sizeof(node_pair_t))))
 	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_field_t));
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_pair_t));
 		return NULL;
 	}
-	memset(basic, 0, sizeof(node_field_t));
+	memset(basic, 0, sizeof(node_pair_t));
 	basic->key = key;
-	basic->type = type;
+	basic->value = value;
 	
 	node_update(node, NODE_KIND_FIELD, basic);
 	return node;
@@ -1599,7 +1567,7 @@ node_make_import(node_t *node, node_t *path, node_t *fields)
 }
 
 node_t *
-node_make_module(node_t *node, char *path, node_t *block)
+node_make_module(node_t *node, char *path, list_t *items)
 {
 	node_module_t *basic = (node_module_t *)malloc(sizeof(node_module_t));
 	if(basic == NULL)
@@ -1608,7 +1576,7 @@ node_make_module(node_t *node, char *path, node_t *block)
 		return NULL;
 	}
 	memset(basic, 0, sizeof(node_module_t));
-	basic->block = block;
+	basic->items = items;
 	basic->path = path;
 	
 	node_update(node, NODE_KIND_MODULE, basic);

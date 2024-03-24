@@ -305,7 +305,7 @@ typedef struct node_import {
 
 typedef struct node_module {
 	char *path;
-	node_t *block;
+	list_t *items;
 } node_module_t;
 
 
@@ -607,6 +607,6 @@ node_t *
 node_make_import(node_t *node, node_t *path, node_t *fields);
 
 node_t *
-node_make_module(node_t *node, char *path, node_t *block);
+node_make_module(node_t *node, char *path, list_t *items);
 
 #endif /* __NODE_H__ */
