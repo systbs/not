@@ -1,20 +1,11 @@
-import ("~/types/statics") : {
-  Short, Int, Long, Double, Float, String
-}
-
-import ("~/types/container") : {
-  Array<T>:Array<T>
-}
+import {Short, Int, Long, Double, Float, String} : "~/types/statics";
+import {Array<T>:Container.Array<T>} : "~/types/container";
 
 class System<R extends Int, T = Float>
 {
   export func Constructor()
   {
-
-  }
-
-  func action(a:Array<T>) : Int {
-    
+    print("Hello World!");
   }
 }
 
@@ -25,7 +16,7 @@ class System<T extends Int>
 
   }
 
-  func action(a:Array<T>) : Int {
+  func Action(a:Array<T>) : Int {
     
   }
 }

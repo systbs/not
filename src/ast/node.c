@@ -1550,17 +1550,50 @@ node_make_body(node_t *node, list_t *list)
 }
 
 node_t *
-node_make_import(node_t *node, node_t *path, node_t *fields)
+node_make_package(node_t *node, node_t *key, node_t *generics, node_t *route)
 {
-	node_import_t *basic;
-	if(!(basic = (node_import_t *)malloc(sizeof(node_import_t))))
+	node_package_t *basic = (node_package_t *)malloc(sizeof(node_package_t));
+	if(basic == NULL)
+	{
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_package_t));
+		return NULL;
+	}
+	memset(basic, 0, sizeof(node_package_t));
+	basic->key = key;
+	basic->generics = generics;
+	basic->route = route;
+	
+	node_update(node, NODE_KIND_PACKAGE, basic);
+	return node;
+}
+
+node_t *
+node_make_packages(node_t *node, list_t *list)
+{
+	node_block_t *basic = (node_block_t *)malloc(sizeof(node_block_t));
+	if(basic == NULL)
+	{
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_block_t));
+		return NULL;
+	}
+	memset(basic, 0, sizeof(node_block_t));
+	basic->list = list;
+	
+	node_update(node, NODE_KIND_PACKAGES, basic);
+	return node;
+}
+node_t *
+node_make_import(node_t *node, node_t *path, node_t *packages)
+{
+	node_import_t *basic = (node_import_t *)malloc(sizeof(node_import_t));
+	if(basic == NULL)
 	{
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_import_t));
 		return NULL;
 	}
 	memset(basic, 0, sizeof(node_import_t));
 	basic->path = path;
-	basic->fields = fields;
+	basic->packages = packages;
 	
 	node_update(node, NODE_KIND_IMPORT, basic);
 	return node;

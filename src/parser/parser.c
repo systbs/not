@@ -3938,10 +3938,14 @@ parser_heritage(program_t *program, parser_t *parser, node_t *scope, node_t *par
 	if (!key)
 	{
 		return NULL;
-	}	if (parser_match(program, parser, TOKEN_COLON) == -1)
+	}
+	
+	if (parser_match(program, parser, TOKEN_COLON) == -1)
 	{
 		return NULL;
-	}	node_t *type = parser_expression(program, parser, scope, node);
+	}
+	
+	node_t *type = parser_expression(program, parser, scope, node);
 	if (!type)
 	{
 		return NULL;
@@ -4090,6 +4094,117 @@ parser_class(program_t *program, parser_t *parser, node_t *scope, node_t *parent
 }
 
 static node_t *
+parser_package(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
+{
+	node_t *node = node_create(scope, parent, parser->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *key = parser_id(program, parser, scope, node);
+	if (!key)
+	{
+		return NULL;
+	}
+
+	node_t *generics = NULL;
+	if (parser->token->type == TOKEN_LT)
+	{
+		if (parser_next(program, parser) == -1)
+		{
+			return NULL;
+		}
+
+		if (parser_gt(program, parser) == -1)
+		{
+			return NULL;
+		}
+
+		if (parser->token->type == TOKEN_GT)
+		{
+			parser_error(program, parser->token->position, "empty generic types");
+			return NULL;
+		}
+
+		generics = parser_generics(program, parser, scope, node);
+		if (!generics)
+		{
+			return NULL;
+		}
+
+		if (parser_gt(program, parser) == -1)
+		{
+			return NULL;
+		}
+
+		if (parser_match(program, parser, TOKEN_GT) == -1)
+		{
+			return NULL;
+		}
+	}
+
+	node_t *route = NULL;
+	if (parser->token->type == TOKEN_COLON)
+	{
+		if (parser_match(program, parser, TOKEN_COLON) == -1)
+		{
+			return NULL;
+		}
+
+		route = parser_postfix(program, parser, node, node);
+		if (!route)
+		{
+			return NULL;
+		}
+	}
+
+	return node_make_package(node, key, generics, route);
+}
+
+static node_t *
+parser_packages(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
+{
+	node_t *node = node_create(scope, parent, parser->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	list_t *packages = list_create();
+	if (!packages)
+	{
+		return NULL;
+	}
+
+	while (true)
+	{
+		node_t *node2 = parser_package(program, parser, scope, node);
+		if (!node2)
+		{
+			return NULL;
+		}
+
+		if (!list_rpush(packages, node2))
+		{
+			return NULL;
+		}
+
+		if (parser->token->type != TOKEN_COMMA)
+		{
+			break;
+		}
+
+		if (parser_next(program, parser) == -1)
+		{
+			return NULL;
+		}
+	}
+
+	return node_make_packages(node, packages);
+}
+
+static node_t *
 parser_import(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
@@ -4103,7 +4218,23 @@ parser_import(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 		return NULL;
 	}
 
-	if (parser_match(program, parser, TOKEN_LPAREN) == -1)
+	if (parser_match(program, parser, TOKEN_LBRACE) == -1)
+	{
+		return NULL;
+	}
+	
+	node_t *packages = parser_packages(program, parser, scope, node);
+	if (!packages)
+	{
+		return NULL;
+	}
+
+	if (parser_match(program, parser, TOKEN_RBRACE) == -1)
+	{
+		return NULL;
+	}
+
+	if (parser_match(program, parser, TOKEN_COLON) == -1)
 	{
 		return NULL;
 	}
@@ -4114,33 +4245,7 @@ parser_import(program_t *program, parser_t *parser, node_t *scope, node_t *paren
 		return NULL;
 	}
 
-	if (parser_match(program, parser, TOKEN_RPAREN) == -1)
-	{
-		return NULL;
-	}
-
-	if (parser_match(program, parser, TOKEN_COLON) == -1)
-	{
-		return NULL;
-	}
-
-	if (parser_match(program, parser, TOKEN_LBRACE) == -1)
-	{
-		return NULL;
-	}
-	
-	node_t *fields = parser_fields(program, parser, scope, node);
-	if (!fields)
-	{
-		return NULL;
-	}
-
-	if (parser_match(program, parser, TOKEN_RBRACE) == -1)
-	{
-		return NULL;
-	}
-
-	return node_make_import(node, path, fields);
+	return node_make_import(node, path, packages);
 }
 
 static node_t *

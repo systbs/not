@@ -134,6 +134,8 @@ typedef enum node_kind {
 	NODE_KIND_ENUM,
 	NODE_KIND_BLOCK,
 	NODE_KIND_BODY,
+	NODE_KIND_PACKAGE,
+	NODE_KIND_PACKAGES,
 	NODE_KIND_IMPORT,
 	NODE_KIND_MODULE,
 	NODE_KIND_DOC
@@ -298,9 +300,15 @@ typedef struct node_enum {
 	node_t *block;
 } node_enum_t;
 
+typedef struct node_package {
+	node_t *key;
+	node_t *generics;
+	node_t *route;
+} node_package_t;
+
 typedef struct node_import {
 	node_t *path;
-	node_t *fields;
+	node_t *packages;
 } node_import_t;
 
 typedef struct node_module {
@@ -602,6 +610,12 @@ node_make_body(node_t *node, list_t *objects);
 
 node_t *
 node_make_block(node_t *node, list_t *stmt);
+
+node_t *
+node_make_package(node_t *node, node_t *key, node_t *generics, node_t *route);
+
+node_t *
+node_make_packages(node_t *node, list_t *list);
 
 node_t *
 node_make_import(node_t *node, node_t *path, node_t *fields);
