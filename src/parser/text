@@ -118,9 +118,9 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
         }
     }
     else
-    if (root->kind == NODE_KIND_FUNC)
+    if (root->kind == NODE_KIND_FUN)
     {
-        node_func_t *func2 = (node_func_t *)root->value;
+        node_fun_t *func2 = (node_fun_t *)root->value;
         if (func2->generics != NULL)
         {
             node_t *node2 = func2->generics;
@@ -211,9 +211,9 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                 }
             }
             else
-            if (item1->kind == NODE_KIND_FUNC)
+            if (item1->kind == NODE_KIND_FUN)
             {
-                node_func_t *func1 = (node_func_t *)item1->value;
+                node_fun_t *func1 = (node_fun_t *)item1->value;
                 if (syntax_idstrcmp(func1->key, name) == 1)
                 {
                     ilist_t *r1 = list_rpush(response, item1);
@@ -382,9 +382,9 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                                         }
                                     }
                                     else
-                                    if (item4->kind == NODE_KIND_FUNC)
+                                    if (item4->kind == NODE_KIND_FUN)
                                     {
-                                        node_func_t *func1 = (node_func_t *)item4->value;
+                                        node_fun_t *func1 = (node_fun_t *)item4->value;
                                         if (syntax_idstrcmp(func1->key, name) == 1)
                                         {
                                             ilist_t *r1 = list_rpush(response, item4);
@@ -686,9 +686,9 @@ syntax_pseudonym(program_t *program, node_t *node, list_t *response)
                 }
             }
             else
-            if (item1->kind == NODE_KIND_FUNC)
+            if (item1->kind == NODE_KIND_FUN)
             {
-                node_func_t *func1 = (node_func_t *)item1;
+                node_fun_t *func1 = (node_fun_t *)item1;
                 node_t *ngs1 = func1->generics;
                 node_t *nas2 = carrier->data;
                 int32_t r1 = syntax_eqaul_gscs(program, ngs1, nas2);
@@ -767,9 +767,9 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                 for (b1 = block1->list->begin;b1 != block1->list->end;b1 = b1->next)
                 {
                     node_t *item2 = (node_t *)b1->value;
-                    if (item2->kind == NODE_KIND_FUNC)
+                    if (item2->kind == NODE_KIND_FUN)
                     {
-                        node_func_t *func1 = (node_func_t *)item2->value;
+                        node_fun_t *func1 = (node_fun_t *)item2->value;
                         if (syntax_idstrcmp(func1->key, "constructor") == 1)
                         {
                             node_t *nps1 = func1->parameters;
@@ -803,9 +803,9 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                 }
             }
             else
-            if (item1->kind == NODE_KIND_FUNC)
+            if (item1->kind == NODE_KIND_FUN)
             {
-                node_func_t *func1 = (node_func_t *)item1->value;
+                node_fun_t *func1 = (node_fun_t *)item1->value;
                 node_t *nps1 = func1->parameters;
                 node_t *nds2 = carrier->data;
                 int32_t r1 = syntax_eqaul_psas(program, nps1, nds2);
@@ -844,9 +844,9 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                     for (b1 = block1->list->begin;b1 != block1->list->end;b1 = b1->next)
                     {
                         node_t *item2 = (node_t *)b1->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "constructor") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -873,9 +873,9 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                     }
                 }
                 else
-                if (referto->kind == NODE_KIND_FUNC)
+                if (referto->kind == NODE_KIND_FUN)
                 {
-                    node_func_t *func1 = (node_func_t *)referto->value;
+                    node_fun_t *func1 = (node_fun_t *)referto->value;
                     node_t *nps1 = func1->parameters;
                     node_t *nds2 = carrier->data;
                     int32_t r1 = syntax_eqaul_psas(program, nps1, nds2);
@@ -915,9 +915,9 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                     for (b1 = block1->list->begin;b1 != block1->list->end;b1 = b1->next)
                     {
                         node_t *item2 = (node_t *)b1->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "constructor") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -944,9 +944,9 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                     }
                 }
                 else
-                if (referto->kind == NODE_KIND_FUNC)
+                if (referto->kind == NODE_KIND_FUN)
                 {
-                    node_func_t *func1 = (node_func_t *)referto->value;
+                    node_fun_t *func1 = (node_fun_t *)referto->value;
                     node_t *nps1 = func1->parameters;
                     node_t *nds2 = carrier->data;
                     int32_t r1 = syntax_eqaul_psas(program, nps1, nds2);
@@ -986,9 +986,9 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                     for (b1 = block1->list->begin;b1 != block1->list->end;b1 = b1->next)
                     {
                         node_t *item2 = (node_t *)b1->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "constructor") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -1015,9 +1015,9 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                     }
                 }
                 else
-                if (referto->kind == NODE_KIND_FUNC)
+                if (referto->kind == NODE_KIND_FUN)
                 {
-                    node_func_t *func1 = (node_func_t *)referto->value;
+                    node_fun_t *func1 = (node_fun_t *)referto->value;
                     node_t *nps1 = func1->parameters;
                     node_t *nds2 = carrier->data;
                     int32_t r1 = syntax_eqaul_psas(program, nps1, nds2);
@@ -1077,9 +1077,9 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                             for (a3 = block2->list->begin;a3 != block2->list->end;a3 = a3->next)
                             {
                                 node_t *item3 = (node_t *)a3->value;
-                                if (item3->kind == NODE_KIND_FUNC)
+                                if (item3->kind == NODE_KIND_FUN)
                                 {
-                                    node_func_t *func1 = (node_func_t *)item3->value;
+                                    node_fun_t *func1 = (node_fun_t *)item3->value;
                                     if (syntax_idstrcmp(func1->key, "constructor") == 1)
                                     {
                                         node_t *nps1 = func1->parameters;
@@ -1167,9 +1167,9 @@ syntax_item(program_t *program, node_t *node, list_t *response)
                 for (b1 = block1->list->begin;b1 != block1->list->end;b1 = b1->next)
                 {
                     node_t *item2 = (node_t *)b1->value;
-                    if (item2->kind == NODE_KIND_FUNC)
+                    if (item2->kind == NODE_KIND_FUN)
                     {
-                        node_func_t *func1 = (node_func_t *)item2->value;
+                        node_fun_t *func1 = (node_fun_t *)item2->value;
                         if (syntax_idstrcmp(func1->key, "[]") == 1)
                         {
                             node_t *nps1 = func1->parameters;
@@ -1307,9 +1307,9 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
                         }
                     }
                     else
-                    if (item2->kind == NODE_KIND_FUNC)
+                    if (item2->kind == NODE_KIND_FUN)
                     {
-                        node_func_t *func1 = (node_func_t *)item2->value;
+                        node_fun_t *func1 = (node_fun_t *)item2->value;
                         if (syntax_idcmp(basic->right, func1->key) == 1)
                         {
                             ilist_t *r1 = list_rpush(response, item2);
@@ -1430,9 +1430,9 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
                                                 }
                                             }
                                             else
-                                            if (item4->kind == NODE_KIND_FUNC)
+                                            if (item4->kind == NODE_KIND_FUN)
                                             {
-                                                node_func_t *func1 = (node_func_t *)item4->value;
+                                                node_fun_t *func1 = (node_fun_t *)item4->value;
                                                 if (syntax_idcmp(basic->right, func1->key) == 1)
                                                 {
                                                     ilist_t *r1 = list_rpush(response, item4);
@@ -1936,9 +1936,9 @@ syntax_power(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "**") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -2027,9 +2027,9 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "*") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -2110,9 +2110,9 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "/") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -2193,9 +2193,9 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "%") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -2276,9 +2276,9 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "\\") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -2366,9 +2366,9 @@ syntax_addative(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "+") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -2448,9 +2448,9 @@ syntax_addative(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "-") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -2539,9 +2539,9 @@ syntax_shifting(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "<<") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -2622,9 +2622,9 @@ syntax_shifting(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, ">>") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -2713,9 +2713,9 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "<") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -2796,9 +2796,9 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "<=") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -2879,9 +2879,9 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, ">") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -2962,9 +2962,9 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, ">=") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -3053,9 +3053,9 @@ syntax_equality(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "==") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -3136,9 +3136,9 @@ syntax_equality(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "!=") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -3227,9 +3227,9 @@ syntax_bitwise_and(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "&") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -3318,9 +3318,9 @@ syntax_bitwise_xor(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "^") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -3409,9 +3409,9 @@ syntax_bitwise_or(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "|") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -3500,9 +3500,9 @@ syntax_logical_and(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "&&") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
@@ -3591,9 +3591,9 @@ syntax_logical_or(program_t *program, node_t *node, list_t *response)
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FUNC)
+                        if (item2->kind == NODE_KIND_FUN)
                         {
-                            node_func_t *func1 = (node_func_t *)item2->value;
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
                             if (syntax_idstrcmp(func1->key, "||") == 1)
                             {
                                 node_t *nps1 = func1->parameters;

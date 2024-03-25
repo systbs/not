@@ -10,11 +10,6 @@ typedef struct node {
 
 	void *value;
 
-	struct node *referto;
-
-	struct node *arguments;
-	struct node *concepts;
-
 	struct node *parent;
 	struct node *scope;
 } node_t;
@@ -111,7 +106,7 @@ typedef enum node_kind {
 	NODE_KIND_TYPE,
 	NODE_KIND_LAMBDA,
 	NODE_KIND_FN,
-	NODE_KIND_FUNC,
+	NODE_KIND_FUN,
 	NODE_KIND_CLASS,
 	NODE_KIND_METHOD,
 	NODE_KIND_PAIR,
@@ -251,6 +246,8 @@ typedef struct node_generic {
 } node_generic_t;
 
 typedef struct node_lambda {
+	node_t *key;
+	node_t *generics;
 	node_t *parameters;
 	node_t *body;
 } node_lambda_t;
@@ -267,7 +264,7 @@ typedef struct node_func {
 	node_t *parameters;
 	node_t *result;
 	node_t *body;
-} node_func_t;
+} node_fun_t;
 
 typedef struct node_property {
 	uint64_t flag;
@@ -325,7 +322,7 @@ node_t *
 node_create(node_t *scope, node_t *parent, position_t position);
 
 node_t *
-node_clone(node_t *source);
+node_clone(node_t *parent, node_t *node);
 
 node_t *
 node_make_id(node_t *node, char *value);
@@ -573,7 +570,7 @@ node_t *
 node_make_func(node_t *node,uint64_t flag,node_t *key, node_t *generics, node_t *parameters, node_t *result, node_t *block);
 
 node_t *
-node_make_lambda(node_t *node, node_t *parameters, node_t *block);
+node_make_lambda(node_t *node, node_t *key, node_t *generics, node_t *parameters, node_t *body);
 
 node_t *
 node_make_fn(node_t *node, node_t *parameters, node_t *result);

@@ -3,7 +3,7 @@ import {Array<T>:Container.Array<T>} : "~/types/container";
 
 class System<R extends Int, T = Float>
 {
-  export func Constructor()
+  export fun Constructor()
   {
     print("Hello World!");
   }
@@ -11,12 +11,12 @@ class System<R extends Int, T = Float>
 
 class System<T extends Int>
 {
-  export func Constructor()
+  export fun Constructor()
   {
 
   }
 
-  func Action(a:Array<T>) : Int {
-    
+  fun Action(a:Array<T>) : Int {
+    var func1 = fun <T>(p1:Int) {};
   }
 }

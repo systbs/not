@@ -2440,10 +2440,10 @@ scanner_advance(scanner_t *scanner)
 				return 1;
 			}
 			else 
-			if (strncmp(scanner->source + start_offset, "func", max(length, 4)) == 0)
+			if (strncmp(scanner->source + start_offset, "fun", max(length, 3)) == 0)
 			{
 				scanner_set_token(scanner, (token_t){
-																			 .type = TOKEN_FUNC_KEYWORD,
+																			 .type = TOKEN_FUN_KEYWORD,
 																			 .value = NULL,
 																			 .position = {
 																					 .path = scanner->file_source->path,
