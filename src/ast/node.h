@@ -324,6 +324,9 @@ node_create(node_t *scope, node_t *parent, position_t position);
 node_t *
 node_clone(node_t *parent, node_t *node);
 
+void
+node_prug(node_t *node);
+
 node_t *
 node_make_id(node_t *node, char *value);
 

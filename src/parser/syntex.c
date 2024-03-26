@@ -320,6 +320,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                     
                                         list_destroy(response1);
                                     }
+                                    break;
                                }
                             }
                         }
@@ -344,7 +345,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                 if (item2->kind == NODE_KIND_GENERIC)
                 {
                     cnt2 += 1;
-                    if (cnt1 > cnt2)
+                    if (cnt2 > cnt1)
                     {
                         node_generic_t *generic2 = (node_generic_t *)item2->value;
                         if (generic2->value == NULL)
@@ -457,9 +458,9 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                     }
                                                 }
                                                 list_destroy(response2);
+                                                break;
                                             }
                                         }
-                                        
                                         list_destroy(response1);
                                     }
                                 }
@@ -576,9 +577,9 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                     }
                                                 }
                                                 list_destroy(response2);
+                                                break;
                                             }
                                         }
-                                        
                                         list_destroy(response1);
                                     }
                                 }
@@ -677,8 +678,8 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                             {
                                 continue;
                             }
-                            node_parameter_t *parameter2 = (node_parameter_t *)item2->value;
                             
+                            node_parameter_t *parameter2 = (node_parameter_t *)item2->value;
                             list_t *response1 = list_create();
                             if (response1 == NULL)
                             {
@@ -730,6 +731,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                         for (b2 = response2->begin;b2 != response2->end;b2 = b2->next)
                                         {
                                             node_t *item4 = (node_t *)b2->value;
+                                            
                                             if (item3->id != item4->id)
                                             {
                                                 list_destroy(response2);
@@ -743,7 +745,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                
                                 list_destroy(response1);
                             }
-                        
+                            break;
                         }
                     }
 
@@ -757,6 +759,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                 }
             }
 
+            
             cnt2 = 0;
             node_block_t *bps2 = (node_block_t *)nps2->value;
             ilist_t *a2;
@@ -766,7 +769,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                 if (item2->kind == NODE_KIND_PARAMETER)
                 {
                     cnt2 += 1;
-                    if (cnt1 > cnt2)
+                    if (cnt2 > cnt1)
                     {
                         node_parameter_t *parameter2 = (node_parameter_t *)item2->value;
                         if (parameter2->value == NULL)
@@ -860,10 +863,9 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                             }
                                         }
                                         list_destroy(response2);
+                                        break;
                                     }
-                                    list_destroy(response1);
                                 }
-
                                 list_destroy(response1);
                             }
                         }
@@ -960,10 +962,9 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                             }
                                         }
                                         list_destroy(response2);
+                                        break;
                                     }
-                                    list_destroy(response1);
                                 }
-
                                 list_destroy(response1);
                             }
                         }
@@ -1500,6 +1501,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                     list_destroy(response1);
                                 }
                             }
+                            break;
                         }
                     }
 
@@ -1522,7 +1524,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                 if (item2->kind == NODE_KIND_FIELD)
                 {
                     cnt2 += 1;
-                    if (cnt1 > cnt2)
+                    if (cnt2 > cnt1)
                     {
                         goto region_by_name_check;
                     }
@@ -1631,6 +1633,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                                     }
                                                 }
                                                 list_destroy(response2);
+                                                break;
                                             }
                                         }
                                         
@@ -1750,6 +1753,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                                     }
                                                 }
                                                 list_destroy(response2);
+                                                break;
                                             }
                                         }
                                         
@@ -3605,7 +3609,6 @@ syntax_generic(program_t *program, node_t *node)
             for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
             {
                 node_t *item2 = (node_t *)a2->value;
-                
                 if (item2->id == sub->id)
                 {
                     break;
@@ -3659,9 +3662,8 @@ syntax_generic(program_t *program, node_t *node)
                 }
                 else
                 if (item2->kind == NODE_KIND_FUN)
-                {
+                { 
                     node_fun_t *func2 = (node_fun_t *)item2->value;
-
                     if (syntax_idcmp(generic1->key, func2->key) == 1)
                     {
                         node_t *ngs1 = NULL;
@@ -3768,7 +3770,7 @@ syntax_generic(program_t *program, node_t *node)
             current = current->parent;
         }
     }
-    
+
     if (generic1->type != NULL)
     {
         list_t *response1 = list_create();
@@ -5241,6 +5243,7 @@ syntax_class(program_t *program, node_t *node)
     node_t *node1 = class1->block;
     node_block_t *block1 = (node_block_t *)node1->value;
 
+    node_t *sub = node;
     node_t *current = node->parent;
     while (current != NULL)
     {
@@ -5252,7 +5255,7 @@ syntax_class(program_t *program, node_t *node)
             for (a2 = module2->items->begin;a2 != module2->items->end;a2 = a2->next)
             {
                 node_t *item2 = (node_t *)a2->value;
-                if (item2->id == node->id)
+                if (item2->id == sub->id)
                 {
                     break;
                 }
@@ -5615,6 +5618,7 @@ syntax_class(program_t *program, node_t *node)
         }
         else
         {
+            sub = current;
             current = current->parent;
         }
     }
@@ -5641,6 +5645,7 @@ syntax_class(program_t *program, node_t *node)
     for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
     {
         node_t *item = (node_t *)a1->value;
+        
         if (item->kind == NODE_KIND_CLASS)
         {
             int32_t result;
@@ -5694,6 +5699,7 @@ syntax_module(program_t *program, node_t *node)
     for (a1 = module->items->begin; a1 != module->items->end; a1 = a1->next)
     {
         node_t *item = (node_t *)a1->value;
+
         if (item->kind == NODE_KIND_IMPORT)
         {
             int32_t result;

@@ -3486,6 +3486,39 @@ parser_statement(program_t *program, parser_t *parser, node_t *scope, node_t *pa
 }
 
 static node_t *
+parser_member(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
+{
+	node_t *node = node_create(scope, parent, parser->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *key = parser_id(program, parser, scope, node);
+	if (!key)
+	{
+		return NULL;
+	}
+
+	node_t *value = NULL;
+	if (parser->token->type == TOKEN_EQ)
+	{
+		if (parser_next(program, parser) == -1)
+		{
+			return NULL;
+		}
+
+		value = parser_expression(program, parser, scope, node);
+		if (!value)
+		{
+			return NULL;
+		}
+	}
+
+	return node_make_member(node, key, value);
+}
+
+static node_t *
 parser_members(program_t *program, parser_t *parser, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, parser->token->position);
@@ -3502,7 +3535,7 @@ parser_members(program_t *program, parser_t *parser, node_t *scope, node_t *pare
 
 	while (true)
 	{
-		node_t *node2 = parser_pair(program, parser, scope, node);
+		node_t *node2 = parser_member(program, parser, scope, node);
 		if (!node2)
 		{
 			return NULL;

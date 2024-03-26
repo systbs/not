@@ -281,7 +281,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 
 		ilist_t *a1;
-		for (a1 = block1->list->begin;a1 == block1->list->end;a1 = a1->next)
+		for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
 		{
 			node_t *item1 = (node_t *)a1->value;
 			node_t *item2 = node_clone(node1, item1);
@@ -338,7 +338,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 
 		ilist_t *a1;
-		for (a1 = block1->list->begin;a1 == block1->list->end;a1 = a1->next)
+		for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
 		{
 			node_t *item1 = (node_t *)a1->value;
 			node_t *item2 = node_clone(node1, item1);
@@ -2551,7 +2551,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 
 		ilist_t *a1;
-		for (a1 = block1->list->begin;a1 == block1->list->end;a1 = a1->next)
+		for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
 		{
 			node_t *item1 = (node_t *)a1->value;
 			node_t *item2 = node_clone(node1, item1);
@@ -2697,7 +2697,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 
 		ilist_t *a1;
-		for (a1 = block1->list->begin;a1 == block1->list->end;a1 = a1->next)
+		for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
 		{
 			node_t *item1 = (node_t *)a1->value;
 			node_t *item2 = node_clone(node1, item1);
@@ -2730,7 +2730,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 		memset(node1, 0, sizeof(node_t));
 
-		node1->id = node->id;
+		node1->id = node_counter++;
 		node1->position = node->position;
 		node1->parent = parent;
 		node1->kind = node->kind;
@@ -2863,7 +2863,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 
 		ilist_t *a1;
-		for (a1 = block1->list->begin;a1 == block1->list->end;a1 = a1->next)
+		for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
 		{
 			node_t *item1 = (node_t *)a1->value;
 			node_t *item2 = node_clone(node1, item1);
@@ -2896,7 +2896,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 		memset(node1, 0, sizeof(node_t));
 
-		node1->id = node->id;
+		node1->id = node_counter++;
 		node1->position = node->position;
 		node1->parent = parent;
 		node1->kind = node->kind;
@@ -2980,7 +2980,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 
 		ilist_t *a1;
-		for (a1 = block1->list->begin;a1 == block1->list->end;a1 = a1->next)
+		for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
 		{
 			node_t *item1 = (node_t *)a1->value;
 			node_t *item2 = node_clone(node1, item1);
@@ -3086,7 +3086,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 
 		ilist_t *a1;
-		for (a1 = block1->list->begin;a1 == block1->list->end;a1 = a1->next)
+		for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
 		{
 			node_t *item1 = (node_t *)a1->value;
 			node_t *item2 = node_clone(node1, item1);
@@ -3143,7 +3143,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 
 		ilist_t *a1;
-		for (a1 = block1->list->begin;a1 == block1->list->end;a1 = a1->next)
+		for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
 		{
 			node_t *item1 = (node_t *)a1->value;
 			node_t *item2 = node_clone(node1, item1);
@@ -3200,7 +3200,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 
 		ilist_t *a1;
-		for (a1 = block1->list->begin;a1 == block1->list->end;a1 = a1->next)
+		for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
 		{
 			node_t *item1 = (node_t *)a1->value;
 			node_t *item2 = node_clone(node1, item1);
@@ -3233,7 +3233,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 		memset(node1, 0, sizeof(node_t));
 
-		node1->id = node->id;
+		node1->id = node_counter++;
 		node1->position = node->position;
 		node1->parent = parent;
 		node1->kind = node->kind;
@@ -3249,7 +3249,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 		memset(heritage2, 0, sizeof(node_heritage_t));
 		
-		if (heritage2->key != NULL)
+		if (heritage1->key != NULL)
 		{
 			heritage2->key = node_clone(node1, heritage1->key);
 			if (heritage2->key == NULL)
@@ -3258,7 +3258,7 @@ node_clone(node_t *parent, node_t *node)
 			}
 		}
 
-		if (heritage2->type != NULL)
+		if (heritage1->type != NULL)
 		{
 			heritage2->type = node_clone(node1, heritage1->type);
 			if (heritage2->type == NULL)
@@ -3282,7 +3282,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 		memset(node1, 0, sizeof(node_t));
 
-		node1->id = node->id;
+		node1->id = node_counter++;
 		node1->position = node->position;
 		node1->parent = parent;
 		node1->kind = node->kind;
@@ -3298,7 +3298,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 		memset(generic2, 0, sizeof(node_generic_t));
 		
-		if (generic2->key != NULL)
+		if (generic1->key != NULL)
 		{
 			generic2->key = node_clone(node1, generic1->key);
 			if (generic2->key == NULL)
@@ -3307,7 +3307,7 @@ node_clone(node_t *parent, node_t *node)
 			}
 		}
 
-		if (generic2->type != NULL)
+		if (generic1->type != NULL)
 		{
 			generic2->type = node_clone(node1, generic1->type);
 			if (generic2->type == NULL)
@@ -3316,7 +3316,7 @@ node_clone(node_t *parent, node_t *node)
 			}
 		}
 
-		if (generic2->value != NULL)
+		if (generic1->value != NULL)
 		{
 			generic2->value = node_clone(node1, generic1->value);
 			if (generic2->value == NULL)
@@ -3364,7 +3364,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 
 		ilist_t *a1;
-		for (a1 = block1->list->begin;a1 == block1->list->end;a1 = a1->next)
+		for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
 		{
 			node_t *item1 = (node_t *)a1->value;
 			node_t *item2 = node_clone(node1, item1);
@@ -3421,7 +3421,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 
 		ilist_t *a1;
-		for (a1 = block1->list->begin;a1 == block1->list->end;a1 = a1->next)
+		for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
 		{
 			node_t *item1 = (node_t *)a1->value;
 			node_t *item2 = node_clone(node1, item1);
@@ -3599,7 +3599,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 		memset(node1, 0, sizeof(node_t));
 
-		node1->id = node->id;
+		node1->id = node_counter++;
 		node1->position = node->position;
 		node1->parent = parent;
 		node1->kind = node->kind;
@@ -3850,7 +3850,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 
 		ilist_t *a1;
-		for (a1 = block1->list->begin;a1 == block1->list->end;a1 = a1->next)
+		for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
 		{
 			node_t *item1 = (node_t *)a1->value;
 			node_t *item2 = node_clone(node1, item1);
@@ -4016,7 +4016,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 
 		ilist_t *a1;
-		for (a1 = block1->list->begin;a1 == block1->list->end;a1 = a1->next)
+		for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
 		{
 			node_t *item1 = (node_t *)a1->value;
 			node_t *item2 = node_clone(node1, item1);
@@ -4122,7 +4122,7 @@ node_clone(node_t *parent, node_t *node)
 		}
 
 		ilist_t *a1;
-		for (a1 = module1->items->begin;a1 == module1->items->end;a1 = a1->next)
+		for (a1 = module1->items->begin;a1 != module1->items->end;a1 = a1->next)
 		{
 			node_t *item1 = (node_t *)a1->value;
 			node_t *item2 = node_clone(node1, item1);
@@ -4149,6 +4149,10 @@ node_clone(node_t *parent, node_t *node)
 	return NULL;
 }
 
+void
+node_prug(node_t *node)
+{
+}
 
 node_t *
 node_make_id(node_t *node, char *value)
