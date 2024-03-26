@@ -8,9 +8,18 @@ class System<R extends Int, T = Float>
     print("Hello World!");
   }
 
-  export fun Constructor(a:Int, b:String)
+  export fun R(a:Int, b:String) : Int
   {
     print("Hello World!");
+    var c = 1;
+
+    try throw1<T> {
+      throw1<T = Expection>(/*expection1*/);
+    } 
+    catch (e : T)
+    {
+
+    }
   }
 }
 

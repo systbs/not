@@ -2300,20 +2300,6 @@ scanner_advance(scanner_t *scanner)
 				return 1;
 			}
 			else 
-			if (strncmp(scanner->source + start_offset, "throw", max(length, 5)) == 0)
-			{
-				scanner_set_token(scanner, (token_t){
-																			 .type = TOKEN_THROW_KEYWORD,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->file_source->path,
-																					 .offset = scanner->offset - length,
-																					 .column = scanner->column - (scanner->offset - start_offset),
-																					 .line = scanner->line}});
-
-				return 1;
-			}
-			else 
 			if (strncmp(scanner->source + start_offset, "break", max(length, 5)) == 0)
 			{
 				scanner_set_token(scanner, (token_t){

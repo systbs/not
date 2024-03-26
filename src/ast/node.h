@@ -91,6 +91,9 @@ typedef enum node_kind {
 	NODE_KIND_SHL_ASSIGN,
 	NODE_KIND_SHR_ASSIGN,
 	
+	NODE_KIND_INITIALIZER,
+	NODE_KIND_INCREMENTOR,
+
 	NODE_KIND_IF,
 	NODE_KIND_FOR,
 	NODE_KIND_FORIN,
@@ -150,10 +153,6 @@ typedef struct node_object {
 
 
 
-typedef struct node_throw {
-	node_t *arguments;
-} node_throw_t;
-
 typedef struct node_carrier {
 	node_t *base;
 	node_t *data;
@@ -182,7 +181,6 @@ typedef struct node_block {
 } node_block_t;
 
 typedef struct node_if {
-	node_t *key;
 	node_t *condition;
 	node_t *then_body;
 	node_t *else_body;
@@ -211,6 +209,8 @@ typedef struct node_catch {
 } node_catch_t;
 
 typedef struct node_try {
+	node_t *key;
+	node_t *generics;
 	node_t *body;
 	node_t *catchs;
 } node_try_t;
@@ -365,9 +365,6 @@ node_make_pseudonym(node_t *node, node_t *base, node_t *arguments);
 
 
 node_t *
-node_make_in(node_t *node, node_t *left, node_t *right);
-
-node_t *
 node_make_typeof(node_t *node, node_t *right);
 
 node_t *
@@ -479,14 +476,10 @@ node_make_land(node_t *node, node_t *left, node_t *right);
 node_t *
 node_make_lor(node_t *node, node_t *left, node_t *right);
 
-node_t *
-node_make_conditional(node_t *node, node_t *condition, node_t *true_expression, node_t *false_expression);
+
 
 node_t *
 node_make_assign(node_t *node, node_t *left, node_t *right);
-
-node_t *
-node_make_define(node_t *node, node_t *left, node_t *right);
 
 node_t *
 node_make_add_assign(node_t *node, node_t *left, node_t *right);
@@ -515,8 +508,15 @@ node_make_shl_assign(node_t *node, node_t *left, node_t *right);
 node_t *
 node_make_shr_assign(node_t *node, node_t *left, node_t *right);
 
+
 node_t *
-node_make_if(node_t *node, node_t *name, node_t *condition, node_t *then_body, node_t *else_body);
+node_make_initializer(node_t *node, list_t *list);
+
+node_t *
+node_make_incrementor(node_t *node, list_t *list);
+
+node_t *
+node_make_if(node_t *node, node_t *condition, node_t *then_body, node_t *else_body);
 
 node_t *
 node_make_for(node_t *node, uint64_t flag, node_t *name, node_t *initializer, node_t *condition, node_t *incrementor, node_t *body);
@@ -537,13 +537,10 @@ node_t *
 node_make_catchs(node_t *node, list_t *list);
 
 node_t *
-node_make_try(node_t *node, node_t *body, node_t *catchs);
+node_make_try(node_t *node, node_t *key, node_t *generics, node_t *body, node_t *catchs);
 
 node_t *
 node_make_return(node_t *node, node_t *expr);
-
-node_t *
-node_make_throw(node_t *node, node_t *arguments);
 
 node_t *
 node_make_set(node_t *node, list_t *properties);
