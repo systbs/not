@@ -38,7 +38,8 @@
         "syntax1": "c",
         "syntax": "c",
         "*.c2": "c",
-        "text": "c"
+        "text": "c",
+        "semantic.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

@@ -11,9 +11,9 @@
 #include "scanner/file.h"
 #include "scanner/scanner.h"
 #include "ast/node.h"
-#include "parser/parser.h"
-#include "parser/error.h"
 #include "parser/syntax.h"
+#include "parser/error.h"
+#include "parser/semantic.h"
 #include "utils/utils.h"
 #include "utils/path.h"
 
@@ -69,15 +69,15 @@ main(int argc, char **argv)
       return -1;
     }
     
-    parser_t *parser;
-    parser = parser_create(&program, base_file);
-    if(!parser)
+    syntax_t *syntax;
+    syntax = syntax_create(&program, base_file);
+    if(!syntax)
     {
     	return -1;
     }
     
     node_t *node;
-    node = parser_module(&program, parser);
+    node = syntax_module(&program, syntax);
     if(!node)
     {
 			if(list_count(program.errors) > 0)
@@ -88,7 +88,7 @@ main(int argc, char **argv)
     }
 
     int32_t result;
-    result = syntax_run(&program, node);
+    result = semantic_run(&program, node);
     if(result == -1)
     {
         if(list_count(program.errors) > 0)

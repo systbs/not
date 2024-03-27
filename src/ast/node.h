@@ -16,7 +16,9 @@ typedef struct node {
 
 typedef enum node_flag {
 	NODE_FLAG_NONE 			= 0,
-	NODE_FLAG_TEMPORARY 	= 1 << 0
+	NODE_FLAG_TEMPORARY 	= 1 << 0,
+	NODE_FLAG_NEW 			= 1 << 1,
+	NODE_FLAG_DERIVE		= 1 << 2,
 } node_flag_t;
 
 typedef enum node_kind {
@@ -220,6 +222,8 @@ typedef struct node_var {
 	node_t *key;
 	node_t *type;
 	node_t *value;
+
+	node_t *value_update;
 } node_var_t;
 
 typedef struct node_parameter {
@@ -227,12 +231,23 @@ typedef struct node_parameter {
 	node_t *key;
 	node_t *type;
 	node_t *value;
+
+	node_t *value_update;
 } node_parameter_t;
 
 typedef struct node_field {
 	node_t *key;
-	node_t *type;
+	node_t *value;
+
+	node_t *value_update;
 } node_field_t;
+
+typedef struct node_argument {
+	node_t *key;
+	node_t *value;
+
+	node_t *value_update;
+} node_argument_t;
 
 typedef struct node_heritage {
 	node_t *key;
@@ -243,6 +258,8 @@ typedef struct node_generic {
 	node_t *key;
 	node_t *type;
 	node_t *value;
+
+	node_t *value_update;
 } node_generic_t;
 
 typedef struct node_lambda {
@@ -251,11 +268,6 @@ typedef struct node_lambda {
 	node_t *parameters;
 	node_t *body;
 } node_lambda_t;
-
-typedef struct node_fn {
-	node_t *parameters;
-	node_t *result;
-} node_fn_t;
 
 typedef struct node_func {
 	uint64_t flag;
@@ -271,6 +283,8 @@ typedef struct node_property {
 	node_t *key;
 	node_t *type;
 	node_t *value;
+
+	node_t *value_update;
 } node_property_t;
 
 typedef struct node_pair {
