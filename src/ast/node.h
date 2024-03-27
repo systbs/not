@@ -252,6 +252,8 @@ typedef struct node_argument {
 typedef struct node_heritage {
 	node_t *key;
 	node_t *type;
+
+	node_t *value_update;
 } node_heritage_t;
 
 typedef struct node_generic {

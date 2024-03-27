@@ -2243,42 +2243,61 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                         break;
                     }
 
-                    list_t *response2 = list_create();
-                    if (response2 == NULL)
+                    if (heritage3->value_update == NULL)
                     {
-                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                        return -1;
-                    }
-                    
-                    int32_t r1 = semantic_postfix(program, heritage3->type, response2);
-                    if (r1 == -1)
-                    {
-                        return -1;
-                    }
-                    else
-                    if (r1 == 0)
-                    {
-                        semantic_error(program, heritage3->type, "reference not found");
-                        return -1;
-                    }
-                    else
-                    if (r1 == 1)
-                    {
-                        ilist_t *a3;
-                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                        list_t *response2 = list_create();
+                        if (response2 == NULL)
                         {
-                            node_t *item3 = (node_t *)a3->value;
-                            if (item3->kind == NODE_KIND_CLASS)
+                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+                        
+                        int32_t r1 = semantic_postfix(program, heritage3->type, response2);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r1 == 0)
+                        {
+                            semantic_error(program, heritage3->type, "reference not found");
+                            return -1;
+                        }
+                        else
+                        if (r1 == 1)
+                        {
+                            ilist_t *a3;
+                            for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
                             {
-                                int32_t r2 = semantic_select(program, item3, NULL, name, response, 1);
-                                if (r2 == -1)
+                                node_t *item3 = (node_t *)a3->value;
+                                if (item3->kind == NODE_KIND_CLASS)
                                 {
+                                    heritage3->value_update = item3;
+                                    int32_t r2 = semantic_select(program, item3, NULL, name, response, 1);
+                                    if (r2 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                }
+                                else
+                                {
+                                    semantic_error(program, item3, "non-class as heritage, for (%lld:%lld)",
+                                        heritage3->type->position.line, heritage3->type->position.column);
                                     return -1;
                                 }
+                                break;
                             }
                         }
+                        list_destroy(response2);
                     }
-                    list_destroy(response2);
+                    else
+                    {
+                        int32_t r2 = semantic_select(program, heritage3->value_update, NULL, name, response, 1);
+                        if (r2 == -1)
+                        {
+                            return -1;
+                        }
+                    }
                 }
             }
         }
@@ -2713,147 +2732,265 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                             if (item3->kind == NODE_KIND_HERITAGE)
                             {
                                 node_heritage_t *heritage4 = (node_heritage_t *)item3->value;
-                                
-                                list_t *response4 = list_create();
-                                if (response4 == NULL)
+                             
+                                if (heritage4->value_update == NULL)
                                 {
-                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                                
-                                int32_t r4 = semantic_postfix(program, heritage4->type, response4);
-                                if (r4 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r4 == 0)
-                                {
-                                    semantic_error(program, heritage4->type, "reference not found");
-                                    return -1;
-                                }
-                                else
-                                if (r4 == 1)
-                                {
-                                    ilist_t *a5;
-                                    for (a5 = response4->begin;a5 != response4->end;a5 = a5->next)
+                                    list_t *response4 = list_create();
+                                    if (response4 == NULL)
                                     {
-                                        node_t *item5 = (node_t *)a5->value;
-                                        
-                                        if (item5->kind == NODE_KIND_CLASS)
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                
+                                    int32_t r4 = semantic_postfix(program, heritage4->type, response4);
+                                    if (r4 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r4 == 0)
+                                    {
+                                        semantic_error(program, heritage4->type, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r4 == 1)
+                                    {
+                                        ilist_t *a5;
+                                        for (a5 = response4->begin;a5 != response4->end;a5 = a5->next)
                                         {
-                                            node_class_t *class5 = (node_class_t *)item5->value;
-                                            node_t *node5 = class5->block;
-                                            node_block_t *block5 = (node_block_t *)node5->value;
+                                            node_t *item5 = (node_t *)a5->value;
 
-                                            ilist_t *a6;
-                                            for (a6 = block5->list->begin;a6 != block5->list->end;a6 = a6->next)
+                                            heritage4->value_update = item5;
+
+                                            if (item5->kind == NODE_KIND_CLASS)
                                             {
-                                                node_t *item6 = (node_t *)a6->value;
-                                                if (item6->kind == NODE_KIND_CLASS)
+                                                node_class_t *class5 = (node_class_t *)item5->value;
+                                                node_t *node5 = class5->block;
+                                                node_block_t *block5 = (node_block_t *)node5->value;
+
+                                                ilist_t *a6;
+                                                for (a6 = block5->list->begin;a6 != block5->list->end;a6 = a6->next)
                                                 {
-                                                    node_class_t *class6 = (node_class_t *)item6->value;
-                                                    if (semantic_idcmp(class6->key, basic->right) == 1)
+                                                    node_t *item6 = (node_t *)a6->value;
+                                                    if (item6->kind == NODE_KIND_CLASS)
                                                     {
-                                                        if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                                        node_class_t *class6 = (node_class_t *)item6->value;
+                                                        if (semantic_idcmp(class6->key, basic->right) == 1)
                                                         {
-                                                            if ((class6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                            if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
                                                             {
-                                                                semantic_error(program, item6, "private access");
-                                                                return -1;
-                                                            }
+                                                                if ((class6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                                {
+                                                                    semantic_error(program, item6, "private access");
+                                                                    return -1;
+                                                                }
 
-                                                            if ((class6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                                if ((class6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                                {
+                                                                    semantic_error(program, item6, "protect access");
+                                                                    return -1;
+                                                                }
+
+                                                                item6->flag |= NODE_FLAG_DERIVE;
+
+                                                                ilist_t *r6 = list_rpush(response, item6);
+                                                                if (r6 == NULL)
+                                                                {
+                                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                    return -1;
+                                                                }
+                                                                list_destroy(response4);
+                                                                return 1;
+                                                            }
+                                                            else
                                                             {
-                                                                semantic_error(program, item6, "protect access");
-                                                                return -1;
-                                                            }
+                                                                item6->flag &= ~NODE_FLAG_DERIVE;
 
-                                                            item6->flag |= NODE_FLAG_DERIVE;
-
-                                                            ilist_t *r6 = list_rpush(response, item6);
-                                                            if (r6 == NULL)
-                                                            {
-                                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                                                return -1;
+                                                                ilist_t *r6 = list_rpush(response, item6);
+                                                                if (r6 == NULL)
+                                                                {
+                                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                    return -1;
+                                                                }
+                                                                list_destroy(response4);
+                                                                return 1;
                                                             }
-                                                            list_destroy(response4);
-                                                            return 1;
                                                         }
-                                                        else
+                                                    }
+                                                    else
+                                                    if (item6->kind == NODE_KIND_ENUM)
+                                                    {
+                                                        node_enum_t *enum1 = (node_enum_t *)item6->value;
+                                                        if (semantic_idcmp(enum1->key, basic->right) == 1)
                                                         {
-                                                            item6->flag &= ~NODE_FLAG_DERIVE;
-
-                                                            ilist_t *r6 = list_rpush(response, item6);
-                                                            if (r6 == NULL)
+                                                            if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
                                                             {
-                                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                                                return -1;
+                                                                if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                                {
+                                                                    semantic_error(program, item6, "private access");
+                                                                    return -1;
+                                                                }
+
+                                                                if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                                {
+                                                                    semantic_error(program, item6, "protect access");
+                                                                    return -1;
+                                                                }
+
+                                                                item6->flag |= NODE_FLAG_DERIVE;
+
+                                                                ilist_t *r6 = list_rpush(response, item6);
+                                                                if (r6 == NULL)
+                                                                {
+                                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                    return -1;
+                                                                }
+                                                                list_destroy(response4);
+                                                                return 1;
                                                             }
-                                                            list_destroy(response4);
-                                                            return 1;
+                                                            else
+                                                            {
+                                                                item6->flag &= ~NODE_FLAG_DERIVE;
+
+                                                                ilist_t *r6 = list_rpush(response, item6);
+                                                                if (r6 == NULL)
+                                                                {
+                                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                    return -1;
+                                                                }
+                                                                list_destroy(response4);
+                                                                return 1;
+                                                            }
                                                         }
                                                     }
                                                 }
-                                                else
-                                                if (item6->kind == NODE_KIND_ENUM)
+
+                                                ilist_t *r3 = list_rpush(repository1, class5->heritages);
+                                                if (r3 == NULL)
                                                 {
-                                                    node_enum_t *enum1 = (node_enum_t *)item6->value;
-                                                    if (semantic_idcmp(enum1->key, basic->right) == 1)
-                                                    {
-                                                        if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
-                                                        {
-                                                            if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
-                                                            {
-                                                                semantic_error(program, item6, "private access");
-                                                                return -1;
-                                                            }
-
-                                                            if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
-                                                            {
-                                                                semantic_error(program, item6, "protect access");
-                                                                return -1;
-                                                            }
-
-                                                            item6->flag |= NODE_FLAG_DERIVE;
-
-                                                            ilist_t *r6 = list_rpush(response, item6);
-                                                            if (r6 == NULL)
-                                                            {
-                                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                                                return -1;
-                                                            }
-                                                            list_destroy(response4);
-                                                            return 1;
-                                                        }
-                                                        else
-                                                        {
-                                                            item6->flag &= ~NODE_FLAG_DERIVE;
-
-                                                            ilist_t *r6 = list_rpush(response, item6);
-                                                            if (r6 == NULL)
-                                                            {
-                                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                                                return -1;
-                                                            }
-                                                            list_destroy(response4);
-                                                            return 1;
-                                                        }
-                                                    }
+                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                    return -1;
                                                 }
                                             }
-
-                                            ilist_t *r3 = list_rpush(repository1, class5->heritages);
-                                            if (r3 == NULL)
+                                            else
                                             {
-                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                semantic_error(program, item5, "non-class as heritage, for (%lld:%lld)",
+                                                    heritage4->type->position.line, heritage4->type->position.column);
                                                 return -1;
                                             }
                                         }
                                     }
-                                }
 
-                                list_destroy(response4);
+                                    list_destroy(response4);
+                                }
+                                else
+                                {
+                                    node_t *item5 = heritage4->value_update;
+                                    node_class_t *class5 = (node_class_t *)item5->value;
+                                    node_t *node5 = class5->block;
+                                    node_block_t *block5 = (node_block_t *)node5->value;
+
+                                    ilist_t *a6;
+                                    for (a6 = block5->list->begin;a6 != block5->list->end;a6 = a6->next)
+                                    {
+                                        node_t *item6 = (node_t *)a6->value;
+                                        if (item6->kind == NODE_KIND_CLASS)
+                                        {
+                                            node_class_t *class6 = (node_class_t *)item6->value;
+                                            if (semantic_idcmp(class6->key, basic->right) == 1)
+                                            {
+                                                if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                                {
+                                                    if ((class6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                    {
+                                                        semantic_error(program, item6, "private access");
+                                                        return -1;
+                                                    }
+
+                                                    if ((class6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                    {
+                                                        semantic_error(program, item6, "protect access");
+                                                        return -1;
+                                                    }
+
+                                                    item6->flag |= NODE_FLAG_DERIVE;
+
+                                                    ilist_t *r6 = list_rpush(response, item6);
+                                                    if (r6 == NULL)
+                                                    {
+                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                        return -1;
+                                                    }
+                                                    return 1;
+                                                }
+                                                else
+                                                {
+                                                    item6->flag &= ~NODE_FLAG_DERIVE;
+
+                                                    ilist_t *r6 = list_rpush(response, item6);
+                                                    if (r6 == NULL)
+                                                    {
+                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                        return -1;
+                                                    }
+                                                    return 1;
+                                                }
+                                            }
+                                        }
+                                        else
+                                        if (item6->kind == NODE_KIND_ENUM)
+                                        {
+                                            node_enum_t *enum1 = (node_enum_t *)item6->value;
+                                            if (semantic_idcmp(enum1->key, basic->right) == 1)
+                                            {
+                                                if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                                {
+                                                    if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                    {
+                                                        semantic_error(program, item6, "private access");
+                                                        return -1;
+                                                    }
+
+                                                    if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                    {
+                                                        semantic_error(program, item6, "protect access");
+                                                        return -1;
+                                                    }
+
+                                                    item6->flag |= NODE_FLAG_DERIVE;
+
+                                                    ilist_t *r6 = list_rpush(response, item6);
+                                                    if (r6 == NULL)
+                                                    {
+                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                        return -1;
+                                                    }
+                                                    return 1;
+                                                }
+                                                else
+                                                {
+                                                    item6->flag &= ~NODE_FLAG_DERIVE;
+
+                                                    ilist_t *r6 = list_rpush(response, item6);
+                                                    if (r6 == NULL)
+                                                    {
+                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                        return -1;
+                                                    }
+                                                    return 1;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    ilist_t *r3 = list_rpush(repository1, class5->heritages);
+                                    if (r3 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                }
                             }
                         }
                     
@@ -3009,146 +3146,267 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                                 {
                                     node_heritage_t *heritage4 = (node_heritage_t *)item3->value;
                                     
-                                    list_t *response4 = list_create();
-                                    if (response4 == NULL)
+                                    if (heritage4->value_update == NULL)
                                     {
-                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                    
-                                    int32_t r4 = semantic_postfix(program, heritage4->type, response4);
-                                    if (r4 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r4 == 0)
-                                    {
-                                        semantic_error(program, heritage4->type, "reference not found");
-                                        return -1;
-                                    }
-                                    else
-                                    if (r4 == 1)
-                                    {
-                                        ilist_t *a5;
-                                        for (a5 = response4->begin;a5 != response4->end;a5 = a5->next)
+                                        list_t *response4 = list_create();
+                                        if (response4 == NULL)
                                         {
-                                            node_t *item5 = (node_t *)a5->value;
-                                            
-                                            if (item5->kind == NODE_KIND_CLASS)
+                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                            return -1;
+                                        }
+                                        
+                                        int32_t r4 = semantic_postfix(program, heritage4->type, response4);
+                                        if (r4 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r4 == 0)
+                                        {
+                                            semantic_error(program, heritage4->type, "reference not found");
+                                            return -1;
+                                        }
+                                        else
+                                        if (r4 == 1)
+                                        {
+                                            ilist_t *a5;
+                                            for (a5 = response4->begin;a5 != response4->end;a5 = a5->next)
                                             {
-                                                node_class_t *class5 = (node_class_t *)item5->value;
-                                                node_t *node5 = class5->block;
-                                                node_block_t *block5 = (node_block_t *)node5->value;
+                                                node_t *item5 = (node_t *)a5->value;
+                                                
+                                                heritage4->value_update = item5;
 
-                                                ilist_t *a6;
-                                                for (a6 = block5->list->begin;a6 != block5->list->end;a6 = a6->next)
+                                                if (item5->kind == NODE_KIND_CLASS)
                                                 {
-                                                    node_t *item6 = (node_t *)a6->value;
-                                                    if (item6->kind == NODE_KIND_CLASS)
+                                                    node_class_t *class5 = (node_class_t *)item5->value;
+                                                    node_t *node5 = class5->block;
+                                                    node_block_t *block5 = (node_block_t *)node5->value;
+
+                                                    ilist_t *a6;
+                                                    for (a6 = block5->list->begin;a6 != block5->list->end;a6 = a6->next)
                                                     {
-                                                        node_class_t *class6 = (node_class_t *)item6->value;
-                                                        if (semantic_idcmp(class6->key, basic->right) == 1)
+                                                        node_t *item6 = (node_t *)a6->value;
+                                                        if (item6->kind == NODE_KIND_CLASS)
                                                         {
-                                                            if ((item2->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                                            node_class_t *class6 = (node_class_t *)item6->value;
+                                                            if (semantic_idcmp(class6->key, basic->right) == 1)
                                                             {
-                                                                if ((class6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                                if ((item2->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
                                                                 {
-                                                                    semantic_error(program, item6, "private access");
-                                                                    return -1;
-                                                                }
+                                                                    if ((class6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                                    {
+                                                                        semantic_error(program, item6, "private access");
+                                                                        return -1;
+                                                                    }
 
-                                                                if ((class6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                                    if ((class6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                                    {
+                                                                        semantic_error(program, item6, "protect access");
+                                                                        return -1;
+                                                                    }
+
+                                                                    item6->flag |= NODE_FLAG_DERIVE;
+
+                                                                    ilist_t *r6 = list_rpush(response, item6);
+                                                                    if (r6 == NULL)
+                                                                    {
+                                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                        return -1;
+                                                                    }
+                                                                    list_destroy(response4);
+                                                                    return 1;
+                                                                }
+                                                                else
                                                                 {
-                                                                    semantic_error(program, item6, "protect access");
-                                                                    return -1;
-                                                                }
+                                                                    item6->flag &= ~NODE_FLAG_DERIVE;
 
-                                                                item6->flag |= NODE_FLAG_DERIVE;
-
-                                                                ilist_t *r6 = list_rpush(response, item6);
-                                                                if (r6 == NULL)
-                                                                {
-                                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                                                    return -1;
+                                                                    ilist_t *r6 = list_rpush(response, item6);
+                                                                    if (r6 == NULL)
+                                                                    {
+                                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                        return -1;
+                                                                    }
+                                                                    list_destroy(response4);
+                                                                    return 1;
                                                                 }
-                                                                list_destroy(response4);
-                                                                return 1;
                                                             }
-                                                            else
+                                                        }
+                                                        else
+                                                        if (item6->kind == NODE_KIND_ENUM)
+                                                        {
+                                                            node_enum_t *enum1 = (node_enum_t *)item6->value;
+                                                            if (semantic_idcmp(enum1->key, basic->right) == 1)
                                                             {
-                                                                item6->flag &= ~NODE_FLAG_DERIVE;
-
-                                                                ilist_t *r6 = list_rpush(response, item6);
-                                                                if (r6 == NULL)
+                                                                if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
                                                                 {
-                                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                                                    return -1;
+                                                                    if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                                    {
+                                                                        semantic_error(program, item6, "private access");
+                                                                        return -1;
+                                                                    }
+
+                                                                    if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                                    {
+                                                                        semantic_error(program, item6, "protect access");
+                                                                        return -1;
+                                                                    }
+
+                                                                    item6->flag |= NODE_FLAG_DERIVE;
+
+                                                                    ilist_t *r6 = list_rpush(response, item6);
+                                                                    if (r6 == NULL)
+                                                                    {
+                                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                        return -1;
+                                                                    }
+                                                                    list_destroy(response4);
+                                                                    return 1;
                                                                 }
-                                                                list_destroy(response4);
-                                                                return 1;
+                                                                else
+                                                                {
+                                                                    item6->flag &= ~NODE_FLAG_DERIVE;
+
+                                                                    ilist_t *r6 = list_rpush(response, item6);
+                                                                    if (r6 == NULL)
+                                                                    {
+                                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                        return -1;
+                                                                    }
+                                                                    list_destroy(response4);
+                                                                    return 1;
+                                                                }
                                                             }
                                                         }
                                                     }
-                                                    else
-                                                    if (item6->kind == NODE_KIND_ENUM)
+
+                                                    ilist_t *r3 = list_rpush(repository1, class5->heritages);
+                                                    if (r3 == NULL)
                                                     {
-                                                        node_enum_t *enum1 = (node_enum_t *)item6->value;
-                                                        if (semantic_idcmp(enum1->key, basic->right) == 1)
-                                                        {
-                                                            if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
-                                                            {
-                                                                if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
-                                                                {
-                                                                    semantic_error(program, item6, "private access");
-                                                                    return -1;
-                                                                }
-
-                                                                if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
-                                                                {
-                                                                    semantic_error(program, item6, "protect access");
-                                                                    return -1;
-                                                                }
-
-                                                                item6->flag |= NODE_FLAG_DERIVE;
-
-                                                                ilist_t *r6 = list_rpush(response, item6);
-                                                                if (r6 == NULL)
-                                                                {
-                                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                                                    return -1;
-                                                                }
-                                                                list_destroy(response4);
-                                                                return 1;
-                                                            }
-                                                            else
-                                                            {
-                                                                item6->flag &= ~NODE_FLAG_DERIVE;
-
-                                                                ilist_t *r6 = list_rpush(response, item6);
-                                                                if (r6 == NULL)
-                                                                {
-                                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                                                    return -1;
-                                                                }
-                                                                list_destroy(response4);
-                                                                return 1;
-                                                            }
-                                                        }
+                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                        return -1;
                                                     }
                                                 }
-
-                                                ilist_t *r3 = list_rpush(repository1, class5->heritages);
-                                                if (r3 == NULL)
+                                                else
                                                 {
-                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                    semantic_error(program, item5, "non-class as heritage, for (%lld:%lld)",
+                                                        heritage4->type->position.line, heritage4->type->position.column);
                                                     return -1;
+                                                }
+
+                                                break;
+                                            }
+                                        }
+
+                                        list_destroy(response4);
+                                    }
+                                    else
+                                    {
+                                        node_t *item5 = heritage4->value_update;
+
+                                        node_class_t *class5 = (node_class_t *)item5->value;
+                                        node_t *node5 = class5->block;
+                                        node_block_t *block5 = (node_block_t *)node5->value;
+
+                                        ilist_t *a6;
+                                        for (a6 = block5->list->begin;a6 != block5->list->end;a6 = a6->next)
+                                        {
+                                            node_t *item6 = (node_t *)a6->value;
+                                            if (item6->kind == NODE_KIND_CLASS)
+                                            {
+                                                node_class_t *class6 = (node_class_t *)item6->value;
+                                                if (semantic_idcmp(class6->key, basic->right) == 1)
+                                                {
+                                                    if ((item2->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                                    {
+                                                        if ((class6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                        {
+                                                            semantic_error(program, item6, "private access");
+                                                            return -1;
+                                                        }
+
+                                                        if ((class6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                        {
+                                                            semantic_error(program, item6, "protect access");
+                                                            return -1;
+                                                        }
+
+                                                        item6->flag |= NODE_FLAG_DERIVE;
+
+                                                        ilist_t *r6 = list_rpush(response, item6);
+                                                        if (r6 == NULL)
+                                                        {
+                                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                            return -1;
+                                                        }
+                                                        return 1;
+                                                    }
+                                                    else
+                                                    {
+                                                        item6->flag &= ~NODE_FLAG_DERIVE;
+
+                                                        ilist_t *r6 = list_rpush(response, item6);
+                                                        if (r6 == NULL)
+                                                        {
+                                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                            return -1;
+                                                        }
+                                                        return 1;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item6->kind == NODE_KIND_ENUM)
+                                            {
+                                                node_enum_t *enum1 = (node_enum_t *)item6->value;
+                                                if (semantic_idcmp(enum1->key, basic->right) == 1)
+                                                {
+                                                    if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                                    {
+                                                        if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                        {
+                                                            semantic_error(program, item6, "private access");
+                                                            return -1;
+                                                        }
+
+                                                        if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                        {
+                                                            semantic_error(program, item6, "protect access");
+                                                            return -1;
+                                                        }
+
+                                                        item6->flag |= NODE_FLAG_DERIVE;
+
+                                                        ilist_t *r6 = list_rpush(response, item6);
+                                                        if (r6 == NULL)
+                                                        {
+                                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                            return -1;
+                                                        }
+                                                        return 1;
+                                                    }
+                                                    else
+                                                    {
+                                                        item6->flag &= ~NODE_FLAG_DERIVE;
+
+                                                        ilist_t *r6 = list_rpush(response, item6);
+                                                        if (r6 == NULL)
+                                                        {
+                                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                            return -1;
+                                                        }
+                                                        return 1;
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
 
-                                    list_destroy(response4);
+                                        ilist_t *r3 = list_rpush(repository1, class5->heritages);
+                                        if (r3 == NULL)
+                                        {
+                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                            return -1;
+                                        }
+                                    }
                                 }
                             }
                         
@@ -3311,13 +3569,763 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                                 {
                                     node_heritage_t *heritage4 = (node_heritage_t *)item3->value;
                                     
+                                    if (heritage4->value_update == NULL)
+                                    {
+                                        list_t *response4 = list_create();
+                                        if (response4 == NULL)
+                                        {
+                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                            return -1;
+                                        }
+                                        
+                                        int32_t r4 = semantic_postfix(program, heritage4->type, response4);
+                                        if (r4 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r4 == 0)
+                                        {
+                                            semantic_error(program, heritage4->type, "reference not found");
+                                            return -1;
+                                        }
+                                        else
+                                        if (r4 == 1)
+                                        {
+                                            ilist_t *a5;
+                                            for (a5 = response4->begin;a5 != response4->end;a5 = a5->next)
+                                            {
+                                                node_t *item5 = (node_t *)a5->value;
+                                                
+                                                heritage4->value_update = item5;
+
+                                                if (item5->kind == NODE_KIND_CLASS)
+                                                {
+                                                    node_class_t *class5 = (node_class_t *)item5->value;
+                                                    node_t *node5 = class5->block;
+                                                    node_block_t *block5 = (node_block_t *)node5->value;
+
+                                                    ilist_t *a6;
+                                                    for (a6 = block5->list->begin;a6 != block5->list->end;a6 = a6->next)
+                                                    {
+                                                        node_t *item6 = (node_t *)a6->value;
+                                                        if (item6->kind == NODE_KIND_CLASS)
+                                                        {
+                                                            node_class_t *class6 = (node_class_t *)item6->value;
+                                                            if (semantic_idcmp(class6->key, basic->right) == 1)
+                                                            {
+                                                                if ((item2->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                                                {
+                                                                    if ((class6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                                    {
+                                                                        semantic_error(program, item6, "private access");
+                                                                        return -1;
+                                                                    }
+
+                                                                    if ((class6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                                    {
+                                                                        semantic_error(program, item6, "protect access");
+                                                                        return -1;
+                                                                    }
+
+                                                                    item6->flag |= NODE_FLAG_DERIVE;
+
+                                                                    ilist_t *r6 = list_rpush(response, item6);
+                                                                    if (r6 == NULL)
+                                                                    {
+                                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                        return -1;
+                                                                    }
+                                                                    list_destroy(response4);
+                                                                    return 1;
+                                                                }
+                                                                else
+                                                                {
+                                                                    item6->flag &= ~NODE_FLAG_DERIVE;
+
+                                                                    ilist_t *r6 = list_rpush(response, item6);
+                                                                    if (r6 == NULL)
+                                                                    {
+                                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                        return -1;
+                                                                    }
+                                                                    list_destroy(response4);
+                                                                    return 1;
+                                                                }
+                                                            }
+                                                        }
+                                                        else
+                                                        if (item6->kind == NODE_KIND_ENUM)
+                                                        {
+                                                            node_enum_t *enum1 = (node_enum_t *)item6->value;
+                                                            if (semantic_idcmp(enum1->key, basic->right) == 1)
+                                                            {
+                                                                if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                                                {
+                                                                    if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                                    {
+                                                                        semantic_error(program, item6, "private access");
+                                                                        return -1;
+                                                                    }
+
+                                                                    if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                                    {
+                                                                        semantic_error(program, item6, "protect access");
+                                                                        return -1;
+                                                                    }
+
+                                                                    item6->flag |= NODE_FLAG_DERIVE;
+
+                                                                    ilist_t *r6 = list_rpush(response, item6);
+                                                                    if (r6 == NULL)
+                                                                    {
+                                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                        return -1;
+                                                                    }
+                                                                    list_destroy(response4);
+                                                                    return 1;
+                                                                }
+                                                                else
+                                                                {
+                                                                    item6->flag &= ~NODE_FLAG_DERIVE;
+
+                                                                    ilist_t *r6 = list_rpush(response, item6);
+                                                                    if (r6 == NULL)
+                                                                    {
+                                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                        return -1;
+                                                                    }
+                                                                    list_destroy(response4);
+                                                                    return 1;
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+                                                    ilist_t *r3 = list_rpush(repository1, class5->heritages);
+                                                    if (r3 == NULL)
+                                                    {
+                                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                        return -1;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    semantic_error(program, item5, "non-class as heritage, for (%lld:%lld)",
+                                                        heritage4->type->position.line, heritage4->type->position.column);
+                                                    return -1;
+                                                }
+
+                                                break;
+                                            }
+                                        }
+
+                                        list_destroy(response4);
+                                    }
+                                    else
+                                    {
+                                        node_t *item5 = heritage4->value_update;
+
+                                        node_class_t *class5 = (node_class_t *)item5->value;
+                                        node_t *node5 = class5->block;
+                                        node_block_t *block5 = (node_block_t *)node5->value;
+
+                                        ilist_t *a6;
+                                        for (a6 = block5->list->begin;a6 != block5->list->end;a6 = a6->next)
+                                        {
+                                            node_t *item6 = (node_t *)a6->value;
+                                            if (item6->kind == NODE_KIND_CLASS)
+                                            {
+                                                node_class_t *class6 = (node_class_t *)item6->value;
+                                                if (semantic_idcmp(class6->key, basic->right) == 1)
+                                                {
+                                                    if ((item2->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                                    {
+                                                        if ((class6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                        {
+                                                            semantic_error(program, item6, "private access");
+                                                            return -1;
+                                                        }
+
+                                                        if ((class6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                        {
+                                                            semantic_error(program, item6, "protect access");
+                                                            return -1;
+                                                        }
+
+                                                        item6->flag |= NODE_FLAG_DERIVE;
+
+                                                        ilist_t *r6 = list_rpush(response, item6);
+                                                        if (r6 == NULL)
+                                                        {
+                                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                            return -1;
+                                                        }
+                                                        return 1;
+                                                    }
+                                                    else
+                                                    {
+                                                        item6->flag &= ~NODE_FLAG_DERIVE;
+
+                                                        ilist_t *r6 = list_rpush(response, item6);
+                                                        if (r6 == NULL)
+                                                        {
+                                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                            return -1;
+                                                        }
+                                                        return 1;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item6->kind == NODE_KIND_ENUM)
+                                            {
+                                                node_enum_t *enum1 = (node_enum_t *)item6->value;
+                                                if (semantic_idcmp(enum1->key, basic->right) == 1)
+                                                {
+                                                    if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                                    {
+                                                        if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                        {
+                                                            semantic_error(program, item6, "private access");
+                                                            return -1;
+                                                        }
+
+                                                        if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                        {
+                                                            semantic_error(program, item6, "protect access");
+                                                            return -1;
+                                                        }
+
+                                                        item6->flag |= NODE_FLAG_DERIVE;
+
+                                                        ilist_t *r6 = list_rpush(response, item6);
+                                                        if (r6 == NULL)
+                                                        {
+                                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                            return -1;
+                                                        }
+                                                        return 1;
+                                                    }
+                                                    else
+                                                    {
+                                                        item6->flag &= ~NODE_FLAG_DERIVE;
+
+                                                        ilist_t *r6 = list_rpush(response, item6);
+                                                        if (r6 == NULL)
+                                                        {
+                                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                            return -1;
+                                                        }
+                                                        return 1;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        ilist_t *r3 = list_rpush(repository1, class5->heritages);
+                                        if (r3 == NULL)
+                                        {
+                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                        
+                            ilist_t *r3 = list_rpop(repository1);
+                            if (r3 != NULL)
+                            {
+                                root = (node_t *)r3->value;
+                                continue;
+                            }
+                            else
+                            {
+                                root = NULL;
+                                break;
+                            }
+                        }
+
+                        list_destroy(repository1);
+                    }
+                }
+                else
+                {
+                    semantic_error(program, item2, "not a class, in (%lld:%lld)",
+                        node->position.line, node->position.column);
+                    return -1;
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_HERITAGE)
+            {
+                node_heritage_t *heritage1 = (node_heritage_t *)item1->value;
+                             
+                if (heritage1->value_update == NULL)
+                {
+                    list_t *response2 = list_create();
+                    if (response2 == NULL)
+                    {
+                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                        return -1;
+                    }
+                
+                    int32_t r2 = semantic_postfix(program, heritage1->type, response2);
+                    if (r2 == -1)
+                    {
+                        return -1;
+                    }
+                    else
+                    if (r2 == 0)
+                    {
+                        semantic_error(program, heritage1->type, "reference not found");
+                        return -1;
+                    }
+                    else
+                    if (r2 == 1)
+                    {
+                        ilist_t *a2;
+                        for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                        {
+                            node_t *item2 = (node_t *)a2->value;
+
+                            if (item2->kind == NODE_KIND_CLASS)
+                            {
+                                heritage1->value_update = item2;
+
+                                node_class_t *class2 = (node_class_t *)item2->value;
+                                node_t *node2 = class2->block;
+                                node_block_t *block2 = (node_block_t *)node2->value;
+
+                                ilist_t *a3;
+                                for (a3 = block2->list->begin;a3 != block2->list->end;a3 = a3->next)
+                                {
+                                    node_t *item3 = (node_t *)a3->value;
+                                    if (item3->kind == NODE_KIND_CLASS)
+                                    {
+                                        node_class_t *class3 = (node_class_t *)item3->value;
+                                        if (semantic_idcmp(class3->key, basic->right) == 1)
+                                        {
+                                            if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                            {
+                                                if ((class3->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                {
+                                                    semantic_error(program, item3, "private access");
+                                                    return -1;
+                                                }
+
+                                                if ((class3->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                {
+                                                    semantic_error(program, item3, "protect access");
+                                                    return -1;
+                                                }
+
+                                                item3->flag |= NODE_FLAG_DERIVE;
+
+                                                ilist_t *r3 = list_rpush(response, item3);
+                                                if (r3 == NULL)
+                                                {
+                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                    return -1;
+                                                }
+                                                list_destroy(response2);
+                                                return 1;
+                                            }
+                                            else
+                                            {
+                                                item3->flag &= ~NODE_FLAG_DERIVE;
+
+                                                ilist_t *r3 = list_rpush(response, item3);
+                                                if (r3 == NULL)
+                                                {
+                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                    return -1;
+                                                }
+                                                list_destroy(response2);
+                                                return 1;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    if (item3->kind == NODE_KIND_ENUM)
+                                    {
+                                        node_enum_t *enum3 = (node_enum_t *)item3->value;
+                                        if (semantic_idcmp(enum3->key, basic->right) == 1)
+                                        {
+                                            if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                            {
+                                                if ((enum3->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                {
+                                                    semantic_error(program, item3, "private access");
+                                                    return -1;
+                                                }
+
+                                                if ((enum3->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                {
+                                                    semantic_error(program, item3, "protect access");
+                                                    return -1;
+                                                }
+
+                                                item3->flag |= NODE_FLAG_DERIVE;
+
+                                                ilist_t *r3 = list_rpush(response, item3);
+                                                if (r3 == NULL)
+                                                {
+                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                    return -1;
+                                                }
+                                                list_destroy(response2);
+                                                return 1;
+                                            }
+                                            else
+                                            {
+                                                item3->flag &= ~NODE_FLAG_DERIVE;
+
+                                                ilist_t *r3 = list_rpush(response, item3);
+                                                if (r3 == NULL)
+                                                {
+                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                    return -1;
+                                                }
+                                                list_destroy(response2);
+                                                return 1;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (class2->heritages != NULL)
+                                {
+                                    node_t *root = class2->heritages;
+                                    list_t *repository1 = list_create();
+                                    if (repository1 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    while (root != NULL)
+                                    {
+                                        node_block_t *block4 = (node_block_t *)root->value;
+
+                                        ilist_t *a4;
+                                        for (a4 = block4->list->begin;a4 != block4->list->end;a4 = a4->next)
+                                        {
+                                            node_t *item4 = (node_t *)a4->value;
+                                            
+                                            if (item4->kind == NODE_KIND_HERITAGE)
+                                            {
+                                                node_heritage_t *heritage4 = (node_heritage_t *)item4->value;
+
+                                                list_t *response4 = list_create();
+                                                if (response4 == NULL)
+                                                {
+                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                    return -1;
+                                                }
+                                            
+                                                int32_t r4 = semantic_postfix(program, heritage4->type, response4);
+                                                if (r4 == -1)
+                                                {
+                                                    return -1;
+                                                }
+                                                else
+                                                if (r4 == 0)
+                                                {
+                                                    semantic_error(program, heritage4->type, "reference not found");
+                                                    return -1;
+                                                }
+                                                else
+                                                if (r4 == 1)
+                                                {
+                                                    ilist_t *a5;
+                                                    for (a5 = response4->begin;a5 != response4->end;a5 = a5->next)
+                                                    {
+                                                        node_t *item5 = (node_t *)a5->value;
+
+                                                        if (item5->kind == NODE_KIND_CLASS)
+                                                        {
+                                                            heritage4->value_update = item5;
+
+                                                            node_class_t *class5 = (node_class_t *)item5->value;
+                                                            node_t *node5 = class5->block;
+                                                            node_block_t *block5 = (node_block_t *)node5->value;
+
+                                                            ilist_t *a6;
+                                                            for (a6 = block5->list->begin;a6 != block5->list->end;a6 = a6->next)
+                                                            {
+                                                                node_t *item6 = (node_t *)a6->value;
+                                                                if (item6->kind == NODE_KIND_CLASS)
+                                                                {
+                                                                    node_class_t *class6 = (node_class_t *)item6->value;
+                                                                    if (semantic_idcmp(class6->key, basic->right) == 1)
+                                                                    {
+                                                                        if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                                                        {
+                                                                            if ((class6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                                            {
+                                                                                semantic_error(program, item6, "private access");
+                                                                                return -1;
+                                                                            }
+
+                                                                            if ((class6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                                            {
+                                                                                semantic_error(program, item6, "protect access");
+                                                                                return -1;
+                                                                            }
+
+                                                                            item6->flag |= NODE_FLAG_DERIVE;
+
+                                                                            ilist_t *r6 = list_rpush(response, item6);
+                                                                            if (r6 == NULL)
+                                                                            {
+                                                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                                return -1;
+                                                                            }
+                                                                            list_destroy(response4);
+                                                                            return 1;
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            item6->flag &= ~NODE_FLAG_DERIVE;
+
+                                                                            ilist_t *r6 = list_rpush(response, item6);
+                                                                            if (r6 == NULL)
+                                                                            {
+                                                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                                return -1;
+                                                                            }
+                                                                            list_destroy(response4);
+                                                                            return 1;
+                                                                        }
+                                                                    }
+                                                                }
+                                                                else
+                                                                if (item6->kind == NODE_KIND_ENUM)
+                                                                {
+                                                                    node_enum_t *enum6 = (node_enum_t *)item6->value;
+                                                                    if (semantic_idcmp(enum6->key, basic->right) == 1)
+                                                                    {
+                                                                        if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                                                        {
+                                                                            if ((enum6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                                            {
+                                                                                semantic_error(program, item6, "private access");
+                                                                                return -1;
+                                                                            }
+
+                                                                            if ((enum6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                                            {
+                                                                                semantic_error(program, item6, "protect access");
+                                                                                return -1;
+                                                                            }
+
+                                                                            item6->flag |= NODE_FLAG_DERIVE;
+
+                                                                            ilist_t *r6 = list_rpush(response, item6);
+                                                                            if (r6 == NULL)
+                                                                            {
+                                                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                                return -1;
+                                                                            }
+                                                                            list_destroy(response4);
+                                                                            return 1;
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            item6->flag &= ~NODE_FLAG_DERIVE;
+
+                                                                            ilist_t *r6 = list_rpush(response, item6);
+                                                                            if (r6 == NULL)
+                                                                            {
+                                                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                                return -1;
+                                                                            }
+                                                                            list_destroy(response4);
+                                                                            return 1;
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        
+                                                            ilist_t *r6 = list_rpush(repository1, class5->heritages);
+                                                            if (r6 == NULL)
+                                                            {
+                                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                                return -1;
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            semantic_error(program, item5, "non-class as heritage, for (%lld:%lld)",
+                                                                heritage4->type->position.line, heritage4->type->position.column);
+                                                            return -1;
+                                                        }
+                                                    }
+                                                }
+                                            
+                                            }
+                                        }
+                                    
+                                        ilist_t *r4 = list_rpop(repository1);
+                                        if (r4 != NULL)
+                                        {
+                                            root = (node_t *)r4->value;
+                                            continue;
+                                        }
+                                        else
+                                        {
+                                            root = NULL;
+                                            break;
+                                        }
+                                    }
+
+                                    list_destroy(repository1);
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, item2, "non-class as heritage, for (%lld:%lld)",
+                                    heritage1->type->position.line, heritage1->type->position.column);
+                                return -1;
+                            }
+                            break;
+                        }
+                    }
+
+                    list_destroy(response2);
+                }
+                else
+                {
+                    node_t *item2 = heritage1->value_update;
+
+                    node_class_t *class2 = (node_class_t *)item2->value;
+                    node_t *node2 = class2->block;
+                    node_block_t *block2 = (node_block_t *)node2->value;
+
+                    ilist_t *a3;
+                    for (a3 = block2->list->begin;a3 != block2->list->end;a3 = a3->next)
+                    {
+                        node_t *item3 = (node_t *)a3->value;
+                        if (item3->kind == NODE_KIND_CLASS)
+                        {
+                            node_class_t *class3 = (node_class_t *)item3->value;
+                            if (semantic_idcmp(class3->key, basic->right) == 1)
+                            {
+                                if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                {
+                                    if ((class3->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                    {
+                                        semantic_error(program, item3, "private access");
+                                        return -1;
+                                    }
+
+                                    if ((class3->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                    {
+                                        semantic_error(program, item3, "protect access");
+                                        return -1;
+                                    }
+
+                                    item3->flag |= NODE_FLAG_DERIVE;
+
+                                    ilist_t *r3 = list_rpush(response, item3);
+                                    if (r3 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                    return 1;
+                                }
+                                else
+                                {
+                                    item3->flag &= ~NODE_FLAG_DERIVE;
+
+                                    ilist_t *r3 = list_rpush(response, item3);
+                                    if (r3 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                    return 1;
+                                }
+                            }
+                        }
+                        else
+                        if (item3->kind == NODE_KIND_ENUM)
+                        {
+                            node_enum_t *enum3 = (node_enum_t *)item3->value;
+                            if (semantic_idcmp(enum3->key, basic->right) == 1)
+                            {
+                                if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                {
+                                    if ((enum3->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                    {
+                                        semantic_error(program, item3, "private access");
+                                        return -1;
+                                    }
+
+                                    if ((enum3->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                    {
+                                        semantic_error(program, item3, "protect access");
+                                        return -1;
+                                    }
+
+                                    item3->flag |= NODE_FLAG_DERIVE;
+
+                                    ilist_t *r3 = list_rpush(response, item3);
+                                    if (r3 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                    return 1;
+                                }
+                                else
+                                {
+                                    item3->flag &= ~NODE_FLAG_DERIVE;
+
+                                    ilist_t *r3 = list_rpush(response, item3);
+                                    if (r3 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+
+                    if (class2->heritages != NULL)
+                    {
+                        node_t *root = class2->heritages;
+                        list_t *repository1 = list_create();
+                        if (repository1 == NULL)
+                        {
+                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+
+                        while (root != NULL)
+                        {
+                            node_block_t *block4 = (node_block_t *)root->value;
+
+                            ilist_t *a4;
+                            for (a4 = block4->list->begin;a4 != block4->list->end;a4 = a4->next)
+                            {
+                                node_t *item4 = (node_t *)a4->value;
+                                
+                                if (item4->kind == NODE_KIND_HERITAGE)
+                                {
+                                    node_heritage_t *heritage4 = (node_heritage_t *)item4->value;
+
                                     list_t *response4 = list_create();
                                     if (response4 == NULL)
                                     {
                                         fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                         return -1;
                                     }
-                                    
+                                
                                     int32_t r4 = semantic_postfix(program, heritage4->type, response4);
                                     if (r4 == -1)
                                     {
@@ -3336,9 +4344,11 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                                         for (a5 = response4->begin;a5 != response4->end;a5 = a5->next)
                                         {
                                             node_t *item5 = (node_t *)a5->value;
-                                            
+
                                             if (item5->kind == NODE_KIND_CLASS)
                                             {
+                                                heritage4->value_update = item5;
+
                                                 node_class_t *class5 = (node_class_t *)item5->value;
                                                 node_t *node5 = class5->block;
                                                 node_block_t *block5 = (node_block_t *)node5->value;
@@ -3352,7 +4362,7 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                                                         node_class_t *class6 = (node_class_t *)item6->value;
                                                         if (semantic_idcmp(class6->key, basic->right) == 1)
                                                         {
-                                                            if ((item2->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+                                                            if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
                                                             {
                                                                 if ((class6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                                                                 {
@@ -3395,18 +4405,18 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                                                     else
                                                     if (item6->kind == NODE_KIND_ENUM)
                                                     {
-                                                        node_enum_t *enum1 = (node_enum_t *)item6->value;
-                                                        if (semantic_idcmp(enum1->key, basic->right) == 1)
+                                                        node_enum_t *enum6 = (node_enum_t *)item6->value;
+                                                        if (semantic_idcmp(enum6->key, basic->right) == 1)
                                                         {
                                                             if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
                                                             {
-                                                                if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                                if ((enum6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                                                                 {
                                                                     semantic_error(program, item6, "private access");
                                                                     return -1;
                                                                 }
 
-                                                                if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                                                                if ((enum6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                                                                 {
                                                                     semantic_error(program, item6, "protect access");
                                                                     return -1;
@@ -3439,25 +4449,30 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                                                         }
                                                     }
                                                 }
-
-                                                ilist_t *r3 = list_rpush(repository1, class5->heritages);
-                                                if (r3 == NULL)
+                                            
+                                                ilist_t *r6 = list_rpush(repository1, class5->heritages);
+                                                if (r6 == NULL)
                                                 {
                                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                                     return -1;
                                                 }
                                             }
+                                            else
+                                            {
+                                                semantic_error(program, item5, "non-class as heritage, for (%lld:%lld)",
+                                                    heritage4->type->position.line, heritage4->type->position.column);
+                                                return -1;
+                                            }
                                         }
                                     }
-
-                                    list_destroy(response4);
+                                
                                 }
                             }
                         
-                            ilist_t *r3 = list_rpop(repository1);
-                            if (r3 != NULL)
+                            ilist_t *r4 = list_rpop(repository1);
+                            if (r4 != NULL)
                             {
-                                root = (node_t *)r3->value;
+                                root = (node_t *)r4->value;
                                 continue;
                             }
                             else
@@ -3470,23 +4485,6 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                         list_destroy(repository1);
                     }
                 }
-                else
-                {
-                    semantic_error(program, item2, "not a class, in (%lld:%lld)",
-                        node->position.line, node->position.column);
-                    return -1;
-                }
-            }
-            else
-            if (item1->kind == NODE_KIND_HERITAGE)
-            {
-
-            }
-            else
-            {
-                semantic_error(program, item1, "not a class, in (%lld:%lld)",
-                    node->position.line, node->position.column);
-                return -1;
             }
         }
     }

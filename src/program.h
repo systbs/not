@@ -1,15 +1,15 @@
 #pragma once
 #ifndef __PROGRAM_H__
 
-typedef struct program_pair {
+typedef struct pair {
     uint64_t key;
     void *value;
-} program_pair_t;
+} pair_t;
 
 typedef struct program {
     list_t *errors;
     list_t *imports;
-    list_t *heritages;
+    list_t *repository;
 } program_t;
 
 #endif
