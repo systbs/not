@@ -2858,15 +2858,6 @@ node_clone(node_t *parent, node_t *node)
 			}
 		}
 
-		if (var1->value_update != NULL)
-		{
-			var2->value_update = node_clone(node1, var1->value_update);
-			if (var2->value_update == NULL)
-			{
-				return NULL;
-			}
-		}
-
 		node1->value = var2;
 
 		return node1;
@@ -3037,15 +3028,6 @@ node_clone(node_t *parent, node_t *node)
 		{
 			parameter2->value = node_clone(node1, parameter1->value);
 			if (parameter2->value == NULL)
-			{
-				return NULL;
-			}
-		}
-
-		if (parameter1->value_update != NULL)
-		{
-			parameter2->value_update = node_clone(node1, parameter1->value_update);
-			if (parameter2->value_update == NULL)
 			{
 				return NULL;
 			}
@@ -3556,6 +3538,13 @@ node_clone(node_t *parent, node_t *node)
 	else
 	if (node->kind == NODE_KIND_FUN)
 	{
+		node_fun_t *fun1 = (node_fun_t *)node->value;
+
+		if ((fun1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
+		{
+			return node;
+		}
+
 		node_t *node1 = (node_t *)malloc(sizeof(node_t));
 		if(node1 == NULL)
 		{
@@ -3569,8 +3558,6 @@ node_clone(node_t *parent, node_t *node)
 		node1->parent = parent;
 		node1->kind = node->kind;
 		node1->flag = NODE_FLAG_TEMPORARY;
-
-		node_fun_t *fun1 = (node_fun_t *)node->value;
 
 		node_fun_t *fun2 = (node_fun_t *)malloc(sizeof(node_fun_t));
 		if(fun2 == NULL)
@@ -3701,6 +3688,13 @@ node_clone(node_t *parent, node_t *node)
 	else
 	if (node->kind == NODE_KIND_PROPERTY)
 	{
+		node_property_t *property1 = (node_property_t *)node->value;
+
+		if ((property1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
+		{
+			return node;
+		}
+
 		node_t *node1 = (node_t *)malloc(sizeof(node_t));
 		if(node1 == NULL)
 		{
@@ -3714,8 +3708,6 @@ node_clone(node_t *parent, node_t *node)
 		node1->parent = parent;
 		node1->kind = node->kind;
 		node1->flag = NODE_FLAG_TEMPORARY;
-
-		node_property_t *property1 = (node_property_t *)node->value;
 
 		node_property_t *property2 = (node_property_t *)malloc(sizeof(node_property_t));
 		if(property2 == NULL)
@@ -3754,15 +3746,6 @@ node_clone(node_t *parent, node_t *node)
 			}
 		}
 
-		if (property1->value_update != NULL)
-		{
-			property2->value_update = node_clone(node1, property1->value_update);
-			if (property2->value_update == NULL)
-			{
-				return NULL;
-			}
-		}
-
 		node1->value = property2;
 
 		return node1;
@@ -3770,6 +3753,13 @@ node_clone(node_t *parent, node_t *node)
 	else
 	if (node->kind == NODE_KIND_CLASS)
 	{
+		node_class_t *class1 = (node_class_t *)node->value;
+
+		if ((class1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
+		{
+			return node;
+		}
+
 		node_t *node1 = (node_t *)malloc(sizeof(node_t));
 		if(node1 == NULL)
 		{
@@ -3782,9 +3772,7 @@ node_clone(node_t *parent, node_t *node)
 		node1->position = node->position;
 		node1->parent = parent;
 		node1->kind = node->kind;
-		node1->flag = NODE_FLAG_TEMPORARY;
-
-		node_class_t *class1 = (node_class_t *)node->value;
+		node1->flag = NODE_FLAG_TEMPORARY;	
 
 		node_class_t *class2 = (node_class_t *)malloc(sizeof(node_class_t));
 		if(class2 == NULL)
@@ -3994,6 +3982,13 @@ node_clone(node_t *parent, node_t *node)
 	else
 	if (node->kind == NODE_KIND_ENUM)
 	{
+		node_enum_t *enum1 = (node_enum_t *)node->value;
+
+		if ((enum1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
+		{
+			return node;
+		}
+
 		node_t *node1 = (node_t *)malloc(sizeof(node_t));
 		if(node1 == NULL)
 		{
@@ -4007,8 +4002,6 @@ node_clone(node_t *parent, node_t *node)
 		node1->parent = parent;
 		node1->kind = node->kind;
 		node1->flag = NODE_FLAG_TEMPORARY;
-
-		node_enum_t *enum1 = (node_enum_t *)node->value;
 
 		node_enum_t *enum2 = (node_enum_t *)malloc(sizeof(node_enum_t));
 		if(enum2 == NULL)
