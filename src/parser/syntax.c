@@ -4195,19 +4195,15 @@ syntax_package(program_t *program, syntax_t *syntax, node_t *scope, node_t *pare
 		}
 	}
 
-	node_t *route = NULL;
-	if (syntax->token->type == TOKEN_COLON)
+	if (syntax_match(program, syntax, TOKEN_COLON) == -1)
 	{
-		if (syntax_match(program, syntax, TOKEN_COLON) == -1)
-		{
-			return NULL;
-		}
+		return NULL;
+	}
 
-		route = syntax_postfix(program, syntax, node, node);
-		if (!route)
-		{
-			return NULL;
-		}
+	node_t *route = syntax_postfix(program, syntax, node, node);
+	if (!route)
+	{
+		return NULL;
 	}
 
 	return node_make_package(node, key, generics, route);
@@ -4300,6 +4296,42 @@ syntax_import(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 }
 
 static node_t *
+syntax_static(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent, uint64_t flag)
+{
+	if (syntax_match(program, syntax, TOKEN_STATIC_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	flag |= SYNTAX_MODIFIER_STATIC;
+
+	node_t *node = NULL;
+	switch (syntax->token->type)
+	{
+	case TOKEN_CLASS_KEYWORD:
+		node = syntax_class(program, syntax, scope, parent, flag);
+		break;
+
+	case TOKEN_ENUM_KEYWORD:
+		node = syntax_enum(program, syntax, scope, parent, flag);
+		break;
+
+	default:
+		syntax_error(program, syntax->token->position, "incorrect use of modifier 'static'");
+		break;
+	}
+
+	flag &= ~SYNTAX_MODIFIER_STATIC;
+
+	if (!node)
+	{
+		return NULL;
+	}
+
+	return node;
+}
+
+static node_t *
 syntax_export(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent)
 {
 	if (syntax_match(program, syntax, TOKEN_EXPORT_KEYWORD) == -1)
@@ -4311,6 +4343,11 @@ syntax_export(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 
 	node_t *object = NULL;
 
+	if (syntax->token->type == TOKEN_STATIC_KEYWORD)
+	{
+		object = syntax_static(program, syntax, scope, parent, flag);
+	}
+	else
 	if (syntax->token->type == TOKEN_ENUM_KEYWORD)
 	{
 		object = syntax_enum(program, syntax, scope, parent, flag);
@@ -4404,7 +4441,7 @@ syntax_module(program_t *program, syntax_t *syntax)
 }
 
 syntax_t *
-syntax_create(program_t *program, char *path)
+syntax_create(program_t *program)
 {
 	syntax_t *syntax;
 	syntax = (syntax_t *)malloc(sizeof(syntax_t));
@@ -4415,16 +4452,14 @@ syntax_create(program_t *program, char *path)
 	}
 	memset(syntax, 0, sizeof(syntax_t));
 
-	file_source_t *file_source;
-	file_source = file_create_source(path);
-	if (!file_source)
+	file_source_t *file_source = file_create_source(program->base_file);
+	if (file_source == NULL)
 	{
 		return NULL;
 	}
 
-	scanner_t *scanner;
-	scanner = scanner_create(file_source, program->errors);
-	if (!scanner)
+	scanner_t *scanner = scanner_create(file_source, program->errors);
+	if (scanner == NULL)
 	{
 		return NULL;
 	}
@@ -4435,7 +4470,7 @@ syntax_create(program_t *program, char *path)
 	syntax->token = &scanner->token;
 
 	syntax->states = list_create();
-	if (!syntax->states)
+	if (syntax->states == NULL)
 	{
 		return NULL;
 	}

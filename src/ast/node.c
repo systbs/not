@@ -10,6 +10,7 @@
 #include "../scanner/file.h"
 #include "../scanner/scanner.h"
 #include "node.h"
+#include "../parser/syntax.h"
 
 uint64_t node_counter = 0;
 

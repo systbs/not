@@ -2045,6 +2045,15 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                 node_class_t *class2 = (node_class_t *)item1->value;
                 if (semantic_idcmp(class2->key, name) == 1)
                 {
+                    if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+                    {
+                        if ((class2->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                        {
+                            semantic_error(program, item1, "non static");
+                            return -1;
+                        }
+                    }
+
                     if (scope != NULL)
                     {
                         item1->flag |= NODE_FLAG_DERIVE;
@@ -2082,6 +2091,15 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                 node_enum_t *enum1 = (node_enum_t *)item1->value;
                 if (semantic_idcmp(enum1->key, name) == 1)
                 {
+                    if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+                    {
+                        if ((enum1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                        {
+                            semantic_error(program, item1, "non static");
+                            return -1;
+                        }
+                    }
+
                     if (scope != NULL)
                     {
                         item1->flag |= NODE_FLAG_DERIVE;
@@ -2119,6 +2137,15 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                 node_fun_t *fun1 = (node_fun_t *)item1->value;
                 if (semantic_idcmp(fun1->key, name) == 1)
                 {
+                    if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+                    {
+                        if ((fun1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                        {
+                            semantic_error(program, item1, "non static");
+                            return -1;
+                        }
+                    }
+
                     if (scope != NULL)
                     {
                         item1->flag |= NODE_FLAG_DERIVE;
@@ -2156,6 +2183,15 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                 node_fun_t *property1 = (node_fun_t *)item1->value;
                 if (semantic_idcmp(property1->key, name) == 1)
                 {
+                    if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+                    {
+                        if ((property1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                        {
+                            semantic_error(program, item1, "non static");
+                            return -1;
+                        }
+                    }
+
                     if (scope != NULL)
                     {
                         item1->flag |= NODE_FLAG_DERIVE;
@@ -2341,6 +2377,15 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                 node_class_t *class2 = (node_class_t *)item1->value;
                 if (semantic_idcmp(class2->key, name) == 1)
                 {
+                    if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+                    {
+                        if ((class2->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                        {
+                            semantic_error(program, item1, "non static");
+                            return -1;
+                        }
+                    }
+
                     if (scope != NULL)
                     {
                         item1->flag |= NODE_FLAG_DERIVE;
@@ -2364,6 +2409,15 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                 node_enum_t *enum1 = (node_enum_t *)item1->value;
                 if (semantic_idcmp(enum1->key, name) == 1)
                 {
+                    if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+                    {
+                        if ((enum1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                        {
+                            semantic_error(program, item1, "non static");
+                            return -1;
+                        }
+                    }
+
                     if (scope != NULL)
                     {
                         item1->flag |= NODE_FLAG_DERIVE;
@@ -5517,6 +5571,15 @@ semantic_catch(program_t *program, node_t *node)
 {
     node_catch_t *catch1 = (node_catch_t *)node->value;
 
+    if (catch1->parameters != NULL)
+    {
+        int32_t r1 = semantic_parameters(program, catch1->parameters);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+    }
+
     return 1;
 }
 
@@ -7267,6 +7330,15 @@ semantic_package(program_t *program, node_t *node)
             sub = current;
             current = current->parent;
             continue;
+        }
+    }
+
+    if (package1->generics != NULL)
+    {
+        int32_t r1 = semantic_generics(program, package1->generics);
+        if (r1 == -1)
+        {
+            return -1;
         }
     }
 

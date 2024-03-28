@@ -20,104 +20,61 @@
 int
 main(int argc, char **argv)
 {
-	argc--;
-    argv++;
-
-    // parse arguments
-
-    
-    char *path = "./test/test.q";
-
-    argc--;
-    argv++;
-
-    program_t program;
-
-    char *base_path = malloc(_MAX_DIR + _MAX_FNAME + _MAX_EXT);
-    memset(base_path, 0, _MAX_DIR + _MAX_FNAME + _MAX_EXT);
-
-    char *base_file = malloc(_MAX_DIR + _MAX_FNAME + _MAX_EXT);
-    memset(base_file, 0, _MAX_DIR + _MAX_FNAME + _MAX_EXT);
-
-    if (path_is_root(path))
-    {
-			path_normalize(getenv ("QALAM-PATH"), base_path, _MAX_DIR + _MAX_FNAME + _MAX_EXT);
-			path_join(base_path, path + 2, base_file, _MAX_DIR + _MAX_FNAME + _MAX_EXT);
-    }
-    else
-    {
-			path_get_current_directory(base_path, _MAX_DIR + _MAX_FNAME + _MAX_EXT);
-			if(path_is_relative(path))
-			{
-				path_join(base_path, path, base_file, _MAX_DIR + _MAX_FNAME + _MAX_EXT);
-			}
-			else 
-			{
-				path_normalize(path, base_file, _MAX_DIR + _MAX_FNAME + _MAX_EXT);
-			}
-    }
-
-    program.errors = list_create();
-    if(!program.errors)
-    {
-      return -1;
-    }
-
-		program.imports = list_create();
-    if(!program.imports)
-    {
-      return -1;
-    }
-    
-    syntax_t *syntax;
-    syntax = syntax_create(&program, base_file);
-    if(!syntax)
-    {
-    	return -1;
-    }
-    
-    node_t *node;
-    node = syntax_module(&program, syntax);
-    if(!node)
-    {
-			if(list_count(program.errors) > 0)
-			{
-				goto print_error;
-			}
-    	return -1;
-    }
-
-    int32_t result;
-    result = semantic_run(&program, node);
-    if(result == -1)
-    {
-        if(list_count(program.errors) > 0)
-        {
-            goto print_error;
-        }
-    	return -1;
-    }
-
-    return 0;
-
-    ilist_t *a;
-    print_error:
-    for(a = program.errors->begin; a != program.errors->end; a = a->next)
-    {
-        error_t *error;
-        error = (error_t *)a->value;
-
-        char relative_path[_MAX_DIR + _MAX_FNAME + _MAX_EXT];
-        path_get_relative(base_path, error->position.path, relative_path, sizeof(relative_path));
-        
-        fprintf(stderr, 
-            "%s-%lld:%lld:error:%s\n", 
-            relative_path, 
-            error->position.line, 
-            error->position.column, 
-            error->message
-        );
-    }
-
+  program_t *program = program_create();
+  if (program == NULL)
+  {
     return -1;
+  }
+
+  int32_t i;
+  for (i = 1;i < argc; i++)
+  {
+    if (strcmp(argv[i], "-f") == 0)
+    {
+      i += 1;
+      program_resolve(program, argv[i]);
+    }
+  }
+
+  if (strcmp(program->base_path, "") == 0)
+  {
+    fprintf(stderr, 
+      "qalam: fatal: no input file specified\n"
+      "using:qalam -f [file] ...\n"
+      "type qalam -h for more help.\n");
+    return 0;
+  }
+  
+  syntax_t *syntax = syntax_create(program);
+  if(syntax == NULL)
+  {
+    return -1;
+  }
+  
+  node_t *node = syntax_module(program, syntax);
+  if(node == NULL)
+  {
+    if(list_count(program->errors) > 0)
+    {
+      goto region_report;
+    }
+    return -1;
+  }
+
+  int32_t result = semantic_run(program, node);
+  if(result == -1)
+  {
+      if(list_count(program->errors) > 0)
+      {
+          goto region_report;
+      }
+    return -1;
+  }
+
+  return 0;
+
+  region_report:
+  program_report(program);
+
+  return -1;
 }
