@@ -1782,6 +1782,127 @@ semantic_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
 
 
 static int32_t
+semantic_substitute_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
+{
+	uint64_t cnt2 = 0;
+	node_block_t *bfs2 = (node_block_t *)nfs2->value;
+	ilist_t *a2;
+	for (a2 = bfs2->list->begin;a2 != bfs2->list->end;a2 = a2->next)
+	{
+		node_t *item2 = (node_t *)a2->value;
+		if (item2->kind == NODE_KIND_FIELD)
+		{
+			cnt2 += 1;
+			node_field_t *field2 = (node_field_t *)item2->value;
+			if (field2->value == NULL)
+			{
+				uint64_t cnt1 = 0;
+				node_block_t *bgs1 = (node_block_t *)ngs1->value;
+				ilist_t *a1;
+				for (a1 = bgs1->list->begin;a1 != bgs1->list->end;a1 = a1->next)
+				{
+					node_t *item1 = (node_t *)a1->value;
+					if (item1->kind == NODE_KIND_GENERIC)
+					{
+						node_generic_t *generic1 = (node_generic_t *)item1->value;
+						cnt1 += 1;
+						if (cnt1 < cnt2)
+						{
+							continue;
+						}
+
+						generic1->value_update = field2->value;
+						break;
+					}
+				}
+			}
+			else
+			{
+				node_block_t *bgs1 = (node_block_t *)ngs1->value;
+				ilist_t *a1;
+				for (a1 = bgs1->list->begin;a1 != bgs1->list->end;a1 = a1->next)
+				{
+					node_t *item1 = (node_t *)a1->value;
+					if (item1->kind == NODE_KIND_GENERIC)
+					{
+						node_generic_t *generic1 = (node_generic_t *)item1->value;
+						if (semantic_idcmp(generic1->key, field2->key) == 1)
+						{
+							generic1->value_update = field2->value;
+							break;
+						}
+					}
+				}
+			}
+			
+		}
+	}
+
+	return 1;
+}
+
+static int32_t
+semantic_substitute_psas(program_t *program, node_t *nps1, node_t *nas2)
+{
+	uint64_t cnt2 = 0;
+	node_block_t *bas2 = (node_block_t *)nas2->value;
+	ilist_t *a2;
+	for (a2 = bas2->list->begin;a2 != bas2->list->end;a2 = a2->next)
+	{
+		node_t *item2 = (node_t *)a2->value;
+		if (item2->kind == NODE_KIND_FIELD)
+		{
+			cnt2 += 1;
+			node_argument_t *argument2 = (node_argument_t *)item2->value;
+			if (argument2->value == NULL)
+			{
+				uint64_t cnt1 = 0;
+				node_block_t *bps1 = (node_block_t *)nps1->value;
+				ilist_t *a1;
+				for (a1 = bps1->list->begin;a1 != bps1->list->end;a1 = a1->next)
+				{
+					node_t *item1 = (node_t *)a1->value;
+					if (item1->kind == NODE_KIND_PARAMETER)
+					{
+						node_parameter_t *parameter1 = (node_parameter_t *)item1->value;
+						cnt1 += 1;
+						if (cnt1 < cnt2)
+						{
+							continue;
+						}
+
+						parameter1->value_update = argument2->value;
+						break;
+					}
+				}
+			}
+			else
+			{
+				node_block_t *bps1 = (node_block_t *)nps1->value;
+				ilist_t *a1;
+				for (a1 = bps1->list->begin;a1 != bps1->list->end;a1 = a1->next)
+				{
+					node_t *item1 = (node_t *)a1->value;
+					if (item1->kind == NODE_KIND_PARAMETER)
+					{
+						node_parameter_t *parameter1 = (node_parameter_t *)item1->value;
+						if (semantic_idcmp(parameter1->key, argument2->key) == 1)
+						{
+							parameter1->value_update = argument2->value;
+							break;
+						}
+					}
+				}
+			}
+			
+		}
+	}
+
+	return 1;
+}
+
+
+static int32_t
 semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, list_t *response, int32_t follow)
 {
     if (root->kind == NODE_KIND_TRY)
@@ -2364,6 +2485,15 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                         node_package_t *package2 = (node_package_t *)item2->value;
                         if (semantic_idcmp(package2->key, name) == 1)
                         {
+							if (scope != NULL)
+                    		{
+								item2->flag |= NODE_FLAG_DERIVE;
+							}
+							else
+							{
+								item2->flag &= ~NODE_FLAG_DERIVE;
+							}
+
                             ilist_t *r1 = list_rpush(response, item2);
                             if (r1 == NULL)
                             {
@@ -2392,6 +2522,21 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                     if (scope != NULL)
                     {
                         item1->flag |= NODE_FLAG_DERIVE;
+
+						if ((class2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                        {
+                            semantic_error(program, item1, "private access");
+                            return -1;
+                        }
+
+                        if (follow != 1)
+                        {
+                            if ((class2->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                            {
+                                semantic_error(program, item1, "protect access");
+                                return -1;
+                            }
+                        }
                     }
                     else
                     {
@@ -2424,6 +2569,21 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                     if (scope != NULL)
                     {
                         item1->flag |= NODE_FLAG_DERIVE;
+
+						if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                        {
+                            semantic_error(program, item1, "private access");
+                            return -1;
+                        }
+
+                        if (follow != 1)
+                        {
+                            if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+                            {
+                                semantic_error(program, item1, "protect access");
+                                return -1;
+                            }
+                        }
                     }
                     else
                     {
@@ -2466,11 +2626,23 @@ static int32_t
 semantic_id(program_t *program, node_t *scope, node_t *node, list_t *response)
 {
     program->rax = node;
-    int32_t r1 = semantic_select(program, scope ? scope : node->parent, NULL, node, response, 0);
-    if (r1 == -1)
-    {
-        return -1;
-    }
+	if (scope == NULL)
+	{
+		int32_t r1 = semantic_select(program, node->parent, NULL, node, response, 0);
+		if (r1 == -1)
+		{
+			return -1;
+		}
+	}
+	else
+	{
+		int32_t r1 = semantic_select(program, scope, scope, node, response, 0);
+		if (r1 == -1)
+		{
+			return -1;
+		}
+	}
+    
 
     if (list_count(response) > 0)
     {
@@ -2580,12 +2752,30 @@ semantic_pseudonym(program_t *program, node_t *scope, node_t *node, list_t *resp
                 else
                 if (r1 == 1)
                 {
-                    ilist_t *il1 = list_rpush(response, item1);
-                    if (il1 == NULL)
-                    {
-                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                        return -1;
-                    }
+					node_t *item2 = node_clone(item1->parent, item1);
+					if (item2 == NULL)
+					{
+						return -1;
+					}
+
+					node_class_t *class2 = (node_class_t *)item2->value;
+					node_t *ngs3 = class2->generics;
+					node_t *nfs4 = carrier->data;
+					int32_t r2 = semantic_substitute_gsfs(program, ngs3, nfs4);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 1)
+					{
+						ilist_t *il1 = list_rpush(response, item2);
+						if (il1 == NULL)
+						{
+							fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+							return -1;
+						}
+					}
                 }
             }
             else
@@ -2602,17 +2792,36 @@ semantic_pseudonym(program_t *program, node_t *scope, node_t *node, list_t *resp
                 else
                 if (r1 == 1)
                 {
-                    ilist_t *il1 = list_rpush(response, item1);
-                    if (il1 == NULL)
-                    {
-                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                        return -1;
-                    }
+					node_t *item2 = node_clone(item1->parent, item1);
+					if (item2 == NULL)
+					{
+						return -1;
+					}
+
+					node_package_t *package3 = (node_package_t *)item2->value;
+					node_t *ngs3 = package3->generics;
+					node_t *nfs4 = carrier->data;
+					int32_t r2 = semantic_substitute_gsfs(program, ngs3, nfs4);
+					if (r2 == -1)
+					{
+						return -1;
+					}
+					else
+					if (r2 == 1)
+					{
+
+						ilist_t *il1 = list_rpush(response, item2);
+						if (il1 == NULL)
+						{
+							fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+							return -1;
+						}
+					}
                 }
             }
             else
             {
-                semantic_error(program, item1, "not a class, in (%lld:%lld)",
+                semantic_error(program, item1, "no generic field, in (%lld:%lld)",
                     node->position.line, node->position.column);
                 return -1;
             }
@@ -5764,7 +5973,6 @@ semantic_postfix(program_t *program, node_t *scope, node_t *node, list_t *respon
         return semantic_primary(program, scope, node, response);
     }
 }
-
 
 
 static int32_t

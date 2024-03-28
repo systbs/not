@@ -238,15 +238,11 @@ typedef struct node_parameter {
 typedef struct node_field {
 	node_t *key;
 	node_t *value;
-
-	node_t *value_update;
 } node_field_t;
 
 typedef struct node_argument {
 	node_t *key;
 	node_t *value;
-
-	node_t *value_update;
 } node_argument_t;
 
 typedef struct node_heritage {
