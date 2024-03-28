@@ -5,7 +5,7 @@
 #define MAX_URI (_MAX_DIR + _MAX_FNAME + _MAX_EXT)
 
 typedef struct pair {
-    uint64_t key;
+    char *key;
     void *value;
 } pair_t;
 
@@ -16,6 +16,10 @@ typedef struct program {
     list_t *errors;
     list_t *modules;
     list_t *repository;
+
+
+    list_t *stack;
+    void *rax;
 } program_t;
 
 void

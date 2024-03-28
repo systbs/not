@@ -8,7 +8,8 @@ import {
   } : "~/types/statics";
 
 import {
-  Array<T>:Container.Array<T>
+  Array<T>:Container.Array<T>,
+  Dictionary<T, V>:Container.Dictionary<T, V>
   } : "~/types/container";
 
 export static class Int4
@@ -37,19 +38,19 @@ export static class System<R extends Int, T = Float>
     System.Print("Hello World!");
   }
 
-  export fun R2(a:Int, b:String) : Int
+  export fun R2(a:Dictionary<T=Int, R=String>, b:String) : Int
   {
     System.Print("Hello World!");
     var c = 1;
 
     try throw1<T extends String> {
-      throw1<T = String>(Expection(), "error message");
+      throw1<T = String, Int>(Expection(), "error message");
     } 
-    catch (e : Expection, t:T)
+    catch (e : String, t:T)
     {
 
     }
-    catch (e : Expection, t:Int)
+    catch (e : String, t:Int)
     {
 
     }

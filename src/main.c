@@ -45,7 +45,7 @@ main(int argc, char **argv)
     return 0;
   }
   
-  syntax_t *syntax = syntax_create(program);
+  syntax_t *syntax = syntax_create(program, program->base_file);
   if(syntax == NULL)
   {
     return -1;

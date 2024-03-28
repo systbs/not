@@ -38,7 +38,7 @@ typedef struct syntax_state
 } syntax_state_t;
 
 syntax_t *
-syntax_create(program_t *program);
+syntax_create(program_t *program, char *path);
 
 node_t *
 syntax_module(program_t *program, syntax_t *syntax);

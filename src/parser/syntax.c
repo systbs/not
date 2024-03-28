@@ -1002,7 +1002,7 @@ syntax_fields(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 
 	while (true)
 	{
-		node_t *node2 = syntax_field(program, syntax, scope, parent);
+		node_t *node2 = syntax_field(program, syntax, scope, node);
 		if (!node2)
 		{
 			return NULL;
@@ -1078,7 +1078,7 @@ syntax_arguments(program_t *program, syntax_t *syntax, node_t *scope, node_t *pa
 	node_t *node2;
 	while (true)
 	{
-		node2 = syntax_argument(program, syntax, scope, parent);
+		node2 = syntax_argument(program, syntax, scope, node);
 		if (node2 == NULL)
 		{
 			return NULL;
@@ -1142,7 +1142,7 @@ syntax_postfix(program_t *program, syntax_t *syntax, node_t *scope, node_t *pare
 				return NULL;
 			}
 
-			node_t *concepts = syntax_fields(program, syntax, scope, parent);
+			node_t *concepts = syntax_fields(program, syntax, scope, node);
 			if (concepts == NULL)
 			{
 				if (syntax_restore(program, syntax) == -1)
@@ -1200,14 +1200,16 @@ syntax_postfix(program_t *program, syntax_t *syntax, node_t *scope, node_t *pare
 				return NULL;
 			}
 
-			node_t *argements = NULL;
-			if (syntax->token->type != TOKEN_RBRACKET)
+			if (syntax->token->type == TOKEN_RBRACKET)
 			{
-				argements = syntax_arguments(program, syntax, scope, parent);
-				if (!(argements))
-				{
-					return NULL;
-				}
+				syntax_error(program, syntax->token->position, "empty array");
+				return NULL;
+			}
+
+			node_t *argements = syntax_arguments(program, syntax, scope, node);
+			if (argements == NULL)
+			{
+				return NULL;
 			}
 
 			if (syntax_match(program, syntax, TOKEN_RBRACKET) == -1)
@@ -4441,7 +4443,7 @@ syntax_module(program_t *program, syntax_t *syntax)
 }
 
 syntax_t *
-syntax_create(program_t *program)
+syntax_create(program_t *program, char *path)
 {
 	syntax_t *syntax;
 	syntax = (syntax_t *)malloc(sizeof(syntax_t));
@@ -4452,7 +4454,7 @@ syntax_create(program_t *program)
 	}
 	memset(syntax, 0, sizeof(syntax_t));
 
-	file_source_t *file_source = file_create_source(program->base_file);
+	file_source_t *file_source = file_create_source(path);
 	if (file_source == NULL)
 	{
 		return NULL;

@@ -74,13 +74,16 @@ semantic_idstrcmp(node_t *n1, char *name)
 
 
 static int32_t
-semantic_postfix(program_t *program, node_t *node, list_t *response);
+semantic_postfix(program_t *program, node_t *scope, node_t *node, list_t *response);
 
 static int32_t
 semantic_expression(program_t *program, node_t *node, list_t *response);
 
 static int32_t
 semantic_body(program_t *program, node_t *node);
+
+static int32_t
+semantic_fields(program_t *program, node_t *node);
 
 
 /*
@@ -118,7 +121,7 @@ semantic_subset(program_t *program, node_t *n1, node_t *n2)
                         return -1;
                     }
 
-                    int32_t r2 = semantic_postfix(program, heritage2->type, response2);
+                    int32_t r2 = semantic_postfix(program, NULL, heritage2->type, response2);
                     if (r2 == -1)
                     {
                         return -1;
@@ -247,7 +250,7 @@ semantic_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                         return -1;
                                     }
                                     
-                                    int32_t r1 = semantic_postfix(program, generic1->type, response1);
+                                    int32_t r1 = semantic_postfix(program, NULL, generic1->type, response1);
                                     if (r1 == -1)
                                     {
                                         return -1;
@@ -273,7 +276,7 @@ semantic_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                 return -1;
                                             }
                                             
-                                            int32_t r2 = semantic_postfix(program, generic2->type, response2);
+                                            int32_t r2 = semantic_postfix(program, NULL, generic2->type, response2);
                                             if (r2 == -1)
                                             {
                                                 return -1;
@@ -389,7 +392,7 @@ semantic_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                             return -1;
                                         }
 
-                                        int32_t r1 = semantic_postfix(program, generic1->type, response1);
+                                        int32_t r1 = semantic_postfix(program, NULL, generic1->type, response1);
                                         if (r1 == -1)
                                         {
                                             return -1;
@@ -415,7 +418,7 @@ semantic_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                     return -1;
                                                 }
                                                 
-                                                int32_t r2 = semantic_postfix(program, generic2->type, response2);
+                                                int32_t r2 = semantic_postfix(program, NULL, generic2->type, response2);
                                                 if (r2 == -1)
                                                 {
                                                     return -1;
@@ -508,7 +511,7 @@ semantic_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                             return -1;
                                         }
 
-                                        int32_t r1 = semantic_postfix(program, generic1->type, response1);
+                                        int32_t r1 = semantic_postfix(program, NULL, generic1->type, response1);
                                         if (r1 == -1)
                                         {
                                             return -1;
@@ -534,7 +537,7 @@ semantic_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                     return -1;
                                                 }
                                                 
-                                                int32_t r2 = semantic_postfix(program, generic2->type, response2);
+                                                int32_t r2 = semantic_postfix(program, NULL, generic2->type, response2);
                                                 if (r2 == -1)
                                                 {
                                                     return -1;
@@ -687,7 +690,7 @@ semantic_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                 return -1;
                             }
                             
-                            int32_t r1 = semantic_postfix(program, parameter1->type, response1);
+                            int32_t r1 = semantic_postfix(program, NULL, parameter1->type, response1);
                             if (r1 == -1)
                             {
                                 return -1;
@@ -713,7 +716,7 @@ semantic_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                         return -1;
                                     }
                                     
-                                    int32_t r2 = semantic_postfix(program, parameter2->type, response2);
+                                    int32_t r2 = semantic_postfix(program, NULL, parameter2->type, response2);
                                     if (r2 == -1)
                                     {
                                         return -1;
@@ -809,7 +812,7 @@ semantic_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                     return -1;
                                 }
                                 
-                                int32_t r1 = semantic_postfix(program, parameter1->type, response1);
+                                int32_t r1 = semantic_postfix(program, NULL, parameter1->type, response1);
                                 if (r1 == -1)
                                 {
                                     return -1;
@@ -835,7 +838,7 @@ semantic_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                             return -1;
                                         }
                                         
-                                        int32_t r2 = semantic_postfix(program, parameter2->type, response2);
+                                        int32_t r2 = semantic_postfix(program, NULL, parameter2->type, response2);
                                         if (r2 == -1)
                                         {
                                             return -1;
@@ -908,7 +911,7 @@ semantic_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                     return -1;
                                 }
                                 
-                                int32_t r1 = semantic_postfix(program, parameter1->type, response1);
+                                int32_t r1 = semantic_postfix(program, NULL, parameter1->type, response1);
                                 if (r1 == -1)
                                 {
                                     return -1;
@@ -934,7 +937,7 @@ semantic_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                             return -1;
                                         }
                                         
-                                        int32_t r2 = semantic_postfix(program, parameter2->type, response2);
+                                        int32_t r2 = semantic_postfix(program, NULL, parameter2->type, response2);
                                         if (r2 == -1)
                                         {
                                             return -1;
@@ -1059,7 +1062,7 @@ semantic_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                     return -1;
                                 }
                                 
-                                int32_t r1 = semantic_postfix(program, parameter1->type, response1);
+                                int32_t r1 = semantic_postfix(program, NULL, parameter1->type, response1);
                                 if (r1 == -1)
                                 {
                                     return -1;
@@ -1085,7 +1088,7 @@ semantic_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                             return -1;
                                         }
                                         
-                                        int32_t r2 = semantic_postfix(program, argument2->value, response2);
+                                        int32_t r2 = semantic_postfix(program, NULL, argument2->value, response2);
                                         if (r2 == -1)
                                         {
                                             return -1;
@@ -1178,7 +1181,7 @@ semantic_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                             return -1;
                                         }
 
-                                        int32_t r1 = semantic_postfix(program, parameter1->type, response1);
+                                        int32_t r1 = semantic_postfix(program, NULL, parameter1->type, response1);
                                         if (r1 == -1)
                                         {
                                             return -1;
@@ -1204,7 +1207,7 @@ semantic_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                                     return -1;
                                                 }
                                                 
-                                                int32_t r2 = semantic_postfix(program, argument2->value, response2);
+                                                int32_t r2 = semantic_postfix(program, NULL, argument2->value, response2);
                                                 if (r2 == -1)
                                                 {
                                                     return -1;
@@ -1280,7 +1283,7 @@ semantic_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                             return -1;
                                         }
 
-                                        int32_t r1 = semantic_postfix(program, parameter1->type, response1);
+                                        int32_t r1 = semantic_postfix(program, NULL, parameter1->type, response1);
                                         if (r1 == -1)
                                         {
                                             return -1;
@@ -1306,7 +1309,7 @@ semantic_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                                     return -1;
                                                 }
                                                 
-                                                int32_t r2 = semantic_postfix(program, argument2->value, response2);
+                                                int32_t r2 = semantic_postfix(program, NULL, argument2->value, response2);
                                                 if (r2 == -1)
                                                 {
                                                     return -1;
@@ -1427,7 +1430,7 @@ semantic_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                     return -1;
                                 }
                                 
-                                int32_t r1 = semantic_postfix(program, generic1->type, response1);
+                                int32_t r1 = semantic_postfix(program, NULL, generic1->type, response1);
                                 if (r1 == -1)
                                 {
                                     return -1;
@@ -1453,7 +1456,7 @@ semantic_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                             return -1;
                                         }
                                         
-                                        int32_t r2 = semantic_postfix(program, field2->key, response2);
+                                        int32_t r2 = semantic_postfix(program, NULL, field2->key, response2);
                                         if (r2 == -1)
                                         {
                                             return -1;
@@ -1564,7 +1567,7 @@ semantic_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                             return -1;
                                         }
 
-                                        int32_t r1 = semantic_postfix(program, generic1->type, response1);
+                                        int32_t r1 = semantic_postfix(program, NULL, generic1->type, response1);
                                         if (r1 == -1)
                                         {
                                             return -1;
@@ -1590,7 +1593,7 @@ semantic_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                                     return -1;
                                                 }
                                                 
-                                                int32_t r2 = semantic_postfix(program, field2->value, response2);
+                                                int32_t r2 = semantic_postfix(program, NULL, field2->value, response2);
                                                 if (r2 == -1)
                                                 {
                                                     return -1;
@@ -1684,7 +1687,7 @@ semantic_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                             return -1;
                                         }
 
-                                        int32_t r1 = semantic_postfix(program, generic1->type, response1);
+                                        int32_t r1 = semantic_postfix(program, NULL, generic1->type, response1);
                                         if (r1 == -1)
                                         {
                                             return -1;
@@ -1710,7 +1713,7 @@ semantic_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                                     return -1;
                                                 }
                                                 
-                                                int32_t r2 = semantic_postfix(program, field2->value, response2);
+                                                int32_t r2 = semantic_postfix(program, NULL, field2->value, response2);
                                                 if (r2 == -1)
                                                 {
                                                     return -1;
@@ -2288,7 +2291,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                             return -1;
                         }
                         
-                        int32_t r1 = semantic_postfix(program, heritage3->type, response2);
+                        int32_t r1 = semantic_postfix(program, NULL, heritage3->type, response2);
                         if (r1 == -1)
                         {
                             return -1;
@@ -2460,13 +2463,25 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
 }
 
 static int32_t
-semantic_id(program_t *program, node_t *node, list_t *response)
+semantic_id(program_t *program, node_t *scope, node_t *node, list_t *response)
 {
-    return semantic_select(program, node->parent, NULL, node, response, 0);
+    program->rax = node;
+    int32_t r1 = semantic_select(program, scope ? scope : node->parent, NULL, node, response, 0);
+    if (r1 == -1)
+    {
+        return -1;
+    }
+
+    if (list_count(response) > 0)
+    {
+        return 1;
+    }
+
+    return 0;
 }
 
 static int32_t
-semantic_array(program_t *program, node_t *node, list_t *response)
+semantic_array(program_t *program, node_t *scope, node_t *node, list_t *response)
 {
     ilist_t *r1 = list_rpush(response, node);
     if (r1 == NULL)
@@ -2478,7 +2493,7 @@ semantic_array(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-semantic_object(program_t *program, node_t *node, list_t *response)
+semantic_object(program_t *program, node_t *scope, node_t *node, list_t *response)
 {
     ilist_t *r1 = list_rpush(response, node);
     if (r1 == NULL)
@@ -2490,34 +2505,43 @@ semantic_object(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-semantic_primary(program_t *program, node_t *node, list_t *response)
+semantic_primary(program_t *program, node_t *scope, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_ID)
     {
-        return semantic_id(program, node, response);
+        return semantic_id(program, scope, node, response);
     }
     else
     if (node->kind == NODE_KIND_ARRAY)
     {
-        return semantic_array(program, node, response);
+        return semantic_array(program, scope, node, response);
     }
     else
     if (node->kind == NODE_KIND_OBJECT)
     {
-        return semantic_object(program, node, response);
+        return semantic_object(program, scope, node, response);
     }
     else
     {
-        semantic_error(program, node, "not a type");
+        semantic_error(program, node, "unselectable");
         return -1;
     }
 }
 
 static int32_t
-semantic_pseudonym(program_t *program, node_t *node, list_t *response)
+semantic_pseudonym(program_t *program, node_t *scope, node_t *node, list_t *response)
 {
     node_carrier_t *carrier = (node_carrier_t *)node->value;
     
+    if (carrier->data != NULL)
+    {
+        int32_t r1 = semantic_fields(program, carrier->data);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+    }
+
     list_t *response1 = list_create();
     if (response1 == NULL)
     {
@@ -2525,7 +2549,7 @@ semantic_pseudonym(program_t *program, node_t *node, list_t *response)
         return -1;
     }
 
-    int32_t r1 = semantic_postfix(program, carrier->base, response1);
+    int32_t r1 = semantic_postfix(program, scope, carrier->base, response1);
     if (r1 == -1)
     {
         return -1;
@@ -2606,7 +2630,7 @@ semantic_pseudonym(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-semantic_attribute(program_t *program, node_t *node, list_t *response)
+semantic_attribute(program_t *program, node_t *scope, node_t *node, list_t *response)
 {
     node_binary_t *basic = (node_binary_t *)node->value;
     
@@ -2617,7 +2641,7 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
         return -1;
     }
 
-    int32_t r1 = semantic_postfix(program, basic->left, response1);
+    int32_t r1 = semantic_postfix(program, scope, basic->left, response1);
     if (r1 == -1)
     {
         return -1;
@@ -2806,7 +2830,7 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                                         return -1;
                                     }
                                 
-                                    int32_t r4 = semantic_postfix(program, heritage4->type, response4);
+                                    int32_t r4 = semantic_postfix(program, NULL, heritage4->type, response4);
                                     if (r4 == -1)
                                     {
                                         return -1;
@@ -3115,48 +3139,48 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                     ilist_t *a2;
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
-                        node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_CLASS)
+                        node_t *item3 = (node_t *)a2->value;
+                        if (item3->kind == NODE_KIND_CLASS)
                         {
-                            node_class_t *class2 = (node_class_t *)item2->value;
+                            node_class_t *class2 = (node_class_t *)item3->value;
                             if (semantic_idcmp(basic->right, class2->key) == 1)
                             {
                                 if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
                                 {
                                     if ((class2->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                                     {
-                                        semantic_error(program, item2, "non static");
+                                        semantic_error(program, item3, "non static");
                                         return -1;
                                     }
-                                    item2->flag |= NODE_FLAG_NEW;
+                                    item3->flag |= NODE_FLAG_NEW;
                                 }
                                 else
                                 {
-                                    item2->flag &= ~NODE_FLAG_NEW;
+                                    item3->flag &= ~NODE_FLAG_NEW;
                                 }
 
                                 if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
                                 {
                                     if ((class2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                                     {
-                                        semantic_error(program, item2, "private access");
+                                        semantic_error(program, item3, "private access");
                                         return -1;
                                     }
 
                                     if ((class2->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                                     {
-                                        semantic_error(program, item2, "protect access");
+                                        semantic_error(program, item3, "protect access");
                                         return -1;
                                     }
 
-                                    item2->flag |= NODE_FLAG_DERIVE;
+                                    item3->flag |= NODE_FLAG_DERIVE;
                                 }
                                 else
                                 {
-                                    item2->flag &= ~NODE_FLAG_DERIVE;
+                                    item3->flag &= ~NODE_FLAG_DERIVE;
                                 }
 
-                                ilist_t *r2 = list_rpush(response, item2);
+                                ilist_t *r2 = list_rpush(response, item3);
                                 if (r2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
@@ -3167,47 +3191,47 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                             }
                         }
                         else
-                        if (item2->kind == NODE_KIND_ENUM)
+                        if (item3->kind == NODE_KIND_ENUM)
                         {
-                            node_enum_t *enum2 = (node_enum_t *)item2->value;
+                            node_enum_t *enum2 = (node_enum_t *)item3->value;
                             if (semantic_idcmp(basic->right, enum2->key) == 1)
                             {
                                 if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
                                 {
                                     if ((enum2->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                                     {
-                                        semantic_error(program, item2, "non static");
+                                        semantic_error(program, item3, "non static");
                                         return -1;
                                     }
-                                    item2->flag |= NODE_FLAG_NEW;
+                                    item3->flag |= NODE_FLAG_NEW;
                                 }
                                 else
                                 {
-                                    item2->flag &= ~NODE_FLAG_NEW;
+                                    item3->flag &= ~NODE_FLAG_NEW;
                                 }
 
                                 if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
                                 {
                                     if ((enum2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                                     {
-                                        semantic_error(program, item2, "private access");
+                                        semantic_error(program, item3, "private access");
                                         return -1;
                                     }
 
                                     if ((enum2->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                                     {
-                                        semantic_error(program, item2, "protect access");
+                                        semantic_error(program, item3, "protect access");
                                         return -1;
                                     }
 
-                                    item2->flag |= NODE_FLAG_DERIVE;
+                                    item3->flag |= NODE_FLAG_DERIVE;
                                 }
                                 else
                                 {
-                                    item2->flag &= ~NODE_FLAG_DERIVE;
+                                    item3->flag &= ~NODE_FLAG_DERIVE;
                                 }
 
-                                ilist_t *r2 = list_rpush(response, item2);
+                                ilist_t *r2 = list_rpush(response, item3);
                                 if (r2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
@@ -3251,7 +3275,7 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                                             return -1;
                                         }
                                         
-                                        int32_t r4 = semantic_postfix(program, heritage4->type, response4);
+                                        int32_t r4 = semantic_postfix(program, NULL, heritage4->type, response4);
                                         if (r4 == -1)
                                         {
                                             return -1;
@@ -3570,48 +3594,48 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                     ilist_t *a2;
                     for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                     {
-                        node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_CLASS)
+                        node_t *item3 = (node_t *)a2->value;
+                        if (item3->kind == NODE_KIND_CLASS)
                         {
-                            node_class_t *class2 = (node_class_t *)item2->value;
+                            node_class_t *class2 = (node_class_t *)item3->value;
                             if (semantic_idcmp(basic->right, class2->key) == 1)
                             {
                                 if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
                                 {
                                     if ((class2->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                                     {
-                                        semantic_error(program, item2, "non static");
+                                        semantic_error(program, item3, "non static");
                                         return -1;
                                     }
-                                    item2->flag |= NODE_FLAG_NEW;
+                                    item3->flag |= NODE_FLAG_NEW;
                                 }
                                 else
                                 {
-                                    item2->flag &= ~NODE_FLAG_NEW;
+                                    item3->flag &= ~NODE_FLAG_NEW;
                                 }
 
                                 if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
                                 {
                                     if ((class2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                                     {
-                                        semantic_error(program, item2, "private access");
+                                        semantic_error(program, item3, "private access");
                                         return -1;
                                     }
 
                                     if ((class2->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                                     {
-                                        semantic_error(program, item2, "protect access");
+                                        semantic_error(program, item3, "protect access");
                                         return -1;
                                     }
 
-                                    item2->flag |= NODE_FLAG_DERIVE;
+                                    item3->flag |= NODE_FLAG_DERIVE;
                                 }
                                 else
                                 {
-                                    item2->flag &= ~NODE_FLAG_DERIVE;
+                                    item3->flag &= ~NODE_FLAG_DERIVE;
                                 }
 
-                                ilist_t *r2 = list_rpush(response, item2);
+                                ilist_t *r2 = list_rpush(response, item3);
                                 if (r2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
@@ -3622,47 +3646,47 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                             }
                         }
                         else
-                        if (item2->kind == NODE_KIND_ENUM)
+                        if (item3->kind == NODE_KIND_ENUM)
                         {
-                            node_enum_t *enum2 = (node_enum_t *)item2->value;
+                            node_enum_t *enum2 = (node_enum_t *)item3->value;
                             if (semantic_idcmp(basic->right, enum2->key) == 1)
                             {
                                 if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
                                 {
                                     if ((enum2->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                                     {
-                                        semantic_error(program, item2, "non static");
+                                        semantic_error(program, item3, "non static");
                                         return -1;
                                     }
-                                    item2->flag |= NODE_FLAG_NEW;
+                                    item3->flag |= NODE_FLAG_NEW;
                                 }
                                 else
                                 {
-                                    item2->flag &= ~NODE_FLAG_NEW;
+                                    item3->flag &= ~NODE_FLAG_NEW;
                                 }
 
                                 if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
                                 {
                                     if ((enum2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                                     {
-                                        semantic_error(program, item2, "private access");
+                                        semantic_error(program, item3, "private access");
                                         return -1;
                                     }
 
                                     if ((enum2->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                                     {
-                                        semantic_error(program, item2, "protect access");
+                                        semantic_error(program, item3, "protect access");
                                         return -1;
                                     }
 
-                                    item2->flag |= NODE_FLAG_DERIVE;
+                                    item3->flag |= NODE_FLAG_DERIVE;
                                 }
                                 else
                                 {
-                                    item2->flag &= ~NODE_FLAG_DERIVE;
+                                    item3->flag &= ~NODE_FLAG_DERIVE;
                                 }
 
-                                ilist_t *r2 = list_rpush(response, item2);
+                                ilist_t *r2 = list_rpush(response, item3);
                                 if (r2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
@@ -3706,7 +3730,7 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                                             return -1;
                                         }
                                         
-                                        int32_t r4 = semantic_postfix(program, heritage4->type, response4);
+                                        int32_t r4 = semantic_postfix(program, NULL, heritage4->type, response4);
                                         if (r4 == -1)
                                         {
                                             return -1;
@@ -4020,7 +4044,7 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                         return -1;
                     }
                 
-                    int32_t r2 = semantic_postfix(program, heritage1->type, response2);
+                    int32_t r2 = semantic_postfix(program, NULL, heritage1->type, response2);
                     if (r2 == -1)
                     {
                         return -1;
@@ -4174,7 +4198,7 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                                                     return -1;
                                                 }
                                             
-                                                int32_t r4 = semantic_postfix(program, heritage4->type, response4);
+                                                int32_t r4 = semantic_postfix(program, NULL, heritage4->type, response4);
                                                 if (r4 == -1)
                                                 {
                                                     return -1;
@@ -4476,7 +4500,7 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
                                         return -1;
                                     }
                                 
-                                    int32_t r4 = semantic_postfix(program, heritage4->type, response4);
+                                    int32_t r4 = semantic_postfix(program, NULL, heritage4->type, response4);
                                     if (r4 == -1)
                                     {
                                         return -1;
@@ -4639,8 +4663,1082 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
             else
             if (item1->kind == NODE_KIND_PACKAGE)
             {
+                node_t *root1 = item1->parent;
+                while (root1 != NULL)
+                {
+                    if (root1->kind == NODE_KIND_IMPORT)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        root1 = root1->parent;
+                    }
+                }
 
+                if (root1->kind != NODE_KIND_IMPORT)
+                {
+                    semantic_error(program, root1, "import not found\n");
+                    return -1;
+                }
+
+                node_import_t *import1 = (node_import_t *)root1->value;
+
+				char *base_path = malloc(MAX_URI);
+				if (base_path == NULL)
+				{
+					fprintf(stderr, "unable to allocted a block of %d bytes\n", MAX_URI);
+					return -1;
+				}
+				memset(base_path, 0, MAX_URI);
+
+				char *base_file = malloc(MAX_URI);
+				if (base_file == NULL)
+				{
+					fprintf(stderr, "unable to allocted a block of %d bytes\n", MAX_URI);
+					return -1;
+				}
+				memset(base_file, 0, MAX_URI);
+
+				node_basic_t *basic2 = (node_basic_t *)import1->path->value;
+				char *path1 = basic2->value;
+
+				if (path_is_root(path1))
+				{
+					path_normalize(getenv ("QALAM-PATH"), base_path, MAX_URI);
+					path_join(base_path, path1 + 2, base_file, MAX_URI);
+				}
+				else
+				{
+					path_get_current_directory(base_path, MAX_URI);
+					if(path_is_relative(path1))
+					{
+						path_join(base_path, path1, base_file, MAX_URI);
+					}
+					else 
+					{
+						path_normalize(path1, base_file, MAX_URI);
+					}
+				}
+
+                node_t *module1 = NULL;
+
+                ilist_t *b1;
+                for (b1 = program->modules->begin;b1 != program->modules->end;b1 = b1->next)
+                {
+                    pair_t *pair1 = (pair_t *)b1->value;
+                    if (strcmp(pair1->key, base_file) == 0)
+                    {
+                        module1 = (node_t *)pair1->value;
+                        break;
+                    }
+                }
+
+                if (module1 == NULL)
+                {
+					syntax_t *syntax1 = syntax_create(program, base_file);
+					if(syntax1 == NULL)
+					{
+						return -1;
+					}
+					
+					node_t *node1 = syntax_module(program, syntax1);
+					if(node1 == NULL)
+					{
+						return -1;
+					}
+
+					pair_t *pair1 = (pair_t *)malloc(sizeof(pair_t));
+					if (pair1 == NULL)
+					{
+						fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(program_t));
+						return -1;
+					}
+
+					pair1->key = base_file;
+					pair1->value = node1;
+
+					ilist_t *r2 = list_rpush(program->modules, pair1);
+					if (r2 == NULL)
+					{
+						return -1;
+					}
+
+					int32_t r3 = semantic_run(program, node1);
+					if(r3 == -1)
+					{
+						return -1;
+					}
+
+					module1 = node1;
+                }
+
+                node_package_t *package1 = (node_package_t *)item1->value;
+
+				list_t *response2 = list_create();
+				if (response2 == NULL)
+				{
+					fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+					return -1;
+				}
+
+				int32_t r2 = semantic_postfix(program, module1, package1->route, response2);
+				if (r2 == -1)
+				{
+					return -1;
+				}
+				else
+				if (r2 == 0)
+				{
+					semantic_error(program, package1->route, "reference not found");
+					return -1;
+				}
+				else
+				if (r2 == 1)
+				{
+					ilist_t *b1;
+					for (b1 = response2->begin;b1 != response2->end;b1 = b1->next)
+					{
+						node_t *item2 = (node_t *)b1->value;
+						if (item2->kind == NODE_KIND_ENUM)
+						{
+							node_enum_t *enum2 = (node_enum_t *)item2->value;
+							node_t *node2 = enum2->block;
+							node_block_t *block2 = (node_block_t *)node2->value;
+							ilist_t *b2;
+							for (b2 = block2->list->begin;b2 != block2->list->end;b2 = b2->next)
+							{
+								node_t *item3 = (node_t *)b2->value;
+								if (item3->kind == NODE_KIND_MEMBER)
+								{
+									node_member_t *member3 = (node_member_t *)item3->value;
+									if (semantic_idcmp(member3->key, basic->right) == 1)
+									{
+										ilist_t *r3 = list_rpush(response, item3);
+										if (r3 == NULL)
+										{
+											fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+											return -1;
+										}
+										list_destroy(response2);
+										list_destroy(response1);
+										return 1;
+									}
+								}
+							}
+						}
+						else
+						if (item2->kind == NODE_KIND_CLASS)
+						{
+							node_class_t *class3 = (node_class_t *)item2->value;
+							node_t *node3 = class3->block;
+							node_block_t *block3 = (node_block_t *)node3->value;
+							ilist_t *a3;
+							for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
+							{
+								node_t *item3 = (node_t *)a3->value;
+								if (item3->kind == NODE_KIND_CLASS)
+								{
+									node_class_t *class4 = (node_class_t *)item3->value;
+									if (semantic_idcmp(basic->right, class4->key) == 1)
+									{
+										if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+										{
+											if ((class4->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+											{
+												semantic_error(program, item3, "non static");
+												return -1;
+											}
+											item3->flag |= NODE_FLAG_NEW;
+										}
+										else
+										{
+											item3->flag &= ~NODE_FLAG_NEW;
+										}
+
+										if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+										{
+											if ((class4->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+											{
+												semantic_error(program, item3, "private access");
+												return -1;
+											}
+
+											if ((class4->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+											{
+												semantic_error(program, item1, "protect access");
+												return -1;
+											}
+
+											item3->flag |= NODE_FLAG_DERIVE;
+										}
+										else
+										{
+											item3->flag &= ~NODE_FLAG_DERIVE;
+										}
+
+										ilist_t *r3 = list_rpush(response, item3);
+										if (r3 == NULL)
+										{
+											fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+											return -1;
+										}
+										list_destroy(response2);
+										list_destroy(response1);
+										return 1;
+									}
+								}
+								else
+								if (item3->kind == NODE_KIND_ENUM)
+								{
+									node_enum_t *enum3 = (node_enum_t *)item3->value;
+									if (semantic_idcmp(basic->right, enum3->key) == 1)
+									{
+										if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+										{
+											if ((enum3->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+											{
+												semantic_error(program, item3, "non static");
+												return -1;
+											}
+											item3->flag |= NODE_FLAG_NEW;
+										}
+										else
+										{
+											item3->flag &= ~NODE_FLAG_NEW;
+										}
+
+										if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+										{
+											if ((enum3->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+											{
+												semantic_error(program, item3, "private access");
+												return -1;
+											}
+
+											if ((enum3->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+											{
+												semantic_error(program, item1, "protect access");
+												return -1;
+											}
+
+											item3->flag |= NODE_FLAG_DERIVE;
+										}
+										else
+										{
+											item3->flag &= ~NODE_FLAG_DERIVE;
+										}
+
+										ilist_t *r3 = list_rpush(response, item3);
+										if (r3 == NULL)
+										{
+											fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+											return -1;
+										}
+										list_destroy(response2);
+										list_destroy(response1);
+										return 1;
+									}
+								}
+							}
+
+							if (class3->heritages != NULL)
+							{
+								node_t *root2 = class3->heritages;
+								list_t *repository1 = list_create();
+								if (repository1 == NULL)
+								{
+									fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+									return -1;
+								}
+
+								while (root2 != NULL)
+								{
+									node_block_t *block3 = (node_block_t *)root2->value;
+
+									ilist_t *a4;
+									for (a4 = block3->list->begin;a4 != block3->list->end;a4 = a4->next)
+									{
+										node_t *item3 = (node_t *)a4->value;
+										
+										if (item3->kind == NODE_KIND_HERITAGE)
+										{
+											node_heritage_t *heritage4 = (node_heritage_t *)item3->value;
+										
+											if (heritage4->value_update == NULL)
+											{
+												list_t *response4 = list_create();
+												if (response4 == NULL)
+												{
+													fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+													return -1;
+												}
+											
+												int32_t r4 = semantic_postfix(program, NULL, heritage4->type, response4);
+												if (r4 == -1)
+												{
+													return -1;
+												}
+												else
+												if (r4 == 0)
+												{
+													semantic_error(program, heritage4->type, "reference not found");
+													return -1;
+												}
+												else
+												if (r4 == 1)
+												{
+													ilist_t *a5;
+													for (a5 = response4->begin;a5 != response4->end;a5 = a5->next)
+													{
+														node_t *item5 = (node_t *)a5->value;
+
+														heritage4->value_update = item5;
+
+														if (item5->kind == NODE_KIND_CLASS)
+														{
+															node_class_t *class5 = (node_class_t *)item5->value;
+															node_t *node5 = class5->block;
+															node_block_t *block5 = (node_block_t *)node5->value;
+
+															ilist_t *a6;
+															for (a6 = block5->list->begin;a6 != block5->list->end;a6 = a6->next)
+															{
+																node_t *item6 = (node_t *)a6->value;
+																if (item6->kind == NODE_KIND_CLASS)
+																{
+																	node_class_t *class6 = (node_class_t *)item6->value;
+																	if (semantic_idcmp(class6->key, basic->right) == 1)
+																	{
+																		if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+																		{
+																			if ((class6->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+																			{
+																				semantic_error(program, item6, "non static");
+																				return -1;
+																			}
+																			item6->flag |= NODE_FLAG_NEW;
+																		}
+																		else
+																		{
+																			item6->flag &= ~NODE_FLAG_NEW;
+																		}
+
+																		if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+																		{
+																			if ((class6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+																			{
+																				semantic_error(program, item6, "private access");
+																				return -1;
+																			}
+
+																			if ((class6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+																			{
+																				semantic_error(program, item6, "protect access");
+																				return -1;
+																			}
+
+																			item6->flag |= NODE_FLAG_DERIVE;
+																		}
+																		else
+																		{
+																			item6->flag &= ~NODE_FLAG_DERIVE;
+																		}
+
+																		ilist_t *r6 = list_rpush(response, item6);
+																		if (r6 == NULL)
+																		{
+																			fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+																			return -1;
+																		}
+																		list_destroy(response4);
+																		return 1;
+																	}
+																}
+																else
+																if (item6->kind == NODE_KIND_ENUM)
+																{
+																	node_enum_t *enum1 = (node_enum_t *)item6->value;
+																	if (semantic_idcmp(enum1->key, basic->right) == 1)
+																	{
+																		if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+																		{
+																			if ((enum1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+																			{
+																				semantic_error(program, item6, "non static");
+																				return -1;
+																			}
+																			item6->flag |= NODE_FLAG_NEW;
+																		}
+																		else
+																		{
+																			item6->flag &= ~NODE_FLAG_NEW;
+																		}
+
+																		if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+																		{
+																			if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+																			{
+																				semantic_error(program, item6, "private access");
+																				return -1;
+																			}
+
+																			if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+																			{
+																				semantic_error(program, item6, "protect access");
+																				return -1;
+																			}
+
+																			item6->flag |= NODE_FLAG_DERIVE;
+																		}
+																		else
+																		{
+																			item6->flag &= ~NODE_FLAG_DERIVE;
+																		}
+
+																		ilist_t *r6 = list_rpush(response, item6);
+																		if (r6 == NULL)
+																		{
+																			fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+																			return -1;
+																		}
+																		list_destroy(response4);
+																		return 1;
+																	}
+																}
+															}
+
+															ilist_t *r3 = list_rpush(repository1, class5->heritages);
+															if (r3 == NULL)
+															{
+																fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+																return -1;
+															}
+														}
+														else
+														{
+															semantic_error(program, item5, "non-class as heritage, for (%lld:%lld)",
+																heritage4->type->position.line, heritage4->type->position.column);
+															return -1;
+														}
+													}
+												}
+
+												list_destroy(response4);
+											}
+											else
+											{
+												node_t *item5 = heritage4->value_update;
+												node_class_t *class5 = (node_class_t *)item5->value;
+												node_t *node5 = class5->block;
+												node_block_t *block5 = (node_block_t *)node5->value;
+
+												ilist_t *a6;
+												for (a6 = block5->list->begin;a6 != block5->list->end;a6 = a6->next)
+												{
+													node_t *item6 = (node_t *)a6->value;
+													if (item6->kind == NODE_KIND_CLASS)
+													{
+														node_class_t *class6 = (node_class_t *)item6->value;
+														if (semantic_idcmp(class6->key, basic->right) == 1)
+														{
+															if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+															{
+																if ((class6->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+																{
+																	semantic_error(program, item6, "non static");
+																	return -1;
+																}
+																item6->flag |= NODE_FLAG_NEW;
+															}
+															else
+															{
+																item6->flag &= ~NODE_FLAG_NEW;
+															}
+
+															if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+															{
+																if ((class6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+																{
+																	semantic_error(program, item6, "private access");
+																	return -1;
+																}
+
+																if ((class6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+																{
+																	semantic_error(program, item6, "protect access");
+																	return -1;
+																}
+
+																item6->flag |= NODE_FLAG_DERIVE;
+															}
+															else
+															{
+																item6->flag &= ~NODE_FLAG_DERIVE;
+															}
+
+															ilist_t *r6 = list_rpush(response, item6);
+															if (r6 == NULL)
+															{
+																fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+																return -1;
+															}
+															return 1;
+														}
+													}
+													else
+													if (item6->kind == NODE_KIND_ENUM)
+													{
+														node_enum_t *enum1 = (node_enum_t *)item6->value;
+														if (semantic_idcmp(enum1->key, basic->right) == 1)
+														{
+															if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+															{
+																if ((enum1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+																{
+																	semantic_error(program, item6, "non static");
+																	return -1;
+																}
+																item6->flag |= NODE_FLAG_NEW;
+															}
+															else
+															{
+																item6->flag &= ~NODE_FLAG_NEW;
+															}
+
+															if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+															{
+																if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+																{
+																	semantic_error(program, item6, "private access");
+																	return -1;
+																}
+
+																if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+																{
+																	semantic_error(program, item6, "protect access");
+																	return -1;
+																}
+
+																item6->flag |= NODE_FLAG_DERIVE;                                                   
+															}
+															else
+															{
+																item6->flag &= ~NODE_FLAG_DERIVE;
+															}
+
+															ilist_t *r6 = list_rpush(response, item6);
+															if (r6 == NULL)
+															{
+																fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+																return -1;
+															}
+															return 1;
+														}
+													}
+												}
+
+												ilist_t *r3 = list_rpush(repository1, class5->heritages);
+												if (r3 == NULL)
+												{
+													fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+													return -1;
+												}
+											}
+										}
+									}
+								
+									ilist_t *r4 = list_rpop(repository1);
+									if (r4 != NULL)
+									{
+										root2 = (node_t *)r4->value;
+										continue;
+									}
+									else
+									{
+										root2 = NULL;
+										break;
+									}
+								}
+
+								list_destroy(repository1);
+							}
+						}
+						else
+						if (item2->kind == NODE_KIND_PROPERTY)
+						{
+							node_property_t *property2 = (node_property_t *)item2->value;
+							if (property2->value_update == NULL)
+							{
+								semantic_error(program, item2, "not initialized");
+								return -1;
+							}
+
+							node_t *item3 = property2->value_update;
+							if (item3->kind == NODE_KIND_CLASS)
+							{
+								node_class_t *class3 = (node_class_t *)item3->value;
+								node_t *node3 = class3->block;
+								node_block_t *block3 = (node_block_t *)node3->value;
+								ilist_t *a3;
+								for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
+								{
+									node_t *item4 = (node_t *)a3->value;
+									if (item4->kind == NODE_KIND_CLASS)
+									{
+										node_class_t *class4 = (node_class_t *)item4->value;
+										if (semantic_idcmp(basic->right, class4->key) == 1)
+										{
+											if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+											{
+												if ((class4->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+												{
+													semantic_error(program, item4, "non static");
+													return -1;
+												}
+												item4->flag |= NODE_FLAG_NEW;
+											}
+											else
+											{
+												item4->flag &= ~NODE_FLAG_NEW;
+											}
+
+											if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+											{
+												if ((class4->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+												{
+													semantic_error(program, item4, "private access");
+													return -1;
+												}
+
+												if ((class4->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+												{
+													semantic_error(program, item4, "protect access");
+													return -1;
+												}
+
+												item4->flag |= NODE_FLAG_DERIVE;
+											}
+											else
+											{
+												item4->flag &= ~NODE_FLAG_DERIVE;
+											}
+
+											ilist_t *r4 = list_rpush(response, item4);
+											if (r4 == NULL)
+											{
+												fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+												return -1;
+											}
+											list_destroy(response2);
+											list_destroy(response1);
+											return 1;
+										}
+									}
+									else
+									if (item4->kind == NODE_KIND_ENUM)
+									{
+										node_enum_t *enum4 = (node_enum_t *)item4->value;
+										if (semantic_idcmp(basic->right, enum4->key) == 1)
+										{
+											if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+											{
+												if ((enum4->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+												{
+													semantic_error(program, item4, "non static");
+													return -1;
+												}
+												item4->flag |= NODE_FLAG_NEW;
+											}
+											else
+											{
+												item4->flag &= ~NODE_FLAG_NEW;
+											}
+
+											if ((item1->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+											{
+												if ((enum4->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+												{
+													semantic_error(program, item4, "private access");
+													return -1;
+												}
+
+												if ((enum4->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+												{
+													semantic_error(program, item4, "protect access");
+													return -1;
+												}
+
+												item4->flag |= NODE_FLAG_DERIVE;
+											}
+											else
+											{
+												item4->flag &= ~NODE_FLAG_DERIVE;
+											}
+
+											ilist_t *r4 = list_rpush(response, item4);
+											if (r4 == NULL)
+											{
+												fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+												return -1;
+											}
+											list_destroy(response2);
+											list_destroy(response1);
+											return 1;
+										}
+									}
+								}
+
+								if (class3->heritages != NULL)
+								{
+									node_t *root2 = class3->heritages;
+
+									list_t *repository1 = list_create();
+									if (repository1 == NULL)
+									{
+										fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+										return -1;
+									}
+
+									while (root2 != NULL)
+									{
+										node_block_t *block4 = (node_block_t *)root2->value;
+
+										ilist_t *a4;
+										for (a4 = block4->list->begin;a4 != block4->list->end;a4 = a4->next)
+										{
+											node_t *item4 = (node_t *)a4->value;
+											
+											if (item4->kind == NODE_KIND_HERITAGE)
+											{
+												node_heritage_t *heritage4 = (node_heritage_t *)item4->value;
+												
+												if (heritage4->value_update == NULL)
+												{
+													list_t *response4 = list_create();
+													if (response4 == NULL)
+													{
+														fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+														return -1;
+													}
+													
+													int32_t r4 = semantic_postfix(program, NULL, heritage4->type, response4);
+													if (r4 == -1)
+													{
+														return -1;
+													}
+													else
+													if (r4 == 0)
+													{
+														semantic_error(program, heritage4->type, "reference not found");
+														return -1;
+													}
+													else
+													if (r4 == 1)
+													{
+														ilist_t *a5;
+														for (a5 = response4->begin;a5 != response4->end;a5 = a5->next)
+														{
+															node_t *item5 = (node_t *)a5->value;
+															
+															heritage4->value_update = item5;
+
+															if (item5->kind == NODE_KIND_CLASS)
+															{
+																node_class_t *class5 = (node_class_t *)item5->value;
+																node_t *node5 = class5->block;
+																node_block_t *block5 = (node_block_t *)node5->value;
+
+																ilist_t *a6;
+																for (a6 = block5->list->begin;a6 != block5->list->end;a6 = a6->next)
+																{
+																	node_t *item6 = (node_t *)a6->value;
+																	if (item6->kind == NODE_KIND_CLASS)
+																	{
+																		node_class_t *class6 = (node_class_t *)item6->value;
+																		if (semantic_idcmp(class6->key, basic->right) == 1)
+																		{
+																			if ((item2->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+																			{
+																				if ((class6->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+																				{
+																					semantic_error(program, item6, "non static");
+																					return -1;
+																				}
+																				item6->flag |= NODE_FLAG_NEW;
+																			}
+																			else
+																			{
+																				item6->flag &= ~NODE_FLAG_NEW;
+																			}
+
+																			if ((item2->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+																			{
+																				if ((class6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+																				{
+																					semantic_error(program, item6, "private access");
+																					return -1;
+																				}
+
+																				if ((class6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+																				{
+																					semantic_error(program, item6, "protect access");
+																					return -1;
+																				}
+
+																				item6->flag |= NODE_FLAG_DERIVE;
+																			}
+																			else
+																			{
+																				item6->flag &= ~NODE_FLAG_DERIVE;
+																			}
+
+																			ilist_t *r6 = list_rpush(response, item6);
+																			if (r6 == NULL)
+																			{
+																				fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+																				return -1;
+																			}
+																			list_destroy(response4);
+																			return 1;
+																		}
+																	}
+																	else
+																	if (item6->kind == NODE_KIND_ENUM)
+																	{
+																		node_enum_t *enum6 = (node_enum_t *)item6->value;
+																		if (semantic_idcmp(enum6->key, basic->right) == 1)
+																		{
+																			if ((item2->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+																			{
+																				if ((enum6->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+																				{
+																					semantic_error(program, item6, "non static");
+																					return -1;
+																				}
+																				item6->flag |= NODE_FLAG_NEW;
+																			}
+																			else
+																			{
+																				item6->flag &= ~NODE_FLAG_NEW;
+																			}
+
+																			if ((item2->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+																			{
+																				if ((enum6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+																				{
+																					semantic_error(program, item6, "private access");
+																					return -1;
+																				}
+
+																				if ((enum6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+																				{
+																					semantic_error(program, item6, "protect access");
+																					return -1;
+																				}
+
+																				item6->flag |= NODE_FLAG_DERIVE;
+																			}
+																			else
+																			{
+																				item6->flag &= ~NODE_FLAG_DERIVE;
+																			}
+
+																			ilist_t *r6 = list_rpush(response, item6);
+																			if (r6 == NULL)
+																			{
+																				fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+																				return -1;
+																			}
+																			list_destroy(response4);
+																			return 1;
+																		}
+																	}
+																}
+
+																ilist_t *r3 = list_rpush(repository1, class5->heritages);
+																if (r3 == NULL)
+																{
+																	fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+																	return -1;
+																}
+															}
+															else
+															{
+																semantic_error(program, item5, "non-class as heritage, for (%lld:%lld)",
+																	heritage4->type->position.line, heritage4->type->position.column);
+																return -1;
+															}
+
+															break;
+														}
+													}
+
+													list_destroy(response4);
+												}
+												else
+												{
+													node_t *item5 = heritage4->value_update;
+
+													node_class_t *class5 = (node_class_t *)item5->value;
+													node_t *node5 = class5->block;
+													node_block_t *block5 = (node_block_t *)node5->value;
+
+													ilist_t *a6;
+													for (a6 = block5->list->begin;a6 != block5->list->end;a6 = a6->next)
+													{
+														node_t *item6 = (node_t *)a6->value;
+														if (item6->kind == NODE_KIND_CLASS)
+														{
+															node_class_t *class6 = (node_class_t *)item6->value;
+															if (semantic_idcmp(class6->key, basic->right) == 1)
+															{
+																if ((item2->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+																{
+																	if ((class6->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+																	{
+																		semantic_error(program, item6, "non static");
+																		return -1;
+																	}
+																	item6->flag |= NODE_FLAG_NEW;
+																}
+																else
+																{
+																	item6->flag &= ~NODE_FLAG_NEW;
+																}
+
+																if ((item2->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+																{
+																	if ((class6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+																	{
+																		semantic_error(program, item6, "private access");
+																		return -1;
+																	}
+
+																	if ((class6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+																	{
+																		semantic_error(program, item6, "protect access");
+																		return -1;
+																	}
+
+																	item6->flag |= NODE_FLAG_DERIVE;
+																}
+																else
+																{
+																	item6->flag &= ~NODE_FLAG_DERIVE;
+																}
+
+																ilist_t *r6 = list_rpush(response, item6);
+																if (r6 == NULL)
+																{
+																	fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+																	return -1;
+																}
+																return 1;
+															}
+														}
+														else
+														if (item6->kind == NODE_KIND_ENUM)
+														{
+															node_enum_t *enum6 = (node_enum_t *)item6->value;
+															if (semantic_idcmp(enum6->key, basic->right) == 1)
+															{
+																if ((item2->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+																{
+																	if ((enum6->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+																	{
+																		semantic_error(program, item6, "non static");
+																		return -1;
+																	}
+																	item6->flag |= NODE_FLAG_NEW;
+																}
+																else
+																{
+																	item6->flag &= ~NODE_FLAG_NEW;
+																}
+
+																if ((item2->flag & NODE_FLAG_DERIVE) == NODE_FLAG_DERIVE)
+																{
+																	if ((enum6->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+																	{
+																		semantic_error(program, item6, "private access");
+																		return -1;
+																	}
+
+																	if ((enum6->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
+																	{
+																		semantic_error(program, item6, "protect access");
+																		return -1;
+																	}
+
+																	item6->flag |= NODE_FLAG_DERIVE;
+																}
+																else
+																{
+																	item6->flag &= ~NODE_FLAG_DERIVE;
+																}
+
+																ilist_t *r6 = list_rpush(response, item6);
+																if (r6 == NULL)
+																{
+																	fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+																	return -1;
+																}
+																return 1;
+															}
+														}
+													}
+
+													ilist_t *r3 = list_rpush(repository1, class5->heritages);
+													if (r3 == NULL)
+													{
+														fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+														return -1;
+													}
+												}
+											}
+										}
+									
+										ilist_t *r4 = list_rpop(repository1);
+										if (r4 != NULL)
+										{
+											root2 = (node_t *)r4->value;
+											continue;
+										}
+										else
+										{
+											root2 = NULL;
+											break;
+										}
+									}
+
+									list_destroy(repository1);
+								}
+							}
+							else
+							{
+								semantic_error(program, item3, "not a class, in (%lld:%lld)",
+									node->position.line, node->position.column);
+								return -1;
+							}
+						}
+						else
+						{
+							semantic_error(program, item2, "wrong access, in (%lld:%lld)",
+								node->position.line, node->position.column);
+							return -1;
+						}
+            
+					}
+				}
+				list_destroy(response2);
             }
+			else
+			{
+				semantic_error(program, item1, "wrong access, in (%lld:%lld)",
+					node->position.line, node->position.column);
+				return -1;
+			}
         }
     }
 
@@ -4650,24 +5748,158 @@ semantic_attribute(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-semantic_postfix(program_t *program, node_t *node, list_t *response)
+semantic_postfix(program_t *program, node_t *scope, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_ATTRIBUTE)
     {
-        return semantic_attribute(program, node, response);
+        return semantic_attribute(program, scope, node, response);
     }
     else
     if (node->kind == NODE_KIND_PSEUDONYM)
     {
-        return semantic_pseudonym(program, node, response);
+        return semantic_pseudonym(program, scope, node, response);
     }
     else
     {
-        return semantic_primary(program, node, response);
+        return semantic_primary(program, scope, node, response);
     }
 }
 
 
+
+static int32_t
+semantic_field(program_t *program, node_t *node)
+{
+    node_field_t *field1 = (node_field_t *)node->value;
+    
+    node_t *sub = node;
+    node_t *current = node->parent;
+    while (current != NULL)
+    {
+        if (current->kind == NODE_KIND_FIELDS)
+        {
+            node_block_t *block2 = (node_block_t *)current->value;
+
+            ilist_t *a2;
+            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+            {
+                node_t *item2 = (node_t *)a2->value;
+                if (item2->id == sub->id)
+                {
+                    break;
+                }
+
+                if (item2->kind == NODE_KIND_FIELD)
+                {
+                    if (field1->value != NULL)
+                    {
+                        node_field_t *field3 = (node_field_t *)item2->value;
+
+                        if (field3->value != NULL)
+                        {
+                            if (semantic_idcmp(field1->key, field3->key) == 1)
+                            {
+                                semantic_error(program, field1->key, "already defined, previous in (%lld:%lld)",
+                                    field3->key->position.line, field3->key->position.column);
+                                return -1;
+                            }
+                        }
+                        else
+                        {
+                            semantic_error(program, field1->key, "fields format");
+                            return -1;
+                        }
+                    }
+                    else
+                    {
+                        node_field_t *field3 = (node_field_t *)item2->value;
+                        if (field3->value != NULL)
+                        {
+                            semantic_error(program, field1->key, "fields format");
+                            return -1;
+                        }
+                    }
+                }
+            }
+            
+            break;
+        }
+        else
+        {
+            sub = current;
+            current = current->parent;
+            continue;
+        }
+    }
+
+
+    if (field1->value != NULL)
+    {
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_postfix(program, NULL, field1->value, response1);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        if (r1 == 0)
+        {
+            semantic_error(program, field1->value, "reference not found");
+            return -1;
+        }
+        
+        list_destroy(response1);
+    }
+    else
+    {
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_postfix(program, NULL, field1->key, response1);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        if (r1 == 0)
+        {
+            semantic_error(program, field1->key, "reference not found");
+            return -1;
+        }
+        
+        list_destroy(response1);
+    }
+
+    return 1;
+}
+
+static int32_t
+semantic_fields(program_t *program, node_t *node)
+{
+	node_block_t *fields = (node_block_t *)node->value;
+    ilist_t *a1;
+    for (a1 = fields->list->begin;a1 != fields->list->end;a1 = a1->next)
+    {
+        node_t *item1 = (node_t *)a1->value;
+        int32_t result;
+        result = semantic_field(program, item1);
+        if (result == -1)
+        {
+            return -1;
+        }
+    }
+	return 1;
+}
 
 static int32_t
 semantic_if(program_t *program, node_t *node)
@@ -5442,7 +6674,7 @@ semantic_parameter(program_t *program, node_t *node)
         return -1;
     }
 
-    int32_t r1 = semantic_postfix(program, parameter1->type, response1);
+    int32_t r1 = semantic_postfix(program, NULL, parameter1->type, response1);
     if (r1 == -1)
     {
         return -1;
@@ -5530,7 +6762,7 @@ semantic_generic(program_t *program, node_t *node)
             return -1;
         }
 
-        int32_t r1 = semantic_postfix(program, generic1->type, response1);
+        int32_t r1 = semantic_postfix(program, NULL, generic1->type, response1);
         if (r1 == -1)
         {
             return -1;
@@ -7562,7 +8794,7 @@ semantic_property(program_t *program, node_t *node)
         return -1;
     }
 
-    int32_t r1 = semantic_postfix(program, property1->type, response1);
+    int32_t r1 = semantic_postfix(program, NULL, property1->type, response1);
     if (r1 == -1)
     {
         return -1;

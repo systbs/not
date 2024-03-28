@@ -63,7 +63,7 @@ program_resolve(program_t *program, char *path)
 program_t *
 program_create()
 {
-  program_t *program = (program_t *)malloc(sizeof(program_t));
+	program_t *program = (program_t *)malloc(sizeof(program_t));
 	if (program == NULL)
 	{
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(program_t));
@@ -95,6 +95,12 @@ program_create()
 
 	program->modules = list_create();
 	if(program->modules == NULL)
+	{
+		return NULL;
+	}
+
+	program->stack = list_create();
+	if(program->stack == NULL)
 	{
 		return NULL;
 	}
