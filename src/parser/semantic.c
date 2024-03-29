@@ -1394,386 +1394,270 @@ semantic_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
         }
         else
         {
-            uint64_t cnt1 = 0, cnt2 = 0;
-            cnt1 = 0;
+            uint64_t cnt2 = 0;
+			int32_t use_by_key = 0;
 
-            node_block_t *bps1 = (node_block_t *)ngs1->value;
-            ilist_t *a1;
-            for (a1 = bps1->list->begin;a1 != bps1->list->end;a1 = a1->next)
-            {
-                node_t *item1 = (node_t *)a1->value;
-                if (item1->kind == NODE_KIND_GENERIC)
-                {
-                    cnt1 += 1;
-                    cnt2 = 0;
-                    node_generic_t *generic1 = (node_generic_t *)item1->value;
-                    node_block_t *bfs2 = (node_block_t *)nfs2->value;
-                    ilist_t *a2;
-                    for (a2 = bfs2->list->begin;a2 != bfs2->list->end;a2 = a2->next)
-                    {
-                        node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FIELD)
-                        {
-                            cnt2 += 1;
-                            if (cnt2 < cnt1)
-                            {
-                                continue;
-                            }
-                            node_field_t *field2 = (node_field_t *)item2->value;
-                            
-                            if (generic1->type != NULL)
-                            {
-                                list_t *response1 = list_create();
-                                if (response1 == NULL)
-                                {
-                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                                
-                                int32_t r1 = semantic_postfix(program, NULL, generic1->type, response1);
-                                if (r1 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 0)
-                                {
-                                    semantic_error(program, generic1->type, "reference not found");
-                                    return -1;
-                                }
-                                else
-                                if (r1 == 1)
-                                {
-                                    ilist_t *b1;
-                                    for (b1 = response1->begin;b1 != response1->end;b1 = b1->next)
-                                    {
-                                        node_t *item3 = (node_t *)b1->value;
-
-                                        list_t *response2 = list_create();
-                                        if (response2 == NULL)
-                                        {
-                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                            return -1;
-                                        }
-                                        
-                                        int32_t r2 = semantic_postfix(program, NULL, field2->key, response2);
-                                        if (r2 == -1)
-                                        {
-                                            return -1;
-                                        }
-                                        else
-                                        if (r2 == 0)
-                                        {
-                                            semantic_error(program, field2->key, "reference not found");
-                                            return -1;
-                                        }
-                                        else
-                                        if (r2 == 1)
-                                        {
-                                            ilist_t *b2;
-                                            for (b2 = response2->begin;b2 != response2->end;b2 = b2->next)
-                                            {
-                                                node_t *item4 = (node_t *)b2->value;
-                                                int32_t r3 = semantic_subset(program, item3, item4);
-                                                if (r3 == -1)
-                                                {
-                                                    return -1;
-                                                }
-                                                else
-                                                if (r3 == 0)
-                                                {
-                                                    r3 = semantic_subset(program, item4, item3);
-                                                    if (r3 == -1)
-                                                    {
-                                                        return -1;
-                                                    }
-                                                    else
-                                                    if (r3 == 0)
-                                                    {
-                                                        list_destroy(response2);
-                                                        list_destroy(response1);
-                                                        goto region_by_name_check;
-                                                    }
-                                                    
-                                                }
-                                            }
-                                        }
-                                        list_destroy(response2);
-                                    }
-                                
-                                    list_destroy(response1);
-                                }
-                            }
-                            break;
-                        }
-                    }
-
-                    if (cnt1 > cnt2)
-                    {
-                        if (generic1->value == NULL)
-                        {
-                            goto region_by_name_check;
-                        }
-                    }
-                }
-            }
-
-            cnt2 = 0;
-            node_block_t *bfs2 = (node_block_t *)nfs2->value;
+			list_t *repository1 = list_create();
+			if (repository1 == NULL)
+			{
+				fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+        		return -1;
+			}
+            
+			node_block_t *bfs2 = (node_block_t *)nfs2->value;
             ilist_t *a2;
             for (a2 = bfs2->list->begin;a2 != bfs2->list->end;a2 = a2->next)
             {
                 node_t *item2 = (node_t *)a2->value;
                 if (item2->kind == NODE_KIND_FIELD)
                 {
+					uint64_t cnt1 = 0;
                     cnt2 += 1;
-                    if (cnt2 > cnt1)
-                    {
-                        goto region_by_name_check;
-                    }
+					node_field_t *field2 = (node_field_t *)item2->value;
+
+					node_block_t *bgs1 = (node_block_t *)ngs1->value;
+
+					ilist_t *a1;
+					for (a1 = bgs1->list->begin;a1 != bgs1->list->end;a1 = a1->next)
+					{
+						node_t *item1 = (node_t *)a1->value;
+						if (item1->kind == NODE_KIND_GENERIC)
+						{
+							cnt1 += 1;
+							
+							node_generic_t *generic1 = (node_generic_t *)item1->value;
+
+							if (field2->value == NULL)
+							{
+								if (cnt1 < cnt2)
+								{
+									continue;
+								}
+
+								if (use_by_key == 1)
+								{
+									semantic_error(program, item1, "fields format");
+									return -1;
+								}
+
+								ilist_t *que1 = list_rpush(repository1, item1);
+								if (que1 == NULL)
+								{
+									fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+									return -1;
+								}
+
+								if (generic1->type != NULL)
+								{
+									list_t *response1 = list_create();
+									if (response1 == NULL)
+									{
+										fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+										return -1;
+									}
+									
+									int32_t r1 = semantic_postfix(program, NULL, generic1->type, response1);
+									if (r1 == -1)
+									{
+										return -1;
+									}
+									else
+									if (r1 == 0)
+									{
+										semantic_error(program, generic1->type, "reference not found");
+										return -1;
+									}
+									else
+									if (r1 == 1)
+									{
+										ilist_t *b1;
+										for (b1 = response1->begin;b1 != response1->end;b1 = b1->next)
+										{
+											node_t *item3 = (node_t *)b1->value;
+
+											list_t *response2 = list_create();
+											if (response2 == NULL)
+											{
+												fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+												return -1;
+											}
+											
+											int32_t r2 = semantic_postfix(program, NULL, field2->key, response2);
+											if (r2 == -1)
+											{
+												return -1;
+											}
+											else
+											if (r2 == 0)
+											{
+												semantic_error(program, field2->key, "reference not found");
+												return -1;
+											}
+											else
+											if (r2 == 1)
+											{
+												ilist_t *b2;
+												for (b2 = response2->begin;b2 != response2->end;b2 = b2->next)
+												{
+													node_t *item4 = (node_t *)b2->value;
+													int32_t r3 = semantic_subset(program, item3, item4);
+													if (r3 == -1)
+													{
+														return -1;
+													}
+													else
+													if (r3 == 0)
+													{
+														list_destroy(response2);
+														list_destroy(response1);
+														return 0;
+													}
+												}
+											}
+											list_destroy(response2);
+										}
+									
+										list_destroy(response1);
+									}
+								}
+								break;
+							}
+							else
+							{
+								if (field2->key->kind != NODE_KIND_ID)
+								{
+									semantic_error(program, item1, "not an key id");
+									return -1;
+								}
+								use_by_key = 1;
+
+								if (semantic_idcmp(field2->key, generic1->key) == 1)
+								{
+									ilist_t *que1 = list_rpush(repository1, item1);
+									if (que1 == NULL)
+									{
+										fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+										return -1;
+									}
+
+									if (generic1->type != NULL)
+									{
+										list_t *response1 = list_create();
+										if (response1 == NULL)
+										{
+											fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+											return -1;
+										}
+										
+										int32_t r1 = semantic_postfix(program, NULL, generic1->type, response1);
+										if (r1 == -1)
+										{
+											return -1;
+										}
+										else
+										if (r1 == 0)
+										{
+											semantic_error(program, generic1->type, "reference not found");
+											return -1;
+										}
+										else
+										if (r1 == 1)
+										{
+											ilist_t *b1;
+											for (b1 = response1->begin;b1 != response1->end;b1 = b1->next)
+											{
+												node_t *item3 = (node_t *)b1->value;
+
+												list_t *response2 = list_create();
+												if (response2 == NULL)
+												{
+													fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+													return -1;
+												}
+												
+												int32_t r2 = semantic_postfix(program, NULL, field2->value, response2);
+												if (r2 == -1)
+												{
+													return -1;
+												}
+												else
+												if (r2 == 0)
+												{
+													semantic_error(program, field2->value, "reference not found");
+													return -1;
+												}
+												else
+												if (r2 == 1)
+												{
+													ilist_t *b2;
+													for (b2 = response2->begin;b2 != response2->end;b2 = b2->next)
+													{
+														node_t *item4 = (node_t *)b2->value;
+														int32_t r3 = semantic_subset(program, item3, item4);
+														if (r3 == -1)
+														{
+															return -1;
+														}
+														else
+														if (r3 == 0)
+														{
+															list_destroy(response2);
+															list_destroy(response1);
+															return 0;
+														}
+													}
+												}
+												list_destroy(response2);
+											}
+										
+											list_destroy(response1);
+										}
+									}
+								}
+
+								
+								break;
+							}
+						}
+					}
                 }
             }
 
-            return 1;
-            
-            region_by_name_check:
-            for (a1 = bps1->list->begin;a1 != bps1->list->end;a1 = a1->next)
+            node_block_t *bgs1 = (node_block_t *)ngs1->value;
+            ilist_t *a1;
+            for (a1 = bgs1->list->begin;a1 != bgs1->list->end;a1 = a1->next)
             {
                 node_t *item1 = (node_t *)a1->value;
                 if (item1->kind == NODE_KIND_GENERIC)
                 {
-                    node_generic_t *generic1 = (node_generic_t *)item1->value;
+					node_generic_t *generic1 = (node_generic_t *)item1->value;
 
-                    int32_t found = 0;
-                    node_block_t *bps2 = (node_block_t *)nfs2->value;
-                    ilist_t *a2;
-                    for (a2 = bps2->list->begin;a2 != bps2->list->end;a2 = a2->next)
-                    {
-                        node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_FIELD)
-                        {
-                            node_field_t *field2 = (node_field_t *)item2->value;
-                            if (semantic_idcmp(generic1->key, field2->key) == 1)
-                            {
-                                found = 1;
-                                if (generic1->type != NULL)
-                                {
-                                    if (field2->value != NULL)
-                                    {
-                                        list_t *response1 = list_create();
-                                        if (response1 == NULL)
-                                        {
-                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                            return -1;
-                                        }
+					int32_t found = 0;
+					ilist_t *b1;
+					for (b1 = repository1->begin;b1 != repository1->end;b1 = b1->next)
+					{
+						node_t *item2 = (node_t *)b1->value;
+						if (item2->kind == NODE_KIND_GENERIC)
+						{
+							if (item1->id == item2->id)
+							{
+								found = 1;
+							}
+						}
+					}
 
-                                        int32_t r1 = semantic_postfix(program, NULL, generic1->type, response1);
-                                        if (r1 == -1)
-                                        {
-                                            return -1;
-                                        }
-                                        else
-                                        if (r1 == 0)
-                                        {
-                                            semantic_error(program, generic1->type, "reference not found");
-                                            return -1;
-                                        }
-                                        else
-                                        if (r1 == 1)
-                                        {
-                                            ilist_t *b1;
-                                            for (b1 = response1->begin;b1 != response1->end;b1 = b1->next)
-                                            {
-                                                node_t *item3 = (node_t *)b1->value;
-
-                                                list_t *response2 = list_create();
-                                                if (response2 == NULL)
-                                                {
-                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                                    return -1;
-                                                }
-                                                
-                                                int32_t r2 = semantic_postfix(program, NULL, field2->value, response2);
-                                                if (r2 == -1)
-                                                {
-                                                    return -1;
-                                                }
-                                                else
-                                                if (r2 == 0)
-                                                {
-                                                    semantic_error(program, field2->value, "reference not found");
-                                                    return -1;
-                                                }
-                                                else
-                                                if (r2 == 1)
-                                                {
-                                                    ilist_t *b2;
-                                                    for (b2 = response2->begin;b2 != response2->end;b2 = b2->next)
-                                                    {
-                                                        node_t *item4 = (node_t *)b2->value;
-                                                        
-                                                        int32_t r3 = semantic_subset(program, item3, item4);
-                                                        if (r3 == -1)
-                                                        {
-                                                            return -1;
-                                                        }
-                                                        else
-                                                        if (r3 == 0)
-                                                        {
-                                                            r3 = semantic_subset(program, item4, item3);
-                                                            if (r3 == -1)
-                                                            {
-                                                                return -1;
-                                                            }
-                                                            else
-                                                            if (r3 == 0)
-                                                            {
-                                                                list_destroy(response2);
-                                                                list_destroy(response1);
-                                                                return 0;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                list_destroy(response2);
-                                                break;
-                                            }
-                                        }
-                                        
-                                        list_destroy(response1);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (found == 0)
-                    {
-                        if (generic1->value == NULL)
-                        {
-                            return 0;
-                        }
-                    }
+					if (found == 0)
+					{
+						if (generic1->value == NULL)
+						{
+							list_destroy(repository1);
+							return 0;
+						}
+					}
                 }
             }
 
-            bfs2 = (node_block_t *)nfs2->value;
-            for (a2 = bfs2->list->begin;a2 != bfs2->list->end;a2 = a2->next)
-            {
-                node_t *item2 = (node_t *)a2->value;
-                if (item2->kind == NODE_KIND_FIELD)
-                {
-                    node_field_t *field2 = (node_field_t *)item2->value;
-
-                    int32_t found = 0;
-                    for (a1 = bps1->list->begin;a1 != bps1->list->end;a1 = a1->next)
-                    {
-                        node_t *item1 = (node_t *)a1->value;
-                        if (item1->kind == NODE_KIND_GENERIC)
-                        {
-                            node_generic_t *generic1 = (node_generic_t *)item1->value;
-
-                            if (semantic_idcmp(generic1->key, field2->key) == 1)
-                            {
-                                found = 1;
-                                if (generic1->type != NULL)
-                                {
-                                    if (field2->value != NULL)
-                                    {
-                                        list_t *response1 = list_create();
-                                        if (response1 == NULL)
-                                        {
-                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                            return -1;
-                                        }
-
-                                        int32_t r1 = semantic_postfix(program, NULL, generic1->type, response1);
-                                        if (r1 == -1)
-                                        {
-                                            return -1;
-                                        }
-                                        else
-                                        if (r1 == 0)
-                                        {
-                                            semantic_error(program, generic1->type, "reference not found");
-                                            return -1;
-                                        }
-                                        else
-                                        if (r1 == 1)
-                                        {
-                                            ilist_t *b1;
-                                            for (b1 = response1->begin;b1 != response1->end;b1 = b1->next)
-                                            {
-                                                node_t *item3 = (node_t *)b1->value;
-
-                                                list_t *response2 = list_create();
-                                                if (response2 == NULL)
-                                                {
-                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                                    return -1;
-                                                }
-                                                
-                                                int32_t r2 = semantic_postfix(program, NULL, field2->value, response2);
-                                                if (r2 == -1)
-                                                {
-                                                    return -1;
-                                                }
-                                                else
-                                                if (r2 == 0)
-                                                {
-                                                    semantic_error(program, field2->value, "reference not found");
-                                                    return -1;
-                                                }
-                                                else
-                                                if (r2 == 1)
-                                                {
-                                                    ilist_t *b2;
-                                                    for (b2 = response2->begin;b2 != response2->end;b2 = b2->next)
-                                                    {
-                                                        node_t *item4 = (node_t *)b2->value;
-                                                        
-                                                        int32_t r3 = semantic_subset(program, item3, item4);
-                                                        if (r3 == -1)
-                                                        {
-                                                            return -1;
-                                                        }
-                                                        else
-                                                        if (r3 == 0)
-                                                        {
-                                                            r3 = semantic_subset(program, item4, item3);
-                                                            if (r3 == -1)
-                                                            {
-                                                                return -1;
-                                                            }
-                                                            else
-                                                            if (r3 == 0)
-                                                            {
-                                                                list_destroy(response2);
-                                                                list_destroy(response1);
-                                                                return 0;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                list_destroy(response2);
-                                                break;
-                                            }
-                                        }
-                                        
-                                        list_destroy(response1);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (found == 0)
-                    {
-                        return 0;
-                    }
-                }
-            }
-
+			list_destroy(repository1);
             return 1;
         }
     }

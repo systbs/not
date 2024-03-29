@@ -3645,27 +3645,23 @@ syntax_property(program_t *program, syntax_t *syntax, node_t *scope, node_t *par
 	}
 
 	node_t *key = syntax_id(program, syntax, scope, node);
-	if (!key)
+	if (key == NULL)
 	{
 		return NULL;
 	}
 
-	node_t *type = NULL;
-	if (syntax->token->type == TOKEN_COLON)
+	if (syntax_match(program, syntax, TOKEN_COLON) == -1)
 	{
-		if (syntax_next(program, syntax) == -1)
-		{
-			return NULL;
-		}
-		type = syntax_expression(program, syntax, scope, node);
-		if (!type)
-		{
-			return NULL;
-		}
+		return NULL;
+	}
+	node_t *type = syntax_expression(program, syntax, scope, node);
+	if (!type)
+	{
+		return NULL;
 	}
 
 	node_t *value = NULL;
-	if ((flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
+	if ((syntax->token->type == TOKEN_EQ) || ((flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC))
 	{
 		if (syntax_match(program, syntax, TOKEN_EQ) == -1)
 		{
@@ -3827,44 +3823,72 @@ syntax_class_export(program_t *program, syntax_t *syntax, node_t *scope, node_t 
 	if (syntax->token->type == TOKEN_READONLY_KEYWORD)
 	{
 		node = syntax_class_readonly(program, syntax, scope, parent, flag);
+		if (!node)
+		{
+			return NULL;
+		}
 	}
 	else
 	if (syntax->token->type == TOKEN_PROTECTED_KEYWORD)
 	{
 		node = syntax_class_protected(program, syntax, scope, parent, flag);
+		if (!node)
+		{
+			return NULL;
+		}
 	}
 	else
 	if (syntax->token->type == TOKEN_STATIC_KEYWORD)
 	{
 		node = syntax_class_static(program, syntax, scope, parent, flag);
+		if (!node)
+		{
+			return NULL;
+		}
 	}
 	else
 	if (syntax->token->type == TOKEN_FUN_KEYWORD)
 	{
 		node = syntax_func(program, syntax, scope, parent, flag);
+		if (!node)
+		{
+			return NULL;
+		}
 	}
 	else
 	if (syntax->token->type == TOKEN_CLASS_KEYWORD)
 	{
 		node = syntax_class(program, syntax, scope, parent, flag);
+		if (!node)
+		{
+			return NULL;
+		}
 	}
 	else
 	if (syntax->token->type == TOKEN_ENUM_KEYWORD)
 	{
 		node = syntax_enum(program, syntax, scope, parent, flag);
-
+		if (!node)
+		{
+			return NULL;
+		}
 	}
 	else
 	{
 		node = syntax_property(program, syntax, scope, parent, flag);
+		if (!node)
+		{
+			return NULL;
+		}
+		if (syntax_match(program, syntax, TOKEN_SEMICOLON) == -1)
+		{
+			return NULL;
+		}
 	}
 
 	flag &= ~SYNTAX_MODIFIER_EXPORT;
 
-	if (!node)
-	{
-		return NULL;
-	}
+	
 
 	return node;
 }
@@ -3919,19 +3943,6 @@ syntax_class_block(program_t *program, syntax_t *syntax, node_t *scope, node_t *
 			}
 		}
 		else
-		if (syntax->token->type == TOKEN_ID)
-		{
-			decl = syntax_property(program, syntax, scope, parent, SYNTAX_MODIFIER_NONE);
-			if (decl == NULL)
-			{
-				return NULL;
-			}
-			if (syntax_match(program, syntax, TOKEN_SEMICOLON) == -1)
-			{
-				return NULL;
-			}
-		}
-		else
 		if (syntax->token->type == TOKEN_FUN_KEYWORD)
 		{
 			decl = syntax_func(program, syntax, scope, parent, SYNTAX_MODIFIER_NONE);
@@ -3960,8 +3971,15 @@ syntax_class_block(program_t *program, syntax_t *syntax, node_t *scope, node_t *
 		}
 		else
 		{
-			syntax_error(program, syntax->token->position, "illegal declaration type");
-			return NULL;
+			decl = syntax_property(program, syntax, scope, parent, SYNTAX_MODIFIER_NONE);
+			if (decl == NULL)
+			{
+				return NULL;
+			}
+			if (syntax_match(program, syntax, TOKEN_SEMICOLON) == -1)
+			{
+				return NULL;
+			}
 		}
 
 		if (list_rpush(list, decl) == NULL)

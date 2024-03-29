@@ -4,7 +4,8 @@ import {
   Long:Long, 
   Double:Double, 
   Float:Float, 
-  String:String
+  String:String,
+  Null:Null
   } : "~/types/statics";
 
 import {
@@ -33,26 +34,15 @@ export static class Int3 extends (i4:Int4)
 
 export static class System<R extends Int, T = Float>
 {
+  export Key:Int;
+
   export fun Constructor(a:Int3.Long, b:Int)
   {
     System.Print("Hello World!");
   }
 
-  export fun R2(a:Dictionary<T=Int, R=String>, b:String) : Int
+  fun KeyEffect(value: Int) : Int
   {
     System.Print("Hello World!");
-    var c = 1;
-
-    try throw1<T extends String> {
-      throw1<T = String, Int>(Expection(), "error message");
-    } 
-    catch (e : String, t:T)
-    {
-
-    }
-    catch (e : String, t:Int)
-    {
-
-    }
   }
 }
