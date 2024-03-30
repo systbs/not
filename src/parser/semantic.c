@@ -2458,6 +2458,37 @@ semantic_id(program_t *program, node_t *scope, node_t *node, list_t *response)
 }
 
 static int32_t
+semantic_number(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+    node_basic_t *basic1 = (node_basic_t *)node->value;
+    char *str = basic1->value;
+    if (str[strlen(str)] == 'j')
+    {
+        // complex
+    }
+    else
+    {
+        double128_t value = utils_stold(str);
+        if (utils_isinteger(value))
+        {
+            if ((value > MIN_INT32) && (value < MAX_INT32))
+            {
+                // int
+            }
+            else
+            {
+                // long
+            }
+        }
+        else
+        {
+            // double
+        }
+    }
+    return 1;
+}
+
+static int32_t
 semantic_array(program_t *program, node_t *scope, node_t *node, list_t *response)
 {
     ilist_t *r1 = list_rpush(response, node);
@@ -6263,6 +6294,35 @@ semantic_call(program_t *program, node_t *scope, node_t *node, list_t *response)
 {
     node_carrier_t *carrier = (node_carrier_t *)node->value;
     
+    if (carrier->base->kind = NODE_KIND_PARENTHESIS)
+    {
+        node_unary_t *unary1 = (node_unary_t *)carrier->base;
+        node_t *item1 = unary1->right;
+        if (item1->kind == NODE_KIND_CLASS)
+        {
+            node_t *clone1 = node_clone(item1->parent, item1);
+            if (clone1 == NULL)
+            {
+                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                return -1;
+            }
+            clone1->flag |= NODE_FLAG_NEW;
+
+            ilist_t *il1 = list_rpush(response, clone1);
+            if (il1 == NULL)
+            {
+                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                return -1;
+            }
+            return 1;
+        }
+        else
+        {
+            semantic_error(program, item1, "not castable");
+            return -1;
+        }
+    }
+
     list_t *response1 = list_create();
     if (response1 == NULL)
     {
@@ -6290,6 +6350,11 @@ semantic_call(program_t *program, node_t *scope, node_t *node, list_t *response)
             node_t *item1 = (node_t *)a1->value;
             if (item1->kind == NODE_KIND_CLASS)
             {
+                if ((item1->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
+                {
+                    semantic_error(program, item1, "calling an object");
+                    return -1;
+                }
                 node_class_t *class1 = (node_class_t *)item1->value;
                 node_t *node1 = class1->block;
                 node_block_t *block1 = (node_block_t *)node1->value;
@@ -6333,13 +6398,698 @@ semantic_call(program_t *program, node_t *scope, node_t *node, list_t *response)
                     }
                 }
             }
-            
+            else
+            if (item1->kind == NODE_KIND_FUN)
+            {
+                node_fun_t *func1 = (node_fun_t *)item1->value;
+                node_t *nps1 = func1->parameters;
+                node_t *nds2 = carrier->data;
+                int32_t r1 = semantic_eqaul_psas(program, nps1, nds2);
+                if (r1 == -1)
+                {
+                    return -1;
+                }
+                else
+                if (r1 == 1)
+                {
+                    node_t *item2 = func1->result;
+                    if (item2->kind == NODE_KIND_CLASS)
+                    {
+                        node_t *clone1 = node_clone(item1->parent, item2);
+                        if (clone1 == NULL)
+                        {
+                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+                        clone1->flag |= NODE_FLAG_NEW;
+
+                        ilist_t *il1 = list_rpush(response, clone1);
+                        if (il1 == NULL)
+                        {
+                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+                        list_destroy(response1);
+                        return 1;
+                    }
+                    else
+                    {
+                        ilist_t *il1 = list_rpush(response, item2);
+                        if (il1 == NULL)
+                        {
+                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+                        list_destroy(response1);
+                        return 1;
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_LAMBDA)
+            {
+                node_lambda_t *func1 = (node_lambda_t *)item1->value;
+                node_t *nps1 = func1->parameters;
+                node_t *nds2 = carrier->data;
+                int32_t r1 = semantic_eqaul_psas(program, nps1, nds2);
+                if (r1 == -1)
+                {
+                    return -1;
+                }
+                else
+                if (r1 == 1)
+                {
+                    node_t *item2 = func1->result;
+                    if (item2->kind == NODE_KIND_CLASS)
+                    {
+                        node_t *clone1 = node_clone(item1->parent, item2);
+                        if (clone1 == NULL)
+                        {
+                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+                        clone1->flag |= NODE_FLAG_NEW;
+
+                        ilist_t *il1 = list_rpush(response, clone1);
+                        if (il1 == NULL)
+                        {
+                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+                        list_destroy(response1);
+                        return 1;
+                    }
+                    else
+                    {
+                        ilist_t *il1 = list_rpush(response, item2);
+                        if (il1 == NULL)
+                        {
+                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+                        list_destroy(response1);
+                        return 1;
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_PROPERTY)
+            {
+                node_property_t *property1 = (node_property_t *)item1->value;
+                if (property1->value_update == NULL)
+                {
+                    semantic_error(program, item1, "not initialized");
+                    return -1;
+                }
+
+                node_t *referto = property1->value_update;
+                if (referto->kind == NODE_KIND_CLASS)
+                {
+                    if ((referto->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
+                    {
+                        semantic_error(program, referto, "calling an object");
+                        return -1;
+                    }
+
+                    node_class_t *class1 = (node_class_t *)referto->value;
+                    node_t *node1 = class1->block;
+                    node_block_t *block1 = (node_block_t *)node1->value;
+                    ilist_t *b1;
+                    for (b1 = block1->list->begin;b1 != block1->list->end;b1 = b1->next)
+                    {
+                        node_t *item2 = (node_t *)b1->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(func1->key, "constructor") == 1)
+                            {
+                                node_t *nps1 = func1->parameters;
+                                node_t *nds2 = carrier->data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    node_t *clone1 = node_clone(referto->parent, referto);
+                                    if (clone1 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                    clone1->flag |= NODE_FLAG_NEW;
+
+                                    ilist_t *il1 = list_rpush(response, clone1);
+                                    if (il1 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                if (referto->kind == NODE_KIND_FUN)
+                {
+                    node_fun_t *func1 = (node_fun_t *)referto->value;
+                    node_t *nps1 = func1->parameters;
+                    node_t *nds2 = carrier->data;
+                    int32_t r1 = semantic_eqaul_psas(program, nps1, nds2);
+                    if (r1 == -1)
+                    {
+                        return -1;
+                    }
+                    else
+                    if (r1 == 1)
+                    {
+                        node_t *item2 = func1->result;
+                        if (item2->kind == NODE_KIND_CLASS)
+                        {
+                            node_t *clone1 = node_clone(item1->parent, item2);
+                            if (clone1 == NULL)
+                            {
+                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                return -1;
+                            }
+                            clone1->flag |= NODE_FLAG_NEW;
+
+                            ilist_t *il1 = list_rpush(response, clone1);
+                            if (il1 == NULL)
+                            {
+                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                return -1;
+                            }
+                            list_destroy(response1);
+                            return 1;
+                        }
+                        else
+                        {
+                            ilist_t *il1 = list_rpush(response, item2);
+                            if (il1 == NULL)
+                            {
+                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                return -1;
+                            }
+                            list_destroy(response1);
+                            return 1;
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_VAR)
+            {
+                node_var_t *var1 = (node_var_t *)item1->value;
+                if (var1->value_update == NULL)
+                {
+                    semantic_error(program, item1, "not initialized");
+                    return -1;
+                }
+
+                node_t *referto = var1->value_update;
+                if (referto->kind == NODE_KIND_CLASS)
+                {
+                    if ((referto->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
+                    {
+                        semantic_error(program, referto, "calling an object");
+                        return -1;
+                    }
+
+                    node_class_t *class1 = (node_class_t *)referto->value;
+                    node_t *node1 = class1->block;
+                    node_block_t *block1 = (node_block_t *)node1->value;
+                    ilist_t *b1;
+                    for (b1 = block1->list->begin;b1 != block1->list->end;b1 = b1->next)
+                    {
+                        node_t *item2 = (node_t *)b1->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(func1->key, "constructor") == 1)
+                            {
+                                node_t *nps1 = func1->parameters;
+                                node_t *nds2 = carrier->data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    node_t *clone1 = node_clone(referto->parent, referto);
+                                    if (clone1 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                    clone1->flag |= NODE_FLAG_NEW;
+
+                                    ilist_t *il1 = list_rpush(response, clone1);
+                                    if (il1 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                if (referto->kind == NODE_KIND_FUN)
+                {
+                    node_fun_t *func1 = (node_fun_t *)referto->value;
+                    node_t *nps1 = func1->parameters;
+                    node_t *nds2 = carrier->data;
+                    int32_t r1 = semantic_eqaul_psas(program, nps1, nds2);
+                    if (r1 == -1)
+                    {
+                        return -1;
+                    }
+                    else
+                    if (r1 == 1)
+                    {
+                        node_t *item2 = func1->result;
+                        if (item2->kind == NODE_KIND_CLASS)
+                        {
+                            node_t *clone1 = node_clone(item1->parent, item2);
+                            if (clone1 == NULL)
+                            {
+                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                return -1;
+                            }
+                            clone1->flag |= NODE_FLAG_NEW;
+
+                            ilist_t *il1 = list_rpush(response, clone1);
+                            if (il1 == NULL)
+                            {
+                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                return -1;
+                            }
+                            list_destroy(response1);
+                            return 1;
+                        }
+                        else
+                        {
+                            ilist_t *il1 = list_rpush(response, item2);
+                            if (il1 == NULL)
+                            {
+                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                return -1;
+                            }
+                            list_destroy(response1);
+                            return 1;
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_ENTIERY)
+            {
+                node_entiery_t *entiery1 = (node_entiery_t *)item1->value;
+                if (entiery1->value_update == NULL)
+                {
+                    semantic_error(program, item1, "not initialized");
+                    return -1;
+                }
+
+                node_t *referto = entiery1->value_update;
+                if (referto->kind == NODE_KIND_CLASS)
+                {
+                    if ((referto->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
+                    {
+                        semantic_error(program, referto, "calling an object");
+                        return -1;
+                    }
+
+                    node_class_t *class1 = (node_class_t *)referto->value;
+                    node_t *node1 = class1->block;
+                    node_block_t *block1 = (node_block_t *)node1->value;
+                    ilist_t *b1;
+                    for (b1 = block1->list->begin;b1 != block1->list->end;b1 = b1->next)
+                    {
+                        node_t *item2 = (node_t *)b1->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *func1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(func1->key, "constructor") == 1)
+                            {
+                                node_t *nps1 = func1->parameters;
+                                node_t *nds2 = carrier->data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    node_t *clone1 = node_clone(referto->parent, referto);
+                                    if (clone1 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                    clone1->flag |= NODE_FLAG_NEW;
+
+                                    ilist_t *il1 = list_rpush(response, clone1);
+                                    if (il1 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                if (referto->kind == NODE_KIND_FUN)
+                {
+                    node_fun_t *func1 = (node_fun_t *)referto->value;
+                    node_t *nps1 = func1->parameters;
+                    node_t *nds2 = carrier->data;
+                    int32_t r1 = semantic_eqaul_psas(program, nps1, nds2);
+                    if (r1 == -1)
+                    {
+                        return -1;
+                    }
+                    else
+                    if (r1 == 1)
+                    {
+                        node_t *item2 = func1->result;
+                        if (item2->kind == NODE_KIND_CLASS)
+                        {
+                            node_t *clone1 = node_clone(item1->parent, item2);
+                            if (clone1 == NULL)
+                            {
+                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                return -1;
+                            }
+                            clone1->flag |= NODE_FLAG_NEW;
+
+                            ilist_t *il1 = list_rpush(response, clone1);
+                            if (il1 == NULL)
+                            {
+                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                return -1;
+                            }
+                            list_destroy(response1);
+                            return 1;
+                        }
+                        else
+                        {
+                            ilist_t *il1 = list_rpush(response, item2);
+                            if (il1 == NULL)
+                            {
+                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                return -1;
+                            }
+                            list_destroy(response1);
+                            return 1;
+                        }
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_HERITAGE)
+            {
+                node_heritage_t *heritage1 = (node_heritage_t *)item1->value;
+
+                if (heritage1->value_update != NULL)
+                {
+                    node_t *item2 = heritage1->value_update;
+                    if (item2->kind == NODE_KIND_CLASS)
+                    {
+                        node_class_t *class2 = (node_class_t *)item2->value;
+                        node_t *node2 = class2->block;
+                        node_block_t *block2 = (node_block_t *)node2->value;
+
+                        ilist_t *a3;
+                        for (a3 = block2->list->begin;a3 != block2->list->end;a3 = a3->next)
+                        {
+                            node_t *item3 = (node_t *)a3->value;
+                            if (item3->kind == NODE_KIND_FUN)
+                            {
+                                node_fun_t *func1 = (node_fun_t *)item3->value;
+                                if (semantic_idstrcmp(func1->key, "constructor") == 1)
+                                {
+                                    node_t *nps1 = func1->parameters;
+                                    node_t *nds2 = carrier->data;
+                                    int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                    if (r2 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r2 == 1)
+                                    {
+                                        node_t *clone1 = node_clone(item2->parent, item2);
+                                        if (clone1 == NULL)
+                                        {
+                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                            return -1;
+                                        }
+                                        clone1->flag |= NODE_FLAG_NEW;
+
+                                        ilist_t *il1 = list_rpush(response, clone1);
+                                        if (il1 == NULL)
+                                        {
+                                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                            return -1;
+                                        }
+                                        list_destroy(response1);
+                                        return 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    list_t *response2 = list_create();
+                    if (response2 == NULL)
+                    {
+                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                        return -1;
+                    }
+                    int32_t r2 = semantic_typefix(program, NULL, heritage1->type, response2);
+                    if (r2 == -1)
+                    {
+                        return -1;
+                    }
+                    else
+                    if (r2 == 0)
+                    {
+                        semantic_error(program, heritage1->type, "reference not found");
+                        return -1;
+                    }
+                    else
+                    if (r2 == 1)
+                    {
+                        ilist_t *a2;
+                        for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                        {
+                            node_t *item2 = (node_t *)a2->value;
+                            if (item2->kind == NODE_KIND_CLASS)
+                            {
+                                node_class_t *class2 = (node_class_t *)item2->value;
+                                node_t *node2 = class2->block;
+                                node_block_t *block2 = (node_block_t *)node2->value;
+
+                                ilist_t *a3;
+                                for (a3 = block2->list->begin;a3 != block2->list->end;a3 = a3->next)
+                                {
+                                    node_t *item3 = (node_t *)a3->value;
+                                    if (item3->kind == NODE_KIND_FUN)
+                                    {
+                                        node_fun_t *func1 = (node_fun_t *)item3->value;
+                                        if (semantic_idstrcmp(func1->key, "constructor") == 1)
+                                        {
+                                            node_t *nps1 = func1->parameters;
+                                            node_t *nds2 = carrier->data;
+                                            int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                            if (r2 == -1)
+                                            {
+                                                return -1;
+                                            }
+                                            else
+                                            if (r2 == 1)
+                                            {
+                                                node_t *clone1 = node_clone(item2->parent, item2);
+                                                if (clone1 == NULL)
+                                                {
+                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                    return -1;
+                                                }
+                                                clone1->flag |= NODE_FLAG_NEW;
+
+                                                ilist_t *il1 = list_rpush(response, clone1);
+                                                if (il1 == NULL)
+                                                {
+                                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                    return -1;
+                                                }
+                                                list_destroy(response1);
+                                                return 1;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                semantic_error(program, item1, "not callable");
+                return -1;
+            }
         }
     }
 
     list_destroy(response1);
 
     return 0;
+}
+
+static int32_t
+semantic_item(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+    node_carrier_t *carrier = (node_carrier_t *)node->value;
+    
+    list_t *response1 = list_create();
+    if (response1 == NULL)
+    {
+        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+        return -1;
+    }
+
+    int32_t r1 = semantic_typefix(program, scope, carrier->base, response1);
+    if (r1 == -1)
+    {
+        return -1;
+    }
+    else
+    if (r1 == 0)
+    {
+        semantic_error(program, node, "reference not found");
+        return -1;
+    }
+    else
+    if (r1 == 1)
+    {
+        ilist_t *a1;
+        for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+        {
+            node_t *item1 = (node_t *)a1->value;
+            if (item1->kind == NODE_KIND_CLASS)
+            {
+                if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+                {
+                    semantic_error(program, item1, "unmade class");
+                    return -1;
+                }
+                node_class_t *class1 = (node_class_t *)item1->value;
+                node_t *node1 = class1->block;
+                node_block_t *block1 = (node_block_t *)node1->value;
+                ilist_t *b1;
+                for (b1 = block1->list->begin;b1 != block1->list->end;b1 = b1->next)
+                {
+                    node_t *item2 = (node_t *)b1->value;
+                    if (item2->kind == NODE_KIND_FUN)
+                    {
+                        node_fun_t *func1 = (node_fun_t *)item2->value;
+                        if (semantic_idstrcmp(func1->key, "[]") == 1)
+                        {
+                            node_t *nps1 = func1->parameters;
+                            node_t *nds2 = carrier->data;
+                            int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                            if (r2 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r2 == 1)
+                            {
+                                node_t *item3 = func1->result;
+                                if (item3->kind == NODE_KIND_CLASS)
+                                {
+                                    node_t *clone1 = node_clone(item1->parent, item3);
+                                    if (clone1 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                    clone1->flag |= NODE_FLAG_NEW;
+
+                                    ilist_t *il1 = list_rpush(response, clone1);
+                                    if (il1 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    ilist_t *il1 = list_rpush(response, item3);
+                                    if (il1 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                semantic_error(program, item1, "not an enumerable");
+                return -1;
+            }
+        }
+    }
+
+    list_destroy(response1);
+
+    return 0;
+}
+
+static int32_t
+semantic_postfix(program_t *program, node_t *scope, node_t *node, list_t *response)
+{
+	if (node->kind == NODE_KIND_CALL)
+    {
+        return semantic_call(program, scope, node, response);
+    }
+    else
+    if (node->kind == NODE_KIND_ITEM)
+    {
+        return semantic_item(program, scope, node, response);
+    }
+    else
+    {
+        return semantic_typefix(program, scope, node, response);
+    }
 }
 
 static int32_t

@@ -1554,42 +1554,6 @@ scanner_advance(scanner_t *scanner)
 							}
 							else
 							{
-								if (scanner->ch == 'S')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
-								if (scanner->ch == 'L')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
-								if (scanner->ch == 'F')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
-								if (scanner->ch == 'D')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
 								if (scanner->ch == 'j')
 								{
 									if (scanner_next(scanner) == -1)
@@ -1633,42 +1597,6 @@ scanner_advance(scanner_t *scanner)
 							}
 							else
 							{
-								if (scanner->ch == 'S')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
-								if (scanner->ch == 'L')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
-								if (scanner->ch == 'F')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
-								if (scanner->ch == 'D')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
 								if (scanner->ch == 'j')
 								{
 									if (scanner_next(scanner) == -1)
@@ -1712,42 +1640,6 @@ scanner_advance(scanner_t *scanner)
 							}
 							else
 							{
-								if (scanner->ch == 'S')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
-								if (scanner->ch == 'L')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
-								if (scanner->ch == 'F')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
-								if (scanner->ch == 'D')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
 								if (scanner->ch == 'j')
 								{
 									if (scanner_next(scanner) == -1)
@@ -1806,42 +1698,6 @@ scanner_advance(scanner_t *scanner)
 							}
 							else
 							{
-								if (scanner->ch == 'S')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
-								if (scanner->ch == 'L')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
-								if (scanner->ch == 'F')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
-								if (scanner->ch == 'D')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
 								if (scanner->ch == 'j')
 								{
 									if (scanner_next(scanner) == -1)
@@ -1889,42 +1745,6 @@ scanner_advance(scanner_t *scanner)
 							}
 							else
 							{
-								if (scanner->ch == 'S')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
-								if (scanner->ch == 'L')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
-								if (scanner->ch == 'F')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
-								if (scanner->ch == 'D')
-								{
-									if (scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								else
 								if (scanner->ch == 'j')
 								{
 									if (scanner_next(scanner) == -1)
@@ -2021,42 +1841,6 @@ scanner_advance(scanner_t *scanner)
 					}
 					else
 					{
-						if (scanner->ch == 'S')
-						{
-							if (scanner_next(scanner) == -1)
-							{
-								return -1;
-							}
-							break;
-						}
-						else
-						if (scanner->ch == 'L')
-						{
-							if (scanner_next(scanner) == -1)
-							{
-								return -1;
-							}
-							break;
-						}
-						else
-						if (scanner->ch == 'F')
-						{
-							if (scanner_next(scanner) == -1)
-							{
-								return -1;
-							}
-							break;
-						}
-						else
-						if (scanner->ch == 'D')
-						{
-							if (scanner_next(scanner) == -1)
-							{
-								return -1;
-							}
-							break;
-						}
-						else
 						if (scanner->ch == 'j')
 						{
 							if (scanner_next(scanner) == -1)

@@ -874,29 +874,48 @@ syntax_lambda(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 	}
 
-	node_t *body = NULL;
 	if (syntax->token->type == TOKEN_MINUS_GT)
 	{
 		if (syntax_match(program, syntax, TOKEN_MINUS_GT) == -1)
 		{
 			return NULL;
 		}
-		body = syntax_expression(program, syntax, scope, node);
-		if (!body)
+
+		if (key != NULL)
+		{
+			syntax_error(program, syntax->token->position, "fun type by name");
+			return NULL;
+		}
+
+		node_t *result = syntax_postfix(program, syntax, scope, node);
+		if (result == NULL)
 		{
 			return NULL;
 		}
+
+		return node_make_fn(node, generics, parameters, result);
 	}
 	else
 	{
-		body = syntax_body(program, syntax, scope, node);
-		if (!body)
+		if (syntax_match(program, syntax, TOKEN_COLON) == -1)
 		{
 			return NULL;
 		}
-	}
 
-	return node_make_lambda(node, key, generics, parameters, body);
+		node_t *result = syntax_postfix(program, syntax, scope, node);
+		if (result == NULL)
+		{
+			return NULL;
+		}
+
+		node_t *body = syntax_body(program, syntax, scope, node);
+		if (body == NULL)
+		{
+			return NULL;
+		}
+
+		return node_make_lambda(node, key, generics, parameters, body, result);
+	}
 }
 
 static node_t *

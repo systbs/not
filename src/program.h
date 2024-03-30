@@ -4,6 +4,7 @@
 
 #define MAX_URI (_MAX_DIR + _MAX_FNAME + _MAX_EXT)
 
+
 typedef struct pair {
     char *key;
     void *value;
