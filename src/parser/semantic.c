@@ -1989,8 +1989,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                     {
                         if ((class2->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                         {
-                            semantic_error(program, item1, "non static");
-                            return -1;
+                            continue;
                         }
                     }
 
@@ -2000,16 +1999,14 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
 
                         if ((class2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                         {
-                            semantic_error(program, item1, "private access");
-                            return -1;
+                            continue;
                         }
 
                         if (follow != 1)
                         {
                             if ((class2->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                             {
-                                semantic_error(program, item1, "protect access");
-                                return -1;
+                                continue;
                             }
                         }
                     }
@@ -2035,8 +2032,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                     {
                         if ((enum1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                         {
-                            semantic_error(program, item1, "non static");
-                            return -1;
+                            continue;
                         }
                     }
 
@@ -2046,16 +2042,14 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
 
                         if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                         {
-                            semantic_error(program, item1, "private access");
-                            return -1;
+                            continue;
                         }
 
                         if (follow != 1)
                         {
                             if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                             {
-                                semantic_error(program, item1, "protect access");
-                                return -1;
+                                continue;
                             }
                         }
                     }
@@ -2081,8 +2075,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                     {
                         if ((fun1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                         {
-                            semantic_error(program, item1, "non static");
-                            return -1;
+                            continue;
                         }
                     }
 
@@ -2092,16 +2085,14 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
 
                         if ((fun1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                         {
-                            semantic_error(program, item1, "private access");
-                            return -1;
+                            continue;
                         }
 
                         if (follow != 1)
                         {
                             if ((fun1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                             {
-                                semantic_error(program, item1, "protect access");
-                                return -1;
+                                continue;
                             }
                         }
                     }
@@ -2128,8 +2119,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                     {
                         if ((property1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                         {
-                            semantic_error(program, item1, "non static");
-                            return -1;
+                            continue;
                         }
                     }
 
@@ -2139,16 +2129,14 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
 
                         if ((property1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                         {
-                            semantic_error(program, item1, "private access");
-                            return -1;
+                            continue;
                         }
 
                         if (follow != 1)
                         {
                             if ((property1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                             {
-                                semantic_error(program, item1, "protect access");
-                                return -1;
+                                continue;
                             }
                         }
                     }
@@ -2331,8 +2319,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                     {
                         if ((class2->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                         {
-                            semantic_error(program, item1, "non static");
-                            return -1;
+                            continue;
                         }
                     }
 
@@ -2342,16 +2329,14 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
 
 						if ((class2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                         {
-                            semantic_error(program, item1, "private access");
-                            return -1;
+                            continue;
                         }
 
                         if (follow != 1)
                         {
                             if ((class2->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                             {
-                                semantic_error(program, item1, "protect access");
-                                return -1;
+                                continue;
                             }
                         }
                     }
@@ -2378,8 +2363,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                     {
                         if ((enum1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                         {
-                            semantic_error(program, item1, "non static");
-                            return -1;
+                            continue;
                         }
                     }
 
@@ -2389,16 +2373,14 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
 
 						if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                         {
-                            semantic_error(program, item1, "private access");
-                            return -1;
+                            continue;
                         }
 
                         if (follow != 1)
                         {
                             if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                             {
-                                semantic_error(program, item1, "protect access");
-                                return -1;
+                                continue;
                             }
                         }
                     }
