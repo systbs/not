@@ -267,7 +267,7 @@ static int32_t
 syntax_idstrcmp(node_t *n1, char *name)
 {
 	node_basic_t *nb1 = (node_basic_t *)n1->value;
-	return strcmp(nb1->value, name);
+	return (strcmp(nb1->value, name) == 0);
 }
 
 
@@ -808,7 +808,7 @@ syntax_lambda(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 			return NULL;
 		}
 		
-		if (syntax_idstrcmp(key, "Constructor") == 0)
+		if (syntax_idstrcmp(key, "Constructor") == 1)
 		{
 			syntax_error(program, syntax->token->position, "wrong name");
 			return NULL;
@@ -2348,6 +2348,49 @@ syntax_if(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent)
 }
 
 static node_t *
+syntax_entiery(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent, uint64_t flag)
+{
+	node_t *node = node_create(scope, parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *key = syntax_id(program, syntax, scope, node);
+	if (key == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_COLON) == -1)
+	{
+		return NULL;
+	}
+
+	node_t *type = syntax_postfix(program, syntax, scope, node);
+	if (type == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *value = NULL;
+	if (syntax->token->type == TOKEN_EQ)
+	{
+		if (syntax_next(program, syntax) == -1)
+		{
+			return NULL;
+		}
+		value = syntax_expression(program, syntax, scope, node);
+		if (!value)
+		{
+			return NULL;
+		}
+	}
+
+	return node_make_entiery(node, flag, key, type, value);
+}
+
+static node_t *
 syntax_set(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent, uint64_t flag)
 {
 	node_t *node = node_create(scope, parent, syntax->token->position);
@@ -2361,8 +2404,8 @@ syntax_set(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent, 
 		return NULL;
 	}
 
-	list_t *properties = list_create();
-	if (!properties)
+	list_t *set = list_create();
+	if (set == NULL)
 	{
 		return NULL;
 	}
@@ -2371,13 +2414,13 @@ syntax_set(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent, 
 	{
 		while (true)
 		{
-			node_t *property = syntax_property(program, syntax, scope, node, flag);
-			if (!property)
+			node_t *entiery = syntax_entiery(program, syntax, scope, node, flag);
+			if (!entiery)
 			{
 				return NULL;
 			}
 
-			if (!list_rpush(properties, property))
+			if (!list_rpush(set, entiery))
 			{
 				return NULL;
 			}
@@ -2398,7 +2441,7 @@ syntax_set(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent, 
 		return NULL;
 	}
 
-	return node_make_set(node, properties);
+	return node_make_set(node, set);
 }
 
 static node_t *
@@ -3085,6 +3128,12 @@ syntax_parameter(program_t *program, syntax_t *syntax, node_t *scope, node_t *pa
 			return NULL;
 		}
 
+		if ((flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
+		{
+			syntax_error(program, syntax->token->position, "reference parameter by value");
+			return NULL;
+		}
+
 		value = syntax_expression(program, syntax, scope, node);
 		if (!value)
 		{
@@ -3250,7 +3299,7 @@ syntax_func(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent,
 			return NULL;
 		}
 		
-		if (syntax_idstrcmp(key, "Constructor") == 0)
+		if (syntax_idstrcmp(key, "Constructor") == 1)
 		{
 			used_constructor = 1;
 		}
@@ -3654,10 +3703,161 @@ syntax_property(program_t *program, syntax_t *syntax, node_t *scope, node_t *par
 	{
 		return NULL;
 	}
-	node_t *type = syntax_expression(program, syntax, scope, node);
+
+	node_t *type = syntax_postfix(program, syntax, scope, node);
 	if (!type)
 	{
 		return NULL;
+	}
+
+	node_t *set = NULL, *get = NULL;
+	if (syntax->token->type == TOKEN_AT)
+	{
+		if (syntax_next(program, syntax) == -1)
+		{
+			return NULL;
+		}
+
+		if (syntax_match(program, syntax, TOKEN_LPAREN) == -1)
+		{
+			return NULL;
+		}
+
+		if (syntax->token->type == TOKEN_RPAREN)
+		{
+			syntax_error(program, syntax->token->position, "forgotten accessories");
+			return NULL;
+		}
+
+		if (syntax->token->type != TOKEN_ID)
+		{
+			syntax_error(program, syntax->token->position, "get/set is expected");
+			return NULL;
+		}
+
+		node_t *accessor;
+		accessor = syntax_id(program, syntax, scope, node);
+		if (accessor == NULL)
+		{
+			return NULL;
+		}
+		
+		if(syntax_idstrcmp(accessor, "set") == 1)
+		{
+			if (syntax_match(program, syntax, TOKEN_EQ) == -1)
+			{
+				return NULL;
+			}
+
+			set = syntax_postfix(program, syntax, scope, node);
+			if (set == NULL)
+			{
+				return NULL;
+			}
+
+			if (syntax->token->type == TOKEN_COMMA)
+			{
+				if (syntax_next(program, syntax) == -1)
+				{
+					return NULL;
+				}
+
+				if (syntax->token->type != TOKEN_ID)
+				{
+					syntax_error(program, syntax->token->position, "get is expected");
+					return NULL;
+				}
+
+				accessor = syntax_id(program, syntax, scope, node);
+				if (accessor == NULL)
+				{
+					return NULL;
+				}
+
+				if(syntax_idstrcmp(accessor, "get") == 1)
+				{
+					if (syntax_match(program, syntax, TOKEN_EQ) == -1)
+					{
+						return NULL;
+					}
+
+					get = syntax_postfix(program, syntax, scope, node);
+					if (get == NULL)
+					{
+						return NULL;
+					}
+				}
+				else
+				{
+					syntax_error(program, syntax->token->position, "get is expected");
+					return NULL;
+				}
+			}
+		}
+		else
+		if(syntax_idstrcmp(accessor, "get") == 1)
+		{
+			if (syntax_match(program, syntax, TOKEN_EQ) == -1)
+			{
+				return NULL;
+			}
+
+			get = syntax_postfix(program, syntax, scope, node);
+			if (get == NULL)
+			{
+				return NULL;
+			}
+
+			if (syntax->token->type == TOKEN_COMMA)
+			{
+				if (syntax_next(program, syntax) == -1)
+				{
+					return NULL;
+				}
+
+				if (syntax->token->type != TOKEN_ID)
+				{
+					syntax_error(program, syntax->token->position, "set is expected");
+					return NULL;
+				}
+
+				accessor = syntax_id(program, syntax, scope, node);
+				if (accessor == NULL)
+				{
+					return NULL;
+				}
+
+				if(syntax_idstrcmp(accessor, "set") == 1)
+				{
+					if (syntax_match(program, syntax, TOKEN_EQ) == -1)
+					{
+						return NULL;
+					}
+
+					set = syntax_postfix(program, syntax, scope, node);
+					if (set == NULL)
+					{
+						return NULL;
+					}
+				}
+				else
+				{
+					syntax_error(program, syntax->token->position, "set is expected");
+					return NULL;
+				}
+			}
+		}
+		else
+		{
+			syntax_error(program, syntax->token->position, "get/set is expected");
+			return NULL;
+		}
+
+
+		if (syntax_match(program, syntax, TOKEN_RPAREN) == -1)
+		{
+			return NULL;
+		}
 	}
 
 	node_t *value = NULL;
@@ -3674,7 +3874,7 @@ syntax_property(program_t *program, syntax_t *syntax, node_t *scope, node_t *par
 		}
 	}
 
-	return node_make_property(node, flag, key, type, value);
+	return node_make_property(node, flag, key, type, value, set, get);
 }
 
 static node_t *
@@ -3688,23 +3888,27 @@ syntax_class_readonly(program_t *program, syntax_t *syntax, node_t *scope, node_
 	flag |= SYNTAX_MODIFIER_READONLY;
 
 	node_t *node = NULL;
-	switch (syntax->token->type)
+	if (syntax->token->type == TOKEN_ID)
 	{
-	case TOKEN_ID:
 		node = syntax_property(program, syntax, scope, parent, flag);
-		break;
-
-	default:
+		if (node == NULL)
+		{
+			return NULL;
+		}
+		if (syntax_match(program, syntax, TOKEN_SEMICOLON) == -1)
+		{
+			return NULL;
+		}
+	}
+	else
+	{
 		syntax_error(program, syntax->token->position, "incorrect use of modifier 'readonly'");
-		break;
+		return NULL;
 	}
 
 	flag &= ~SYNTAX_MODIFIER_READONLY;
 
-	if (!node)
-	{
-		return NULL;
-	}
+	
 
 	return node;
 }
@@ -3720,39 +3924,55 @@ syntax_class_static(program_t *program, syntax_t *syntax, node_t *scope, node_t 
 	flag |= SYNTAX_MODIFIER_STATIC;
 
 	node_t *node = NULL;
-	switch (syntax->token->type)
+	if (syntax->token->type == TOKEN_READONLY_KEYWORD)
 	{
-	case TOKEN_READONLY_KEYWORD:
 		node = syntax_class_readonly(program, syntax, scope, parent, flag);
-		break;
-
-	case TOKEN_ID:
-		node = syntax_property(program, syntax, scope, parent, flag);
-		break;
-
-	case TOKEN_FUN_KEYWORD:
+		if (node == NULL)
+		{
+			return NULL;
+		}
+	}
+	else
+	if (syntax->token->type == TOKEN_FUN_KEYWORD)
+	{
 		node = syntax_func(program, syntax, scope, parent, flag);
-		break;
-
-	case TOKEN_CLASS_KEYWORD:
+		if (node == NULL)
+		{
+			return NULL;
+		}
+	}
+	else
+	if (syntax->token->type == TOKEN_CLASS_KEYWORD)
+	{
 		node = syntax_class(program, syntax, scope, parent, flag);
-		break;
-
-	case TOKEN_ENUM_KEYWORD:
+		if (node == NULL)
+		{
+			return NULL;
+		}
+	}
+	else
+	if (syntax->token->type == TOKEN_ENUM_KEYWORD)
+	{
 		node = syntax_enum(program, syntax, scope, parent, flag);
-		break;
-
-	default:
-		syntax_error(program, syntax->token->position, "incorrect use of modifier 'static'");
-		break;
+		if (node == NULL)
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		node = syntax_property(program, syntax, scope, parent, flag);
+		if (node == NULL)
+		{
+			return NULL;
+		}
+		if (syntax_match(program, syntax, TOKEN_SEMICOLON) == -1)
+		{
+			return NULL;
+		}
 	}
 
 	flag &= ~SYNTAX_MODIFIER_STATIC;
-
-	if (!node)
-	{
-		return NULL;
-	}
 
 	return node;
 }
@@ -3768,43 +3988,64 @@ syntax_class_protected(program_t *program, syntax_t *syntax, node_t *scope, node
 	flag |= SYNTAX_MODIFIER_PROTECT;
 
 	node_t *node = NULL;
-	switch (syntax->token->type)
+	if (syntax->token->type == TOKEN_READONLY_KEYWORD)
 	{
-	case TOKEN_READONLY_KEYWORD:
 		node = syntax_class_readonly(program, syntax, scope, parent, flag);
-		break;
-
-	case TOKEN_STATIC_KEYWORD:
+		if (node == NULL)
+		{
+			return NULL;
+		}
+	}
+	else
+	if (syntax->token->type == TOKEN_STATIC_KEYWORD)
+	{
 		node = syntax_class_static(program, syntax, scope, parent, flag);
-		break;
-
-	case TOKEN_ID:
-		node = syntax_property(program, syntax, scope, parent, flag);
-		break;
-
-	case TOKEN_FUN_KEYWORD:
+		if (node == NULL)
+		{
+			return NULL;
+		}
+	}
+	else
+	if (syntax->token->type == TOKEN_FUN_KEYWORD)
+	{
 		node = syntax_func(program, syntax, scope, parent, flag);
-		break;
-
-	case TOKEN_CLASS_KEYWORD:
+		if (node == NULL)
+		{
+			return NULL;
+		}
+	}
+	else
+	if (syntax->token->type == TOKEN_CLASS_KEYWORD)
+	{
 		node = syntax_class(program, syntax, scope, parent, flag);
-		break;
-
-	case TOKEN_ENUM_KEYWORD:
+		if (node == NULL)
+		{
+			return NULL;
+		}
+	}
+	else
+	if (syntax->token->type == TOKEN_ENUM_KEYWORD)
+	{
 		node = syntax_enum(program, syntax, scope, parent, flag);
-		break;
-
-	default:
-		syntax_error(program, syntax->token->position, "incorrect use of modifier 'protected'");
-		break;
+		if (node == NULL)
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		node = syntax_property(program, syntax, scope, parent, flag);
+		if (node == NULL)
+		{
+			return NULL;
+		}
+		if (syntax_match(program, syntax, TOKEN_SEMICOLON) == -1)
+		{
+			return NULL;
+		}
 	}
 
 	flag &= ~SYNTAX_MODIFIER_PROTECT;
-
-	if (!node)
-	{
-		return NULL;
-	}
 
 	return node;
 }

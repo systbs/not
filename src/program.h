@@ -9,6 +9,13 @@ typedef struct pair {
     void *value;
 } pair_t;
 
+typedef struct segment {
+    uint64_t key;
+    uint64_t root;
+    uint64_t scope;
+    uint64_t size;
+} segment_t;
+
 typedef struct program {
     char *base_path;
     char *base_file;
@@ -16,7 +23,6 @@ typedef struct program {
     list_t *errors;
     list_t *modules;
     list_t *repository;
-
 
     list_t *stack;
     void *rax;

@@ -17,9 +17,10 @@ export static class Int4
 {
   export fun Constructor(a:Int, b:Int)
   {
+
   }
 
-  export static class Long {
+  export protect static class Long {
 
   }
 }
@@ -32,11 +33,16 @@ export static class Int3 extends (i4:Int4)
   }
 }
 
-export static class System<R extends Int, T = Float>
+export class System<R extends Int, T = Float2> extends(h1:Int3)
 {
-  export Key:Int;
+  export Key2:Int4 @(set=KeyEffect1, get=KeyEffect2) = 1;
 
-  export fun Constructor(a:Int3.Long, b:Int)
+  export static enum Enum1 {
+    key1=1,
+    key2=2
+  }
+
+  export fun Constructor(a:Int3.Long, reference b:h1.Long)
   {
     System.Print("Hello World!");
   }

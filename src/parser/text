@@ -1,6 +1,6 @@
 
 static int32_t
-syntax_select(program_t *program, node_t *root, char *name, list_t *response)
+semantic_select(program_t *program, node_t *root, char *name, list_t *response)
 {
     if (root->kind == NODE_KIND_BODY)
     {
@@ -15,7 +15,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                 node_if_t *if1 = (node_if_t *)item1->value;
                 if (if1->key != NULL)
                 {
-                    if (syntax_idstrcmp(if1->key, name) == 1)
+                    if (semantic_idstrcmp(if1->key, name) == 1)
                     {
                         ilist_t *r1 = list_rpush(response, item1);
                         if (r1 == NULL)
@@ -32,7 +32,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                 node_for_t *for1 = (node_for_t *)item1->value;
                 if (for1->key != NULL)
                 {
-                    if (syntax_idstrcmp(for1->key, name) == 1)
+                    if (semantic_idstrcmp(for1->key, name) == 1)
                     {
                         ilist_t *r1 = list_rpush(response, item1);
                         if (r1 == NULL)
@@ -49,7 +49,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                 node_forin_t *forin1 = (node_forin_t *)item1->value;
                 if (forin1->key != NULL)
                 {
-                    if (syntax_idstrcmp(forin1->key, name) == 1)
+                    if (semantic_idstrcmp(forin1->key, name) == 1)
                     {
                         ilist_t *r1 = list_rpush(response, item1);
                         if (r1 == NULL)
@@ -66,7 +66,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                 node_var_t *var1 = (node_var_t *)item1->value;
                 if (var1->key->kind == NODE_KIND_ID)
                 {
-                    if (syntax_idstrcmp(var1->key, name) == 1)
+                    if (semantic_idstrcmp(var1->key, name) == 1)
                     {
                         ilist_t *r1 = list_rpush(response, item1);
                         if (r1 == NULL)
@@ -89,7 +89,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                             node_property_t *property2 = (node_property_t *)item2->value;
                             if (property2->type == NULL)
                             {
-                                if (syntax_idstrcmp(property2->key, name) == 1)
+                                if (semantic_idstrcmp(property2->key, name) == 1)
                                 {
                                     ilist_t *r1 = list_rpush(response, item2);
                                     if (r1 == NULL)
@@ -101,7 +101,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                             }
                             else
                             {
-                                if (syntax_idstrcmp(property2->key, name) == 1)
+                                if (semantic_idstrcmp(property2->key, name) == 1)
                                 {
                                     ilist_t *r1 = list_rpush(response, item2);
                                     if (r1 == NULL)
@@ -134,7 +134,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                 if (item2->kind == NODE_KIND_GENERIC)
                 {
                     node_generic_t *generic3 = (node_generic_t *)item2->value;
-                    if (syntax_idstrcmp(generic3->key, name) == 1)
+                    if (semantic_idstrcmp(generic3->key, name) == 1)
                     {
                         ilist_t *r1 = list_rpush(response, item2);
                         if (r1 == NULL)
@@ -160,7 +160,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                 if (item3->kind == NODE_KIND_PARAMETER)
                 {
                     node_parameter_t *parameter3 = (node_parameter_t *)item3->value;
-                    if (syntax_idstrcmp(parameter3->key, name) == 1)
+                    if (semantic_idstrcmp(parameter3->key, name) == 1)
                     {
                         ilist_t *r1 = list_rpush(response, item3);
                         if (r1 == NULL)
@@ -186,7 +186,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
             if (item1->kind == NODE_KIND_CLASS)
             {
                 node_class_t *class1p = (node_class_t *)item1->value;
-                if (syntax_idstrcmp(class1p->key, name) == 1)
+                if (semantic_idstrcmp(class1p->key, name) == 1)
                 {
                     ilist_t *r1 = list_rpush(response, item1);
                     if (r1 == NULL)
@@ -200,7 +200,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
             if (item1->kind == NODE_KIND_ENUM)
             {
                 node_enum_t *enum1 = (node_enum_t *)item1->value;
-                if (syntax_idstrcmp(enum1->key, name) == 1)
+                if (semantic_idstrcmp(enum1->key, name) == 1)
                 {
                     ilist_t *r1 = list_rpush(response, item1);
                     if (r1 == NULL)
@@ -214,7 +214,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
             if (item1->kind == NODE_KIND_FUN)
             {
                 node_fun_t *func1 = (node_fun_t *)item1->value;
-                if (syntax_idstrcmp(func1->key, name) == 1)
+                if (semantic_idstrcmp(func1->key, name) == 1)
                 {
                     ilist_t *r1 = list_rpush(response, item1);
                     if (r1 == NULL)
@@ -228,7 +228,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
             if (item1->kind == NODE_KIND_PROPERTY)
             {
                 node_property_t *property1 = (node_property_t *)item1->value;
-                if (syntax_idstrcmp(property1->key, name) == 1)
+                if (semantic_idstrcmp(property1->key, name) == 1)
                 {
                     ilist_t *r1 = list_rpush(response, item1);
                     if (r1 == NULL)
@@ -253,7 +253,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                 if (item2->kind == NODE_KIND_GENERIC)
                 {
                     node_generic_t *generic3 = (node_generic_t *)item2->value;
-                    if (syntax_idstrcmp(generic3->key, name) == 1)
+                    if (semantic_idstrcmp(generic3->key, name) == 1)
                     {
                         ilist_t *r1 = list_rpush(response, item2);
                         if (r1 == NULL)
@@ -279,7 +279,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                 if (item2->kind == NODE_KIND_HERITAGE)
                 {
                     node_heritage_t *heritage3 = (node_heritage_t *)item2->value;
-                    if (syntax_idstrcmp(heritage3->key, name) == 1)
+                    if (semantic_idstrcmp(heritage3->key, name) == 1)
                     {
                         ilist_t *r1 = list_rpush(response, item2);
                         if (r1 == NULL)
@@ -327,7 +327,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                         fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                         return -1;
                     }
-                    int32_t r1 = syntax_postfix(program, heritage3->type, response2);
+                    int32_t r1 = semantic_postfix(program, heritage3->type, response2);
                     if (r1 == -1)
                     {
                         return -1;
@@ -335,7 +335,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                     else
                     if (r1 == 0)
                     {
-                        syntax_error(program, heritage3->key, "reference not found");
+                        semantic_error(program, heritage3->key, "reference not found");
                         return -1;
                     }
                     else
@@ -357,7 +357,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                                     if (item4->kind == NODE_KIND_CLASS)
                                     {
                                         node_class_t *class1p = (node_class_t *)item4->value;
-                                        if (syntax_idstrcmp(class1p->key, name) == 1)
+                                        if (semantic_idstrcmp(class1p->key, name) == 1)
                                         {
                                             ilist_t *r1 = list_rpush(response, item4);
                                             if (r1 == NULL)
@@ -371,7 +371,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                                     if (item4->kind == NODE_KIND_ENUM)
                                     {
                                         node_enum_t *enum1 = (node_enum_t *)item4->value;
-                                        if (syntax_idstrcmp(enum1->key, name) == 1)
+                                        if (semantic_idstrcmp(enum1->key, name) == 1)
                                         {
                                             ilist_t *r1 = list_rpush(response, item4);
                                             if (r1 == NULL)
@@ -385,7 +385,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                                     if (item4->kind == NODE_KIND_FUN)
                                     {
                                         node_fun_t *func1 = (node_fun_t *)item4->value;
-                                        if (syntax_idstrcmp(func1->key, name) == 1)
+                                        if (semantic_idstrcmp(func1->key, name) == 1)
                                         {
                                             ilist_t *r1 = list_rpush(response, item4);
                                             if (r1 == NULL)
@@ -399,7 +399,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
                                     if (item4->kind == NODE_KIND_PROPERTY)
                                     {
                                         node_property_t *property1 = (node_property_t *)item4->value;
-                                        if (syntax_idstrcmp(property1->key, name) == 1)
+                                        if (semantic_idstrcmp(property1->key, name) == 1)
                                         {
                                             ilist_t *r1 = list_rpush(response, item4);
                                             if (r1 == NULL)
@@ -479,7 +479,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
             if (item1->kind == NODE_KIND_CLASS)
             {
                 node_class_t *class1p = (node_class_t *)item1->value;
-                if (syntax_idstrcmp(class1p->key, name) == 1)
+                if (semantic_idstrcmp(class1p->key, name) == 1)
                 {
                     ilist_t *r1 = list_rpush(response, item1);
                     if (r1 == NULL)
@@ -493,7 +493,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
             if (item1->kind == NODE_KIND_ENUM)
             {
                 node_enum_t *enum1 = (node_enum_t *)item1->value;
-                if (syntax_idstrcmp(enum1->key, name) == 1)
+                if (semantic_idstrcmp(enum1->key, name) == 1)
                 {
                     ilist_t *r1 = list_rpush(response, item1);
                     if (r1 == NULL)
@@ -508,57 +508,45 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response)
 
     if (root->parent != NULL)
     {
-        return syntax_select(program, root->parent, name, response);
+        return semantic_select(program, root->parent, name, response);
     }
 
     return 0;
 }
 
 static int32_t
-syntax_id(program_t *program, node_t *node, list_t *response)
+semantic_id(program_t *program, node_t *node, list_t *response)
 {
     node_basic_t *nb1 = (node_basic_t *)node->value;
-    return syntax_select(program, node->parent, nb1->value, response);
+    return semantic_select(program, node->parent, nb1->value, response);
 }
 
 static int32_t
-syntax_number(program_t *program, node_t *node, list_t *response)
+semantic_number(program_t *program, node_t *node, list_t *response)
 {
-    return syntax_select(program, node->parent, "Int", response);
+    return semantic_select(program, node->parent, "Int", response);
 }
 
 static int32_t
-syntax_char(program_t *program, node_t *node, list_t *response)
+semantic_char(program_t *program, node_t *node, list_t *response)
 {
-    return syntax_select(program, node->parent, "Char", response);
+    return semantic_select(program, node->parent, "Char", response);
 }
 
 static int32_t
-syntax_string(program_t *program, node_t *node, list_t *response)
+semantic_string(program_t *program, node_t *node, list_t *response)
 {
-    return syntax_select(program, node->parent, "String", response);
+    return semantic_select(program, node->parent, "String", response);
 }
 
 static int32_t
-syntax_infinity(program_t *program, node_t *node, list_t *response)
+semantic_infinity(program_t *program, node_t *node, list_t *response)
 {
-    return syntax_select(program, node->parent, "Int", response);
+    return semantic_select(program, node->parent, "Int", response);
 }
 
 static int32_t
-syntax_array(program_t *program, node_t *node, list_t *response)
-{
-    ilist_t *r1 = list_rpush(response, node);
-    if (r1 == NULL)
-    {
-        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-        return -1;
-    }
-    return 1;
-}
-
-static int32_t
-syntax_object(program_t *program, node_t *node, list_t *response)
+semantic_array(program_t *program, node_t *node, list_t *response)
 {
     ilist_t *r1 = list_rpush(response, node);
     if (r1 == NULL)
@@ -570,7 +558,7 @@ syntax_object(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_null(program_t *program, node_t *node, list_t *response)
+semantic_object(program_t *program, node_t *node, list_t *response)
 {
     ilist_t *r1 = list_rpush(response, node);
     if (r1 == NULL)
@@ -582,52 +570,64 @@ syntax_null(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_primary(program_t *program, node_t *node, list_t *response)
+semantic_null(program_t *program, node_t *node, list_t *response)
+{
+    ilist_t *r1 = list_rpush(response, node);
+    if (r1 == NULL)
+    {
+        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+        return -1;
+    }
+    return 1;
+}
+
+static int32_t
+semantic_primary(program_t *program, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_ID)
     {
-        return syntax_id(program, node, response);
+        return semantic_id(program, node, response);
     }
     else
     if (node->kind == NODE_KIND_NUMBER)
     {
-        return syntax_number(program, node, response);
+        return semantic_number(program, node, response);
     }
     else
     if (node->kind == NODE_KIND_CHAR)
     {
-        return syntax_char(program, node, response);
+        return semantic_char(program, node, response);
     }
     else
     if (node->kind == NODE_KIND_STRING)
     {
-        return syntax_string(program, node, response);
+        return semantic_string(program, node, response);
     }
     else
     if (node->kind == NODE_KIND_NULL)
     {
-        return syntax_null(program, node, response);
+        return semantic_null(program, node, response);
     }
     else
     if (node->kind == NODE_KIND_INFINITY)
     {
-        return syntax_infinity(program, node, response);
+        return semantic_infinity(program, node, response);
     }
     else
     if (node->kind == NODE_KIND_ARRAY)
     {
-        return syntax_array(program, node, response);
+        return semantic_array(program, node, response);
     }
     else
     if (node->kind == NODE_KIND_OBJECT)
     {
-        return syntax_object(program, node, response);
+        return semantic_object(program, node, response);
     }
     return 1;
 }
 
 static int32_t
-syntax_pseudonym(program_t *program, node_t *node, list_t *response)
+semantic_pseudonym(program_t *program, node_t *node, list_t *response)
 {
     node_carrier_t *carrier = (node_carrier_t *)node->value;
     
@@ -638,7 +638,7 @@ syntax_pseudonym(program_t *program, node_t *node, list_t *response)
         return -1;
     }
 
-    int32_t r1 = syntax_postfix(program, carrier->base, response1);
+    int32_t r1 = semantic_postfix(program, carrier->base, response1);
     if (r1 == -1)
     {
         return -1;
@@ -646,7 +646,7 @@ syntax_pseudonym(program_t *program, node_t *node, list_t *response)
     else
     if (r1 == 0)
     {
-        syntax_error(program, node, "reference not found");
+        semantic_error(program, node, "reference not found");
         return -1;
     }
     else
@@ -661,7 +661,7 @@ syntax_pseudonym(program_t *program, node_t *node, list_t *response)
                 node_class_t *class1 = (node_class_t *)item1->value;
                 node_t *ngs1 = class1->generics;
                 node_t *nas2 = carrier->data;
-                int32_t r1 = syntax_eqaul_gscs(program, ngs1, nas2);
+                int32_t r1 = semantic_eqaul_gscs(program, ngs1, nas2);
                 if (r1 == -1)
                 {
                     return -1;
@@ -691,7 +691,7 @@ syntax_pseudonym(program_t *program, node_t *node, list_t *response)
                 node_fun_t *func1 = (node_fun_t *)item1;
                 node_t *ngs1 = func1->generics;
                 node_t *nas2 = carrier->data;
-                int32_t r1 = syntax_eqaul_gscs(program, ngs1, nas2);
+                int32_t r1 = semantic_eqaul_gscs(program, ngs1, nas2);
                 if (r1 == -1)
                 {
                     return -1;
@@ -717,7 +717,7 @@ syntax_pseudonym(program_t *program, node_t *node, list_t *response)
             }
             else
             {
-                syntax_error(program, node, "generic type used for (%lld:%lld)",
+                semantic_error(program, node, "generic type used for (%lld:%lld)",
                     item1->position.line, item1->position.column);
                 return -1;
             }
@@ -729,7 +729,7 @@ syntax_pseudonym(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_call(program_t *program, node_t *node, list_t *response)
+semantic_call(program_t *program, node_t *node, list_t *response)
 {
     node_carrier_t *carrier = (node_carrier_t *)node->value;
     
@@ -740,7 +740,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
         return -1;
     }
 
-    int32_t r1 = syntax_postfix(program, carrier->base, response1);
+    int32_t r1 = semantic_postfix(program, carrier->base, response1);
     if (r1 == -1)
     {
         return -1;
@@ -748,7 +748,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
     else
     if (r1 == 0)
     {
-        syntax_error(program, node, "reference not found");
+        semantic_error(program, node, "reference not found");
         return -1;
     }
     else
@@ -770,11 +770,11 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                     if (item2->kind == NODE_KIND_FUN)
                     {
                         node_fun_t *func1 = (node_fun_t *)item2->value;
-                        if (syntax_idstrcmp(func1->key, "constructor") == 1)
+                        if (semantic_idstrcmp(func1->key, "constructor") == 1)
                         {
                             node_t *nps1 = func1->parameters;
                             node_t *nds2 = carrier->data;
-                            int32_t r2 = syntax_eqaul_psas(program, nps1, nds2);
+                            int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
                             if (r2 == -1)
                             {
                                 return -1;
@@ -808,7 +808,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                 node_fun_t *func1 = (node_fun_t *)item1->value;
                 node_t *nps1 = func1->parameters;
                 node_t *nds2 = carrier->data;
-                int32_t r1 = syntax_eqaul_psas(program, nps1, nds2);
+                int32_t r1 = semantic_eqaul_psas(program, nps1, nds2);
                 if (r1 == -1)
                 {
                     return -1;
@@ -831,7 +831,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
             {
                 if (item1->referto == NULL)
                 {
-                    syntax_error(program, item1, "not initialized");
+                    semantic_error(program, item1, "not initialized");
                     return -1;
                 }
                 node_t *referto = item1->referto;
@@ -847,11 +847,11 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "constructor") == 1)
+                            if (semantic_idstrcmp(func1->key, "constructor") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
                                 node_t *nds2 = carrier->data;
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nds2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -878,7 +878,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                     node_fun_t *func1 = (node_fun_t *)referto->value;
                     node_t *nps1 = func1->parameters;
                     node_t *nds2 = carrier->data;
-                    int32_t r1 = syntax_eqaul_psas(program, nps1, nds2);
+                    int32_t r1 = semantic_eqaul_psas(program, nps1, nds2);
                     if (r1 == -1)
                     {
                         return -1;
@@ -902,7 +902,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
             {
                 if (item1->referto == NULL)
                 {
-                    syntax_error(program, item1, "not initialized");
+                    semantic_error(program, item1, "not initialized");
                     return -1;
                 }
                 node_t *referto = item1->referto;
@@ -918,11 +918,11 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "constructor") == 1)
+                            if (semantic_idstrcmp(func1->key, "constructor") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
                                 node_t *nds2 = carrier->data;
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nds2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -949,7 +949,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                     node_fun_t *func1 = (node_fun_t *)referto->value;
                     node_t *nps1 = func1->parameters;
                     node_t *nds2 = carrier->data;
-                    int32_t r1 = syntax_eqaul_psas(program, nps1, nds2);
+                    int32_t r1 = semantic_eqaul_psas(program, nps1, nds2);
                     if (r1 == -1)
                     {
                         return -1;
@@ -973,7 +973,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
             {
                 if (item1->referto == NULL)
                 {
-                    syntax_error(program, item1, "not initialized");
+                    semantic_error(program, item1, "not initialized");
                     return -1;
                 }
                 node_t *referto = item1->referto;
@@ -989,11 +989,11 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "constructor") == 1)
+                            if (semantic_idstrcmp(func1->key, "constructor") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
                                 node_t *nds2 = carrier->data;
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nds2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -1020,7 +1020,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                     node_fun_t *func1 = (node_fun_t *)referto->value;
                     node_t *nps1 = func1->parameters;
                     node_t *nds2 = carrier->data;
-                    int32_t r1 = syntax_eqaul_psas(program, nps1, nds2);
+                    int32_t r1 = semantic_eqaul_psas(program, nps1, nds2);
                     if (r1 == -1)
                     {
                         return -1;
@@ -1049,7 +1049,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                     return -1;
                 }
-                int32_t r2 = syntax_postfix(program, heritage1->type, response2);
+                int32_t r2 = semantic_postfix(program, heritage1->type, response2);
                 if (r2 == -1)
                 {
                     return -1;
@@ -1057,7 +1057,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                 else
                 if (r2 == 0)
                 {
-                    syntax_error(program, heritage1->type, "reference not found");
+                    semantic_error(program, heritage1->type, "reference not found");
                     return -1;
                 }
                 else
@@ -1080,11 +1080,11 @@ syntax_call(program_t *program, node_t *node, list_t *response)
                                 if (item3->kind == NODE_KIND_FUN)
                                 {
                                     node_fun_t *func1 = (node_fun_t *)item3->value;
-                                    if (syntax_idstrcmp(func1->key, "constructor") == 1)
+                                    if (semantic_idstrcmp(func1->key, "constructor") == 1)
                                     {
                                         node_t *nps1 = func1->parameters;
                                         node_t *nds2 = carrier->data;
-                                        int32_t r2 = syntax_eqaul_psas(program, nps1, nds2);
+                                        int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
                                         if (r2 == -1)
                                         {
                                             return -1;
@@ -1124,7 +1124,7 @@ syntax_call(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_item(program_t *program, node_t *node, list_t *response)
+semantic_item(program_t *program, node_t *node, list_t *response)
 {
     node_carrier_t *carrier = (node_carrier_t *)node->value;
     
@@ -1135,7 +1135,7 @@ syntax_item(program_t *program, node_t *node, list_t *response)
         return -1;
     }
 
-    int32_t r1 = syntax_postfix(program, carrier->base, response1);
+    int32_t r1 = semantic_postfix(program, carrier->base, response1);
     if (r1 == -1)
     {
         return -1;
@@ -1143,7 +1143,7 @@ syntax_item(program_t *program, node_t *node, list_t *response)
     else
     if (r1 == 0)
     {
-        syntax_error(program, node, "reference not found");
+        semantic_error(program, node, "reference not found");
         return -1;
     }
     else
@@ -1157,7 +1157,7 @@ syntax_item(program_t *program, node_t *node, list_t *response)
             {
                 if ((item1->flag & NODE_FLAG_TEMPORARY) != NODE_FLAG_TEMPORARY)
                 {
-                    syntax_error(program, item1, "unmade class");
+                    semantic_error(program, item1, "unmade class");
                     return -1;
                 }
                 node_class_t *class1 = (node_class_t *)item1->value;
@@ -1170,11 +1170,11 @@ syntax_item(program_t *program, node_t *node, list_t *response)
                     if (item2->kind == NODE_KIND_FUN)
                     {
                         node_fun_t *func1 = (node_fun_t *)item2->value;
-                        if (syntax_idstrcmp(func1->key, "[]") == 1)
+                        if (semantic_idstrcmp(func1->key, "[]") == 1)
                         {
                             node_t *nps1 = func1->parameters;
                             node_t *nds2 = carrier->data;
-                            int32_t r2 = syntax_eqaul_psas(program, nps1, nds2);
+                            int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
                             if (r2 == -1)
                             {
                                 return -1;
@@ -1230,7 +1230,7 @@ syntax_item(program_t *program, node_t *node, list_t *response)
             }
             else
             {
-                syntax_error(program, item1, "not an enumerable");
+                semantic_error(program, item1, "not an enumerable");
                 return -1;
             }
         }
@@ -1239,7 +1239,7 @@ syntax_item(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_attribute(program_t *program, node_t *node, list_t *response)
+semantic_attribute(program_t *program, node_t *node, list_t *response)
 {
     node_binary_t *basic = (node_binary_t *)node->value;
     
@@ -1250,7 +1250,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
         return -1;
     }
 
-    int32_t r1 = syntax_postfix(program, basic->left, response1);
+    int32_t r1 = semantic_postfix(program, basic->left, response1);
     if (r1 == -1)
     {
         return -1;
@@ -1258,7 +1258,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
     else
     if (r1 == 0)
     {
-        syntax_error(program, node, "reference not found");
+        semantic_error(program, node, "reference not found");
         return -1;
     }
     else
@@ -1280,7 +1280,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
                     if (item2->kind == NODE_KIND_CLASS)
                     {
                         node_class_t *class1p = (node_class_t *)item2->value;
-                        if (syntax_idcmp(basic->right, class1p->key) == 1)
+                        if (semantic_idcmp(basic->right, class1p->key) == 1)
                         {
                             ilist_t *r2 = list_rpush(response, item2);
                             if (r2 == NULL)
@@ -1295,7 +1295,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
                     if (item2->kind == NODE_KIND_ENUM)
                     {
                         node_enum_t *enum1 = (node_enum_t *)item2->value;
-                        if (syntax_idcmp(basic->right, enum1->key) == 1)
+                        if (semantic_idcmp(basic->right, enum1->key) == 1)
                         {
                             ilist_t *r1 = list_rpush(response, item2);
                             if (r1 == NULL)
@@ -1310,7 +1310,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
                     if (item2->kind == NODE_KIND_FUN)
                     {
                         node_fun_t *func1 = (node_fun_t *)item2->value;
-                        if (syntax_idcmp(basic->right, func1->key) == 1)
+                        if (semantic_idcmp(basic->right, func1->key) == 1)
                         {
                             ilist_t *r1 = list_rpush(response, item2);
                             if (r1 == NULL)
@@ -1325,7 +1325,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
                     if (item2->kind == NODE_KIND_PROPERTY)
                     {
                         node_property_t *property1 = (node_property_t *)item2->value;
-                        if (syntax_idcmp(basic->right, property1->key) == 1)
+                        if (semantic_idcmp(basic->right, property1->key) == 1)
                         {
                             ilist_t *r1 = list_rpush(response, item2);
                             if (r1 == NULL)
@@ -1373,7 +1373,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
                                 fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                 return -1;
                             }
-                            int32_t r3 = syntax_postfix(program, heritage3->type, response3);
+                            int32_t r3 = semantic_postfix(program, heritage3->type, response3);
                             if (r3 == -1)
                             {
                                 return -1;
@@ -1381,7 +1381,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
                             else
                             if (r3 == 0)
                             {
-                                syntax_error(program, heritage3->type, "reference not found");
+                                semantic_error(program, heritage3->type, "reference not found");
                                 return -1;
                             }
                             else
@@ -1403,7 +1403,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
                                             if (item4->kind == NODE_KIND_CLASS)
                                             {
                                                 node_class_t *class1p = (node_class_t *)item4->value;
-                                                if (syntax_idcmp(basic->right, class1p->key) == 1)
+                                                if (semantic_idcmp(basic->right, class1p->key) == 1)
                                                 {
                                                     ilist_t *r1 = list_rpush(response, item4);
                                                     if (r1 == NULL)
@@ -1418,7 +1418,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
                                             if (item4->kind == NODE_KIND_ENUM)
                                             {
                                                 node_enum_t *enum1 = (node_enum_t *)item4->value;
-                                                if (syntax_idcmp(basic->right, enum1->key) == 1)
+                                                if (semantic_idcmp(basic->right, enum1->key) == 1)
                                                 {
                                                     ilist_t *r1 = list_rpush(response, item4);
                                                     if (r1 == NULL)
@@ -1433,7 +1433,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
                                             if (item4->kind == NODE_KIND_FUN)
                                             {
                                                 node_fun_t *func1 = (node_fun_t *)item4->value;
-                                                if (syntax_idcmp(basic->right, func1->key) == 1)
+                                                if (semantic_idcmp(basic->right, func1->key) == 1)
                                                 {
                                                     ilist_t *r1 = list_rpush(response, item4);
                                                     if (r1 == NULL)
@@ -1448,7 +1448,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
                                             if (item4->kind == NODE_KIND_PROPERTY)
                                             {
                                                 node_property_t *property1 = (node_property_t *)item4->value;
-                                                if (syntax_idcmp(basic->right, property1->key) == 1)
+                                                if (semantic_idcmp(basic->right, property1->key) == 1)
                                                 {
                                                     ilist_t *r1 = list_rpush(response, item4);
                                                     if (r1 == NULL)
@@ -1517,7 +1517,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
             }
             else
             {
-                syntax_error(program, item1, "not accessable");
+                semantic_error(program, item1, "not accessable");
                 return -1;
             }
         }
@@ -1529,36 +1529,36 @@ syntax_attribute(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_postfix(program_t *program, node_t *node, list_t *response)
+semantic_postfix(program_t *program, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_ATTRIBUTE)
     {
-        return syntax_attribute(program, node, response);
+        return semantic_attribute(program, node, response);
     }
     else
     if (node->kind == NODE_KIND_PSEUDONYM)
     {
-        return syntax_pseudonym(program, node, response);
+        return semantic_pseudonym(program, node, response);
     }
     else
     if (node->kind == NODE_KIND_ITEM)
     {
-        return syntax_item(program, node, response);
+        return semantic_item(program, node, response);
     }
     else
     if (node->kind == NODE_KIND_CALL)
     {
-        return syntax_call(program, node, response);
+        return semantic_call(program, node, response);
     }
     else
     {
-        return syntax_primary(program, node, response);
+        return semantic_primary(program, node, response);
     }
     
 }
 
 static int32_t
-syntax_tilde(program_t *program, node_t *node, list_t *response)
+semantic_tilde(program_t *program, node_t *node, list_t *response)
 {
     node_unary_t *unary = (node_unary_t *)node->value;
 
@@ -1569,7 +1569,7 @@ syntax_tilde(program_t *program, node_t *node, list_t *response)
         return -1;
     }
 
-    int32_t r1 = syntax_expression(program, unary->right, response1);
+    int32_t r1 = semantic_expression(program, unary->right, response1);
     if (r1 == -1)
     {
         return -1;
@@ -1577,7 +1577,7 @@ syntax_tilde(program_t *program, node_t *node, list_t *response)
     else
     if (r1 == 0)
     {
-        syntax_error(program, node, "reference not found");
+        semantic_error(program, node, "reference not found");
         return -1;
     }
     else
@@ -1602,7 +1602,7 @@ syntax_tilde(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_pos(program_t *program, node_t *node, list_t *response)
+semantic_pos(program_t *program, node_t *node, list_t *response)
 {
     node_unary_t *unary = (node_unary_t *)node->value;
 
@@ -1613,7 +1613,7 @@ syntax_pos(program_t *program, node_t *node, list_t *response)
         return -1;
     }
 
-    int32_t r1 = syntax_expression(program, unary->right, response1);
+    int32_t r1 = semantic_expression(program, unary->right, response1);
     if (r1 == -1)
     {
         return -1;
@@ -1621,7 +1621,7 @@ syntax_pos(program_t *program, node_t *node, list_t *response)
     else
     if (r1 == 0)
     {
-        syntax_error(program, node, "reference not found");
+        semantic_error(program, node, "reference not found");
         return -1;
     }
     else
@@ -1646,7 +1646,7 @@ syntax_pos(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_neg(program_t *program, node_t *node, list_t *response)
+semantic_neg(program_t *program, node_t *node, list_t *response)
 {
     node_unary_t *unary = (node_unary_t *)node->value;
 
@@ -1657,7 +1657,7 @@ syntax_neg(program_t *program, node_t *node, list_t *response)
         return -1;
     }
 
-    int32_t r1 = syntax_expression(program, unary->right, response1);
+    int32_t r1 = semantic_expression(program, unary->right, response1);
     if (r1 == -1)
     {
         return -1;
@@ -1665,7 +1665,7 @@ syntax_neg(program_t *program, node_t *node, list_t *response)
     else
     if (r1 == 0)
     {
-        syntax_error(program, node, "reference not found");
+        semantic_error(program, node, "reference not found");
         return -1;
     }
     else
@@ -1690,7 +1690,7 @@ syntax_neg(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_not(program_t *program, node_t *node, list_t *response)
+semantic_not(program_t *program, node_t *node, list_t *response)
 {
     node_unary_t *unary = (node_unary_t *)node->value;
 
@@ -1701,7 +1701,7 @@ syntax_not(program_t *program, node_t *node, list_t *response)
         return -1;
     }
 
-    int32_t r1 = syntax_expression(program, unary->right, response1);
+    int32_t r1 = semantic_expression(program, unary->right, response1);
     if (r1 == -1)
     {
         return -1;
@@ -1709,7 +1709,7 @@ syntax_not(program_t *program, node_t *node, list_t *response)
     else
     if (r1 == 0)
     {
-        syntax_error(program, node, "reference not found");
+        semantic_error(program, node, "reference not found");
         return -1;
     }
     else
@@ -1734,7 +1734,7 @@ syntax_not(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_typeof(program_t *program, node_t *node, list_t *response)
+semantic_typeof(program_t *program, node_t *node, list_t *response)
 {
     node_unary_t *unary = (node_unary_t *)node->value;
 
@@ -1745,7 +1745,7 @@ syntax_typeof(program_t *program, node_t *node, list_t *response)
         return -1;
     }
 
-    int32_t r1 = syntax_expression(program, unary->right, response1);
+    int32_t r1 = semantic_expression(program, unary->right, response1);
     if (r1 == -1)
     {
         return -1;
@@ -1753,7 +1753,7 @@ syntax_typeof(program_t *program, node_t *node, list_t *response)
     else
     if (r1 == 0)
     {
-        syntax_error(program, node, "reference not found");
+        semantic_error(program, node, "reference not found");
         return -1;
     }
     else
@@ -1778,7 +1778,7 @@ syntax_typeof(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_sizeof(program_t *program, node_t *node, list_t *response)
+semantic_sizeof(program_t *program, node_t *node, list_t *response)
 {
     node_t *node2 = node_create(node->scope, node->parent, node->position);
 	if (node2 == NULL)
@@ -1803,40 +1803,40 @@ syntax_sizeof(program_t *program, node_t *node, list_t *response)
 }
 
 static int32_t
-syntax_prefix(program_t *program, node_t *node, list_t *response)
+semantic_prefix(program_t *program, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_TILDE)
     {
-        return syntax_tilde(program, node, response);
+        return semantic_tilde(program, node, response);
     }
     else
     if (node->kind == NODE_KIND_POS)
     {
-        return syntax_pos(program, node, response);
+        return semantic_pos(program, node, response);
     }
     else
     if (node->kind == NODE_KIND_NEG)
     {
-        return syntax_neg(program, node, response);
+        return semantic_neg(program, node, response);
     }
     else
     if (node->kind == NODE_KIND_TYPEOF)
     {
-        return syntax_typeof(program, node, response);
+        return semantic_typeof(program, node, response);
     }
     else
     if (node->kind == NODE_KIND_SIZEOF)
     {
-        return syntax_sizeof(program, node, response);
+        return semantic_sizeof(program, node, response);
     }
     else
     {
-        return syntax_postfix(program, node, response);
+        return semantic_postfix(program, node, response);
     }
 }
 
 static node_t *
-syntax_argument_from_node(program_t *program, node_t *arg)
+semantic_argument_from_node(program_t *program, node_t *arg)
 {
 	node_t *node = node_create(arg->scope, arg->parent, arg->position);
 	if (node == NULL)
@@ -1849,7 +1849,7 @@ syntax_argument_from_node(program_t *program, node_t *arg)
 }
 
 static node_t *
-syntax_arguments_from_nodes(program_t *program, node_t *parent, uint64_t n, ...)
+semantic_arguments_from_nodes(program_t *program, node_t *parent, uint64_t n, ...)
 {
 	node_t *node = node_create(parent->scope, parent, parent->position);
 	if (node == NULL)
@@ -1869,7 +1869,7 @@ syntax_arguments_from_nodes(program_t *program, node_t *parent, uint64_t n, ...)
  
     for (uint64_t i = 0; i < n; i++)
     {
-        node_t *node2 = syntax_argument_from_node(program, (node_t *)va_arg(arg, node_t *));
+        node_t *node2 = semantic_argument_from_node(program, (node_t *)va_arg(arg, node_t *));
 		if (node2 == NULL)
 		{
 			return NULL;
@@ -1887,7 +1887,7 @@ syntax_arguments_from_nodes(program_t *program, node_t *parent, uint64_t n, ...)
 }
 
 static int32_t
-syntax_power(program_t *program, node_t *node, list_t *response)
+semantic_power(program_t *program, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_POW)
     {
@@ -1903,11 +1903,11 @@ syntax_power(program_t *program, node_t *node, list_t *response)
         int32_t r1 = 0;
         if (binary->left->kind == NODE_KIND_POW)
         {
-            r1 = syntax_power(program, binary->left, response1);
+            r1 = semantic_power(program, binary->left, response1);
         }
         else
         {
-            r1 = syntax_prefix(program, binary->left, response1);
+            r1 = semantic_prefix(program, binary->left, response1);
         }
         
         if (r1 == -1)
@@ -1917,7 +1917,7 @@ syntax_power(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -1939,16 +1939,16 @@ syntax_power(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "**") == 1)
+                            if (semantic_idstrcmp(func1->key, "**") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -1971,7 +1971,7 @@ syntax_power(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -1981,12 +1981,12 @@ syntax_power(program_t *program, node_t *node, list_t *response)
     }
     else
     {
-        return syntax_prefix(program, node, response);
+        return semantic_prefix(program, node, response);
     }
 }
 
 static int32_t
-syntax_multipicative(program_t *program, node_t *node, list_t *response)
+semantic_multipicative(program_t *program, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_MUL)
     {
@@ -1999,7 +1999,7 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_multipicative(program, binary->left, response1);
+        int32_t r1 = semantic_multipicative(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -2008,7 +2008,7 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -2030,16 +2030,16 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "*") == 1)
+                            if (semantic_idstrcmp(func1->key, "*") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -2062,7 +2062,7 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -2082,7 +2082,7 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_multipicative(program, binary->left, response1);
+        int32_t r1 = semantic_multipicative(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -2091,7 +2091,7 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -2113,16 +2113,16 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "/") == 1)
+                            if (semantic_idstrcmp(func1->key, "/") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -2145,7 +2145,7 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -2165,7 +2165,7 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_multipicative(program, binary->left, response1);
+        int32_t r1 = semantic_multipicative(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -2174,7 +2174,7 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -2196,16 +2196,16 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "%") == 1)
+                            if (semantic_idstrcmp(func1->key, "%") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -2228,7 +2228,7 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -2248,7 +2248,7 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_multipicative(program, binary->left, response1);
+        int32_t r1 = semantic_multipicative(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -2257,7 +2257,7 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -2279,16 +2279,16 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "\\") == 1)
+                            if (semantic_idstrcmp(func1->key, "\\") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -2311,7 +2311,7 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -2321,12 +2321,12 @@ syntax_multipicative(program_t *program, node_t *node, list_t *response)
     }
     else
     {
-        return syntax_power(program, node, response);
+        return semantic_power(program, node, response);
     }
 }
 
 static int32_t
-syntax_addative(program_t *program, node_t *node, list_t *response)
+semantic_addative(program_t *program, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_PLUS)
     {
@@ -2339,7 +2339,7 @@ syntax_addative(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_addative(program, binary->left, response1);
+        int32_t r1 = semantic_addative(program, binary->left, response1);
         if (r1 == -1)
         {
             return -1;
@@ -2347,7 +2347,7 @@ syntax_addative(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -2369,16 +2369,16 @@ syntax_addative(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "+") == 1)
+                            if (semantic_idstrcmp(func1->key, "+") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -2401,7 +2401,7 @@ syntax_addative(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -2421,7 +2421,7 @@ syntax_addative(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_addative(program, binary->left, response1);
+        int32_t r1 = semantic_addative(program, binary->left, response1);
         if (r1 == -1)
         {
             return -1;
@@ -2429,7 +2429,7 @@ syntax_addative(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -2451,16 +2451,16 @@ syntax_addative(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "-") == 1)
+                            if (semantic_idstrcmp(func1->key, "-") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -2483,7 +2483,7 @@ syntax_addative(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -2493,12 +2493,12 @@ syntax_addative(program_t *program, node_t *node, list_t *response)
     }
     else
     {
-        return syntax_multipicative(program, node, response);
+        return semantic_multipicative(program, node, response);
     }
 }
 
 static int32_t
-syntax_shifting(program_t *program, node_t *node, list_t *response)
+semantic_shifting(program_t *program, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_SHL)
     {
@@ -2511,7 +2511,7 @@ syntax_shifting(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_addative(program, binary->left, response1);
+        int32_t r1 = semantic_addative(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -2520,7 +2520,7 @@ syntax_shifting(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -2542,16 +2542,16 @@ syntax_shifting(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "<<") == 1)
+                            if (semantic_idstrcmp(func1->key, "<<") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -2574,7 +2574,7 @@ syntax_shifting(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -2594,7 +2594,7 @@ syntax_shifting(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_addative(program, binary->left, response1);
+        int32_t r1 = semantic_addative(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -2603,7 +2603,7 @@ syntax_shifting(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -2625,16 +2625,16 @@ syntax_shifting(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, ">>") == 1)
+                            if (semantic_idstrcmp(func1->key, ">>") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -2657,7 +2657,7 @@ syntax_shifting(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -2667,12 +2667,12 @@ syntax_shifting(program_t *program, node_t *node, list_t *response)
     }
     else
     {
-        return syntax_addative(program, node, response);
+        return semantic_addative(program, node, response);
     }
 }
 
 static int32_t
-syntax_relational(program_t *program, node_t *node, list_t *response)
+semantic_relational(program_t *program, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_LT)
     {
@@ -2685,7 +2685,7 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_shifting(program, binary->left, response1);
+        int32_t r1 = semantic_shifting(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -2694,7 +2694,7 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -2716,16 +2716,16 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "<") == 1)
+                            if (semantic_idstrcmp(func1->key, "<") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -2748,7 +2748,7 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -2768,7 +2768,7 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_shifting(program, binary->left, response1);
+        int32_t r1 = semantic_shifting(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -2777,7 +2777,7 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -2799,16 +2799,16 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "<=") == 1)
+                            if (semantic_idstrcmp(func1->key, "<=") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -2831,7 +2831,7 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -2851,7 +2851,7 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_shifting(program, binary->left, response1);
+        int32_t r1 = semantic_shifting(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -2860,7 +2860,7 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -2882,16 +2882,16 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, ">") == 1)
+                            if (semantic_idstrcmp(func1->key, ">") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -2914,7 +2914,7 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -2934,7 +2934,7 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_shifting(program, binary->left, response1);
+        int32_t r1 = semantic_shifting(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -2943,7 +2943,7 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -2965,16 +2965,16 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, ">=") == 1)
+                            if (semantic_idstrcmp(func1->key, ">=") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -2997,7 +2997,7 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -3007,12 +3007,12 @@ syntax_relational(program_t *program, node_t *node, list_t *response)
     }
     else
     {
-        return syntax_shifting(program, node, response);
+        return semantic_shifting(program, node, response);
     }
 }
 
 static int32_t
-syntax_equality(program_t *program, node_t *node, list_t *response)
+semantic_equality(program_t *program, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_EQ)
     {
@@ -3025,7 +3025,7 @@ syntax_equality(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_relational(program, binary->left, response1);
+        int32_t r1 = semantic_relational(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -3034,7 +3034,7 @@ syntax_equality(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -3056,16 +3056,16 @@ syntax_equality(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "==") == 1)
+                            if (semantic_idstrcmp(func1->key, "==") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -3088,7 +3088,7 @@ syntax_equality(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -3108,7 +3108,7 @@ syntax_equality(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_relational(program, binary->left, response1);
+        int32_t r1 = semantic_relational(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -3117,7 +3117,7 @@ syntax_equality(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -3139,16 +3139,16 @@ syntax_equality(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "!=") == 1)
+                            if (semantic_idstrcmp(func1->key, "!=") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -3171,7 +3171,7 @@ syntax_equality(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -3181,12 +3181,12 @@ syntax_equality(program_t *program, node_t *node, list_t *response)
     }
     else
     {
-        return syntax_relational(program, node, response);
+        return semantic_relational(program, node, response);
     }
 }
 
 static int32_t
-syntax_bitwise_and(program_t *program, node_t *node, list_t *response)
+semantic_bitwise_and(program_t *program, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_AND)
     {
@@ -3199,7 +3199,7 @@ syntax_bitwise_and(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_equality(program, binary->left, response1);
+        int32_t r1 = semantic_equality(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -3208,7 +3208,7 @@ syntax_bitwise_and(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -3230,16 +3230,16 @@ syntax_bitwise_and(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "&") == 1)
+                            if (semantic_idstrcmp(func1->key, "&") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -3262,7 +3262,7 @@ syntax_bitwise_and(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -3272,12 +3272,12 @@ syntax_bitwise_and(program_t *program, node_t *node, list_t *response)
     }
     else
     {
-        return syntax_equality(program, node, response);
+        return semantic_equality(program, node, response);
     }
 }
 
 static int32_t
-syntax_bitwise_xor(program_t *program, node_t *node, list_t *response)
+semantic_bitwise_xor(program_t *program, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_XOR)
     {
@@ -3290,7 +3290,7 @@ syntax_bitwise_xor(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_bitwise_and(program, binary->left, response1);
+        int32_t r1 = semantic_bitwise_and(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -3299,7 +3299,7 @@ syntax_bitwise_xor(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -3321,16 +3321,16 @@ syntax_bitwise_xor(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "^") == 1)
+                            if (semantic_idstrcmp(func1->key, "^") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -3353,7 +3353,7 @@ syntax_bitwise_xor(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -3363,12 +3363,12 @@ syntax_bitwise_xor(program_t *program, node_t *node, list_t *response)
     }
     else
     {
-        return syntax_bitwise_and(program, node, response);
+        return semantic_bitwise_and(program, node, response);
     }
 }
 
 static int32_t
-syntax_bitwise_or(program_t *program, node_t *node, list_t *response)
+semantic_bitwise_or(program_t *program, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_OR)
     {
@@ -3381,7 +3381,7 @@ syntax_bitwise_or(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_bitwise_xor(program, binary->left, response1);
+        int32_t r1 = semantic_bitwise_xor(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -3390,7 +3390,7 @@ syntax_bitwise_or(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -3412,16 +3412,16 @@ syntax_bitwise_or(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "|") == 1)
+                            if (semantic_idstrcmp(func1->key, "|") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -3444,7 +3444,7 @@ syntax_bitwise_or(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -3454,12 +3454,12 @@ syntax_bitwise_or(program_t *program, node_t *node, list_t *response)
     }
     else
     {
-        return syntax_bitwise_xor(program, node, response);
+        return semantic_bitwise_xor(program, node, response);
     }
 }
 
 static int32_t
-syntax_logical_and(program_t *program, node_t *node, list_t *response)
+semantic_logical_and(program_t *program, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_LAND)
     {
@@ -3472,7 +3472,7 @@ syntax_logical_and(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_bitwise_or(program, binary->left, response1);
+        int32_t r1 = semantic_bitwise_or(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -3481,7 +3481,7 @@ syntax_logical_and(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -3503,16 +3503,16 @@ syntax_logical_and(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "&&") == 1)
+                            if (semantic_idstrcmp(func1->key, "&&") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -3535,7 +3535,7 @@ syntax_logical_and(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -3545,12 +3545,12 @@ syntax_logical_and(program_t *program, node_t *node, list_t *response)
     }
     else
     {
-        return syntax_bitwise_or(program, node, response);
+        return semantic_bitwise_or(program, node, response);
     }
 }
 
 static int32_t
-syntax_logical_or(program_t *program, node_t *node, list_t *response)
+semantic_logical_or(program_t *program, node_t *node, list_t *response)
 {
     if (node->kind == NODE_KIND_LOR)
     {
@@ -3563,7 +3563,7 @@ syntax_logical_or(program_t *program, node_t *node, list_t *response)
             return -1;
         }
 
-        int32_t r1 = syntax_logical_and(program, binary->left, response1);
+        int32_t r1 = semantic_logical_and(program, binary->left, response1);
         
         if (r1 == -1)
         {
@@ -3572,7 +3572,7 @@ syntax_logical_or(program_t *program, node_t *node, list_t *response)
         else
         if (r1 == 0)
         {
-            syntax_error(program, binary->left, "reference not found");
+            semantic_error(program, binary->left, "reference not found");
             return -1;
         }
         else
@@ -3594,16 +3594,16 @@ syntax_logical_or(program_t *program, node_t *node, list_t *response)
                         if (item2->kind == NODE_KIND_FUN)
                         {
                             node_fun_t *func1 = (node_fun_t *)item2->value;
-                            if (syntax_idstrcmp(func1->key, "||") == 1)
+                            if (semantic_idstrcmp(func1->key, "||") == 1)
                             {
                                 node_t *nps1 = func1->parameters;
-                                node_t *nas2 = syntax_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
+                                node_t *nas2 = semantic_arguments_from_nodes(program, binary->right->parent, 1, binary->right);
                                 if (nas2 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                int32_t r2 = syntax_eqaul_psas(program, nps1, nas2);
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nas2);
                                 if (r2 == -1)
                                 {
                                     return -1;
@@ -3626,7 +3626,7 @@ syntax_logical_or(program_t *program, node_t *node, list_t *response)
                 }
                 else
                 {
-                    syntax_error(program, item1, "not a class");
+                    semantic_error(program, item1, "not a class");
                     return -1;
                 }
             }
@@ -3636,14 +3636,14 @@ syntax_logical_or(program_t *program, node_t *node, list_t *response)
     }
     else
     {
-        return syntax_logical_and(program, node, response);
+        return semantic_logical_and(program, node, response);
     }
 }
 
 static int32_t
-syntax_expression(program_t *program, node_t *node, list_t *response)
+semantic_expression(program_t *program, node_t *node, list_t *response)
 {
-    return syntax_logical_or(program, node, response);
+    return semantic_logical_or(program, node, response);
 }
 
 
@@ -3711,7 +3711,7 @@ syntax_expression(program_t *program, node_t *node, list_t *response)
 
 
 static int32_t
-syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
+semantic_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
 {
    if (ngs1 == NULL)
     {
@@ -3798,7 +3798,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                         return -1;
                                     }
                                     
-                                    int32_t r1 = syntax_postfix(program, generic1->type, response1, item1);
+                                    int32_t r1 = semantic_postfix(program, generic1->type, response1, item1);
                                     if (r1 == -1)
                                     {
                                         return -1;
@@ -3806,7 +3806,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                     else
                                     if (r1 == 0)
                                     {
-                                        syntax_error(program, generic1->type, "reference not found");
+                                        semantic_error(program, generic1->type, "reference not found");
                                         return -1;
                                     }
                                     else
@@ -3824,7 +3824,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                 return -1;
                                             }
                                             
-                                            int32_t r2 = syntax_postfix(program, generic2->type, response2, item2);
+                                            int32_t r2 = semantic_postfix(program, generic2->type, response2, item2);
                                             if (r2 == -1)
                                             {
                                                 return -1;
@@ -3832,7 +3832,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                             else
                                             if (r2 == 0)
                                             {
-                                                syntax_error(program, generic2->type, "reference not found");
+                                                semantic_error(program, generic2->type, "reference not found");
                                                 return -1;
                                             }
                                             else
@@ -3842,7 +3842,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                 for (b2 = response2->begin;b2 != response2->end;b2 = b2->next)
                                                 {
                                                     node_t *item4 = (node_t *)b2->value;
-                                                    int32_t r3 = syntax_subset(program, item3, item4);
+                                                    int32_t r3 = semantic_subset(program, item3, item4);
                                                     if (r3 == -1)
                                                     {
                                                         return -1;
@@ -3850,7 +3850,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                     else
                                                     if (r3 == 0)
                                                     {
-                                                        r3 = syntax_subset(program, item4, item3);
+                                                        r3 = semantic_subset(program, item4, item3);
                                                         if (r3 == -1)
                                                         {
                                                             return -1;
@@ -3925,7 +3925,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                         if (item2->kind == NODE_KIND_GENERIC)
                         {
                             node_generic_t *generic2 = (node_generic_t *)item2->value;
-                            if (syntax_idcmp(generic1->key, generic2->key) == 1)
+                            if (semantic_idcmp(generic1->key, generic2->key) == 1)
                             {
                                 found = 1;
                                 if (generic1->type != NULL)
@@ -3939,7 +3939,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                             return -1;
                                         }
 
-                                        int32_t r1 = syntax_postfix(program, generic1->type, response1, item1);
+                                        int32_t r1 = semantic_postfix(program, generic1->type, response1, item1);
                                         if (r1 == -1)
                                         {
                                             return -1;
@@ -3947,7 +3947,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                         else
                                         if (r1 == 0)
                                         {
-                                            syntax_error(program, generic1->type, "reference not found");
+                                            semantic_error(program, generic1->type, "reference not found");
                                             return -1;
                                         }
                                         else
@@ -3965,7 +3965,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                     return -1;
                                                 }
                                                 
-                                                int32_t r2 = syntax_postfix(program, generic2->type, response2, item2);
+                                                int32_t r2 = semantic_postfix(program, generic2->type, response2, item2);
                                                 if (r2 == -1)
                                                 {
                                                     return -1;
@@ -3973,7 +3973,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                 else
                                                 if (r2 == 0)
                                                 {
-                                                    syntax_error(program, generic2->type, "reference not found");
+                                                    semantic_error(program, generic2->type, "reference not found");
                                                     return -1;
                                                 }
                                                 else
@@ -3984,7 +3984,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                     {
                                                         node_t *item4 = (node_t *)b2->value;
                                                         
-                                                        int32_t r3 = syntax_subset(program, item3, item4);
+                                                        int32_t r3 = semantic_subset(program, item3, item4);
                                                         if (r3 == -1)
                                                         {
                                                             return -1;
@@ -3992,7 +3992,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                         else
                                                         if (r3 == 0)
                                                         {
-                                                            r3 = syntax_subset(program, item4, item3);
+                                                            r3 = semantic_subset(program, item4, item3);
                                                             if (r3 == -1)
                                                             {
                                                                 return -1;
@@ -4044,7 +4044,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                         {
                             node_generic_t *generic1 = (node_generic_t *)item1->value;
 
-                            if (syntax_idcmp(generic1->key, generic2->key) == 1)
+                            if (semantic_idcmp(generic1->key, generic2->key) == 1)
                             {
                                 found = 1;
                                 if (generic1->type != NULL)
@@ -4058,7 +4058,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                             return -1;
                                         }
 
-                                        int32_t r1 = syntax_postfix(program, generic1->type, response1, item1);
+                                        int32_t r1 = semantic_postfix(program, generic1->type, response1, item1);
                                         if (r1 == -1)
                                         {
                                             return -1;
@@ -4066,7 +4066,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                         else
                                         if (r1 == 0)
                                         {
-                                            syntax_error(program, generic1->type, "reference not found");
+                                            semantic_error(program, generic1->type, "reference not found");
                                             return -1;
                                         }
                                         else
@@ -4084,7 +4084,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                     return -1;
                                                 }
                                                 
-                                                int32_t r2 = syntax_postfix(program, generic2->type, response2, item2);
+                                                int32_t r2 = semantic_postfix(program, generic2->type, response2, item2);
                                                 if (r2 == -1)
                                                 {
                                                     return -1;
@@ -4092,7 +4092,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                 else
                                                 if (r2 == 0)
                                                 {
-                                                    syntax_error(program, generic2->type, "reference not found");
+                                                    semantic_error(program, generic2->type, "reference not found");
                                                     return -1;
                                                 }
                                                 else
@@ -4103,7 +4103,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                     {
                                                         node_t *item4 = (node_t *)b2->value;
                                                         
-                                                        int32_t r3 = syntax_subset(program, item3, item4);
+                                                        int32_t r3 = semantic_subset(program, item3, item4);
                                                         if (r3 == -1)
                                                         {
                                                             return -1;
@@ -4111,7 +4111,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
                                                         else
                                                         if (r3 == 0)
                                                         {
-                                                            r3 = syntax_subset(program, item4, item3);
+                                                            r3 = semantic_subset(program, item4, item3);
                                                             if (r3 == -1)
                                                             {
                                                                 return -1;
@@ -4154,7 +4154,7 @@ syntax_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)
 }
 
 static int32_t
-syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
+semantic_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
 {
     if (nps1 == NULL)
     {
@@ -4237,7 +4237,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                 return -1;
                             }
                             
-                            int32_t r1 = syntax_postfix(program, parameter1->type, response1, item1);
+                            int32_t r1 = semantic_postfix(program, parameter1->type, response1, item1);
                             if (r1 == -1)
                             {
                                 return -1;
@@ -4245,7 +4245,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                             else
                             if (r1 == 0)
                             {
-                                syntax_error(program, parameter1->type, "reference not found");
+                                semantic_error(program, parameter1->type, "reference not found");
                                 return -1;
                             }
                             else
@@ -4263,7 +4263,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                         return -1;
                                     }
                                     
-                                    int32_t r2 = syntax_postfix(program, parameter2->type, response2, item2);
+                                    int32_t r2 = semantic_postfix(program, parameter2->type, response2, item2);
                                     if (r2 == -1)
                                     {
                                         return -1;
@@ -4271,7 +4271,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                     else
                                     if (r2 == 0)
                                     {
-                                        syntax_error(program, parameter2->type, "reference not found");
+                                        semantic_error(program, parameter2->type, "reference not found");
                                         return -1;
                                     }
                                     else
@@ -4347,7 +4347,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                         if (item2->kind == NODE_KIND_PARAMETER)
                         {
                             node_parameter_t *parameter2 = (node_parameter_t *)item2->value;
-                            if (syntax_idcmp(parameter1->key, parameter2->key) == 1)
+                            if (semantic_idcmp(parameter1->key, parameter2->key) == 1)
                             {
                                 found = 1;
                                 list_t *response1 = list_create();
@@ -4357,7 +4357,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                     return -1;
                                 }
                                 
-                                int32_t r1 = syntax_postfix(program, parameter1->type, response1, item1);
+                                int32_t r1 = semantic_postfix(program, parameter1->type, response1, item1);
                                 if (r1 == -1)
                                 {
                                     return -1;
@@ -4365,7 +4365,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                 else
                                 if (r1 == 0)
                                 {
-                                    syntax_error(program, parameter1->type, "reference not found");
+                                    semantic_error(program, parameter1->type, "reference not found");
                                     return -1;
                                 }
                                 else
@@ -4383,7 +4383,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                             return -1;
                                         }
                                         
-                                        int32_t r2 = syntax_postfix(program, parameter2->type, response2, item2);
+                                        int32_t r2 = semantic_postfix(program, parameter2->type, response2, item2);
                                         if (r2 == -1)
                                         {
                                             return -1;
@@ -4391,7 +4391,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                         else
                                         if (r2 == 0)
                                         {
-                                            syntax_error(program, parameter2->type, "reference not found");
+                                            semantic_error(program, parameter2->type, "reference not found");
                                             return -1;
                                         }
                                         else
@@ -4447,7 +4447,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                         {
                             node_parameter_t *parameter1 = (node_parameter_t *)item1->value;
 
-                            if (syntax_idcmp(parameter1->key, parameter2->key) == 1)
+                            if (semantic_idcmp(parameter1->key, parameter2->key) == 1)
                             {
                                 found = 1;
                                 list_t *response1 = list_create();
@@ -4457,7 +4457,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                     return -1;
                                 }
                                 
-                                int32_t r1 = syntax_postfix(program, parameter1->type, response1, item1);
+                                int32_t r1 = semantic_postfix(program, parameter1->type, response1, item1);
                                 if (r1 == -1)
                                 {
                                     return -1;
@@ -4465,7 +4465,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                 else
                                 if (r1 == 0)
                                 {
-                                    syntax_error(program, parameter1->type, "reference not found");
+                                    semantic_error(program, parameter1->type, "reference not found");
                                     return -1;
                                 }
                                 else
@@ -4483,7 +4483,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                             return -1;
                                         }
                                         
-                                        int32_t r2 = syntax_postfix(program, parameter2->type, response2, item2);
+                                        int32_t r2 = semantic_postfix(program, parameter2->type, response2, item2);
                                         if (r2 == -1)
                                         {
                                             return -1;
@@ -4491,7 +4491,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
                                         else
                                         if (r2 == 0)
                                         {
-                                            syntax_error(program, parameter2->type, "reference not found");
+                                            semantic_error(program, parameter2->type, "reference not found");
                                             return -1;
                                         }
                                         else
@@ -4538,7 +4538,7 @@ syntax_eqaul_psps(program_t *program, node_t *nps1, node_t *nps2)
 }
 
 static int32_t
-syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
+semantic_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
 {
    if (nps1 == NULL)
     {
@@ -4609,7 +4609,7 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                     return -1;
                                 }
                                 
-                                int32_t r1 = syntax_postfix(program, parameter1->type, response1, item1);
+                                int32_t r1 = semantic_postfix(program, parameter1->type, response1, item1);
                                 if (r1 == -1)
                                 {
                                     return -1;
@@ -4617,7 +4617,7 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                 else
                                 if (r1 == 0)
                                 {
-                                    syntax_error(program, parameter1->type, "reference not found");
+                                    semantic_error(program, parameter1->type, "reference not found");
                                     return -1;
                                 }
                                 else
@@ -4635,7 +4635,7 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                             return -1;
                                         }
                                         
-                                        int32_t r2 = syntax_postfix(program, argument2->value, response2, item2);
+                                        int32_t r2 = semantic_postfix(program, argument2->value, response2, item2);
                                         if (r2 == -1)
                                         {
                                             return -1;
@@ -4643,7 +4643,7 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                         else
                                         if (r2 == 0)
                                         {
-                                            syntax_error(program, argument2->value, "reference not found");
+                                            semantic_error(program, argument2->value, "reference not found");
                                             return -1;
                                         }
                                         else
@@ -4714,7 +4714,7 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                         if (item2->kind == NODE_KIND_ARGUMENT)
                         {
                             node_pair_t *argument2 = (node_pair_t *)item2->value;
-                            if (syntax_idcmp(parameter1->key, argument2->key) == 1)
+                            if (semantic_idcmp(parameter1->key, argument2->key) == 1)
                             {
                                 found = 1;
                                 if (parameter1->type != NULL)
@@ -4728,7 +4728,7 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                             return -1;
                                         }
 
-                                        int32_t r1 = syntax_postfix(program, parameter1->type, response1, item1);
+                                        int32_t r1 = semantic_postfix(program, parameter1->type, response1, item1);
                                         if (r1 == -1)
                                         {
                                             return -1;
@@ -4736,7 +4736,7 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                         else
                                         if (r1 == 0)
                                         {
-                                            syntax_error(program, parameter1->type, "reference not found");
+                                            semantic_error(program, parameter1->type, "reference not found");
                                             return -1;
                                         }
                                         else
@@ -4754,7 +4754,7 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                                     return -1;
                                                 }
                                                 
-                                                int32_t r2 = syntax_postfix(program, argument2->value, response2, item2);
+                                                int32_t r2 = semantic_postfix(program, argument2->value, response2, item2);
                                                 if (r2 == -1)
                                                 {
                                                     return -1;
@@ -4762,7 +4762,7 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                                 else
                                                 if (r2 == 0)
                                                 {
-                                                    syntax_error(program, argument2->value, "reference not found");
+                                                    semantic_error(program, argument2->value, "reference not found");
                                                     return -1;
                                                 }
                                                 else
@@ -4816,7 +4816,7 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                         {
                             node_parameter_t *parameter1 = (node_parameter_t *)item1->value;
 
-                            if (syntax_idcmp(parameter1->key, argument2->key) == 1)
+                            if (semantic_idcmp(parameter1->key, argument2->key) == 1)
                             {
                                 found = 1;
                                 if (parameter1->type != NULL)
@@ -4830,7 +4830,7 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                             return -1;
                                         }
 
-                                        int32_t r1 = syntax_postfix(program, parameter1->type, response1, item1);
+                                        int32_t r1 = semantic_postfix(program, parameter1->type, response1, item1);
                                         if (r1 == -1)
                                         {
                                             return -1;
@@ -4838,7 +4838,7 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                         else
                                         if (r1 == 0)
                                         {
-                                            syntax_error(program, parameter1->type, "reference not found");
+                                            semantic_error(program, parameter1->type, "reference not found");
                                             return -1;
                                         }
                                         else
@@ -4856,7 +4856,7 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                                     return -1;
                                                 }
                                                 
-                                                int32_t r2 = syntax_postfix(program, argument2->value, response2, item2);
+                                                int32_t r2 = semantic_postfix(program, argument2->value, response2, item2);
                                                 if (r2 == -1)
                                                 {
                                                     return -1;
@@ -4864,7 +4864,7 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
                                                 else
                                                 if (r2 == 0)
                                                 {
-                                                    syntax_error(program, argument2->value, "reference not found");
+                                                    semantic_error(program, argument2->value, "reference not found");
                                                     return -1;
                                                 }
                                                 else
@@ -4906,7 +4906,7 @@ syntax_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
 }
 
 static int32_t
-syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
+semantic_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
 {
     if (ngs1 == NULL)
     {
@@ -4977,7 +4977,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                     return -1;
                                 }
                                 
-                                int32_t r1 = syntax_postfix(program, generic1->type, response1, item1);
+                                int32_t r1 = semantic_postfix(program, generic1->type, response1, item1);
                                 if (r1 == -1)
                                 {
                                     return -1;
@@ -4985,7 +4985,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                 else
                                 if (r1 == 0)
                                 {
-                                    syntax_error(program, generic1->type, "reference not found");
+                                    semantic_error(program, generic1->type, "reference not found");
                                     return -1;
                                 }
                                 else
@@ -5003,7 +5003,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                             return -1;
                                         }
                                         
-                                        int32_t r2 = syntax_postfix(program, field2->key, response2, item2);
+                                        int32_t r2 = semantic_postfix(program, field2->key, response2, item2);
                                         if (r2 == -1)
                                         {
                                             return -1;
@@ -5011,7 +5011,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                         else
                                         if (r2 == 0)
                                         {
-                                            syntax_error(program, field2->key, "reference not found");
+                                            semantic_error(program, field2->key, "reference not found");
                                             return -1;
                                         }
                                         else
@@ -5021,7 +5021,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                             for (b2 = response2->begin;b2 != response2->end;b2 = b2->next)
                                             {
                                                 node_t *item4 = (node_t *)b2->value;
-                                                int32_t r3 = syntax_subset(program, item3, item4);
+                                                int32_t r3 = semantic_subset(program, item3, item4);
                                                 if (r3 == -1)
                                                 {
                                                     return -1;
@@ -5029,7 +5029,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                                 else
                                                 if (r3 == 0)
                                                 {
-                                                    r3 = syntax_subset(program, item4, item3);
+                                                    r3 = semantic_subset(program, item4, item3);
                                                     if (r3 == -1)
                                                     {
                                                         return -1;
@@ -5099,7 +5099,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                         if (item2->kind == NODE_KIND_FIELD)
                         {
                             node_pair_t *field2 = (node_pair_t *)item2->value;
-                            if (syntax_idcmp(generic1->key, field2->key) == 1)
+                            if (semantic_idcmp(generic1->key, field2->key) == 1)
                             {
                                 found = 1;
                                 if (generic1->type != NULL)
@@ -5113,7 +5113,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                             return -1;
                                         }
 
-                                        int32_t r1 = syntax_postfix(program, generic1->type, response1, item1);
+                                        int32_t r1 = semantic_postfix(program, generic1->type, response1, item1);
                                         if (r1 == -1)
                                         {
                                             return -1;
@@ -5121,7 +5121,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                         else
                                         if (r1 == 0)
                                         {
-                                            syntax_error(program, generic1->type, "reference not found");
+                                            semantic_error(program, generic1->type, "reference not found");
                                             return -1;
                                         }
                                         else
@@ -5139,7 +5139,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                                     return -1;
                                                 }
                                                 
-                                                int32_t r2 = syntax_postfix(program, field2->value, response2, item2);
+                                                int32_t r2 = semantic_postfix(program, field2->value, response2, item2);
                                                 if (r2 == -1)
                                                 {
                                                     return -1;
@@ -5147,7 +5147,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                                 else
                                                 if (r2 == 0)
                                                 {
-                                                    syntax_error(program, field2->value, "reference not found");
+                                                    semantic_error(program, field2->value, "reference not found");
                                                     return -1;
                                                 }
                                                 else
@@ -5158,7 +5158,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                                     {
                                                         node_t *item4 = (node_t *)b2->value;
                                                         
-                                                        int32_t r3 = syntax_subset(program, item3, item4);
+                                                        int32_t r3 = semantic_subset(program, item3, item4);
                                                         if (r3 == -1)
                                                         {
                                                             return -1;
@@ -5166,7 +5166,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                                         else
                                                         if (r3 == 0)
                                                         {
-                                                            r3 = syntax_subset(program, item4, item3);
+                                                            r3 = semantic_subset(program, item4, item3);
                                                             if (r3 == -1)
                                                             {
                                                                 return -1;
@@ -5218,7 +5218,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                         {
                             node_generic_t *generic1 = (node_generic_t *)item1->value;
 
-                            if (syntax_idcmp(generic1->key, field2->key) == 1)
+                            if (semantic_idcmp(generic1->key, field2->key) == 1)
                             {
                                 found = 1;
                                 if (generic1->type != NULL)
@@ -5232,7 +5232,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                             return -1;
                                         }
 
-                                        int32_t r1 = syntax_postfix(program, generic1->type, response1, item1);
+                                        int32_t r1 = semantic_postfix(program, generic1->type, response1, item1);
                                         if (r1 == -1)
                                         {
                                             return -1;
@@ -5240,7 +5240,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                         else
                                         if (r1 == 0)
                                         {
-                                            syntax_error(program, generic1->type, "reference not found");
+                                            semantic_error(program, generic1->type, "reference not found");
                                             return -1;
                                         }
                                         else
@@ -5258,7 +5258,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                                     return -1;
                                                 }
                                                 
-                                                int32_t r2 = syntax_postfix(program, field2->value, response2, item2);
+                                                int32_t r2 = semantic_postfix(program, field2->value, response2, item2);
                                                 if (r2 == -1)
                                                 {
                                                     return -1;
@@ -5266,7 +5266,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                                 else
                                                 if (r2 == 0)
                                                 {
-                                                    syntax_error(program, field2->value, "reference not found");
+                                                    semantic_error(program, field2->value, "reference not found");
                                                     return -1;
                                                 }
                                                 else
@@ -5277,7 +5277,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                                     {
                                                         node_t *item4 = (node_t *)b2->value;
                                                         
-                                                        int32_t r3 = syntax_subset(program, item3, item4);
+                                                        int32_t r3 = semantic_subset(program, item3, item4);
                                                         if (r3 == -1)
                                                         {
                                                             return -1;
@@ -5285,7 +5285,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
                                                         else
                                                         if (r3 == 0)
                                                         {
-                                                            r3 = syntax_subset(program, item4, item3);
+                                                            r3 = semantic_subset(program, item4, item3);
                                                             if (r3 == -1)
                                                             {
                                                                 return -1;
@@ -5326,7 +5326,7 @@ syntax_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
 
 
 static int32_t
-syntax_select(program_t *program, node_t *root, char *name, list_t *response, node_t *applicant)
+semantic_select(program_t *program, node_t *root, char *name, list_t *response, node_t *applicant)
 {
     if (root->kind == NODE_KIND_CLASS)
     {
@@ -5340,7 +5340,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response, no
             if (item1->kind == NODE_KIND_CLASS)
             {
                 node_class_t *class2 = (node_class_t *)item1->value;
-                if (syntax_idstrcmp(class2->key, name) == 1)
+                if (semantic_idstrcmp(class2->key, name) == 1)
                 {
                     ilist_t *r1 = list_rpush(response, item1);
                     if (r1 == NULL)
@@ -5354,7 +5354,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response, no
             if (item1->kind == NODE_KIND_ENUM)
             {
                 node_enum_t *enum1 = (node_enum_t *)item1->value;
-                if (syntax_idstrcmp(enum1->key, name) == 1)
+                if (semantic_idstrcmp(enum1->key, name) == 1)
                 {
                     ilist_t *r1 = list_rpush(response, item1);
                     if (r1 == NULL)
@@ -5379,7 +5379,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response, no
                 if (item2->kind == NODE_KIND_GENERIC)
                 {
                     node_generic_t *generic3 = (node_generic_t *)item2->value;
-                    if (syntax_idstrcmp(generic3->key, name) == 1)
+                    if (semantic_idstrcmp(generic3->key, name) == 1)
                     {
                         ilist_t *r1 = list_rpush(response, item2);
                         if (r1 == NULL)
@@ -5424,7 +5424,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response, no
                             return -1;
                         }
                         
-                        int32_t r1 = syntax_postfix(program, heritage3->type, response2, root);
+                        int32_t r1 = semantic_postfix(program, heritage3->type, response2, root);
                         if (r1 == -1)
                         {
                             return -1;
@@ -5432,7 +5432,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response, no
                         else
                         if (r1 == 0)
                         {
-                            syntax_error(program, heritage3->type, "reference not found");
+                            semantic_error(program, heritage3->type, "reference not found");
                             return -1;
                         }
                         else
@@ -5455,7 +5455,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response, no
                                         if (item4->kind == NODE_KIND_CLASS)
                                         {
                                             node_class_t *class5 = (node_class_t *)item4->value;
-                                            if (syntax_idstrcmp(class5->key, name) == 1)
+                                            if (semantic_idstrcmp(class5->key, name) == 1)
                                             {
                                                 ilist_t *r1 = list_rpush(response, item4);
                                                 if (r1 == NULL)
@@ -5469,7 +5469,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response, no
                                         if (item4->kind == NODE_KIND_ENUM)
                                         {
                                             node_enum_t *enum1 = (node_enum_t *)item4->value;
-                                            if (syntax_idstrcmp(enum1->key, name) == 1)
+                                            if (semantic_idstrcmp(enum1->key, name) == 1)
                                             {
                                                 ilist_t *r1 = list_rpush(response, item4);
                                                 if (r1 == NULL)
@@ -5533,7 +5533,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response, no
                     if (item2->kind == NODE_KIND_PACKAGE)
                     {
                         node_package_t *package2 = (node_package_t *)item2->value;
-                        if (syntax_idstrcmp(package2->key, name) == 1)
+                        if (semantic_idstrcmp(package2->key, name) == 1)
                         {
                             ilist_t *r1 = list_rpush(response, item2);
                             if (r1 == NULL)
@@ -5549,7 +5549,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response, no
             if (item1->kind == NODE_KIND_CLASS)
             {
                 node_class_t *class2 = (node_class_t *)item1->value;
-                if (syntax_idstrcmp(class2->key, name) == 1)
+                if (semantic_idstrcmp(class2->key, name) == 1)
                 {
                     ilist_t *r1 = list_rpush(response, item1);
                     if (r1 == NULL)
@@ -5563,7 +5563,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response, no
             if (item1->kind == NODE_KIND_ENUM)
             {
                 node_enum_t *enum1 = (node_enum_t *)item1->value;
-                if (syntax_idstrcmp(enum1->key, name) == 1)
+                if (semantic_idstrcmp(enum1->key, name) == 1)
                 {
                     ilist_t *r1 = list_rpush(response, item1);
                     if (r1 == NULL)
@@ -5578,7 +5578,7 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response, no
 
     if (root->parent != NULL)
     {
-        return syntax_select(program, root->parent, name, response, applicant);
+        return semantic_select(program, root->parent, name, response, applicant);
     }
     
     if (list_count(response) > 0)
@@ -5590,14 +5590,14 @@ syntax_select(program_t *program, node_t *root, char *name, list_t *response, no
 }
 
 static int32_t
-syntax_id(program_t *program, node_t *node, list_t *response, node_t *applicant)
+semantic_id(program_t *program, node_t *node, list_t *response, node_t *applicant)
 {
     node_basic_t *nb1 = (node_basic_t *)node->value;
-    return syntax_select(program, node->parent, nb1->value, response, applicant);
+    return semantic_select(program, node->parent, nb1->value, response, applicant);
 }
 
 static int32_t
-syntax_array(program_t *program, node_t *node, list_t *response, node_t *applicant)
+semantic_array(program_t *program, node_t *node, list_t *response, node_t *applicant)
 {
     ilist_t *r1 = list_rpush(response, node);
     if (r1 == NULL)
@@ -5609,7 +5609,7 @@ syntax_array(program_t *program, node_t *node, list_t *response, node_t *applica
 }
 
 static int32_t
-syntax_object(program_t *program, node_t *node, list_t *response, node_t *applicant)
+semantic_object(program_t *program, node_t *node, list_t *response, node_t *applicant)
 {
     ilist_t *r1 = list_rpush(response, node);
     if (r1 == NULL)
@@ -5621,31 +5621,31 @@ syntax_object(program_t *program, node_t *node, list_t *response, node_t *applic
 }
 
 static int32_t
-syntax_primary(program_t *program, node_t *node, list_t *response, node_t *applicant)
+semantic_primary(program_t *program, node_t *node, list_t *response, node_t *applicant)
 {
     if (node->kind == NODE_KIND_ID)
     {
-        return syntax_id(program, node, response, applicant);
+        return semantic_id(program, node, response, applicant);
     }
     else
     if (node->kind == NODE_KIND_ARRAY)
     {
-        return syntax_array(program, node, response, applicant);
+        return semantic_array(program, node, response, applicant);
     }
     else
     if (node->kind == NODE_KIND_OBJECT)
     {
-        return syntax_object(program, node, response, applicant);
+        return semantic_object(program, node, response, applicant);
     }
     else
     {
-        syntax_error(program, node, "not a type");
+        semantic_error(program, node, "not a type");
         return -1;
     }
 }
 
 static int32_t
-syntax_pseudonym(program_t *program, node_t *node, list_t *response, node_t *applicant)
+semantic_pseudonym(program_t *program, node_t *node, list_t *response, node_t *applicant)
 {
     node_carrier_t *carrier = (node_carrier_t *)node->value;
     
@@ -5656,7 +5656,7 @@ syntax_pseudonym(program_t *program, node_t *node, list_t *response, node_t *app
         return -1;
     }
 
-    int32_t r1 = syntax_postfix(program, carrier->base, response1, node);
+    int32_t r1 = semantic_postfix(program, carrier->base, response1, node);
     if (r1 == -1)
     {
         return -1;
@@ -5664,7 +5664,7 @@ syntax_pseudonym(program_t *program, node_t *node, list_t *response, node_t *app
     else
     if (r1 == 0)
     {
-        syntax_error(program, carrier->base, "reference not found");
+        semantic_error(program, carrier->base, "reference not found");
         return -1;
     }
     else
@@ -5679,7 +5679,7 @@ syntax_pseudonym(program_t *program, node_t *node, list_t *response, node_t *app
                 node_class_t *class1 = (node_class_t *)item1->value;
                 node_t *ngs1 = class1->generics;
                 node_t *nfs2 = carrier->data;
-                int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                int32_t r1 = semantic_eqaul_gsfs(program, ngs1, nfs2);
                 if (r1 == -1)
                 {
                     return -1;
@@ -5701,7 +5701,7 @@ syntax_pseudonym(program_t *program, node_t *node, list_t *response, node_t *app
                 node_package_t *package2 = (node_package_t *)item1->value;
                 node_t *ngs1 = package2->generics;
                 node_t *nfs2 = carrier->data;
-                int32_t r1 = syntax_eqaul_gsfs(program, ngs1, nfs2);
+                int32_t r1 = semantic_eqaul_gsfs(program, ngs1, nfs2);
                 if (r1 == -1)
                 {
                     return -1;
@@ -5719,7 +5719,7 @@ syntax_pseudonym(program_t *program, node_t *node, list_t *response, node_t *app
             }
             else
             {
-                syntax_error(program, item1, "not a class, in (%lld:%lld)",
+                semantic_error(program, item1, "not a class, in (%lld:%lld)",
                     node->position.line, node->position.column);
                 return -1;
             }
@@ -5737,7 +5737,7 @@ syntax_pseudonym(program_t *program, node_t *node, list_t *response, node_t *app
 }
 
 static int32_t
-syntax_attribute(program_t *program, node_t *node, list_t *response, node_t *applicant)
+semantic_attribute(program_t *program, node_t *node, list_t *response, node_t *applicant)
 {
     node_binary_t *basic = (node_binary_t *)node->value;
     
@@ -5748,7 +5748,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response, node_t *app
         return -1;
     }
 
-    int32_t r1 = syntax_postfix(program, basic->left, response1, node);
+    int32_t r1 = semantic_postfix(program, basic->left, response1, node);
     if (r1 == -1)
     {
         return -1;
@@ -5756,7 +5756,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response, node_t *app
     else
     if (r1 == 0)
     {
-        syntax_error(program, basic->left, "reference not found");
+        semantic_error(program, basic->left, "reference not found");
         return -1;
     }
     else
@@ -5778,11 +5778,11 @@ syntax_attribute(program_t *program, node_t *node, list_t *response, node_t *app
                     if (item2->kind == NODE_KIND_CLASS)
                     {
                         node_class_t *class2 = (node_class_t *)item2->value;
-                        if (syntax_idcmp(basic->right, class2->key) == 1)
+                        if (semantic_idcmp(basic->right, class2->key) == 1)
                         {
                             if ((class2->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
                             {
-                                syntax_error(program, item2, "private access, in (%lld:%lld)",
+                                semantic_error(program, item2, "private access, in (%lld:%lld)",
                                     node->position.line, node->position.column);
                                 return -1;
                             }
@@ -5800,11 +5800,11 @@ syntax_attribute(program_t *program, node_t *node, list_t *response, node_t *app
                     if (item2->kind == NODE_KIND_ENUM)
                     {
                         node_enum_t *enum1 = (node_enum_t *)item2->value;
-                        if (syntax_idcmp(basic->right, enum1->key) == 1)
+                        if (semantic_idcmp(basic->right, enum1->key) == 1)
                         {
                             if ((enum1->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
                             {
-                                syntax_error(program, item2, "private access, in (%lld:%lld)",
+                                semantic_error(program, item2, "private access, in (%lld:%lld)",
                                     node->position.line, node->position.column);
                                 return -1;
                             }
@@ -5849,7 +5849,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response, node_t *app
                                     return -1;
                                 }
                                 
-                                int32_t r4 = syntax_postfix(program, heritage4->type, response4, node);
+                                int32_t r4 = semantic_postfix(program, heritage4->type, response4, node);
                                 if (r4 == -1)
                                 {
                                     return -1;
@@ -5857,7 +5857,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response, node_t *app
                                 else
                                 if (r4 == 0)
                                 {
-                                    syntax_error(program, heritage4->type, "reference not found");
+                                    semantic_error(program, heritage4->type, "reference not found");
                                     return -1;
                                 }
                                 else
@@ -5881,18 +5881,18 @@ syntax_attribute(program_t *program, node_t *node, list_t *response, node_t *app
                                                 if (item6->kind == NODE_KIND_CLASS)
                                                 {
                                                     node_class_t *class6 = (node_class_t *)item6->value;
-                                                    if (syntax_idcmp(class6->key, basic->right) == 1)
+                                                    if (semantic_idcmp(class6->key, basic->right) == 1)
                                                     {
                                                         if ((class6->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
                                                         {
-                                                            syntax_error(program, item6, "private access, in (%lld:%lld)",
+                                                            semantic_error(program, item6, "private access, in (%lld:%lld)",
                                                                 node->position.line, node->position.column);
                                                             return -1;
                                                         }
 
                                                         if ((class6->flag & PARSER_MODIFIER_PROTECT) == PARSER_MODIFIER_PROTECT)
                                                         {
-                                                            syntax_error(program, item6, "protect access, in (%lld:%lld)",
+                                                            semantic_error(program, item6, "protect access, in (%lld:%lld)",
                                                                 node->position.line, node->position.column);
                                                             return -1;
                                                         }
@@ -5911,18 +5911,18 @@ syntax_attribute(program_t *program, node_t *node, list_t *response, node_t *app
                                                 if (item6->kind == NODE_KIND_ENUM)
                                                 {
                                                     node_enum_t *enum1 = (node_enum_t *)item6->value;
-                                                    if (syntax_idcmp(enum1->key, basic->right) == 1)
+                                                    if (semantic_idcmp(enum1->key, basic->right) == 1)
                                                     {
                                                         if ((enum1->flag & PARSER_MODIFIER_EXPORT) != PARSER_MODIFIER_EXPORT)
                                                         {
-                                                            syntax_error(program, item6, "private access, in (%lld:%lld)",
+                                                            semantic_error(program, item6, "private access, in (%lld:%lld)",
                                                                 node->position.line, node->position.column);
                                                             return -1;
                                                         }
 
                                                         if ((enum1->flag & PARSER_MODIFIER_PROTECT) == PARSER_MODIFIER_PROTECT)
                                                         {
-                                                            syntax_error(program, item6, "protect access, in (%lld:%lld)",
+                                                            semantic_error(program, item6, "protect access, in (%lld:%lld)",
                                                                 node->position.line, node->position.column);
                                                             return -1;
                                                         }
@@ -5971,7 +5971,7 @@ syntax_attribute(program_t *program, node_t *node, list_t *response, node_t *app
             }
             else
             {
-                syntax_error(program, item1, "not a class, in (%lld:%lld)",
+                semantic_error(program, item1, "not a class, in (%lld:%lld)",
                     node->position.line, node->position.column);
                 return -1;
             }
@@ -5984,20 +5984,20 @@ syntax_attribute(program_t *program, node_t *node, list_t *response, node_t *app
 }
 
 static int32_t
-syntax_postfix(program_t *program, node_t *node, list_t *response, node_t *applicant)
+semantic_postfix(program_t *program, node_t *node, list_t *response, node_t *applicant)
 {
     if (node->kind == NODE_KIND_ATTRIBUTE)
     {
-        return syntax_attribute(program, node, response, applicant);
+        return semantic_attribute(program, node, response, applicant);
     }
     else
     if (node->kind == NODE_KIND_PSEUDONYM)
     {
-        return syntax_pseudonym(program, node, response, applicant);
+        return semantic_pseudonym(program, node, response, applicant);
     }
     else
     {
-        return syntax_primary(program, node, response, applicant);
+        return semantic_primary(program, node, response, applicant);
     }
     
 }

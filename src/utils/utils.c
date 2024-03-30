@@ -30,7 +30,7 @@ utils_replace_char(char* str, char find, char replace)
     }
     return str;
 }
-
+/*
 static int32_t
 last_indexof(char *str, char x)
 {
@@ -53,4 +53,5 @@ indexof(char *str, char x)
             
     return index;
 }
+*/
 

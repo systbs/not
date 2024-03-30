@@ -3409,6 +3409,11 @@ node_clone(node_t *parent, node_t *node)
 			}
 		}
 
+		if (generic1->value_update != NULL)
+		{
+			generic2->value_update = generic1->value_update;
+		}
+
 		node1->value = generic2;
 
 		return node1;
@@ -3728,6 +3733,24 @@ node_clone(node_t *parent, node_t *node)
 		{
 			property2->value = node_clone(node1, property1->value);
 			if (property2->value == NULL)
+			{
+				return NULL;
+			}
+		}
+
+		if (property1->set != NULL)
+		{
+			property2->set = node_clone(node1, property1->set);
+			if (property2->set == NULL)
+			{
+				return NULL;
+			}
+		}
+
+		if (property1->get != NULL)
+		{
+			property2->get = node_clone(node1, property1->get);
+			if (property2->get == NULL)
 			{
 				return NULL;
 			}
@@ -5485,10 +5508,10 @@ node_make_lambda(node_t *node, node_t *key, node_t *generics, node_t *parameters
 }
 
 node_t *
-node_make_property(node_t *node, uint64_t flag, node_t *key, node_t *type, node_t *value)
+node_make_property(node_t *node, uint64_t flag, node_t *key, node_t *type, node_t *value, node_t *set, node_t *get)
 {
-	node_property_t *basic;
-	if(!(basic = (node_property_t *)malloc(sizeof(node_property_t))))
+	node_property_t *basic = (node_property_t *)malloc(sizeof(node_property_t));
+	if(basic == NULL)
 	{
 		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_property_t));
 		return NULL;
@@ -5498,8 +5521,29 @@ node_make_property(node_t *node, uint64_t flag, node_t *key, node_t *type, node_
 	basic->key = key;
 	basic->type = type;
 	basic->value = value;
+	basic->set = set;
+	basic->get = get;
 	
 	node_update(node, NODE_KIND_PROPERTY, basic);
+	return node;
+}
+
+node_t *
+node_make_entiery(node_t *node, uint64_t flag, node_t *key, node_t *type, node_t *value)
+{
+	node_entiery_t *basic = (node_entiery_t *)malloc(sizeof(node_entiery_t));
+	if(basic == NULL)
+	{
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_entiery_t));
+		return NULL;
+	}
+	memset(basic, 0, sizeof(node_entiery_t));
+	basic->flag = flag;
+	basic->key = key;
+	basic->type = type;
+	basic->value = value;
+	
+	node_update(node, NODE_KIND_ENTIERY, basic);
 	return node;
 }
 
