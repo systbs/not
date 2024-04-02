@@ -1,7 +1,0 @@
-class int {
-
-}
-
-class string {
-  
-}

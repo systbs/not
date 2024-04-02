@@ -27,15 +27,10 @@ typedef enum node_kind {
 	NODE_KIND_CHAR,
 	NODE_KIND_STRING,
 	NODE_KIND_NULL,
-	NODE_KIND_TRUE,
-	NODE_KIND_FALSE,
-	NODE_KIND_INFINITY,
 	NODE_KIND_ARRAY,
-	NODE_KIND_OBJECT,
+	NODE_KIND_DICTIONARY,
 	NODE_KIND_PSEUDONYM,
-	NODE_KIND_SET,
-
-	NODE_KIND_IN,
+	NODE_KIND_THIS,
 
 	NODE_KIND_TYPEOF,
 	NODE_KIND_SIZEOF,
@@ -107,6 +102,7 @@ typedef enum node_kind {
 	NODE_KIND_RETURN,
 	NODE_KIND_THROW,
 	
+	NODE_KIND_SET,
 	NODE_KIND_VAR,
 	NODE_KIND_TYPE,
 	NODE_KIND_LAMBDA,
@@ -321,6 +317,8 @@ typedef struct node_class {
 typedef struct node_member {
 	node_t *key;
 	node_t *value;
+
+	node_t *value_update;
 } node_member_t;
 
 typedef struct node_enum {
@@ -375,22 +373,13 @@ node_t *
 node_make_null(node_t *node);
 
 node_t *
-node_make_true(node_t *node);
-
-node_t *
-node_make_false(node_t *node);
-
-node_t *
-node_make_infinity(node_t *node);
-
-node_t *
 node_make_this(node_t *node);
 
 node_t *
 node_make_array(node_t *node, list_t *expr_list);
 
 node_t *
-node_make_object(node_t *node, list_t *properties);
+node_make_dictionary(node_t *node, list_t *properties);
 
 node_t *
 node_make_pseudonym(node_t *node, node_t *base, node_t *arguments);

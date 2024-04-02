@@ -1,54 +1,32 @@
 import {
-  Short:Short, 
-  Int:Int, 
-  Long:Long, 
-  Double:Double, 
-  Float:Float, 
-  String:String,
+  Char:Char, 
+  Int16:Int16, 
+  Int32:Int32, 
+  Int64:Int64, 
+  Float32:Float32, 
+  Float64:Float64,
   Null:Null
-  } : "~/types/statics";
+  } : "~/types/primary.q";
 
 import {
-  Array<T>:Container.Array<T>,
-  Dictionary<T, V>:Container.Dictionary<T, V>
-  } : "~/types/container";
+  Array<T>:Array<T>,
+  Dictionary<T, V>:Dictionary<T, V>
+  } : "~/types/container.q";
 
-export static class Int4
+
+export class System<R extends Int32, T = Float32> extends (h1:Int32)
 {
-  export fun Constructor(a:Int, b:Int)
+  export Key2:Int32 @(set=KeyEffect1, get=KeyEffect2) = 1;
+
+  export fun Constructor(a:[Int32,Int32])
   {
-
+    System.Print("Hello World!");
+    var tuple1 = Tuple<Int32, Array<Int32>>();;
   }
 
-  export protect static class Long {
-
-  }
-}
-
-export static class Int3 extends (i4:Int4)
-{
-  export fun Constructor(a:Int, b:Int)
-  {
-
-  }
-}
-
-export class System<R extends Int, T = Float2> extends(h1:Int3)
-{
-  export Key2:Int4 @(set=KeyEffect1, get=KeyEffect2) = 1;
-
-  export static enum Enum1 {
-    key1=1,
-    key2=2
-  }
-
-  export fun Constructor(a:Int3.Long, reference b:h1.Long)
+  fun KeyEffect(value: Int32) : Int
   {
     System.Print("Hello World!");
   }
-
-  fun KeyEffect(value: Int) : Int
-  {
-    System.Print("Hello World!");
-  }
+  
 }

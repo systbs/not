@@ -389,7 +389,7 @@ syntax_null(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent)
 }
 
 static node_t *
-syntax_infinity(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent)
+syntax_this(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, syntax->token->position);
 	if (node == NULL)
@@ -397,13 +397,13 @@ syntax_infinity(program_t *program, syntax_t *syntax, node_t *scope, node_t *par
 		return NULL;
 	}
 
-	node_t *node2 = node_make_infinity(node);
+	node_t *node2 = node_make_this(node);
 	if (!node2)
 	{
 		return NULL;
 	}
 
-	if (syntax_match(program, syntax, TOKEN_INFINITY_KEYWORD) == -1)
+	if (syntax_match(program, syntax, TOKEN_THIS_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -703,7 +703,7 @@ syntax_pair(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent)
 }
 
 static node_t *
-syntax_object(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent)
+syntax_dictionary(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent)
 {
 	node_t *node = node_create(scope, parent, syntax->token->position);
 	if (node == NULL)
@@ -716,8 +716,8 @@ syntax_object(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		return NULL;
 	}
 
-	list_t *object = list_create();
-	if (!object)
+	list_t *dictionary = list_create();
+	if (!dictionary)
 	{
 		return NULL;
 	}
@@ -732,7 +732,7 @@ syntax_object(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 				return NULL;
 			}
 
-			if (list_rpush(object, pair) == NULL)
+			if (list_rpush(dictionary, pair) == NULL)
 			{
 				return NULL;
 			}
@@ -754,7 +754,7 @@ syntax_object(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		return NULL;
 	}
 
-	return node_make_object(node, object);
+	return node_make_dictionary(node, dictionary);
 }
 
 static node_t *
@@ -941,9 +941,9 @@ syntax_primary(program_t *program, syntax_t *syntax, node_t *scope, node_t *pare
 		return syntax_null(program, syntax, scope, parent);
 	}
 	else 
-	if (syntax->token->type == TOKEN_INFINITY_KEYWORD)
+	if (syntax->token->type == TOKEN_THIS_KEYWORD)
 	{
-		return syntax_infinity(program, syntax, scope, parent);
+		return syntax_this(program, syntax, scope, parent);
 	}
 	else 
 	if (syntax->token->type == TOKEN_LBRACKET)
@@ -953,7 +953,7 @@ syntax_primary(program_t *program, syntax_t *syntax, node_t *scope, node_t *pare
 	else 
 	if (syntax->token->type == TOKEN_LBRACE)
 	{
-		return syntax_object(program, syntax, scope, parent);
+		return syntax_dictionary(program, syntax, scope, parent);
 	}
 	else 
 	if (syntax->token->type == TOKEN_LPAREN)
@@ -4586,24 +4586,19 @@ syntax_static(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 	flag |= SYNTAX_MODIFIER_STATIC;
 
 	node_t *node = NULL;
-	switch (syntax->token->type)
+
+	if (syntax->token->type == TOKEN_ENUM_KEYWORD)
 	{
-	case TOKEN_CLASS_KEYWORD:
-		node = syntax_class(program, syntax, scope, parent, flag);
-		break;
-
-	case TOKEN_ENUM_KEYWORD:
 		node = syntax_enum(program, syntax, scope, parent, flag);
-		break;
-
-	default:
-		syntax_error(program, syntax->token->position, "incorrect use of modifier 'static'");
-		break;
+	}
+	else
+	{
+		node = syntax_class(program, syntax, scope, parent, flag);
 	}
 
 	flag &= ~SYNTAX_MODIFIER_STATIC;
 
-	if (!node)
+	if (node == NULL)
 	{
 		return NULL;
 	}

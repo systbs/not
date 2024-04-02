@@ -215,7 +215,7 @@ node_clone(node_t *parent, node_t *node)
 		return node1;
 	}
 	else
-	if (node->kind == NODE_KIND_INFINITY)
+	if (node->kind == NODE_KIND_THIS)
 	{
 		node_t *node1 = (node_t *)malloc(sizeof(node_t));
 		if(node1 == NULL)
@@ -305,7 +305,7 @@ node_clone(node_t *parent, node_t *node)
 		return node1;
 	}
 	else
-	if (node->kind == NODE_KIND_OBJECT)
+	if (node->kind == NODE_KIND_DICTIONARY)
 	{
 		node_t *node1 = (node_t *)malloc(sizeof(node_t));
 		if(node1 == NULL)
@@ -4476,7 +4476,7 @@ node_make_null(node_t *node)
 }
 
 node_t *
-node_make_infinity(node_t *node)
+node_make_this(node_t *node)
 {
 	node_basic_t *basic = (node_basic_t *)malloc(sizeof(node_basic_t));
 	if(basic == NULL)
@@ -4487,9 +4487,10 @@ node_make_infinity(node_t *node)
 	memset(basic, 0, sizeof(node_basic_t));
 	basic->value = NULL;
 	
-	node_update(node, NODE_KIND_INFINITY, basic);
+	node_update(node, NODE_KIND_THIS, basic);
 	return node;
 }
+
 
 node_t *
 node_make_array(node_t *node, list_t *list)
@@ -4508,7 +4509,7 @@ node_make_array(node_t *node, list_t *list)
 }
 
 node_t *
-node_make_object(node_t *node, list_t *list)
+node_make_dictionary(node_t *node, list_t *list)
 {
 	node_block_t *basic = (node_block_t *)malloc(sizeof(node_block_t));
 	if(basic == NULL){
@@ -4518,7 +4519,7 @@ node_make_object(node_t *node, list_t *list)
 	memset(basic, 0, sizeof(node_block_t));
 	basic->list = list;
 	
-	node_update(node, NODE_KIND_OBJECT, basic);
+	node_update(node, NODE_KIND_DICTIONARY, basic);
 	return node;
 }
 

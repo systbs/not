@@ -4,6 +4,7 @@
 
 #define MAX_URI (_MAX_DIR + _MAX_FNAME + _MAX_EXT)
 
+typedef struct node node_t;
 
 typedef struct pair {
     char *key;
@@ -34,6 +35,9 @@ program_report(program_t *program);
 
 void_t
 program_resolve(program_t *program, char *path);
+
+node_t *
+program_load(program_t *program, char *path);
 
 program_t *
 program_create();

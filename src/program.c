@@ -60,6 +60,98 @@ program_resolve(program_t *program, char *path)
   }
 }
 
+node_t *
+program_load(program_t *program, char *path)
+{
+	char *base_path = malloc(MAX_URI);
+	if (base_path == NULL)
+	{
+		fprintf(stderr, "unable to allocted a block of %d bytes\n", MAX_URI);
+		return NULL;
+	}
+	memset(base_path, 0, MAX_URI);
+
+	char *base_file = malloc(MAX_URI);
+	if (base_file == NULL)
+	{
+		fprintf(stderr, "unable to allocted a block of %d bytes\n", MAX_URI);
+		return NULL;
+	}
+	memset(base_file, 0, MAX_URI);
+
+	if (path_is_root(path))
+	{
+		path_normalize(getenv ("QALAM-PATH"), base_path, MAX_URI);
+		path_join(base_path, path + 2, base_file, MAX_URI);
+	}
+	else
+	{
+		path_get_current_directory(base_path, MAX_URI);
+		if(path_is_relative(path))
+		{
+			path_join(base_path, path, base_file, MAX_URI);
+		}
+		else 
+		{
+			path_normalize(path, base_file, MAX_URI);
+		}
+	}
+
+	node_t *module1 = NULL;
+
+	ilist_t *b1;
+	for (b1 = program->modules->begin;b1 != program->modules->end;b1 = b1->next)
+	{
+		pair_t *pair1 = (pair_t *)b1->value;
+		if (strcmp(pair1->key, base_file) == 0)
+		{
+			module1 = (node_t *)pair1->value;
+			break;
+		}
+	}
+
+	if (module1 == NULL)
+	{
+		syntax_t *syntax1 = syntax_create(program, base_file);
+		if(syntax1 == NULL)
+		{
+			return NULL;
+		}
+		
+		node_t *node1 = syntax_module(program, syntax1);
+		if(node1 == NULL)
+		{
+			return NULL;
+		}
+
+		pair_t *pair1 = (pair_t *)malloc(sizeof(pair_t));
+		if (pair1 == NULL)
+		{
+			fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(program_t));
+			return NULL;
+		}
+
+		pair1->key = base_file;
+		pair1->value = node1;
+
+		ilist_t *r4 = list_rpush(program->modules, pair1);
+		if (r4 == NULL)
+		{
+			return NULL;
+		}
+
+		int32_t r5 = semantic_run(program, node1);
+		if(r5 == -1)
+		{
+			return NULL;
+		}
+
+		module1 = node1;
+	}
+
+	return module1;
+}
+
 program_t *
 program_create()
 {

@@ -1908,10 +1908,10 @@ scanner_advance(scanner_t *scanner)
 				return 1;
 			}
 			else 
-			if (strncmp(scanner->source + start_offset, "oo", max(length, 2)) == 0)
+			if (strncmp(scanner->source + start_offset, "this", max(length, 4)) == 0)
 			{
 				scanner_set_token(scanner, (token_t){
-					.type = TOKEN_INFINITY_KEYWORD,
+					.type = TOKEN_THIS_KEYWORD,
 					.value = NULL,
 					.position = {
 							.path = scanner->file_source->path,
