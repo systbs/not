@@ -18,7 +18,7 @@ export class System<R extends Int32, T = Float32> extends (h1:Int32)
 {
   export Key2:Int32 @(set=KeyEffect1, get=KeyEffect2) = 1;
 
-  export fun Constructor(a:[Int32,Int32])
+  export fun Constructor(a:Int32.Long)
   {
     System.Print("Hello World!");
     var tuple1 = Tuple<Int32, Array<Int32>>();;

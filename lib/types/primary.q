@@ -78,6 +78,14 @@ export class Int32
     {
 
     }
+
+    export class Long
+    {
+        export fun Constructor(value: Int32)
+        {
+
+        }
+    }
 }
 
 

@@ -1247,12 +1247,12 @@ syntax_postfix(program_t *program, syntax_t *syntax, node_t *scope, node_t *pare
 			{
 				return NULL;
 			}
-	
+
 			if (syntax_next(program, syntax) == -1)
 			{
 				return NULL;
 			}
-
+			
 			node_t *right = syntax_id(program, syntax, scope, node);
 			if (!right)
 			{
