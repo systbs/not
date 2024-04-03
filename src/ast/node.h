@@ -111,7 +111,7 @@ typedef enum node_kind {
 	NODE_KIND_CLASS,
 	NODE_KIND_METHOD,
 	NODE_KIND_PAIR,
-	NODE_KIND_ENTIERY,
+	NODE_KIND_ENTITY,
 	NODE_KIND_PROPERTY,
 	NODE_KIND_PROPERTIES,
 	NODE_KIND_ARGUMENT,
@@ -292,14 +292,14 @@ typedef struct node_property {
 	node_t *value_update;
 } node_property_t;
 
-typedef struct node_entiery {
+typedef struct node_entity {
 	uint64_t flag;
 	node_t *key;
 	node_t *type;
 	node_t *value;
 
 	node_t *value_update;
-} node_entiery_t;
+} node_entity_t;
 
 typedef struct node_pair {
 	node_t *key;
@@ -609,7 +609,7 @@ node_t *
 node_make_pair(node_t *node, node_t *key, node_t *value);
 
 node_t *
-node_make_entiery(node_t *node, uint64_t flag, node_t *key, node_t *type, node_t *value);
+node_make_entity(node_t *node, uint64_t flag, node_t *key, node_t *type, node_t *value);
 
 node_t *
 node_make_class(node_t *node, uint64_t flag, node_t *name, node_t *generics, node_t *heritages, node_t *block);

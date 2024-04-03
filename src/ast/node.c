@@ -3824,9 +3824,9 @@ node_clone(node_t *parent, node_t *node)
 		return node1;
 	}
 	else
-	if (node->kind == NODE_KIND_ENTIERY)
+	if (node->kind == NODE_KIND_ENTITY)
 	{
-		node_entiery_t *enteiry1 = (node_entiery_t *)node->value;
+		node_entity_t *enteiry1 = (node_entity_t *)node->value;
 
 		node_t *node1 = (node_t *)malloc(sizeof(node_t));
 		if(node1 == NULL)
@@ -3842,13 +3842,13 @@ node_clone(node_t *parent, node_t *node)
 		node1->kind = node->kind;
 		node1->flag = NODE_FLAG_TEMPORARY;
 
-		node_entiery_t *enteiry2 = (node_entiery_t *)malloc(sizeof(node_entiery_t));
+		node_entity_t *enteiry2 = (node_entity_t *)malloc(sizeof(node_entity_t));
 		if(enteiry2 == NULL)
 		{
-			fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_entiery_t));
+			fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_entity_t));
 			return NULL;
 		}
-		memset(enteiry2, 0, sizeof(node_entiery_t));
+		memset(enteiry2, 0, sizeof(node_entity_t));
 
 		enteiry2->flag = enteiry1->flag;
 
@@ -5673,21 +5673,21 @@ node_make_property(node_t *node, uint64_t flag, node_t *key, node_t *type, node_
 }
 
 node_t *
-node_make_entiery(node_t *node, uint64_t flag, node_t *key, node_t *type, node_t *value)
+node_make_entity(node_t *node, uint64_t flag, node_t *key, node_t *type, node_t *value)
 {
-	node_entiery_t *basic = (node_entiery_t *)malloc(sizeof(node_entiery_t));
+	node_entity_t *basic = (node_entity_t *)malloc(sizeof(node_entity_t));
 	if(basic == NULL)
 	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_entiery_t));
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_entity_t));
 		return NULL;
 	}
-	memset(basic, 0, sizeof(node_entiery_t));
+	memset(basic, 0, sizeof(node_entity_t));
 	basic->flag = flag;
 	basic->key = key;
 	basic->type = type;
 	basic->value = value;
 	
-	node_update(node, NODE_KIND_ENTIERY, basic);
+	node_update(node, NODE_KIND_ENTITY, basic);
 	return node;
 }
 

@@ -2025,10 +2025,10 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                         for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                         {
                             node_t *item3 = (node_t *)a3->value;
-                            if (item3->kind == NODE_KIND_ENTIERY)
+                            if (item3->kind == NODE_KIND_ENTITY)
                             {
-                                node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                if (semantic_idcmp(entiery1->key, name) == 1)
+                                node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                if (semantic_idcmp(entity1->key, name) == 1)
                                 {
                                     ilist_t *r1 = list_rpush(response, item3);
                                     if (r1 == NULL)
@@ -2081,10 +2081,10 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                         for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                         {
                             node_t *item3 = (node_t *)a3->value;
-                            if (item3->kind == NODE_KIND_ENTIERY)
+                            if (item3->kind == NODE_KIND_ENTITY)
                             {
-                                node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                if (semantic_idcmp(entiery1->key, name) == 1)
+                                node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                if (semantic_idcmp(entity1->key, name) == 1)
                                 {
                                     ilist_t *r1 = list_rpush(response, item3);
                                     if (r1 == NULL)
@@ -2169,10 +2169,10 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                     for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
                     {
                         node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_ENTIERY)
+                        if (item2->kind == NODE_KIND_ENTITY)
                         {
-                            node_entiery_t *entiery2 = (node_entiery_t *)item2->value;
-                            if (semantic_idcmp(entiery2->key, name) == 1)
+                            node_entity_t *entity2 = (node_entity_t *)item2->value;
+                            if (semantic_idcmp(entity2->key, name) == 1)
                             {
                                 ilist_t *r1 = list_rpush(response, item2);
                                 if (r1 == NULL)
@@ -2183,6 +2183,65 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                                 return 1;
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+    else
+    if (root->kind == NODE_KIND_FUN)
+    {
+        node_fun_t *fun1 = (node_fun_t *)root->value;
+
+        if (fun1->generics != NULL)
+        {
+            node_t *node2 = fun1->generics;
+            node_block_t *block2 = (node_block_t *)node2->value;
+
+            ilist_t *a2;
+            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+            {
+                node_t *item2 = (node_t *)a2->value;
+
+                if (item2->kind == NODE_KIND_GENERIC)
+                {
+                    node_generic_t *generic3 = (node_generic_t *)item2->value;
+                    if (semantic_idcmp(generic3->key, name) == 1)
+                    {
+                        ilist_t *r1 = list_rpush(response, item2);
+                        if (r1 == NULL)
+                        {
+                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+                        return 1;
+                    }
+                }
+            }
+        }
+
+        if (fun1->parameters != NULL)
+        {
+            node_t *node2 = fun1->parameters;
+            node_block_t *block2 = (node_block_t *)node2->value;
+
+            ilist_t *a2;
+            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+            {
+                node_t *item2 = (node_t *)a2->value;
+
+                if (item2->kind == NODE_KIND_PARAMETER)
+                {
+                    node_parameter_t *parameter3 = (node_parameter_t *)item2->value;
+                    if (semantic_idcmp(parameter3->key, name) == 1)
+                    {
+                        ilist_t *r1 = list_rpush(response, item2);
+                        if (r1 == NULL)
+                        {
+                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+                        return 1;
                     }
                 }
             }
@@ -5576,16 +5635,16 @@ semantic_attribute(program_t *program, node_t *scope, node_t *node, list_t *resp
                 }
             }
             else
-            if (item1->kind == NODE_KIND_ENTIERY)
+            if (item1->kind == NODE_KIND_ENTITY)
             {
-                node_entiery_t *entiery1 = (node_entiery_t *)item1->value;
-                if (entiery1->value_update == NULL)
+                node_entity_t *entity1 = (node_entity_t *)item1->value;
+                if (entity1->value_update == NULL)
                 {
                     semantic_error(program, item1, "not initialized");
                     return -1;
                 }
 
-                node_t *item2 = entiery1->value_update;
+                node_t *item2 = entity1->value_update;
                 if (item2->kind == NODE_KIND_CLASS)
                 {
                     node_class_t *class1 = (node_class_t *)item2->value;
@@ -7967,16 +8026,16 @@ semantic_call(program_t *program, node_t *scope, node_t *node, list_t *response,
                 }
             }
             else
-            if (item1->kind == NODE_KIND_ENTIERY)
+            if (item1->kind == NODE_KIND_ENTITY)
             {
-                node_entiery_t *entiery1 = (node_entiery_t *)item1->value;
-                if (entiery1->value_update == NULL)
+                node_entity_t *entity1 = (node_entity_t *)item1->value;
+                if (entity1->value_update == NULL)
                 {
                     semantic_error(program, item1, "not initialized");
                     return -1;
                 }
 
-                node_t *referto = entiery1->value_update;
+                node_t *referto = entity1->value_update;
                 if (referto->kind == NODE_KIND_CLASS)
                 {
                     if ((referto->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
@@ -11692,9 +11751,504 @@ semantic_expression(program_t *program, node_t *scope, node_t *node, list_t *res
 }
 
 static int32_t
-semantic_assign(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
+semantic_assign(program_t *program, node_t *node)
 {
-    return 1;
+    if (node->kind == NODE_KIND_ASSIGN)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_expression(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                list_t *response2 = list_create();
+                if (response2 == NULL)
+                {
+                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                    return -1;
+                }
+
+                int32_t r2 = semantic_expression(program, NULL, binary1->right, response2, SELECT_FLAG_NONE);
+                if (r2 == -1)
+                {
+                    return -1;
+                }
+                if (r2 == 0)
+                {
+                    semantic_error(program, binary1->right, "reference not found");
+                    return -1;
+                }
+                else
+                if (r2 == 1)
+                {
+                    ilist_t *a2;
+                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item1->kind == NODE_KIND_VAR)
+                        {
+                            node_var_t *var1 = (node_var_t *)item1->value;
+                            if (item2->kind == NODE_KIND_VAR)
+                            {
+                                node_var_t *var2 = (node_var_t *)item2->value;
+                                if (var2->value_update != NULL)
+                                {
+                                    var1->value_update = var2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_ENTITY)
+                            {
+                                node_entity_t *entity2 = (node_entity_t *)item2->value;
+                                if (entity2->value_update != NULL)
+                                {
+                                    var1->value_update = entity2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_PROPERTY)
+                            {
+                                node_property_t *property2 = (node_property_t *)item2->value;
+                                if (property2->value_update != NULL)
+                                {
+                                    var1->value_update = property2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_PARAMETER)
+                            {
+                                node_parameter_t *parameter2 = (node_parameter_t *)item2->value;
+                                if (parameter2->value_update != NULL)
+                                {
+                                    var1->value_update = parameter2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_MEMBER)
+                            {
+                                node_member_t *member2 = (node_member_t *)item2->value;
+                                if (member2->value_update != NULL)
+                                {
+                                    var1->value_update = member2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            {
+                                var1->value_update = item2;
+                                list_destroy(response2);
+                                list_destroy(response1);
+                                return 1;
+                            }
+                        }
+                        else
+                        if (item1->kind == NODE_KIND_ENTITY)
+                        {
+                            node_entity_t *entity1 = (node_entity_t *)item1->value;
+                            if (item2->kind == NODE_KIND_VAR)
+                            {
+                                node_var_t *var2 = (node_var_t *)item2->value;
+                                if (var2->value_update != NULL)
+                                {
+                                    entity1->value_update = var2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_ENTITY)
+                            {
+                                node_entity_t *entity2 = (node_entity_t *)item2->value;
+                                if (entity2->value_update != NULL)
+                                {
+                                    entity1->value_update = entity2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_PROPERTY)
+                            {
+                                node_property_t *property2 = (node_property_t *)item2->value;
+                                if (property2->value_update != NULL)
+                                {
+                                    entity1->value_update = property2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_PARAMETER)
+                            {
+                                node_parameter_t *parameter2 = (node_parameter_t *)item2->value;
+                                if (parameter2->value_update != NULL)
+                                {
+                                    entity1->value_update = parameter2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_MEMBER)
+                            {
+                                node_member_t *member2 = (node_member_t *)item2->value;
+                                if (member2->value_update != NULL)
+                                {
+                                    entity1->value_update = member2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            {
+                                entity1->value_update = item2;
+                                list_destroy(response2);
+                                list_destroy(response1);
+                                return 1;
+                            }
+                        }
+                        else
+                        if (item1->kind == NODE_KIND_PROPERTY)
+                        {
+                            node_property_t *property1 = (node_property_t *)item1->value;
+                            if (item2->kind == NODE_KIND_VAR)
+                            {
+                                node_var_t *var2 = (node_var_t *)item2->value;
+                                if (var2->value_update != NULL)
+                                {
+                                    property1->value_update = var2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_ENTITY)
+                            {
+                                node_entity_t *entity2 = (node_entity_t *)item2->value;
+                                if (entity2->value_update != NULL)
+                                {
+                                    property1->value_update = entity2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_PROPERTY)
+                            {
+                                node_property_t *property2 = (node_property_t *)item2->value;
+                                if (property2->value_update != NULL)
+                                {
+                                    property1->value_update = property2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_PARAMETER)
+                            {
+                                node_parameter_t *parameter2 = (node_parameter_t *)item2->value;
+                                if (parameter2->value_update != NULL)
+                                {
+                                    property1->value_update = parameter2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_MEMBER)
+                            {
+                                node_member_t *member2 = (node_member_t *)item2->value;
+                                if (member2->value_update != NULL)
+                                {
+                                    property1->value_update = member2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            {
+                                property1->value_update = item2;
+                                list_destroy(response2);
+                                list_destroy(response1);
+                                return 1;
+                            }
+                        }
+                        else
+                        if (item1->kind == NODE_KIND_PARAMETER)
+                        {
+                            node_parameter_t *parameter1 = (node_parameter_t *)item1->value;
+                            if (item2->kind == NODE_KIND_VAR)
+                            {
+                                node_var_t *var2 = (node_var_t *)item2->value;
+                                if (var2->value_update != NULL)
+                                {
+                                    parameter1->value_update = var2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_ENTITY)
+                            {
+                                node_entity_t *entity2 = (node_entity_t *)item2->value;
+                                if (entity2->value_update != NULL)
+                                {
+                                    parameter1->value_update = entity2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_PROPERTY)
+                            {
+                                node_property_t *property2 = (node_property_t *)item2->value;
+                                if (property2->value_update != NULL)
+                                {
+                                    parameter1->value_update = property2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_PARAMETER)
+                            {
+                                node_parameter_t *parameter2 = (node_parameter_t *)item2->value;
+                                if (parameter2->value_update != NULL)
+                                {
+                                    parameter1->value_update = parameter2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item2->kind == NODE_KIND_MEMBER)
+                            {
+                                node_member_t *member2 = (node_member_t *)item2->value;
+                                if (member2->value_update != NULL)
+                                {
+                                    parameter1->value_update = member2->value_update;
+                                    list_destroy(response2);
+                                    list_destroy(response1);
+                                    return 1;
+                                }
+                                else
+                                {
+                                    semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                                        binary1->right->position.line, binary1->right->position.column);
+                                    return -1;
+                                }
+                            }
+                            else
+                            {
+                                parameter1->value_update = item2;
+                                list_destroy(response2);
+                                list_destroy(response1);
+                                return 1;
+                            }
+                        }
+                        else
+                        {
+                            semantic_error(program, item2, "incorrect, encounter in (%lld:%lld)",
+                                binary1->right->position.line, binary1->right->position.column);
+                            return -1;
+                        }
+                    }
+                }
+                list_destroy(response2);
+            }
+        }
+        list_destroy(response1);
+        return 0;
+    }
+    else
+    {
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_expression(program, NULL, node, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            list_destroy(response1);
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, node, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            list_destroy(response1);
+            return 1;
+        }
+        return 0;
+    }
 }
 
 static int32_t
@@ -11966,13 +12520,13 @@ semantic_for(program_t *program, node_t *node)
                             for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                             {
                                 node_t *item3 = (node_t *)a3->value;
-                                if (item3->kind == NODE_KIND_ENTIERY)
+                                if (item3->kind == NODE_KIND_ENTITY)
                                 {
-                                    node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                    if (semantic_idcmp(for1->key, entiery1->key) == 1)
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                    if (semantic_idcmp(for1->key, entity1->key) == 1)
                                     {
                                         semantic_error(program, for1->key, "already defined, previous in (%lld:%lld)",
-                                            entiery1->key->position.line, entiery1->key->position.column);
+                                            entity1->key->position.line, entity1->key->position.column);
                                         return -1;
                                     }
                                 }
@@ -12012,13 +12566,13 @@ semantic_for(program_t *program, node_t *node)
                             for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                             {
                                 node_t *item3 = (node_t *)a3->value;
-                                if (item3->kind == NODE_KIND_ENTIERY)
+                                if (item3->kind == NODE_KIND_ENTITY)
                                 {
-                                    node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                    if (semantic_idcmp(for1->key, entiery1->key) == 1)
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                    if (semantic_idcmp(for1->key, entity1->key) == 1)
                                     {
                                         semantic_error(program, for1->key, "already defined, previous in (%lld:%lld)",
-                                            entiery1->key->position.line, entiery1->key->position.column);
+                                            entity1->key->position.line, entity1->key->position.column);
                                         return -1;
                                     }
                                 }
@@ -12101,13 +12655,13 @@ semantic_for(program_t *program, node_t *node)
                             for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                             {
                                 node_t *item3 = (node_t *)a3->value;
-                                if (item3->kind == NODE_KIND_ENTIERY)
+                                if (item3->kind == NODE_KIND_ENTITY)
                                 {
-                                    node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                    if (semantic_idcmp(for1->key, entiery1->key) == 1)
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                    if (semantic_idcmp(for1->key, entity1->key) == 1)
                                     {
                                         semantic_error(program, for1->key, "already defined, previous in (%lld:%lld)",
-                                            entiery1->key->position.line, entiery1->key->position.column);
+                                            entity1->key->position.line, entity1->key->position.column);
                                         return -1;
                                     }
                                 }
@@ -12272,13 +12826,13 @@ semantic_forin(program_t *program, node_t *node)
                             for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                             {
                                 node_t *item3 = (node_t *)a3->value;
-                                if (item3->kind == NODE_KIND_ENTIERY)
+                                if (item3->kind == NODE_KIND_ENTITY)
                                 {
-                                    node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                    if (semantic_idcmp(for1->key, entiery1->key) == 1)
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                    if (semantic_idcmp(for1->key, entity1->key) == 1)
                                     {
                                         semantic_error(program, for1->key, "already defined, previous in (%lld:%lld)",
-                                            entiery1->key->position.line, entiery1->key->position.column);
+                                            entity1->key->position.line, entity1->key->position.column);
                                         return -1;
                                     }
                                 }
@@ -12318,13 +12872,13 @@ semantic_forin(program_t *program, node_t *node)
                             for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                             {
                                 node_t *item3 = (node_t *)a3->value;
-                                if (item3->kind == NODE_KIND_ENTIERY)
+                                if (item3->kind == NODE_KIND_ENTITY)
                                 {
-                                    node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                    if (semantic_idcmp(for1->key, entiery1->key) == 1)
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                    if (semantic_idcmp(for1->key, entity1->key) == 1)
                                     {
                                         semantic_error(program, for1->key, "already defined, previous in (%lld:%lld)",
-                                            entiery1->key->position.line, entiery1->key->position.column);
+                                            entity1->key->position.line, entity1->key->position.column);
                                         return -1;
                                     }
                                 }
@@ -12407,13 +12961,13 @@ semantic_forin(program_t *program, node_t *node)
                             for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                             {
                                 node_t *item3 = (node_t *)a3->value;
-                                if (item3->kind == NODE_KIND_ENTIERY)
+                                if (item3->kind == NODE_KIND_ENTITY)
                                 {
-                                    node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                    if (semantic_idcmp(for1->key, entiery1->key) == 1)
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                    if (semantic_idcmp(for1->key, entity1->key) == 1)
                                     {
                                         semantic_error(program, for1->key, "already defined, previous in (%lld:%lld)",
-                                            entiery1->key->position.line, entiery1->key->position.column);
+                                            entity1->key->position.line, entity1->key->position.column);
                                         return -1;
                                     }
                                 }
@@ -12615,151 +13169,266 @@ semantic_parameter(program_t *program, node_t *node)
         }
     }
 
-    list_t *response1 = list_create();
-    if (response1 == NULL)
+    if (parameter1->type != NULL)
     {
-        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-        return -1;
-    }
-
-    int32_t r1 = semantic_resolve(program, NULL, parameter1->type, response1, SELECT_FLAG_NONE);
-    if (r1 == -1)
-    {
-        return -1;
-    }
-    else
-    if (r1 == 0)
-    {
-        semantic_error(program, parameter1->type, "reference not found");
-        return -1;
-    }
-    else
-    if (r1 == 1)
-    {
-        ilist_t *a1;
-        for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+        list_t *response1 = list_create();
+        if (response1 == NULL)
         {
-            node_t *item1 = (node_t *)a1->value;
-            if (item1->kind == NODE_KIND_CLASS)
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_resolve(program, NULL, parameter1->type, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        if (r1 == 0)
+        {
+            semantic_error(program, parameter1->type, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
             {
-                if ((item1->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
                 {
-                    semantic_error(program, parameter1->type, "type expected");
-                    return -1;
-                }
-            }
-            else
-            if (item1->kind == NODE_KIND_FN)
-            {
-                node_fn_t *fn1 = (node_fn_t *)item1->value;
-                if (fn1->generics != NULL)
-                {
-                    int32_t r2 = semantic_generics(program, fn1->generics);
-                    if (r2 == -1)
+                    if ((item1->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
                     {
+                        semantic_error(program, parameter1->type, "type expected");
                         return -1;
                     }
                 }
-
-                if (fn1->parameters != NULL)
+                else
+                if (item1->kind == NODE_KIND_FN)
                 {
-                    int32_t r2 = semantic_parameters(program, fn1->parameters);
-                    if (r2 == -1)
+                    node_fn_t *fn1 = (node_fn_t *)item1->value;
+                    if (fn1->generics != NULL)
                     {
-                        return -1;
-                    }
-                }
-
-                if (fn1->result != NULL)
-                {
-                    list_t *response2 = list_create();
-                    if (response2 == NULL)
-                    {
-                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                        return -1;
-                    }
-
-                    int32_t r3 = semantic_resolve(program, NULL, fn1->result, response2, SELECT_FLAG_NONE);
-                    if (r3 == -1)
-                    {
-                        return -1;
-                    }
-                    else
-                    if (r3 == 0)
-                    {
-                        semantic_error(program,fn1->result, "reference not found");
-                        return -1;
-                    }
-                    else
-                    if (r3 == 1)
-                    {
-                        ilist_t *a2;
-                        for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                        int32_t r2 = semantic_generics(program, fn1->generics);
+                        if (r2 == -1)
                         {
-                            node_t *item2 = (node_t *)a2->value;
-                            if (item2->kind == NODE_KIND_CLASS)
+                            return -1;
+                        }
+                    }
+
+                    if (fn1->parameters != NULL)
+                    {
+                        int32_t r2 = semantic_parameters(program, fn1->parameters);
+                        if (r2 == -1)
+                        {
+                            return -1;
+                        }
+                    }
+
+                    if (fn1->result != NULL)
+                    {
+                        list_t *response2 = list_create();
+                        if (response2 == NULL)
+                        {
+                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+
+                        int32_t r3 = semantic_resolve(program, NULL, fn1->result, response2, SELECT_FLAG_NONE);
+                        if (r3 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r3 == 0)
+                        {
+                            semantic_error(program,fn1->result, "reference not found");
+                            return -1;
+                        }
+                        else
+                        if (r3 == 1)
+                        {
+                            ilist_t *a2;
+                            for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
                             {
-                                if ((item2->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
+                                node_t *item2 = (node_t *)a2->value;
+                                if (item2->kind == NODE_KIND_CLASS)
+                                {
+                                    if ((item2->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
+                                    {
+                                        semantic_error(program, fn1->result, "type expected");
+                                        return -1;
+                                    }
+                                }
+                                else
+                                if (item2->kind == NODE_KIND_FN)
+                                {
+                                    node_fn_t *fn1 = (node_fn_t *)item2->value;
+                                    if (fn1->generics != NULL)
+                                    {
+                                        int32_t r2 = semantic_generics(program, fn1->generics);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                    }
+
+                                    if (fn1->parameters != NULL)
+                                    {
+                                        int32_t r2 = semantic_parameters(program, fn1->parameters);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                    }
+
+                                    if (fn1->result != NULL)
+                                    {
+                                        
+                                    }
+                                }
+                                else
+                                if (item2->kind == NODE_KIND_ENUM)
+                                {
+                                }
+                                else
                                 {
                                     semantic_error(program, fn1->result, "type expected");
                                     return -1;
                                 }
                             }
-                            else
-                            if (item2->kind == NODE_KIND_FN)
-                            {
-                                node_fn_t *fn1 = (node_fn_t *)item2->value;
-                                if (fn1->generics != NULL)
-                                {
-                                    int32_t r2 = semantic_generics(program, fn1->generics);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                }
-
-                                if (fn1->parameters != NULL)
-                                {
-                                    int32_t r2 = semantic_parameters(program, fn1->parameters);
-                                    if (r2 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                }
-
-                                if (fn1->result != NULL)
-                                {
-                                    
-                                }
-                            }
-                            else
-                            if (item2->kind == NODE_KIND_ENUM)
-                            {
-                            }
-                            else
-                            {
-                                semantic_error(program, fn1->result, "type expected");
-                                return -1;
-                            }
                         }
-                    }
 
-                    list_destroy(response2);
+                        list_destroy(response2);
+                    }
+                }
+                else
+                if (item1->kind == NODE_KIND_ENUM)
+                {
+                }
+                else
+                {
+                    semantic_error(program, parameter1->type, "type expected");
+                    return -1;
                 }
             }
-            else
-            if (item1->kind == NODE_KIND_ENUM)
-            {
-            }
-            else
-            {
-                semantic_error(program, parameter1->type, "type expected");
-                return -1;
-            }
         }
+
+        list_destroy(response1);
     }
 
-    list_destroy(response1);
+    if (parameter1->value != NULL)
+    {
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_expression(program, NULL, parameter1->value, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, parameter1->value, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item2 = (node_t *)a1->value;
+                if (item2->kind == NODE_KIND_VAR)
+                {
+                    node_var_t *var2 = (node_var_t *)item2->value;
+                    if (var2->value_update != NULL)
+                    {
+                        parameter1->value_update = var2->value_update;
+                    }
+                    else
+                    {
+                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                            parameter1->value->position.line, parameter1->value->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_ENTITY)
+                {
+                    node_entity_t *entity2 = (node_entity_t *)item2->value;
+                    if (entity2->value_update != NULL)
+                    {
+                        parameter1->value_update = entity2->value_update;
+                    }
+                    else
+                    {
+                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                            parameter1->value->position.line, parameter1->value->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_PROPERTY)
+                {
+                    node_property_t *property2 = (node_property_t *)item2->value;
+                    if (property2->value_update != NULL)
+                    {
+                        parameter1->value_update = property2->value_update;
+                    }
+                    else
+                    {
+                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                            parameter1->value->position.line, parameter1->value->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_PARAMETER)
+                {
+                    node_parameter_t *parameter2 = (node_parameter_t *)item2->value;
+                    if (parameter2->value_update != NULL)
+                    {
+                        parameter1->value_update = parameter2->value_update;
+                    }
+                    else
+                    {
+                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                            parameter1->value->position.line, parameter1->value->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_MEMBER)
+                {
+                    node_member_t *member2 = (node_member_t *)item2->value;
+                    if (member2->value_update != NULL)
+                    {
+                        parameter1->value_update = member2->value_update;
+                    }
+                    else
+                    {
+                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                            parameter1->value->position.line, parameter1->value->position.column);
+                        return -1;
+                    }
+                }
+                else
+                {
+                    parameter1->value_update = item2;
+                }
+            }
+        }
+
+        list_destroy(response1);
+    }
+
+    
 
     return 1;
 }
@@ -13042,13 +13711,13 @@ semantic_try(program_t *program, node_t *node)
                         for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                         {
                             node_t *item3 = (node_t *)a3->value;
-                            if (item3->kind == NODE_KIND_ENTIERY)
+                            if (item3->kind == NODE_KIND_ENTITY)
                             {
-                                node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                if (semantic_idcmp(try1->key, entiery1->key) == 1)
+                                node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                if (semantic_idcmp(try1->key, entity1->key) == 1)
                                 {
                                     semantic_error(program, try1->key, "already defined, previous in (%lld:%lld)",
-                                        entiery1->key->position.line, entiery1->key->position.column);
+                                        entity1->key->position.line, entity1->key->position.column);
                                     return -1;
                                 }
                             }
@@ -13089,13 +13758,13 @@ semantic_try(program_t *program, node_t *node)
                         for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                         {
                             node_t *item3 = (node_t *)a3->value;
-                            if (item3->kind == NODE_KIND_ENTIERY)
+                            if (item3->kind == NODE_KIND_ENTITY)
                             {
-                                node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                if (semantic_idcmp(try1->key, entiery1->key) == 1)
+                                node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                if (semantic_idcmp(try1->key, entity1->key) == 1)
                                 {
                                     semantic_error(program, try1->key, "already defined, previous in (%lld:%lld)",
-                                        entiery1->key->position.line, entiery1->key->position.column);
+                                        entity1->key->position.line, entity1->key->position.column);
                                     return -1;
                                 }
                             }
@@ -13178,13 +13847,13 @@ semantic_try(program_t *program, node_t *node)
                         for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                         {
                             node_t *item3 = (node_t *)a3->value;
-                            if (item3->kind == NODE_KIND_ENTIERY)
+                            if (item3->kind == NODE_KIND_ENTITY)
                             {
-                                node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                if (semantic_idcmp(try1->key, entiery1->key) == 1)
+                                node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                if (semantic_idcmp(try1->key, entity1->key) == 1)
                                 {
                                     semantic_error(program, try1->key, "already defined, previous in (%lld:%lld)",
-                                        entiery1->key->position.line, entiery1->key->position.column);
+                                        entity1->key->position.line, entity1->key->position.column);
                                     return -1;
                                 }
                             }
@@ -13322,12 +13991,12 @@ semantic_var(program_t *program, node_t *node)
                         for (a4 = block4->list->begin;a4 != block4->list->end;a4 = a4->next)
                         {
                             node_t *item4 = (node_t *)a4->value;
-                            if (item4->kind == NODE_KIND_ENTIERY)
+                            if (item4->kind == NODE_KIND_ENTITY)
                             {
-                                node_entiery_t *entiery4 = (node_entiery_t *)item4->value;
-                                if (semantic_idcmp(entiery4->key, generic2->key) == 1)
+                                node_entity_t *entity4 = (node_entity_t *)item4->value;
+                                if (semantic_idcmp(entity4->key, generic2->key) == 1)
                                 {
-                                    semantic_error(program, entiery4->key, "already defined, previous in (%lld:%lld)",
+                                    semantic_error(program, entity4->key, "already defined, previous in (%lld:%lld)",
                                         generic2->key->position.line, generic2->key->position.column);
                                     return -1;
                                 }
@@ -13368,12 +14037,12 @@ semantic_var(program_t *program, node_t *node)
                         for (a4 = block4->list->begin;a4 != block4->list->end;a4 = a4->next)
                         {
                             node_t *item4 = (node_t *)a4->value;
-                            if (item4->kind == NODE_KIND_ENTIERY)
+                            if (item4->kind == NODE_KIND_ENTITY)
                             {
-                                node_entiery_t *entiery4 = (node_entiery_t *)item4->value;
-                                if (semantic_idcmp(entiery4->key, parameter2->key) == 1)
+                                node_entity_t *entity4 = (node_entity_t *)item4->value;
+                                if (semantic_idcmp(entity4->key, parameter2->key) == 1)
                                 {
-                                    semantic_error(program, entiery4->key, "already defined, previous in (%lld:%lld)",
+                                    semantic_error(program, entity4->key, "already defined, previous in (%lld:%lld)",
                                         parameter2->key->position.line, parameter2->key->position.column);
                                     return -1;
                                 }
@@ -13418,12 +14087,12 @@ semantic_var(program_t *program, node_t *node)
                             for (a4 = block4->list->begin;a4 != block4->list->end;a4 = a4->next)
                             {
                                 node_t *item4 = (node_t *)a4->value;
-                                if (item4->kind == NODE_KIND_ENTIERY)
+                                if (item4->kind == NODE_KIND_ENTITY)
                                 {
-                                    node_entiery_t *entiery4 = (node_entiery_t *)item4->value;
-                                    if (semantic_idcmp(entiery4->key, var2->key) == 1)
+                                    node_entity_t *entity4 = (node_entity_t *)item4->value;
+                                    if (semantic_idcmp(entity4->key, var2->key) == 1)
                                     {
-                                        semantic_error(program, entiery4->key, "already defined, previous in (%lld:%lld)",
+                                        semantic_error(program, entity4->key, "already defined, previous in (%lld:%lld)",
                                             var2->key->position.line, var2->key->position.column);
                                         return -1;
                                     }
@@ -13439,15 +14108,15 @@ semantic_var(program_t *program, node_t *node)
                         for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                         {
                             node_t *item3 = (node_t *)a3->value;
-                            if (item3->kind == NODE_KIND_ENTIERY)
+                            if (item3->kind == NODE_KIND_ENTITY)
                             {
-                                node_entiery_t *entiery2 = (node_entiery_t *)item3->value;
+                                node_entity_t *entity2 = (node_entity_t *)item3->value;
                                 if (var1->key->kind == NODE_KIND_ID)
                                 {
-                                    if (semantic_idcmp(var1->key, entiery2->key) == 1)
+                                    if (semantic_idcmp(var1->key, entity2->key) == 1)
                                     {
                                         semantic_error(program, var1->key, "already defined, previous in (%lld:%lld)",
-                                            entiery2->key->position.line, entiery2->key->position.column);
+                                            entity2->key->position.line, entity2->key->position.column);
                                         return -1;
                                     }
                                 }
@@ -13459,13 +14128,13 @@ semantic_var(program_t *program, node_t *node)
                                     for (a4 = block4->list->begin;a4 != block4->list->end;a4 = a4->next)
                                     {
                                         node_t *item4 = (node_t *)a4->value;
-                                        if (item4->kind == NODE_KIND_ENTIERY)
+                                        if (item4->kind == NODE_KIND_ENTITY)
                                         {
-                                            node_entiery_t *entiery4 = (node_entiery_t *)item4->value;
-                                            if (semantic_idcmp(entiery4->key, entiery2->key) == 1)
+                                            node_entity_t *entity4 = (node_entity_t *)item4->value;
+                                            if (semantic_idcmp(entity4->key, entity2->key) == 1)
                                             {
-                                                semantic_error(program, entiery4->key, "already defined, previous in (%lld:%lld)",
-                                                    entiery2->key->position.line, entiery2->key->position.column);
+                                                semantic_error(program, entity4->key, "already defined, previous in (%lld:%lld)",
+                                                    entity2->key->position.line, entity2->key->position.column);
                                                 return -1;
                                             }
                                         }
@@ -13510,12 +14179,12 @@ semantic_var(program_t *program, node_t *node)
                             for (a4 = block4->list->begin;a4 != block4->list->end;a4 = a4->next)
                             {
                                 node_t *item4 = (node_t *)a4->value;
-                                if (item4->kind == NODE_KIND_ENTIERY)
+                                if (item4->kind == NODE_KIND_ENTITY)
                                 {
-                                    node_entiery_t *entiery4 = (node_entiery_t *)item4->value;
-                                    if (semantic_idcmp(entiery4->key, var2->key) == 1)
+                                    node_entity_t *entity4 = (node_entity_t *)item4->value;
+                                    if (semantic_idcmp(entity4->key, var2->key) == 1)
                                     {
-                                        semantic_error(program, entiery4->key, "already defined, previous in (%lld:%lld)",
+                                        semantic_error(program, entity4->key, "already defined, previous in (%lld:%lld)",
                                             var2->key->position.line, var2->key->position.column);
                                         return -1;
                                     }
@@ -13531,15 +14200,15 @@ semantic_var(program_t *program, node_t *node)
                         for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                         {
                             node_t *item3 = (node_t *)a3->value;
-                            if (item3->kind == NODE_KIND_ENTIERY)
+                            if (item3->kind == NODE_KIND_ENTITY)
                             {
-                                node_entiery_t *entiery2 = (node_entiery_t *)item3->value;
+                                node_entity_t *entity2 = (node_entity_t *)item3->value;
                                 if (var1->key->kind == NODE_KIND_ID)
                                 {
-                                    if (semantic_idcmp(var1->key, entiery2->key) == 1)
+                                    if (semantic_idcmp(var1->key, entity2->key) == 1)
                                     {
                                         semantic_error(program, var1->key, "already defined, previous in (%lld:%lld)",
-                                            entiery2->key->position.line, entiery2->key->position.column);
+                                            entity2->key->position.line, entity2->key->position.column);
                                         return -1;
                                     }
                                 }
@@ -13551,13 +14220,13 @@ semantic_var(program_t *program, node_t *node)
                                     for (a4 = block4->list->begin;a4 != block4->list->end;a4 = a4->next)
                                     {
                                         node_t *item4 = (node_t *)a4->value;
-                                        if (item4->kind == NODE_KIND_ENTIERY)
+                                        if (item4->kind == NODE_KIND_ENTITY)
                                         {
-                                            node_entiery_t *entiery4 = (node_entiery_t *)item4->value;
-                                            if (semantic_idcmp(entiery4->key, entiery2->key) == 1)
+                                            node_entity_t *entity4 = (node_entity_t *)item4->value;
+                                            if (semantic_idcmp(entity4->key, entity2->key) == 1)
                                             {
-                                                semantic_error(program, entiery4->key, "already defined, previous in (%lld:%lld)",
-                                                    entiery2->key->position.line, entiery2->key->position.column);
+                                                semantic_error(program, entity4->key, "already defined, previous in (%lld:%lld)",
+                                                    entity2->key->position.line, entity2->key->position.column);
                                                 return -1;
                                             }
                                         }
@@ -13606,12 +14275,12 @@ semantic_var(program_t *program, node_t *node)
                             for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                             {
                                 node_t *item3 = (node_t *)a3->value;
-                                if (item3->kind == NODE_KIND_ENTIERY)
+                                if (item3->kind == NODE_KIND_ENTITY)
                                 {
-                                    node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                    if (semantic_idcmp(entiery1->key, for2->key) == 1)
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                    if (semantic_idcmp(entity1->key, for2->key) == 1)
                                     {
-                                        semantic_error(program, entiery1->key, "already defined, previous in (%lld:%lld)",
+                                        semantic_error(program, entity1->key, "already defined, previous in (%lld:%lld)",
                                             for2->key->position.line, for2->key->position.column);
                                         return -1;
                                     }
@@ -13643,12 +14312,12 @@ semantic_var(program_t *program, node_t *node)
                             for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                             {
                                 node_t *item3 = (node_t *)a3->value;
-                                if (item3->kind == NODE_KIND_ENTIERY)
+                                if (item3->kind == NODE_KIND_ENTITY)
                                 {
-                                    node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                    if (semantic_idcmp(entiery1->key, for2->key) == 1)
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                    if (semantic_idcmp(entity1->key, for2->key) == 1)
                                     {
-                                        semantic_error(program, entiery1->key, "already defined, previous in (%lld:%lld)",
+                                        semantic_error(program, entity1->key, "already defined, previous in (%lld:%lld)",
                                             for2->key->position.line, for2->key->position.column);
                                         return -1;
                                     }
@@ -13680,12 +14349,12 @@ semantic_var(program_t *program, node_t *node)
                             for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                             {
                                 node_t *item3 = (node_t *)a3->value;
-                                if (item3->kind == NODE_KIND_ENTIERY)
+                                if (item3->kind == NODE_KIND_ENTITY)
                                 {
-                                    node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                    if (semantic_idcmp(entiery1->key, var2->key) == 1)
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                    if (semantic_idcmp(entity1->key, var2->key) == 1)
                                     {
-                                        semantic_error(program, entiery1->key, "already defined, previous in (%lld:%lld)",
+                                        semantic_error(program, entity1->key, "already defined, previous in (%lld:%lld)",
                                             var2->key->position.line, var2->key->position.column);
                                         return -1;
                                     }
@@ -13703,13 +14372,13 @@ semantic_var(program_t *program, node_t *node)
                             for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                             {
                                 node_t *item3 = (node_t *)a3->value;
-                                if (item3->kind == NODE_KIND_ENTIERY)
+                                if (item3->kind == NODE_KIND_ENTITY)
                                 {
-                                    node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                    if (semantic_idcmp(var1->key, entiery1->key) == 1)
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                    if (semantic_idcmp(var1->key, entity1->key) == 1)
                                     {
                                         semantic_error(program, var1->key, "already defined, previous in (%lld:%lld)",
-                                            entiery1->key->position.line, entiery1->key->position.column);
+                                            entity1->key->position.line, entity1->key->position.column);
                                         return -1;
                                     }
                                 }
@@ -13723,18 +14392,18 @@ semantic_var(program_t *program, node_t *node)
                             for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                             {
                                 node_t *item3 = (node_t *)a3->value;
-                                if (item3->kind == NODE_KIND_ENTIERY)
+                                if (item3->kind == NODE_KIND_ENTITY)
                                 {
-                                    node_entiery_t *enteiry1 = (node_entiery_t *)item3->value;
+                                    node_entity_t *enteiry1 = (node_entity_t *)item3->value;
                                     node_t *node4 = (node_t *)var2->key;
                                     node_block_t *block4 = (node_block_t *)node4->value;
                                     ilist_t *a4;
                                     for (a4 = block4->list->begin;a4 != block4->list->end;a4 = a4->next)
                                     {
                                         node_t *item4 = (node_t *)a4->value;
-                                        if (item4->kind == NODE_KIND_ENTIERY)
+                                        if (item4->kind == NODE_KIND_ENTITY)
                                         {
-                                            node_entiery_t *enteiry2 = (node_entiery_t *)item4->value;
+                                            node_entity_t *enteiry2 = (node_entity_t *)item4->value;
                                             if (semantic_idcmp(enteiry1->key, enteiry2->key) == 1)
                                             {
                                                 semantic_error(program, enteiry1->key, "already defined, previous in (%lld:%lld)",
@@ -13789,12 +14458,12 @@ semantic_var(program_t *program, node_t *node)
                             {
                                 node_t *item3 = (node_t *)a3->value;
                                 
-                                if (item3->kind == NODE_KIND_ENTIERY)
+                                if (item3->kind == NODE_KIND_ENTITY)
                                 {
-                                    node_entiery_t *entiery1 = (node_entiery_t *)item3->value;
-                                    if (semantic_idcmp(entiery1->key, generic3->key) == 1)
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
+                                    if (semantic_idcmp(entity1->key, generic3->key) == 1)
                                     {
-                                        semantic_error(program, entiery1->key, "already defined, previous in (%lld:%lld)",
+                                        semantic_error(program, entity1->key, "already defined, previous in (%lld:%lld)",
                                             generic3->key->position.line, generic3->key->position.column);
                                         return -1;
                                     }
@@ -13835,12 +14504,12 @@ semantic_var(program_t *program, node_t *node)
                             for (a4 = block4->list->begin;a4 != block4->list->end;a4 = a4->next)
                             {
                                 node_t *item4 = (node_t *)a4->value;
-                                if (item4->kind == NODE_KIND_ENTIERY)
+                                if (item4->kind == NODE_KIND_ENTITY)
                                 {
-                                    node_entiery_t *entiery1 = (node_entiery_t *)item4->value;
-                                    if (semantic_idcmp(entiery1->key, parameter3->key) == 1)
+                                    node_entity_t *entity1 = (node_entity_t *)item4->value;
+                                    if (semantic_idcmp(entity1->key, parameter3->key) == 1)
                                     {
-                                        semantic_error(program, entiery1->key, "already defined, previous in (%lld:%lld)",
+                                        semantic_error(program, entity1->key, "already defined, previous in (%lld:%lld)",
                                             parameter3->key->position.line, parameter3->key->position.column);
                                         return -1;
                                     }
@@ -13859,6 +14528,283 @@ semantic_var(program_t *program, node_t *node)
             current = current->parent;
             continue;
         }
+    }
+
+    if (var1->type != NULL)
+    {
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_resolve(program, NULL, var1->type, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        if (r1 == 0)
+        {
+            semantic_error(program, var1->type, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    if ((item1->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
+                    {
+                        semantic_error(program, var1->type, "type expected");
+                        return -1;
+                    }
+                }
+                else
+                if (item1->kind == NODE_KIND_FN)
+                {
+                    node_fn_t *fn1 = (node_fn_t *)item1->value;
+                    if (fn1->generics != NULL)
+                    {
+                        int32_t r2 = semantic_generics(program, fn1->generics);
+                        if (r2 == -1)
+                        {
+                            return -1;
+                        }
+                    }
+
+                    if (fn1->parameters != NULL)
+                    {
+                        int32_t r2 = semantic_parameters(program, fn1->parameters);
+                        if (r2 == -1)
+                        {
+                            return -1;
+                        }
+                    }
+
+                    if (fn1->result != NULL)
+                    {
+                        list_t *response2 = list_create();
+                        if (response2 == NULL)
+                        {
+                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+
+                        int32_t r3 = semantic_resolve(program, NULL, fn1->result, response2, SELECT_FLAG_NONE);
+                        if (r3 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r3 == 0)
+                        {
+                            semantic_error(program,fn1->result, "reference not found");
+                            return -1;
+                        }
+                        else
+                        if (r3 == 1)
+                        {
+                            ilist_t *a2;
+                            for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                            {
+                                node_t *item2 = (node_t *)a2->value;
+                                if (item2->kind == NODE_KIND_CLASS)
+                                {
+                                    if ((item2->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
+                                    {
+                                        semantic_error(program, fn1->result, "type expected");
+                                        return -1;
+                                    }
+                                }
+                                else
+                                if (item2->kind == NODE_KIND_FN)
+                                {
+                                    node_fn_t *fn1 = (node_fn_t *)item2->value;
+                                    if (fn1->generics != NULL)
+                                    {
+                                        int32_t r2 = semantic_generics(program, fn1->generics);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                    }
+
+                                    if (fn1->parameters != NULL)
+                                    {
+                                        int32_t r2 = semantic_parameters(program, fn1->parameters);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                    }
+
+                                    if (fn1->result != NULL)
+                                    {
+                                        
+                                    }
+                                }
+                                else
+                                if (item2->kind == NODE_KIND_ENUM)
+                                {
+                                }
+                                else
+                                {
+                                    semantic_error(program, fn1->result, "type expected");
+                                    return -1;
+                                }
+                            }
+                        }
+
+                        list_destroy(response2);
+                    }
+                }
+                else
+                if (item1->kind == NODE_KIND_ENUM)
+                {
+                }
+                else
+                {
+                    semantic_error(program, var1->type, "type expected");
+                    return -1;
+                }
+            }
+        }
+
+        list_destroy(response1);
+    }
+
+    if (var1->value != NULL)
+    {
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_expression(program, NULL, var1->value, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, var1->value, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item2 = (node_t *)a1->value;
+                if (item2->kind == NODE_KIND_VAR)
+                {
+                    node_var_t *var2 = (node_var_t *)item2->value;
+                    if (var2->value_update != NULL)
+                    {
+                        if (var1->key->kind == NODE_KIND_SET)
+                        {
+                            node_t *node1 = var1->key;
+                            node_block_t *block1 = (node_block_t *)node1->value;
+
+                            ilist_t *a2;
+                            for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
+                            {
+                                node_t *item3 = (node_t *)a2->value;
+                                if (item3->kind == NODE_KIND_ENTITY)
+                                {
+
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var1->value_update = var2->value_update;
+                        }
+                    }
+                    else
+                    {
+                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                            var1->value->position.line, var1->value->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_ENTITY)
+                {
+                    node_entity_t *entity2 = (node_entity_t *)item2->value;
+                    if (entity2->value_update != NULL)
+                    {
+                        var1->value_update = entity2->value_update;
+                    }
+                    else
+                    {
+                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                            var1->value->position.line, var1->value->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_PROPERTY)
+                {
+                    node_property_t *property2 = (node_property_t *)item2->value;
+                    if (property2->value_update != NULL)
+                    {
+                        var1->value_update = property2->value_update;
+                    }
+                    else
+                    {
+                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                            var1->value->position.line, var1->value->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_PARAMETER)
+                {
+                    node_parameter_t *parameter2 = (node_parameter_t *)item2->value;
+                    if (parameter2->value_update != NULL)
+                    {
+                        var1->value_update = parameter2->value_update;
+                    }
+                    else
+                    {
+                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                            var1->value->position.line, var1->value->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_MEMBER)
+                {
+                    node_member_t *member2 = (node_member_t *)item2->value;
+                    if (member2->value_update != NULL)
+                    {
+                        var1->value_update = member2->value_update;
+                    }
+                    else
+                    {
+                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                            var1->value->position.line, var1->value->position.column);
+                        return -1;
+                    }
+                }
+                else
+                {
+                    var1->value_update = item2;
+                }
+            }
+        }
+
+        list_destroy(response1);
     }
 
 	return 1;
@@ -13916,7 +14862,11 @@ semantic_statement(program_t *program, node_t *node)
             return -1;
         }
     }
-    return 1;
+    else
+    {
+        return semantic_assign(program, node);
+    }
+    return 0;
 }
 
 static int32_t
@@ -14625,26 +15575,264 @@ semantic_property(program_t *program, node_t *node)
         }
     }
     
-    list_t *response1 = list_create();
-    if (response1 == NULL)
+    if (property1->type != NULL)
     {
-        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-        return -1;
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_resolve(program, NULL, property1->type, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        if (r1 == 0)
+        {
+            semantic_error(program, property1->type, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    if ((item1->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
+                    {
+                        semantic_error(program, property1->type, "type expected");
+                        return -1;
+                    }
+                }
+                else
+                if (item1->kind == NODE_KIND_FN)
+                {
+                    node_fn_t *fn1 = (node_fn_t *)item1->value;
+                    if (fn1->generics != NULL)
+                    {
+                        int32_t r2 = semantic_generics(program, fn1->generics);
+                        if (r2 == -1)
+                        {
+                            return -1;
+                        }
+                    }
+
+                    if (fn1->parameters != NULL)
+                    {
+                        int32_t r2 = semantic_parameters(program, fn1->parameters);
+                        if (r2 == -1)
+                        {
+                            return -1;
+                        }
+                    }
+
+                    if (fn1->result != NULL)
+                    {
+                        list_t *response2 = list_create();
+                        if (response2 == NULL)
+                        {
+                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+
+                        int32_t r3 = semantic_resolve(program, NULL, fn1->result, response2, SELECT_FLAG_NONE);
+                        if (r3 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r3 == 0)
+                        {
+                            semantic_error(program,fn1->result, "reference not found");
+                            return -1;
+                        }
+                        else
+                        if (r3 == 1)
+                        {
+                            ilist_t *a2;
+                            for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                            {
+                                node_t *item2 = (node_t *)a2->value;
+                                if (item2->kind == NODE_KIND_CLASS)
+                                {
+                                    if ((item2->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
+                                    {
+                                        semantic_error(program, fn1->result, "type expected");
+                                        return -1;
+                                    }
+                                }
+                                else
+                                if (item2->kind == NODE_KIND_FN)
+                                {
+                                    node_fn_t *fn1 = (node_fn_t *)item2->value;
+                                    if (fn1->generics != NULL)
+                                    {
+                                        int32_t r2 = semantic_generics(program, fn1->generics);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                    }
+
+                                    if (fn1->parameters != NULL)
+                                    {
+                                        int32_t r2 = semantic_parameters(program, fn1->parameters);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                    }
+
+                                    if (fn1->result != NULL)
+                                    {
+                                        
+                                    }
+                                }
+                                else
+                                if (item2->kind == NODE_KIND_ENUM)
+                                {
+                                }
+                                else
+                                {
+                                    semantic_error(program, fn1->result, "type expected");
+                                    return -1;
+                                }
+                            }
+                        }
+
+                        list_destroy(response2);
+                    }
+                }
+                else
+                if (item1->kind == NODE_KIND_ENUM)
+                {
+                }
+                else
+                {
+                    semantic_error(program, property1->type, "type expected");
+                    return -1;
+                }
+            }
+        }
+
+        list_destroy(response1);
     }
 
-    int32_t r1 = semantic_postfix(program, NULL, property1->type, response1, SELECT_FLAG_NONE);
-    if (r1 == -1)
+    if (property1->value != NULL)
     {
-        return -1;
-    }
-    else
-    if (r1 == 0)
-    {
-        semantic_error(program, property1->type, "reference not found");
-        return -1;
-    }
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
 
-    list_destroy(response1);
+        int32_t r1 = semantic_expression(program, NULL, property1->value, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, property1->value, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item2 = (node_t *)a1->value;
+                if (item2->kind == NODE_KIND_VAR)
+                {
+                    node_var_t *var2 = (node_var_t *)item2->value;
+                    if (var2->value_update != NULL)
+                    {
+                        property1->value_update = var2->value_update;
+                    }
+                    else
+                    {
+                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                            property1->value->position.line, property1->value->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_ENTITY)
+                {
+                    node_entity_t *entity2 = (node_entity_t *)item2->value;
+                    if (entity2->value_update != NULL)
+                    {
+                        property1->value_update = entity2->value_update;
+                    }
+                    else
+                    {
+                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                            property1->value->position.line, property1->value->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_PROPERTY)
+                {
+                    node_property_t *property2 = (node_property_t *)item2->value;
+                    if (property2->value_update != NULL)
+                    {
+                        property1->value_update = property2->value_update;
+                    }
+                    else
+                    {
+                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                            property1->value->position.line, property1->value->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_PARAMETER)
+                {
+                    node_parameter_t *parameter2 = (node_parameter_t *)item2->value;
+                    if (parameter2->value_update != NULL)
+                    {
+                        property1->value_update = parameter2->value_update;
+                    }
+                    else
+                    {
+                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                            property1->value->position.line, property1->value->position.column);
+                        return -1;
+                    }
+                }
+                else
+                if (item2->kind == NODE_KIND_MEMBER)
+                {
+                    node_member_t *member2 = (node_member_t *)item2->value;
+                    if (member2->value_update != NULL)
+                    {
+                        property1->value_update = member2->value_update;
+                    }
+                    else
+                    {
+                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                            property1->value->position.line, property1->value->position.column);
+                        return -1;
+                    }
+                }
+                else
+                {
+                    property1->value_update = item2;
+                }
+            }
+        }
+
+        list_destroy(response1);
+    }
 
     return 1;
 }

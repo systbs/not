@@ -283,7 +283,7 @@ syntax_id(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent)
 	}
 
 	node_t *node2 = node_make_id(node, syntax->token->value);
-	if (!node2)
+	if (node2 == NULL)
 	{
 		return NULL;
 	}
@@ -306,7 +306,7 @@ syntax_number(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 	}
 
 	node_t *node2 = node_make_number(node, syntax->token->value);
-	if (!node2)
+	if (node2 == NULL)
 	{
 		return NULL;
 	}
@@ -329,7 +329,7 @@ syntax_char(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent)
 	}
 
 	node_t *node2 = node_make_char(node, syntax->token->value);
-	if (!node2)
+	if (node2 == NULL)
 	{
 		return NULL;
 	}
@@ -352,7 +352,7 @@ syntax_string(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 	}
 
 	node_t *node2 = node_make_string(node, syntax->token->value);
-	if (!node2)
+	if (node2 == NULL)
 	{
 		return NULL;
 	}
@@ -375,7 +375,7 @@ syntax_null(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent)
 	}
 
 	node_t *node2 = node_make_null(node);
-	if (!node2)
+	if (node2 == NULL)
 	{
 		return NULL;
 	}
@@ -398,7 +398,7 @@ syntax_this(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent)
 	}
 
 	node_t *node2 = node_make_this(node);
-	if (!node2)
+	if (node2 == NULL)
 	{
 		return NULL;
 	}
@@ -611,7 +611,7 @@ syntax_operator(program_t *program, syntax_t *syntax, node_t *scope, node_t *par
 	}
 
 	node_t *node2 = node_make_id(node, operator);
-	if (!node2)
+	if (node2 == NULL)
 	{
 		return NULL;
 	}
@@ -1022,7 +1022,7 @@ syntax_fields(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 	while (true)
 	{
 		node_t *node2 = syntax_field(program, syntax, scope, node);
-		if (!node2)
+		if (node2 == NULL)
 		{
 			return NULL;
 		}
@@ -1254,7 +1254,7 @@ syntax_postfix(program_t *program, syntax_t *syntax, node_t *scope, node_t *pare
 			}
 
 			node_t *right = syntax_id(program, syntax, scope, node);
-			if (!right)
+			if (right == NULL)
 			{
 				return NULL;
 			}
@@ -1320,7 +1320,7 @@ syntax_prefix(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 
 		node_t *right = syntax_prefix(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -1344,7 +1344,7 @@ syntax_prefix(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 		
 		node_t *right = syntax_prefix(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -1368,7 +1368,7 @@ syntax_prefix(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 		
 		node_t *right = syntax_prefix(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -1392,7 +1392,7 @@ syntax_prefix(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 		
 		node_t *right = syntax_prefix(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -1416,7 +1416,7 @@ syntax_prefix(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 		
 		node_t *right = syntax_prefix(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -1440,7 +1440,7 @@ syntax_prefix(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 		
 		node_t *right = syntax_prefix(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -1480,7 +1480,7 @@ syntax_power(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent
 			}
 
 			node_t *right = syntax_prefix(program, syntax, scope, node);
-			if (!right)
+			if (right == NULL)
 			{
 				return NULL;
 			}
@@ -1522,7 +1522,7 @@ syntax_multiplicative(program_t *program, syntax_t *syntax, node_t *scope, node_
 			}
 
 			node_t *right = syntax_power(program, syntax, scope, node);
-			if (!right)
+			if (right == NULL)
 			{
 				return NULL;
 			}
@@ -1545,7 +1545,7 @@ syntax_multiplicative(program_t *program, syntax_t *syntax, node_t *scope, node_
 			}
 
 			node_t *right = syntax_power(program, syntax, scope, node);
-			if (!right)
+			if (right == NULL)
 			{
 				return NULL;
 			}
@@ -1568,7 +1568,7 @@ syntax_multiplicative(program_t *program, syntax_t *syntax, node_t *scope, node_
 			}
 
 			node_t *right = syntax_power(program, syntax, scope, node);
-			if (!right)
+			if (right == NULL)
 			{
 				return NULL;
 			}
@@ -1591,7 +1591,7 @@ syntax_multiplicative(program_t *program, syntax_t *syntax, node_t *scope, node_
 			}
 
 			node_t *right = syntax_power(program, syntax, scope, node);
-			if (!right)
+			if (right == NULL)
 			{
 				return NULL;
 			}
@@ -1633,7 +1633,7 @@ syntax_addative(program_t *program, syntax_t *syntax, node_t *scope, node_t *par
 			}
 
 			node_t *right = syntax_multiplicative(program, syntax, scope, node);
-			if (!right)
+			if (right == NULL)
 			{
 				return NULL;
 			}
@@ -1656,7 +1656,7 @@ syntax_addative(program_t *program, syntax_t *syntax, node_t *scope, node_t *par
 			}
 
 			node_t *right = syntax_multiplicative(program, syntax, scope, node);
-			if (!right)
+			if (right == NULL)
 			{
 				return NULL;
 			}
@@ -1696,7 +1696,7 @@ syntax_shifting(program_t *program, syntax_t *syntax, node_t *scope, node_t *par
 		}
 
 		node_t *right = syntax_addative(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -1718,7 +1718,7 @@ syntax_shifting(program_t *program, syntax_t *syntax, node_t *scope, node_t *par
 		}
 
 		node_t *right = syntax_addative(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -1752,7 +1752,7 @@ syntax_relational(program_t *program, syntax_t *syntax, node_t *scope, node_t *p
 		}
 
 		node_t *right = syntax_shifting(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -1774,7 +1774,7 @@ syntax_relational(program_t *program, syntax_t *syntax, node_t *scope, node_t *p
 		}
 
 		node_t *right = syntax_shifting(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -1796,7 +1796,7 @@ syntax_relational(program_t *program, syntax_t *syntax, node_t *scope, node_t *p
 		}
 
 		node_t *right = syntax_shifting(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -1818,7 +1818,7 @@ syntax_relational(program_t *program, syntax_t *syntax, node_t *scope, node_t *p
 		}
 
 		node_t *right = syntax_shifting(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -1852,7 +1852,7 @@ syntax_equality(program_t *program, syntax_t *syntax, node_t *scope, node_t *par
 		}
 
 		node_t *right = syntax_relational(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -1874,7 +1874,7 @@ syntax_equality(program_t *program, syntax_t *syntax, node_t *scope, node_t *par
 		}
 
 		node_t *right = syntax_relational(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -1910,7 +1910,7 @@ syntax_bitwise_and(program_t *program, syntax_t *syntax, node_t *scope, node_t *
 			}
 
 			node_t *right = syntax_equality(program, syntax, scope, node);
-			if (!right)
+			if (right == NULL)
 			{
 				return NULL;
 			}
@@ -1952,7 +1952,7 @@ syntax_bitwise_xor(program_t *program, syntax_t *syntax, node_t *scope, node_t *
 			}
 
 			node_t *right = syntax_bitwise_and(program, syntax, scope, node);
-			if (!right)
+			if (right == NULL)
 			{
 				return NULL;
 			}
@@ -1994,7 +1994,7 @@ syntax_bitwise_or(program_t *program, syntax_t *syntax, node_t *scope, node_t *p
 			}
 
 			node_t *right = syntax_bitwise_xor(program, syntax, scope, node);
-			if (!right)
+			if (right == NULL)
 			{
 				return NULL;
 			}
@@ -2036,7 +2036,7 @@ syntax_logical_and(program_t *program, syntax_t *syntax, node_t *scope, node_t *
 			}
 
 			node_t *right = syntax_bitwise_or(program, syntax, scope, node);
-			if (!right)
+			if (right == NULL)
 			{
 				return NULL;
 			}
@@ -2078,7 +2078,7 @@ syntax_logical_or(program_t *program, syntax_t *syntax, node_t *scope, node_t *p
 			}
 			
 			node_t *right = syntax_logical_and(program, syntax, scope, node);
-			if (!right)
+			if (right == NULL)
 			{
 				return NULL;
 			}
@@ -2105,7 +2105,7 @@ static node_t *
 syntax_assign(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent)
 {
 	node_t *node2 = syntax_expression(program, syntax, scope, parent);
-	if (!node2)
+	if (node2 == NULL)
 	{
 		return NULL;
 	}
@@ -2120,7 +2120,7 @@ syntax_assign(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 
 		node_t *right = syntax_expression(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -2138,7 +2138,7 @@ syntax_assign(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 
 		node_t *right = syntax_expression(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -2156,7 +2156,7 @@ syntax_assign(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 
 		node_t *right = syntax_expression(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -2174,7 +2174,7 @@ syntax_assign(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 
 		node_t *right = syntax_expression(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -2192,7 +2192,7 @@ syntax_assign(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 
 		node_t *right = syntax_expression(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -2210,7 +2210,7 @@ syntax_assign(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 
 		node_t *right = syntax_expression(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -2228,7 +2228,7 @@ syntax_assign(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 
 		node_t *right = syntax_expression(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -2246,7 +2246,7 @@ syntax_assign(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 
 		node_t *right = syntax_expression(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -2264,7 +2264,7 @@ syntax_assign(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 
 		node_t *right = syntax_expression(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -2282,7 +2282,7 @@ syntax_assign(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 		}
 
 		node_t *right = syntax_expression(program, syntax, scope, node);
-		if (!right)
+		if (right == NULL)
 		{
 			return NULL;
 		}
@@ -2359,7 +2359,7 @@ syntax_if(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent)
 }
 
 static node_t *
-syntax_entiery(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent, uint64_t flag)
+syntax_entity(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent, uint64_t flag)
 {
 	node_t *node = node_create(scope, parent, syntax->token->position);
 	if (node == NULL)
@@ -2398,7 +2398,7 @@ syntax_entiery(program_t *program, syntax_t *syntax, node_t *scope, node_t *pare
 		}
 	}
 
-	return node_make_entiery(node, flag, key, type, value);
+	return node_make_entity(node, flag, key, type, value);
 }
 
 static node_t *
@@ -2425,13 +2425,13 @@ syntax_set(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent, 
 	{
 		while (true)
 		{
-			node_t *entiery = syntax_entiery(program, syntax, scope, node, flag);
-			if (!entiery)
+			node_t *entity = syntax_entity(program, syntax, scope, node, flag);
+			if (!entity)
 			{
 				return NULL;
 			}
 
-			if (!list_rpush(set, entiery))
+			if (!list_rpush(set, entity))
 			{
 				return NULL;
 			}
@@ -2638,7 +2638,7 @@ syntax_for(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent, 
 			node2 = syntax_assign(program, syntax, scope, node);
 		}
 		
-		if (!node2)
+		if (node2 == NULL)
 		{
 			return NULL;
 		}
@@ -2699,7 +2699,7 @@ syntax_for(program_t *program, syntax_t *syntax, node_t *scope, node_t *parent, 
 	while (true)
 	{
 		node_t *node2 = syntax_assign(program, syntax, scope, node);
-		if (!node2)
+		if (node2 == NULL)
 		{
 			return NULL;
 		}
@@ -2923,7 +2923,7 @@ syntax_catchs(program_t *program, syntax_t *syntax, node_t *scope, node_t *paren
 	while (syntax->token->type == TOKEN_CATCH_KEYWORD)
 	{
 		node_t *node2 = syntax_catch(program, syntax, scope, node);
-		if (!node2)
+		if (node2 == NULL)
 		{
 			return NULL;
 		}
@@ -3173,7 +3173,7 @@ syntax_parameters(program_t *program, syntax_t *syntax, node_t *scope, node_t *p
 	while (true)
 	{
 		node_t *node2 = syntax_parameter(program, syntax, scope, node);
-		if (!node2)
+		if (node2 == NULL)
 		{
 			return NULL;
 		}
@@ -3262,7 +3262,7 @@ syntax_generics(program_t *program, syntax_t *syntax, node_t *scope, node_t *par
 	while (true)
 	{
 		node_t *node2 = syntax_generic(program, syntax, scope, node);
-		if (!node2)
+		if (node2 == NULL)
 		{
 			return NULL;
 		}
@@ -3631,7 +3631,7 @@ syntax_members(program_t *program, syntax_t *syntax, node_t *scope, node_t *pare
 	while (true)
 	{
 		node_t *node2 = syntax_member(program, syntax, scope, node);
-		if (!node2)
+		if (node2 == NULL)
 		{
 			return NULL;
 		}
@@ -4295,7 +4295,7 @@ syntax_heritages(program_t *program, syntax_t *syntax, node_t *scope, node_t *pa
 	while (true)
 	{
 		node_t *node2 = syntax_heritage(program, syntax, scope, node);
-		if (!node2)
+		if (node2 == NULL)
 		{
 			return NULL;
 		}
@@ -4499,7 +4499,7 @@ syntax_packages(program_t *program, syntax_t *syntax, node_t *scope, node_t *par
 	while (true)
 	{
 		node_t *node2 = syntax_package(program, syntax, scope, node);
-		if (!node2)
+		if (node2 == NULL)
 		{
 			return NULL;
 		}
