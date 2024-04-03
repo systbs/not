@@ -1252,7 +1252,7 @@ syntax_postfix(program_t *program, syntax_t *syntax, node_t *scope, node_t *pare
 			{
 				return NULL;
 			}
-			
+
 			node_t *right = syntax_id(program, syntax, scope, node);
 			if (!right)
 			{
@@ -1516,8 +1516,6 @@ syntax_multiplicative(program_t *program, syntax_t *syntax, node_t *scope, node_
 				return NULL;
 			}
 
-			
-
 			if (syntax_next(program, syntax) == -1)
 			{
 				return NULL;
@@ -1541,8 +1539,6 @@ syntax_multiplicative(program_t *program, syntax_t *syntax, node_t *scope, node_
 				return NULL;
 			}
 
-			
-			
 			if (syntax_next(program, syntax) == -1)
 			{
 				return NULL;
@@ -1566,8 +1562,6 @@ syntax_multiplicative(program_t *program, syntax_t *syntax, node_t *scope, node_
 				return NULL;
 			}
 
-			
-			
 			if (syntax_next(program, syntax) == -1)
 			{
 				return NULL;
@@ -1591,8 +1585,6 @@ syntax_multiplicative(program_t *program, syntax_t *syntax, node_t *scope, node_
 				return NULL;
 			}
 
-			
-			
 			if (syntax_next(program, syntax) == -1)
 			{
 				return NULL;

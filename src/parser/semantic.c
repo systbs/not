@@ -1865,6 +1865,57 @@ semantic_make_fields(program_t *program, node_t *parent, uint64_t n, ...)
 	return node_make_fields(node, fields);
 }
 
+static node_t *
+semantic_make_argument(program_t *program, node_t *arg)
+{
+	node_t *node = node_create(arg->scope, arg->parent, arg->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+    node->flag = NODE_FLAG_TEMPORARY;
+
+	return node_make_argument(node, arg, NULL);
+}
+
+static node_t *
+semantic_make_arguments(program_t *program, node_t *parent, uint64_t n, ...)
+{
+	node_t *node = node_create(parent->scope, parent, parent->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+    node->flag = NODE_FLAG_TEMPORARY;
+
+	list_t *arguments = list_create();
+	if (arguments == NULL)
+	{
+		return NULL;
+	}
+
+    va_list arg;
+    va_start(arg, n);
+ 
+    for (uint64_t i = 0; i < n; i++)
+    {
+        node_t *node2 = semantic_make_argument(program, (node_t *)va_arg(arg, node_t *));
+		if (node2 == NULL)
+		{
+			return NULL;
+		}
+
+		if (!list_rpush(arguments, node2))
+		{
+			return NULL;
+		}
+    }
+    
+    va_end(arg);
+
+	return node_make_arguments(node, arguments);
+}
+
 
 
 
@@ -9206,11 +9257,2445 @@ semantic_prefix(program_t *program, node_t *scope, node_t *node, list_t *respons
 }
 
 static int32_t
-semantic_expression(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
+semantic_pow(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
 {
-	return 1;
+    if (node->kind == NODE_KIND_POW)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_pow(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "**") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0;
+        
+    }
+    else
+    {
+        return semantic_prefix(program, scope, node, response, flag);
+    }
 }
 
+static int32_t
+semantic_multipicative(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
+{
+    if (node->kind == NODE_KIND_MUL)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_multipicative(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "*") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    if (node->kind == NODE_KIND_DIV)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_multipicative(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "/") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    if (node->kind == NODE_KIND_MOD)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_multipicative(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "%") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    if (node->kind == NODE_KIND_EPI)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_multipicative(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "\\") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    {
+        return semantic_pow(program, scope, node, response, flag);
+    }
+}
+
+static int32_t
+semantic_addative(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
+{
+    if (node->kind == NODE_KIND_PLUS)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_addative(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "+") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    if (node->kind == NODE_KIND_MINUS)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_addative(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "-") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    {
+        return semantic_multipicative(program, scope, node, response, flag);
+    }
+}
+
+static int32_t
+semantic_shifting(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
+{
+    if (node->kind == NODE_KIND_SHL)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_addative(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "<<") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    if (node->kind == NODE_KIND_SHR)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_addative(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, ">>") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    {
+        return semantic_addative(program, scope, node, response, flag);
+    }
+}
+
+static int32_t
+semantic_relational(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
+{
+    if (node->kind == NODE_KIND_LT)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_shifting(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "<") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    if (node->kind == NODE_KIND_LE)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_shifting(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "<=") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    if (node->kind == NODE_KIND_GT)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_shifting(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, ">") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    if (node->kind == NODE_KIND_GE)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_shifting(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, ">=") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    {
+        return semantic_shifting(program, scope, node, response, flag);
+    }
+}
+
+static int32_t
+semantic_equality(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
+{
+    if (node->kind == NODE_KIND_EQ)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_relational(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "==") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    if (node->kind == NODE_KIND_NEQ)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_relational(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "!=") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    {
+        return semantic_relational(program, scope, node, response, flag);
+    }
+}
+
+static int32_t
+semantic_bitwise_and(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
+{
+    if (node->kind == NODE_KIND_AND)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_bitwise_and(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "&") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    {
+        return semantic_equality(program, scope, node, response, flag);
+    }
+}
+
+static int32_t
+semantic_bitwise_xor(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
+{
+    if (node->kind == NODE_KIND_XOR)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_bitwise_xor(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "^") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    {
+        return semantic_bitwise_and(program, scope, node, response, flag);
+    }
+}
+
+static int32_t
+semantic_bitwise_or(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
+{
+    if (node->kind == NODE_KIND_XOR)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_bitwise_or(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "|") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    {
+        return semantic_bitwise_xor(program, scope, node, response, flag);
+    }
+}
+
+static int32_t
+semantic_logical_and(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
+{
+    if (node->kind == NODE_KIND_LAND)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_logical_and(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "&&") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    {
+        return semantic_bitwise_or(program, scope, node, response, flag);
+    }
+}
+
+static int32_t
+semantic_logical_or(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
+{
+    if (node->kind == NODE_KIND_LOR)
+    {
+        node_binary_t *binary1 = (node_binary_t *)node->value;
+        
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_logical_and(program, NULL, binary1->left, response1, SELECT_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        if (r1 == 0)
+        {
+            semantic_error(program, binary1->left, "reference not found");
+            return -1;
+        }
+        else
+        if (r1 == 1)
+        {
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class2 = (node_class_t *)item1->value;
+                    node_block_t *block2 = class2->block->value;
+                    ilist_t *a2;
+                    for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+                    {
+                        node_t *item2 = (node_t *)a2->value;
+                        if (item2->kind == NODE_KIND_FUN)
+                        {
+                            node_fun_t *fun1 = (node_fun_t *)item2->value;
+                            if (semantic_idstrcmp(fun1->key, "||") == 1)
+                            {
+                                node_t *data = semantic_make_arguments(program, binary1->right, 1, binary1->right);
+                                if (data == NULL)
+                                {
+                                    return -1;
+                                }
+
+                                node_t *nps1 = fun1->parameters;
+                                node_t *nds2 = data;
+                                int32_t r2 = semantic_eqaul_psas(program, nps1, nds2);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    list_t *response2 = list_create();
+                                    if (response2 == NULL)
+                                    {
+                                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+
+                                    int32_t r3 = semantic_resolve(program, NULL, fun1->result, response2, SELECT_FLAG_NONE);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, fun1->result, "reference not found");
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        ilist_t *a3;
+                                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                                        {
+                                            node_t *item3 = (node_t *)a3->value;
+
+                                            node_t *clone1 = node_clone(item3->parent, item3);
+                                            if (clone1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            
+                                            if (item3->kind == NODE_KIND_CLASS)
+                                            {
+                                                clone1->flag |= NODE_FLAG_NEW;
+                                            }
+
+                                            ilist_t *il1 = list_rpush(response, clone1);
+                                            if (il1 == NULL)
+                                            {
+                                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                            list_destroy(response2);
+                                            list_destroy(response1);
+                                            return 1;
+                                        }
+                                    }
+                                    list_destroy(response2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        list_destroy(response1);
+        return 0; 
+    }
+    else
+    {
+        return semantic_bitwise_or(program, scope, node, response, flag);
+    }
+}
+
+static int32_t
+semantic_expression(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
+{
+	return semantic_logical_or(program, scope, node, response, flag);
+}
+
+static int32_t
+semantic_assign(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
+{
+    return 1;
+}
 
 static int32_t
 semantic_field(program_t *program, node_t *node)
