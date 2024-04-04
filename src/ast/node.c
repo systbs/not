@@ -21,7 +21,7 @@ node_destroy(node_t *node)
 }
 
 node_t *
-node_create(node_t *scope, node_t *parent, position_t position)
+node_create(node_t *parent, position_t position)
 {
 	node_t *node = (node_t *)malloc(sizeof(node_t));
 	if(node == NULL)
@@ -34,7 +34,6 @@ node_create(node_t *scope, node_t *parent, position_t position)
 	node->id = node_counter++;
 	node->position = position;
 	node->parent = parent;
-	node->scope = scope;
 	node->flag = NODE_FLAG_NONE;
 
 	return node;
@@ -3611,6 +3610,15 @@ node_clone(node_t *parent, node_t *node)
 			}
 		}
 
+		if (fun1->annotation != NULL)
+		{
+			fun2->annotation = node_clone(node1, fun1->annotation);
+			if (fun2->annotation == NULL)
+			{
+				return NULL;
+			}
+		}
+
 		node1->value = fun2;
 
 		return node1;
@@ -3801,25 +3809,74 @@ node_clone(node_t *parent, node_t *node)
 			}
 		}
 
-		if (property1->set != NULL)
+		if (property1->annotation != NULL)
 		{
-			property2->set = node_clone(node1, property1->set);
-			if (property2->set == NULL)
-			{
-				return NULL;
-			}
-		}
-
-		if (property1->get != NULL)
-		{
-			property2->get = node_clone(node1, property1->get);
-			if (property2->get == NULL)
+			property2->annotation = node_clone(node1, property1->annotation);
+			if (property2->annotation == NULL)
 			{
 				return NULL;
 			}
 		}
 
 		node1->value = property2;
+
+		return node1;
+	}
+	else
+	if (node->kind == NODE_KIND_ANNOTATION)
+	{
+		node_note_t *note1 = (node_note_t *)node->value;
+
+		node_t *node1 = (node_t *)malloc(sizeof(node_t));
+		if(node1 == NULL)
+		{
+			fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_t));
+			return NULL;
+		}
+		memset(node1, 0, sizeof(node_t));
+
+		node1->id = node->id;
+		node1->position = node->position;
+		node1->parent = parent;
+		node1->kind = node->kind;
+		node1->flag = NODE_FLAG_TEMPORARY;
+
+		node_note_t *note2 = (node_note_t *)malloc(sizeof(node_note_t));
+		if(note2 == NULL)
+		{
+			fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_note_t));
+			return NULL;
+		}
+		memset(note2, 0, sizeof(node_note_t));
+
+		if (note1->key != NULL)
+		{
+			note2->key = node_clone(node1, note1->key);
+			if (note2->key == NULL)
+			{
+				return NULL;
+			}
+		}
+
+		if (note1->arguments != NULL)
+		{
+			note2->arguments = node_clone(node1, note1->arguments);
+			if (note2->arguments == NULL)
+			{
+				return NULL;
+			}
+		}
+
+		if (note1->annotation != NULL)
+		{
+			note2->annotation = node_clone(node1, note1->annotation);
+			if (note2->annotation == NULL)
+			{
+				return NULL;
+			}
+		}
+
+		node1->value = note2;
 
 		return node1;
 	}
@@ -3943,6 +4000,15 @@ node_clone(node_t *parent, node_t *node)
 		{
 			class2->block = node_clone(node1, class1->block);
 			if (class2->block == NULL)
+			{
+				return NULL;
+			}
+		}
+
+		if (class1->annotation != NULL)
+		{
+			class2->annotation = node_clone(node1, class1->annotation);
+			if (class2->annotation == NULL)
 			{
 				return NULL;
 			}
@@ -4154,6 +4220,15 @@ node_clone(node_t *parent, node_t *node)
 		{
 			enum2->block = node_clone(node1, enum1->block);
 			if (enum2->block == NULL)
+			{
+				return NULL;
+			}
+		}
+
+		if (enum1->annotation != NULL)
+		{
+			enum2->annotation = node_clone(node1, enum1->annotation);
+			if (enum2->annotation == NULL)
 			{
 				return NULL;
 			}
@@ -5592,7 +5667,7 @@ node_make_generics(node_t *node, list_t *list)
 }
 
 node_t *
-node_make_func(node_t *node, uint64_t flag, node_t *key, node_t *generics, node_t *parameters, node_t *result, node_t *body)
+node_make_func(node_t *node, node_t *annotation, uint64_t flag, node_t *key, node_t *generics, node_t *parameters, node_t *result, node_t *body)
 {
 	node_fun_t *basic;
 	if(!(basic = (node_fun_t *)malloc(sizeof(node_fun_t))))
@@ -5602,6 +5677,7 @@ node_make_func(node_t *node, uint64_t flag, node_t *key, node_t *generics, node_
 	}
 	memset(basic, 0, sizeof(node_fun_t));
 	basic->flag = flag;
+	basic->annotation = annotation;
 	basic->key = key;
 	basic->generics = generics;
 	basic->parameters = parameters;
@@ -5650,9 +5726,8 @@ node_make_fn(node_t *node, node_t *generics, node_t *parameters, node_t *result)
 	return node;
 }
 
-
 node_t *
-node_make_property(node_t *node, uint64_t flag, node_t *key, node_t *type, node_t *value, node_t *set, node_t *get)
+node_make_property(node_t *node, node_t *annotation, uint64_t flag, node_t *key, node_t *type, node_t *value)
 {
 	node_property_t *basic = (node_property_t *)malloc(sizeof(node_property_t));
 	if(basic == NULL)
@@ -5662,11 +5737,10 @@ node_make_property(node_t *node, uint64_t flag, node_t *key, node_t *type, node_
 	}
 	memset(basic, 0, sizeof(node_property_t));
 	basic->flag = flag;
+	basic->annotation = annotation;
 	basic->key = key;
 	basic->type = type;
 	basic->value = value;
-	basic->set = set;
-	basic->get = get;
 	
 	node_update(node, NODE_KIND_PROPERTY, basic);
 	return node;
@@ -5742,7 +5816,7 @@ node_make_heritages(node_t *node, list_t *list)
 }
 
 node_t *
-node_make_class(node_t *node, uint64_t flag, node_t *key, node_t *generics, node_t *heritages, node_t *block)
+node_make_class(node_t *node, node_t *annotation, uint64_t flag, node_t *key, node_t *generics, node_t *heritages, node_t *block)
 {
 	node_class_t *basic;
 	if(!(basic = (node_class_t *)malloc(sizeof(node_class_t))))
@@ -5752,12 +5826,31 @@ node_make_class(node_t *node, uint64_t flag, node_t *key, node_t *generics, node
 	}
 	memset(basic, 0, sizeof(node_class_t));
 	basic->flag = flag;
+	basic->annotation = annotation;
 	basic->key = key;
 	basic->generics = generics;
 	basic->heritages = heritages;
 	basic->block = block;
 	
 	node_update(node, NODE_KIND_CLASS, basic);
+	return node;
+}
+
+node_t *
+node_make_annotation(node_t *node, node_t *annotation, node_t *key, node_t *arguments)
+{
+	node_note_t *basic = (node_note_t *)malloc(sizeof(node_note_t));
+	if(basic == NULL)
+	{
+		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(node_note_t));
+		return NULL;
+	}
+	memset(basic, 0, sizeof(node_note_t));
+	basic->annotation = annotation;
+	basic->key = key;
+	basic->arguments = arguments;
+	
+	node_update(node, NODE_KIND_ANNOTATION, basic);
 	return node;
 }
 
@@ -5793,7 +5886,7 @@ node_make_members(node_t *node, list_t *list)
 }
 
 node_t *
-node_make_enum(node_t *node, uint64_t flag, node_t *key, node_t *block)
+node_make_enum(node_t *node, node_t *annotation, uint64_t flag, node_t *key, node_t *block)
 {
 	node_enum_t *basic;
 	if(!(basic = (node_enum_t *)malloc(sizeof(node_enum_t))))
@@ -5803,6 +5896,7 @@ node_make_enum(node_t *node, uint64_t flag, node_t *key, node_t *block)
 	}
 	memset(basic, 0, sizeof(node_enum_t));
 	basic->flag = flag;
+	basic->annotation = annotation;
 	basic->key = key;
 	basic->block = block;
 	

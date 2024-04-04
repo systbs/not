@@ -11,7 +11,6 @@ typedef struct node {
 	void *value;
 
 	struct node *parent;
-	struct node *scope;
 } node_t;
 
 typedef enum node_flag {
@@ -102,6 +101,7 @@ typedef enum node_kind {
 	NODE_KIND_RETURN,
 	NODE_KIND_THROW,
 	
+	NODE_KIND_ANNOTATION,
 	NODE_KIND_SET,
 	NODE_KIND_VAR,
 	NODE_KIND_TYPE,
@@ -273,6 +273,7 @@ typedef struct node_fn {
 
 typedef struct node_func {
 	uint64_t flag;
+	node_t *annotation;
 	node_t *generics;
 	node_t *key;
 	node_t *parameters;
@@ -282,12 +283,10 @@ typedef struct node_func {
 
 typedef struct node_property {
 	uint64_t flag;
+	node_t *annotation;
 	node_t *key;
 	node_t *type;
 	node_t *value;
-
-	node_t *get;
-	node_t *set;
 
 	node_t *value_update;
 } node_property_t;
@@ -308,6 +307,7 @@ typedef struct node_pair {
 
 typedef struct node_class {
 	uint64_t flag;
+	node_t *annotation;
 	node_t *key;
 	node_t *heritages;
 	node_t *generics;
@@ -323,9 +323,16 @@ typedef struct node_member {
 
 typedef struct node_enum {
 	uint64_t flag;
+	node_t *annotation;
 	node_t *key;
 	node_t *block;
 } node_enum_t;
+
+typedef struct node_note {
+	node_t *annotation;
+	node_t *key;
+	node_t *arguments;
+} node_note_t;
 
 typedef struct node_package {
 	node_t *key;
@@ -349,7 +356,7 @@ void
 node_destroy(node_t *node);
 
 node_t *
-node_create(node_t *scope, node_t *parent, position_t position);
+node_create(node_t *parent, position_t position);
 
 node_t *
 node_clone(node_t *parent, node_t *node);
@@ -588,7 +595,7 @@ node_t *
 node_make_generics(node_t *node, list_t *list);
 
 node_t *
-node_make_func(node_t *node,uint64_t flag,node_t *key, node_t *generics, node_t *parameters, node_t *result, node_t *body);
+node_make_func(node_t *node, node_t *note, uint64_t flag, node_t *key, node_t *generics, node_t *parameters, node_t *result, node_t *body);
 
 node_t *
 node_make_lambda(node_t *node, node_t *key, node_t *generics, node_t *parameters, node_t *body, node_t *result);
@@ -603,7 +610,7 @@ node_t *
 node_make_heritages(node_t *node, list_t *list);
 
 node_t *
-node_make_property(node_t *node, uint64_t flag, node_t *key, node_t *type, node_t *value, node_t *set, node_t *get);
+node_make_property(node_t *node, node_t *note, uint64_t flag, node_t *key, node_t *type, node_t *value);
 
 node_t *
 node_make_pair(node_t *node, node_t *key, node_t *value);
@@ -612,7 +619,10 @@ node_t *
 node_make_entity(node_t *node, uint64_t flag, node_t *key, node_t *type, node_t *value);
 
 node_t *
-node_make_class(node_t *node, uint64_t flag, node_t *name, node_t *generics, node_t *heritages, node_t *block);
+node_make_class(node_t *node, node_t *note, uint64_t flag, node_t *name, node_t *generics, node_t *heritages, node_t *block);
+
+node_t *
+node_make_annotation(node_t *node, node_t *note, node_t *key, node_t *arguments);
 
 node_t *
 node_make_member(node_t *node, node_t *name, node_t *value);
@@ -621,7 +631,7 @@ node_t *
 node_make_members(node_t *node, list_t *list);
 
 node_t *
-node_make_enum(node_t *node, uint64_t flag, node_t *name, node_t *members);
+node_make_enum(node_t *node, node_t *note, uint64_t flag, node_t *name, node_t *members);
 
 node_t *
 node_make_body(node_t *node, list_t *objects);

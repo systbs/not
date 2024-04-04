@@ -14,13 +14,11 @@ import {
   } : "~/types/container.q";
 
 
-export class System<R extends Int32, T = Float32> extends (h1:Int32)
+export class System
 {
-  export Key2:Int32 @(set=KeyEffect1, get=KeyEffect2) = 1;
-
-  export fun Constructor(a:Int32.Long)
+  export fun Constructor(a:Int32)
   {
-    var tuple1 = Dictionary<Int32, Array<Int32>>();
-    a = tuple1;
+    
   }
+
 }

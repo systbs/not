@@ -1150,7 +1150,7 @@ semantic_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
 												for (b2 = response2->begin;b2 != response2->end;b2 = b2->next)
 												{
 													node_t *item4 = (node_t *)b2->value;
-													if (item3->id == item4->id)
+													if (item3->id != item4->id)
 													{
 														list_destroy(response2);
 														list_destroy(response1);
@@ -1236,7 +1236,7 @@ semantic_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2)
 													for (b2 = response2->begin;b2 != response2->end;b2 = b2->next)
 													{
 														node_t *item4 = (node_t *)b2->value;
-														if (item3->id == item4->id)
+														if (item3->id != item4->id)
 														{
 															list_destroy(response2);
 															list_destroy(response1);
@@ -1817,7 +1817,7 @@ semantic_substitute_psas(program_t *program, node_t *nps1, node_t *nas2)
 static node_t *
 semantic_make_field(program_t *program, node_t *arg)
 {
-	node_t *node = node_create(arg->scope, arg->parent, arg->position);
+	node_t *node = node_create(arg->parent, arg->position);
 	if (node == NULL)
 	{
 		return NULL;
@@ -1830,7 +1830,7 @@ semantic_make_field(program_t *program, node_t *arg)
 static node_t *
 semantic_make_fields(program_t *program, node_t *parent, uint64_t n, ...)
 {
-	node_t *node = node_create(parent->scope, parent, parent->position);
+	node_t *node = node_create(parent, parent->position);
 	if (node == NULL)
 	{
 		return NULL;
@@ -1868,7 +1868,7 @@ semantic_make_fields(program_t *program, node_t *parent, uint64_t n, ...)
 static node_t *
 semantic_make_argument(program_t *program, node_t *arg)
 {
-	node_t *node = node_create(arg->scope, arg->parent, arg->position);
+	node_t *node = node_create(arg->parent, arg->position);
 	if (node == NULL)
 	{
 		return NULL;
@@ -1881,7 +1881,7 @@ semantic_make_argument(program_t *program, node_t *arg)
 static node_t *
 semantic_make_arguments(program_t *program, node_t *parent, uint64_t n, ...)
 {
-	node_t *node = node_create(parent->scope, parent, parent->position);
+	node_t *node = node_create(parent, parent->position);
 	if (node == NULL)
 	{
 		return NULL;
@@ -2291,51 +2291,62 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                 node_class_t *class2 = (node_class_t *)item1->value;
                 if (semantic_idcmp(class2->key, name) == 1)
                 {
+                    node_t *clone1 = node_clone(item1->parent, item1);
+                    if (clone1 == NULL)
+                    {
+                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                        return -1;
+                    }
+
                     if ((flag & SELECT_FLAG_OBJECT) == SELECT_FLAG_OBJECT)
                     {
-                        if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+                        if ((clone1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
                         {
                             if ((class2->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                             {
-                                semantic_error(program, item1, "non static, requested for (%lld:%lld)", 
+                                continue;
+                                /* semantic_error(program, clone1, "non static, requested for (%lld:%lld)", 
                                         name->position.line, name->position.column);
-                                return -1;
+                                return -1; */
                             }
                         }
                     }
 
                     if (scope != NULL)
                     {
-                        item1->flag |= NODE_FLAG_DERIVE;
+                        clone1->flag |= NODE_FLAG_DERIVE;
 
                         if ((class2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                         {
-                            semantic_error(program, item1, "private access, requested for (%lld:%lld)", 
+                            continue;
+                            /* semantic_error(program, clone1, "private access, requested for (%lld:%lld)", 
                                     name->position.line, name->position.column);
-                            return -1;
+                            return -1; */
                         }
 
                         if ((flag & SELECT_FLAG_FOLLOW) != SELECT_FLAG_FOLLOW)
                         {
                             if ((class2->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                             {
-                                semantic_error(program, item1, "protect access, requested for (%lld:%lld)", 
+                                continue;
+                                /* semantic_error(program, clone1, "protect access, requested for (%lld:%lld)", 
                                     name->position.line, name->position.column);
-                                return -1;
+                                return -1; */
                             }
                         }
                     }
                     else
                     {
-                        item1->flag &= ~NODE_FLAG_DERIVE;
+                        clone1->flag &= ~NODE_FLAG_DERIVE;
                     }
-                    ilist_t *r1 = list_rpush(response, item1);
+
+                    ilist_t *r1 = list_rpush(response, clone1);
                     if (r1 == NULL)
                     {
                         fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                         return -1;
                     }
-                    return 1;
+                    //return 1;
                 }
             }
             else
@@ -2350,9 +2361,10 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                         {
                             if ((enum1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                             {
-                                semantic_error(program, item1, "non static, requested for (%lld:%lld)", 
+                                continue;
+                                /* semantic_error(program, item1, "non static, requested for (%lld:%lld)", 
                                         name->position.line, name->position.column);
-                                return -1;
+                                return -1; */
                             }
                         }
                     }
@@ -2363,18 +2375,20 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
 
                         if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                         {
-                            semantic_error(program, item1, "private access, requested for (%lld:%lld)", 
+                            continue;
+                            /* semantic_error(program, item1, "private access, requested for (%lld:%lld)", 
                                     name->position.line, name->position.column);
-                            return -1;
+                            return -1; */
                         }
 
                         if ((flag & SELECT_FLAG_FOLLOW) != SELECT_FLAG_FOLLOW)
                         {
                             if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                             {
-                                semantic_error(program, item1, "protect access, requested for (%lld:%lld)", 
+                                continue;
+                                /* semantic_error(program, item1, "protect access, requested for (%lld:%lld)", 
                                     name->position.line, name->position.column);
-                                return -1;
+                                return -1; */
                             }
                         }
                     }
@@ -2382,6 +2396,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                     {
                         item1->flag &= ~NODE_FLAG_DERIVE;
                     }
+
                     ilist_t *r1 = list_rpush(response, item1);
                     if (r1 == NULL)
                     {
@@ -2397,48 +2412,59 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                 node_fun_t *fun1 = (node_fun_t *)item1->value;
                 if (semantic_idcmp(fun1->key, name) == 1)
                 {
-                    if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+                    node_t *clone1 = node_clone(item1->parent, item1);
+                    if (clone1 == NULL)
+                    {
+                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                        return -1;
+                    }
+
+                    if ((clone1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
                     {
                         if ((fun1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                         {
-                            semantic_error(program, item1, "non static, requested for (%lld:%lld)", 
+                            continue;
+                            /* semantic_error(program, clone1, "non static, requested for (%lld:%lld)", 
                                     name->position.line, name->position.column);
-                            return -1;
+                            return -1; */
                         }
                     }
 
                     if (scope != NULL)
                     {
-                        item1->flag |= NODE_FLAG_DERIVE;
+                        clone1->flag |= NODE_FLAG_DERIVE;
 
                         if ((fun1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                         {
-                            semantic_error(program, item1, "private access, requested for (%lld:%lld)", 
+                            continue;
+                            /* semantic_error(program, clone1, "private access, requested for (%lld:%lld)", 
                                     name->position.line, name->position.column);
-                            return -1;
+                            return -1; */
                         }
 
                         if ((flag & SELECT_FLAG_FOLLOW) != SELECT_FLAG_FOLLOW)
                         {
                             if ((fun1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                             {
-                                semantic_error(program, item1, "protect access, requested for (%lld:%lld)", 
+                                continue;
+                                /* semantic_error(program, clone1, "protect access, requested for (%lld:%lld)", 
                                     name->position.line, name->position.column);
-                                return -1;
+                                return -1; */
                             }
                         }
                     }
                     else
                     {
-                        item1->flag &= ~NODE_FLAG_DERIVE;
+                        clone1->flag &= ~NODE_FLAG_DERIVE;
                     }
-                    ilist_t *r1 = list_rpush(response, item1);
+
+                    ilist_t *r1 = list_rpush(response, clone1);
                     if (r1 == NULL)
                     {
                         fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                         return -1;
                     }
-                    return 1;
+                    //return 1;
                 }
             }
             else
@@ -2452,9 +2478,10 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                     {
                         if ((property1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                         {
-                            semantic_error(program, item1, "non static, requested for (%lld:%lld)", 
+                            continue;
+                            /* semantic_error(program, item1, "non static, requested for (%lld:%lld)", 
                                     name->position.line, name->position.column);
-                            return -1;
+                            return -1; */
                         }
                     }
 
@@ -2464,18 +2491,20 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
 
                         if ((property1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                         {
-                            semantic_error(program, item1, "private access, requested for (%lld:%lld)", 
+                            continue;
+                            /* semantic_error(program, item1, "private access, requested for (%lld:%lld)", 
                                     name->position.line, name->position.column);
-                            return -1;
+                            return -1; */
                         }
 
                         if ((flag & SELECT_FLAG_FOLLOW) != SELECT_FLAG_FOLLOW)
                         {
                             if ((property1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                             {
-                                semantic_error(program, item1, "protect access, requested for (%lld:%lld)", 
+                                continue;
+                                /* semantic_error(program, item1, "protect access, requested for (%lld:%lld)", 
                                     name->position.line, name->position.column);
-                                return -1;
+                                return -1; */
                             }
                         }
                     }
@@ -2483,6 +2512,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                     {
                         item1->flag &= ~NODE_FLAG_DERIVE;
                     }
+                    
                     ilist_t *r1 = list_rpush(response, item1);
                     if (r1 == NULL)
                     {
@@ -2709,6 +2739,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
         for (a1 = module1->items->begin;a1 != module1->items->end;a1 = a1->next)
         {
             node_t *item1 = (node_t *)a1->value;
+
             if (item1->kind == NODE_KIND_IMPORT)
             {
                 node_import_t *import1 = (node_import_t *)item1->value;
@@ -2724,22 +2755,29 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                         node_package_t *package2 = (node_package_t *)item2->value;
                         if (semantic_idcmp(package2->key, name) == 1)
                         {
+                            node_t *clone1 = node_clone(item2->parent, item2);
+                            if (clone1 == NULL)
+                            {
+                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                return -1;
+                            }
+
 							if (scope != NULL)
                     		{
-								item2->flag |= NODE_FLAG_DERIVE;
+								clone1->flag |= NODE_FLAG_DERIVE;
 							}
 							else
 							{
-								item2->flag &= ~NODE_FLAG_DERIVE;
+								clone1->flag &= ~NODE_FLAG_DERIVE;
 							}
 
-                            ilist_t *r1 = list_rpush(response, item2);
+                            ilist_t *r1 = list_rpush(response, clone1);
                             if (r1 == NULL)
                             {
                                 fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                 return -1;
                             }
-                            return 1;
+                            //return 1;
                         }
                     }
                 }
@@ -2750,52 +2788,69 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                 node_class_t *class2 = (node_class_t *)item1->value;
                 if (semantic_idcmp(class2->key, name) == 1)
                 {
+                    node_t *clone1 = node_clone(item1->parent, item1);
+                    if (clone1 == NULL)
+                    {
+                        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                        return -1;
+                    }
+                    class2 = (node_class_t *)clone1->value;
+
                     if ((flag & SELECT_FLAG_OBJECT) == SELECT_FLAG_OBJECT)
                     {
-                        if ((item1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
+                        if ((clone1->flag & NODE_FLAG_NEW) != NODE_FLAG_NEW)
                         {
                             if ((class2->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                             {
-                                semantic_error(program, item1, "non static, requested for (%lld:%lld)", 
+                                continue;
+                                /*
+                                semantic_error(program, clone1, "non static, requested for (%lld:%lld)", 
                                         name->position.line, name->position.column);
                                 return -1;
+                                */
                             }
                         }
                     }
 
                     if (scope != NULL)
                     {
-                        item1->flag |= NODE_FLAG_DERIVE;
+                        clone1->flag |= NODE_FLAG_DERIVE;
 
 						if ((class2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                         {
-                            semantic_error(program, item1, "private access, requested for (%lld:%lld)", 
+                            continue;
+                            /*
+                            semantic_error(program, clone1, "private access, requested for (%lld:%lld)", 
                                     name->position.line, name->position.column);
                             return -1;
+                            */
                         }
 
                         if ((flag & SELECT_FLAG_FOLLOW) != SELECT_FLAG_FOLLOW)
                         {
                             if ((class2->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                             {
-                                semantic_error(program, item1, "protect access, requested for (%lld:%lld)", 
+                                continue;
+                                /*
+                                semantic_error(program, clone1, "protect access, requested for (%lld:%lld)", 
                                     name->position.line, name->position.column);
                                 return -1;
+                                */
                             }
                         }
                     }
                     else
                     {
-                        item1->flag &= ~NODE_FLAG_DERIVE;
+                        clone1->flag &= ~NODE_FLAG_DERIVE;
                     }
 
-                    ilist_t *r1 = list_rpush(response, item1);
+                    ilist_t *r1 = list_rpush(response, clone1);
                     if (r1 == NULL)
                     {
                         fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                         return -1;
                     }
-                    return 1;
+                    //return 1;
                 }
             }
             else
@@ -2810,9 +2865,10 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                         {
                             if ((enum1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                             {
-                                semantic_error(program, item1, "non static, requested for (%lld:%lld)", 
+                                continue;
+                                /* semantic_error(program, item1, "non static, requested for (%lld:%lld)", 
                                         name->position.line, name->position.column);
-                                return -1;
+                                return -1; */
                             }
                         }
                     }
@@ -2823,18 +2879,20 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
 
 						if ((enum1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                         {
-                            semantic_error(program, item1, "private access, requested for (%lld:%lld)", 
+                            continue;
+                            /* semantic_error(program, item1, "private access, requested for (%lld:%lld)", 
                                     name->position.line, name->position.column);
-                            return -1;
+                            return -1; */
                         }
 
                         if ((flag & SELECT_FLAG_FOLLOW) != SELECT_FLAG_FOLLOW)
                         {
                             if ((enum1->flag & SYNTAX_MODIFIER_PROTECT) == SYNTAX_MODIFIER_PROTECT)
                             {
-                                semantic_error(program, item1, "protect access, requested for (%lld:%lld)", 
+                                continue;
+                                /* semantic_error(program, item1, "protect access, requested for (%lld:%lld)", 
                                     name->position.line, name->position.column);
-                                return -1;
+                                return -1; */
                             }
                         }
                     }
@@ -2865,6 +2923,11 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
         {
             return semantic_select(program, root->parent, scope, name, response, flag);
         }
+    }
+
+    if (list_count(response) > 0)
+    {
+        return 1;
     }
 
     return 0;
@@ -2915,7 +2978,7 @@ semantic_number(program_t *program, node_t *scope, node_t *node, list_t *respons
     if (str[strlen(str)] == 'j')
     {
         // complex
-        node_t *node2 = node_create(node->scope, node, node->position);
+        node_t *node2 = node_create(node, node->position);
         if (node2 == NULL)
         {
             return -1;
@@ -3076,7 +3139,7 @@ semantic_number(program_t *program, node_t *scope, node_t *node, list_t *respons
             if ((value > MIN_INT32) && (value < MAX_INT32))
             {
                 // int
-                node_t *node2 = node_create(node->scope, node, node->position);
+                node_t *node2 = node_create(node, node->position);
                 if (node2 == NULL)
                 {
                     return -1;
@@ -3232,7 +3295,7 @@ semantic_number(program_t *program, node_t *scope, node_t *node, list_t *respons
             else
             {
                 // long
-                node_t *node2 = node_create(node->scope, node, node->position);
+                node_t *node2 = node_create(node, node->position);
                 if (node2 == NULL)
                 {
                     return -1;
@@ -3391,7 +3454,7 @@ semantic_number(program_t *program, node_t *scope, node_t *node, list_t *respons
             if ((value > MIN_INT32) && (value < MAX_INT32))
             {
                 // float
-                node_t *node2 = node_create(node->scope, node, node->position);
+                node_t *node2 = node_create(node, node->position);
                 if (node2 == NULL)
                 {
                     return -1;
@@ -3547,7 +3610,7 @@ semantic_number(program_t *program, node_t *scope, node_t *node, list_t *respons
             else
             {
                 // double
-                node_t *node2 = node_create(node->scope, node, node->position);
+                node_t *node2 = node_create(node, node->position);
                 if (node2 == NULL)
                 {
                     return -1;
@@ -3708,7 +3771,7 @@ semantic_number(program_t *program, node_t *scope, node_t *node, list_t *respons
 static int32_t
 semantic_char(program_t *program, node_t *scope, node_t *node, list_t *response)
 {
-    node_t *node2 = node_create(node->scope, node, node->position);
+    node_t *node2 = node_create(node, node->position);
     if (node2 == NULL)
     {
         return -1;
@@ -3865,7 +3928,7 @@ semantic_char(program_t *program, node_t *scope, node_t *node, list_t *response)
 static int32_t
 semantic_string(program_t *program, node_t *scope, node_t *node, list_t *response)
 {
-    node_t *node2 = node_create(node->scope, node, node->position);
+    node_t *node2 = node_create(node, node->position);
     if (node2 == NULL)
     {
         return -1;
@@ -3903,7 +3966,7 @@ semantic_string(program_t *program, node_t *scope, node_t *node, list_t *respons
             node_t *item1 = (node_t *)a1->value;
             if (item1->kind == NODE_KIND_CLASS)
             {
-                node_t *node4 = node_create(node->scope, node, node->position);
+                node_t *node4 = node_create(node, node->position);
                 if (node4 == NULL)
                 {
                     return -1;
@@ -3967,7 +4030,7 @@ semantic_string(program_t *program, node_t *scope, node_t *node, list_t *respons
             else
             if (item1->kind == NODE_KIND_PACKAGE)
             {
-                node_t *node4 = node_create(node->scope, node, node->position);
+                node_t *node4 = node_create(node, node->position);
                 if (node4 == NULL)
                 {
                     return -1;
@@ -4108,7 +4171,7 @@ semantic_string(program_t *program, node_t *scope, node_t *node, list_t *respons
 static int32_t
 semantic_null(program_t *program, node_t *scope, node_t *node, list_t *response)
 {
-    node_t *node2 = node_create(node->scope, node, node->position);
+    node_t *node2 = node_create(node, node->position);
     if (node2 == NULL)
     {
         return -1;
@@ -7626,15 +7689,9 @@ semantic_call(program_t *program, node_t *scope, node_t *node, list_t *response,
                             else
                             if (r2 == 1)
                             {
-                                node_t *clone1 = node_clone(item1->parent, item1);
-                                if (clone1 == NULL)
-                                {
-                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                                clone1->flag |= NODE_FLAG_NEW;
+                                item1->flag |= NODE_FLAG_NEW;
 
-                                ilist_t *il1 = list_rpush(response, clone1);
+                                ilist_t *il1 = list_rpush(response, item1);
                                 if (il1 == NULL)
                                 {
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
@@ -7686,19 +7743,12 @@ semantic_call(program_t *program, node_t *scope, node_t *node, list_t *response,
                         {
                             node_t *item3 = (node_t *)a3->value;
 
-                            node_t *clone1 = node_clone(item1->parent, item3);
-                            if (clone1 == NULL)
-                            {
-                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-
                             if (item3->kind == NODE_KIND_CLASS)
                             {
-                                clone1->flag |= NODE_FLAG_NEW;
+                                item3->flag |= NODE_FLAG_NEW;
                             }
 
-                            ilist_t *il1 = list_rpush(response, clone1);
+                            ilist_t *il1 = list_rpush(response, item3);
                             if (il1 == NULL)
                             {
                                 fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
@@ -7749,19 +7799,12 @@ semantic_call(program_t *program, node_t *scope, node_t *node, list_t *response,
                         {
                             node_t *item3 = (node_t *)a3->value;
 
-                            node_t *clone1 = node_clone(item1->parent, item3);
-                            if (clone1 == NULL)
-                            {
-                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-
                             if (item3->kind == NODE_KIND_CLASS)
                             {
-                                clone1->flag |= NODE_FLAG_NEW;
+                                item3->flag |= NODE_FLAG_NEW;
                             }
 
-                            ilist_t *il1 = list_rpush(response, clone1);
+                            ilist_t *il1 = list_rpush(response, item3);
                             if (il1 == NULL)
                             {
                                 fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
@@ -8412,6 +8455,7 @@ semantic_item(program_t *program, node_t *scope, node_t *node, list_t *response,
 static int32_t
 semantic_postfix(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
 {
+    printf("wow1 %d\n", node->kind);
 	if (node->kind == NODE_KIND_CALL)
     {
         return semantic_call(program, scope, node, response, flag);
@@ -9000,7 +9044,7 @@ semantic_prefix(program_t *program, node_t *scope, node_t *node, list_t *respons
     else
     if (node->kind == NODE_KIND_TYPEOF)
     {
-        node_t *node2 = node_create(node->scope, node, node->position);
+        node_t *node2 = node_create(node, node->position);
         if (node2 == NULL)
         {
             return -1;
@@ -9156,7 +9200,7 @@ semantic_prefix(program_t *program, node_t *scope, node_t *node, list_t *respons
     else
     if (node->kind == NODE_KIND_SIZEOF)
     {
-        node_t *node2 = node_create(node->scope, node, node->position);
+        node_t *node2 = node_create(node, node->position);
         if (node2 == NULL)
         {
             return -1;
@@ -12349,6 +12393,10 @@ semantic_field(program_t *program, node_t *node)
                     }
                 }
                 else
+                if (item1->kind == NODE_KIND_GENERIC)
+                {
+                }
+                else
                 {
                     semantic_error(program, field1->value, "type expected");
                     return -1;
@@ -12392,6 +12440,10 @@ semantic_field(program_t *program, node_t *node)
                         semantic_error(program, field1->key, "type expected");
                         return -1;
                     }
+                }
+                else
+                if (item1->kind == NODE_KIND_GENERIC)
+                {
                 }
                 else
                 {
@@ -12676,11 +12728,11 @@ semantic_for(program_t *program, node_t *node)
             else
             if (current->kind == NODE_KIND_FUN)
             {
-                node_fun_t *func2 = (node_fun_t *)current->value;
+                node_fun_t *fun2 = (node_fun_t *)current->value;
 
-                if (func2->generics != NULL)
+                if (fun2->generics != NULL)
                 {
-                    node_t *node2 = func2->generics;
+                    node_t *node2 = fun2->generics;
                     node_block_t *block2 = (node_block_t *)node2->value;
 
                     ilist_t *a2;
@@ -12701,9 +12753,9 @@ semantic_for(program_t *program, node_t *node)
                     }
                 }
 
-                if (func2->parameters != NULL)
+                if (fun2->parameters != NULL)
                 {
-                    node_t *node3 = func2->parameters;
+                    node_t *node3 = fun2->parameters;
                     node_block_t *block3 = (node_block_t *)node3->value;
 
                     ilist_t *a3;
@@ -12982,11 +13034,11 @@ semantic_forin(program_t *program, node_t *node)
             else
             if (current->kind == NODE_KIND_FUN)
             {
-                node_fun_t *func2 = (node_fun_t *)current->value;
+                node_fun_t *fun2 = (node_fun_t *)current->value;
 
-                if (func2->generics != NULL)
+                if (fun2->generics != NULL)
                 {
-                    node_t *node2 = func2->generics;
+                    node_t *node2 = fun2->generics;
                     node_block_t *block2 = (node_block_t *)node2->value;
 
                     ilist_t *a2;
@@ -13007,9 +13059,9 @@ semantic_forin(program_t *program, node_t *node)
                     }
                 }
 
-                if (func2->parameters != NULL)
+                if (fun2->parameters != NULL)
                 {
-                    node_t *node3 = func2->parameters;
+                    node_t *node3 = fun2->parameters;
                     node_block_t *block3 = (node_block_t *)node3->value;
 
                     ilist_t *a3;
@@ -13135,11 +13187,11 @@ semantic_parameter(program_t *program, node_t *node)
         else
         if (current->kind == NODE_KIND_FUN)
         {
-            node_fun_t *func2 = (node_fun_t *)current->value;
+            node_fun_t *fun2 = (node_fun_t *)current->value;
 
-            if (func2->generics != NULL)
+            if (fun2->generics != NULL)
             {
-                node_t *node2 = func2->generics;
+                node_t *node2 = fun2->generics;
                 node_block_t *block3 = (node_block_t *)node2->value;
 
                 ilist_t *a3;
@@ -13308,6 +13360,10 @@ semantic_parameter(program_t *program, node_t *node)
                 {
                 }
                 else
+                if (item1->kind == NODE_KIND_GENERIC)
+                {
+                }
+                else
                 {
                     semantic_error(program, parameter1->type, "type expected");
                     return -1;
@@ -13428,8 +13484,6 @@ semantic_parameter(program_t *program, node_t *node)
         list_destroy(response1);
     }
 
-    
-
     return 1;
 }
 
@@ -13531,6 +13585,10 @@ semantic_generic(program_t *program, node_t *node)
                     }
                 }
                 else
+                if (item1->kind == NODE_KIND_GENERIC)
+                {
+                }
+                else
                 {
                     semantic_error(program, generic1->type, "type expected");
                     return -1;
@@ -13575,6 +13633,10 @@ semantic_generic(program_t *program, node_t *node)
                         semantic_error(program, generic1->value, "type expected");
                         return -1;
                     }
+                }
+                else
+                if (item1->kind == NODE_KIND_GENERIC)
+                {
                 }
                 else
                 {
@@ -13869,11 +13931,11 @@ semantic_try(program_t *program, node_t *node)
         else
         if (current->kind == NODE_KIND_FUN)
         {
-            node_fun_t *func2 = (node_fun_t *)current->value;
+            node_fun_t *fun2 = (node_fun_t *)current->value;
 
-            if (func2->generics != NULL)
+            if (fun2->generics != NULL)
             {
-                node_t *node2 = func2->generics;
+                node_t *node2 = fun2->generics;
                 node_block_t *block2 = (node_block_t *)node2->value;
 
                 ilist_t *a2;
@@ -13894,9 +13956,9 @@ semantic_try(program_t *program, node_t *node)
                 }
             }
 
-            if (func2->parameters != NULL)
+            if (fun2->parameters != NULL)
             {
-                node_t *node3 = func2->parameters;
+                node_t *node3 = fun2->parameters;
                 node_block_t *block3 = (node_block_t *)node3->value;
 
                 ilist_t *a3;
@@ -14425,11 +14487,11 @@ semantic_var(program_t *program, node_t *node)
         else
         if (current->kind == NODE_KIND_FUN)
         {
-            node_fun_t *func2 = (node_fun_t *)current->value;
+            node_fun_t *fun2 = (node_fun_t *)current->value;
 
-            if (func2->generics != NULL)
+            if (fun2->generics != NULL)
             {
-                node_t *node2 = func2->generics;
+                node_t *node2 = fun2->generics;
                 node_block_t *block2 = (node_block_t *)node2->value;
 
                 ilist_t *a2;
@@ -14474,9 +14536,9 @@ semantic_var(program_t *program, node_t *node)
                 }
             }
 
-            if (func2->parameters != NULL)
+            if (fun2->parameters != NULL)
             {
-                node_t *node3 = func2->parameters;
+                node_t *node3 = fun2->parameters;
                 node_block_t *block3 = (node_block_t *)node3->value;
 
                 ilist_t *a3;
@@ -14669,6 +14731,10 @@ semantic_var(program_t *program, node_t *node)
                 {
                 }
                 else
+                if (item1->kind == NODE_KIND_GENERIC)
+                {
+                }
+                else
                 {
                     semantic_error(program, var1->type, "type expected");
                     return -1;
@@ -14721,7 +14787,107 @@ semantic_var(program_t *program, node_t *node)
                                 node_t *item3 = (node_t *)a2->value;
                                 if (item3->kind == NODE_KIND_ENTITY)
                                 {
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
 
+                                    node_t *node2 = var2->value_update;
+                                    if (node2->kind == NODE_KIND_CLASS)
+                                    {
+                                        node_class_t *class1 = (node_class_t *)node2->value;
+
+                                        node_t *node3 = class1->block;
+                                        node_block_t *block2 = (node_block_t *)node3->value;
+
+                                        ilist_t *a3;
+                                        for (a3 = block2->list->begin;a3 != block2->list->end;a3 = a3->next)
+                                        {
+                                            node_t *item4 = (node_t *)a3->value;
+                                            if (item4->kind == NODE_KIND_CLASS)
+                                            {
+                                                node_class_t *class2 = (node_class_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(class2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(class2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item4->kind == NODE_KIND_FUN)
+                                            {
+                                                node_fun_t *fun2 = (node_fun_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(fun2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(fun2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item4->kind == NODE_KIND_ENUM)
+                                            {
+                                                node_enum_t *enum2 = (node_enum_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(enum2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(enum2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item4->kind == NODE_KIND_PROPERTY)
+                                            {
+                                                node_property_t *property2 = (node_property_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(property2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(property2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        semantic_error(program, node2, "not selectable, encounter in (%lld:%lld)",
+                                            var1->key->position.line, var1->key->position.column);
+                                        return -1;
+                                    }
                                 }
                             }
                         }
@@ -14743,7 +14909,125 @@ semantic_var(program_t *program, node_t *node)
                     node_entity_t *entity2 = (node_entity_t *)item2->value;
                     if (entity2->value_update != NULL)
                     {
-                        var1->value_update = entity2->value_update;
+                        if (var1->key->kind == NODE_KIND_SET)
+                        {
+                            node_t *node1 = var1->key;
+                            node_block_t *block1 = (node_block_t *)node1->value;
+
+                            ilist_t *a2;
+                            for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
+                            {
+                                node_t *item3 = (node_t *)a2->value;
+                                if (item3->kind == NODE_KIND_ENTITY)
+                                {
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
+
+                                    node_t *node2 = entity2->value_update;
+                                    if (node2->kind == NODE_KIND_CLASS)
+                                    {
+                                        node_class_t *class1 = (node_class_t *)node2->value;
+
+                                        node_t *node3 = class1->block;
+                                        node_block_t *block2 = (node_block_t *)node3->value;
+
+                                        ilist_t *a3;
+                                        for (a3 = block2->list->begin;a3 != block2->list->end;a3 = a3->next)
+                                        {
+                                            node_t *item4 = (node_t *)a3->value;
+                                            if (item4->kind == NODE_KIND_CLASS)
+                                            {
+                                                node_class_t *class2 = (node_class_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(class2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(class2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item4->kind == NODE_KIND_FUN)
+                                            {
+                                                node_fun_t *fun2 = (node_fun_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(fun2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(fun2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item4->kind == NODE_KIND_ENUM)
+                                            {
+                                                node_enum_t *enum2 = (node_enum_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(enum2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(enum2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item4->kind == NODE_KIND_PROPERTY)
+                                            {
+                                                node_property_t *property2 = (node_property_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(property2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(property2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        semantic_error(program, node2, "not selectable, encounter in (%lld:%lld)",
+                                            var1->key->position.line, var1->key->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var1->value_update = entity2->value_update;
+                        }
                     }
                     else
                     {
@@ -14758,7 +15042,125 @@ semantic_var(program_t *program, node_t *node)
                     node_property_t *property2 = (node_property_t *)item2->value;
                     if (property2->value_update != NULL)
                     {
-                        var1->value_update = property2->value_update;
+                        if (var1->key->kind == NODE_KIND_SET)
+                        {
+                            node_t *node1 = var1->key;
+                            node_block_t *block1 = (node_block_t *)node1->value;
+
+                            ilist_t *a2;
+                            for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
+                            {
+                                node_t *item3 = (node_t *)a2->value;
+                                if (item3->kind == NODE_KIND_ENTITY)
+                                {
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
+
+                                    node_t *node2 = property2->value_update;
+                                    if (node2->kind == NODE_KIND_CLASS)
+                                    {
+                                        node_class_t *class1 = (node_class_t *)node2->value;
+
+                                        node_t *node3 = class1->block;
+                                        node_block_t *block2 = (node_block_t *)node3->value;
+
+                                        ilist_t *a3;
+                                        for (a3 = block2->list->begin;a3 != block2->list->end;a3 = a3->next)
+                                        {
+                                            node_t *item4 = (node_t *)a3->value;
+                                            if (item4->kind == NODE_KIND_CLASS)
+                                            {
+                                                node_class_t *class2 = (node_class_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(class2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(class2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item4->kind == NODE_KIND_FUN)
+                                            {
+                                                node_fun_t *fun2 = (node_fun_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(fun2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(fun2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item4->kind == NODE_KIND_ENUM)
+                                            {
+                                                node_enum_t *enum2 = (node_enum_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(enum2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(enum2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item4->kind == NODE_KIND_PROPERTY)
+                                            {
+                                                node_property_t *property2 = (node_property_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(property2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(property2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        semantic_error(program, node2, "not selectable, encounter in (%lld:%lld)",
+                                            var1->key->position.line, var1->key->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var1->value_update = property2->value_update;
+                        }
                     }
                     else
                     {
@@ -14773,7 +15175,125 @@ semantic_var(program_t *program, node_t *node)
                     node_parameter_t *parameter2 = (node_parameter_t *)item2->value;
                     if (parameter2->value_update != NULL)
                     {
-                        var1->value_update = parameter2->value_update;
+                        if (var1->key->kind == NODE_KIND_SET)
+                        {
+                            node_t *node1 = var1->key;
+                            node_block_t *block1 = (node_block_t *)node1->value;
+
+                            ilist_t *a2;
+                            for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
+                            {
+                                node_t *item3 = (node_t *)a2->value;
+                                if (item3->kind == NODE_KIND_ENTITY)
+                                {
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
+
+                                    node_t *node2 = parameter2->value_update;
+                                    if (node2->kind == NODE_KIND_CLASS)
+                                    {
+                                        node_class_t *class1 = (node_class_t *)node2->value;
+
+                                        node_t *node3 = class1->block;
+                                        node_block_t *block2 = (node_block_t *)node3->value;
+
+                                        ilist_t *a3;
+                                        for (a3 = block2->list->begin;a3 != block2->list->end;a3 = a3->next)
+                                        {
+                                            node_t *item4 = (node_t *)a3->value;
+                                            if (item4->kind == NODE_KIND_CLASS)
+                                            {
+                                                node_class_t *class2 = (node_class_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(class2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(class2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item4->kind == NODE_KIND_FUN)
+                                            {
+                                                node_fun_t *fun2 = (node_fun_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(fun2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(fun2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item4->kind == NODE_KIND_ENUM)
+                                            {
+                                                node_enum_t *enum2 = (node_enum_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(enum2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(enum2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item4->kind == NODE_KIND_PROPERTY)
+                                            {
+                                                node_property_t *property2 = (node_property_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(property2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(property2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        semantic_error(program, node2, "not selectable, encounter in (%lld:%lld)",
+                                            var1->key->position.line, var1->key->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var1->value_update = parameter2->value_update;
+                        }
                     }
                     else
                     {
@@ -14788,7 +15308,125 @@ semantic_var(program_t *program, node_t *node)
                     node_member_t *member2 = (node_member_t *)item2->value;
                     if (member2->value_update != NULL)
                     {
-                        var1->value_update = member2->value_update;
+                        if (var1->key->kind == NODE_KIND_SET)
+                        {
+                            node_t *node1 = var1->key;
+                            node_block_t *block1 = (node_block_t *)node1->value;
+
+                            ilist_t *a2;
+                            for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
+                            {
+                                node_t *item3 = (node_t *)a2->value;
+                                if (item3->kind == NODE_KIND_ENTITY)
+                                {
+                                    node_entity_t *entity1 = (node_entity_t *)item3->value;
+
+                                    node_t *node2 = member2->value_update;
+                                    if (node2->kind == NODE_KIND_CLASS)
+                                    {
+                                        node_class_t *class1 = (node_class_t *)node2->value;
+
+                                        node_t *node3 = class1->block;
+                                        node_block_t *block2 = (node_block_t *)node3->value;
+
+                                        ilist_t *a3;
+                                        for (a3 = block2->list->begin;a3 != block2->list->end;a3 = a3->next)
+                                        {
+                                            node_t *item4 = (node_t *)a3->value;
+                                            if (item4->kind == NODE_KIND_CLASS)
+                                            {
+                                                node_class_t *class2 = (node_class_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(class2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(class2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item4->kind == NODE_KIND_FUN)
+                                            {
+                                                node_fun_t *fun2 = (node_fun_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(fun2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(fun2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item4->kind == NODE_KIND_ENUM)
+                                            {
+                                                node_enum_t *enum2 = (node_enum_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(enum2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(enum2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            if (item4->kind == NODE_KIND_PROPERTY)
+                                            {
+                                                node_property_t *property2 = (node_property_t *)item4->value;
+
+                                                if (entity1->value != NULL)
+                                                {
+                                                    if (semantic_idcmp(property2->key, entity1->value) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (semantic_idcmp(property2->key, entity1->key) == 1)
+                                                    {
+                                                        entity1->value_update = item4;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        semantic_error(program, node2, "not selectable, encounter in (%lld:%lld)",
+                                            var1->key->position.line, var1->key->position.column);
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var1->value_update = member2->value_update;
+                        }
                     }
                     else
                     {
@@ -14896,45 +15534,6 @@ semantic_func(program_t *program, node_t *node)
     node_t *current = node->parent;
     while (current != NULL)
     {
-        if (current->kind == NODE_KIND_MODULE)
-        {
-            node_module_t *module2 = (node_module_t *)current->value;
-
-            ilist_t *a2;
-            for (a2 = module2->items->begin;a2 != module2->items->end;a2 = a2->next)
-            {
-                node_t *item2 = (node_t *)a2->value;
-                if (item2->id == sub->id)
-                {
-                    break;
-                }
-
-                if (item2->kind == NODE_KIND_CLASS)
-                {
-                    node_class_t *class3 = (node_class_t *)item2->value;
-                    if (semantic_idcmp(fun1->key, class3->key) == 1)
-                    {
-                        semantic_error(program, fun1->key, "already defined, previous in (%lld:%lld)",
-                            class3->key->position.line, class3->key->position.column);
-                        return -1;
-                    }
-                }
-                else
-                if (item2->kind == NODE_KIND_ENUM)
-                {
-                    node_enum_t *enum2 = (node_enum_t *)item2->value;
-
-                    if (semantic_idcmp(fun1->key, enum2->key) == 1)
-                    {
-                        semantic_error(program, fun1->key, "already defined, previous in (%lld:%lld)",
-                            enum2->key->position.line, enum2->key->position.column);
-                        return -1;
-                    }
-                }
-            }
-            break;
-        }
-        else
         if (current->kind == NODE_KIND_CLASS)
         {
             node_class_t *class2 = (node_class_t *)current->value;
@@ -15002,9 +15601,46 @@ semantic_func(program_t *program, node_t *node)
                     node_class_t *class3 = (node_class_t *)item2->value;
                     if (semantic_idcmp(fun1->key, class3->key) == 1)
                     {
-                        semantic_error(program, fun1->key, "already defined, previous in (%lld:%lld)",
-                            class3->key->position.line, class3->key->position.column);
-                        return -1;
+                        node_t *ngs1 = class3->generics;
+                        node_t *ngs2 = fun1->generics;
+                        int32_t r1 = semantic_eqaul_gsgs(program, ngs1, ngs2);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r1 == 1)
+                        {
+                            node_t *node3 = class3->block;
+                            node_block_t *block3 = (node_block_t *)node3->value;
+
+                            ilist_t *a3;
+                            for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
+                            {
+                                node_t *item3 = (node_t *)a3->value;
+                                if (item3->kind == NODE_KIND_FUN)
+                                {
+                                    node_fun_t *fun3 = (node_fun_t *)item3->value;
+                                    if (semantic_idstrcmp(fun3->key, "Constructor") == 1)
+                                    {
+                                        node_t *nps1 = fun3->parameters;
+                                        node_t *nps2 = fun1->parameters;
+                                        int32_t r2 = semantic_eqaul_psps(program, nps1, nps2);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r2 == 1)
+                                        {
+                                            semantic_error(program, fun1->key, "already defined, previous in (%lld:%lld)",
+                                                class3->key->position.line, class3->key->position.column);
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 else
@@ -15022,13 +15658,35 @@ semantic_func(program_t *program, node_t *node)
                 else
                 if (item2->kind == NODE_KIND_FUN)
                 {
-                    node_fun_t *func2 = (node_fun_t *)item2->value;
+                    node_fun_t *fun2 = (node_fun_t *)item2->value;
 
-                    if (semantic_idcmp(fun1->key, func2->key) == 1)
+                    if (semantic_idcmp(fun1->key, fun2->key) == 1)
                     {
-                        semantic_error(program, fun1->key, "already defined, previous in (%lld:%lld)",
-                            func2->key->position.line, func2->key->position.column);
-                        return -1;
+                        node_t *ngs1 = fun1->generics;
+                        node_t *ngs2 = fun2->generics;
+                        int32_t r1 = semantic_eqaul_gsgs(program, ngs1, ngs2);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r1 == 1)
+                        {
+                            node_t *nps1 = fun1->parameters;
+                            node_t *nps2 = fun2->parameters;
+                            int32_t r2 = semantic_eqaul_psps(program, nps1, nps2);
+                            if (r2 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r2 == 1)
+                            {
+                                semantic_error(program, fun1->key, "already defined, previous in (%lld:%lld)",
+                                    fun2->key->position.line, fun2->key->position.column);
+                                return -1;
+                            }
+                        }
                     }
                 }
                 else
@@ -15195,12 +15853,12 @@ semantic_enum(program_t *program, node_t *node)
                 else
                 if (item2->kind == NODE_KIND_FUN)
                 {
-                    node_fun_t *func2 = (node_fun_t *)item2->value;
+                    node_fun_t *fun2 = (node_fun_t *)item2->value;
 
-                    if (semantic_idcmp(enum1->key, func2->key) == 1)
+                    if (semantic_idcmp(enum1->key, fun2->key) == 1)
                     {
                         semantic_error(program, enum1->key, "already defined, previous in (%lld:%lld)",
-                            func2->key->position.line, func2->key->position.column);
+                            fun2->key->position.line, fun2->key->position.column);
                         return -1;
                     }
                 }
@@ -15531,12 +16189,12 @@ semantic_property(program_t *program, node_t *node)
                 else
                 if (item2->kind == NODE_KIND_FUN)
                 {
-                    node_fun_t *func2 = (node_fun_t *)item2->value;
+                    node_fun_t *fun2 = (node_fun_t *)item2->value;
 
-                    if (semantic_idcmp(property1->key, func2->key) == 1)
+                    if (semantic_idcmp(property1->key, fun2->key) == 1)
                     {
                         semantic_error(program, property1->key, "already defined, previous in (%lld:%lld)",
-                            func2->key->position.line, func2->key->position.column);
+                            fun2->key->position.line, fun2->key->position.column);
                         return -1;
                     }
                 }
@@ -15711,6 +16369,10 @@ semantic_property(program_t *program, node_t *node)
                 }
                 else
                 if (item1->kind == NODE_KIND_ENUM)
+                {
+                }
+                else
+                if (item1->kind == NODE_KIND_GENERIC)
                 {
                 }
                 else
@@ -15948,6 +16610,10 @@ semantic_heritage(program_t *program, node_t *node)
                     }
                 }
                 else
+                if (item1->kind == NODE_KIND_GENERIC)
+                {
+                }
+                else
                 {
                     semantic_error(program, heritage1->type, "type expected");
                     return -1;
@@ -16116,21 +16782,110 @@ semantic_class(program_t *program, node_t *node)
                     node_class_t *class3 = (node_class_t *)item2->value;
                     if (semantic_idcmp(class1->key, class3->key) == 1)
                     {
-                        semantic_error(program, class1->key, "already defined, previous in (%lld:%lld)",
-                            class3->key->position.line, class3->key->position.column);
-                        return -1;
+                        node_t *ngs1 = class1->generics;
+                        node_t *ngs2 = class3->generics;
+                        int32_t r1 = semantic_eqaul_gsgs(program, ngs1, ngs2);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r1 == 1)
+                        {
+                            node_t *node3 = class1->block;
+                            node_block_t *block3 = (node_block_t *)node3->value;
+
+                            ilist_t *a3;
+                            for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
+                            {
+                                node_t *item3 = (node_t *)a3->value;
+                                if (item3->kind == NODE_KIND_FUN)
+                                {
+                                    node_fun_t *fun3 = (node_fun_t *)item3->value;
+                                    if (semantic_idstrcmp(fun3->key, "Constructor") == 1)
+                                    {
+                                        node_t *node4 = class3->block;
+                                        node_block_t *block4 = (node_block_t *)node4->value;
+
+                                        ilist_t *a4;
+                                        for (a4 = block4->list->begin;a4 != block4->list->end;a4 = a4->next)
+                                        {
+                                            node_t *item4 = (node_t *)a4->value;
+                                            if (item4->kind == NODE_KIND_FUN)
+                                            {
+                                                node_fun_t *fun4 = (node_fun_t *)item4->value;
+                                                if (semantic_idstrcmp(fun4->key, "Constructor") == 1)
+                                                {
+                                                    node_t *nps1 = fun3->parameters;
+                                                    node_t *nps2 = fun4->parameters;
+                                                    int32_t r2 = semantic_eqaul_psps(program, nps1, nps2);
+                                                    if (r2 == -1)
+                                                    {
+                                                        return -1;
+                                                    }
+                                                    else
+                                                    if (r2 == 1)
+                                                    {
+                                                        semantic_error(program, class1->key, "already defined, previous in (%lld:%lld)",
+                                                            class3->key->position.line, class3->key->position.column);
+                                                        return -1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 else
                 if (item2->kind == NODE_KIND_FUN)
                 {
-                    node_fun_t *func2 = (node_fun_t *)item2->value;
+                    node_fun_t *fun2 = (node_fun_t *)item2->value;
 
-                    if (semantic_idcmp(class1->key, func2->key) == 1)
+                    if (semantic_idcmp(class1->key, fun2->key) == 1)
                     {
-                        semantic_error(program, class1->key, "already defined, previous in (%lld:%lld)",
-                            func2->key->position.line, func2->key->position.column);
-                        return -1;
+                        node_t *ngs1 = class1->generics;
+                        node_t *ngs2 = fun2->generics;
+                        int32_t r1 = semantic_eqaul_gsgs(program, ngs1, ngs2);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r1 == 1)
+                        {
+                            node_t *node3 = class1->block;
+                            node_block_t *block3 = (node_block_t *)node3->value;
+
+                            ilist_t *a3;
+                            for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
+                            {
+                                node_t *item3 = (node_t *)a3->value;
+                                if (item3->kind == NODE_KIND_FUN)
+                                {
+                                    node_fun_t *fun3 = (node_fun_t *)item3->value;
+                                    if (semantic_idstrcmp(fun3->key, "Constructor") == 1)
+                                    {
+                                        node_t *nps1 = fun3->parameters;
+                                        node_t *nps2 = fun2->parameters;
+                                        int32_t r2 = semantic_eqaul_psps(program, nps1, nps2);
+                                        if (r2 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        if (r2 == 1)
+                                        {
+                                            semantic_error(program, class1->key, "already defined, previous in (%lld:%lld)",
+                                                fun2->key->position.line, fun2->key->position.column);
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 else
