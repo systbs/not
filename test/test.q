@@ -1,5 +1,6 @@
 import {
   Char:Char, 
+  Int8:Int8, 
   Int16:Int16, 
   Int32:Int32, 
   Int64:Int64, 
@@ -16,7 +17,7 @@ import {
 
 export class System
 {
-  export fun Constructor(a:Int32)
+  export fun Constructor(args:Array<Array<Char>>)
   {
     
   }

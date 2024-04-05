@@ -36,6 +36,12 @@ main(int argc, char **argv)
 			i += 1;
 			program_resolve(program, argv[i]);
 		}
+		else
+		if (strcmp(argv[i], "-o") == 0)
+		{
+			i += 1;
+			program_outfile(program, argv[i]);
+		}
 	}
 
 	if (strcmp(program->base_path, "") == 0)
@@ -63,8 +69,18 @@ main(int argc, char **argv)
 		return -1;
 	}
 
-	int32_t result = semantic_run(program, node);
-	if(result == -1)
+	int32_t result1 = semantic_module(program, node);
+	if(result1 == -1)
+	{
+		if(list_count(program->errors) > 0)
+		{
+			goto region_report;
+		}
+		return -1;
+	}
+
+	int32_t result2 = semantic_run(program, node);
+	if(result2 == -1)
 	{
 		if(list_count(program->errors) > 0)
 		{

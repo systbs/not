@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #include "../types/types.h"
 #include "../container/list.h"
@@ -20,6 +21,7 @@
 #include "syntax.h"
 #include "error.h"
 #include "semantic.h"
+#include "mensuration.h"
 
 static error_t *
 semantic_error(program_t *program, node_t *node, const char *format, ...)
@@ -1953,7 +1955,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                                 fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                 return -1;
                             }
-                            return 1;
+                            // return 1;
                         }
                     }
                 }
@@ -1983,7 +1985,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                             fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                             return -1;
                         }
-                        return 1;
+                        // return 1;
                     }
                 }
             }
@@ -2014,7 +2016,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                                 fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                 return -1;
                             }
-                            return 1;
+                            // return 1;
                         }
                     }
                     else
@@ -2036,7 +2038,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                                         fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                         return -1;
                                     }
-                                    return 1;
+                                    // return 1;
                                 }
                             }
                         }
@@ -2070,7 +2072,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                                 fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                 return -1;
                             }
-                            return 1;
+                            // return 1;
                         }
                     }
                     else
@@ -2092,7 +2094,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                                         fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                         return -1;
                                     }
-                                    return 1;
+                                    // return 1;
                                 }
                             }
                         }
@@ -2122,7 +2124,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                             fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                             return -1;
                         }
-                        return 1;
+                        // return 1;
                     }
                 }
             }
@@ -2140,7 +2142,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                             fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                             return -1;
                         }
-                        return 1;
+                        // return 1;
                     }
                 }
             }
@@ -2158,7 +2160,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                             fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                             return -1;
                         }
-                        return 1;
+                        // return 1;
                     }
                 }
                 else
@@ -2180,7 +2182,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                                     fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                     return -1;
                                 }
-                                return 1;
+                                // return 1;
                             }
                         }
                     }
@@ -2214,7 +2216,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                             fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                             return -1;
                         }
-                        return 1;
+                        // return 1;
                     }
                 }
             }
@@ -2241,7 +2243,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                             fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                             return -1;
                         }
-                        return 1;
+                        // return 1;
                     }
                 }
             }
@@ -2270,7 +2272,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                             fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                             return -1;
                         }
-                        return 1;
+                        // return 1;
                     }
                 }
             }
@@ -2346,7 +2348,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                         fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                         return -1;
                     }
-                    //return 1;
+                    // return 1;
                 }
             }
             else
@@ -2403,7 +2405,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                         fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                         return -1;
                     }
-                    return 1;
+                    // return 1;
                 }
             }
             else
@@ -2464,7 +2466,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                         fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                         return -1;
                     }
-                    //return 1;
+                    // return 1;
                 }
             }
             else
@@ -2519,7 +2521,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                         fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                         return -1;
                     }
-                    return 1;
+                    // return 1;
                 }
             }
         }
@@ -2545,7 +2547,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                             fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                             return -1;
                         }
-                        return 1;
+                        // return 1;
                     }
                 }
             }
@@ -2572,7 +2574,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                             fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                             return -1;
                         }
-                        return 1;
+                        // return 1;
                     }
 
                     if (name->id == heritage3->type->id)
@@ -2618,7 +2620,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                                     else
                                     if (r2 == 1)
                                     {
-                                        return 1;
+                                        // return 1;
                                     }
                                 }
                                 else
@@ -2691,7 +2693,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                                                 else
                                                 if (r2 == 1)
                                                 {
-                                                    return 1;
+                                                    // return 1;
                                                 }
                                             }
                                             else
@@ -2777,7 +2779,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                                 fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                                 return -1;
                             }
-                            //return 1;
+                            // return 1;
                         }
                     }
                 }
@@ -2850,7 +2852,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                         fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                         return -1;
                     }
-                    //return 1;
+                    // return 1;
                 }
             }
             else
@@ -2907,7 +2909,7 @@ semantic_select(program_t *program, node_t *root, node_t *scope, node_t *name, l
                         fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
                         return -1;
                     }
-                    return 1;
+                    // return 1;
                 }
             }
         }
@@ -8455,7 +8457,6 @@ semantic_item(program_t *program, node_t *scope, node_t *node, list_t *response,
 static int32_t
 semantic_postfix(program_t *program, node_t *scope, node_t *node, list_t *response, uint64_t flag)
 {
-    printf("wow1 %d\n", node->kind);
 	if (node->kind == NODE_KIND_CALL)
     {
         return semantic_call(program, scope, node, response, flag);
@@ -16105,6 +16106,89 @@ semantic_import(program_t *program, node_t *node)
 }
 
 static int32_t
+semantic_result(program_t *program, node_t *node)
+{
+    list_t *response1 = list_create();
+    if (response1 == NULL)
+    {
+        fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+        return -1;
+    }
+
+    int32_t r1 = semantic_resolve(program, NULL, node, response1, SELECT_FLAG_NONE);
+    if (r1 == -1)
+    {
+        return -1;
+    }
+    else
+    if (r1 == 0)
+    {
+        semantic_error(program, node, "reference not found");
+        return -1;
+    }
+    else
+    if (r1 == 1)
+    {
+        ilist_t *a1;
+        for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+        {
+            node_t *item1 = (node_t *)a1->value;
+            if (item1->kind == NODE_KIND_CLASS)
+            {
+                if ((item1->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
+                {
+                    semantic_error(program, node, "type expected");
+                    return -1;
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_FN)
+            {
+                node_fn_t *fn1 = (node_fn_t *)item1->value;
+                if (fn1->generics != NULL)
+                {
+                    int32_t r2 = semantic_generics(program, fn1->generics);
+                    if (r2 == -1)
+                    {
+                        return -1;
+                    }
+                }
+
+                if (fn1->parameters != NULL)
+                {
+                    int32_t r2 = semantic_parameters(program, fn1->parameters);
+                    if (r2 == -1)
+                    {
+                        return -1;
+                    }
+                }
+
+                if (fn1->result != NULL)
+                {
+                    int32_t r2 = semantic_result(program, fn1->result);
+                    if (r2 == -1)
+                    {
+                        return -1;
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_ENUM)
+            {
+            }
+            else
+            {
+                semantic_error(program, node, "type expected");
+                return -1;
+            }
+        }
+    }
+
+    list_destroy(response1);
+    return 1;
+}
+
+static int32_t
 semantic_property(program_t *program, node_t *node)
 {
     node_property_t *property1 = (node_property_t *)node->value;
@@ -16235,155 +16319,127 @@ semantic_property(program_t *program, node_t *node)
     
     if (property1->type != NULL)
     {
-        list_t *response1 = list_create();
-        if (response1 == NULL)
-        {
-            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-            return -1;
-        }
+        node_t *type1 = property1->type;
 
-        int32_t r1 = semantic_resolve(program, NULL, property1->type, response1, SELECT_FLAG_NONE);
-        if (r1 == -1)
+        if (type1->kind == NODE_KIND_NUMBER)
         {
-            return -1;
-        }
-        else
-        if (r1 == 0)
-        {
-            semantic_error(program, property1->type, "reference not found");
-            return -1;
-        }
-        else
-        if (r1 == 1)
-        {
-            ilist_t *a1;
-            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            node_basic_t *num1 = (node_basic_t *)type1->value;
+
+            if (tolower(num1->value[strlen(num1->value)-1]) == 'j')
             {
-                node_t *item1 = (node_t *)a1->value;
-                if (item1->kind == NODE_KIND_CLASS)
+                semantic_error(program, type1, "incorrect value");
+                return -1;
+            }
+
+            double128_t value1 = utils_stold(num1->value);
+
+            if (utils_isinteger(value1) == 0)
+            {
+                semantic_error(program, type1, "incorrect value");
+                return -1;
+            }
+
+            if (value1 < 0)
+            {
+                semantic_error(program, type1, "incorrect value");
+                return -1;
+            }
+        }
+        else
+        if (type1->kind == NODE_KIND_FN)
+        {
+            node_fn_t *fn1 = (node_fn_t *)type1->value;
+            if (fn1->generics != NULL)
+            {
+                int32_t r2 = semantic_generics(program, fn1->generics);
+                if (r2 == -1)
                 {
-                    if ((item1->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
+                    return -1;
+                }
+            }
+
+            if (fn1->parameters != NULL)
+            {
+                int32_t r2 = semantic_parameters(program, fn1->parameters);
+                if (r2 == -1)
+                {
+                    return -1;
+                }
+            }
+
+            if (fn1->result != NULL)
+            {
+                int32_t r2 = semantic_result(program, fn1->result);
+                if (r2 == -1)
+                {
+                    return -1;
+                }
+            }
+        }
+        else
+        if (type1->kind == NODE_KIND_ID)
+        {
+            list_t *response1 = list_create();
+            if (response1 == NULL)
+            {
+                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                return -1;
+            }
+
+            int32_t r1 = semantic_resolve(program, NULL, property1->type, response1, SELECT_FLAG_NONE);
+            if (r1 == -1)
+            {
+                return -1;
+            }
+            else
+            if (r1 == 0)
+            {
+                semantic_error(program, property1->type, "reference not found");
+                return -1;
+            }
+            else
+            if (r1 == 1)
+            {
+                ilist_t *a1;
+                for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+                {
+                    node_t *item1 = (node_t *)a1->value;
+                    if (item1->kind == NODE_KIND_CLASS)
+                    {
+                        if ((item1->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
+                        {
+                            semantic_error(program, property1->type, "type expected");
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_FN)
+                    {
+                        
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_ENUM)
+                    {
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_GENERIC)
+                    {
+                    }
+                    else
                     {
                         semantic_error(program, property1->type, "type expected");
                         return -1;
                     }
                 }
-                else
-                if (item1->kind == NODE_KIND_FN)
-                {
-                    node_fn_t *fn1 = (node_fn_t *)item1->value;
-                    if (fn1->generics != NULL)
-                    {
-                        int32_t r2 = semantic_generics(program, fn1->generics);
-                        if (r2 == -1)
-                        {
-                            return -1;
-                        }
-                    }
-
-                    if (fn1->parameters != NULL)
-                    {
-                        int32_t r2 = semantic_parameters(program, fn1->parameters);
-                        if (r2 == -1)
-                        {
-                            return -1;
-                        }
-                    }
-
-                    if (fn1->result != NULL)
-                    {
-                        list_t *response2 = list_create();
-                        if (response2 == NULL)
-                        {
-                            fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
-                            return -1;
-                        }
-
-                        int32_t r3 = semantic_resolve(program, NULL, fn1->result, response2, SELECT_FLAG_NONE);
-                        if (r3 == -1)
-                        {
-                            return -1;
-                        }
-                        else
-                        if (r3 == 0)
-                        {
-                            semantic_error(program,fn1->result, "reference not found");
-                            return -1;
-                        }
-                        else
-                        if (r3 == 1)
-                        {
-                            ilist_t *a2;
-                            for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
-                            {
-                                node_t *item2 = (node_t *)a2->value;
-                                if (item2->kind == NODE_KIND_CLASS)
-                                {
-                                    if ((item2->flag & NODE_FLAG_NEW) == NODE_FLAG_NEW)
-                                    {
-                                        semantic_error(program, fn1->result, "type expected");
-                                        return -1;
-                                    }
-                                }
-                                else
-                                if (item2->kind == NODE_KIND_FN)
-                                {
-                                    node_fn_t *fn1 = (node_fn_t *)item2->value;
-                                    if (fn1->generics != NULL)
-                                    {
-                                        int32_t r2 = semantic_generics(program, fn1->generics);
-                                        if (r2 == -1)
-                                        {
-                                            return -1;
-                                        }
-                                    }
-
-                                    if (fn1->parameters != NULL)
-                                    {
-                                        int32_t r2 = semantic_parameters(program, fn1->parameters);
-                                        if (r2 == -1)
-                                        {
-                                            return -1;
-                                        }
-                                    }
-
-                                    if (fn1->result != NULL)
-                                    {
-                                        
-                                    }
-                                }
-                                else
-                                if (item2->kind == NODE_KIND_ENUM)
-                                {
-                                }
-                                else
-                                {
-                                    semantic_error(program, fn1->result, "type expected");
-                                    return -1;
-                                }
-                            }
-                        }
-
-                        list_destroy(response2);
-                    }
-                }
-                else
-                if (item1->kind == NODE_KIND_ENUM)
-                {
-                }
-                else
-                if (item1->kind == NODE_KIND_GENERIC)
-                {
-                }
-                else
-                {
-                    semantic_error(program, property1->type, "type expected");
-                    return -1;
-                }
             }
-        }
 
-        list_destroy(response1);
+            list_destroy(response1);
+        }
+        else
+        {
+            semantic_error(program, type1, "wrong type");
+            return -1;
+        }
     }
 
     if (property1->value != NULL)
@@ -16411,84 +16467,1328 @@ semantic_property(program_t *program, node_t *node)
             ilist_t *a1;
             for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
             {
-                node_t *item2 = (node_t *)a1->value;
-                if (item2->kind == NODE_KIND_VAR)
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->kind == NODE_KIND_VAR)
                 {
-                    node_var_t *var2 = (node_var_t *)item2->value;
+                    node_var_t *var2 = (node_var_t *)item1->value;
                     if (var2->value_update != NULL)
                     {
+                        node_t *item2 = var2->value_update;
+                        if (item2->kind == NODE_KIND_CLASS)
+                        {
+                            node_t *type1 = property1->type;
+                            if (type1->kind == NODE_KIND_NUMBER)
+                            {
+                                node_basic_t *num1 = (node_basic_t *)type1->value;
+                                double128_t value1 = utils_stold(num1->value);
+                                uint64_t value2 = mensuration_size(program, item2);
+                                if (value2 > value1)
+                                {
+                                    semantic_error(program, property1->value, "overflow");
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_FN)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_ID)
+                            {
+                                list_t *response2 = list_create();
+                                if (response2 == NULL)
+                                {
+                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                    return -1;
+                                }
+
+                                int32_t r2 = semantic_resolve(program, NULL, type1, response2, SELECT_FLAG_NONE);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 0)
+                                {
+                                    semantic_error(program, type1, "reference not found");
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    ilist_t *a2;
+                                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                                    {
+                                        node_t *item3 = (node_t *)a2->value;
+                                        if (item3->kind == NODE_KIND_CLASS)
+                                        {
+                                            if (item3->id != item2->id)
+                                            {
+                                                semantic_error(program, property1->value, "missmatch");
+                                                return -1;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            semantic_error(program, property1->value, "missmatch");
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                        }
+                        else
+                        if (item2->kind == NODE_KIND_MEMBER)
+                        {
+                            node_t *type1 = property1->type;
+                            if (type1->kind == NODE_KIND_NUMBER)
+                            {
+                                node_basic_t *num1 = (node_basic_t *)type1->value;
+                                double128_t value1 = utils_stold(num1->value);
+                                uint64_t value2 = mensuration_size(program, item2);
+                                if (value2 > value1)
+                                {
+                                    semantic_error(program, property1->value, "overflow");
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_FN)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_ID)
+                            {
+                                list_t *response2 = list_create();
+                                if (response2 == NULL)
+                                {
+                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                    return -1;
+                                }
+
+                                int32_t r2 = semantic_resolve(program, NULL, type1, response2, SELECT_FLAG_NONE);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 0)
+                                {
+                                    semantic_error(program, type1, "reference not found");
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    ilist_t *a2;
+                                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                                    {
+                                        node_t *item3 = (node_t *)a2->value;
+                                        if (item3->kind == NODE_KIND_ENUM)
+                                        {
+                                            node_t *parent1 = type1->parent;
+                                            while (parent1 != NULL)
+                                            {
+                                                if (parent1->kind == NODE_KIND_ENUM)
+                                                {
+                                                    break;
+                                                }
+                                                parent1 = parent1->parent;
+                                            }
+
+                                            if (parent1 != NULL)
+                                            {
+                                                if (parent1->id != item3->id)
+                                                {
+                                                    semantic_error(program, property1->value, "missmatch");
+                                                    return -1;
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            semantic_error(program, property1->value, "missmatch");
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                        }
+                        else
+                        if (item2->kind == NODE_KIND_FN)
+                        {
+                            node_t *type1 = property1->type;
+                            if (type1->kind == NODE_KIND_NUMBER)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_FN)
+                            {
+                                node_fn_t *fn1 = (node_fn_t *)type1->value;
+                                node_fn_t *fn2 = (node_fn_t *)item2->value;
+                                int32_t r2 = semantic_eqaul_gsgs(program, fn1->generics, fn2->generics);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 0)
+                                {
+                                    semantic_error(program, property1->value, "missmatch");
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    int32_t r3 = semantic_eqaul_psps(program, fn1->parameters, fn2->parameters);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, property1->value, "missmatch");
+                                        return -1;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                        }
+                        else
+                        {
+                            semantic_error(program, property1->value, "missmatch");
+                            return -1;
+                        }
+
                         property1->value_update = var2->value_update;
                     }
                     else
                     {
-                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                        semantic_error(program, item1, "unitialized, encounter in (%lld:%lld)",
                             property1->value->position.line, property1->value->position.column);
                         return -1;
                     }
                 }
                 else
-                if (item2->kind == NODE_KIND_ENTITY)
+                if (item1->kind == NODE_KIND_ENTITY)
                 {
-                    node_entity_t *entity2 = (node_entity_t *)item2->value;
+                    node_entity_t *entity2 = (node_entity_t *)item1->value;
                     if (entity2->value_update != NULL)
                     {
+                        node_t *item2 = entity2->value_update;
+                        if (item2->kind == NODE_KIND_CLASS)
+                        {
+                            node_t *type1 = property1->type;
+                            if (type1->kind == NODE_KIND_NUMBER)
+                            {
+                                node_basic_t *num1 = (node_basic_t *)type1->value;
+                                double128_t value1 = utils_stold(num1->value);
+                                uint64_t value2 = mensuration_size(program, item2);
+                                if (value2 > value1)
+                                {
+                                    semantic_error(program, property1->value, "overflow");
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_FN)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_ID)
+                            {
+                                list_t *response2 = list_create();
+                                if (response2 == NULL)
+                                {
+                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                    return -1;
+                                }
+
+                                int32_t r2 = semantic_resolve(program, NULL, type1, response2, SELECT_FLAG_NONE);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 0)
+                                {
+                                    semantic_error(program, type1, "reference not found");
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    ilist_t *a2;
+                                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                                    {
+                                        node_t *item3 = (node_t *)a2->value;
+                                        if (item3->kind == NODE_KIND_CLASS)
+                                        {
+                                            if (item3->id != item2->id)
+                                            {
+                                                semantic_error(program, property1->value, "missmatch");
+                                                return -1;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            semantic_error(program, property1->value, "missmatch");
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                        }
+                        else
+                        if (item2->kind == NODE_KIND_MEMBER)
+                        {
+                            node_t *type1 = property1->type;
+                            if (type1->kind == NODE_KIND_NUMBER)
+                            {
+                                node_basic_t *num1 = (node_basic_t *)type1->value;
+                                double128_t value1 = utils_stold(num1->value);
+                                uint64_t value2 = mensuration_size(program, item2);
+                                if (value2 > value1)
+                                {
+                                    semantic_error(program, property1->value, "overflow");
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_FN)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_ID)
+                            {
+                                list_t *response2 = list_create();
+                                if (response2 == NULL)
+                                {
+                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                    return -1;
+                                }
+
+                                int32_t r2 = semantic_resolve(program, NULL, type1, response2, SELECT_FLAG_NONE);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 0)
+                                {
+                                    semantic_error(program, type1, "reference not found");
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    ilist_t *a2;
+                                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                                    {
+                                        node_t *item3 = (node_t *)a2->value;
+                                        if (item3->kind == NODE_KIND_ENUM)
+                                        {
+                                            node_t *parent1 = type1->parent;
+                                            while (parent1 != NULL)
+                                            {
+                                                if (parent1->kind == NODE_KIND_ENUM)
+                                                {
+                                                    break;
+                                                }
+                                                parent1 = parent1->parent;
+                                            }
+
+                                            if (parent1 != NULL)
+                                            {
+                                                if (parent1->id != item3->id)
+                                                {
+                                                    semantic_error(program, property1->value, "missmatch");
+                                                    return -1;
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            semantic_error(program, property1->value, "missmatch");
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                        }
+                        else
+                        if (item2->kind == NODE_KIND_FN)
+                        {
+                            node_t *type1 = property1->type;
+                            if (type1->kind == NODE_KIND_NUMBER)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_FN)
+                            {
+                                node_fn_t *fn1 = (node_fn_t *)type1->value;
+                                node_fn_t *fn2 = (node_fn_t *)item2->value;
+                                int32_t r2 = semantic_eqaul_gsgs(program, fn1->generics, fn2->generics);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 0)
+                                {
+                                    semantic_error(program, property1->value, "missmatch");
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    int32_t r3 = semantic_eqaul_psps(program, fn1->parameters, fn2->parameters);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, property1->value, "missmatch");
+                                        return -1;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                        }
+                        else
+                        {
+                            semantic_error(program, property1->value, "missmatch");
+                            return -1;
+                        }
                         property1->value_update = entity2->value_update;
                     }
                     else
                     {
-                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                        semantic_error(program, item1, "unitialized, encounter in (%lld:%lld)",
                             property1->value->position.line, property1->value->position.column);
                         return -1;
                     }
                 }
                 else
-                if (item2->kind == NODE_KIND_PROPERTY)
+                if (item1->kind == NODE_KIND_PROPERTY)
                 {
-                    node_property_t *property2 = (node_property_t *)item2->value;
+                    node_property_t *property2 = (node_property_t *)item1->value;
                     if (property2->value_update != NULL)
                     {
+                        node_t *item2 = property2->value_update;
+                        if (item2->kind == NODE_KIND_CLASS)
+                        {
+                            node_t *type1 = property1->type;
+                            if (type1->kind == NODE_KIND_NUMBER)
+                            {
+                                node_basic_t *num1 = (node_basic_t *)type1->value;
+                                double128_t value1 = utils_stold(num1->value);
+                                uint64_t value2 = mensuration_size(program, item2);
+                                if (value2 > value1)
+                                {
+                                    semantic_error(program, property1->value, "overflow");
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_FN)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_ID)
+                            {
+                                list_t *response2 = list_create();
+                                if (response2 == NULL)
+                                {
+                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                    return -1;
+                                }
+
+                                int32_t r2 = semantic_resolve(program, NULL, type1, response2, SELECT_FLAG_NONE);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 0)
+                                {
+                                    semantic_error(program, type1, "reference not found");
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    ilist_t *a2;
+                                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                                    {
+                                        node_t *item3 = (node_t *)a2->value;
+                                        if (item3->kind == NODE_KIND_CLASS)
+                                        {
+                                            if (item3->id != item2->id)
+                                            {
+                                                semantic_error(program, property1->value, "missmatch");
+                                                return -1;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            semantic_error(program, property1->value, "missmatch");
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                        }
+                        else
+                        if (item2->kind == NODE_KIND_MEMBER)
+                        {
+                            node_t *type1 = property1->type;
+                            if (type1->kind == NODE_KIND_NUMBER)
+                            {
+                                node_basic_t *num1 = (node_basic_t *)type1->value;
+                                double128_t value1 = utils_stold(num1->value);
+                                uint64_t value2 = mensuration_size(program, item2);
+                                if (value2 > value1)
+                                {
+                                    semantic_error(program, property1->value, "overflow");
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_FN)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_ID)
+                            {
+                                list_t *response2 = list_create();
+                                if (response2 == NULL)
+                                {
+                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                    return -1;
+                                }
+
+                                int32_t r2 = semantic_resolve(program, NULL, type1, response2, SELECT_FLAG_NONE);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 0)
+                                {
+                                    semantic_error(program, type1, "reference not found");
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    ilist_t *a2;
+                                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                                    {
+                                        node_t *item3 = (node_t *)a2->value;
+                                        if (item3->kind == NODE_KIND_ENUM)
+                                        {
+                                            node_t *parent1 = type1->parent;
+                                            while (parent1 != NULL)
+                                            {
+                                                if (parent1->kind == NODE_KIND_ENUM)
+                                                {
+                                                    break;
+                                                }
+                                                parent1 = parent1->parent;
+                                            }
+
+                                            if (parent1 != NULL)
+                                            {
+                                                if (parent1->id != item3->id)
+                                                {
+                                                    semantic_error(program, property1->value, "missmatch");
+                                                    return -1;
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            semantic_error(program, property1->value, "missmatch");
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                        }
+                        else
+                        if (item2->kind == NODE_KIND_FN)
+                        {
+                            node_t *type1 = property1->type;
+                            if (type1->kind == NODE_KIND_NUMBER)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_FN)
+                            {
+                                node_fn_t *fn1 = (node_fn_t *)type1->value;
+                                node_fn_t *fn2 = (node_fn_t *)item2->value;
+                                int32_t r2 = semantic_eqaul_gsgs(program, fn1->generics, fn2->generics);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 0)
+                                {
+                                    semantic_error(program, property1->value, "missmatch");
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    int32_t r3 = semantic_eqaul_psps(program, fn1->parameters, fn2->parameters);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, property1->value, "missmatch");
+                                        return -1;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                        }
+                        else
+                        {
+                            semantic_error(program, property1->value, "missmatch");
+                            return -1;
+                        }
+
                         property1->value_update = property2->value_update;
                     }
                     else
                     {
-                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                        semantic_error(program, item1, "unitialized, encounter in (%lld:%lld)",
                             property1->value->position.line, property1->value->position.column);
                         return -1;
                     }
                 }
                 else
-                if (item2->kind == NODE_KIND_PARAMETER)
+                if (item1->kind == NODE_KIND_PARAMETER)
                 {
-                    node_parameter_t *parameter2 = (node_parameter_t *)item2->value;
+                    node_parameter_t *parameter2 = (node_parameter_t *)item1->value;
                     if (parameter2->value_update != NULL)
                     {
+                        node_t *item2 = parameter2->value_update;
+                        if (item2->kind == NODE_KIND_CLASS)
+                        {
+                            node_t *type1 = property1->type;
+                            if (type1->kind == NODE_KIND_NUMBER)
+                            {
+                                node_basic_t *num1 = (node_basic_t *)type1->value;
+                                double128_t value1 = utils_stold(num1->value);
+                                uint64_t value2 = mensuration_size(program, item2);
+                                if (value2 > value1)
+                                {
+                                    semantic_error(program, property1->value, "overflow");
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_FN)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_ID)
+                            {
+                                list_t *response2 = list_create();
+                                if (response2 == NULL)
+                                {
+                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                    return -1;
+                                }
+
+                                int32_t r2 = semantic_resolve(program, NULL, type1, response2, SELECT_FLAG_NONE);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 0)
+                                {
+                                    semantic_error(program, type1, "reference not found");
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    ilist_t *a2;
+                                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                                    {
+                                        node_t *item3 = (node_t *)a2->value;
+                                        if (item3->kind == NODE_KIND_CLASS)
+                                        {
+                                            if (item3->id != item2->id)
+                                            {
+                                                semantic_error(program, property1->value, "missmatch");
+                                                return -1;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            semantic_error(program, property1->value, "missmatch");
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                        }
+                        else
+                        if (item2->kind == NODE_KIND_MEMBER)
+                        {
+                            node_t *type1 = property1->type;
+                            if (type1->kind == NODE_KIND_NUMBER)
+                            {
+                                node_basic_t *num1 = (node_basic_t *)type1->value;
+                                double128_t value1 = utils_stold(num1->value);
+                                uint64_t value2 = mensuration_size(program, item2);
+                                if (value2 > value1)
+                                {
+                                    semantic_error(program, property1->value, "overflow");
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_FN)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_ID)
+                            {
+                                list_t *response2 = list_create();
+                                if (response2 == NULL)
+                                {
+                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                    return -1;
+                                }
+
+                                int32_t r2 = semantic_resolve(program, NULL, type1, response2, SELECT_FLAG_NONE);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 0)
+                                {
+                                    semantic_error(program, type1, "reference not found");
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    ilist_t *a2;
+                                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                                    {
+                                        node_t *item3 = (node_t *)a2->value;
+                                        if (item3->kind == NODE_KIND_ENUM)
+                                        {
+                                            node_t *parent1 = type1->parent;
+                                            while (parent1 != NULL)
+                                            {
+                                                if (parent1->kind == NODE_KIND_ENUM)
+                                                {
+                                                    break;
+                                                }
+                                                parent1 = parent1->parent;
+                                            }
+
+                                            if (parent1 != NULL)
+                                            {
+                                                if (parent1->id != item3->id)
+                                                {
+                                                    semantic_error(program, property1->value, "missmatch");
+                                                    return -1;
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            semantic_error(program, property1->value, "missmatch");
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                        }
+                        else
+                        if (item2->kind == NODE_KIND_FN)
+                        {
+                            node_t *type1 = property1->type;
+                            if (type1->kind == NODE_KIND_NUMBER)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_FN)
+                            {
+                                node_fn_t *fn1 = (node_fn_t *)type1->value;
+                                node_fn_t *fn2 = (node_fn_t *)item2->value;
+                                int32_t r2 = semantic_eqaul_gsgs(program, fn1->generics, fn2->generics);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 0)
+                                {
+                                    semantic_error(program, property1->value, "missmatch");
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    int32_t r3 = semantic_eqaul_psps(program, fn1->parameters, fn2->parameters);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, property1->value, "missmatch");
+                                        return -1;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                        }
+                        else
+                        {
+                            semantic_error(program, property1->value, "missmatch");
+                            return -1;
+                        }
                         property1->value_update = parameter2->value_update;
                     }
                     else
                     {
-                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                        semantic_error(program, item1, "unitialized, encounter in (%lld:%lld)",
                             property1->value->position.line, property1->value->position.column);
                         return -1;
                     }
                 }
                 else
-                if (item2->kind == NODE_KIND_MEMBER)
+                if (item1->kind == NODE_KIND_MEMBER)
                 {
-                    node_member_t *member2 = (node_member_t *)item2->value;
+                    node_member_t *member2 = (node_member_t *)item1->value;
                     if (member2->value_update != NULL)
                     {
+                        node_t *item2 = member2->value_update;
+                        if (item2->kind == NODE_KIND_CLASS)
+                        {
+                            node_t *type1 = property1->type;
+                            if (type1->kind == NODE_KIND_NUMBER)
+                            {
+                                node_basic_t *num1 = (node_basic_t *)type1->value;
+                                double128_t value1 = utils_stold(num1->value);
+                                uint64_t value2 = mensuration_size(program, item2);
+                                if (value2 > value1)
+                                {
+                                    semantic_error(program, property1->value, "overflow");
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_FN)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_ID)
+                            {
+                                list_t *response2 = list_create();
+                                if (response2 == NULL)
+                                {
+                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                    return -1;
+                                }
+
+                                int32_t r2 = semantic_resolve(program, NULL, type1, response2, SELECT_FLAG_NONE);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 0)
+                                {
+                                    semantic_error(program, type1, "reference not found");
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    ilist_t *a2;
+                                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                                    {
+                                        node_t *item3 = (node_t *)a2->value;
+                                        if (item3->kind == NODE_KIND_CLASS)
+                                        {
+                                            if (item3->id != item2->id)
+                                            {
+                                                semantic_error(program, property1->value, "missmatch");
+                                                return -1;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            semantic_error(program, property1->value, "missmatch");
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                        }
+                        else
+                        if (item2->kind == NODE_KIND_MEMBER)
+                        {
+                            node_t *type1 = property1->type;
+                            if (type1->kind == NODE_KIND_NUMBER)
+                            {
+                                node_basic_t *num1 = (node_basic_t *)type1->value;
+                                double128_t value1 = utils_stold(num1->value);
+                                uint64_t value2 = mensuration_size(program, item2);
+                                if (value2 > value1)
+                                {
+                                    semantic_error(program, property1->value, "overflow");
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_FN)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_ID)
+                            {
+                                list_t *response2 = list_create();
+                                if (response2 == NULL)
+                                {
+                                    fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                    return -1;
+                                }
+
+                                int32_t r2 = semantic_resolve(program, NULL, type1, response2, SELECT_FLAG_NONE);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 0)
+                                {
+                                    semantic_error(program, type1, "reference not found");
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    ilist_t *a2;
+                                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                                    {
+                                        node_t *item3 = (node_t *)a2->value;
+                                        if (item3->kind == NODE_KIND_ENUM)
+                                        {
+                                            node_t *parent1 = type1->parent;
+                                            while (parent1 != NULL)
+                                            {
+                                                if (parent1->kind == NODE_KIND_ENUM)
+                                                {
+                                                    break;
+                                                }
+                                                parent1 = parent1->parent;
+                                            }
+
+                                            if (parent1 != NULL)
+                                            {
+                                                if (parent1->id != item3->id)
+                                                {
+                                                    semantic_error(program, property1->value, "missmatch");
+                                                    return -1;
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            semantic_error(program, property1->value, "missmatch");
+                                            return -1;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                        }
+                        else
+                        if (item2->kind == NODE_KIND_FN)
+                        {
+                            node_t *type1 = property1->type;
+                            if (type1->kind == NODE_KIND_NUMBER)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (type1->kind == NODE_KIND_FN)
+                            {
+                                node_fn_t *fn1 = (node_fn_t *)type1->value;
+                                node_fn_t *fn2 = (node_fn_t *)item2->value;
+                                int32_t r2 = semantic_eqaul_gsgs(program, fn1->generics, fn2->generics);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 0)
+                                {
+                                    semantic_error(program, property1->value, "missmatch");
+                                    return -1;
+                                }
+                                else
+                                if (r2 == 1)
+                                {
+                                    int32_t r3 = semantic_eqaul_psps(program, fn1->parameters, fn2->parameters);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 0)
+                                    {
+                                        semantic_error(program, property1->value, "missmatch");
+                                        return -1;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                        }
+                        else
+                        {
+                            semantic_error(program, property1->value, "missmatch");
+                            return -1;
+                        }
                         property1->value_update = member2->value_update;
                     }
                     else
                     {
-                        semantic_error(program, item2, "unitialized, encounter in (%lld:%lld)",
+                        semantic_error(program, item1, "unitialized, encounter in (%lld:%lld)",
                             property1->value->position.line, property1->value->position.column);
                         return -1;
                     }
                 }
                 else
                 {
-                    property1->value_update = item2;
+                    node_t *item2 = item1;
+                    if (item2->kind == NODE_KIND_CLASS)
+                    {
+                        node_t *type1 = property1->type;
+                        if (type1->kind == NODE_KIND_NUMBER)
+                        {
+                            node_basic_t *num1 = (node_basic_t *)type1->value;
+                            double128_t value1 = utils_stold(num1->value);
+                            uint64_t value2 = mensuration_size(program, item2);
+                            if (value2 > value1)
+                            {
+                                semantic_error(program, property1->value, "overflow");
+                                return -1;
+                            }
+                        }
+                        else
+                        if (type1->kind == NODE_KIND_FN)
+                        {
+                            semantic_error(program, property1->value, "missmatch");
+                            return -1;
+                        }
+                        else
+                        if (type1->kind == NODE_KIND_ID)
+                        {
+                            list_t *response2 = list_create();
+                            if (response2 == NULL)
+                            {
+                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                return -1;
+                            }
+
+                            int32_t r2 = semantic_resolve(program, NULL, type1, response2, SELECT_FLAG_NONE);
+                            if (r2 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r2 == 0)
+                            {
+                                semantic_error(program, type1, "reference not found");
+                                return -1;
+                            }
+                            else
+                            if (r2 == 1)
+                            {
+                                ilist_t *a2;
+                                for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                                {
+                                    node_t *item3 = (node_t *)a2->value;
+                                    if (item3->kind == NODE_KIND_CLASS)
+                                    {
+                                        if (item3->id != item2->id)
+                                        {
+                                            semantic_error(program, property1->value, "missmatch");
+                                            return -1;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        semantic_error(program, property1->value, "missmatch");
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            semantic_error(program, property1->value, "missmatch");
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_MEMBER)
+                    {
+                        node_t *type1 = property1->type;
+                        if (type1->kind == NODE_KIND_NUMBER)
+                        {
+                            node_basic_t *num1 = (node_basic_t *)type1->value;
+                            double128_t value1 = utils_stold(num1->value);
+                            uint64_t value2 = mensuration_size(program, item2);
+                            if (value2 > value1)
+                            {
+                                semantic_error(program, property1->value, "overflow");
+                                return -1;
+                            }
+                        }
+                        else
+                        if (type1->kind == NODE_KIND_FN)
+                        {
+                            semantic_error(program, property1->value, "missmatch");
+                            return -1;
+                        }
+                        else
+                        if (type1->kind == NODE_KIND_ID)
+                        {
+                            list_t *response2 = list_create();
+                            if (response2 == NULL)
+                            {
+                                fprintf(stderr, "%s-(%u):unable to allocate memory\n", __FILE__, __LINE__);
+                                return -1;
+                            }
+
+                            int32_t r2 = semantic_resolve(program, NULL, type1, response2, SELECT_FLAG_NONE);
+                            if (r2 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r2 == 0)
+                            {
+                                semantic_error(program, type1, "reference not found");
+                                return -1;
+                            }
+                            else
+                            if (r2 == 1)
+                            {
+                                ilist_t *a2;
+                                for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                                {
+                                    node_t *item3 = (node_t *)a2->value;
+                                    if (item3->kind == NODE_KIND_ENUM)
+                                    {
+                                        node_t *parent1 = type1->parent;
+                                        while (parent1 != NULL)
+                                        {
+                                            if (parent1->kind == NODE_KIND_ENUM)
+                                            {
+                                                break;
+                                            }
+                                            parent1 = parent1->parent;
+                                        }
+
+                                        if (parent1 != NULL)
+                                        {
+                                            if (parent1->id != item3->id)
+                                            {
+                                                semantic_error(program, property1->value, "missmatch");
+                                                return -1;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        semantic_error(program, property1->value, "missmatch");
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            semantic_error(program, property1->value, "missmatch");
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item2->kind == NODE_KIND_FN)
+                    {
+                        node_t *type1 = property1->type;
+                        if (type1->kind == NODE_KIND_NUMBER)
+                        {
+                            semantic_error(program, property1->value, "missmatch");
+                            return -1;
+                        }
+                        else
+                        if (type1->kind == NODE_KIND_FN)
+                        {
+                            node_fn_t *fn1 = (node_fn_t *)type1->value;
+                            node_fn_t *fn2 = (node_fn_t *)item2->value;
+                            int32_t r2 = semantic_eqaul_gsgs(program, fn1->generics, fn2->generics);
+                            if (r2 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r2 == 0)
+                            {
+                                semantic_error(program, property1->value, "missmatch");
+                                return -1;
+                            }
+                            else
+                            if (r2 == 1)
+                            {
+                                int32_t r3 = semantic_eqaul_psps(program, fn1->parameters, fn2->parameters);
+                                if (r3 == -1)
+                                {
+                                    return -1;
+                                }
+                                else
+                                if (r3 == 0)
+                                {
+                                    semantic_error(program, property1->value, "missmatch");
+                                    return -1;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            semantic_error(program, property1->value, "missmatch");
+                            return -1;
+                        }
+                    }
+                    else
+                    {
+                        semantic_error(program, property1->value, "missmatch");
+                        return -1;
+                    }
+                    property1->value_update = item1;
                 }
             }
         }
@@ -16993,7 +18293,7 @@ semantic_class(program_t *program, node_t *node)
 	return 1;
 }
 
-static int32_t
+int32_t
 semantic_module(program_t *program, node_t *node)
 {
 	node_module_t *module = (node_module_t *)node->value;
@@ -17033,17 +18333,66 @@ semantic_module(program_t *program, node_t *node)
             }
         }
     }
-
+    
 	return 1;
 }
 
 int32_t
 semantic_run(program_t *program, node_t *node)
 {
-	int32_t result = semantic_module(program, node);
-	if(result == -1)
-	{
-		return -1;
-	}
+    node_module_t *module1 = (node_module_t *)node->value;
+    
+    int32_t found1 = 0, found2 = 0, found3 = 0;
+    ilist_t *a1;
+    for (a1 = module1->items->begin; a1 != module1->items->end; a1 = a1->next)
+    {
+        node_t *item1 = (node_t *)a1->value;
+        if (item1->kind == NODE_KIND_CLASS)
+        {
+            node_class_t *class1 = (node_class_t *)item1->value;
+            if (semantic_idstrcmp(class1->key, "System") == 1)
+            {
+                found1 = 1;
+
+                node_t *node1 = class1->block;
+                node_block_t *block1 = (node_block_t *)node1->value;
+                
+                ilist_t *a2;
+                for (a2 = block1->list->begin; a2 != block1->list->end; a2 = a2->next)
+                {
+                    node_t *item2 = (node_t *)a2->value;
+                    if (item2->kind == NODE_KIND_FUN)
+                    {
+                        node_fun_t *fun1 = (node_fun_t *)item2->value;
+                        if (semantic_idstrcmp(fun1->key, "Constructor") == 1)
+                        {
+                            found2 = 1;
+
+                            
+                        }
+                    }
+                }
+
+                if (found2 == 0)
+                {
+                    semantic_error(program, item1, "'Constructor' not found");
+                    return -1;
+                }
+
+                if (found3 == 0)
+                {
+                    semantic_error(program, item1, "'Constructor' missmaching");
+                    return -1;
+                }
+            }
+        }
+    }
+
+    if (found1 == 0)
+    {
+        semantic_error(program, node, "'System' class not found");
+        return -1;
+    }
+
 	return 1;
 }

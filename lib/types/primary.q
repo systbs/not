@@ -41,7 +41,7 @@ export class UInt16
 export class UInt32
 {
     value: 4;
-
+ 
     export fun Constructor(value: Any)
     {
 
@@ -109,6 +109,11 @@ export class Float32
     value: 4;
 
     export fun Constructor(value: Any)
+    {
+
+    }
+
+    export fun -() : Float32
     {
 
     }

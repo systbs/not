@@ -140,7 +140,7 @@ program_load(program_t *program, char *path)
 			return NULL;
 		}
 
-		int32_t r5 = semantic_run(program, node1);
+		int32_t r5 = semantic_module(program, node1);
 		if(r5 == -1)
 		{
 			return NULL;
@@ -150,6 +150,13 @@ program_load(program_t *program, char *path)
 	}
 
 	return module1;
+}
+
+void_t
+program_outfile(program_t *program, char *path)
+{
+	FILE *fOut;
+	fOut = fopen("fileOut.txt", "w");
 }
 
 program_t *

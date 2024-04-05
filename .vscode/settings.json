@@ -39,7 +39,8 @@
         "syntax": "c",
         "*.c2": "c",
         "text": "c",
-        "semantic.h": "c"
+        "semantic.h": "c",
+        "mensuration.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

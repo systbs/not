@@ -22,6 +22,8 @@ typedef struct program {
     char *base_path;
     char *base_file;
 
+    char *out_file;
+
     list_t *errors;
     list_t *modules;
     list_t *repository;
