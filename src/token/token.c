@@ -1,4 +1,4 @@
-#include <stdint.h>
+//#include <stdint.h>
 
 #include "../types/types.h"
 #include "../token/position.h"
@@ -79,8 +79,6 @@ const char * const symbols[] = {
   [TOKEN_CATCH_KEYWORD]     = "catch",
   [TOKEN_THROW_KEYWORD]     = "throw",
   [TOKEN_RETURN_KEYWORD]    = "return",
-  [TOKEN_TRUE_KEYWORD]      = "true",
-  [TOKEN_FALSE_KEYWORD]     = "false",
   [TOKEN_FOR_KEYWORD]       = "for",
   [TOKEN_IN_KEYWORD]        = "in",
   [TOKEN_SIZEOF_KEYWORD]    = "sizeof",
@@ -92,8 +90,6 @@ const char * const symbols[] = {
   [TOKEN_STATIC_KEYWORD]    = "static",
   [TOKEN_READONLY_KEYWORD]  = "readonly",
   [TOKEN_VAR_KEYWORD]     	= "var",
-  [TOKEN_CONST_KEYWORD]     = "const",
-  [TOKEN_TYPE_KEYWORD]     	= "type",
   [TOKEN_ENUM_KEYWORD]     	= "enum",
   [TOKEN_EXPORT_KEYWORD]    = "export"
 };

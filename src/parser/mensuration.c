@@ -13,7 +13,6 @@
 #include "../token/position.h"
 #include "../token/token.h"
 #include "../program.h"
-#include "../scanner/file.h"
 #include "../scanner/scanner.h"
 #include "../ast/node.h"
 #include "../utils/utils.h"

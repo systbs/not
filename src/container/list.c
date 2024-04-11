@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -6,9 +7,6 @@
 #include "../token/position.h"
 #include "../token/token.h"
 #include "../program.h"
-#include "../scanner/file.h"
-#include "../scanner/scanner.h"
-#include "../ast/node.h"
 #include "list.h"
 
 list_t *

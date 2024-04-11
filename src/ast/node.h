@@ -133,7 +133,7 @@ typedef enum node_kind {
 	NODE_KIND_BODY,
 	NODE_KIND_PACKAGE,
 	NODE_KIND_PACKAGES,
-	NODE_KIND_IMPORT,
+	NODE_KIND_USING,
 	NODE_KIND_MODULE,
 	NODE_KIND_DOC
 } node_kind_t;
@@ -186,7 +186,6 @@ typedef struct node_if {
 } node_if_t;
 
 typedef struct node_for {
-	uint64_t flag;
 	node_t *key;
 	node_t *initializer;
 	node_t *condition;
@@ -195,7 +194,6 @@ typedef struct node_for {
 } node_for_t;
 
 typedef struct node_forin {
-	uint64_t flag;
 	node_t *key;
 	node_t *initializer;
 	node_t *expression;
@@ -208,8 +206,6 @@ typedef struct node_catch {
 } node_catch_t;
 
 typedef struct node_try {
-	node_t *key;
-	node_t *generics;
 	node_t *body;
 	node_t *catchs;
 } node_try_t;
@@ -263,6 +259,8 @@ typedef struct node_lambda {
 	node_t *parameters;
 	node_t *body;
 	node_t *result;
+
+	node_t *value_update;
 } node_lambda_t;
 
 typedef struct node_fn {
@@ -279,6 +277,8 @@ typedef struct node_func {
 	node_t *parameters;
 	node_t *result;
 	node_t *body;
+
+	node_t *value_update;
 } node_fun_t;
 
 typedef struct node_property {
@@ -329,21 +329,22 @@ typedef struct node_enum {
 } node_enum_t;
 
 typedef struct node_note {
-	node_t *annotation;
 	node_t *key;
 	node_t *arguments;
+
+	node_t *next;
 } node_note_t;
 
 typedef struct node_package {
 	node_t *key;
 	node_t *generics;
-	node_t *route;
+	node_t *address;
 } node_package_t;
 
-typedef struct node_import {
+typedef struct node_using {
 	node_t *path;
 	node_t *packages;
-} node_import_t;
+} node_using_t;
 
 typedef struct node_module {
 	char *path;
@@ -547,10 +548,10 @@ node_t *
 node_make_if(node_t *node, node_t *condition, node_t *then_body, node_t *else_body);
 
 node_t *
-node_make_for(node_t *node, uint64_t flag, node_t *name, node_t *initializer, node_t *condition, node_t *incrementor, node_t *body);
+node_make_for(node_t *node, node_t *name, node_t *initializer, node_t *condition, node_t *incrementor, node_t *body);
 
 node_t *
-node_make_forin(node_t *node, uint64_t flag, node_t *name, node_t *initializer, node_t *expression, node_t *body);
+node_make_forin(node_t *node, node_t *name, node_t *initializer, node_t *expression, node_t *body);
 
 node_t *
 node_make_break(node_t *node, node_t *expression);
@@ -565,7 +566,7 @@ node_t *
 node_make_catchs(node_t *node, list_t *list);
 
 node_t *
-node_make_try(node_t *node, node_t *key, node_t *generics, node_t *body, node_t *catchs);
+node_make_try(node_t *node, node_t *body, node_t *catchs);
 
 node_t *
 node_make_return(node_t *node, node_t *expr);
@@ -622,7 +623,7 @@ node_t *
 node_make_class(node_t *node, node_t *note, uint64_t flag, node_t *name, node_t *generics, node_t *heritages, node_t *block);
 
 node_t *
-node_make_annotation(node_t *node, node_t *note, node_t *key, node_t *arguments);
+node_make_annotation(node_t *node, node_t *key, node_t *arguments, node_t *next);
 
 node_t *
 node_make_member(node_t *node, node_t *name, node_t *value);
@@ -646,7 +647,7 @@ node_t *
 node_make_packages(node_t *node, list_t *list);
 
 node_t *
-node_make_import(node_t *node, node_t *path, node_t *fields);
+node_make_using(node_t *node, node_t *path, node_t *packages);
 
 node_t *
 node_make_module(node_t *node, char *path, list_t *items);

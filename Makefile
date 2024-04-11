@@ -1,4 +1,5 @@
-VERSION := 0.0.1
+VERSION := 0.0
+
 CC      :=  gcc
 CFLAGS  := -pedantic -Wall -Wextra -Wno-unused-parameter
 LDFLAGS := -lm
@@ -70,4 +71,4 @@ setup:
 
 # Builder uses this target to run your application.
 test: $(BINARY)
-	./qalam -f ./test/test.q
+	./qalam -f ./test/test.q -o ./test/test.asm

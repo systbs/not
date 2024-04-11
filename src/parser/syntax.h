@@ -11,11 +11,10 @@ typedef enum syntax_modifier
 	SYNTAX_MODIFIER_PROTECT 	= 1 << 4,
 	SYNTAX_MODIFIER_STATIC 			= 1 << 5,
 	SYNTAX_MODIFIER_ASYNC 			= 1 << 6
-} Parser_modifier_t;
+} syntax_modifier_t;
 
 typedef struct syntax 
 {
-	file_source_t *file_source;
 	scanner_t *scanner;
 	list_t *states;
 	program_t *program;

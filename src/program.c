@@ -8,7 +8,6 @@
 #include "token/position.h"
 #include "token/token.h"
 #include "program.h"
-#include "scanner/file.h"
 #include "scanner/scanner.h"
 #include "ast/node.h"
 #include "parser/syntax.h"
@@ -17,7 +16,7 @@
 #include "utils/utils.h"
 #include "utils/path.h"
 
-void
+void_t
 program_report(program_t *program)
 {
   ilist_t *a;
@@ -43,7 +42,7 @@ program_resolve(program_t *program, char *path)
 {
 	if (path_is_root(path))
   {
-    path_normalize(getenv ("QALAM-PATH"), program->base_path, MAX_URI);
+    path_normalize(getenv ("QALAM_PATH"), program->base_path, MAX_URI);
     path_join(program->base_path, path + 2, program->base_file, MAX_URI);
   }
   else
@@ -66,7 +65,8 @@ program_load(program_t *program, char *path)
 	char *base_path = malloc(MAX_URI);
 	if (base_path == NULL)
 	{
-		fprintf(stderr, "unable to allocted a block of %d bytes\n", MAX_URI);
+		fprintf(stderr, "%s-(%u):Unable to allocted a block of %d bytes\n", 
+			__FILE__, __LINE__, MAX_URI);
 		return NULL;
 	}
 	memset(base_path, 0, MAX_URI);
@@ -74,14 +74,15 @@ program_load(program_t *program, char *path)
 	char *base_file = malloc(MAX_URI);
 	if (base_file == NULL)
 	{
-		fprintf(stderr, "unable to allocted a block of %d bytes\n", MAX_URI);
+		fprintf(stderr, "%s-(%u):Unable to allocted a block of %d bytes\n", 
+			__FILE__, __LINE__, MAX_URI);
 		return NULL;
 	}
 	memset(base_file, 0, MAX_URI);
 
 	if (path_is_root(path))
 	{
-		path_normalize(getenv ("QALAM-PATH"), base_path, MAX_URI);
+		path_normalize(getenv ("QALAM_PATH"), base_path, MAX_URI);
 		path_join(base_path, path + 2, base_file, MAX_URI);
 	}
 	else
@@ -127,21 +128,22 @@ program_load(program_t *program, char *path)
 		pair_t *pair1 = (pair_t *)malloc(sizeof(pair_t));
 		if (pair1 == NULL)
 		{
-			fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(program_t));
+			fprintf(stderr, "%s-(%u):Unable to allocted a block of %zu bytes\n", 
+				__FILE__, __LINE__, sizeof(program_t));
 			return NULL;
 		}
 
 		pair1->key = base_file;
 		pair1->value = node1;
 
-		ilist_t *r4 = list_rpush(program->modules, pair1);
-		if (r4 == NULL)
+		ilist_t *r1 = list_rpush(program->modules, pair1);
+		if (r1 == NULL)
 		{
 			return NULL;
 		}
 
-		int32_t r5 = semantic_module(program, node1);
-		if(r5 == -1)
+		int32_t r2 = semantic_module(program, node1);
+		if(r2 == -1)
 		{
 			return NULL;
 		}
@@ -155,8 +157,7 @@ program_load(program_t *program, char *path)
 void_t
 program_outfile(program_t *program, char *path)
 {
-	FILE *fOut;
-	fOut = fopen("fileOut.txt", "w");
+	memcpy(program->out_file, path, strlen(path));
 }
 
 program_t *
@@ -165,7 +166,8 @@ program_create()
 	program_t *program = (program_t *)malloc(sizeof(program_t));
 	if (program == NULL)
 	{
-		fprintf(stderr, "unable to allocted a block of %zu bytes\n", sizeof(program_t));
+		fprintf(stderr, "%s-(%u):Unable to allocted a block of %zu bytes\n", 
+			__FILE__, __LINE__, sizeof(program_t));
 		return NULL;
 	}
 	memset(program, 0, sizeof(program_t));
@@ -173,18 +175,29 @@ program_create()
 	program->base_path = malloc(MAX_URI);
 	if (program->base_path == NULL)
 	{
-		fprintf(stderr, "unable to allocted a block of %d bytes\n", MAX_URI);
+		fprintf(stderr, "%s-(%u):Unable to allocted a block of %d bytes\n", 
+			__FILE__, __LINE__, MAX_URI);
 		return NULL;
 	}
-  memset(program->base_path, 0, MAX_URI);
+  	memset(program->base_path, 0, MAX_URI);
 
 	program->base_file = malloc(MAX_URI);
 	if (program->base_file == NULL)
 	{
-		fprintf(stderr, "unable to allocted a block of %d bytes\n", MAX_URI);
+		fprintf(stderr, "%s-(%u):Unable to allocted a block of %d bytes\n", 
+			__FILE__, __LINE__, MAX_URI);
 		return NULL;
 	}
-  memset(program->base_file, 0, MAX_URI);
+  	memset(program->base_file, 0, MAX_URI);
+
+	program->out_file = malloc(MAX_URI);
+	if (program->out_file == NULL)
+	{
+		fprintf(stderr, "%s-(%u):Unable to allocted a block of %d bytes\n", 
+			__FILE__, __LINE__, MAX_URI);
+		return NULL;
+	}
+  	memset(program->out_file, 0, MAX_URI);
 
 	program->errors = list_create();
 	if(program->errors == NULL)
@@ -198,8 +211,8 @@ program_create()
 		return NULL;
 	}
 
-	program->stack = list_create();
-	if(program->stack == NULL)
+	program->repository = list_create();
+	if(program->repository == NULL)
 	{
 		return NULL;
 	}

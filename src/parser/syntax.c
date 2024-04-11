@@ -8,7 +8,6 @@
 #include "../token/position.h"
 #include "../token/token.h"
 #include "../program.h"
-#include "../scanner/file.h"
 #include "../scanner/scanner.h"
 #include "../ast/node.h"
 #include "../utils/utils.h"
@@ -186,8 +185,7 @@ syntax_error(program_t *program, position_t position, const char *format, ...)
 static error_t *
 syntax_expected(program_t *program, syntax_t *syntax, int32_t type)
 {
-	char *message;
-	message = malloc(1024);
+	char *message = malloc(1024);
 	if (!message)
 	{
 		return NULL;
@@ -215,8 +213,7 @@ syntax_expected(program_t *program, syntax_t *syntax, int32_t type)
 		break;
 	}
 
-	error_t *error;
-	error = error_create(syntax->token->position, message);
+	error_t *error = error_create(syntax->token->position, message);
 	if (!error)
 	{
 		return NULL;
@@ -235,7 +232,7 @@ syntax_match(program_t *program, syntax_t *syntax, int32_t type)
 {
 	if (syntax->token->type == type)
 	{
-		if (scanner_advance(syntax->scanner) == -1)
+		if (scanner_advance(program, syntax->scanner) == -1)
 		{
 			return -1;
 		}
@@ -251,7 +248,7 @@ syntax_match(program_t *program, syntax_t *syntax, int32_t type)
 static int32_t
 syntax_next(program_t *program, syntax_t *syntax)
 {
-	if (scanner_advance(syntax->scanner) == -1)
+	if (scanner_advance(program, syntax->scanner) == -1)
 	{
 		return -1;
 	}
@@ -261,7 +258,7 @@ syntax_next(program_t *program, syntax_t *syntax)
 static int32_t
 syntax_gt(program_t *program, syntax_t *syntax)
 {
-	return scanner_gt(syntax->scanner);
+	return scanner_gt(program, syntax->scanner);
 }
 
 static int32_t
@@ -635,7 +632,7 @@ syntax_array(program_t *program, syntax_t *syntax, node_t *parent)
 	}
 
 	list_t *items = list_create();
-	if (!items)
+	if (items == NULL)
 	{
 		return NULL;
 	}
@@ -684,7 +681,7 @@ syntax_pair(program_t *program, syntax_t *syntax, node_t *parent)
 	}
 
 	node_t *key = syntax_id(program, syntax, node);
-	if (!key)
+	if (key == NULL)
 	{
 		return NULL;
 	}
@@ -695,7 +692,7 @@ syntax_pair(program_t *program, syntax_t *syntax, node_t *parent)
 	}
 
 	node_t *value = syntax_expression(program, syntax, node);
-	if (!value)
+	if (value == NULL)
 	{
 		return NULL;
 	}
@@ -773,7 +770,7 @@ syntax_parenthesis(program_t *program, syntax_t *syntax, node_t *parent)
 	}
 
 	node_t *value = syntax_expression(program, syntax, node);
-	if (!value)
+	if (value == NULL)
 	{
 		return NULL;
 	}
@@ -804,7 +801,7 @@ syntax_lambda(program_t *program, syntax_t *syntax, node_t *parent)
 	if (syntax->token->type == TOKEN_ID)
 	{
 		key = syntax_id(program, syntax, node);
-		if (!key)
+		if (key == NULL)
 		{
 			return NULL;
 		}
@@ -982,7 +979,7 @@ syntax_field(program_t *program, syntax_t *syntax, node_t *parent)
 	}
 
 	node_t *key = syntax_postfix(program, syntax, node);
-	if (!key)
+	if (key == NULL)
 	{
 		return NULL;
 	}
@@ -996,7 +993,7 @@ syntax_field(program_t *program, syntax_t *syntax, node_t *parent)
 		}
 
 		value = syntax_postfix(program, syntax, node);
-		if (!value)
+		if (value == NULL)
 		{
 			return NULL;
 		}
@@ -1057,7 +1054,7 @@ syntax_argument(program_t *program, syntax_t *syntax, node_t *parent)
 	}
 
 	node_t *key = syntax_expression(program, syntax, node);
-	if (!key)
+	if (key == NULL)
 	{
 		return NULL;
 	}
@@ -1071,7 +1068,7 @@ syntax_argument(program_t *program, syntax_t *syntax, node_t *parent)
 		}
 
 		value = syntax_expression(program, syntax, node);
-		if (!value)
+		if (value == NULL)
 		{
 			return NULL;
 		}
@@ -2393,7 +2390,7 @@ syntax_entity(program_t *program, syntax_t *syntax, node_t *parent, uint64_t fla
 			return NULL;
 		}
 		value = syntax_expression(program, syntax, node);
-		if (!value)
+		if (value == NULL)
 		{
 			return NULL;
 		}
@@ -2470,21 +2467,21 @@ syntax_var(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
 		return NULL;
 	}
 
-	int32_t object_used = 0;
+	int32_t set_used = 0;
 	node_t *key = NULL;
 	if (syntax->token->type != TOKEN_ID)
 	{
 		key = syntax_set(program, syntax, node, flag);
-		if (!key)
+		if (key == NULL)
 		{
 			return NULL;
 		}
-		object_used = 1;
+		set_used = 1;
 	}
 	else
 	{
 		key = syntax_id(program, syntax, node);
-		if (!key)
+		if (key == NULL)
 		{
 			return NULL;
 		}
@@ -2497,13 +2494,13 @@ syntax_var(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
 		{
 			return NULL;
 		}
-		if (object_used == 1)
+		if (set_used == 1)
 		{
-			syntax_error(program, syntax->token->position, "multiple variables with type");
+			syntax_error(program, syntax->token->position, "variables set with type");
 			return NULL;
 		}
-		type = syntax_expression(program, syntax, node);
-		if (!type)
+		type = syntax_postfix(program, syntax, node);
+		if (type == NULL)
 		{
 			return NULL;
 		}
@@ -2518,7 +2515,7 @@ syntax_var(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
 		}
 
 		value = syntax_expression(program, syntax, node);
-		if (!value)
+		if (value == NULL)
 		{
 			return NULL;
 		}
@@ -2528,7 +2525,7 @@ syntax_var(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
 }
 
 static node_t *
-syntax_for(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
+syntax_for(program_t *program, syntax_t *syntax, node_t *parent)
 {
 	node_t *node = node_create(parent, syntax->token->position);
 	if (node == NULL)
@@ -2545,7 +2542,7 @@ syntax_for(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
 	if (syntax->token->type == TOKEN_ID)
 	{
 		key = syntax_id(program, syntax, node);
-		if (!key)
+		if (key == NULL)
 		{
 			return NULL;
 		}
@@ -2569,7 +2566,7 @@ syntax_for(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
 		syntax->loop_depth += 1;
 
 		node_t *body = syntax_body(program, syntax, node);
-		if (!body)
+		if (body == NULL)
 		{
 			return NULL;
 		}
@@ -2600,7 +2597,7 @@ syntax_for(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
 			return NULL;
 		}
 
-		return node_make_for(node, flag, key, initializer_block, condition, incrementor_block, body);
+		return node_make_for(node, key, initializer_block, condition, incrementor_block, body);
 	}
 
 	if (syntax_match(program, syntax, TOKEN_LPAREN) == -1)
@@ -2730,7 +2727,7 @@ syntax_for(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
 	syntax->loop_depth += 1;
 
 	node_t *body = syntax_body(program, syntax, node);
-	if (!body)
+	if (body == NULL)
 	{
 		return NULL;
 	}
@@ -2761,7 +2758,7 @@ syntax_for(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
 		return NULL;
 	}
 
-	return node_make_for(node, flag, key, initializer_block, condition, incrementor_block, body);
+	return node_make_for(node, key, initializer_block, condition, incrementor_block, body);
 
 	region_forin:
 	if (syntax_match(program, syntax, TOKEN_COLON) == -1)
@@ -2783,7 +2780,7 @@ syntax_for(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
 	syntax->loop_depth += 1;
 
 	body = syntax_body(program, syntax, node);
-	if (!body)
+	if (body == NULL)
 	{
 		return NULL;
 	}
@@ -2795,7 +2792,7 @@ syntax_for(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
 		return NULL;
 	}
 
-	return node_make_forin(node, flag, key, initializer_block, iterator, body);
+	return node_make_forin(node, key, initializer_block, iterator, body);
 }
 
 static node_t *
@@ -2821,7 +2818,7 @@ syntax_break(program_t *program, syntax_t *syntax, node_t *parent)
 	if (syntax->token->type != TOKEN_SEMICOLON)
 	{
 		value = syntax_id(program, syntax, node);
-		if (!value)
+		if (value == NULL)
 		{
 			return NULL;
 		}
@@ -2853,7 +2850,7 @@ syntax_continue(program_t *program, syntax_t *syntax, node_t *parent)
 	if (syntax->token->type != TOKEN_SEMICOLON)
 	{
 		value = syntax_id(program, syntax, node);
-		if (!value)
+		if (value == NULL)
 		{
 			return NULL;
 		}
@@ -2899,7 +2896,7 @@ syntax_catch(program_t *program, syntax_t *syntax, node_t *parent)
 
 	node_t *body;
 	body = syntax_body(program, syntax, node);
-	if (!body)
+	if (body == NULL)
 	{
 		return NULL;
 	}
@@ -2952,50 +2949,8 @@ syntax_try(program_t *program, syntax_t *syntax, node_t *parent)
 		return NULL;
 	}
 
-	node_t *key = syntax_id(program, syntax, node);
-	if (!key)
-	{
-		return NULL;
-	}
-
-	node_t *generics = NULL;
-	if (syntax->token->type == TOKEN_LT)
-	{
-		if (syntax_next(program, syntax) == -1)
-		{
-			return NULL;
-		}
-
-		if (syntax_gt(program, syntax) == -1)
-		{
-			return NULL;
-		}
-
-		if (syntax->token->type == TOKEN_GT)
-		{
-			syntax_error(program, syntax->token->position, "empty generic types");
-			return NULL;
-		}
-
-		generics = syntax_generics(program, syntax, node);
-		if (!generics)
-		{
-			return NULL;
-		}
-
-		if (syntax_gt(program, syntax) == -1)
-		{
-			return NULL;
-		}
-		
-		if (syntax_match(program, syntax, TOKEN_GT) == -1)
-		{
-			return NULL;
-		}
-	}
-
 	node_t *body = syntax_body(program, syntax, node);
-	if (!body)
+	if (body == NULL)
 	{
 		return NULL;
 	}
@@ -3004,13 +2959,13 @@ syntax_try(program_t *program, syntax_t *syntax, node_t *parent)
 	if (syntax->token->type == TOKEN_CATCH_KEYWORD)
 	{
 		catchs = syntax_catchs(program, syntax, node);
-		if (!catchs)
+		if (catchs == NULL)
 		{
 			return NULL;
 		}
 	}
 
-	return node_make_try(node, key, generics, body, catchs);
+	return node_make_try(node, body, catchs);
 }
 
 static node_t *
@@ -3027,9 +2982,8 @@ syntax_return(program_t *program, syntax_t *syntax, node_t *parent)
 		return NULL;
 	}
 
-	node_t *value = NULL;
-	value = syntax_expression(program, syntax, node);
-	if (!value)
+	node_t *value = syntax_expression(program, syntax, node);
+	if (value == NULL)
 	{
 		return NULL;
 	}
@@ -3070,38 +3024,6 @@ syntax_readonly(program_t *program, syntax_t *syntax, node_t *parent, uint64_t f
 }
 
 static node_t *
-syntax_async(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
-{
-	if (syntax_match(program, syntax, TOKEN_ASYNC_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	flag |= SYNTAX_MODIFIER_ASYNC;
-
-	node_t *node = NULL;
-	switch (syntax->token->type)
-	{
-	case TOKEN_FOR_KEYWORD:
-		node = syntax_for(program, syntax, parent, flag);
-		break;
-
-	default:
-		syntax_error(program, syntax->token->position, "incorrect use of modifier 'async'");
-		break;
-	}
-
-	flag &= ~SYNTAX_MODIFIER_ASYNC;
-
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	return node;
-}
-
-static node_t *
 syntax_statement(program_t *program, syntax_t *syntax, node_t *parent)
 {
 	node_t *node = NULL;
@@ -3117,7 +3039,7 @@ syntax_statement(program_t *program, syntax_t *syntax, node_t *parent)
 	else
 	if (syntax->token->type == TOKEN_FOR_KEYWORD)
 	{
-		node = syntax_for(program, syntax, parent, SYNTAX_MODIFIER_NONE);
+		node = syntax_for(program, syntax, parent);
 	}
 	else
 	if (syntax->token->type == TOKEN_VAR_KEYWORD)
@@ -3136,11 +3058,6 @@ syntax_statement(program_t *program, syntax_t *syntax, node_t *parent)
 	if (syntax->token->type == TOKEN_READONLY_KEYWORD)
 	{
 		node = syntax_readonly(program, syntax, parent, SYNTAX_MODIFIER_NONE);
-	}
-	else
-	if (syntax->token->type == TOKEN_ASYNC_KEYWORD)
-	{
-		node = syntax_async(program, syntax, parent, SYNTAX_MODIFIER_NONE);
 	}
 	else
 	if (syntax->token->type == TOKEN_BREAK_KEYWORD)
@@ -3278,16 +3195,18 @@ syntax_parameter(program_t *program, syntax_t *syntax, node_t *parent)
 	}
 
 	node_t *key = syntax_id(program, syntax, node);
-	if (!key)
+	if (key == NULL)
 	{
 		return NULL;
-	}	if (syntax_match(program, syntax, TOKEN_COLON) == -1)
+	}	
+	
+	if (syntax_match(program, syntax, TOKEN_COLON) == -1)
 	{
 		return NULL;
 	}
 
-	node_t *type = syntax_expression(program, syntax, node);
-	if (!type)
+	node_t *type = syntax_postfix(program, syntax, node);
+	if (type == NULL)
 	{
 		return NULL;
 	}
@@ -3307,7 +3226,7 @@ syntax_parameter(program_t *program, syntax_t *syntax, node_t *parent)
 		}
 
 		value = syntax_expression(program, syntax, node);
-		if (!value)
+		if (value == NULL)
 		{
 			return NULL;
 		}
@@ -3369,7 +3288,7 @@ syntax_generic(program_t *program, syntax_t *syntax, node_t *parent)
 
 	node_t *key;
 	key = syntax_id(program, syntax, node);
-	if (!key)
+	if (key == NULL)
 	{
 		return NULL;
 	}
@@ -3382,7 +3301,7 @@ syntax_generic(program_t *program, syntax_t *syntax, node_t *parent)
 			return NULL;
 		}
 		type = syntax_postfix(program, syntax, node);
-		if (!type)
+		if (type == NULL)
 		{
 			return NULL;
 		}
@@ -3396,7 +3315,7 @@ syntax_generic(program_t *program, syntax_t *syntax, node_t *parent)
 			return NULL;
 		}
 		value = syntax_postfix(program, syntax, node);
-		if (!value)
+		if (value == NULL)
 		{
 			return NULL;
 		}
@@ -3466,7 +3385,7 @@ syntax_func(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, 
 	if (syntax->token->type == TOKEN_ID)
 	{
 		key = syntax_id(program, syntax, node);
-		if (!key)
+		if (key == NULL)
 		{
 			return NULL;
 		}
@@ -3561,19 +3480,22 @@ syntax_func(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, 
 	node_t *result = NULL;
 	if (used_constructor == 0)
 	{
-		if (syntax_match(program, syntax, TOKEN_COLON) == -1)
+		if (syntax->token->type == TOKEN_COLON)
 		{
-			return NULL;
-		}
-		result = syntax_expression(program, syntax, node);
-		if (result == NULL)
-		{
-			return NULL;
+			if (syntax_next(program, syntax) == -1)
+			{
+				return NULL;
+			}
+			result = syntax_postfix(program, syntax, node);
+			if (result == NULL)
+			{
+				return NULL;
+			}
 		}
 	}
 
 	node_t *body = syntax_body(program, syntax, node);
-	if (!body)
+	if (body == NULL)
 	{
 		return NULL;
 	}
@@ -3591,7 +3513,7 @@ syntax_member(program_t *program, syntax_t *syntax, node_t *parent)
 	}
 
 	node_t *key = syntax_id(program, syntax, node);
-	if (!key)
+	if (key == NULL)
 	{
 		return NULL;
 	}
@@ -3605,7 +3527,7 @@ syntax_member(program_t *program, syntax_t *syntax, node_t *parent)
 		}
 
 		value = syntax_expression(program, syntax, node);
-		if (!value)
+		if (value == NULL)
 		{
 			return NULL;
 		}
@@ -3672,7 +3594,7 @@ syntax_enum(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, 
 
 	node_t *key;
 	key = syntax_id(program, syntax, node);
-	if (!key)
+	if (key == NULL)
 	{
 		return NULL;
 	}
@@ -3717,7 +3639,7 @@ syntax_property(program_t *program, syntax_t *syntax, node_t *parent, node_t *no
 	}
 
 	node_t *type = syntax_postfix(program, syntax, node);
-	if (!type)
+	if (type == NULL)
 	{
 		return NULL;
 	}
@@ -3730,7 +3652,7 @@ syntax_property(program_t *program, syntax_t *syntax, node_t *parent, node_t *no
 			return NULL;
 		}
 		value = syntax_expression(program, syntax, node);
-		if (!value)
+		if (value == NULL)
 		{
 			return NULL;
 		}
@@ -3840,79 +3762,6 @@ syntax_class_static(program_t *program, syntax_t *syntax, node_t *parent, node_t
 }
 
 static node_t *
-syntax_class_protect(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, uint64_t flag)
-{
-	if (syntax_match(program, syntax, TOKEN_PROTECTED_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	flag |= SYNTAX_MODIFIER_PROTECT;
-
-	node_t *node = NULL;
-	if (syntax->token->type == TOKEN_READONLY_KEYWORD)
-	{
-		node = syntax_class_readonly(program, syntax, parent, note, flag);
-		if (node == NULL)
-		{
-			return NULL;
-		}
-	}
-	else
-	if (syntax->token->type == TOKEN_STATIC_KEYWORD)
-	{
-		node = syntax_class_static(program, syntax, parent, note, flag);
-		if (node == NULL)
-		{
-			return NULL;
-		}
-	}
-	else
-	if (syntax->token->type == TOKEN_FUN_KEYWORD)
-	{
-		node = syntax_func(program, syntax, parent, note, flag);
-		if (node == NULL)
-		{
-			return NULL;
-		}
-	}
-	else
-	if (syntax->token->type == TOKEN_CLASS_KEYWORD)
-	{
-		node = syntax_class(program, syntax, parent, note, flag);
-		if (node == NULL)
-		{
-			return NULL;
-		}
-	}
-	else
-	if (syntax->token->type == TOKEN_ENUM_KEYWORD)
-	{
-		node = syntax_enum(program, syntax, parent, note, flag);
-		if (node == NULL)
-		{
-			return NULL;
-		}
-	}
-	else
-	{
-		node = syntax_property(program, syntax, parent, note, flag);
-		if (node == NULL)
-		{
-			return NULL;
-		}
-		if (syntax_match(program, syntax, TOKEN_SEMICOLON) == -1)
-		{
-			return NULL;
-		}
-	}
-
-	flag &= ~SYNTAX_MODIFIER_PROTECT;
-
-	return node;
-}
-
-static node_t *
 syntax_class_export(program_t *program, syntax_t *syntax, node_t *parent, node_t *note)
 {
 	if (syntax_match(program, syntax, TOKEN_EXPORT_KEYWORD) == -1)
@@ -3926,15 +3775,6 @@ syntax_class_export(program_t *program, syntax_t *syntax, node_t *parent, node_t
 	if (syntax->token->type == TOKEN_READONLY_KEYWORD)
 	{
 		node = syntax_class_readonly(program, syntax, parent, note, flag);
-		if (node == NULL)
-		{
-			return NULL;
-		}
-	}
-	else
-	if (syntax->token->type == TOKEN_PROTECTED_KEYWORD)
-	{
-		node = syntax_class_protect(program, syntax, parent, note, flag);
 		if (node == NULL)
 		{
 			return NULL;
@@ -4031,15 +3871,6 @@ syntax_class_annotation(program_t *program, syntax_t *syntax, node_t *parent, no
 		}
 	}
 	else
-	if (syntax->token->type == TOKEN_PROTECTED_KEYWORD)
-	{
-		node = syntax_class_protect(program, syntax, parent, note2, SYNTAX_MODIFIER_NONE);
-		if (node == NULL)
-		{
-			return NULL;
-		}
-	}
-	else
 	if (syntax->token->type == TOKEN_STATIC_KEYWORD)
 	{
 		node = syntax_class_static(program, syntax, parent, note2, SYNTAX_MODIFIER_NONE);
@@ -4116,7 +3947,7 @@ syntax_class_block(program_t *program, syntax_t *syntax, node_t *parent)
 		node_t *decl = NULL;
 		if (syntax->token->type == TOKEN_AT)
 		{
-			decl = syntax_class_annotation(program, syntax, parent, NULL);
+			decl = syntax_class_annotation(program, syntax, node, NULL);
 			if (decl == NULL)
 			{
 				return NULL;
@@ -4125,7 +3956,7 @@ syntax_class_block(program_t *program, syntax_t *syntax, node_t *parent)
 		else
 		if (syntax->token->type == TOKEN_EXPORT_KEYWORD)
 		{
-			decl = syntax_class_export(program, syntax, parent, NULL);
+			decl = syntax_class_export(program, syntax, node, NULL);
 			if (decl == NULL)
 			{
 				return NULL;
@@ -4134,7 +3965,7 @@ syntax_class_block(program_t *program, syntax_t *syntax, node_t *parent)
 		else
 		if (syntax->token->type == TOKEN_READONLY_KEYWORD)
 		{
-			decl = syntax_class_readonly(program, syntax, parent, NULL, SYNTAX_MODIFIER_NONE);
+			decl = syntax_class_readonly(program, syntax, node, NULL, SYNTAX_MODIFIER_NONE);
 			if (decl == NULL)
 			{
 				return NULL;
@@ -4143,7 +3974,7 @@ syntax_class_block(program_t *program, syntax_t *syntax, node_t *parent)
 		else
 		if (syntax->token->type == TOKEN_STATIC_KEYWORD)
 		{
-			decl = syntax_class_static(program, syntax, parent, NULL, SYNTAX_MODIFIER_NONE);
+			decl = syntax_class_static(program, syntax, node, NULL, SYNTAX_MODIFIER_NONE);
 			if (decl == NULL)
 			{
 				return NULL;
@@ -4152,7 +3983,7 @@ syntax_class_block(program_t *program, syntax_t *syntax, node_t *parent)
 		else
 		if (syntax->token->type == TOKEN_FUN_KEYWORD)
 		{
-			decl = syntax_func(program, syntax, parent, NULL, SYNTAX_MODIFIER_NONE);
+			decl = syntax_func(program, syntax, node, NULL, SYNTAX_MODIFIER_NONE);
 			if (decl == NULL)
 			{
 				return NULL;
@@ -4161,7 +3992,7 @@ syntax_class_block(program_t *program, syntax_t *syntax, node_t *parent)
 		else
 		if (syntax->token->type == TOKEN_CLASS_KEYWORD)
 		{
-			decl = syntax_class(program, syntax, parent, NULL, SYNTAX_MODIFIER_NONE);
+			decl = syntax_class(program, syntax, node, NULL, SYNTAX_MODIFIER_NONE);
 			if (decl == NULL)
 			{
 				return NULL;
@@ -4170,7 +4001,7 @@ syntax_class_block(program_t *program, syntax_t *syntax, node_t *parent)
 		else
 		if (syntax->token->type == TOKEN_ENUM_KEYWORD)
 		{
-			decl = syntax_enum(program, syntax, parent, NULL, SYNTAX_MODIFIER_NONE);
+			decl = syntax_enum(program, syntax, node, NULL, SYNTAX_MODIFIER_NONE);
 			if (decl == NULL)
 			{
 				return NULL;
@@ -4178,7 +4009,7 @@ syntax_class_block(program_t *program, syntax_t *syntax, node_t *parent)
 		}
 		else
 		{
-			decl = syntax_property(program, syntax, parent, NULL, SYNTAX_MODIFIER_NONE);
+			decl = syntax_property(program, syntax, node, NULL, SYNTAX_MODIFIER_NONE);
 			if (decl == NULL)
 			{
 				return NULL;
@@ -4213,7 +4044,7 @@ syntax_heritage(program_t *program, syntax_t *syntax, node_t *parent)
 	}
 
 	node_t *key = syntax_id(program, syntax, node);
-	if (!key)
+	if (key == NULL)
 	{
 		return NULL;
 	}
@@ -4224,7 +4055,7 @@ syntax_heritage(program_t *program, syntax_t *syntax, node_t *parent)
 	}
 	
 	node_t *type = syntax_expression(program, syntax, node);
-	if (!type)
+	if (type == NULL)
 	{
 		return NULL;
 	}
@@ -4289,7 +4120,7 @@ syntax_class(program_t *program, syntax_t *syntax, node_t *parent, node_t *note,
 	}
 
 	node_t *key = syntax_id(program, syntax, node);
-	if (!key)
+	if (key == NULL)
 	{
 		return NULL;
 	}
@@ -4381,7 +4212,7 @@ syntax_package(program_t *program, syntax_t *syntax, node_t *parent)
 	}
 
 	node_t *key = syntax_id(program, syntax, node);
-	if (!key)
+	if (key == NULL)
 	{
 		return NULL;
 	}
@@ -4406,7 +4237,7 @@ syntax_package(program_t *program, syntax_t *syntax, node_t *parent)
 		}
 
 		generics = syntax_generics(program, syntax, node);
-		if (!generics)
+		if (generics == NULL)
 		{
 			return NULL;
 		}
@@ -4427,13 +4258,13 @@ syntax_package(program_t *program, syntax_t *syntax, node_t *parent)
 		return NULL;
 	}
 
-	node_t *route = syntax_postfix(program, syntax, node);
-	if (!route)
+	node_t *address = syntax_postfix(program, syntax, node);
+	if (address == NULL)
 	{
 		return NULL;
 	}
 
-	return node_make_package(node, key, generics, route);
+	return node_make_package(node, key, generics, address);
 }
 
 static node_t *
@@ -4479,7 +4310,7 @@ syntax_packages(program_t *program, syntax_t *syntax, node_t *parent)
 }
 
 static node_t *
-syntax_import(program_t *program, syntax_t *syntax, node_t *parent)
+syntax_using(program_t *program, syntax_t *syntax, node_t *parent)
 {
 	node_t *node = node_create(parent, syntax->token->position);
 	if (node == NULL)
@@ -4487,28 +4318,29 @@ syntax_import(program_t *program, syntax_t *syntax, node_t *parent)
 		return NULL;
 	}
 
-	if (syntax_match(program, syntax, TOKEN_IMPORT_KEYWORD) == -1)
+	if (syntax_match(program, syntax, TOKEN_USING_KEYWORD) == -1)
 	{
 		return NULL;
 	}
 
-	if (syntax_match(program, syntax, TOKEN_LBRACE) == -1)
+	node_t *packages = NULL;
+	if (syntax->token->type == TOKEN_STAR)
 	{
-		return NULL;
+		if (syntax_next(program, syntax) == -1)
+		{
+			return NULL;
+		}
 	}
-	
-	node_t *packages = syntax_packages(program, syntax, node);
-	if (!packages)
+	else
 	{
-		return NULL;
+		packages = syntax_packages(program, syntax, node);
+		if (packages == NULL)
+		{
+			return NULL;
+		}
 	}
 
-	if (syntax_match(program, syntax, TOKEN_RBRACE) == -1)
-	{
-		return NULL;
-	}
-
-	if (syntax_match(program, syntax, TOKEN_COLON) == -1)
+	if (syntax_match(program, syntax, TOKEN_FROM_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -4519,7 +4351,7 @@ syntax_import(program_t *program, syntax_t *syntax, node_t *parent)
 		return NULL;
 	}
 
-	return node_make_import(node, path, packages);
+	return node_make_using(node, path, packages);
 }
 
 static node_t *
@@ -4599,7 +4431,7 @@ syntax_note(program_t *program, syntax_t *syntax, node_t *parent, node_t *note)
 	}
 
 	node_t *key = syntax_id(program, syntax, node);
-	if (!key)
+	if (key == NULL)
 	{
 		return NULL;
 	}
@@ -4624,7 +4456,7 @@ syntax_note(program_t *program, syntax_t *syntax, node_t *parent, node_t *note)
 		}
 	}
 
-	return node_make_annotation(node, note, key, arguments);
+	return node_make_annotation(node, key, arguments, note);
 }
 
 static node_t *
@@ -4685,7 +4517,7 @@ syntax_module(program_t *program, syntax_t *syntax)
 	}
 
 	list_t *items = list_create();
-	if (!items)
+	if (items == NULL)
 	{
 		return NULL;
 	}
@@ -4704,10 +4536,14 @@ syntax_module(program_t *program, syntax_t *syntax)
 
 		node_t *item = NULL;
 
-		if (syntax->token->type == TOKEN_IMPORT_KEYWORD)
+		if (syntax->token->type == TOKEN_USING_KEYWORD)
 		{
-			item = syntax_import(program, syntax, node);
+			item = syntax_using(program, syntax, node);
 			if (item == NULL)
+			{
+				return NULL;
+			}
+			if (syntax_match(program, syntax, TOKEN_SEMICOLON) == -1)
 			{
 				return NULL;
 			}
@@ -4748,7 +4584,7 @@ syntax_module(program_t *program, syntax_t *syntax)
 			}
 		}
 
-		if (!list_rpush(items, item))
+		if (list_rpush(items, item) == NULL)
 		{
 			return NULL;
 		}
@@ -4759,7 +4595,7 @@ syntax_module(program_t *program, syntax_t *syntax)
 		return NULL;
 	}
 
-	return node_make_module(node, syntax->file_source->path, items);
+	return node_make_module(node, syntax->scanner->path, items);
 }
 
 syntax_t *
@@ -4774,20 +4610,13 @@ syntax_create(program_t *program, char *path)
 	}
 	memset(syntax, 0, sizeof(syntax_t));
 
-	file_source_t *file_source = file_create_source(path);
-	if (file_source == NULL)
-	{
-		return NULL;
-	}
-
-	scanner_t *scanner = scanner_create(file_source, program->errors);
+	scanner_t *scanner = scanner_create(program, path);
 	if (scanner == NULL)
 	{
 		return NULL;
 	}
 
 	syntax->scanner = scanner;
-	syntax->file_source = file_source;
 	syntax->loop_depth = 0;
 	syntax->token = &scanner->token;
 

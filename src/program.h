@@ -11,28 +11,22 @@ typedef struct pair {
     void *value;
 } pair_t;
 
-typedef struct segment {
-    uint64_t key;
-    uint64_t root;
-    uint64_t scope;
-    uint64_t size;
-} segment_t;
-
 typedef struct program {
     char *base_path;
     char *base_file;
 
     char *out_file;
+    FILE *out;
+
+    node_t *main;
 
     list_t *errors;
     list_t *modules;
     list_t *repository;
-
-    list_t *stack;
-    void *rax;
+    list_t *frame;
 } program_t;
 
-void
+void_t
 program_report(program_t *program);
 
 void_t
@@ -40,6 +34,9 @@ program_resolve(program_t *program, char *path);
 
 node_t *
 program_load(program_t *program, char *path);
+
+void_t
+program_outfile(program_t *program, char *path);
 
 program_t *
 program_create();
