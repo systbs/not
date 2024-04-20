@@ -13,6 +13,13 @@ export static class System
 	@Main
 	export static fun Constructor(args:Array<String>)
 	{
-		
+		try {
+
+		}
+		catch (e:fun<T>(a:Int32, b:Int64)->Any)
+		{
+			var a = Any();
+			a = Any;
+		}
 	}
 }

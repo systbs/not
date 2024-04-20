@@ -797,6 +797,7 @@ syntax_lambda(program_t *program, syntax_t *syntax, node_t *parent)
 		return NULL;
 	}
 
+	position_t pos1 = syntax->token->position;
 	node_t *key = NULL;
 	if (syntax->token->type == TOKEN_ID)
 	{
@@ -881,7 +882,7 @@ syntax_lambda(program_t *program, syntax_t *syntax, node_t *parent)
 
 		if (key != NULL)
 		{
-			syntax_error(program, syntax->token->position, "fun type by name");
+			syntax_error(program, pos1, "fun type by name");
 			return NULL;
 		}
 
@@ -2496,7 +2497,7 @@ syntax_var(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
 		}
 		if (set_used == 1)
 		{
-			syntax_error(program, syntax->token->position, "variables set with type");
+			syntax_error(program, syntax->token->position, "Variable set with type");
 			return NULL;
 		}
 		type = syntax_postfix(program, syntax, node);
@@ -2507,9 +2508,9 @@ syntax_var(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
 	}
 
 	node_t *value = NULL;
-	if (syntax->token->type == TOKEN_EQ)
+	if ((syntax->token->type == TOKEN_EQ) || (set_used == 1) || ((set_used == 0) && (type == NULL)))
 	{
-		if (syntax_next(program, syntax) == -1)
+		if (syntax_match(program, syntax, TOKEN_EQ) == -1)
 		{
 			return NULL;
 		}
@@ -3504,121 +3505,6 @@ syntax_func(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, 
 }
 
 static node_t *
-syntax_member(program_t *program, syntax_t *syntax, node_t *parent)
-{
-	node_t *node = node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	node_t *key = syntax_id(program, syntax, node);
-	if (key == NULL)
-	{
-		return NULL;
-	}
-
-	node_t *value = NULL;
-	if (syntax->token->type == TOKEN_EQ)
-	{
-		if (syntax_next(program, syntax) == -1)
-		{
-			return NULL;
-		}
-
-		value = syntax_expression(program, syntax, node);
-		if (value == NULL)
-		{
-			return NULL;
-		}
-	}
-
-	return node_make_member(node, key, value);
-}
-
-static node_t *
-syntax_members(program_t *program, syntax_t *syntax, node_t *parent)
-{
-	node_t *node = node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	list_t *members = list_create();
-	if (!members)
-	{
-		return NULL;
-	}
-
-	while (true)
-	{
-		node_t *node2 = syntax_member(program, syntax, node);
-		if (node2 == NULL)
-		{
-			return NULL;
-		}
-
-		if (!list_rpush(members, node2))
-		{
-			return NULL;
-		}
-
-		if (syntax->token->type != TOKEN_COMMA)
-		{
-			break;
-		}
-
-		if (syntax_next(program, syntax) == -1)
-		{
-			return NULL;
-		}
-	}
-
-	return node_make_members(node, members);
-}
-
-static node_t *
-syntax_enum(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, uint64_t flag)
-{
-	node_t *node = node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	if (syntax_match(program, syntax, TOKEN_ENUM_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	node_t *key;
-	key = syntax_id(program, syntax, node);
-	if (key == NULL)
-	{
-		return NULL;
-	}
-
-	if (syntax_match(program, syntax, TOKEN_LBRACE) == -1)
-	{
-		return NULL;
-	}
-
-	node_t *members = syntax_members(program, syntax, node);
-	if (!members)
-	{
-		return NULL;
-	}
-
-	if (syntax_match(program, syntax, TOKEN_RBRACE) == -1)
-	{
-		return NULL;
-	}
-
-	return node_make_enum(node, note, flag, key, members);
-}
-
-static node_t *
 syntax_property(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, uint64_t flag)
 {
 	node_t *node = node_create(parent, syntax->token->position);
@@ -3735,15 +3621,6 @@ syntax_class_static(program_t *program, syntax_t *syntax, node_t *parent, node_t
 		}
 	}
 	else
-	if (syntax->token->type == TOKEN_ENUM_KEYWORD)
-	{
-		node = syntax_enum(program, syntax, parent, note, flag);
-		if (node == NULL)
-		{
-			return NULL;
-		}
-	}
-	else
 	{
 		node = syntax_property(program, syntax, parent, note, flag);
 		if (node == NULL)
@@ -3802,15 +3679,6 @@ syntax_class_export(program_t *program, syntax_t *syntax, node_t *parent, node_t
 	if (syntax->token->type == TOKEN_CLASS_KEYWORD)
 	{
 		node = syntax_class(program, syntax, parent, note, flag);
-		if (node == NULL)
-		{
-			return NULL;
-		}
-	}
-	else
-	if (syntax->token->type == TOKEN_ENUM_KEYWORD)
-	{
-		node = syntax_enum(program, syntax, parent, note, flag);
 		if (node == NULL)
 		{
 			return NULL;
@@ -3892,15 +3760,6 @@ syntax_class_annotation(program_t *program, syntax_t *syntax, node_t *parent, no
 	if (syntax->token->type == TOKEN_CLASS_KEYWORD)
 	{
 		node = syntax_class(program, syntax, parent, note2, SYNTAX_MODIFIER_NONE);
-		if (node == NULL)
-		{
-			return NULL;
-		}
-	}
-	else
-	if (syntax->token->type == TOKEN_ENUM_KEYWORD)
-	{
-		node = syntax_enum(program, syntax, parent, note2, SYNTAX_MODIFIER_NONE);
 		if (node == NULL)
 		{
 			return NULL;
@@ -3993,15 +3852,6 @@ syntax_class_block(program_t *program, syntax_t *syntax, node_t *parent)
 		if (syntax->token->type == TOKEN_CLASS_KEYWORD)
 		{
 			decl = syntax_class(program, syntax, node, NULL, SYNTAX_MODIFIER_NONE);
-			if (decl == NULL)
-			{
-				return NULL;
-			}
-		}
-		else
-		if (syntax->token->type == TOKEN_ENUM_KEYWORD)
-		{
-			decl = syntax_enum(program, syntax, node, NULL, SYNTAX_MODIFIER_NONE);
 			if (decl == NULL)
 			{
 				return NULL;
@@ -4364,16 +4214,7 @@ syntax_static(program_t *program, syntax_t *syntax, node_t *parent, node_t *note
 
 	flag |= SYNTAX_MODIFIER_STATIC;
 
-	node_t *node = NULL;
-
-	if (syntax->token->type == TOKEN_ENUM_KEYWORD)
-	{
-		node = syntax_enum(program, syntax, parent, note, flag);
-	}
-	else
-	{
-		node = syntax_class(program, syntax, parent, note, flag);
-	}
+	node_t *node = syntax_class(program, syntax, parent, note, flag);
 
 	flag &= ~SYNTAX_MODIFIER_STATIC;
 
@@ -4400,11 +4241,6 @@ syntax_export(program_t *program, syntax_t *syntax, node_t *parent, node_t *note
 	if (syntax->token->type == TOKEN_STATIC_KEYWORD)
 	{
 		object = syntax_static(program, syntax, parent, note, flag);
-	}
-	else
-	if (syntax->token->type == TOKEN_ENUM_KEYWORD)
-	{
-		object = syntax_enum(program, syntax, parent, note, flag);
 	}
 	else
 	{
@@ -4487,15 +4323,6 @@ syntax_annotation(program_t *program, syntax_t *syntax, node_t *parent, node_t *
 		}
 	}
 	else
-	if (syntax->token->type == TOKEN_ENUM_KEYWORD)
-	{
-		result = syntax_enum(program, syntax, parent, note2, SYNTAX_MODIFIER_NONE);
-		if (result == NULL)
-		{
-			return NULL;
-		}
-	}
-	else
 	{
 		result = syntax_class(program, syntax, parent, note2, SYNTAX_MODIFIER_NONE);
 		if (result == NULL)
@@ -4561,15 +4388,6 @@ syntax_module(program_t *program, syntax_t *syntax)
 		if (syntax->token->type == TOKEN_EXPORT_KEYWORD)
 		{
 			item = syntax_export(program, syntax, node, NULL);
-			if (item == NULL)
-			{
-				return NULL;
-			}
-		}
-		else
-		if (syntax->token->type == TOKEN_ENUM_KEYWORD)
-		{
-			item = syntax_enum(program, syntax, node, NULL, SYNTAX_MODIFIER_NONE);
 			if (item == NULL)
 			{
 				return NULL;

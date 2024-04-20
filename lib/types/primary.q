@@ -1,4 +1,5 @@
 @General
+@Mallocable
 export class Any 
 {
     export fun Constructor()
@@ -8,6 +9,7 @@ export class Any
 }
 
 @General
+@Null
 export class Null 
 {
     export fun Constructor()
@@ -18,7 +20,8 @@ export class Null
 
 export class UInt8
 {
-    value: 1;
+    @Malloc(1)
+    value: Any;
 
     export fun Constructor(value: Any)
     {
@@ -29,7 +32,8 @@ export class UInt8
 @Union(UInt8)
 export class UInt16
 {
-    value: 2;
+    @Malloc(2)
+    value: Any;
 
     export fun Constructor(value: Any)
     {
@@ -40,7 +44,8 @@ export class UInt16
 @Union(UInt8, UInt16)
 export class UInt32
 {
-    value: 4;
+    @Malloc(4)
+    value: Any;
  
     export fun Constructor(value: Any)
     {
@@ -52,7 +57,8 @@ export class UInt32
 @Union(UInt8, UInt16, UInt32)
 export class UInt64 
 {
-    value: 8;
+    @Malloc(8)
+    value: Any;
 
     export fun Constructor(value: Any)
     {
@@ -63,7 +69,8 @@ export class UInt64
 
 export class Int8
 {
-    value: 1;
+    @Malloc(1)
+    value: Any;
 
     export fun Constructor(value: Any)
     {
@@ -74,7 +81,8 @@ export class Int8
 @Union(Int8)
 export class Int16
 {
-    value: 2;
+    @Malloc(2)
+    value: Any;
 
     export fun Constructor(value: Any)
     {
@@ -85,7 +93,8 @@ export class Int16
 @Union(Int8, Int16)
 export class Int32
 {
-    value: 4;
+    @Malloc(4)
+    value: Any;
 
     export fun Constructor(value: Any)
     {
@@ -96,7 +105,8 @@ export class Int32
 @Union(Int8, Int16, Int32)
 export class Int64 
 {
-    value: 8;
+    @Malloc(8)
+    value: Any;
 
     export fun Constructor(value: Any)
     {
@@ -106,7 +116,8 @@ export class Int64
 
 export class Float32
 {
-    value: 4;
+    @Malloc(4)
+    value: Any;
 
     export fun Constructor(value: Any)
     {
@@ -122,7 +133,8 @@ export class Float32
 @Union(Float32)
 export class Float64
 {
-    value: 8;
+    @Malloc(8)
+    value: Any;
 
     export fun Constructor(value: Any)
     {
@@ -132,8 +144,8 @@ export class Float64
 
 export class Complex32
 {
-    base: 4;
-    image: 4;
+    base: Float32;
+    image: Float32;
 
     export fun Constructor(value: Any)
     {
@@ -144,8 +156,8 @@ export class Complex32
 @Union(Complex32)
 export class Complex64 
 {
-    base: 8;
-    image: 8;
+    base: Float64;
+    image: Float64;
 
     export fun Constructor(value: Any)
     {
@@ -155,7 +167,8 @@ export class Complex64
 
 export class Char 
 {
-    value: 1;
+    @Malloc(size=1)
+    value: Any;
 
     export fun Constructor(value: Any)
     {

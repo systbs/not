@@ -16,8 +16,7 @@ typedef struct node {
 typedef enum node_flag {
 	NODE_FLAG_NONE 			= 0,
 	NODE_FLAG_TEMPORARY 	= 1 << 0,
-	NODE_FLAG_NEW 			= 1 << 1,
-	NODE_FLAG_DERIVE		= 1 << 2,
+	NODE_FLAG_INSTANCE 		= 1 << 1
 } node_flag_t;
 
 typedef enum node_kind {

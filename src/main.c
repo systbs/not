@@ -26,6 +26,13 @@ main(int argc, char **argv)
 	{
 		return -1;
 	}
+	
+	char *env = getenv ("QALAM_PATH");
+	if (env == NULL)
+	{
+		setenv("QALAM_PATH", "/home/qalam/", 1);
+	}
+	
 
 	int32_t i;
 	for (i = 1;i < argc; i++)
@@ -43,7 +50,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (strcmp(program->base_path, "") == 0)
+	if (strcmp(program->base_file, "") == 0)
 	{
 		fprintf(stderr, 
 		"qalam: fatal: no input file specified\n"

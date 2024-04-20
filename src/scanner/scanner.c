@@ -36,6 +36,7 @@ digit_val(int32_t ch)
 void 
 scanner_set_token(program_t *program, scanner_t *scanner, token_t token)
 {
+	//printf("%s-%lld:%lld  %s\n", token.position.path, token.position.line, token.position.column, token_get_name(token.type));
 	scanner->token = token;
 }
 
@@ -143,9 +144,18 @@ scanner_next(program_t *program, scanner_t *scanner)
 		scanner->offset = scanner->reading_offset;
 		int32_t r = (int32_t)(scanner->source[scanner->reading_offset]);
 		int32_t w = 1;
+
+		scanner->column += ((r == '\t') ? 3 : 0);
+		//printf ("%lld:%lld ch %c %d\n", scanner->line, scanner->column, r, r);
+
 		if (r == 0)
 		{
-			scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column, .line = scanner->line}, "illegal character NUL");
+			scanner_error(program, (position_t){
+				.path = scanner->path, 
+				.offset = scanner->offset, 
+				.column = scanner->column, 
+				.line = scanner->line,
+				.length = 1}, "illegal character NUL");
 			return -1;
 		}
 		if (r >= 0x80)
@@ -153,12 +163,22 @@ scanner_next(program_t *program, scanner_t *scanner)
 			utf8_decode(scanner->source + scanner->reading_offset, &r, &w);
 			if (r == utf8_error && w == 1)
 			{
-				scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column, .line = scanner->line}, "illegal UTF-8 encoding");
+				scanner_error(program, (position_t){
+					.path = scanner->path, 
+					.offset = scanner->offset, 
+					.column = scanner->column, 
+					.line = scanner->line,
+					.length = 1}, "illegal UTF-8 encoding");
 				return -1;
 			}
 			else if (r == bom && scanner->offset > 0)
 			{
-				scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column, .line = scanner->line}, "illegal byte order mark");
+				scanner_error(program, (position_t){
+					.path = scanner->path, 
+					.offset = scanner->offset, 
+					.column = scanner->column, 
+					.line = scanner->line,
+					.length = 1}, "illegal byte order mark");
 				return -1;
 			}
 		}
@@ -191,6 +211,9 @@ scanner_skip_trivial(program_t *program, scanner_t *scanner)
 	{
 		if (scanner->ch == '\n' || scanner->ch == '\v' || scanner->ch == '\r')
 		{
+			scanner->column = 0;
+			scanner->line++;
+
 			int32_t ch = scanner->ch;
 			if (scanner_next(program, scanner) == -1)
 			{
@@ -203,8 +226,6 @@ scanner_skip_trivial(program_t *program, scanner_t *scanner)
 					return -1;
 				}
 			}
-			scanner->column = 1;
-			scanner->line++;
 			continue;
 		}
 
@@ -393,7 +414,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = start_offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = scanner->offset - start_offset}});
 
 				return 1;
 			}
@@ -436,7 +458,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = start_offset - 1,
 																					 .column = scanner->column - (scanner->offset - start_offset) - 1,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = scanner->offset - start_offset}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -453,7 +476,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -470,7 +494,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -487,7 +512,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -504,7 +530,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -521,7 +548,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -538,7 +566,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -555,7 +584,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -572,7 +602,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -589,7 +620,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -606,7 +638,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -633,7 +666,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -660,7 +694,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -677,7 +712,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -694,7 +730,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -711,7 +748,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -728,7 +766,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -749,7 +788,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -798,7 +838,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -865,7 +906,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -1014,7 +1056,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = scanner->offset,
 																						 .column = scanner->column,
-																						 .line = scanner->line}});
+																						 .line = scanner->line,
+																					 .length = 1}});
 
 					if (scanner_next(program, scanner) == -1)
 					{
@@ -1064,7 +1107,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -1112,7 +1156,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -1179,7 +1224,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -1241,7 +1287,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -1258,7 +1305,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -1279,7 +1327,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -1371,7 +1420,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -1464,7 +1514,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -1511,7 +1562,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																					 .path = scanner->path,
 																					 .offset = scanner->offset,
 																					 .column = scanner->column,
-																					 .line = scanner->line}});
+																					 .line = scanner->line,
+																					 .length = 1}});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -1547,7 +1599,12 @@ scanner_advance(program_t *program, scanner_t *scanner)
 			}
 			else
 			{
-				scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column, .line = scanner->line}, "unknown token");
+				scanner_error(program, (position_t){
+					.path = scanner->path, 
+					.offset = scanner->offset, 
+					.column = scanner->column, 
+					.line = scanner->line, 
+					.length = 1}, "unknown token");
 				return -1;
 			}
 		}
@@ -1593,7 +1650,12 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 								if (isalpha(scanner->ch))
 								{
-									scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "wrong hexadecimal number format");
+									scanner_error(program, (position_t){
+										.path = scanner->path, 
+										.offset = scanner->offset, 
+										.column = scanner->column - (scanner->offset - start_offset), 
+										.line = scanner->line,
+										.length = scanner->offset - start_offset}, "wrong hexadecimal number format");
 									return -1;
 								}
 								break;
@@ -1602,7 +1664,12 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					}
 					else
 					{
-						scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "hexadecimal literal has no digits");
+						scanner_error(program, (position_t){
+							.path = scanner->path, 
+							.offset = scanner->offset, 
+							.column = scanner->column - (scanner->offset - start_offset), 
+							.line = scanner->line,
+							.length = scanner->offset - start_offset}, "hexadecimal literal has no digits");
 						return -1;
 					}
 					break;
@@ -1636,7 +1703,12 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 								if (isalpha(scanner->ch))
 								{
-									scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "wrong binary number format");
+									scanner_error(program, (position_t){
+										.path = scanner->path, 
+										.offset = scanner->offset, 
+										.column = scanner->column - (scanner->offset - start_offset), 
+										.line = scanner->line,
+										.length = scanner->offset - start_offset}, "wrong binary number format");
 									return -1;
 								}
 								break;
@@ -1645,7 +1717,12 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					}
 					else
 					{
-						scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "binary literal has no digits");
+						scanner_error(program, (position_t){
+							.path = scanner->path, 
+							.offset = scanner->offset, 
+							.column = scanner->column - (scanner->offset - start_offset), 
+							.line = scanner->line,
+							.length = scanner->offset - start_offset}, "binary literal has no digits");
 						return -1;
 					}
 					break;
@@ -1679,7 +1756,12 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 								if (isalpha(scanner->ch))
 								{
-									scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "wrong octal number format");
+									scanner_error(program, (position_t){
+										.path = scanner->path, 
+										.offset = scanner->offset, 
+										.column = scanner->column - (scanner->offset - start_offset), 
+										.line = scanner->line,
+										.length = scanner->offset - start_offset}, "wrong octal number format");
 									return -1;
 								}
 								break;
@@ -1688,7 +1770,12 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					}
 					else
 					{
-						scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "octal literal has no digits");
+						scanner_error(program, (position_t){
+							.path = scanner->path, 
+							.offset = scanner->offset, 
+							.column = scanner->column - (scanner->offset - start_offset), 
+							.line = scanner->line,
+							.length = scanner->offset - start_offset}, "octal literal has no digits");
 						return -1;
 					}
 					break;
@@ -1709,7 +1796,12 @@ scanner_advance(program_t *program, scanner_t *scanner)
 								{
 									if (is_float > 0)
 									{
-										scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "wrong decimal number format");
+										scanner_error(program, (position_t){
+											.path = scanner->path, 
+											.offset = scanner->offset, 
+											.column = scanner->column - (scanner->offset - start_offset), 
+											.line = scanner->line,
+											.length = scanner->offset - start_offset}, "wrong decimal number format");
 										return -1;
 									}
 									is_float++;
@@ -1737,7 +1829,12 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 								if (isalpha(scanner->ch))
 								{
-									scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "wrong number format");
+									scanner_error(program, (position_t){
+										.path = scanner->path, 
+										.offset = scanner->offset, 
+										.column = scanner->column - (scanner->offset - start_offset), 
+										.line = scanner->line,
+										.length = scanner->offset - start_offset}, "wrong number format");
 									return -1;
 								}
 								break;
@@ -1746,7 +1843,12 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					}
 					else
 					{
-						scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "decimal literal has no digits");
+						scanner_error(program, (position_t){
+							.path = scanner->path, 
+							.offset = scanner->offset, 
+							.column = scanner->column - (scanner->offset - start_offset), 
+							.line = scanner->line,
+							.length = scanner->offset - start_offset}, "decimal literal has no digits");
 						return -1;
 					}
 					break;
@@ -1784,7 +1886,12 @@ scanner_advance(program_t *program, scanner_t *scanner)
 								
 								if (isalpha(scanner->ch))
 								{
-									scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "wrong octal number format");
+									scanner_error(program, (position_t){
+										.path = scanner->path, 
+										.offset = scanner->offset, 
+										.column = scanner->column - (scanner->offset - start_offset), 
+										.line = scanner->line,
+										.length = scanner->offset - start_offset}, "wrong octal number format");
 									return -1;
 								}
 								break;
@@ -1793,7 +1900,12 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					}
 					else
 					{
-						scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "octal literal has no digits");
+						scanner_error(program, (position_t){
+							.path = scanner->path, 
+							.offset = scanner->offset, 
+							.column = scanner->column - (scanner->offset - start_offset), 
+							.line = scanner->line,
+							.length = scanner->offset - start_offset}, "octal literal has no digits");
 						return -1;
 					}
 					break;
@@ -1816,7 +1928,12 @@ scanner_advance(program_t *program, scanner_t *scanner)
 						{
 							if (is_exp > 0)
 							{
-								scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "wrong exponent format");
+								scanner_error(program, (position_t){
+									.path = scanner->path, 
+									.offset = scanner->offset, 
+									.column = scanner->column - (scanner->offset - start_offset), 
+									.line = scanner->line,
+									.length = scanner->offset - start_offset}, "wrong exponent format");
 								return -1;
 							}
 							is_exp++;
@@ -1838,7 +1955,12 @@ scanner_advance(program_t *program, scanner_t *scanner)
 							}
 							if (!isdigit(scanner->ch))
 							{
-								scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "exponent has no digits");
+								scanner_error(program, (position_t){
+									.path = scanner->path, 
+									.offset = scanner->offset, 
+									.column = scanner->column - (scanner->offset - start_offset), 
+									.line = scanner->line,
+									.length = scanner->offset - start_offset}, "exponent has no digits");
 								return -1;
 							}
 							continue;
@@ -1880,7 +2002,12 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 						if (isalpha(scanner->ch))
 						{
-							scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset, .column = scanner->column - (scanner->offset - start_offset), .line = scanner->line}, "wrong number format");
+							scanner_error(program, (position_t){
+								.path = scanner->path, 
+								.offset = scanner->offset, 
+								.column = scanner->column - (scanner->offset - start_offset), 
+								.line = scanner->line,
+								.length = scanner->offset - start_offset}, "wrong number format");
 							return -1;
 						}
 						break;
@@ -1904,7 +2031,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																				 .path = scanner->path,
 																				 .offset = scanner->offset,
 																				 .column = scanner->column - (scanner->offset - start_offset),
-																				 .line = scanner->line}});
+																				 .line = scanner->line,
+																				 .length = scanner->offset - start_offset}});
 			return 1;
 		}
 		else
@@ -1928,8 +2056,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 							.path = scanner->path,
 							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
 						}
 					});
 
@@ -1944,8 +2073,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 							.path = scanner->path,
 							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
 						}
 					});
 
@@ -1960,8 +2090,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 							.path = scanner->path,
 							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
 							}
 					});
 
@@ -1976,8 +2107,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 							.path = scanner->path,
 							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
 						}
 					});
 
@@ -1992,8 +2124,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 							.path = scanner->path,
 							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
 						}
 					});
 
@@ -2008,8 +2141,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 							.path = scanner->path,
 							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
 							}
 					});
 
@@ -2024,8 +2158,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 							.path = scanner->path,
 							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
 							}
 					});
 
@@ -2040,8 +2175,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 							.path = scanner->path,
 							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
 							}
 					});
 
@@ -2056,8 +2192,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 							.path = scanner->path,
 							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
 							}
 					});
 
@@ -2072,8 +2209,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 							.path = scanner->path,
 							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
 						}
 					});
 
@@ -2088,8 +2226,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 							.path = scanner->path,
 							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
 						}
 					});
 
@@ -2104,8 +2243,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 							.path = scanner->path,
 							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
 						}
 					});
 
@@ -2115,13 +2255,16 @@ scanner_advance(program_t *program, scanner_t *scanner)
 			if (strncmp(scanner->source + start_offset, "break", max(length, 5)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
-																			 .type = TOKEN_BREAK_KEYWORD,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset - length,
-																					 .column = scanner->column - (scanner->offset - start_offset),
-																					 .line = scanner->line}});
+					.type = TOKEN_BREAK_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
 
 				return 1;
 			}
@@ -2129,13 +2272,16 @@ scanner_advance(program_t *program, scanner_t *scanner)
 			if (strncmp(scanner->source + start_offset, "continue", max(length, 8)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
-																			 .type = TOKEN_CONTINUE_KEYWORD,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset - length,
-																					 .column = scanner->column - (scanner->offset - start_offset),
-																					 .line = scanner->line}});
+					.type = TOKEN_CONTINUE_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
 
 				return 1;
 			}
@@ -2143,13 +2289,16 @@ scanner_advance(program_t *program, scanner_t *scanner)
 			if (strncmp(scanner->source + start_offset, "return", max(length, 6)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
-																			 .type = TOKEN_RETURN_KEYWORD,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset - length,
-																					 .column = scanner->column - (scanner->offset - start_offset),
-																					 .line = scanner->line}});
+					.type = TOKEN_RETURN_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
 
 				return 1;
 			}
@@ -2157,13 +2306,16 @@ scanner_advance(program_t *program, scanner_t *scanner)
 			if (strncmp(scanner->source + start_offset, "sizeof", max(length, 6)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
-																			 .type = TOKEN_SIZEOF_KEYWORD,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset - length,
-																					 .column = scanner->column - (scanner->offset - start_offset),
-																					 .line = scanner->line}});
+					.type = TOKEN_SIZEOF_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
 
 				return 1;
 			}
@@ -2171,13 +2323,16 @@ scanner_advance(program_t *program, scanner_t *scanner)
 			if (strncmp(scanner->source + start_offset, "typeof", max(length, 6)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
-																			 .type = TOKEN_TYPEOF_KEYWORD,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset - length,
-																					 .column = scanner->column - (scanner->offset - start_offset),
-																					 .line = scanner->line}});
+					.type = TOKEN_TYPEOF_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
 
 				return 1;
 			}
@@ -2185,13 +2340,16 @@ scanner_advance(program_t *program, scanner_t *scanner)
 			if (strncmp(scanner->source + start_offset, "null", max(length, 4)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
-																			 .type = TOKEN_NULL_KEYWORD,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset - length,
-																					 .column = scanner->column - (scanner->offset - start_offset),
-																					 .line = scanner->line}});
+					.type = TOKEN_NULL_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
 
 				return 1;
 			}
@@ -2199,13 +2357,16 @@ scanner_advance(program_t *program, scanner_t *scanner)
 			if (strncmp(scanner->source + start_offset, "fun", max(length, 3)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
-																			 .type = TOKEN_FUN_KEYWORD,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset - length,
-																					 .column = scanner->column - (scanner->offset - start_offset),
-																					 .line = scanner->line}});
+					.type = TOKEN_FUN_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
 
 				return 1;
 			}
@@ -2213,13 +2374,16 @@ scanner_advance(program_t *program, scanner_t *scanner)
 			if (strncmp(scanner->source + start_offset, "var", max(length, 3)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
-																			 .type = TOKEN_VAR_KEYWORD,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset - length,
-																					 .column = scanner->column - (scanner->offset - start_offset),
-																					 .line = scanner->line}});
+					.type = TOKEN_VAR_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
 
 				return 1;
 			}
@@ -2232,8 +2396,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 						.path = scanner->path,
 						.offset = scanner->offset - length,
-						.column = scanner->column - (scanner->offset - start_offset),
-						.line = scanner->line
+						.column = scanner->column - length,
+						.line = scanner->line,
+							.length = length
 					}
 				});
 
@@ -2248,8 +2413,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 							.path = scanner->path,
 							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
 						}
 					});
 
@@ -2264,8 +2430,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 							.path = scanner->path,
 							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
 						}
 					});
 
@@ -2280,8 +2447,9 @@ scanner_advance(program_t *program, scanner_t *scanner)
 					.position = {
 							.path = scanner->path,
 							.offset = scanner->offset - length,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
 						}
 					});
 
@@ -2303,9 +2471,10 @@ scanner_advance(program_t *program, scanner_t *scanner)
 				.value = data,
 				.position = {
 						.path = scanner->path,
-						.offset = scanner->offset,
-						.column = scanner->column - (scanner->offset - start_offset),
-						.line = scanner->line
+						.offset = scanner->offset - length,
+						.column = scanner->column - length,
+						.line = scanner->line,
+						.length = length
 					}
 				});
 
@@ -2325,7 +2494,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 				.path = scanner->path,
 				.offset = scanner->offset,
 				.column = scanner->column,
-				.line = scanner->line
+				.line = scanner->line,
+				.length = 1
 			}
 		});
 

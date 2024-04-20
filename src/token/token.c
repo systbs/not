@@ -84,15 +84,20 @@ const char * const symbols[] = {
   [TOKEN_SIZEOF_KEYWORD]    = "sizeof",
   [TOKEN_TYPEOF_KEYWORD]    = "typeof",
   [TOKEN_NULL_KEYWORD]      = "null",
-  [TOKEN_FUN_KEYWORD]      = "func",
+  [TOKEN_FUN_KEYWORD]       = "fun",
   [TOKEN_CLASS_KEYWORD]     = "class",
   [TOKEN_EXTENDS_KEYWORD]   = "extends",
   [TOKEN_STATIC_KEYWORD]    = "static",
   [TOKEN_READONLY_KEYWORD]  = "readonly",
+  [TOKEN_REFERENCE_KEYWORD] = "reference",
+  [TOKEN_THIS_KEYWORD]      = "this",
   [TOKEN_VAR_KEYWORD]     	= "var",
   [TOKEN_ENUM_KEYWORD]     	= "enum",
-  [TOKEN_EXPORT_KEYWORD]    = "export"
+  [TOKEN_EXPORT_KEYWORD]    = "export",
+  [TOKEN_USING_KEYWORD]     = "using",
+  [TOKEN_FROM_KEYWORD]      = "from"
 };
+
 
 const char *
 token_get_name(int32_t tp){

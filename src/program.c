@@ -24,8 +24,11 @@ program_report(program_t *program)
   {
 		error_t *error = (error_t *)a->value;
 
+		char base_path[MAX_URI];
+		path_get_current_directory(base_path, MAX_URI);
+
 		char relative_path[MAX_URI];
-		path_get_relative(program->base_path, error->position.path, relative_path, sizeof(relative_path));
+		path_get_relative(base_path, error->position.path, relative_path, sizeof(relative_path));
 		
 		fprintf(stderr, 
 				"%s-%lld:%lld:error:%s\n", 
@@ -34,6 +37,87 @@ program_report(program_t *program)
 				error->position.column, 
 				error->message
 		);
+
+		FILE *fp = fopen(error->position.path, "rb");
+
+		if (fp == NULL)
+		{
+			fprintf(stderr, "%s-%u:could not open(%s)\n", 
+				__FILE__, __LINE__, error->position.path);
+			return;
+		}
+		
+		uint64_t line = 0;
+
+		char chunk[128];
+		size_t len = sizeof(chunk);
+
+		char *buf = malloc(len);
+		if (buf == NULL)
+		{
+			fprintf(stderr, "%s-%u:Unable to allocted a block of %zu bytes\n", 
+				__FILE__, __LINE__, sizeof(chunk));
+			return;
+		}
+
+		buf[0] = '\0';
+		while(fgets(chunk, sizeof(chunk), fp) != NULL) {
+			size_t len_used = strlen(buf);
+			size_t chunk_used = strlen(chunk);
+	
+			if(len - len_used < chunk_used) {
+				len *= 2;
+				if((buf = realloc(buf, len)) == NULL) {
+					fprintf(stderr, "%s-%u:Unable to reallocate a block of %zu bytes\n", 
+						__FILE__, __LINE__, sizeof(len));
+					free(buf);
+					return;
+				}
+			}
+
+			strncpy(buf + len_used, chunk, len - len_used);
+			len_used += chunk_used;
+
+			if(buf[len_used - 1] == '\n') {
+				line += 1;
+
+				if ((line > error->position.line - 2) && (line < error->position.line + 2))
+				{
+					if (line == error->position.line)
+					{
+						fprintf(stderr, "  \033[31m%lld\033[m\t|", line);
+
+						uint64_t j = 0;
+						for (uint64_t i = 0;i < strlen(buf);i++)
+						{
+							j += 1;
+							if (buf[i] == '\t')
+							{
+								j += 3;
+							}
+							
+							if ((j >= error->position.column) && (j < error->position.column + error->position.length))
+							{
+								fprintf(stderr, "\033[1;31m%c\033[m", buf[i]);
+							}
+							else
+							{
+								fprintf(stderr, "%c", buf[i]);
+							}
+						}
+					}
+					else
+					{
+						fprintf(stderr, "  %lld\t|%s", line, buf);
+					}
+				}
+				buf[0] = '\0';
+			}
+		}
+
+		fclose(fp);
+
+		free(buf);
   }
 }
 
@@ -41,36 +125,29 @@ void_t
 program_resolve(program_t *program, char *path)
 {
 	if (path_is_root(path))
-  {
-    path_normalize(getenv ("QALAM_PATH"), program->base_path, MAX_URI);
-    path_join(program->base_path, path + 2, program->base_file, MAX_URI);
-  }
-  else
-  {
-    path_get_current_directory(program->base_path, MAX_URI);
-    if(path_is_relative(path))
-    {
-      path_join(program->base_path, path, program->base_file, MAX_URI);
-    }
-    else 
-    {
-      path_normalize(path, program->base_file, MAX_URI);
-    }
-  }
+	{
+		char base_path[MAX_URI];
+		path_normalize(getenv ("QALAM_PATH"), base_path, MAX_URI);
+		path_join(base_path, path + 2, program->base_file, MAX_URI);
+	}
+	else
+	{
+		char base_path[MAX_URI];
+		path_get_current_directory(base_path, MAX_URI);
+		if(path_is_relative(path))
+		{
+			path_join(base_path, path, program->base_file, MAX_URI);
+		}
+		else 
+		{
+			path_normalize(path, program->base_file, MAX_URI);
+		}
+	}
 }
 
 node_t *
 program_load(program_t *program, char *path)
 {
-	char *base_path = malloc(MAX_URI);
-	if (base_path == NULL)
-	{
-		fprintf(stderr, "%s-(%u):Unable to allocted a block of %d bytes\n", 
-			__FILE__, __LINE__, MAX_URI);
-		return NULL;
-	}
-	memset(base_path, 0, MAX_URI);
-
 	char *base_file = malloc(MAX_URI);
 	if (base_file == NULL)
 	{
@@ -82,11 +159,13 @@ program_load(program_t *program, char *path)
 
 	if (path_is_root(path))
 	{
+		char base_path[MAX_URI];
 		path_normalize(getenv ("QALAM_PATH"), base_path, MAX_URI);
 		path_join(base_path, path + 2, base_file, MAX_URI);
 	}
 	else
 	{
+		char base_path[MAX_URI];
 		path_get_current_directory(base_path, MAX_URI);
 		if(path_is_relative(path))
 		{
