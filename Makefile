@@ -71,4 +71,4 @@ setup:
 
 # Builder uses this target to run your application.
 test: $(BINARY)
-	./qalam -f ./test/test.q -o ./test/test.asm
+	./$(BINARY) -f ./test/test.q -o ./test/test.asm

@@ -2684,6 +2684,18 @@ semantic_dictionary(program_t *program, node_t *node, list_t *response, uint64_t
 }
 
 static int32_t
+semantic_lambda(program_t *program, node_t *node, list_t *response, uint64_t flag)
+{
+    ilist_t *il1 = list_rpush(response, node);
+    if (il1 == NULL)
+    {
+        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+        return -1;
+    }
+    return 1;
+}
+
+static int32_t
 semantic_primary(program_t *program, node_t *base, node_t *node, list_t *response, uint64_t flag)
 {
     if (node->kind == NODE_KIND_ID)
@@ -2719,6 +2731,11 @@ semantic_primary(program_t *program, node_t *base, node_t *node, list_t *respons
     if (node->kind == NODE_KIND_DICTIONARY)
     {
         return semantic_dictionary(program, node, response, flag);
+    }
+    else
+    if (node->kind == NODE_KIND_LAMBDA)
+    {
+        return semantic_lambda(program, node, response, flag);
     }
     else
     {
@@ -2964,7 +2981,7 @@ semantic_pseudonym(program_t *program, node_t *base, node_t *node, list_t *respo
                     }
                     else
                     {
-                        semantic_error(program, var1->key, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
+                        semantic_error(program, carrier->base, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
                         return -1;
                     }
                     continue;
@@ -3025,7 +3042,7 @@ semantic_pseudonym(program_t *program, node_t *base, node_t *node, list_t *respo
                     }
                     else
                     {
-                        semantic_error(program, entity1->key, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
+                        semantic_error(program, carrier->base, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
                         return -1;
                     }
                     continue;
@@ -3086,8 +3103,63 @@ semantic_pseudonym(program_t *program, node_t *base, node_t *node, list_t *respo
                     }
                     else
                     {
-                        semantic_error(program, property1->key, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
-                        return -1;
+                        list_t *response2 = list_create();
+                        if (response2 == NULL)
+                        {
+                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+
+                        int32_t r2 = semantic_expression(program, property1->value, response2, flag);
+                        if (r2 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        {
+                            uint64_t cnt_response2 = 0;
+
+                            ilist_t *a2;
+                            for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                            {
+                                cnt_response2 += 1;
+                                
+                                node_t *item2 = (node_t *)a2->value;
+                                if (item2->kind == NODE_KIND_LAMBDA)
+                                {
+                                    node_lambda_t *fun1 = (node_lambda_t *)item2->value;
+                                    int32_t r3 = semantic_eqaul_gsfs(program, fun1->generics, carrier->data);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        property1->value_update = item2;
+                                        ilist_t *il1 = list_rpush(response, item1);
+                                        if (il1 == NULL)
+                                        {
+                                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                            return -1;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    semantic_error(program, carrier->base, "Non-Generic\n\tInternal:%s-%u", __FILE__, __LINE__);
+                                    return -1;
+                                }
+                            }
+
+                            if (cnt_response2 == 0)
+                            {
+                                semantic_error(program, property1->value, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
+                                return -1;
+                            }
+                        }
+
+                        list_destroy(response2);
                     }
                     continue;
                 }
@@ -3122,35 +3194,8 @@ semantic_pseudonym(program_t *program, node_t *base, node_t *node, list_t *respo
                 }
                 else
                 {
-                    node_t *node1 = parameter1->value_update;
-                    if (node1 != NULL)
-                    {
-                        if (node1->kind == NODE_KIND_LAMBDA)
-                        {
-                            node_lambda_t *fun1 = (node_lambda_t *)node1->value;
-                            int32_t r1 = semantic_eqaul_gsfs(program, fun1->generics, carrier->data);
-                            if (r1 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            if (r1 == 1)
-                            {
-                                ilist_t *il1 = list_rpush(response, item1);
-                                if (il1 == NULL)
-                                {
-                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        semantic_error(program, parameter1->key, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
-                        return -1;
-                    }
-                    continue;
+                    semantic_error(program, carrier->base, "Without type\n\tInternal:%s-%u", __FILE__, __LINE__);
+                    return -1;
                 }
             }
             else
@@ -3177,17 +3222,13 @@ semantic_pseudonym(program_t *program, node_t *base, node_t *node, list_t *respo
             else
             if (item1->kind == NODE_KIND_GENERIC)
             {
-                node_generic_t *generic1 = (node_generic_t *)item1->value;
-                semantic_error(program, generic1->key, "Non-Generic type, for (%s-%lld:%lld)\n\tInternal:%s-%u",
-                    node->position.path, node->position.line, node->position.column, __FILE__, __LINE__);
+                semantic_error(program, carrier->base, "Non-Generic\n\tInternal:%s-%u", __FILE__, __LINE__);
                 return -1;
             }
             else
             if (item1->kind == NODE_KIND_HERITAGE)
             {
-                node_heritage_t *heritage1 = (node_heritage_t *)item1->value;
-                semantic_error(program, heritage1->key, "Non-Generic type, for (%s-%lld:%lld)\n\tInternal:%s-%u",
-                    node->position.path, node->position.line, node->position.column, __FILE__, __LINE__);
+                semantic_error(program, carrier->base, "Non-Generic\n\tInternal:%s-%u", __FILE__, __LINE__);
                 return -1;
             }
         }
@@ -3239,8 +3280,10 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
             if (item1->kind == NODE_KIND_CLASS)
             {
                 node_class_t *class1 = (node_class_t *)item1->value;
+
                 node_t *node1 = class1->block;
                 node_block_t *block1 = (node_block_t *)node1->value;
+
                 ilist_t *a2;
                 for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
                 {
@@ -3250,6 +3293,23 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
                         node_class_t *class2 = (node_class_t *)item2->value;
                         if (semantic_idcmp(basic->right, class2->key) == 1)
                         {
+                            if ((item1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                            {
+                                if ((class2->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                                {
+                                    semantic_error(program, basic->right, "Non-Static, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                        class2->key->position.path, class2->key->position.line, class2->key->position.column, __FILE__, __LINE__);
+                                    return -1;
+                                }
+                            }
+
+                            if ((class2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                            {
+                                semantic_error(program, basic->right, "Private access, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                    class2->key->position.path, class2->key->position.line, class2->key->position.column, __FILE__, __LINE__);
+                                return -1;
+                            }
+
                             ilist_t *r2 = list_rpush(response, item2);
                             if (r2 == NULL)
                             {
@@ -3265,6 +3325,23 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
                         node_fun_t *fun2 = (node_fun_t *)item2->value;
                         if (semantic_idcmp(basic->right, fun2->key) == 1)
                         {
+                            if ((item1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                            {
+                                if ((fun2->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                                {
+                                    semantic_error(program, basic->right, "Non-Static, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                        fun2->key->position.path, fun2->key->position.line, fun2->key->position.column, __FILE__, __LINE__);
+                                    return -1;
+                                }
+                            }
+
+                            if ((fun2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                            {
+                                semantic_error(program, basic->right, "Private access, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                    fun2->key->position.path, fun2->key->position.line, fun2->key->position.column, __FILE__, __LINE__);
+                                return -1;
+                            }
+
                             ilist_t *r2 = list_rpush(response, item2);
                             if (r2 == NULL)
                             {
@@ -3280,6 +3357,23 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
                         node_property_t *property2 = (node_property_t *)item2->value;
                         if (semantic_idcmp(basic->right, property2->key) == 1)
                         {
+                            if ((item1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                            {
+                                if ((property2->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                                {
+                                    semantic_error(program, basic->right, "Non-Static, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                        property2->key->position.path, property2->key->position.line, property2->key->position.column, __FILE__, __LINE__);
+                                    return -1;
+                                }
+                            }
+
+                            if ((property2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                            {
+                                semantic_error(program, basic->right, "Private access, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                    property2->key->position.path, property2->key->position.line, property2->key->position.column, __FILE__, __LINE__);
+                                return -1;
+                            }
+
                             ilist_t *r2 = list_rpush(response, item2);
                             if (r2 == NULL)
                             {
@@ -3340,11 +3434,20 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
 
                                             node_t *item3 = (node_t *)a4->value;
 
-                                            heritage1->value_update = item3;
-
                                             if (item3->kind == NODE_KIND_CLASS)
                                             {
-                                                node_class_t *class2 = (node_class_t *)item3->value;
+                                                node_t *clone1 = node_clone(item3->parent, item3);
+                                                if (clone1 == NULL)
+                                                {
+                                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                                    return -1;
+                                                }
+                                                clone1->flag |= NODE_FLAG_INSTANCE;
+
+                                                heritage1->value_update = clone1;
+
+                                                node_class_t *class2 = (node_class_t *)clone1->value;
+
                                                 node_t *node3 = class2->block;
                                                 node_block_t *block3 = (node_block_t *)node3->value;
 
@@ -3357,6 +3460,23 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
                                                         node_class_t *class3 = (node_class_t *)item4->value;
                                                         if (semantic_idcmp(class3->key, basic->right) == 1)
                                                         {
+                                                            if ((clone1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                            {
+                                                                if ((class3->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                                                                {
+                                                                    semantic_error(program, basic->right, "Non-Static, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                                        class3->key->position.path, class3->key->position.line, class3->key->position.column, __FILE__, __LINE__);
+                                                                    return -1;
+                                                                }
+                                                            }
+
+                                                            if ((class3->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                            {
+                                                                semantic_error(program, basic->right, "Private access, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                                    class3->key->position.path, class3->key->position.line, class3->key->position.column, __FILE__, __LINE__);
+                                                                return -1;
+                                                            }
+
                                                             ilist_t *r3 = list_rpush(response, item4);
                                                             if (r3 == NULL)
                                                             {
@@ -3372,6 +3492,23 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
                                                         node_fun_t *fun1 = (node_fun_t *)item4->value;
                                                         if (semantic_idcmp(fun1->key, basic->right) == 1)
                                                         {
+                                                            if ((clone1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                            {
+                                                                if ((fun1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                                                                {
+                                                                    semantic_error(program, basic->right, "Non-Static, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                                        fun1->key->position.path, fun1->key->position.line, fun1->key->position.column, __FILE__, __LINE__);
+                                                                    return -1;
+                                                                }
+                                                            }
+
+                                                            if ((fun1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                            {
+                                                                semantic_error(program, basic->right, "Private access, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                                    fun1->key->position.path, fun1->key->position.line, fun1->key->position.column, __FILE__, __LINE__);
+                                                                return -1;
+                                                            }
+
                                                             ilist_t *r3 = list_rpush(response, item4);
                                                             if (r3 == NULL)
                                                             {
@@ -3387,6 +3524,23 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
                                                         node_property_t *property1 = (node_property_t *)item4->value;
                                                         if (semantic_idcmp(property1->key, basic->right) == 1)
                                                         {
+                                                            if ((clone1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                            {
+                                                                if ((property1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                                                                {
+                                                                    semantic_error(program, basic->right, "Non-Static, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                                        property1->key->position.path, property1->key->position.line, property1->key->position.column, __FILE__, __LINE__);
+                                                                    return -1;
+                                                                }
+                                                            }
+
+                                                            if ((property1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                            {
+                                                                semantic_error(program, basic->right, "Private access, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                                    property1->key->position.path, property1->key->position.line, property1->key->position.column, __FILE__, __LINE__);
+                                                                return -1;
+                                                            }
+
                                                             ilist_t *r3 = list_rpush(response, item4);
                                                             if (r3 == NULL)
                                                             {
@@ -3408,85 +3562,194 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
                                             else
                                             if (item3->kind == NODE_KIND_GENERIC)
                                             {
-                                                node_generic_t *generic1 = (node_generic_t *)item3->value;
-                                                if (generic1->value_update != NULL)
+                                                node_t *node3 = item3;
+                                                while (node3 != NULL)
                                                 {
-                                                    node_t *item4 = (node_t *)generic1->value_update;
-                                                    if (item4->kind == NODE_KIND_CLASS)
+                                                    node_generic_t *generic1 = (node_generic_t *)node3->value;
+                                                    if (generic1->type != NULL)
                                                     {
-                                                        node_class_t *class2 = (node_class_t *)item4->value;
-                                                        node_t *node3 = class2->block;
-                                                        node_block_t *block3 = (node_block_t *)node3->value;
-
-                                                        ilist_t *a5;
-                                                        for (a5 = block3->list->begin;a5 != block3->list->end;a5 = a5->next)
-                                                        {
-                                                            node_t *item5 = (node_t *)a5->value;
-                                                            if (item5->kind == NODE_KIND_CLASS)
-                                                            {
-                                                                node_class_t *class3 = (node_class_t *)item5->value;
-                                                                if (semantic_idcmp(class3->key, basic->right) == 1)
-                                                                {
-                                                                    ilist_t *r3 = list_rpush(response, item5);
-                                                                    if (r3 == NULL)
-                                                                    {
-                                                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                                                        return -1;
-                                                                    }
-                                                                    continue;
-                                                                }
-                                                            }
-                                                            else
-                                                            if (item5->kind == NODE_KIND_FUN)
-                                                            {
-                                                                node_fun_t *fun1 = (node_fun_t *)item5->value;
-                                                                if (semantic_idcmp(fun1->key, basic->right) == 1)
-                                                                {
-                                                                     ilist_t *r3 = list_rpush(response, item5);
-                                                                    if (r3 == NULL)
-                                                                    {
-                                                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                                                        return -1;
-                                                                    }
-                                                                    continue;
-                                                                }
-                                                            }
-                                                            else
-                                                            if (item5->kind == NODE_KIND_PROPERTY)
-                                                            {
-                                                                node_property_t *property1 = (node_property_t *)item5->value;
-                                                                if (semantic_idcmp(property1->key, basic->right) == 1)
-                                                                {
-                                                                    ilist_t *r3 = list_rpush(response, item5);
-                                                                    if (r3 == NULL)
-                                                                    {
-                                                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                                                        return -1;
-                                                                    }
-                                                                    continue;
-                                                                }
-                                                            }
-                                                        }
-
-                                                        ilist_t *r3 = list_rpush(repository1, class2->heritages);
-                                                        if (r3 == NULL)
+                                                        list_t *response3 = list_create();
+                                                        if (response3 == NULL)
                                                         {
                                                             fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
                                                             return -1;
                                                         }
-                                                    }
-                                                    else
-                                                    {
-                                                        semantic_error(program, item4, "wrong type, for (%lld:%lld)",
-                                                            heritage1->type->position.line, heritage1->type->position.column);
-                                                        return -1;
+                                                    
+                                                        int32_t r3 = semantic_resolve(program, generic1->type->parent, generic1->type, response3, SEMANTIC_FLAG_NONE);
+                                                        if (r3 == -1)
+                                                        {
+                                                            return -1;
+                                                        }
+                                                        else
+                                                        {
+                                                            uint64_t cnt_response3 = 0;
+
+                                                            ilist_t *a5;
+                                                            for (a5 = response3->begin;a5 != response3->end;a5 = a5->next)
+                                                            {
+                                                                cnt_response3 += 1;
+
+                                                                node_t *item4 = (node_t *)a5->value;
+                                                                if (item4->kind == NODE_KIND_CLASS)
+                                                                {
+                                                                    if ((item4->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
+                                                                    {
+                                                                        semantic_error(program, generic1->type, "Instance, in confronting with (%s-%lld:%lld)",
+                                                                            item4->position.path, item4->position.line, item4->position.column);
+                                                                        return -1;
+                                                                    }
+
+                                                                    node_t *clone1 = node_clone(item4->parent, item4);
+                                                                    if (clone1 == NULL)
+                                                                    {
+                                                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                                                        return -1;
+                                                                    }
+                                                                    clone1->flag |= NODE_FLAG_INSTANCE;
+
+                                                                    heritage1->value_update = clone1;
+
+                                                                    node_class_t *class2 = (node_class_t *)clone1->value;
+
+                                                                    node_t *node4 = class2->block;
+                                                                    node_block_t *block3 = (node_block_t *)node4->value;
+
+                                                                    ilist_t *a6;
+                                                                    for (a6 = block3->list->begin;a6 != block3->list->end;a6 = a6->next)
+                                                                    {
+                                                                        node_t *item5 = (node_t *)a6->value;
+                                                                        if (item5->kind == NODE_KIND_CLASS)
+                                                                        {
+                                                                            node_class_t *class3 = (node_class_t *)item5->value;
+                                                                            if (semantic_idcmp(class3->key, basic->right) == 1)
+                                                                            {
+                                                                                if ((clone1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                                                {
+                                                                                    if ((class3->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                                                                                    {
+                                                                                        semantic_error(program, basic->right, "Non-Static, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                                                            class3->key->position.path, class3->key->position.line, class3->key->position.column, __FILE__, __LINE__);
+                                                                                        return -1;
+                                                                                    }
+                                                                                }
+
+                                                                                if ((class3->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                                                {
+                                                                                    semantic_error(program, basic->right, "Private access, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                                                        class3->key->position.path, class3->key->position.line, class3->key->position.column, __FILE__, __LINE__);
+                                                                                    return -1;
+                                                                                }
+
+                                                                                ilist_t *r3 = list_rpush(response, item5);
+                                                                                if (r3 == NULL)
+                                                                                {
+                                                                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                                                                    return -1;
+                                                                                }
+                                                                                continue;
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                        if (item5->kind == NODE_KIND_FUN)
+                                                                        {
+                                                                            node_fun_t *fun1 = (node_fun_t *)item5->value;
+                                                                            if (semantic_idcmp(fun1->key, basic->right) == 1)
+                                                                            {
+                                                                                if ((clone1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                                                {
+                                                                                    if ((fun1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                                                                                    {
+                                                                                        semantic_error(program, basic->right, "Non-Static, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                                                            fun1->key->position.path, fun1->key->position.line, fun1->key->position.column, __FILE__, __LINE__);
+                                                                                        return -1;
+                                                                                    }
+                                                                                }
+
+                                                                                if ((fun1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                                                {
+                                                                                    semantic_error(program, basic->right, "Private access, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                                                        fun1->key->position.path, fun1->key->position.line, fun1->key->position.column, __FILE__, __LINE__);
+                                                                                    return -1;
+                                                                                }
+
+                                                                                ilist_t *r3 = list_rpush(response, item5);
+                                                                                if (r3 == NULL)
+                                                                                {
+                                                                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                                                                    return -1;
+                                                                                }
+                                                                                continue;
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                        if (item5->kind == NODE_KIND_PROPERTY)
+                                                                        {
+                                                                            node_property_t *property1 = (node_property_t *)item5->value;
+                                                                            if (semantic_idcmp(property1->key, basic->right) == 1)
+                                                                            {
+                                                                                if ((clone1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                                                {
+                                                                                    if ((property1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                                                                                    {
+                                                                                        semantic_error(program, basic->right, "Non-Static, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                                                            property1->key->position.path, property1->key->position.line, property1->key->position.column, __FILE__, __LINE__);
+                                                                                        return -1;
+                                                                                    }
+                                                                                }
+
+                                                                                if ((property1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                                                {
+                                                                                    semantic_error(program, basic->right, "Private access, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                                                        property1->key->position.path, property1->key->position.line, property1->key->position.column, __FILE__, __LINE__);
+                                                                                    return -1;
+                                                                                }
+
+                                                                                ilist_t *r3 = list_rpush(response, item5);
+                                                                                if (r3 == NULL)
+                                                                                {
+                                                                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                                                                    return -1;
+                                                                                }
+                                                                                continue;
+                                                                            }
+                                                                        }
+                                                                    }
+
+                                                                    ilist_t *r3 = list_rpush(repository1, class2->heritages);
+                                                                    if (r3 == NULL)
+                                                                    {
+                                                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                                                        return -1;
+                                                                    }
+
+                                                                }
+                                                                else
+                                                                if (item4->kind == NODE_KIND_GENERIC)
+                                                                {
+                                                                    node3 = item4;
+                                                                    break;
+                                                                }
+                                                                else
+                                                                {
+                                                                    semantic_error(program, generic1->type, "Wrong type, in confronting with (%s-%lld:%lld)",
+                                                                        item4->position.path, item4->position.line, item4->position.column);
+                                                                    return -1;
+                                                                }
+                                                            }
+
+                                                            if (cnt_response3 == 0)
+                                                            {
+                                                                semantic_error(program, generic1->type, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
+                                                                return -1;
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             }
                                             else
                                             {
-                                                semantic_error(program, item3, "wrong type, for (%lld:%lld)",
-                                                    heritage1->type->position.line, heritage1->type->position.column);
+                                                semantic_error(program, heritage1->type, "Wrong type, in confronting with (%s-%lld:%lld)",
+                                                    item3->position.path, item3->position.line, item3->position.column);
                                                 return -1;
                                             }
                                         }
@@ -3507,6 +3770,7 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
                                     if (node3->kind == NODE_KIND_CLASS)
                                     {
                                         node_class_t *class2 = (node_class_t *)node3->value;
+
                                         node_t *node4 = class2->block;
                                         node_block_t *block3 = (node_block_t *)node4->value;
 
@@ -3519,6 +3783,23 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
                                                 node_class_t *class3 = (node_class_t *)item3->value;
                                                 if (semantic_idcmp(class3->key, basic->right) == 1)
                                                 {
+                                                    if ((node3->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                    {
+                                                        if ((class3->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                                                        {
+                                                            semantic_error(program, basic->right, "Non-Static, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                                class3->key->position.path, class3->key->position.line, class3->key->position.column, __FILE__, __LINE__);
+                                                            return -1;
+                                                        }
+                                                    }
+
+                                                    if ((class3->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                    {
+                                                        semantic_error(program, basic->right, "Private access, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                            class3->key->position.path, class3->key->position.line, class3->key->position.column, __FILE__, __LINE__);
+                                                        return -1;
+                                                    }
+
                                                     ilist_t *r2 = list_rpush(response, item3);
                                                     if (r2 == NULL)
                                                     {
@@ -3534,6 +3815,55 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
                                                 node_fun_t *fun1 = (node_fun_t *)item3->value;
                                                 if (semantic_idcmp(fun1->key, basic->right) == 1)
                                                 {
+                                                    if ((node3->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                    {
+                                                        if ((fun1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                                                        {
+                                                            semantic_error(program, basic->right, "Non-Static, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                                fun1->key->position.path, fun1->key->position.line, fun1->key->position.column, __FILE__, __LINE__);
+                                                            return -1;
+                                                        }
+                                                    }
+
+                                                    if ((fun1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                    {
+                                                        semantic_error(program, basic->right, "Private access, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                            fun1->key->position.path, fun1->key->position.line, fun1->key->position.column, __FILE__, __LINE__);
+                                                        return -1;
+                                                    }
+
+                                                    ilist_t *r2 = list_rpush(response, item3);
+                                                    if (r2 == NULL)
+                                                    {
+                                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                                        return -1;
+                                                    }
+                                                    continue;
+                                                }
+                                            }
+                                            else
+                                            if (item3->kind == NODE_KIND_PROPERTY)
+                                            {
+                                                node_property_t *property1 = (node_property_t *)item3->value;
+                                                if (semantic_idcmp(property1->key, basic->right) == 1)
+                                                {
+                                                    if ((node3->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                    {
+                                                        if ((property1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+                                                        {
+                                                            semantic_error(program, basic->right, "Non-Static, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                                property1->key->position.path, property1->key->position.line, property1->key->position.column, __FILE__, __LINE__);
+                                                            return -1;
+                                                        }
+                                                    }
+
+                                                    if ((property1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                                                    {
+                                                        semantic_error(program, basic->right, "Private access, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                                            property1->key->position.path, property1->key->position.line, property1->key->position.column, __FILE__, __LINE__);
+                                                        return -1;
+                                                    }
+
                                                     ilist_t *r2 = list_rpush(response, item3);
                                                     if (r2 == NULL)
                                                     {
@@ -3551,12 +3881,6 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
                                             fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
                                             return -1;
                                         }
-                                    }
-                                    else
-                                    {
-                                        semantic_error(program, node3, "wrong type, for (%lld:%lld)",
-                                            heritage1->type->position.line, heritage1->type->position.column);
-                                        return -1;
                                     }
                                 }
                             }
@@ -6201,7 +6525,7 @@ semantic_call(program_t *program, node_t *base, node_t *node, list_t *response, 
                     }
                     else
                     {
-                        semantic_error(program, var1->key, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
+                        semantic_error(program, carrier->base, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
                         return -1;
                     }
                     continue;
@@ -6360,7 +6684,7 @@ semantic_call(program_t *program, node_t *base, node_t *node, list_t *response, 
                     }
                     else
                     {
-                        semantic_error(program, entity1->key, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
+                        semantic_error(program, carrier->base, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
                         return -1;
                     }
                     continue;
@@ -6519,8 +6843,113 @@ semantic_call(program_t *program, node_t *base, node_t *node, list_t *response, 
                     }
                     else
                     {
-                        semantic_error(program, property1->key, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
-                        return -1;
+                        list_t *response2 = list_create();
+                        if (response2 == NULL)
+                        {
+                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+
+                        int32_t r2 = semantic_expression(program, property1->value, response2, flag);
+                        if (r2 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        {
+                            uint64_t cnt_response2 = 0;
+
+                            ilist_t *a2;
+                            for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                            {
+                                cnt_response2 += 1;
+                                
+                                node_t *item2 = (node_t *)a2->value;
+                                if (item2->kind == NODE_KIND_LAMBDA)
+                                {
+                                    node_lambda_t *fun1 = (node_lambda_t *)item2->value;
+                                    int32_t r3 = semantic_eqaul_psas(program, fun1->parameters, carrier->data);
+                                    if (r3 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    if (r3 == 1)
+                                    {
+                                        property1->value_update = item2;
+                                        node_t *node2 = fun1->result;
+
+                                        list_t *response3 = list_create();
+                                        if (response3 == NULL)
+                                        {
+                                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                            return -1;
+                                        }
+
+                                        int32_t r4 = semantic_resolve(program, node2->parent, node2, response3, flag);
+                                        if (r4 == -1)
+                                        {
+                                            return -1;
+                                        }
+                                        else
+                                        {
+                                            uint64_t cnt_response3 = 0;
+
+                                            ilist_t *a3;
+                                            for (a3 = response3->begin;a3 != response3->end;a3 = a3->next)
+                                            {
+                                                cnt_response3 += 1;
+
+                                                node_t *item3 = (node_t *)a3->value;
+
+                                                if (item3->kind == NODE_KIND_CLASS)
+                                                {
+                                                    node_t *clone1 = node_clone(item3->parent, item3);
+                                                    if (clone1 == NULL)
+                                                    {
+                                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                                        return -1;
+                                                    }
+                                                    clone1->flag |= NODE_FLAG_INSTANCE;
+
+                                                    ilist_t *il1 = list_rpush(response, clone1);
+                                                    if (il1 == NULL)
+                                                    {
+                                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                                        return -1;
+                                                    }
+                                                    list_destroy(response3);
+                                                    list_destroy(response2);
+                                                    list_destroy(response1);
+                                                    return 1;
+                                                }
+                                            }
+
+                                            if (cnt_response3 == 0)
+                                            {
+                                                semantic_error(program, node2, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
+                                                return -1;
+                                            }
+                                        }
+
+                                        list_destroy(response3);
+                                    }
+                                }
+                                else
+                                {
+                                    semantic_error(program, carrier->base, "Non-Generic\n\tInternal:%s-%u", __FILE__, __LINE__);
+                                    return -1;
+                                }
+                            }
+
+                            if (cnt_response2 == 0)
+                            {
+                                semantic_error(program, property1->value, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
+                                return -1;
+                            }
+                        }
+
+                        list_destroy(response2);
                     }
                     continue;
                 }
@@ -6604,84 +7033,8 @@ semantic_call(program_t *program, node_t *base, node_t *node, list_t *response, 
                 }
                 else
                 {
-                    node_t *node1 = parameter1->value_update;
-                    if (node1 != NULL)
-                    {
-                        if (node1->kind == NODE_KIND_LAMBDA)
-                        {
-                            node_lambda_t *fun1 = (node_lambda_t *)node1->value;
-                            int32_t r1 = semantic_eqaul_psas(program, fun1->parameters, carrier->data);
-                            if (r1 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            if (r1 == 1)
-                            {
-                                node_t *node2 = fun1->result;
-
-                                list_t *response2 = list_create();
-                                if (response2 == NULL)
-                                {
-                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-
-                                int32_t r2 = semantic_resolve(program, node2->parent, node2, response2, flag);
-                                if (r2 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                {
-                                    uint64_t cnt_response2 = 0;
-
-                                    ilist_t *a2;
-                                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
-                                    {
-                                        cnt_response2 += 1;
-
-                                        node_t *item2 = (node_t *)a2->value;
-
-                                        if (item2->kind == NODE_KIND_CLASS)
-                                        {
-                                            node_t *clone1 = node_clone(item2->parent, item2);
-                                            if (clone1 == NULL)
-                                            {
-                                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                                return -1;
-                                            }
-                                            clone1->flag |= NODE_FLAG_INSTANCE;
-
-                                            ilist_t *il1 = list_rpush(response, clone1);
-                                            if (il1 == NULL)
-                                            {
-                                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                                return -1;
-                                            }
-                                            list_destroy(response2);
-                                            list_destroy(response1);
-                                            return 1;
-                                        }
-                                    }
-
-                                    if (cnt_response2 == 0)
-                                    {
-                                        semantic_error(program, node2, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                }
-
-                                list_destroy(response2);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        semantic_error(program, parameter1->key, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
-                        return -1;
-                    }
-                    continue;
+                    semantic_error(program, carrier->base, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
+                    return -1;
                 }
             }
             else

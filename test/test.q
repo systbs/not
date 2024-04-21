@@ -8,7 +8,7 @@ export class A {
 	}
 }
 
-export static class System
+export class System<R>
 {
 	@Main
 	export static fun Constructor(args:Array<String>)
@@ -19,7 +19,7 @@ export static class System
 		catch (e:fun<T>(a:Int32, b:Int64)->Any)
 		{
 			var a = Any();
-			a = Any;
+			a = Any.Constructor;
 		}
 	}
 }
