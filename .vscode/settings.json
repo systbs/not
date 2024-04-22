@@ -40,7 +40,9 @@
         "*.c2": "c",
         "text": "c",
         "semantic.h": "c",
-        "mensuration.h": "c"
+        "mensuration.h": "c",
+        "text2": "c",
+        "text3": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

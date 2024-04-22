@@ -19,8 +19,6 @@
 #include "../utils/path.h"
 #include "syntax.h"
 #include "error.h"
-#include "semantic.h"
-#include "mensuration.h"
 
 uint64_t
 mensuration_size(program_t *program, node_t *node)

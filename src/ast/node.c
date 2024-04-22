@@ -1884,6 +1884,49 @@ node_clone(node_t *parent, node_t *node)
 		return node1;
 	}
 	else
+	if (node->kind == NODE_KIND_EPI_ASSIGN)
+	{
+		node_t *node1 = (node_t *)malloc(sizeof(node_t));
+		if(node1 == NULL)
+		{
+			fprintf(stderr, "Unable to allocted a block of %zu bytes\n", sizeof(node_t));
+			return NULL;
+		}
+		memset(node1, 0, sizeof(node_t));
+
+		node1->id = node->id;
+		node1->position = node->position;
+		node1->parent = parent;
+		node1->kind = node->kind;
+		node1->flag = NODE_FLAG_TEMPORARY;
+
+		node_binary_t *binary1 = (node_binary_t *)node->value;
+
+		node_binary_t *binary2 = (node_binary_t *)malloc(sizeof(node_binary_t));
+		if(binary2 == NULL)
+		{
+			fprintf(stderr, "Unable to allocted a block of %zu bytes\n", sizeof(node_binary_t));
+			return NULL;
+		}
+		memset(binary2, 0, sizeof(node_binary_t));
+
+		binary2->left = node_clone(node1, binary1->left);
+		if (binary2->left == NULL)
+		{
+			return NULL;
+		}
+
+		binary2->right = node_clone(node1, binary1->right);
+		if (binary2->right == NULL)
+		{
+			return NULL;
+		}
+
+		node1->value = binary2;
+
+		return node1;
+	}
+	else
 	if (node->kind == NODE_KIND_MUL_ASSIGN)
 	{
 		node_t *node1 = (node_t *)malloc(sizeof(node_t));
@@ -5199,6 +5242,23 @@ node_make_div_assign(node_t *node, node_t *left, node_t *right)
 	basic->right = right;
 	
 	node_update(node, NODE_KIND_DIV_ASSIGN, basic);
+	return node;
+}
+
+node_t *
+node_make_epi_assign(node_t *node, node_t *left, node_t *right)
+{
+	node_binary_t *basic = (node_binary_t *)malloc(sizeof(node_binary_t));
+	if(basic == NULL)
+	{
+		fprintf(stderr, "Unable to allocted a block of %zu bytes\n", sizeof(node_binary_t));
+		return NULL;
+	}
+	memset(basic, 0, sizeof(node_binary_t));
+	basic->left = left;
+	basic->right = right;
+	
+	node_update(node, NODE_KIND_EPI_ASSIGN, basic);
 	return node;
 }
 

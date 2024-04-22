@@ -3,7 +3,7 @@ using * from "~/lib/types/primary.q";
 using Array<T>: Array<T>, Dictionary<T, V>: Dictionary<T, V> from "~/lib/types/container.q";
 
 export class A {
-	export fun Constructor()
+	export fun Constructor() : A
 	{
 	}
 }
@@ -11,7 +11,7 @@ export class A {
 export class System<R>
 {
 	@Main
-	export static fun Constructor(args:Array<String>)
+	export static fun Constructor(args:Array<String>) : Int64
 	{
 		try {
 
@@ -19,7 +19,7 @@ export class System<R>
 		catch (e:fun<T>(a:Int32, b:Int64)->Any)
 		{
 			var a = Any();
-			a = Any.Constructor;
+			a = R() + Any.Constructor() + 1;
 		}
 	}
 }

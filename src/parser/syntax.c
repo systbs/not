@@ -2199,6 +2199,24 @@ syntax_assign(program_t *program, syntax_t *syntax, node_t *parent)
 		return node_make_div_assign(node, node2, right);
 	}
 	else
+	if (syntax->token->type == TOKEN_BACKSLASH_EQ)
+	{
+		node_t *node = node_create(parent, syntax->token->position);
+		
+		if (syntax_next(program, syntax) == -1)
+		{
+			return NULL;
+		}
+
+		node_t *right = syntax_expression(program, syntax, node);
+		if (right == NULL)
+		{
+			return NULL;
+		}
+
+		return node_make_epi_assign(node, node2, right);
+	}
+	else
 	if (syntax->token->type == TOKEN_PERCENT_EQ)
 	{
 		node_t *node = node_create(parent, syntax->token->position);
@@ -3478,21 +3496,14 @@ syntax_func(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, 
 		}
 	}
 
-	node_t *result = NULL;
-	if (used_constructor == 0)
+	if (syntax_match(program, syntax, TOKEN_COLON) == -1)
 	{
-		if (syntax->token->type == TOKEN_COLON)
-		{
-			if (syntax_next(program, syntax) == -1)
-			{
-				return NULL;
-			}
-			result = syntax_postfix(program, syntax, node);
-			if (result == NULL)
-			{
-				return NULL;
-			}
-		}
+		return NULL;
+	}
+	node_t *result = syntax_postfix(program, syntax, node);
+	if (result == NULL)
+	{
+		return NULL;
 	}
 
 	node_t *body = syntax_body(program, syntax, node);

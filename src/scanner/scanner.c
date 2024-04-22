@@ -741,6 +741,10 @@ scanner_advance(program_t *program, scanner_t *scanner)
 			}
 			else if (scanner->ch == '\\')
 			{
+				uint64_t offset = scanner->offset;
+				uint64_t column = scanner->column;
+				uint64_t line = scanner->line;
+
 				scanner_set_token(program, scanner, (token_t){
 																			 .type = TOKEN_BACKSLASH,
 																			 .value = NULL,
@@ -755,6 +759,35 @@ scanner_advance(program_t *program, scanner_t *scanner)
 				{
 					return -1;
 				}
+
+				if(scanner_skip_trivial(program, scanner) == -1)
+				{
+					return -1;
+				}
+				if (scanner->ch == eof)
+				{
+					break;
+				}
+
+				if (scanner->ch == '=')
+				{
+					scanner_set_token(program, scanner, (token_t){
+																				 .type = TOKEN_BACKSLASH_EQ,
+																				 .value = NULL,
+																				 .position = {
+																						 .path = scanner->path,
+																						 .offset = offset,
+																						 .column = column,
+																						 .line = line,
+																						 .length = 2}});
+
+					if (scanner_next(program, scanner) == -1)
+					{
+						return -1;
+					}
+					return 1;
+				}
+
 				return 1;
 			}
 			else if (scanner->ch == '_')
@@ -814,7 +847,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 					{
@@ -864,7 +898,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 					{
@@ -882,7 +917,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 					{
@@ -932,7 +968,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 					{
@@ -950,7 +987,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 					{
@@ -1082,7 +1120,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																							 .path = scanner->path,
 																							 .offset = offset,
 																							 .column = column,
-																							 .line = line}});
+																							 .line = line,
+																						 	.length = 2}});
 
 						if (scanner_next(program, scanner) == -1)
 						{
@@ -1133,7 +1172,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 					{
@@ -1182,7 +1222,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 					{
@@ -1200,7 +1241,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 				{
@@ -1250,7 +1292,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 					{
@@ -1268,7 +1311,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 					{
@@ -1353,7 +1397,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 					{
@@ -1378,7 +1423,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																							 .path = scanner->path,
 																							 .offset = offset,
 																							 .column = column,
-																							 .line = line}});
+																							 .line = line,
+																						 .length = 3}});
 
 						if (scanner_next(program, scanner) == -1)
 						{
@@ -1398,7 +1444,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 					{
@@ -1446,7 +1493,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 					{
@@ -1471,7 +1519,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																							 .path = scanner->path,
 																							 .offset = offset,
 																							 .column = column,
-																							 .line = line}});
+																							 .line = line,
+																						 .length = 2}});
 
 						if (scanner_next(program, scanner) == -1)
 						{
@@ -1491,7 +1540,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 					{
@@ -1540,7 +1590,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 					{
@@ -1588,7 +1639,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 																						 .path = scanner->path,
 																						 .offset = offset,
 																						 .column = column,
-																						 .line = line}});
+																						 .line = line,
+																						 .length = 2}});
 
 					if (scanner_next(program, scanner) == -1)
 					{

@@ -80,6 +80,7 @@ typedef enum node_kind {
 	NODE_KIND_SUB_ASSIGN,
 	NODE_KIND_MUL_ASSIGN,
 	NODE_KIND_DIV_ASSIGN,
+	NODE_KIND_EPI_ASSIGN,
 	NODE_KIND_MOD_ASSIGN,
 	NODE_KIND_AND_ASSIGN,
 	NODE_KIND_OR_ASSIGN,
@@ -411,12 +412,6 @@ node_t *
 node_make_arguments(node_t *node, list_t *list);
 
 node_t *
-node_make_concept(node_t *node, node_t *name, node_t *value);
-
-node_t *
-node_make_concepts(node_t *node, list_t *list);
-
-node_t *
 node_make_call(node_t *node, node_t *name, node_t *arguments);
 
 node_t *
@@ -438,9 +433,6 @@ node_make_neg(node_t *node, node_t *right);
 
 node_t *
 node_make_pos(node_t *node, node_t *right);
-
-node_t *
-node_make_ellipsis(node_t *node, node_t *right);
 
 
 
@@ -520,6 +512,9 @@ node_make_mul_assign(node_t *node, node_t *left, node_t *right);
 
 node_t *
 node_make_div_assign(node_t *node, node_t *left, node_t *right);
+
+node_t *
+node_make_epi_assign(node_t *node, node_t *left, node_t *right);
 
 node_t *
 node_make_mod_assign(node_t *node, node_t *left, node_t *right);

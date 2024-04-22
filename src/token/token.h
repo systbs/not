@@ -63,6 +63,7 @@ enum
   TOKEN_MINUS_EQ,     // -=
   TOKEN_STAR_EQ,      // *=
   TOKEN_SLASH_EQ,     // /=
+  TOKEN_BACKSLASH_EQ, // \=
   TOKEN_PERCENT_EQ,   // %=
   TOKEN_AND_EQ,       // &=
   TOKEN_OR_EQ,        // |=
