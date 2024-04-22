@@ -13,9 +13,9 @@
 #include "../../ast/node.h"
 #include "../../utils/utils.h"
 #include "../../utils/path.h"
-#include "../syntax.h"
+#include "../syntax/syntax.h"
 #include "../error.h"
-#include "../semantic.h"
+#include "semantic.h"
 
 int32_t
 semantic_eqaul_gsgs(program_t *program, node_t *ngs1, node_t *ngs2)

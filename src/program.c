@@ -4,17 +4,18 @@
 #include <stdarg.h>
 
 #include "types/types.h"
+#include "utils/utils.h"
+#include "utils/path.h"
 #include "container/list.h"
 #include "token/position.h"
 #include "token/token.h"
 #include "program.h"
 #include "scanner/scanner.h"
 #include "ast/node.h"
-#include "parser/syntax.h"
 #include "parser/error.h"
-#include "parser/semantic.h"
-#include "utils/utils.h"
-#include "utils/path.h"
+#include "parser/syntax/syntax.h"
+#include "parser/semantic/semantic.h"
+
 
 void_t
 program_report(program_t *program)

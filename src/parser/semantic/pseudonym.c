@@ -13,9 +13,9 @@
 #include "../../ast/node.h"
 #include "../../utils/utils.h"
 #include "../../utils/path.h"
-#include "../syntax.h"
+#include "../syntax/syntax.h"
 #include "../error.h"
-#include "../semantic.h"
+#include "semantic.h"
 
 static int32_t
 semantic_field(program_t *program, node_t *node, uint64_t flag)

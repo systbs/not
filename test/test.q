@@ -19,7 +19,7 @@ export class System<R>
 		catch (e:fun<T>(a:Int32, b:Int64)->Any)
 		{
 			var a = Any();
-			a = R() + Any.Constructor() + 1;
+			a = Any.Constructor() + 1;
 		}
 	}
 }

@@ -8,7 +8,6 @@ export class Any
     }
 }
 
-@General
 @Null
 export class Null 
 {

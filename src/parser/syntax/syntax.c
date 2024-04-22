@@ -3,16 +3,17 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#include "../types/types.h"
-#include "../container/list.h"
-#include "../token/position.h"
-#include "../token/token.h"
-#include "../program.h"
-#include "../scanner/scanner.h"
-#include "../ast/node.h"
-#include "../utils/utils.h"
+#include "../../types/types.h"
+#include "../../container/list.h"
+#include "../../token/position.h"
+#include "../../token/token.h"
+#include "../../program.h"
+#include "../../scanner/scanner.h"
+#include "../../ast/node.h"
+#include "../../utils/utils.h"
+#include "../error.h"
 #include "syntax.h"
-#include "error.h"
+
 
 static node_t *
 syntax_expression(program_t *program, syntax_t *syntax, node_t *parent);

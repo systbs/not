@@ -8,8 +8,8 @@
 #include "../token/token.h"
 #include "../program.h"
 #include "../scanner/scanner.h"
+#include "../parser/syntax/syntax.h"
 #include "node.h"
-#include "../parser/syntax.h"
 
 uint64_t node_counter = 0;
 
