@@ -91,8 +91,6 @@ semantic_postfix(program_t *program, node_t *base, node_t *node, list_t *respons
 int32_t
 semantic_expression(program_t *program, node_t *node, list_t *response, uint64_t flag);
 
-
-// assign.c
 int32_t
 semantic_assign(program_t *program, node_t *node, uint64_t flag);
 
