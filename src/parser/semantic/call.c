@@ -50,7 +50,7 @@ semantic_gresolve(program_t *program, node_t *node, list_t *response, uint64_t f
                 {
                     node_class_t *class1 = (node_class_t *)item1->value;
 
-                    if ((item1->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                    if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                     {
                         semantic_error(program, generic1->key, "Instance object, in confronting with (%s-%lld:%lld)",
                             class1->key->position.path, class1->key->position.line, class1->key->position.column);
@@ -125,7 +125,7 @@ semantic_hresolve(program_t *program, node_t *node, list_t *response, uint64_t f
                 {
                     node_class_t *class1 = (node_class_t *)item1->value;
 
-                    if ((item1->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                    if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                     {
                         semantic_error(program, heritage1->key, "Instance object, in confronting with (%s-%lld:%lld)",
                             class1->key->position.path, class1->key->position.line, class1->key->position.column);

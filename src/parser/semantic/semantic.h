@@ -25,6 +25,9 @@ semantic_run(program_t *program, node_t *root);
 
 // subset.c
 int32_t
+semantic_tequality(program_t *program, node_t *n1, node_t *n2);
+
+int32_t
 semantic_subset(program_t *program, node_t *n1, node_t *n2);
 
 
@@ -56,11 +59,6 @@ node_t *
 semantic_make_arguments(program_t *program, node_t *parent, uint64_t n, ...);
 
 
-// select.c
-int32_t
-semantic_select(program_t *program, node_t *base, node_t *name, list_t *response, node_t *origin_class, uint16_t follow);
-
-
 // primary.c
 int32_t
 semantic_primary(program_t *program, node_t *base, node_t *node, list_t *response, uint64_t flag);
@@ -90,6 +88,9 @@ semantic_postfix(program_t *program, node_t *base, node_t *node, list_t *respons
 
 int32_t
 semantic_expression(program_t *program, node_t *node, list_t *response, uint64_t flag);
+
+int32_t
+semantic_assignment(program_t *program, node_t *node1, node_t *node2, node_t *major, uint64_t flag);
 
 int32_t
 semantic_assign(program_t *program, node_t *node, uint64_t flag);

@@ -18,6 +18,16 @@
 #include "semantic.h"
 
 int32_t
+semantic_tequality(program_t *program, node_t *n1, node_t *n2)
+{
+    if (n1->id == n2->id)
+    {
+        return 1;
+    }
+    return 0;
+}
+
+int32_t
 semantic_subset(program_t *program, node_t *n1, node_t *n2)
 {
     if (n1->id == n2->id)
@@ -72,7 +82,6 @@ semantic_subset(program_t *program, node_t *n1, node_t *n2)
                             return -1;
                         }
                         else
-                        if (r2 == 1)
                         {
                             uint64_t cnt_response2 = 0;
 

@@ -798,23 +798,6 @@ syntax_lambda(program_t *program, syntax_t *syntax, node_t *parent)
 		return NULL;
 	}
 
-	position_t pos1 = syntax->token->position;
-	node_t *key = NULL;
-	if (syntax->token->type == TOKEN_ID)
-	{
-		key = syntax_id(program, syntax, node);
-		if (key == NULL)
-		{
-			return NULL;
-		}
-		
-		if (syntax_idstrcmp(key, "Constructor") == 1)
-		{
-			syntax_error(program, syntax->token->position, "wrong name");
-			return NULL;
-		}
-	}
-
 	node_t *generics = NULL;
 	if (syntax->token->type == TOKEN_LT)
 	{
@@ -881,12 +864,6 @@ syntax_lambda(program_t *program, syntax_t *syntax, node_t *parent)
 			return NULL;
 		}
 
-		if (key != NULL)
-		{
-			syntax_error(program, pos1, "fun type by name");
-			return NULL;
-		}
-
 		node_t *result = syntax_postfix(program, syntax, node);
 		if (result == NULL)
 		{
@@ -914,7 +891,7 @@ syntax_lambda(program_t *program, syntax_t *syntax, node_t *parent)
 			return NULL;
 		}
 
-		return node_make_lambda(node, key, generics, parameters, body, result);
+		return node_make_lambda(node, generics, parameters, body, result);
 	}
 }
 
@@ -2396,7 +2373,7 @@ syntax_entity(program_t *program, syntax_t *syntax, node_t *parent, uint64_t fla
 		return NULL;
 	}
 
-	node_t *type = syntax_postfix(program, syntax, node);
+	node_t *type = syntax_id(program, syntax, node);
 	if (type == NULL)
 	{
 		return NULL;

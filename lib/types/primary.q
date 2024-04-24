@@ -2,7 +2,7 @@
 @Mallocable
 export class Any 
 {
-    export static fun Constructor() : Any
+    export fun Constructor() : Any
     {
 
     }

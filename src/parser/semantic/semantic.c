@@ -21,7 +21,6 @@
 #include "../error.h"
 #include "semantic.h"
 
-
 error_t *
 semantic_error(program_t *program, node_t *node, const char *format, ...)
 {
@@ -1414,19 +1413,31 @@ semantic_var(program_t *program, node_t *node, uint64_t flag)
         int32_t r1 = semantic_expression(program, var1->value, response1, SEMANTIC_FLAG_NONE);
         if (r1 == -1)
         {
-            list_destroy(response1);
-            return -1;
-        }
-        if (r1 == 0)
-        {
-            semantic_error(program, var1->value, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
             return -1;
         }
         else
-        if (r1 == 1)
         {
-            list_destroy(response1);
-            return 1;
+            uint64_t cnt_response1 = 0;
+
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                cnt_response1 += 1;
+
+                node_t *item1 = (node_t *)a1->value;
+
+                int32_t r2 = semantic_assignment(program, node, item1, node, SEMANTIC_FLAG_NONE);
+                if (r2 == -1)
+                {
+                    return -1;
+                }
+            }
+
+            if (cnt_response1 == 0)
+            {
+                semantic_error(program, var1->value, "No result\n\tInternal:%s-%u", __FILE__, __LINE__);
+                return -1;
+            }
         }
     }
 

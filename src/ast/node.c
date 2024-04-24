@@ -3678,15 +3678,6 @@ node_clone(node_t *parent, node_t *node)
 		}
 		memset(fun2, 0, sizeof(node_lambda_t));
 
-		if (fun1->key != NULL)
-		{
-			fun2->key = node_clone(node1, fun1->key);
-			if (fun2->key == NULL)
-			{
-				return NULL;
-			}
-		}
-
 		if (fun1->generics != NULL)
 		{
 			fun2->generics = node_clone(node1, fun1->generics);
@@ -5743,7 +5734,7 @@ node_make_func(node_t *node, node_t *annotation, uint64_t flag, node_t *key, nod
 }
 
 node_t *
-node_make_lambda(node_t *node, node_t *key, node_t *generics, node_t *parameters, node_t *body, node_t *result)
+node_make_lambda(node_t *node, node_t *generics, node_t *parameters, node_t *body, node_t *result)
 {
 	node_lambda_t *basic;
 	if(!(basic = (node_lambda_t *)malloc(sizeof(node_lambda_t))))
@@ -5752,7 +5743,6 @@ node_make_lambda(node_t *node, node_t *key, node_t *generics, node_t *parameters
 		return NULL;
 	}
 	memset(basic, 0, sizeof(node_lambda_t));
-	basic->key = key;
 	basic->generics = generics;
 	basic->parameters = parameters;
 	basic->body = body;

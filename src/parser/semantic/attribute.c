@@ -50,7 +50,7 @@ semantic_gresolve(program_t *program, node_t *node, list_t *response, uint64_t f
                 {
                     node_class_t *class1 = (node_class_t *)item1->value;
 
-                    if ((item1->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                    if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                     {
                         semantic_error(program, generic1->key, "Instance object, in confronting with (%s-%lld:%lld)",
                             class1->key->position.path, class1->key->position.line, class1->key->position.column);
@@ -125,7 +125,7 @@ semantic_hresolve(program_t *program, node_t *node, list_t *response, uint64_t f
                 {
                     node_class_t *class1 = (node_class_t *)item1->value;
 
-                    if ((item1->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                    if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                     {
                         semantic_error(program, heritage1->key, "Instance object, in confronting with (%s-%lld:%lld)",
                             class1->key->position.path, class1->key->position.line, class1->key->position.column);
@@ -561,7 +561,7 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
                                     node_t *item2 = (node_t *)a2->value;
                                     if (item2->kind == NODE_KIND_CLASS)
                                     {
-                                        if ((item2->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                        if ((item2->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                         {
                                             semantic_error(program, node1, "Instance object, in confronting with (%s-%lld:%lld)",
                                                 item2->position.path, item2->position.line, item2->position.column);
@@ -614,7 +614,7 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
 
                                                 if (item3->kind == NODE_KIND_CLASS)
                                                 {
-                                                    if ((item3->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                    if ((item3->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                                     {
                                                         semantic_error(program, generic1->type, "Instance object, in confronting with (%s-%lld:%lld)",
                                                             item3->position.path, item3->position.line, item3->position.column);
@@ -691,7 +691,7 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
                                 node_t *item2 = (node_t *)a2->value;
                                 if (item2->kind == NODE_KIND_CLASS)
                                 {
-                                    if ((item2->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                    if ((item2->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                     {
                                         semantic_error(program, node1, "Instance object, in confronting with (%s-%lld:%lld)",
                                             item2->position.path, item2->position.line, item2->position.column);
@@ -865,7 +865,7 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
 
                                                                 if (item4->kind == NODE_KIND_CLASS)
                                                                 {
-                                                                    if ((item4->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                                    if ((item4->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                                                     {
                                                                         semantic_error(program, heritage1->type, "Instance object, in confronting with (%s-%lld:%lld)",
                                                                             item4->position.path, item4->position.line, item4->position.column);
@@ -1373,7 +1373,7 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
 
                                                     if (item3->kind == NODE_KIND_CLASS)
                                                     {
-                                                        if ((item3->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                        if ((item3->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                                         {
                                                             semantic_error(program, generic1->type, "Instance object, in confronting with (%s-%lld:%lld)",
                                                                 item3->position.path, item3->position.line, item3->position.column);
@@ -1547,7 +1547,7 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
 
                                                                                     if (item5->kind == NODE_KIND_CLASS)
                                                                                     {
-                                                                                        if ((item5->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                                                        if ((item5->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                                                                         {
                                                                                             semantic_error(program, heritage1->type, "Instance object, in confronting with (%s-%lld:%lld)",
                                                                                                 item5->position.path, item5->position.line, item5->position.column);
@@ -2115,7 +2115,7 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
                                     node_t *item2 = (node_t *)a2->value;
                                     if (item2->kind == NODE_KIND_CLASS)
                                     {
-                                        if ((item2->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                        if ((item2->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                         {
                                             semantic_error(program, node1, "Instance object, in confronting with (%s-%lld:%lld)",
                                                 item2->position.path, item2->position.line, item2->position.column);
@@ -2168,7 +2168,7 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
 
                                                 if (item3->kind == NODE_KIND_CLASS)
                                                 {
-                                                    if ((item3->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                    if ((item3->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                                     {
                                                         semantic_error(program, generic1->type, "Instance object, in confronting with (%s-%lld:%lld)",
                                                             item3->position.path, item3->position.line, item3->position.column);
@@ -2245,7 +2245,7 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
                                 node_t *item2 = (node_t *)a2->value;
                                 if (item2->kind == NODE_KIND_CLASS)
                                 {
-                                    if ((item2->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                    if ((item2->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                     {
                                         semantic_error(program, node1, "Instance object, in confronting with (%s-%lld:%lld)",
                                             item2->position.path, item2->position.line, item2->position.column);
@@ -2419,7 +2419,7 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
 
                                                                 if (item4->kind == NODE_KIND_CLASS)
                                                                 {
-                                                                    if ((item4->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                                    if ((item4->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                                                     {
                                                                         semantic_error(program, heritage1->type, "Instance object, in confronting with (%s-%lld:%lld)",
                                                                             item4->position.path, item4->position.line, item4->position.column);
@@ -2927,7 +2927,7 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
 
                                                     if (item3->kind == NODE_KIND_CLASS)
                                                     {
-                                                        if ((item3->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                        if ((item3->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                                         {
                                                             semantic_error(program, generic1->type, "Instance object, in confronting with (%s-%lld:%lld)",
                                                                 item3->position.path, item3->position.line, item3->position.column);
@@ -3101,7 +3101,7 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
 
                                                                                     if (item5->kind == NODE_KIND_CLASS)
                                                                                     {
-                                                                                        if ((item5->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                                                                        if ((item5->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                                                                         {
                                                                                             semantic_error(program, heritage1->type, "Instance object, in confronting with (%s-%lld:%lld)",
                                                                                                 item5->position.path, item5->position.line, item5->position.column);
@@ -3654,7 +3654,7 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
 
                             if (item2->kind == NODE_KIND_CLASS)
                             {
-                                if ((item2->kind & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                                if ((item2->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                 {
                                     semantic_error(program, heritage1->type, "Instance object, in confronting with (%s-%lld:%lld)",
                                         item2->position.path, item2->position.line, item2->position.column);
