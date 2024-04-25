@@ -74,6 +74,12 @@ semantic_idstrcmp(node_t *n1, char *name)
 
 
 static int32_t
+semantic_var(program_t *program, node_t *node, uint64_t flag);
+
+static int32_t
+semantic_parameter(program_t *program, node_t *node, uint64_t flag);
+
+static int32_t
 semantic_parameters(program_t *program, node_t *node, uint64_t flag);
 
 static int32_t
@@ -86,6 +92,92 @@ semantic_body(program_t *program, node_t *node, uint64_t flag);
 static int32_t
 semantic_if(program_t *program, node_t *node, uint64_t flag)
 {
+    node_if_t *if1 = (node_if_t *)node->value;
+
+    if (if1->condition != NULL)
+    {
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):Unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_expression(program, if1->condition, response1, SEMANTIC_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        {
+            uint64_t cnt_response1 = 0;
+
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                cnt_response1 += 1;
+
+                node_t *item1 = (node_t *)a1->value;
+
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class1 = (node_class_t *)item1->value;
+                    if ((item1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                    {
+                        semantic_error(program, if1->condition, "Not an instance of object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
+                            class1->key->position.path, class1->key->position.line, class1->key->position.column ,__FILE__, __LINE__);
+                        return -1;
+                    }
+                    continue;
+                }
+                else
+                {
+                    semantic_error(program, if1->condition, "Not an instance of object\n\tInternal:%s-%u",__FILE__, __LINE__);
+                    return -1;
+                }
+            }
+
+            if (cnt_response1 == 0)
+            {
+                semantic_error(program, if1->condition, "No result\n\tInternal:%s-%u", __FILE__, __LINE__);
+                return -1;
+            }
+        }
+
+        list_destroy(response1);
+    }
+
+    if (if1->then_body != NULL)
+    {
+        int32_t r1 = semantic_body(program, if1->then_body, flag);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+    }
+
+    if (if1->else_body != NULL)
+    {
+        node_t *else_body1 = if1->else_body;
+
+        if (else_body1->kind == NODE_KIND_IF)
+        {
+            int32_t r1 = semantic_if(program, if1->else_body, flag);
+            if (r1 == -1)
+            {
+                return -1;
+            }
+        }
+        else
+        {
+            int32_t r1 = semantic_body(program, if1->else_body, flag);
+            if (r1 == -1)
+            {
+                return -1;
+            }
+        }
+    }
+
 	return 1;
 }
 
@@ -358,6 +450,113 @@ semantic_for(program_t *program, node_t *node, uint64_t flag)
         }
     }
     
+    if (for1->initializer != NULL)
+    {
+        node_t *node1 = for1->initializer;
+        node_block_t *block1 = node1->value;
+
+        ilist_t *a1;
+        for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
+        {
+            node_t *item1 = (node_t *)a1->value;
+            if (item1->kind == NODE_KIND_VAR)
+            {
+                int32_t r1 = semantic_var(program, item1, SEMANTIC_FLAG_NONE);
+                if (r1 == -1)
+                {
+                    return -1;
+                }
+            }
+            else
+            {
+                int32_t r1 = semantic_assign(program, item1, SEMANTIC_FLAG_NONE);
+                if (r1 == -1)
+                {
+                    return -1;
+                }
+            }
+        }
+    }
+
+    if (for1->condition != NULL)
+    {
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):Unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_expression(program, for1->condition, response1, SEMANTIC_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        {
+            uint64_t cnt_response1 = 0;
+
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                cnt_response1 += 1;
+
+                node_t *item1 = (node_t *)a1->value;
+
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class1 = (node_class_t *)item1->value;
+                    if ((item1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                    {
+                        semantic_error(program, for1->condition, "Not an instance of object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
+                            class1->key->position.path, class1->key->position.line, class1->key->position.column ,__FILE__, __LINE__);
+                        return -1;
+                    }
+                    continue;
+                }
+                else
+                {
+                    semantic_error(program, for1->condition, "Not an instance of object\n\tInternal:%s-%u",__FILE__, __LINE__);
+                    return -1;
+                }
+            }
+
+            if (cnt_response1 == 0)
+            {
+                semantic_error(program, for1->condition, "No result\n\tInternal:%s-%u", __FILE__, __LINE__);
+                return -1;
+            }
+        }
+
+        list_destroy(response1);
+    }
+
+    if (for1->incrementor != NULL)
+    {
+        node_t *node1 = for1->incrementor;
+        node_block_t *block1 = node1->value;
+
+        ilist_t *a1;
+        for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
+        {
+            node_t *item1 = (node_t *)a1->value;
+            int32_t r1 = semantic_assign(program, item1, SEMANTIC_FLAG_NONE);
+            if (r1 == -1)
+            {
+                return -1;
+            }
+        }
+    }
+
+    if (for1->body != NULL)
+    {
+        int32_t r1 = semantic_body(program, for1->body, flag);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+    }
+
 	return 1;
 }
 
@@ -629,6 +828,97 @@ semantic_forin(program_t *program, node_t *node, uint64_t flag)
             }
         }
     }
+
+    if (for1->initializer != NULL)
+    {
+        node_t *node1 = for1->initializer;
+        node_block_t *block1 = node1->value;
+
+        ilist_t *a1;
+        for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
+        {
+            node_t *item1 = (node_t *)a1->value;
+            if (item1->kind == NODE_KIND_VAR)
+            {
+                int32_t r1 = semantic_var(program, item1, SEMANTIC_FLAG_NONE);
+                if (r1 == -1)
+                {
+                    return -1;
+                }
+            }
+            else
+            {
+                int32_t r1 = semantic_assign(program, item1, SEMANTIC_FLAG_NONE);
+                if (r1 == -1)
+                {
+                    return -1;
+                }
+            }
+        }
+    }
+
+    if (for1->expression != NULL)
+    {
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):Unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_expression(program, for1->expression, response1, SEMANTIC_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        {
+            uint64_t cnt_response1 = 0;
+
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                cnt_response1 += 1;
+
+                node_t *item1 = (node_t *)a1->value;
+
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class1 = (node_class_t *)item1->value;
+                    if ((item1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                    {
+                        semantic_error(program, for1->expression, "Not an instance of object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
+                            class1->key->position.path, class1->key->position.line, class1->key->position.column ,__FILE__, __LINE__);
+                        return -1;
+                    }
+                    continue;
+                }
+                else
+                {
+                    semantic_error(program, for1->expression, "Not an instance of object\n\tInternal:%s-%u",__FILE__, __LINE__);
+                    return -1;
+                }
+            }
+
+            if (cnt_response1 == 0)
+            {
+                semantic_error(program, for1->expression, "No result\n\tInternal:%s-%u", __FILE__, __LINE__);
+                return -1;
+            }
+        }
+
+        list_destroy(response1);
+    }
+
+    if (for1->body != NULL)
+    {
+        int32_t r1 = semantic_body(program, for1->body, flag);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+    }
+
     return 1;
 }
 
@@ -637,102 +927,144 @@ semantic_parameter(program_t *program, node_t *node, uint64_t flag)
 {
     node_parameter_t *parameter1 = (node_parameter_t *)node->value;
     
-    node_t *sub = node;
-    node_t *current = node->parent;
-    while (current != NULL)
     {
-        if (current->kind == NODE_KIND_PARAMETERS)
+        node_t *sub = node;
+        node_t *current = node->parent;
+        while (current != NULL)
         {
-            node_block_t *block2 = (node_block_t *)current->value;
-
-            ilist_t *a2;
-            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
+            if (current->kind == NODE_KIND_PARAMETERS)
             {
-                node_t *item2 = (node_t *)a2->value;
-                if (item2->id == sub->id)
-                {
-                    break;
-                }
+                node_block_t *block2 = (node_block_t *)current->value;
 
-                if (item2->kind == NODE_KIND_PARAMETER)
+                ilist_t *a2;
+                for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
                 {
-                    node_parameter_t *parameter3 = (node_parameter_t *)item2->value;
-                    if (semantic_idcmp(parameter1->key, parameter3->key) == 1)
+                    node_t *item2 = (node_t *)a2->value;
+                    if (item2->id == sub->id)
                     {
-                        semantic_error(program, parameter1->key, "already defined, previous in (%lld:%lld)",
-                            parameter3->key->position.line, parameter3->key->position.column);
-                        return -1;
+                        break;
                     }
-                }
-            }
-            
-            sub = current;
-            current = current->parent;
-            continue;
-        }
-        else
-        if (current->kind == NODE_KIND_CLASS)
-        {
-            node_class_t *class2 = (node_class_t *)current->value;
 
-            if (class2->generics != NULL)
-            {
-                node_t *node2 = class2->generics;
-                node_block_t *block3 = (node_block_t *)node2->value;
-
-                ilist_t *a3;
-                for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
-                {
-                    node_t *item3 = (node_t *)a3->value;
-                    
-                    if (item3->kind == NODE_KIND_GENERIC)
+                    if (item2->kind == NODE_KIND_PARAMETER)
                     {
-                        node_generic_t *generic3 = (node_generic_t *)item3->value;
-                        if (semantic_idcmp(parameter1->key, generic3->key) == 1)
+                        node_parameter_t *parameter3 = (node_parameter_t *)item2->value;
+                        if (semantic_idcmp(parameter1->key, parameter3->key) == 1)
                         {
                             semantic_error(program, parameter1->key, "already defined, previous in (%lld:%lld)",
-                                generic3->key->position.line, generic3->key->position.column);
+                                parameter3->key->position.line, parameter3->key->position.column);
                             return -1;
                         }
                     }
                 }
+                
+                sub = current;
+                current = current->parent;
+                continue;
             }
-            break;
-        }
-        else
-        if (current->kind == NODE_KIND_FUN)
-        {
-            node_fun_t *fun2 = (node_fun_t *)current->value;
-
-            if (fun2->generics != NULL)
+            else
+            if (current->kind == NODE_KIND_CLASS)
             {
-                node_t *node2 = fun2->generics;
-                node_block_t *block3 = (node_block_t *)node2->value;
+                node_class_t *class2 = (node_class_t *)current->value;
 
-                ilist_t *a3;
-                for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
+                if (class2->generics != NULL)
                 {
-                    node_t *item3 = (node_t *)a3->value;
-                    
-                    if (item3->kind == NODE_KIND_GENERIC)
+                    node_t *node2 = class2->generics;
+                    node_block_t *block3 = (node_block_t *)node2->value;
+
+                    ilist_t *a3;
+                    for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
                     {
-                        node_generic_t *generic3 = (node_generic_t *)item3->value;
-                        if (semantic_idcmp(parameter1->key, generic3->key) == 1)
+                        node_t *item3 = (node_t *)a3->value;
+                        
+                        if (item3->kind == NODE_KIND_GENERIC)
                         {
-                            semantic_error(program, parameter1->key, "already defined, previous in (%lld:%lld)",
-                                generic3->key->position.line, generic3->key->position.column);
-                            return -1;
+                            node_generic_t *generic3 = (node_generic_t *)item3->value;
+                            if (semantic_idcmp(parameter1->key, generic3->key) == 1)
+                            {
+                                semantic_error(program, parameter1->key, "already defined, previous in (%lld:%lld)",
+                                    generic3->key->position.line, generic3->key->position.column);
+                                return -1;
+                            }
                         }
                     }
                 }
+                break;
             }
-            break;
+            else
+            if (current->kind == NODE_KIND_FUN)
+            {
+                node_fun_t *fun2 = (node_fun_t *)current->value;
+
+                if (fun2->generics != NULL)
+                {
+                    node_t *node2 = fun2->generics;
+                    node_block_t *block3 = (node_block_t *)node2->value;
+
+                    ilist_t *a3;
+                    for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
+                    {
+                        node_t *item3 = (node_t *)a3->value;
+                        
+                        if (item3->kind == NODE_KIND_GENERIC)
+                        {
+                            node_generic_t *generic3 = (node_generic_t *)item3->value;
+                            if (semantic_idcmp(parameter1->key, generic3->key) == 1)
+                            {
+                                semantic_error(program, parameter1->key, "already defined, previous in (%lld:%lld)",
+                                    generic3->key->position.line, generic3->key->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+            else
+            {
+                sub = current;
+                current = current->parent;
+                continue;
+            }
+        }
+    }
+
+    if (parameter1->value != NULL)
+    {
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):Unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_expression(program, parameter1->value, response1, SEMANTIC_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
         }
         else
         {
-            sub = current;
-            current = current->parent;
-            continue;
+            uint64_t cnt_response1 = 0;
+
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                cnt_response1 += 1;
+
+                node_t *item1 = (node_t *)a1->value;
+
+                int32_t r2 = semantic_assignment(program, node, item1, node, SEMANTIC_FLAG_NONE);
+                if (r2 == -1)
+                {
+                    return -1;
+                }
+            }
+
+            if (cnt_response1 == 0)
+            {
+                semantic_error(program, parameter1->value, "No result\n\tInternal:%s-%u", __FILE__, __LINE__);
+                return -1;
+            }
         }
     }
 
@@ -852,6 +1184,15 @@ static int32_t
 semantic_try(program_t *program, node_t *node, uint64_t flag)
 {
 	node_try_t *try1 = (node_try_t *)node->value;
+
+    if (try1->body != NULL)
+    {
+        int32_t r1 = semantic_body(program, try1->body, flag);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+    }
 
     node_t *node2 = try1->catchs;
     node_block_t *block2 = (node_block_t *)node2->value;
@@ -1439,9 +1780,89 @@ semantic_var(program_t *program, node_t *node, uint64_t flag)
                 return -1;
             }
         }
+
+        list_destroy(response1);
     }
 
 	return 1;
+}
+
+static int32_t
+semantic_return(program_t *program, node_t *node, uint64_t flag)
+{
+    node_unary_t *unary1 = (node_unary_t *)node->value;
+
+    if (unary1->right != NULL)
+    {
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):Unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_expression(program, unary1->right, response1, SEMANTIC_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        {
+            uint64_t cnt_response1 = 0;
+
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                cnt_response1 += 1;
+
+                node_t *item1 = (node_t *)a1->value;
+
+                if (item1->kind == NODE_KIND_LAMBDA)
+                {
+                    continue;
+                }
+                else
+                if (item1->kind == NODE_KIND_CLASS)
+                {
+                    node_class_t *class1 = (node_class_t *)node->value;
+                    if ((item1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
+                    {
+                        semantic_error(program, unary1->right, "Not an instance of object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
+                            class1->key->position.path, class1->key->position.line, class1->key->position.column ,__FILE__, __LINE__);
+                        return -1;
+                    }
+                    continue;
+                }
+                else
+                {
+                    semantic_error(program, unary1->right, "Not an instance of object or fun\n\tInternal:%s-%u",__FILE__, __LINE__);
+                    return -1;
+                }
+            }
+
+            if (cnt_response1 == 0)
+            {
+                semantic_error(program, unary1->right, "No result\n\tInternal:%s-%u", __FILE__, __LINE__);
+                return -1;
+            }
+        }
+
+        list_destroy(response1);
+    }
+
+    return 1;
+}
+
+static int32_t
+semantic_continue(program_t *program, node_t *node, uint64_t flag)
+{
+    return 1;
+}
+
+static int32_t
+semantic_break(program_t *program, node_t *node, uint64_t flag)
+{
+    return 1;
 }
 
 static int32_t
@@ -1449,8 +1870,7 @@ semantic_statement(program_t *program, node_t *node, uint64_t flag)
 {
     if (node->kind == NODE_KIND_IF)
     {
-        int32_t result;
-        result = semantic_if(program, node, flag);
+        int32_t result = semantic_if(program, node, flag);
         if (result == -1)
         {
             return -1;
@@ -1459,8 +1879,7 @@ semantic_statement(program_t *program, node_t *node, uint64_t flag)
     else 
     if (node->kind == NODE_KIND_FOR)
     {
-        int32_t result;
-        result = semantic_for(program, node, flag);
+        int32_t result = semantic_for(program, node, flag);
         if (result == -1)
         {
             return -1;
@@ -1469,8 +1888,7 @@ semantic_statement(program_t *program, node_t *node, uint64_t flag)
     else
     if (node->kind == NODE_KIND_FORIN)
     {
-        int32_t result;
-        result = semantic_forin(program, node, flag);
+        int32_t result = semantic_forin(program, node, flag);
         if (result == -1)
         {
             return -1;
@@ -1479,8 +1897,7 @@ semantic_statement(program_t *program, node_t *node, uint64_t flag)
     else
     if (node->kind == NODE_KIND_TRY)
     {
-        int32_t result;
-        result = semantic_try(program, node, flag);
+        int32_t result = semantic_try(program, node, flag);
         if (result == -1)
         {
             return -1;
@@ -1489,8 +1906,34 @@ semantic_statement(program_t *program, node_t *node, uint64_t flag)
     else
     if (node->kind == NODE_KIND_VAR)
     {
-        int32_t result;
-        result = semantic_var(program, node, flag);
+        int32_t result = semantic_var(program, node, flag);
+        if (result == -1)
+        {
+            return -1;
+        }
+    }
+    else
+    if (node->kind == NODE_KIND_RETURN)
+    {
+        int32_t result = semantic_return(program, node, flag);
+        if (result == -1)
+        {
+            return -1;
+        }
+    }
+    else
+    if (node->kind == NODE_KIND_CONTINUE)
+    {
+        int32_t result = semantic_continue(program, node, flag);
+        if (result == -1)
+        {
+            return -1;
+        }
+    }
+    else
+    if (node->kind == NODE_KIND_BREAK)
+    {
+        int32_t result = semantic_break(program, node, flag);
         if (result == -1)
         {
             return -1;
@@ -1499,9 +1942,8 @@ semantic_statement(program_t *program, node_t *node, uint64_t flag)
     else
     {
         return semantic_assign(program, node, flag);
-        return 1;
     }
-    return 0;
+    return 1;
 }
 
 static int32_t
@@ -1892,6 +2334,46 @@ semantic_property(program_t *program, node_t *node, uint64_t flag)
             }
 
             node1 = annotation1->next;
+        }
+    }
+
+    if (property1->value != NULL)
+    {
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "%s-(%u):Unable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_expression(program, property1->value, response1, SEMANTIC_FLAG_NONE);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        {
+            uint64_t cnt_response1 = 0;
+
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                cnt_response1 += 1;
+
+                node_t *item1 = (node_t *)a1->value;
+
+                int32_t r2 = semantic_assignment(program, node, item1, node, SEMANTIC_FLAG_NONE);
+                if (r2 == -1)
+                {
+                    return -1;
+                }
+            }
+
+            if (cnt_response1 == 0)
+            {
+                semantic_error(program, property1->value, "No result\n\tInternal:%s-%u", __FILE__, __LINE__);
+                return -1;
+            }
         }
     }
 
@@ -2319,7 +2801,16 @@ semantic_class(program_t *program, node_t *node, uint64_t flag)
                 }
             }
 
-            int32_t result = semantic_class(program, item1, flag);
+            node_t *clone1 = node_clone(item1->parent, item1);
+            if (clone1 == NULL)
+            {
+                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                return -1;
+            }
+
+            clone1->flag |= NODE_FLAG_INSTANCE;
+
+            int32_t result = semantic_class(program, clone1, flag);
             if (result == -1)
             {
                 return -1;
@@ -2724,7 +3215,9 @@ semantic_module(program_t *program, node_t *node)
                 fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
                 return -1;
             }
+
             clone1->flag |= NODE_FLAG_INSTANCE;
+
             int32_t result = semantic_class(program, clone1, SEMANTIC_FLAG_NONE);
             if (result == -1)
             {

@@ -6,6 +6,11 @@ export class A {
 	export fun Constructor() : A
 	{
 	}
+
+	export fun + (val : Any) : Any 
+    {
+
+    }
 }
 
 export class System<R>
@@ -16,12 +21,12 @@ export class System<R>
 		try {
 
 		}
-		catch (e:fun<T>(a:Int32, b:Int64)->Any)
+		catch (e : fun<T>(a:Int32, b:Int64) -> Any)
 		{
-			var a = Any();
+			var a = A() + Any();
 			a = fun (a:Int32) : Int32 {
 
-			};
+			}
 		}
 	}
 }

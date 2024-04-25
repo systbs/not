@@ -3102,9 +3102,25 @@ syntax_statement(program_t *program, syntax_t *syntax, node_t *parent)
 		{
 			return NULL;
 		}
-		if (syntax_match(program, syntax, TOKEN_SEMICOLON) == -1)
+
+		if (node->kind == NODE_KIND_ASSIGN)
 		{
-			return NULL;
+			node_binary_t *binary1 = (node_binary_t *)node->value;
+			node_t *right1 = binary1->right;
+			if (right1->kind != NODE_KIND_LAMBDA)
+			{
+				if (syntax_match(program, syntax, TOKEN_SEMICOLON) == -1)
+				{
+					return NULL;
+				}
+			}
+		}
+		else
+		{
+			if (syntax_match(program, syntax, TOKEN_SEMICOLON) == -1)
+			{
+				return NULL;
+			}
 		}
 	}
 

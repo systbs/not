@@ -385,1069 +385,173 @@ semantic_content(program_t *program, node_t *node, list_t *response, uint64_t fl
 }
 
 static int32_t
-semantic_gresolve(program_t *program, node_t *node, list_t *response, uint64_t flag)
+semantic_export(program_t *program, node_t *node1, node_t *node2, node_t *major, char *OPERATOR_SIMBOL, list_t *response, uint64_t flag)
 {
-    node_generic_t *generic1 = (node_generic_t *)node->value;
-    if (generic1->type != NULL)
+    printf("export %s\n", OPERATOR_SIMBOL);
+    if (node1->kind == NODE_KIND_CLASS)
     {
-        list_t *response1 = list_create();
-        if (response1 == NULL)
-        {
-            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-            return -1;
-        }
+        node_class_t *class1 = (node_class_t *)node1->value;
 
-        int32_t r1 = semantic_resolve(program, generic1->type->parent, generic1->type, response1, flag);
-        if (r1 == -1)
-        {
-            return -1;
-        }
-        else
-        {
-            uint64_t cnt_response1 = 0;
+        node_t *node3 = class1->block;
+        node_block_t *block1 = node3->value;
 
-            ilist_t *a1;
-            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+        ilist_t *a2;
+        for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
+        {
+            node_t *item2 = (node_t *)a2->value;
+            if (item2->kind == NODE_KIND_FUN)
             {
-                cnt_response1 += 1;
-
-                node_t *item1 = (node_t *)a1->value;
-
-                if (item1->kind == NODE_KIND_CLASS)
+                node_fun_t *fun1 = (node_fun_t *)item2->value;
+                if (semantic_idstrcmp(fun1->key, OPERATOR_SIMBOL) == 1)
                 {
-                    node_class_t *class1 = (node_class_t *)item1->value;
-
-                    if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
-                    {
-                        semantic_error(program, generic1->key, "Instance object, in confronting with (%s-%lld:%lld)",
-                            class1->key->position.path, class1->key->position.line, class1->key->position.column);
-                        return -1;
-                    }
-
-                    ilist_t *il1 = list_rpush(response, item1);
-                    if (il1 == NULL)
-                    {
-                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                        return -1;
-                    }
-                    list_destroy(response1);
-                    return 1;
-                }
-                else
-                if (item1->kind == NODE_KIND_GENERIC)
-                {
-                    list_destroy(response1);
-                    return semantic_gresolve(program, item1, response, flag);
-                }
-                else
-                {
-                    semantic_error(program, generic1->key, "Not valid\n\tInternal:%s-%u", __FILE__, __LINE__);
-                    return -1;
-                }
-            }
-
-            if (cnt_response1 == 0)
-            {
-                semantic_error(program, generic1->type, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                return -1;
-            }
-        }
-
-        list_destroy(response1);
-    }
-
-    return 0;
-}
-
-static int32_t
-semantic_cresolve(program_t *program, node_t *node, list_t *response, char *OPERATOR_SIMBOL, node_t *arguments, uint64_t flag)
-{
-    node_class_t *class1 = (node_class_t *)node->value;
-
-    node_t *node1 = class1->block;
-    node_block_t *block1 = node1->value;
-
-    ilist_t *a2;
-    for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
-    {
-        node_t *item2 = (node_t *)a2->value;
-        if (item2->kind == NODE_KIND_FUN)
-        {
-            node_fun_t *fun1 = (node_fun_t *)item2->value;
-            if (semantic_idstrcmp(fun1->key, OPERATOR_SIMBOL) == 1)
-            {
-                int32_t r2 = semantic_eqaul_psas(program, fun1->parameters, arguments);
-                if (r2 == -1)
-                {
-                    return -1;
-                }
-                else
-                if (r2 == 1)
-                {
-                    if ((fun1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
-                    {
-                        semantic_error(program, fun1->key, "Private access\n\tInternal:%s-%u", __FILE__, __LINE__);
-                        return -1;
-                    }
-
-                    list_t *response2 = list_create();
-                    if (response2 == NULL)
-                    {
-                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                        return -1;
-                    }
-
-                    int32_t r3 = semantic_resolve(program, fun1->result->parent, fun1->result, response2, flag);
-                    if (r3 == -1)
-                    {
-                        return -1;
-                    }
-                    else
-                    {
-                        uint64_t cnt_response2 = 0;
-
-                        ilist_t *a3;
-                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
-                        {
-                            cnt_response2 += 1;
-
-                            node_t *item3 = (node_t *)a3->value;
-                            if (item3->kind == NODE_KIND_CLASS)
-                            {
-                                node_t *clone1 = node_clone(item3->parent, item3);
-                                if (clone1 == NULL)
-                                {
-                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                                clone1->flag |= NODE_FLAG_INSTANCE;
-
-                                ilist_t *il1 = list_rpush(response, clone1);
-                                if (il1 == NULL)
-                                {
-                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                                list_destroy(response2);
-                                return 1;
-                            }
-                            else
-                            if (item3->kind == NODE_KIND_GENERIC)
-                            {
-                                list_t *response3 = list_create();
-                                if (response3 == NULL)
-                                {
-                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-
-                                int32_t r4 = semantic_gresolve(program, item3, response3, flag);
-                                if (r4 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                {
-                                    uint64_t cnt_response3 = 0;
-
-                                    ilist_t *a3;
-                                    for (a3 = response3->begin;a3 != response3->end;a3 = a3->next)
-                                    {
-                                        cnt_response3 += 1;
-
-                                        node_t *item4 = (node_t *)a3->value;
-                                        if (item4->kind == NODE_KIND_CLASS)
-                                        {
-                                            node_t *clone1 = node_clone(item4->parent, item4);
-                                            if (clone1 == NULL)
-                                            {
-                                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                                return -1;
-                                            }
-                                            clone1->flag |= NODE_FLAG_INSTANCE;
-
-                                            ilist_t *il1 = list_rpush(response, clone1);
-                                            if (il1 == NULL)
-                                            {
-                                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                                return -1;
-                                            }
-                                            list_destroy(response3);
-                                            list_destroy(response2);
-                                            return 1;
-                                        }
-                                    }
-
-                                    if (cnt_response3 == 0)
-                                    {
-                                        semantic_error(program, item3, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                }
-
-                                list_destroy(response3);
-
-                                ilist_t *il1 = list_rpush(response, item3);
-                                if (il1 == NULL)
-                                {
-                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                                list_destroy(response2);
-                                return 1;
-                            }
-                        }
-
-                        if (cnt_response2 == 0)
-                        {
-                            semantic_error(program, fun1->result, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                            return -1;
-                        }
-                    }
-                    
-                    list_destroy(response2);
-                }
-            }
-        }
-    }
-
-    return 0;
-}
-
-static int32_t
-semantic_dispart(program_t *program, node_t *node, list_t *response, char *OPERATOR_SIMBOL, node_t *arguments, node_t *major, uint64_t flag)
-{
-    if (node->kind == NODE_KIND_CLASS)
-    {
-        node_class_t *class1 = (node_class_t *)node->value;
-
-        if ((node->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
-        {
-            semantic_error(program, major, "Not an instance object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                class1->key->position.path, class1->key->position.line, class1->key->position.column ,__FILE__, __LINE__);
-            return -1;
-        }
-
-        int32_t r2 = semantic_cresolve(program, node, response, OPERATOR_SIMBOL, arguments, flag);
-        if (r2 == -1)
-        {
-            return -1;
-        }
-        else
-        if (r2 == 1)
-        {
-            return 1;
-        }
-        
-        semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-            OPERATOR_SIMBOL, class1->key->position.path, class1->key->position.line, class1->key->position.column ,__FILE__, __LINE__);
-        return -1;
-    }
-    else
-    if (node->kind == NODE_KIND_VAR)
-    {
-        node_var_t *var1 = (node_var_t *)node->value;
-        if (var1->value_update != NULL)
-        {
-            node_t *value_update1 = var1->value_update;
-
-            if (value_update1->kind == NODE_KIND_CLASS)
-            {
-                node_class_t *class1 = (node_class_t *)value_update1->value;
-
-                if ((value_update1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
-                {
-                    semantic_error(program, major, "Not an instance object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                        class1->key->position.path, class1->key->position.line, class1->key->position.column ,__FILE__, __LINE__);
-                    return -1;
-                }
-
-                int32_t r2 = semantic_cresolve(program, value_update1, response, OPERATOR_SIMBOL, arguments, flag);
-                if (r2 == -1)
-                {
-                    return -1;
-                }
-                else
-                if (r2 == 1)
-                {
-                    return 1;
-                }
-                
-                semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                    OPERATOR_SIMBOL, class1->key->position.path, class1->key->position.line, class1->key->position.column ,__FILE__, __LINE__);
-                return -1;
-            }
-            else
-            {
-                semantic_error(program, major, "Not an object\n\tInternal:%s-%u", __FILE__, __LINE__);
-                return -1;
-            }
-        }
-        else
-        {
-            semantic_error(program, major, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
-            return -1;
-        }
-    }
-    else
-    if (node->kind == NODE_KIND_ENTITY)
-    {
-        node_entity_t *entity1 = (node_entity_t *)node->value;
-        if (entity1->value_update != NULL)
-        {
-            node_t *value_update1 = entity1->value_update;
-
-            if (value_update1->kind == NODE_KIND_CLASS)
-            {
-                node_class_t *class1 = (node_class_t *)value_update1->value;
-
-                if ((value_update1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
-                {
-                    semantic_error(program, major, "Not an instance object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                        class1->key->position.path, class1->key->position.line, class1->key->position.column ,__FILE__, __LINE__);
-                    return -1;
-                }
-
-                int32_t r2 = semantic_cresolve(program, value_update1, response, OPERATOR_SIMBOL, arguments, flag);
-                if (r2 == -1)
-                {
-                    return -1;
-                }
-                else
-                if (r2 == 1)
-                {
-                    return 1;
-                }
-
-                semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                    OPERATOR_SIMBOL, class1->key->position.path, class1->key->position.line, class1->key->position.column ,__FILE__, __LINE__);
-                return -1;
-            }
-            else
-            {
-                semantic_error(program, major, "Not an object\n\tInternal:%s-%u", __FILE__, __LINE__);
-                return -1;
-            }
-        }
-        else
-        {
-            semantic_error(program, major, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
-            return -1;
-        }
-    }
-    else
-    if (node->kind == NODE_KIND_PROPERTY)
-    {
-        node_property_t *property1 = (node_property_t *)node->value;
-        if (property1->value_update != NULL)
-        {
-            node_t *value_update1 = property1->value_update;
-
-            if (value_update1->kind == NODE_KIND_CLASS)
-            {
-                node_class_t *class1 = (node_class_t *)value_update1->value;
-
-                if ((value_update1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
-                {
-                    semantic_error(program, major, "Not an instance, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                        class1->key->position.path, class1->key->position.line, class1->key->position.column ,__FILE__, __LINE__);
-                    return -1;
-                }
-
-                int32_t r2 = semantic_cresolve(program, value_update1, response, OPERATOR_SIMBOL, arguments, flag);
-                if (r2 == -1)
-                {
-                    return -1;
-                }
-                else
-                if (r2 == 1)
-                {
-                    return 1;
-                }
-
-                semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                    OPERATOR_SIMBOL, class1->key->position.path, class1->key->position.line, class1->key->position.column ,__FILE__, __LINE__);
-                return -1;
-            }
-            else
-            {
-                semantic_error(program, major, "Not an object\n\tInternal:%s-%u", __FILE__, __LINE__);
-                return -1;
-            }
-        }
-        else
-        {
-            if (property1->type != NULL)
-            {
-                node_t *node1 = property1->type;
-                if (node1->kind == NODE_KIND_FN)
-                {
-                    semantic_error(program, major, "Not an object\n\tInternal:%s-%u", __FILE__, __LINE__);
-                    return -1;
-                }
-                else
-                {
-                    list_t *response2 = list_create();
-                    if (response2 == NULL)
-                    {
-                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                        return -1;
-                    }
-
-                    int32_t r2 = semantic_resolve(program, node1->parent, node1, response2, flag);
+                    int32_t r2 = semantic_eqaul_psns(program, fun1->parameters, node2);
                     if (r2 == -1)
                     {
                         return -1;
                     }
                     else
+                    if (r2 == 1)
                     {
-                        uint64_t cnt_response2 = 0;
-
-                        ilist_t *a2;
-                        for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                        if ((fun1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                         {
-                            cnt_response2 += 1;
+                            semantic_error(program, major, "Private access, in confronting with (%s-%lld-%lld)\n\tInternal:%s-%u",
+                                fun1->key->position.path, fun1->key->position.line, fun1->key->position.column, __FILE__, __LINE__);
+                            return -1;
+                        }
 
-                            node_t *item2 = (node_t *)a2->value;
-                            if (item2->kind == NODE_KIND_CLASS)
+                        list_t *response2 = list_create();
+                        if (response2 == NULL)
+                        {
+                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                            return -1;
+                        }
+
+                        int32_t r3 = semantic_resolve(program, fun1->result->parent, fun1->result, response2, flag);
+                        if (r3 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        {
+                            uint64_t cnt_response2 = 0;
+
+                            ilist_t *a3;
+                            for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
                             {
-                                node_class_t *class1 = (node_class_t *)item2->value;
+                                cnt_response2 += 1;
 
-                                if ((item2->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
+                                node_t *item3 = (node_t *)a3->value;
+                                if (item3->kind == NODE_KIND_CLASS)
                                 {
-                                    semantic_error(program, node1, "Instance object, in confronting with (%s-%lld:%lld)",
-                                        class1->key->position.path, class1->key->position.line, class1->key->position.column);
-                                    return -1;
-                                }
+                                    node_t *clone1 = node_clone(item3->parent, item3);
+                                    if (clone1 == NULL)
+                                    {
+                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                    clone1->flag |= NODE_FLAG_INSTANCE;
 
-                                node_t *clone1 = node_clone(item2->parent, item2);
-                                if (clone1 == NULL)
-                                {
-                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                                clone1->flag |= NODE_FLAG_INSTANCE;
-
-                                property1->value_update = clone1;
-
-                                int32_t r3 = semantic_cresolve(program, clone1, response, OPERATOR_SIMBOL, arguments, flag);
-                                if (r3 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r3 == 1)
-                                {
+                                    ilist_t *il1 = list_rpush(response, clone1);
+                                    if (il1 == NULL)
+                                    {
+                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
+                                    list_destroy(response2);
                                     return 1;
                                 }
-
-                                node_class_t *class2 = (node_class_t *)clone1->value;
-                                semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                    OPERATOR_SIMBOL, class2->key->position.path, class2->key->position.line, class2->key->position.column ,__FILE__, __LINE__);
-                                return -1;
-                            }
-                            else
-                            if (item2->kind == NODE_KIND_GENERIC)
-                            {
-                                node_generic_t *generic1 = (node_generic_t *)item2->value;
-
-                                list_t *response3 = list_create();
-                                if (response3 == NULL)
-                                {
-                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-
-                                int32_t r3 = semantic_gresolve(program, item2, response3, flag);
-                                if (r3 == -1)
-                                {
-                                    return -1;
-                                }
                                 else
+                                if (item3->kind == NODE_KIND_GENERIC)
                                 {
-                                    uint64_t cnt_response3 = 0;
-
-                                    ilist_t *a3;
-                                    for (a3 = response3->begin;a3 != response3->end;a3 = a3->next)
+                                    list_t *response3 = list_create();
+                                    if (response3 == NULL)
                                     {
-                                        cnt_response3 += 1;
+                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
+                                    }
 
-                                        node_t *item3 = (node_t *)a3->value;
-                                        if (item3->kind == NODE_KIND_CLASS)
+                                    int32_t r4 = semantic_gresolve(program, item3, response3, flag);
+                                    if (r4 == -1)
+                                    {
+                                        return -1;
+                                    }
+                                    else
+                                    {
+                                        uint64_t cnt_response3 = 0;
+
+                                        ilist_t *a3;
+                                        for (a3 = response3->begin;a3 != response3->end;a3 = a3->next)
                                         {
-                                            node_t *clone1 = node_clone(item3->parent, item3);
-                                            if (clone1 == NULL)
-                                            {
-                                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                                return -1;
-                                            }
-                                            clone1->flag |= NODE_FLAG_INSTANCE;
+                                            cnt_response3 += 1;
 
-                                            property1->value_update = clone1;
+                                            node_t *item4 = (node_t *)a3->value;
+                                            if (item4->kind == NODE_KIND_CLASS)
+                                            {
+                                                node_t *clone1 = node_clone(item4->parent, item4);
+                                                if (clone1 == NULL)
+                                                {
+                                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                                    return -1;
+                                                }
+                                                clone1->flag |= NODE_FLAG_INSTANCE;
 
-                                            int32_t r4 = semantic_cresolve(program, clone1, response, OPERATOR_SIMBOL, arguments, flag);
-                                            if (r4 == -1)
-                                            {
-                                                return -1;
-                                            }
-                                            else
-                                            if (r4 == 1)
-                                            {
+                                                ilist_t *il1 = list_rpush(response, clone1);
+                                                if (il1 == NULL)
+                                                {
+                                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                                    return -1;
+                                                }
                                                 list_destroy(response3);
                                                 list_destroy(response2);
                                                 return 1;
                                             }
+                                        }
 
-                                            node_class_t *class2 = (node_class_t *)clone1->value;
-                                            semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                                OPERATOR_SIMBOL, class2->key->position.path, class2->key->position.line, class2->key->position.column ,__FILE__, __LINE__);
+                                        if (cnt_response3 == 0)
+                                        {
+                                            semantic_error(program, item3, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
                                             return -1;
                                         }
                                     }
 
-                                    if (cnt_response3 == 0)
+                                    list_destroy(response3);
+
+                                    ilist_t *il1 = list_rpush(response, item3);
+                                    if (il1 == NULL)
                                     {
-                                        semantic_error(program, item2, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
+                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
                                         return -1;
                                     }
-                                }
-
-                                list_destroy(response3);
-
-                                semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                    OPERATOR_SIMBOL, generic1->key->position.path, generic1->key->position.line, generic1->key->position.column ,__FILE__, __LINE__);
-                                return -1;
-                            }
-                            else
-                            {
-                                semantic_error(program, node1, "Wrong type\n\tInternal:%s-%u", __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-
-                        if (cnt_response2 == 0)
-                        {
-                            semantic_error(program, node1, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                            return -1;
-                        }
-                    }
-                    list_destroy(response2);
-                }
-            }
-            else
-            {
-                node_t *node1 = property1->value;
-
-                list_t *response2 = list_create();
-                if (response2 == NULL)
-                {
-                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                    return -1;
-                }
-
-                int32_t r2 = semantic_expression(program, node1, response2, flag);
-                if (r2 == -1)
-                {
-                    return -1;
-                }
-                else
-                {
-                    uint64_t cnt_response2 = 0;
-
-                    ilist_t *a2;
-                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
-                    {
-                        cnt_response2 += 1;
-
-                        node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_CLASS)
-                        {
-                            node_class_t *class1 = (node_class_t *)item2->value;
-
-                            if ((item2->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
-                            {
-                                semantic_error(program, node1, "Instance object, in confronting with (%s-%lld:%lld)",
-                                    class1->key->position.path, class1->key->position.line, class1->key->position.column);
-                                return -1;
-                            }
-
-                            node_t *clone1 = node_clone(item2->parent, item2);
-                            if (clone1 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-                            clone1->flag |= NODE_FLAG_INSTANCE;
-
-                            property1->value_update = clone1;
-
-                            int32_t r3 = semantic_cresolve(program, clone1, response, OPERATOR_SIMBOL, arguments, flag);
-                            if (r3 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            if (r3 == 1)
-                            {
-                                return 1;
-                            }
-
-                            node_class_t *class2 = (node_class_t *)clone1->value;
-                            semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                OPERATOR_SIMBOL, class2->key->position.path, class2->key->position.line, class2->key->position.column ,__FILE__, __LINE__);
-                            return -1;
-                        }
-                        else
-                        if (item2->kind == NODE_KIND_GENERIC)
-                        {
-                            node_generic_t *generic1 = (node_generic_t *)item2->value;
-
-                            list_t *response3 = list_create();
-                            if (response3 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-
-                            int32_t r3 = semantic_gresolve(program, item2, response3, flag);
-                            if (r3 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            {
-                                uint64_t cnt_response3 = 0;
-
-                                ilist_t *a3;
-                                for (a3 = response3->begin;a3 != response3->end;a3 = a3->next)
-                                {
-                                    cnt_response3 += 1;
-
-                                    node_t *item3 = (node_t *)a3->value;
-                                    if (item3->kind == NODE_KIND_CLASS)
-                                    {
-                                        node_t *clone1 = node_clone(item3->parent, item3);
-                                        if (clone1 == NULL)
-                                        {
-                                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                            return -1;
-                                        }
-                                        clone1->flag |= NODE_FLAG_INSTANCE;
-
-                                        property1->value_update = clone1;
-
-                                        int32_t r4 = semantic_cresolve(program, clone1, response, OPERATOR_SIMBOL, arguments, flag);
-                                        if (r4 == -1)
-                                        {
-                                            return -1;
-                                        }
-                                        else
-                                        if (r4 == 1)
-                                        {
-                                            list_destroy(response3);
-                                            list_destroy(response2);
-                                            return 1;
-                                        }
-
-                                        node_class_t *class2 = (node_class_t *)clone1->value;
-                                        semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                            OPERATOR_SIMBOL, class2->key->position.path, class2->key->position.line, class2->key->position.column ,__FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                }
-
-                                if (cnt_response3 == 0)
-                                {
-                                    semantic_error(program, item2, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                            }
-
-                            list_destroy(response3);
-
-                            semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                OPERATOR_SIMBOL, generic1->key->position.path, generic1->key->position.line, generic1->key->position.column ,__FILE__, __LINE__);
-                            return -1;
-                        }
-                        else
-                        {
-                            semantic_error(program, node1, "Wrong type\n\tInternal:%s-%u", __FILE__, __LINE__);
-                            return -1;
-                        }
-                    }
-
-                    if (cnt_response2 == 0)
-                    {
-                        semantic_error(program, node1, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                        return -1;
-                    }
-                }
-                list_destroy(response2);
-            }
-        }
-    }
-    else
-    if (node->kind == NODE_KIND_PARAMETER)
-    {
-        node_parameter_t *parameter1 = (node_parameter_t *)node->value;
-        if (parameter1->value_update != NULL)
-        {
-            node_t *value_update1 = parameter1->value_update;
-
-            if (value_update1->kind == NODE_KIND_CLASS)
-            {
-                node_class_t *class1 = (node_class_t *)value_update1->value;
-
-                if ((value_update1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
-                {
-                    semantic_error(program, major, "Not an instance, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                        class1->key->position.path, class1->key->position.line, class1->key->position.column ,__FILE__, __LINE__);
-                    return -1;
-                }
-
-                int32_t r2 = semantic_cresolve(program, value_update1, response, OPERATOR_SIMBOL, arguments, flag);
-                if (r2 == -1)
-                {
-                    return -1;
-                }
-                else
-                if (r2 == 1)
-                {
-                    return 1;
-                }
-
-                semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                    OPERATOR_SIMBOL, class1->key->position.path, class1->key->position.line, class1->key->position.column ,__FILE__, __LINE__);
-                return -1;
-            }
-            else
-            {
-                semantic_error(program, major, "Not an object\n\tInternal:%s-%u", __FILE__, __LINE__);
-                return -1;
-            }
-        }
-        else
-        {
-            if (parameter1->type != NULL)
-            {
-                node_t *node1 = parameter1->type;
-                if (node1->kind == NODE_KIND_FN)
-                {
-                    semantic_error(program, major, "Not an object\n\tInternal:%s-%u", __FILE__, __LINE__);
-                    return -1;
-                }
-                else
-                {
-                    list_t *response2 = list_create();
-                    if (response2 == NULL)
-                    {
-                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                        return -1;
-                    }
-
-                    int32_t r2 = semantic_resolve(program, node1->parent, node1, response2, flag);
-                    if (r2 == -1)
-                    {
-                        return -1;
-                    }
-                    else
-                    {
-                        uint64_t cnt_response2 = 0;
-
-                        ilist_t *a2;
-                        for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
-                        {
-                            cnt_response2 += 1;
-
-                            node_t *item2 = (node_t *)a2->value;
-                            if (item2->kind == NODE_KIND_CLASS)
-                            {
-                                node_class_t *class1 = (node_class_t *)item2->value;
-
-                                if ((item2->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
-                                {
-                                    semantic_error(program, node1, "Instance object, in confronting with (%s-%lld:%lld)",
-                                        class1->key->position.path, class1->key->position.line, class1->key->position.column);
-                                    return -1;
-                                }
-
-                                node_t *clone1 = node_clone(item2->parent, item2);
-                                if (clone1 == NULL)
-                                {
-                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                                clone1->flag |= NODE_FLAG_INSTANCE;
-
-                                parameter1->value_update = clone1;
-
-                                int32_t r3 = semantic_cresolve(program, clone1, response, OPERATOR_SIMBOL, arguments, flag);
-                                if (r3 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                if (r3 == 1)
-                                {
+                                    list_destroy(response2);
                                     return 1;
                                 }
-
-                                node_class_t *class2 = (node_class_t *)clone1->value;
-                                semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                    OPERATOR_SIMBOL, class2->key->position.path, class2->key->position.line, class2->key->position.column ,__FILE__, __LINE__);
-                                return -1;
                             }
-                            else
-                            if (item2->kind == NODE_KIND_GENERIC)
+
+                            if (cnt_response2 == 0)
                             {
-                                node_generic_t *generic1 = (node_generic_t *)item2->value;
-
-                                list_t *response3 = list_create();
-                                if (response3 == NULL)
-                                {
-                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-
-                                int32_t r3 = semantic_gresolve(program, item2, response3, flag);
-                                if (r3 == -1)
-                                {
-                                    return -1;
-                                }
-                                else
-                                {
-                                    uint64_t cnt_response3 = 0;
-
-                                    ilist_t *a3;
-                                    for (a3 = response3->begin;a3 != response3->end;a3 = a3->next)
-                                    {
-                                        cnt_response3 += 1;
-
-                                        node_t *item3 = (node_t *)a3->value;
-                                        if (item3->kind == NODE_KIND_CLASS)
-                                        {
-                                            node_t *clone1 = node_clone(item3->parent, item3);
-                                            if (clone1 == NULL)
-                                            {
-                                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                                return -1;
-                                            }
-                                            clone1->flag |= NODE_FLAG_INSTANCE;
-
-                                            parameter1->value_update = clone1;
-
-                                            int32_t r4 = semantic_cresolve(program, clone1, response, OPERATOR_SIMBOL, arguments, flag);
-                                            if (r4 == -1)
-                                            {
-                                                return -1;
-                                            }
-                                            else
-                                            if (r4 == 1)
-                                            {
-                                                list_destroy(response3);
-                                                list_destroy(response2);
-                                                return 1;
-                                            }
-
-                                            node_class_t *class2 = (node_class_t *)clone1->value;
-                                            semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                                OPERATOR_SIMBOL, class2->key->position.path, class2->key->position.line, class2->key->position.column ,__FILE__, __LINE__);
-                                            return -1;
-                                        }
-                                    }
-
-                                    if (cnt_response3 == 0)
-                                    {
-                                        semantic_error(program, item2, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                }
-
-                                list_destroy(response3);
-
-                                semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                    OPERATOR_SIMBOL, generic1->key->position.path, generic1->key->position.line, generic1->key->position.column ,__FILE__, __LINE__);
-                                return -1;
-                            }
-                            else
-                            {
-                                semantic_error(program, node1, "Wrong type\n\tInternal:%s-%u", __FILE__, __LINE__);
+                                semantic_error(program, fun1->result, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
                                 return -1;
                             }
                         }
-
-                        if (cnt_response2 == 0)
-                        {
-                            semantic_error(program, node1, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                            return -1;
-                        }
-                    }
-                    list_destroy(response2);
-                }
-            }
-            else
-            {
-                node_t *node1 = parameter1->value;
-
-                list_t *response2 = list_create();
-                if (response2 == NULL)
-                {
-                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                    return -1;
-                }
-
-                int32_t r2 = semantic_expression(program, node1, response2, flag);
-                if (r2 == -1)
-                {
-                    return -1;
-                }
-                else
-                {
-                    uint64_t cnt_response2 = 0;
-
-                    ilist_t *a2;
-                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
-                    {
-                        cnt_response2 += 1;
-
-                        node_t *item2 = (node_t *)a2->value;
-                        if (item2->kind == NODE_KIND_CLASS)
-                        {
-                            node_class_t *class1 = (node_class_t *)item2->value;
-
-                            if ((item2->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
-                            {
-                                semantic_error(program, node1, "Instance object, in confronting with (%s-%lld:%lld)",
-                                    class1->key->position.path, class1->key->position.line, class1->key->position.column);
-                                return -1;
-                            }
-
-                            node_t *clone1 = node_clone(item2->parent, item2);
-                            if (clone1 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-                            clone1->flag |= NODE_FLAG_INSTANCE;
-
-                            parameter1->value_update = clone1;
-
-                            int32_t r3 = semantic_cresolve(program, clone1, response, OPERATOR_SIMBOL, arguments, flag);
-                            if (r3 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            if (r3 == 1)
-                            {
-                                return 1;
-                            }
-
-                            node_class_t *class2 = (node_class_t *)clone1->value;
-                            semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                OPERATOR_SIMBOL, class2->key->position.path, class2->key->position.line, class2->key->position.column ,__FILE__, __LINE__);
-                            return -1;
-                        }
-                        else
-                        if (item2->kind == NODE_KIND_GENERIC)
-                        {
-                            node_generic_t *generic1 = (node_generic_t *)item2->value;
-
-                            list_t *response3 = list_create();
-                            if (response3 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-
-                            int32_t r3 = semantic_gresolve(program, item2, response3, flag);
-                            if (r3 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            {
-                                uint64_t cnt_response3 = 0;
-
-                                ilist_t *a3;
-                                for (a3 = response3->begin;a3 != response3->end;a3 = a3->next)
-                                {
-                                    cnt_response3 += 1;
-
-                                    node_t *item3 = (node_t *)a3->value;
-                                    if (item3->kind == NODE_KIND_CLASS)
-                                    {
-                                        node_t *clone1 = node_clone(item3->parent, item3);
-                                        if (clone1 == NULL)
-                                        {
-                                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                            return -1;
-                                        }
-                                        clone1->flag |= NODE_FLAG_INSTANCE;
-
-                                        parameter1->value_update = clone1;
-
-                                        int32_t r4 = semantic_cresolve(program, clone1, response, OPERATOR_SIMBOL, arguments, flag);
-                                        if (r4 == -1)
-                                        {
-                                            return -1;
-                                        }
-                                        else
-                                        if (r4 == 1)
-                                        {
-                                            list_destroy(response3);
-                                            list_destroy(response2);
-                                            return 1;
-                                        }
-
-                                        node_class_t *class2 = (node_class_t *)clone1->value;
-                                        semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                            OPERATOR_SIMBOL, class2->key->position.path, class2->key->position.line, class2->key->position.column ,__FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                }
-
-                                if (cnt_response3 == 0)
-                                {
-                                    semantic_error(program, item2, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                            }
-
-                            list_destroy(response3);
-
-                            semantic_error(program, major, "Lack of %s operator, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                OPERATOR_SIMBOL, generic1->key->position.path, generic1->key->position.line, generic1->key->position.column ,__FILE__, __LINE__);
-                            return -1;
-                        }
-                        else
-                        {
-                            semantic_error(program, node1, "Wrong type\n\tInternal:%s-%u", __FILE__, __LINE__);
-                            return -1;
-                        }
-                    }
-
-                    if (cnt_response2 == 0)
-                    {
-                        semantic_error(program, node1, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                        return -1;
+                        
+                        list_destroy(response2);
                     }
                 }
-                list_destroy(response2);
             }
         }
+
+        return 0;
     }
     else
     {
-        semantic_error(program, major, "Not an instance object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-            node->position.path, node->position.line, node->position.column ,__FILE__, __LINE__);
+        semantic_error(program, major, "In rhs/lhs class is expected, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
+            node1->position.path, node1->position.line, node1->position.column, __FILE__, __LINE__);
         return -1;
     }
-    return 0;
 }
 
 static int32_t
-semantic_fsolve(program_t *program, node_t *node, list_t *response, char *OPERATOR_SIMBOL, node_t *arguments, int32_t (*f)(program_t *, node_t *, list_t *, uint64_t), uint64_t flag)
+semantic_dispart(program_t *program, node_t *node1, node_t *node2, node_t *major, char *OPERATOR_SIMBOL, list_t *response, uint64_t flag)
 {
     list_t *response1 = list_create();
     if (response1 == NULL)
@@ -1456,7 +560,7 @@ semantic_fsolve(program_t *program, node_t *node, list_t *response, char *OPERAT
         return -1;
     }
 
-    int32_t r1 = f(program, node, response1, flag);
+    int32_t r1 = semantic_vresolve(program, node1, response1, flag);
     if (r1 == -1)
     {
         return -1;
@@ -1471,54 +575,323 @@ semantic_fsolve(program_t *program, node_t *node, list_t *response, char *OPERAT
             cnt_response1 += 1;
 
             node_t *item1 = (node_t *)a1->value;
-            
-            int32_t r2 = semantic_dispart(program, item1, response, OPERATOR_SIMBOL, arguments, node, flag);
-            if (r2 == -1)
+
+            if (node2 != NULL)
             {
-                return -1;
+                list_t *response2 = list_create();
+                if (response2 == NULL)
+                {
+                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                    return -1;
+                }
+
+                int32_t r2 = semantic_vresolve(program, node2, response2, flag);
+                if (r2 == -1)
+                {
+                    return -1;
+                }
+                else
+                {
+                    uint64_t cnt_response2 = 0;
+
+                    ilist_t *a2;
+                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                    {
+                        cnt_response2 += 1;
+
+                        node_t *item2 = (node_t *)a2->value;
+
+                        int32_t r3 = semantic_export(program, item1, item2, major, OPERATOR_SIMBOL, response, flag);
+                        if (r3 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r3 == 0)
+                        {
+                            list_destroy(response2);
+                            list_destroy(response1);
+                            return 0;
+                        }
+                        else
+                        {
+                            list_destroy(response2);
+                            list_destroy(response1);
+                            return 1;
+                        }
+                    }
+
+                    if (cnt_response2 == 0)
+                    {
+                        semantic_error(program, major, "No value in extraction rhs/lhs, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
+                            node2->position.path, node2->position.line, node2->position.column, __FILE__, __LINE__);
+                        return -1;
+                    }
+                }
+
+                list_destroy(response2);
             }
             else
-            if (r2 == 0)
             {
-                semantic_error(program, node, "Not an object\n\tInternal:%s-%u" ,__FILE__, __LINE__);
-                return -1;
+                int32_t r3 = semantic_export(program, item1, NULL, major, OPERATOR_SIMBOL, response, flag);
+                if (r3 == -1)
+                {
+                    return -1;
+                }
+                else
+                if (r3 == 0)
+                {
+                    list_destroy(response1);
+                    return 0;
+                }
+                else
+                {
+                    list_destroy(response1);
+                    return 1;
+                }
             }
-
-            list_destroy(response1);
-            return 1;
         }
 
         if (cnt_response1 == 0)
         {
-            semantic_error(program, node, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
+            semantic_error(program, major, "No value in extraction rhs/lhs, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
+                node1->position.path, node1->position.line, node1->position.column, __FILE__, __LINE__);
             return -1;
         }
     }
 
     list_destroy(response1);
+    
     return 0;
 }
 
 static int32_t
-semantic_unary(program_t *program, node_t *node, list_t *response, char *OPERATOR_SIMBOL, int32_t (*f)(program_t *, node_t *, list_t *, uint64_t), uint64_t flag)
+semantic_fsolve(program_t *program, node_t *node1, node_t *node2, node_t *major, char *OPERATOR_SIMBOL, int32_t (*f)(program_t *, node_t *, list_t *, uint64_t), list_t *response, uint64_t flag)
 {
-    node_unary_t *unary1 = (node_unary_t *)node->value;
+    {
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
 
-    return semantic_fsolve(program, unary1->right, response, OPERATOR_SIMBOL, NULL, f, flag);
+        int32_t r1 = f(program, node1, response1, flag);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        {
+            uint64_t cnt_response1 = 0;
+
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                cnt_response1 += 1;
+
+                node_t *item1 = (node_t *)a1->value;
+                
+                if (node2 != NULL)
+                {
+                    list_t *response2 = list_create();
+                    if (response2 == NULL)
+                    {
+                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                        return -1;
+                    }
+
+                    int32_t r2 = semantic_content(program, node2, response2, flag);
+                    if (r2 == -1)
+                    {
+                        return -1;
+                    }
+                    else
+                    {
+                        uint64_t cnt_response2 = 0;
+
+                        ilist_t *a2;
+                        for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                        {
+                            cnt_response2 += 1;
+
+                            node_t *item2 = (node_t *)a2->value;
+
+                            int32_t r3 = semantic_dispart(program, item1, item2, major, OPERATOR_SIMBOL, response, flag);
+                            if (r3 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            if (r3 == 0)
+                            {
+                                list_destroy(response2);
+                                list_destroy(response1);
+                                goto region_step_2;
+                            }
+                            else
+                            {
+                                list_destroy(response2);
+                                list_destroy(response1);
+                                return 1;
+                            }
+                        }
+
+                        if (cnt_response2 == 0)
+                        {
+                            semantic_error(program, major, "Rhs not result\n\tInternal:%s-%u", __FILE__, __LINE__);
+                            return -1;
+                        }
+                    }
+
+                    list_destroy(response2);
+                }
+                else
+                {
+                    int32_t r2 = semantic_dispart(program, item1, NULL, major, OPERATOR_SIMBOL, response, flag);
+                    if (r2 == -1)
+                    {
+                        return -1;
+                    }
+                    else
+                    if (r2 == 0)
+                    {
+                        semantic_error(program, major, "Lack of %s operator\n\tInternal:%s-%u", __FILE__, __LINE__);
+                        return -1;
+                    }
+                    else
+                    {
+                        list_destroy(response1);
+                        return 1;
+                    }
+                }
+            }
+
+            if (cnt_response1 == 0)
+            {
+                if (node2 != NULL)
+                {
+                    semantic_error(program, major, "Lhs not result\n\tInternal:%s-%u", __FILE__, __LINE__);
+                    return -1;
+                }
+                semantic_error(program, major, "Rhs not result\n\tInternal:%s-%u", __FILE__, __LINE__);
+                return -1;
+            }
+        }
+
+        list_destroy(response1);
+    }
+
+    region_step_2:
+    {
+        list_t *response1 = list_create();
+        if (response1 == NULL)
+        {
+            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+            return -1;
+        }
+
+        int32_t r1 = semantic_content(program, node2, response1, flag);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else
+        {
+            uint64_t cnt_response1 = 0;
+
+            ilist_t *a1;
+            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
+            {
+                cnt_response1 += 1;
+
+                node_t *item1 = (node_t *)a1->value;
+                
+                list_t *response2 = list_create();
+                if (response2 == NULL)
+                {
+                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                    return -1;
+                }
+
+                int32_t r2 = f(program, node1, response2, flag);
+                if (r2 == -1)
+                {
+                    return -1;
+                }
+                else
+                {
+                    uint64_t cnt_response2 = 0;
+
+                    ilist_t *a2;
+                    for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
+                    {
+                        cnt_response2 += 1;
+
+                        node_t *item2 = (node_t *)a2->value;
+
+                        int32_t r3 = semantic_dispart(program, item1, item2, major, OPERATOR_SIMBOL, response, flag);
+                        if (r3 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r3 == 0)
+                        {
+                            semantic_error(program, major, "Lack of %s operator\n\tInternal:%s-%u", 
+                                OPERATOR_SIMBOL, __FILE__, __LINE__);
+                            return -1;
+                        }
+                        else
+                        {
+                            list_destroy(response2);
+                            list_destroy(response1);
+                            return 1;
+                        }
+                    }
+
+                    if (cnt_response2 == 0)
+                    {
+                        semantic_error(program, major, "Lhs not result\n\tInternal:%s-%u", __FILE__, __LINE__);
+                        return -1;
+                    }
+                }
+
+                list_destroy(response2);
+            }
+
+            if (cnt_response1 == 0)
+            {
+                if (node2 != NULL)
+                {
+                    semantic_error(program, major, "Lhs not result\n\tInternal:%s-%u", __FILE__, __LINE__);
+                    return -1;
+                }
+                semantic_error(program, major, "Rhs not result\n\tInternal:%s-%u", __FILE__, __LINE__);
+                return -1;
+            }
+        }
+
+        list_destroy(response1);
+    }
+
+    return 0;
 }
 
 static int32_t
-semantic_binary(program_t *program, node_t *node, list_t *response, char *OPERATOR_SIMBOL, int32_t (*f)(program_t *, node_t *, list_t *, uint64_t), uint64_t flag)
+semantic_unary(program_t *program, node_t *node, char *OPERATOR_SIMBOL, int32_t (*f)(program_t *, node_t *, list_t *, uint64_t), list_t *response, uint64_t flag)
+{
+    node_unary_t *unary1 = (node_unary_t *)node->value;
+
+    return semantic_fsolve(program, unary1->right, NULL, node, OPERATOR_SIMBOL, f, response, flag);
+}
+
+static int32_t
+semantic_binary(program_t *program, node_t *node, char *OPERATOR_SIMBOL, int32_t (*f)(program_t *, node_t *, list_t *, uint64_t), list_t *response, uint64_t flag)
 {
     node_binary_t *binary1 = (node_binary_t *)node->value;
 
-    node_t *arguments1 = semantic_make_arguments(program, binary1->right, 1, binary1->right);
-    if (arguments1 == NULL)
-    {
-        return -1;
-    }
-
-    return semantic_fsolve(program, binary1->left, response, OPERATOR_SIMBOL, arguments1, f, flag);
+    return semantic_fsolve(program, binary1->left, binary1->right, node, OPERATOR_SIMBOL, f, response, flag);
 }
 
 static int32_t
@@ -1526,22 +899,22 @@ semantic_prefix(program_t *program, node_t *node, list_t *response, uint64_t fla
 {
     if (node->kind == NODE_KIND_TILDE)
     {
-        return semantic_unary(program, node, response, "~", semantic_prefix, flag);
+        return semantic_unary(program, node, "~", semantic_prefix, response, flag);
     }
     else
     if (node->kind == NODE_KIND_POS)
     {
-        return semantic_unary(program, node, response, "+", semantic_prefix, flag);
+        return semantic_unary(program, node, "+", semantic_prefix, response, flag);
     }
     else
     if (node->kind == NODE_KIND_NEG)
     {
-        return semantic_unary(program, node, response, "-", semantic_prefix, flag);
+        return semantic_unary(program, node, "-", semantic_prefix, response, flag);
     }
     else
     if (node->kind == NODE_KIND_NOT)
     {
-        return semantic_unary(program, node, response, "!", semantic_prefix, flag);
+        return semantic_unary(program, node, "!", semantic_prefix, response, flag);
     }
     else
     {
@@ -1554,7 +927,7 @@ semantic_pow(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
     if (node->kind == NODE_KIND_POW)
     {
-        return semantic_binary(program, node, response, "**", semantic_pow, flag);
+        return semantic_binary(program, node, "**", semantic_pow, response, flag);
     }
     else
     {
@@ -1567,22 +940,22 @@ semantic_multipicative(program_t *program, node_t *node, list_t *response, uint6
 {
     if (node->kind == NODE_KIND_MUL)
     {
-        return semantic_binary(program, node, response, "*", semantic_multipicative, flag);
+        return semantic_binary(program, node, "*", semantic_multipicative, response, flag);
     }
     else
     if (node->kind == NODE_KIND_DIV)
     {
-        return semantic_binary(program, node, response, "/", semantic_multipicative, flag);
+        return semantic_binary(program, node, "/", semantic_multipicative, response, flag);
     }
     else
     if (node->kind == NODE_KIND_MOD)
     {
-        return semantic_binary(program, node, response, "%", semantic_multipicative, flag);
+        return semantic_binary(program, node, "%", semantic_multipicative, response, flag);
     }
     else
     if (node->kind == NODE_KIND_EPI)
     {
-        return semantic_binary(program, node, response, "\\", semantic_multipicative, flag);
+        return semantic_binary(program, node, "\\", semantic_multipicative, response, flag);
     }
     else
     {
@@ -1595,12 +968,12 @@ semantic_addative(program_t *program, node_t *node, list_t *response, uint64_t f
 {
     if (node->kind == NODE_KIND_PLUS)
     {
-        return semantic_binary(program, node, response, "+", semantic_addative, flag);
+        return semantic_binary(program, node, "+", semantic_addative, response, flag);
     }
     else
     if (node->kind == NODE_KIND_MINUS)
     {
-        return semantic_binary(program, node, response, "-", semantic_addative, flag);
+        return semantic_binary(program, node, "-", semantic_addative, response, flag);
     }
     else
     {
@@ -1613,12 +986,12 @@ semantic_shifting(program_t *program, node_t *node, list_t *response, uint64_t f
 {
     if (node->kind == NODE_KIND_SHR)
     {
-        return semantic_binary(program, node, response, ">>", semantic_addative, flag);
+        return semantic_binary(program, node, ">>", semantic_addative, response, flag);
     }
     else
     if (node->kind == NODE_KIND_SHL)
     {
-        return semantic_binary(program, node, response, "<<", semantic_addative, flag);
+        return semantic_binary(program, node, "<<", semantic_addative, response, flag);
     }
     else
     {
@@ -1631,22 +1004,22 @@ semantic_relational(program_t *program, node_t *node, list_t *response, uint64_t
 {
     if (node->kind == NODE_KIND_LT)
     {
-        return semantic_binary(program, node, response, "<", semantic_shifting, flag);
+        return semantic_binary(program, node, "<", semantic_shifting, response, flag);
     }
     else
     if (node->kind == NODE_KIND_LE)
     {
-        return semantic_binary(program, node, response, "<=", semantic_shifting, flag);
+        return semantic_binary(program, node, "<=", semantic_shifting, response, flag);
     }
     else
     if (node->kind == NODE_KIND_GT)
     {
-        return semantic_binary(program, node, response, ">", semantic_shifting, flag);
+        return semantic_binary(program, node, ">", semantic_shifting, response, flag);
     }
     else
     if (node->kind == NODE_KIND_GE)
     {
-        return semantic_binary(program, node, response, ">=", semantic_shifting, flag);
+        return semantic_binary(program, node, ">=", semantic_shifting, response, flag);
     }
     else
     {
@@ -1659,7 +1032,7 @@ semantic_equality(program_t *program, node_t *node, list_t *response, uint64_t f
 {
     if (node->kind == NODE_KIND_EQ)
     {
-        return semantic_binary(program, node, response, "==", semantic_relational, flag);
+        return semantic_binary(program, node, "==", semantic_relational, response, flag);
     }
     else
     if (node->kind == NODE_KIND_NEQ)
@@ -1671,7 +1044,7 @@ semantic_equality(program_t *program, node_t *node, list_t *response, uint64_t f
             return -1;
         }
 
-        int32_t r1 = semantic_binary(program, node, response1, "==", semantic_relational, flag);
+        int32_t r1 = semantic_binary(program, node, "==", semantic_relational, response1, flag);
         if (r1 == -1)
         {
             return -1;
@@ -1687,7 +1060,7 @@ semantic_equality(program_t *program, node_t *node, list_t *response, uint64_t f
 
                 node_t *item1 = (node_t *)a1->value;
 
-                int32_t r2 = semantic_dispart(program, item1, response, "!", NULL, node, flag);
+                int32_t r2 = semantic_dispart(program, item1, NULL, node, "!", response, flag);
                 if (r2 == -1)
                 {
                     return -1;
@@ -1724,7 +1097,7 @@ semantic_bitwise_and(program_t *program, node_t *node, list_t *response, uint64_
 {
     if (node->kind == NODE_KIND_AND)
     {
-        return semantic_binary(program, node, response, "&", semantic_bitwise_and, flag);
+        return semantic_binary(program, node, "&", semantic_bitwise_and, response, flag);
     }
     else
     {
@@ -1737,7 +1110,7 @@ semantic_bitwise_xor(program_t *program, node_t *node, list_t *response, uint64_
 {
     if (node->kind == NODE_KIND_XOR)
     {
-        return semantic_binary(program, node, response, "^", semantic_bitwise_xor, flag);
+        return semantic_binary(program, node, "^", semantic_bitwise_xor, response, flag);
     }
     else
     {
@@ -1750,7 +1123,7 @@ semantic_bitwise_or(program_t *program, node_t *node, list_t *response, uint64_t
 {
     if (node->kind == NODE_KIND_OR)
     {
-        return semantic_binary(program, node, response, "|", semantic_bitwise_or, flag);
+        return semantic_binary(program, node, "|", semantic_bitwise_or, response, flag);
     }
     else
     {
@@ -1763,7 +1136,7 @@ semantic_logical_and(program_t *program, node_t *node, list_t *response, uint64_
 {
     if (node->kind == NODE_KIND_LAND)
     {
-        return semantic_binary(program, node, response, "&&", semantic_logical_and, flag);
+        return semantic_binary(program, node, "&&", semantic_logical_and, response, flag);
     }
     else
     {
@@ -1776,7 +1149,7 @@ semantic_logical_or(program_t *program, node_t *node, list_t *response, uint64_t
 {
     if (node->kind == NODE_KIND_LOR)
     {
-        return semantic_binary(program, node, response, "||", semantic_logical_or, flag);
+        return semantic_binary(program, node, "||", semantic_logical_or, response, flag);
     }
     else
     {
@@ -1788,891 +1161,6 @@ int32_t
 semantic_expression(program_t *program, node_t *node, list_t *response, uint64_t flag)
 {
 	return semantic_logical_or(program, node, response, flag);
-}
-
-static int32_t
-semantic_vresolve(program_t *program, node_t *node, list_t *response, uint64_t flag)
-{
-    if (node->kind == NODE_KIND_VAR)
-    {
-        node_var_t *var1 = (node_var_t *)node->value;
-        if (var1->value_update != NULL)
-        {
-            ilist_t *il1 = list_rpush(response, var1->value_update);
-            if (il1 == NULL)
-            {
-                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                return -1;
-            }
-            return 1;
-        }
-        else
-        {
-            if (var1->value != NULL)
-            {
-                list_t *response1 = list_create();
-                if (response1 == NULL)
-                {
-                    fprintf(stderr, "%s-(%u):Unable to allocate memory\n", __FILE__, __LINE__);
-                    return -1;
-                }
-
-                int32_t r1 = semantic_expression(program, var1->value, response1, flag);
-                if (r1 == -1)
-                {
-                    return -1;
-                }
-                else
-                {
-                    uint64_t cnt_response1 = 0;
-
-                    ilist_t *a1;
-                    for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
-                    {
-                        cnt_response1 += 1;
-
-                        node_t *item1 = (node_t *)a1->value;
-
-                        if (item1->kind == NODE_KIND_CLASS)
-                        {
-                            if ((item1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
-                            {
-                                semantic_error(program, node, "The value not an instance of object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                    item1->position.path, item1->position.line, item1->position.column, __FILE__, __LINE__);
-                                return -1;
-                            }
-
-                            var1->value_update = item1;
-
-                            ilist_t *il1 = list_rpush(response, item1);
-                            if (il1 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_LAMBDA)
-                        {
-                            var1->value_update = item1;
-
-                            ilist_t *il1 = list_rpush(response, item1);
-                            if (il1 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_VAR)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_ENTITY)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_PROPERTY)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_PARAMETER)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        {
-                            semantic_error(program, node, "The value not an instance of object or fun, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                item1->position.path, item1->position.line, item1->position.column, __FILE__, __LINE__);
-                            return -1;
-                        }
-                    }
-
-                    if (cnt_response1 == 0)
-                    {
-                        semantic_error(program, var1->key, "The value has no valid result\n\tInternal:%s-%u", __FILE__, __LINE__);
-                        return -1;
-                    }
-                }
-
-                list_destroy(response1);
-            }
-            else
-            {
-                semantic_error(program, var1->key, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
-                return -1;
-            }
-        }
-    }
-    else
-    if (node->kind == NODE_KIND_ENTITY)
-    {
-        node_entity_t *entity1 = (node_entity_t *)node->value;
-        if (entity1->value_update != NULL)
-        {
-            ilist_t *il1 = list_rpush(response, entity1->value_update);
-            if (il1 == NULL)
-            {
-                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                return -1;
-            }
-            return 1;
-        }
-        else
-        {
-            if (entity1->value != NULL)
-            {
-                list_t *response1 = list_create();
-                if (response1 == NULL)
-                {
-                    fprintf(stderr, "%s-(%u):Unable to allocate memory\n", __FILE__, __LINE__);
-                    return -1;
-                }
-
-                int32_t r1 = semantic_expression(program, entity1->value, response1, flag);
-                if (r1 == -1)
-                {
-                    return -1;
-                }
-                else
-                {
-                    uint64_t cnt_response1 = 0;
-
-                    ilist_t *a1;
-                    for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
-                    {
-                        cnt_response1 += 1;
-
-                        node_t *item1 = (node_t *)a1->value;
-
-                        if (item1->kind == NODE_KIND_CLASS)
-                        {
-                            if ((item1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
-                            {
-                                semantic_error(program, node, "The value not an instance of object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                    item1->position.path, item1->position.line, item1->position.column, __FILE__, __LINE__);
-                                return -1;
-                            }
-
-                            entity1->value_update = item1;
-
-                            ilist_t *il1 = list_rpush(response, item1);
-                            if (il1 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_LAMBDA)
-                        {
-                            entity1->value_update = item1;
-
-                            ilist_t *il1 = list_rpush(response, item1);
-                            if (il1 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_VAR)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_ENTITY)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_PROPERTY)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_PARAMETER)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        {
-                            semantic_error(program, node, "The value not an instance of object or fun, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                item1->position.path, item1->position.line, item1->position.column, __FILE__, __LINE__);
-                            return -1;
-                        }
-                    }
-
-                    if (cnt_response1 == 0)
-                    {
-                        semantic_error(program, entity1->key, "The value has no valid result\n\tInternal:%s-%u", __FILE__, __LINE__);
-                        return -1;
-                    }
-                }
-
-                list_destroy(response1);
-            }
-            else
-            {
-                semantic_error(program, entity1->key, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
-                return -1;
-            }
-        }
-    }
-    else
-    if (node->kind == NODE_KIND_PROPERTY)
-    {
-        node_property_t *property1 = (node_property_t *)node->value;
-        if (property1->value_update != NULL)
-        {
-            ilist_t *il1 = list_rpush(response, property1->value_update);
-            if (il1 == NULL)
-            {
-                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                return -1;
-            }
-            return 1;
-        }
-        else
-        {
-            if (property1->value != NULL)
-            {
-                list_t *response1 = list_create();
-                if (response1 == NULL)
-                {
-                    fprintf(stderr, "%s-(%u):Unable to allocate memory\n", __FILE__, __LINE__);
-                    return -1;
-                }
-
-                int32_t r1 = semantic_expression(program, property1->value, response1, flag);
-                if (r1 == -1)
-                {
-                    return -1;
-                }
-                else
-                {
-                    uint64_t cnt_response1 = 0;
-
-                    ilist_t *a1;
-                    for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
-                    {
-                        cnt_response1 += 1;
-
-                        node_t *item1 = (node_t *)a1->value;
-
-                        if (item1->kind == NODE_KIND_CLASS)
-                        {
-                            if ((item1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
-                            {
-                                semantic_error(program, node, "The value not an instance of object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                    item1->position.path, item1->position.line, item1->position.column, __FILE__, __LINE__);
-                                return -1;
-                            }
-
-                            property1->value_update = item1;
-
-                            ilist_t *il1 = list_rpush(response, item1);
-                            if (il1 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_LAMBDA)
-                        {
-                            property1->value_update = item1;
-
-                            ilist_t *il1 = list_rpush(response, item1);
-                            if (il1 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_VAR)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_ENTITY)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_PROPERTY)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_PARAMETER)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        {
-                            semantic_error(program, node, "The value not an instance of object or fun, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                item1->position.path, item1->position.line, item1->position.column, __FILE__, __LINE__);
-                            return -1;
-                        }
-                    }
-
-                    if (cnt_response1 == 0)
-                    {
-                        semantic_error(program, property1->key, "The value has no valid result\n\tInternal:%s-%u", __FILE__, __LINE__);
-                        return -1;
-                    }
-                }
-
-                list_destroy(response1);
-            }
-            else
-            {
-                if (property1->type != NULL)
-                {
-                    node_t *type1 = property1->type;
-
-                    if (type1->kind == NODE_KIND_FN)
-                    {
-                        node_fn_t *fun1 = (node_fn_t *)type1->value;
-
-                        node_t *clone1 = node_create(type1->parent, type1->position);
-                        if (clone1 == NULL)
-                        {
-                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                            return -1;
-                        }
-                        clone1 = node_make_lambda(clone1, fun1->generics, fun1->parameters, NULL, fun1->result);
-
-                        property1->value_update = clone1;
-
-                        ilist_t *il1 = list_rpush(response, clone1);
-                        if (il1 == NULL)
-                        {
-                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                            return -1;
-                        }
-                        return 1;
-                    }
-                    else
-                    {
-                        list_t *response1 = list_create();
-                        if (response1 == NULL)
-                        {
-                            fprintf(stderr, "%s-(%u):Unable to allocate memory\n", __FILE__, __LINE__);
-                            return -1;
-                        }
-
-                        int32_t r1 = semantic_resolve(program, type1->parent, type1, response1, flag);
-                        if (r1 == -1)
-                        {
-                            return -1;
-                        }
-                        else
-                        {
-                            uint64_t cnt_response1 = 0;
-
-                            ilist_t *a1;
-                            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
-                            {
-                                cnt_response1 += 1;
-
-                                node_t *item1 = (node_t *)a1->value;
-                                if (item1->kind == NODE_KIND_CLASS)
-                                {
-                                    node_t *clone1 = node_clone(item1->parent, item1);
-                                    if (clone1 == NULL)
-                                    {
-                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                    clone1->flag |= NODE_FLAG_INSTANCE;
-
-                                    property1->value_update = clone1;
-
-                                    ilist_t *il1 = list_rpush(response, clone1);
-                                    if (il1 == NULL)
-                                    {
-                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                    list_destroy(response1);
-                                    return 1;
-                                }
-                                else
-                                if (item1->kind == NODE_KIND_GENERIC)
-                                {
-                                    node_generic_t *generic1 = (node_generic_t *)item1->value;
-                                    if (generic1->type != NULL)
-                                    {
-                                        list_t *response2 = list_create();
-                                        if (response2 == NULL)
-                                        {
-                                            fprintf(stderr, "%s-(%u):Unable to allocate memory\n", __FILE__, __LINE__);
-                                            return -1;
-                                        }
-
-                                        int32_t r2 = semantic_gresolve(program, item1, response2, flag);
-                                        if (r2 == -1)
-                                        {
-                                            return -1;
-                                        }
-                                        else
-                                        {
-                                            uint64_t cnt_response2 = 0;
-
-                                            ilist_t *a2;
-                                            for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
-                                            {
-                                                cnt_response2 += 1;
-
-                                                node_t *item2 = (node_t *)a2->value;
-                                                if (item2->kind == NODE_KIND_CLASS)
-                                                {
-                                                    node_t *clone1 = node_clone(item2->parent, item2);
-                                                    if (clone1 == NULL)
-                                                    {
-                                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                                        return -1;
-                                                    }
-                                                    clone1->flag |= NODE_FLAG_INSTANCE;
-
-                                                    property1->value_update = clone1;
-
-                                                    ilist_t *il1 = list_rpush(response, clone1);
-                                                    if (il1 == NULL)
-                                                    {
-                                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                                        return -1;
-                                                    }
-                                                    list_destroy(response2);
-                                                    list_destroy(response1);
-                                                    return 1;
-                                                }
-                                            }
-
-                                            if (cnt_response2 == 0)
-                                            {
-                                                semantic_error(program, generic1->type, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                                                return -1;
-                                            }
-                                        }
-
-                                        list_destroy(response2);
-                                    }
-                                }
-                                else
-                                {
-                                    semantic_error(program, type1, "Wrong type\n\tInternal:%s-%u", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                            }
-
-                            if (cnt_response1 == 0)
-                            {
-                                semantic_error(program, type1, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-
-                        list_destroy(response1);
-                    }
-                }
-                else
-                {
-                    semantic_error(program, property1->key, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
-                    return -1;
-                }
-            }
-        }
-    }
-    else
-    if (node->kind == NODE_KIND_PARAMETER)
-    {
-        node_parameter_t *parameter1 = (node_parameter_t *)node->value;
-        if (parameter1->value_update != NULL)
-        {
-            ilist_t *il1 = list_rpush(response, parameter1->value_update);
-            if (il1 == NULL)
-            {
-                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                return -1;
-            }
-            return 1;
-        }
-        else
-        {
-            if (parameter1->value != NULL)
-            {
-                list_t *response1 = list_create();
-                if (response1 == NULL)
-                {
-                    fprintf(stderr, "%s-(%u):Unable to allocate memory\n", __FILE__, __LINE__);
-                    return -1;
-                }
-
-                int32_t r1 = semantic_expression(program, parameter1->value, response1, flag);
-                if (r1 == -1)
-                {
-                    return -1;
-                }
-                else
-                {
-                    uint64_t cnt_response1 = 0;
-
-                    ilist_t *a1;
-                    for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
-                    {
-                        cnt_response1 += 1;
-
-                        node_t *item1 = (node_t *)a1->value;
-
-                        if (item1->kind == NODE_KIND_CLASS)
-                        {
-                            if ((item1->flag & NODE_FLAG_INSTANCE) != NODE_FLAG_INSTANCE)
-                            {
-                                semantic_error(program, node, "The value not an instance of object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                    item1->position.path, item1->position.line, item1->position.column, __FILE__, __LINE__);
-                                return -1;
-                            }
-
-                            parameter1->value_update = item1;
-
-                            ilist_t *il1 = list_rpush(response, item1);
-                            if (il1 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_LAMBDA)
-                        {
-                            parameter1->value_update = item1;
-
-                            ilist_t *il1 = list_rpush(response, item1);
-                            if (il1 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_VAR)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_ENTITY)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_PROPERTY)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        if (item1->kind == NODE_KIND_PARAMETER)
-                        {
-                            int32_t r2 = semantic_vresolve(program, item1, response, flag);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
-                            list_destroy(response1);
-                            return 1;
-                        }
-                        else
-                        {
-                            semantic_error(program, node, "The value not an instance of object or fun, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
-                                item1->position.path, item1->position.line, item1->position.column, __FILE__, __LINE__);
-                            return -1;
-                        }
-                    }
-
-                    if (cnt_response1 == 0)
-                    {
-                        semantic_error(program, parameter1->key, "The value has no valid result\n\tInternal:%s-%u", __FILE__, __LINE__);
-                        return -1;
-                    }
-                }
-
-                list_destroy(response1);
-            }
-            else
-            {
-                if (parameter1->type != NULL)
-                {
-                    node_t *type1 = parameter1->type;
-
-                    if (type1->kind == NODE_KIND_FN)
-                    {
-                        node_fn_t *fun1 = (node_fn_t *)type1->value;
-
-                        node_t *clone1 = node_create(type1->parent, type1->position);
-                        if (clone1 == NULL)
-                        {
-                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                            return -1;
-                        }
-                        clone1 = node_make_lambda(clone1, fun1->generics, fun1->parameters, NULL, fun1->result);
-
-                        parameter1->value_update = clone1;
-
-                        ilist_t *il1 = list_rpush(response, clone1);
-                        if (il1 == NULL)
-                        {
-                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                            return -1;
-                        }
-                        return 1;
-                    }
-                    else
-                    {
-                        list_t *response1 = list_create();
-                        if (response1 == NULL)
-                        {
-                            fprintf(stderr, "%s-(%u):Unable to allocate memory\n", __FILE__, __LINE__);
-                            return -1;
-                        }
-
-                        int32_t r1 = semantic_resolve(program, type1->parent, type1, response1, flag);
-                        if (r1 == -1)
-                        {
-                            return -1;
-                        }
-                        else
-                        {
-                            uint64_t cnt_response1 = 0;
-
-                            ilist_t *a1;
-                            for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
-                            {
-                                cnt_response1 += 1;
-
-                                node_t *item1 = (node_t *)a1->value;
-                                if (item1->kind == NODE_KIND_CLASS)
-                                {
-                                    node_t *clone1 = node_clone(item1->parent, item1);
-                                    if (clone1 == NULL)
-                                    {
-                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                    clone1->flag |= NODE_FLAG_INSTANCE;
-
-                                    parameter1->value_update = clone1;
-
-                                    ilist_t *il1 = list_rpush(response, clone1);
-                                    if (il1 == NULL)
-                                    {
-                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                    list_destroy(response1);
-                                    return 1;
-                                }
-                                else
-                                if (item1->kind == NODE_KIND_GENERIC)
-                                {
-                                    node_generic_t *generic1 = (node_generic_t *)item1->value;
-                                    if (generic1->type != NULL)
-                                    {
-                                        list_t *response2 = list_create();
-                                        if (response2 == NULL)
-                                        {
-                                            fprintf(stderr, "%s-(%u):Unable to allocate memory\n", __FILE__, __LINE__);
-                                            return -1;
-                                        }
-
-                                        int32_t r2 = semantic_gresolve(program, item1, response2, flag);
-                                        if (r2 == -1)
-                                        {
-                                            return -1;
-                                        }
-                                        else
-                                        {
-                                            uint64_t cnt_response2 = 0;
-
-                                            ilist_t *a2;
-                                            for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
-                                            {
-                                                cnt_response2 += 1;
-
-                                                node_t *item2 = (node_t *)a2->value;
-                                                if (item2->kind == NODE_KIND_CLASS)
-                                                {
-                                                    node_t *clone1 = node_clone(item2->parent, item2);
-                                                    if (clone1 == NULL)
-                                                    {
-                                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                                        return -1;
-                                                    }
-                                                    clone1->flag |= NODE_FLAG_INSTANCE;
-
-                                                    parameter1->value_update = clone1;
-
-                                                    ilist_t *il1 = list_rpush(response, clone1);
-                                                    if (il1 == NULL)
-                                                    {
-                                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                                        return -1;
-                                                    }
-                                                    list_destroy(response2);
-                                                    list_destroy(response1);
-                                                    return 1;
-                                                }
-                                            }
-
-                                            if (cnt_response2 == 0)
-                                            {
-                                                semantic_error(program, generic1->type, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                                                return -1;
-                                            }
-                                        }
-
-                                        list_destroy(response2);
-                                    }
-                                }
-                                else
-                                {
-                                    semantic_error(program, type1, "Wrong type\n\tInternal:%s-%u", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                            }
-
-                            if (cnt_response1 == 0)
-                            {
-                                semantic_error(program, type1, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-
-                        list_destroy(response1);
-                    }
-                }
-                else
-                {
-                    semantic_error(program, parameter1->key, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
-                    return -1;
-                }
-            }
-        }
-    }
-
-    semantic_error(program, node, "Type is not value\n\tInternal:%s-%u", __FILE__, __LINE__);
-    return -1;
 }
 
 static int32_t
@@ -2753,7 +1241,7 @@ semantic_select(program_t *program, node_t *node, node_t *target, list_t *respon
                             {
                                 if ((item3->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                 {
-                                    semantic_error(program, heritage3->type, "Instance object, in confronting with (%s-%lld:%lld)",
+                                    semantic_error(program, heritage3->type, "Instance of object, in confronting with (%s-%lld:%lld)",
                                         item3->position.path, item3->position.line, item3->position.column);
                                     return -1;
                                 }
@@ -4004,7 +2492,7 @@ semantic_assignment(program_t *program, node_t *node1, node_t *node2, node_t *ma
 
                                     if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                     {
-                                        semantic_error(program, type2, "Instance object, in confronting with (%s-%lld:%lld)",
+                                        semantic_error(program, type2, "Instance of object, in confronting with (%s-%lld:%lld)",
                                             class1->key->position.path, class1->key->position.line, class1->key->position.column);
                                         return -1;
                                     }
@@ -4079,7 +2567,7 @@ semantic_assignment(program_t *program, node_t *node1, node_t *node2, node_t *ma
                                     }
                                     else
                                     {
-                                        semantic_error(program, major, "Can't make an instance object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
+                                        semantic_error(program, major, "Can't make an Instance of object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
                                             node2->position.path, node2->position.line, node2->position.column, __FILE__, __LINE__);
                                         return -1;
                                     }
@@ -4542,7 +3030,7 @@ semantic_assignment(program_t *program, node_t *node1, node_t *node2, node_t *ma
 
                                     if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                     {
-                                        semantic_error(program, type2, "Instance object, in confronting with (%s-%lld:%lld)",
+                                        semantic_error(program, type2, "Instance of object, in confronting with (%s-%lld:%lld)",
                                             class1->key->position.path, class1->key->position.line, class1->key->position.column);
                                         return -1;
                                     }
@@ -4617,7 +3105,7 @@ semantic_assignment(program_t *program, node_t *node1, node_t *node2, node_t *ma
                                     }
                                     else
                                     {
-                                        semantic_error(program, major, "Can't make an instance object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
+                                        semantic_error(program, major, "Can't make an Instance of object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
                                             node2->position.path, node2->position.line, node2->position.column, __FILE__, __LINE__);
                                         return -1;
                                     }
@@ -6154,7 +4642,7 @@ semantic_assignment(program_t *program, node_t *node1, node_t *node2, node_t *ma
 
                                     if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                     {
-                                        semantic_error(program, type2, "Instance object, in confronting with (%s-%lld:%lld)",
+                                        semantic_error(program, type2, "Instance of object, in confronting with (%s-%lld:%lld)",
                                             class1->key->position.path, class1->key->position.line, class1->key->position.column);
                                         return -1;
                                     }
@@ -6229,7 +4717,7 @@ semantic_assignment(program_t *program, node_t *node1, node_t *node2, node_t *ma
                                     }
                                     else
                                     {
-                                        semantic_error(program, major, "Can't make an instance object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
+                                        semantic_error(program, major, "Can't make an Instance of object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
                                             node2->position.path, node2->position.line, node2->position.column, __FILE__, __LINE__);
                                         return -1;
                                     }
@@ -6692,7 +5180,7 @@ semantic_assignment(program_t *program, node_t *node1, node_t *node2, node_t *ma
 
                                     if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                     {
-                                        semantic_error(program, type2, "Instance object, in confronting with (%s-%lld:%lld)",
+                                        semantic_error(program, type2, "Instance of object, in confronting with (%s-%lld:%lld)",
                                             class1->key->position.path, class1->key->position.line, class1->key->position.column);
                                         return -1;
                                     }
@@ -6767,7 +5255,7 @@ semantic_assignment(program_t *program, node_t *node1, node_t *node2, node_t *ma
                                     }
                                     else
                                     {
-                                        semantic_error(program, major, "Can't make an instance object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
+                                        semantic_error(program, major, "Can't make an Instance of object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
                                             node2->position.path, node2->position.line, node2->position.column, __FILE__, __LINE__);
                                         return -1;
                                     }
@@ -8304,7 +6792,7 @@ semantic_assignment(program_t *program, node_t *node1, node_t *node2, node_t *ma
 
                                     if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                     {
-                                        semantic_error(program, type2, "Instance object, in confronting with (%s-%lld:%lld)",
+                                        semantic_error(program, type2, "Instance of object, in confronting with (%s-%lld:%lld)",
                                             class1->key->position.path, class1->key->position.line, class1->key->position.column);
                                         return -1;
                                     }
@@ -8379,7 +6867,7 @@ semantic_assignment(program_t *program, node_t *node1, node_t *node2, node_t *ma
                                     }
                                     else
                                     {
-                                        semantic_error(program, major, "Can't make an instance object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
+                                        semantic_error(program, major, "Can't make an Instance of object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
                                             node2->position.path, node2->position.line, node2->position.column, __FILE__, __LINE__);
                                         return -1;
                                     }
@@ -8842,7 +7330,7 @@ semantic_assignment(program_t *program, node_t *node1, node_t *node2, node_t *ma
 
                                     if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                     {
-                                        semantic_error(program, type2, "Instance object, in confronting with (%s-%lld:%lld)",
+                                        semantic_error(program, type2, "Instance of object, in confronting with (%s-%lld:%lld)",
                                             class1->key->position.path, class1->key->position.line, class1->key->position.column);
                                         return -1;
                                     }
@@ -8917,7 +7405,7 @@ semantic_assignment(program_t *program, node_t *node1, node_t *node2, node_t *ma
                                     }
                                     else
                                     {
-                                        semantic_error(program, major, "Can't make an instance object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
+                                        semantic_error(program, major, "Can't make an Instance of object, in confronting with (%s-%lld:%lld)\n\tInternal:%s-%u", 
                                             node2->position.path, node2->position.line, node2->position.column, __FILE__, __LINE__);
                                         return -1;
                                     }
@@ -9656,52 +8144,52 @@ semantic_assign(program_t *program, node_t *node, uint64_t flag)
                 int32_t r2 = 0;
                 if (node->kind == NODE_KIND_ADD_ASSIGN)
                 {
-                    r2 = semantic_binary(program, node, response2, "+", semantic_expression, flag);
+                    r2 = semantic_binary(program, node, "+", semantic_expression, response2, flag);
                 }
                 else
                 if (node->kind == NODE_KIND_SUB_ASSIGN)
                 {
-                    r2 = semantic_binary(program, node, response2, "-", semantic_expression, flag);
+                    r2 = semantic_binary(program, node, "-", semantic_expression, response2, flag);
                 }
                 else
                 if (node->kind == NODE_KIND_MUL_ASSIGN)
                 {
-                    r2 = semantic_binary(program, node, response2, "*", semantic_expression, flag);
+                    r2 = semantic_binary(program, node, "*", semantic_expression, response2, flag);
                 }
                 else
                 if (node->kind == NODE_KIND_DIV_ASSIGN)
                 {
-                    r2 = semantic_binary(program, node, response2, "/", semantic_expression, flag);
+                    r2 = semantic_binary(program, node, "/", semantic_expression, response2, flag);
                 }
                 else
                 if (node->kind == NODE_KIND_EPI_ASSIGN)
                 {
-                    r2 = semantic_binary(program, node, response2, "\\", semantic_expression, flag);
+                    r2 = semantic_binary(program, node, "\\", semantic_expression, response2, flag);
                 }
                 else
                 if (node->kind == NODE_KIND_MOD_ASSIGN)
                 {
-                    r2 = semantic_binary(program, node, response2, "%", semantic_expression, flag);
+                    r2 = semantic_binary(program, node, "%", semantic_expression, response2, flag);
                 }
                 else
                 if (node->kind == NODE_KIND_AND_ASSIGN)
                 {
-                    r2 = semantic_binary(program, node, response2, "&", semantic_expression, flag);
+                    r2 = semantic_binary(program, node, "&", semantic_expression, response2, flag);
                 }
                 else
                 if (node->kind == NODE_KIND_OR_ASSIGN)
                 {
-                    r2 = semantic_binary(program, node, response2, "|", semantic_expression, flag);
+                    r2 = semantic_binary(program, node, "|", semantic_expression, response2, flag);
                 }
                 else
                 if (node->kind == NODE_KIND_SHL_ASSIGN)
                 {
-                    r2 = semantic_binary(program, node, response2, "<<", semantic_expression, flag);
+                    r2 = semantic_binary(program, node, "<<", semantic_expression, response2, flag);
                 }
                 else
                 if (node->kind == NODE_KIND_SHR_ASSIGN)
                 {
-                    r2 = semantic_binary(program, node, response2, ">>", semantic_expression, flag);
+                    r2 = semantic_binary(program, node, ">>", semantic_expression, response2, flag);
                 }
                 else
                 {

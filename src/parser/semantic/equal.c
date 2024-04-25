@@ -1519,3 +1519,9 @@ semantic_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2)
     }
     return 1;
 }
+
+int32_t
+semantic_eqaul_psns(program_t *program, node_t *nps1, node_t *nns2)
+{
+    return 1;
+}

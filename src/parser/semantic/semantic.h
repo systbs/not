@@ -44,6 +44,9 @@ semantic_eqaul_psas(program_t *program, node_t *nps1, node_t *nas2);
 int32_t
 semantic_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2);
 
+int32_t
+semantic_eqaul_psns(program_t *program, node_t *nps1, node_t *nns2);
+
 
 // make.c
 node_t *
@@ -95,5 +98,14 @@ semantic_assignment(program_t *program, node_t *node1, node_t *node2, node_t *ma
 int32_t
 semantic_assign(program_t *program, node_t *node, uint64_t flag);
 
+// helper.c
+int32_t
+semantic_gresolve(program_t *program, node_t *node, list_t *response, uint64_t flag);
+
+int32_t
+semantic_hresolve(program_t *program, node_t *node, list_t *response, uint64_t flag);
+
+int32_t
+semantic_vresolve(program_t *program, node_t *node, list_t *response, uint64_t flag);
 
 #endif

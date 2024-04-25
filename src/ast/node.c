@@ -3480,13 +3480,13 @@ node_clone(node_t *parent, node_t *node)
 		for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
 		{
 			node_t *item1 = (node_t *)a1->value;
-			node_t *item2 = node_clone(node1, item1);
-			if (item2 == NULL)
+			node_t *clone1 = node_clone(node1, item1);
+			if (clone1 == NULL)
 			{
 				return NULL;
 			}
 
-			ilist_t *r1 = list_rpush(list1, item2);
+			ilist_t *r1 = list_rpush(list1, clone1);
 			if (r1 == NULL)
 			{
 				return NULL;
@@ -3573,15 +3573,7 @@ node_clone(node_t *parent, node_t *node)
 		node1->position = node->position;
 		node1->kind = node->kind;
 		node1->flag = NODE_FLAG_TEMPORARY;
-
-		if ((fun1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
-		{
-			node1->parent = node->parent;
-		}
-		else
-		{
-			node1->parent = parent;
-		}
+		node1->parent = parent;
 
 		node_fun_t *fun2 = (node_fun_t *)malloc(sizeof(node_fun_t));
 		if(fun2 == NULL)
@@ -3976,15 +3968,7 @@ node_clone(node_t *parent, node_t *node)
 		node1->position = node->position;
 		node1->kind = node->kind;
 		node1->flag = NODE_FLAG_TEMPORARY;
-
-		if ((class1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
-		{
-			node1->parent = node->parent;
-		}
-		else
-		{
-			node1->parent = parent;
-		}
+		node1->parent = parent;
 
 		node_class_t *class2 = (node_class_t *)malloc(sizeof(node_class_t));
 		if(class2 == NULL)
