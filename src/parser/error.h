@@ -4,6 +4,8 @@
 typedef struct error {
     position_t position;
     char *message;
+
+    node_t *origin;
 } error_t;
 
 error_t *

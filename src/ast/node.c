@@ -303,7 +303,7 @@ node_clone(node_t *parent, node_t *node)
 		return node1;
 	}
 	else
-	if (node->kind == NODE_KIND_DICTIONARY)
+	if (node->kind == NODE_KIND_OBJECT)
 	{
 		node_t *node1 = (node_t *)malloc(sizeof(node_t));
 		if(node1 == NULL)
@@ -2296,6 +2296,46 @@ node_clone(node_t *parent, node_t *node)
 		return node1;
 	}
 	else
+	if (node->kind == NODE_KIND_THROW)
+	{
+		node_t *node1 = (node_t *)malloc(sizeof(node_t));
+		if(node1 == NULL)
+		{
+			fprintf(stderr, "Unable to allocted a block of %zu bytes\n", sizeof(node_t));
+			return NULL;
+		}
+		memset(node1, 0, sizeof(node_t));
+
+		node1->id = node->id;
+		node1->position = node->position;
+		node1->parent = parent;
+		node1->kind = node->kind;
+		node1->flag = NODE_FLAG_TEMPORARY;
+
+		node_throw_t *throw1 = (node_throw_t *)node->value;
+
+		node_throw_t *throw2 = (node_throw_t *)malloc(sizeof(node_throw_t));
+		if(throw2 == NULL)
+		{
+			fprintf(stderr, "Unable to allocted a block of %zu bytes\n", sizeof(node_throw_t));
+			return NULL;
+		}
+		memset(throw2, 0, sizeof(node_throw_t));
+
+		if (throw2->arguments != NULL)
+		{
+			throw2->arguments = node_clone(node1, throw1->arguments);
+			if (throw2->arguments == NULL)
+			{
+				return NULL;
+			}
+		}
+
+		node1->value = throw2;
+
+		return node1;
+	}
+	else
 	if (node->kind == NODE_KIND_IF)
 	{
 		node_t *node1 = (node_t *)malloc(sizeof(node_t));
@@ -3702,64 +3742,6 @@ node_clone(node_t *parent, node_t *node)
 		return node1;
 	}
 	else
-	if (node->kind == NODE_KIND_FN)
-	{
-		node_t *node1 = (node_t *)malloc(sizeof(node_t));
-		if(node1 == NULL)
-		{
-			fprintf(stderr, "Unable to allocted a block of %zu bytes\n", sizeof(node_t));
-			return NULL;
-		}
-		memset(node1, 0, sizeof(node_t));
-
-		node1->id = node->id;
-		node1->position = node->position;
-		node1->parent = parent;
-		node1->kind = node->kind;
-		node1->flag = NODE_FLAG_TEMPORARY;
-
-		node_fn_t *fun1 = (node_fn_t *)node->value;
-
-		node_fn_t *fun2 = (node_fn_t *)malloc(sizeof(node_fn_t));
-		if(fun2 == NULL)
-		{
-			fprintf(stderr, "Unable to allocted a block of %zu bytes\n", sizeof(node_fn_t));
-			return NULL;
-		}
-		memset(fun2, 0, sizeof(node_fn_t));
-
-		if (fun1->generics != NULL)
-		{
-			fun2->generics = node_clone(node1, fun1->generics);
-			if (fun2->generics == NULL)
-			{
-				return NULL;
-			}
-		}
-
-		if (fun1->parameters != NULL)
-		{
-			fun2->parameters = node_clone(node1, fun1->parameters);
-			if (fun2->parameters == NULL)
-			{
-				return NULL;
-			}
-		}
-
-		if (fun1->result != NULL)
-		{
-			fun2->result = node_clone(node1, fun1->result);
-			if (fun2->result == NULL)
-			{
-				return NULL;
-			}
-		}
-
-		node1->value = fun2;
-
-		return node1;
-	}
-	else
 	if (node->kind == NODE_KIND_PROPERTY)
 	{
 		node_property_t *property1 = (node_property_t *)node->value;
@@ -3894,7 +3876,7 @@ node_clone(node_t *parent, node_t *node)
 	else
 	if (node->kind == NODE_KIND_ENTITY)
 	{
-		node_entity_t *enteiry1 = (node_entity_t *)node->value;
+		node_entity_t *entity1 = (node_entity_t *)node->value;
 
 		node_t *node1 = (node_t *)malloc(sizeof(node_t));
 		if(node1 == NULL)
@@ -3910,44 +3892,44 @@ node_clone(node_t *parent, node_t *node)
 		node1->kind = node->kind;
 		node1->flag = NODE_FLAG_TEMPORARY;
 
-		node_entity_t *enteiry2 = (node_entity_t *)malloc(sizeof(node_entity_t));
-		if(enteiry2 == NULL)
+		node_entity_t *entity2 = (node_entity_t *)malloc(sizeof(node_entity_t));
+		if(entity2 == NULL)
 		{
 			fprintf(stderr, "Unable to allocted a block of %zu bytes\n", sizeof(node_entity_t));
 			return NULL;
 		}
-		memset(enteiry2, 0, sizeof(node_entity_t));
+		memset(entity2, 0, sizeof(node_entity_t));
 
-		enteiry2->flag = enteiry1->flag;
+		entity2->flag = entity1->flag;
 
-		if (enteiry1->key != NULL)
+		if (entity1->key != NULL)
 		{
-			enteiry2->key = node_clone(node1, enteiry1->key);
-			if (enteiry2->key == NULL)
+			entity2->key = node_clone(node1, entity1->key);
+			if (entity2->key == NULL)
 			{
 				return NULL;
 			}
 		}
 
-		if (enteiry1->type != NULL)
+		if (entity1->type != NULL)
 		{
-			enteiry2->type = node_clone(node1, enteiry1->type);
-			if (enteiry2->type == NULL)
+			entity2->type = node_clone(node1, entity1->type);
+			if (entity2->type == NULL)
 			{
 				return NULL;
 			}
 		}
 
-		if (enteiry1->value != NULL)
+		if (entity1->value != NULL)
 		{
-			enteiry2->value = node_clone(node1, enteiry1->value);
-			if (enteiry2->value == NULL)
+			entity2->value = node_clone(node1, entity1->value);
+			if (entity2->value == NULL)
 			{
 				return NULL;
 			}
 		}
 
-		node1->value = enteiry2;
+		node1->value = entity2;
 
 		return node1;
 	}
@@ -4600,7 +4582,7 @@ node_make_array(node_t *node, list_t *list)
 }
 
 node_t *
-node_make_dictionary(node_t *node, list_t *list)
+node_make_object(node_t *node, list_t *list)
 {
 	node_block_t *basic = (node_block_t *)malloc(sizeof(node_block_t));
 	if(basic == NULL){
@@ -4610,7 +4592,7 @@ node_make_dictionary(node_t *node, list_t *list)
 	memset(basic, 0, sizeof(node_block_t));
 	basic->list = list;
 	
-	node_update(node, NODE_KIND_DICTIONARY, basic);
+	node_update(node, NODE_KIND_OBJECT, basic);
 	return node;
 }
 
@@ -5339,6 +5321,21 @@ node_make_shr_assign(node_t *node, node_t *left, node_t *right)
 	return node;
 }
 
+node_t *
+node_make_throw(node_t *node, node_t *arguments)
+{
+	node_throw_t *basic = (node_throw_t *)malloc(sizeof(node_throw_t));
+	if(basic == NULL)
+	{
+		fprintf(stderr, "Unable to allocted a block of %zu bytes\n", sizeof(node_throw_t));
+		return NULL;
+	}
+	memset(basic, 0, sizeof(node_throw_t));
+	basic->arguments = arguments;
+	
+	node_update(node, NODE_KIND_THROW, basic);
+	return node;
+}
 
 node_t *
 node_make_break(node_t *node, node_t *expression)
@@ -5737,24 +5734,6 @@ node_make_lambda(node_t *node, node_t *generics, node_t *parameters, node_t *bod
 }
 
 node_t *
-node_make_fn(node_t *node, node_t *generics, node_t *parameters, node_t *result)
-{
-	node_fn_t *basic = (node_fn_t *)malloc(sizeof(node_fn_t));
-	if(basic == NULL)
-	{
-		fprintf(stderr, "Unable to allocted a block of %zu bytes\n", sizeof(node_fn_t));
-		return NULL;
-	}
-	memset(basic, 0, sizeof(node_fn_t));
-	basic->generics = generics;
-	basic->parameters = parameters;
-	basic->result = result;
-	
-	node_update(node, NODE_KIND_FN, basic);
-	return node;
-}
-
-node_t *
 node_make_property(node_t *node, node_t *annotation, uint64_t flag, node_t *key, node_t *type, node_t *value)
 {
 	node_property_t *basic = (node_property_t *)malloc(sizeof(node_property_t));
@@ -5797,7 +5776,7 @@ node_t *
 node_make_pair(node_t *node, node_t *key, node_t *value)
 {
 	node_pair_t *basic = (node_pair_t *)malloc(sizeof(node_pair_t));
-	if(basic != NULL)
+	if(basic == NULL)
 	{
 		fprintf(stderr, "Unable to allocted a block of %zu bytes\n", sizeof(node_pair_t));
 		return NULL;

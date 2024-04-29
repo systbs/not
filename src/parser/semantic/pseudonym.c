@@ -205,11 +205,11 @@ semantic_pseudonym(program_t *program, node_t *base, node_t *node, list_t *respo
                 node_var_t *var1 = (node_var_t *)item1->value;
                 if (var1->type != NULL)
                 {
-                    node_t *node1 = var1->type;
-                    if (node1->kind == NODE_KIND_FN)
+                    node_t *type1 = var1->type;
+                    if (type1->kind == NODE_KIND_LAMBDA)
                     {
-                        node_fn_t *fn1 = (node_fn_t *)node1->value;
-                        int32_t r1 = semantic_eqaul_gsfs(program, fn1->generics, carrier->data);
+                        node_lambda_t *fun1 = (node_lambda_t *)type1->value;
+                        int32_t r1 = semantic_eqaul_gsfs(program, fun1->generics, carrier->data);
                         if (r1 == -1)
                         {
                             return -1;
@@ -267,10 +267,10 @@ semantic_pseudonym(program_t *program, node_t *base, node_t *node, list_t *respo
                 if (entity1->type != NULL)
                 {
                     node_t *node1 = entity1->type;
-                    if (node1->kind == NODE_KIND_FN)
+                    if (node1->kind == NODE_KIND_LAMBDA)
                     {
-                        node_fn_t *fn1 = (node_fn_t *)node1->value;
-                        int32_t r1 = semantic_eqaul_gsfs(program, fn1->generics, carrier->data);
+                        node_lambda_t *fun1 = (node_lambda_t *)node1->value;
+                        int32_t r1 = semantic_eqaul_gsfs(program, fun1->generics, carrier->data);
                         if (r1 == -1)
                         {
                             return -1;
@@ -328,10 +328,10 @@ semantic_pseudonym(program_t *program, node_t *base, node_t *node, list_t *respo
                 if (property1->type != NULL)
                 {
                     node_t *node1 = property1->type;
-                    if (node1->kind == NODE_KIND_FN)
+                    if (node1->kind == NODE_KIND_LAMBDA)
                     {
-                        node_fn_t *fn1 = (node_fn_t *)node1->value;
-                        int32_t r1 = semantic_eqaul_gsfs(program, fn1->generics, carrier->data);
+                        node_lambda_t *fun1 = (node_lambda_t *)node1->value;
+                        int32_t r1 = semantic_eqaul_gsfs(program, fun1->generics, carrier->data);
                         if (r1 == -1)
                         {
                             return -1;
@@ -444,10 +444,10 @@ semantic_pseudonym(program_t *program, node_t *base, node_t *node, list_t *respo
                 if (parameter1->type != NULL)
                 {
                     node_t *node1 = parameter1->type;
-                    if (node1->kind == NODE_KIND_FN)
+                    if (node1->kind == NODE_KIND_LAMBDA)
                     {
-                        node_fn_t *fn1 = (node_fn_t *)node1->value;
-                        int32_t r1 = semantic_eqaul_gsfs(program, fn1->generics, carrier->data);
+                        node_fn_t *fun1 = (node_fn_t *)node1->value;
+                        int32_t r1 = semantic_eqaul_gsfs(program, fun1->generics, carrier->data);
                         if (r1 == -1)
                         {
                             return -1;

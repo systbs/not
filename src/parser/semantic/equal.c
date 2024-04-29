@@ -1525,3 +1525,15 @@ semantic_eqaul_psns(program_t *program, node_t *nps1, node_t *nns2)
 {
     return 1;
 }
+
+int32_t
+semantic_eqaul_otos(program_t *program, node_t *not1, node_t *nos1)
+{
+    return 1;
+}
+
+int32_t
+semantic_eqaul_osos(program_t *program, node_t *nos1, node_t *nos2)
+{
+    return 1;
+}

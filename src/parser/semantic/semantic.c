@@ -39,12 +39,13 @@ semantic_error(program_t *program, node_t *node, const char *format, ...)
 		va_end(arg);
 	}
 
-	error_t *error;
-	error = error_create(node->position, message);
+	error_t *error = error_create(node->position, message);
 	if (!error)
 	{
 		return NULL;
 	}
+
+    error->origin = node;
 
 	if (list_rpush(program->errors, error))
 	{
@@ -1788,6 +1789,12 @@ semantic_var(program_t *program, node_t *node, uint64_t flag)
 }
 
 static int32_t
+semantic_throw(program_t *program, node_t *node, uint64_t flag)
+{
+    return 1;
+}
+
+static int32_t
 semantic_return(program_t *program, node_t *node, uint64_t flag)
 {
     node_unary_t *unary1 = (node_unary_t *)node->value;
@@ -1907,6 +1914,15 @@ semantic_statement(program_t *program, node_t *node, uint64_t flag)
     if (node->kind == NODE_KIND_VAR)
     {
         int32_t result = semantic_var(program, node, flag);
+        if (result == -1)
+        {
+            return -1;
+        }
+    }
+    else
+    if (node->kind == NODE_KIND_THROW)
+    {
+        int32_t result = semantic_throw(program, node, flag);
         if (result == -1)
         {
             return -1;

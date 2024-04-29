@@ -119,5 +119,3 @@ semantic_make_arguments(program_t *program, node_t *parent, uint64_t n, ...)
 	return node_make_arguments(node, arguments);
 }
 
-
-

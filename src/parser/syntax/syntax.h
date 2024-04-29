@@ -4,13 +4,14 @@
 
 typedef enum syntax_modifier 
 {
-	SYNTAX_MODIFIER_NONE 				= 1 << 0,
+	SYNTAX_MODIFIER_NONE 			= 1 << 0,
 	SYNTAX_MODIFIER_EXPORT 			= 1 << 1,
 	SYNTAX_MODIFIER_READONLY 		= 1 << 2,
-	SYNTAX_MODIFIER_REFERENCE 	= 1 << 3,
-	SYNTAX_MODIFIER_PROTECT 	= 1 << 4,
-	SYNTAX_MODIFIER_STATIC 			= 1 << 5,
-	SYNTAX_MODIFIER_ASYNC 			= 1 << 6
+	SYNTAX_MODIFIER_REFERENCE 		= 1 << 3,
+	SYNTAX_MODIFIER_STAR 			= 1 << 4,
+	SYNTAX_MODIFIER_PROTECT 		= 1 << 5,
+	SYNTAX_MODIFIER_STATIC 			= 1 << 6,
+	SYNTAX_MODIFIER_ASYNC 			= 1 << 7
 } syntax_modifier_t;
 
 typedef struct syntax 

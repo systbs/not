@@ -47,6 +47,12 @@ semantic_eqaul_gsfs(program_t *program, node_t *ngs1, node_t *nfs2);
 int32_t
 semantic_eqaul_psns(program_t *program, node_t *nps1, node_t *nns2);
 
+int32_t
+semantic_eqaul_otos(program_t *program, node_t *not1, node_t *nos2);
+
+int32_t
+semantic_eqaul_osos(program_t *program, node_t *nos1, node_t *nos2);
+
 
 // make.c
 node_t *

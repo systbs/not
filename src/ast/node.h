@@ -26,7 +26,7 @@ typedef enum node_kind {
 	NODE_KIND_STRING,
 	NODE_KIND_NULL,
 	NODE_KIND_ARRAY,
-	NODE_KIND_DICTIONARY,
+	NODE_KIND_OBJECT,
 	NODE_KIND_PSEUDONYM,
 	NODE_KIND_THIS,
 
@@ -106,7 +106,6 @@ typedef enum node_kind {
 	NODE_KIND_VAR,
 	NODE_KIND_TYPE,
 	NODE_KIND_LAMBDA,
-	NODE_KIND_FN,
 	NODE_KIND_FUN,
 	NODE_KIND_CLASS,
 	NODE_KIND_METHOD,
@@ -172,7 +171,9 @@ typedef struct node_triple {
 	node_t *right;
 } node_triple_t;
 
-
+typedef struct node_throw {
+	node_t *arguments;
+} node_throw_t;
 
 
 typedef struct node_block {
@@ -302,6 +303,8 @@ typedef struct node_entity {
 typedef struct node_pair {
 	node_t *key;
 	node_t *value;
+
+	node_t *value_update;
 } node_pair_t;
 
 typedef struct node_class {
@@ -386,7 +389,7 @@ node_t *
 node_make_array(node_t *node, list_t *expr_list);
 
 node_t *
-node_make_dictionary(node_t *node, list_t *properties);
+node_make_object(node_t *node, list_t *properties);
 
 node_t *
 node_make_pseudonym(node_t *node, node_t *base, node_t *arguments);
@@ -403,6 +406,8 @@ node_make_parenthesis(node_t *node, node_t *right);
 
 
 
+node_t *
+node_make_throw(node_t *node, node_t *arguments);
 
 node_t *
 node_make_argument(node_t *node, node_t *name, node_t *value);
@@ -593,9 +598,6 @@ node_make_func(node_t *node, node_t *note, uint64_t flag, node_t *key, node_t *g
 
 node_t *
 node_make_lambda(node_t *node, node_t *generics, node_t *parameters, node_t *body, node_t *result);
-
-node_t *
-node_make_fn(node_t *node, node_t *generics, node_t *parameters, node_t *result);
 
 node_t *
 node_make_heritage(node_t *node, node_t *key, node_t *type);

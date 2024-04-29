@@ -32,11 +32,42 @@ program_report(program_t *program)
 		path_get_relative(base_path, error->position.path, relative_path, sizeof(relative_path));
 		
 		fprintf(stderr, 
-				"%s-%lld:%lld:error:%s\n", 
+				"Traceback:\nFile \"%s\", Line %lld, Column %lld", 
 				relative_path, 
 				error->position.line, 
-				error->position.column, 
-				error->message
+				error->position.column
+		);
+
+		node_t *node1 = error->origin;
+		while (node1 != NULL)
+		{
+			if (node1->kind == NODE_KIND_CLASS)
+			{
+				node_class_t *class1 = (node_class_t *)node1->value;
+				node_t *key1 = class1->key;
+				node_basic_t *key_string1 = key1->value;
+
+				fprintf(stderr, 
+					", Class <%s>", key_string1->value
+				);
+				break;
+			}
+			else
+			if (node1->kind == NODE_KIND_FUN)
+			{
+				node_fun_t *fun1 = (node_fun_t *)node1->value;
+				node_t *key1 = fun1->key;
+				node_basic_t *key_string1 = key1->value;
+
+				fprintf(stderr, 
+					", fun <%s>", key_string1->value
+				);
+			}
+			node1 = node1->parent;
+		}
+
+		fprintf(stderr, 
+				"\n%s\n", error->message
 		);
 
 		FILE *fp = fopen(error->position.path, "rb");

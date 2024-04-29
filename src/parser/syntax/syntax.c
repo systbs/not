@@ -681,28 +681,32 @@ syntax_pair(program_t *program, syntax_t *syntax, node_t *parent)
 		return NULL;
 	}
 
-	node_t *key = syntax_id(program, syntax, node);
+	node_t *key = syntax_expression(program, syntax, node);
 	if (key == NULL)
 	{
 		return NULL;
 	}
 
-	if (syntax_match(program, syntax, TOKEN_COLON) == -1)
+	node_t *value = NULL;
+	if (syntax->token->type == TOKEN_COLON)
 	{
-		return NULL;
-	}
+		if (syntax_next(program, syntax) == -1)
+		{
+			return NULL;
+		}
 
-	node_t *value = syntax_expression(program, syntax, node);
-	if (value == NULL)
-	{
-		return NULL;
+		value = syntax_expression(program, syntax, node);
+		if (value == NULL)
+		{
+			return NULL;
+		}
 	}
 
 	return node_make_pair(node, key, value);
 }
 
 static node_t *
-syntax_dictionary(program_t *program, syntax_t *syntax, node_t *parent)
+syntax_object(program_t *program, syntax_t *syntax, node_t *parent)
 {
 	node_t *node = node_create(parent, syntax->token->position);
 	if (node == NULL)
@@ -715,8 +719,8 @@ syntax_dictionary(program_t *program, syntax_t *syntax, node_t *parent)
 		return NULL;
 	}
 
-	list_t *dictionary = list_create();
-	if (!dictionary)
+	list_t *items = list_create();
+	if (items == NULL)
 	{
 		return NULL;
 	}
@@ -731,7 +735,7 @@ syntax_dictionary(program_t *program, syntax_t *syntax, node_t *parent)
 				return NULL;
 			}
 
-			if (list_rpush(dictionary, pair) == NULL)
+			if (list_rpush(items, pair) == NULL)
 			{
 				return NULL;
 			}
@@ -753,7 +757,7 @@ syntax_dictionary(program_t *program, syntax_t *syntax, node_t *parent)
 		return NULL;
 	}
 
-	return node_make_dictionary(node, dictionary);
+	return node_make_object(node, items);
 }
 
 static node_t *
@@ -859,7 +863,7 @@ syntax_lambda(program_t *program, syntax_t *syntax, node_t *parent)
 
 	if (syntax->token->type == TOKEN_MINUS_GT)
 	{
-		if (syntax_match(program, syntax, TOKEN_MINUS_GT) == -1)
+		if (syntax_next(program, syntax) == -1)
 		{
 			return NULL;
 		}
@@ -870,25 +874,46 @@ syntax_lambda(program_t *program, syntax_t *syntax, node_t *parent)
 			return NULL;
 		}
 
-		return node_make_fn(node, generics, parameters, result);
+		return node_make_lambda(node, generics, parameters, NULL, result);
 	}
 	else
 	{
-		if (syntax_match(program, syntax, TOKEN_COLON) == -1)
+		node_t *result = NULL;
+		if (syntax->token->type == TOKEN_COLON)
 		{
-			return NULL;
+			if (syntax_next(program, syntax) == -1)
+			{
+				return NULL;
+			}
+
+			result = syntax_postfix(program, syntax, node);
+			if (result == NULL)
+			{
+				return NULL;
+			}
 		}
 
-		node_t *result = syntax_postfix(program, syntax, node);
-		if (result == NULL)
+		node_t *body = NULL;
+		if (syntax->token->type == TOKEN_MINUS_GT)
 		{
-			return NULL;
-		}
+			if (syntax_next(program, syntax) == -1)
+			{
+				return NULL;
+			}
 
-		node_t *body = syntax_body(program, syntax, node);
-		if (body == NULL)
+			body = syntax_expression(program, syntax, node);
+			if (body == NULL)
+			{
+				return NULL;
+			}
+		}
+		else
 		{
-			return NULL;
+			body = syntax_body(program, syntax, node);
+			if (body == NULL)
+			{
+				return NULL;
+			}
 		}
 
 		return node_make_lambda(node, generics, parameters, body, result);
@@ -930,7 +955,7 @@ syntax_primary(program_t *program, syntax_t *syntax, node_t *parent)
 	else 
 	if (syntax->token->type == TOKEN_LBRACE)
 	{
-		return syntax_dictionary(program, syntax, parent);
+		return syntax_object(program, syntax, parent);
 	}
 	else 
 	if (syntax->token->type == TOKEN_LPAREN)
@@ -1065,8 +1090,8 @@ syntax_arguments(program_t *program, syntax_t *syntax, node_t *parent)
 		return NULL;
 	}
 
-	list_t *argements = list_create();
-	if (argements == NULL)
+	list_t *arguments = list_create();
+	if (arguments == NULL)
 	{
 		return NULL;
 	}
@@ -1080,7 +1105,7 @@ syntax_arguments(program_t *program, syntax_t *syntax, node_t *parent)
 			return NULL;
 		}
 
-		if (!list_rpush(argements, node2))
+		if (!list_rpush(arguments, node2))
 		{
 			return NULL;
 		}
@@ -1095,7 +1120,7 @@ syntax_arguments(program_t *program, syntax_t *syntax, node_t *parent)
 		}
 	}
 
-	return node_make_arguments(node, argements);
+	return node_make_arguments(node, arguments);
 }
 
 static node_t *
@@ -1202,8 +1227,8 @@ syntax_postfix(program_t *program, syntax_t *syntax, node_t *parent)
 				return NULL;
 			}
 
-			node_t *argements = syntax_arguments(program, syntax, node);
-			if (argements == NULL)
+			node_t *arguments = syntax_arguments(program, syntax, node);
+			if (arguments == NULL)
 			{
 				return NULL;
 			}
@@ -1213,7 +1238,7 @@ syntax_postfix(program_t *program, syntax_t *syntax, node_t *parent)
 				return NULL;
 			}
 
-			node2 = node_make_item(node, node2, argements);
+			node2 = node_make_item(node, node2, arguments);
 			continue;
 		}
 		else
@@ -1253,11 +1278,11 @@ syntax_postfix(program_t *program, syntax_t *syntax, node_t *parent)
 				return NULL;
 			}
 
-			node_t *argements = NULL;
+			node_t *arguments = NULL;
 			if (syntax->token->type != TOKEN_RPAREN)
 			{
-				argements = syntax_arguments(program, syntax, node);
-				if (argements == NULL)
+				arguments = syntax_arguments(program, syntax, node);
+				if (arguments == NULL)
 				{
 					return NULL;
 				}
@@ -1268,7 +1293,7 @@ syntax_postfix(program_t *program, syntax_t *syntax, node_t *parent)
 				return NULL;
 			}
 
-			node2 = node_make_call(node, node2, argements);
+			node2 = node_make_call(node, node2, arguments);
 			continue;
 		}
 		else
@@ -2368,15 +2393,18 @@ syntax_entity(program_t *program, syntax_t *syntax, node_t *parent, uint64_t fla
 		return NULL;
 	}
 
-	if (syntax_match(program, syntax, TOKEN_COLON) == -1)
+	node_t *type = NULL;
+	if (syntax->token->type == TOKEN_COLON)
 	{
-		return NULL;
-	}
-
-	node_t *type = syntax_id(program, syntax, node);
-	if (type == NULL)
-	{
-		return NULL;
+		if (syntax_next(program, syntax) == -1)
+		{
+			return NULL;
+		}
+		type = syntax_id(program, syntax, node);
+		if (type == NULL)
+		{
+			return NULL;
+		}
 	}
 
 	node_t *value = NULL;
@@ -2966,6 +2994,39 @@ syntax_try(program_t *program, syntax_t *syntax, node_t *parent)
 }
 
 static node_t *
+syntax_throw(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_THROW_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_LPAREN) == -1)
+	{
+		return NULL;
+	}
+
+	node_t *arguments = syntax_arguments(program, syntax, node);
+	if (arguments == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_RPAREN) == -1)
+	{
+		return NULL;
+	}
+
+	return node_make_throw(node, arguments);
+}
+
+static node_t *
 syntax_return(program_t *program, syntax_t *syntax, node_t *parent)
 {
 	node_t *node = node_create(parent, syntax->token->position);
@@ -3096,6 +3157,19 @@ syntax_statement(program_t *program, syntax_t *syntax, node_t *parent)
 		}
 	}
 	else
+	if (syntax->token->type == TOKEN_THROW_KEYWORD)
+	{
+		node = syntax_throw(program, syntax, parent);
+		if (node == NULL)
+		{
+			return NULL;
+		}
+		if (syntax_match(program, syntax, TOKEN_SEMICOLON) == -1)
+		{
+			return NULL;
+		}
+	}
+	else
 	{
 		node = syntax_assign(program, syntax, parent);
 		if (node == NULL)
@@ -3201,6 +3275,15 @@ syntax_parameter(program_t *program, syntax_t *syntax, node_t *parent)
 	if (syntax->token->type == TOKEN_READONLY_KEYWORD)
 	{
 		flag |= SYNTAX_MODIFIER_READONLY;
+		if (syntax_next(program, syntax) == -1)
+		{
+			return NULL;
+		}
+	}
+
+	if (syntax->token->type == TOKEN_STAR)
+	{
+		flag |= SYNTAX_MODIFIER_STAR;
 		if (syntax_next(program, syntax) == -1)
 		{
 			return NULL;
@@ -3490,14 +3573,18 @@ syntax_func(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, 
 		}
 	}
 
-	if (syntax_match(program, syntax, TOKEN_COLON) == -1)
+	node_t *result = NULL;
+	if (syntax->token->type == TOKEN_COLON)
 	{
-		return NULL;
-	}
-	node_t *result = syntax_postfix(program, syntax, node);
-	if (result == NULL)
-	{
-		return NULL;
+		if (syntax_next(program, syntax) == -1)
+		{
+			return NULL;
+		}
+		result = syntax_postfix(program, syntax, node);
+		if (result == NULL)
+		{
+			return NULL;
+		}
 	}
 
 	node_t *body = syntax_body(program, syntax, node);
@@ -3524,24 +3611,29 @@ syntax_property(program_t *program, syntax_t *syntax, node_t *parent, node_t *no
 		return NULL;
 	}
 
-	if (syntax_match(program, syntax, TOKEN_COLON) == -1)
+	node_t *type = NULL;
+	if (syntax->token->type == TOKEN_COLON)
 	{
-		return NULL;
-	}
+		if (syntax_next(program, syntax) == -1)
+		{
+			return NULL;
+		}
 
-	node_t *type = syntax_postfix(program, syntax, node);
-	if (type == NULL)
-	{
-		return NULL;
+		type = syntax_postfix(program, syntax, node);
+		if (type == NULL)
+		{
+			return NULL;
+		}
 	}
 
 	node_t *value = NULL;
-	if ((syntax->token->type == TOKEN_EQ) || ((flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC))
+	if ((syntax->token->type == TOKEN_EQ) || ((flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC) || (type == NULL))
 	{
 		if (syntax_match(program, syntax, TOKEN_EQ) == -1)
 		{
 			return NULL;
 		}
+
 		value = syntax_expression(program, syntax, node);
 		if (value == NULL)
 		{
@@ -3582,8 +3674,6 @@ syntax_class_readonly(program_t *program, syntax_t *syntax, node_t *parent, node
 	}
 
 	flag &= ~SYNTAX_MODIFIER_READONLY;
-
-	
 
 	return node;
 }
