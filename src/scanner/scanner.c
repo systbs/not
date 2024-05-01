@@ -2219,6 +2219,23 @@ scanner_advance(program_t *program, scanner_t *scanner)
 				return 1;
 			}
 			else 
+			if (strncmp(scanner->source + start_offset, "override", max(length, 8)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_OVERRIDE_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+							}
+					});
+
+				return 1;
+			}
+			else 
 			if (strncmp(scanner->source + start_offset, "if", max(length, 2)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){

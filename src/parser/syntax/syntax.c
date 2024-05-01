@@ -28,7 +28,7 @@ static node_t *
 syntax_class(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, uint64_t flag);
 
 static node_t *
-syntax_func(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, uint64_t flag);
+syntax_fun(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, uint64_t flag);
 
 static node_t *
 syntax_parameters(program_t *program, syntax_t *syntax, node_t *parent);
@@ -3463,7 +3463,7 @@ syntax_generics(program_t *program, syntax_t *syntax, node_t *parent)
 }
 
 static node_t *
-syntax_func(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, uint64_t flag)
+syntax_fun(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, uint64_t flag)
 {
 	node_t *node = node_create(parent, syntax->token->position);
 	if (node == NULL)
@@ -3500,6 +3500,17 @@ syntax_func(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, 
 		}
 
 		used_operator = 1;
+	}
+
+	uint64_t flag2 = flag;
+	if (used_operator == 1)
+	{
+		flag2 |= SYNTAX_MODIFIER_OPERATOR;
+	}
+
+	if (used_constructor == 1)
+	{
+		flag2 |= SYNTAX_MODIFIER_CONSTRUCTOR;
 	}
 
 	node_t *generics = NULL;
@@ -3593,7 +3604,7 @@ syntax_func(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, 
 		return NULL;
 	}
 
-	return node_make_func(node, note, flag, key, generics, parameters, result, body);
+	return node_make_func(node, note, flag2, key, generics, parameters, result, body);
 }
 
 static node_t *
@@ -3645,6 +3656,36 @@ syntax_property(program_t *program, syntax_t *syntax, node_t *parent, node_t *no
 }
 
 static node_t *
+syntax_class_override(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, uint64_t flag)
+{
+	if (syntax_match(program, syntax, TOKEN_OVERRIDE_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	flag |= SYNTAX_MODIFIER_OVERRIDE;
+
+	node_t *node = NULL;
+	if (syntax->token->type == TOKEN_FUN_KEYWORD)
+	{
+		node = syntax_fun(program, syntax, parent, note, flag);
+		if (node == NULL)
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		syntax_error(program, syntax->token->position, "incorrect use of modifier 'override'");
+		return NULL;
+	}
+
+	flag &= ~SYNTAX_MODIFIER_OVERRIDE;
+
+	return node;
+}
+
+static node_t *
 syntax_class_readonly(program_t *program, syntax_t *syntax, node_t *parent, node_t *note, uint64_t flag)
 {
 	if (syntax_match(program, syntax, TOKEN_READONLY_KEYWORD) == -1)
@@ -3659,10 +3700,6 @@ syntax_class_readonly(program_t *program, syntax_t *syntax, node_t *parent, node
 	{
 		node = syntax_property(program, syntax, parent, note, flag);
 		if (node == NULL)
-		{
-			return NULL;
-		}
-		if (syntax_match(program, syntax, TOKEN_SEMICOLON) == -1)
 		{
 			return NULL;
 		}
@@ -3700,7 +3737,7 @@ syntax_class_static(program_t *program, syntax_t *syntax, node_t *parent, node_t
 	else
 	if (syntax->token->type == TOKEN_FUN_KEYWORD)
 	{
-		node = syntax_func(program, syntax, parent, note, flag);
+		node = syntax_fun(program, syntax, parent, note, flag);
 		if (node == NULL)
 		{
 			return NULL;
@@ -3744,6 +3781,15 @@ syntax_class_export(program_t *program, syntax_t *syntax, node_t *parent, node_t
 	uint64_t flag = SYNTAX_MODIFIER_EXPORT;
 
 	node_t *node = NULL;
+	if (syntax->token->type == TOKEN_OVERRIDE_KEYWORD)
+	{
+		node = syntax_class_override(program, syntax, parent, note, flag);
+		if (node == NULL)
+		{
+			return NULL;
+		}
+	}
+	else
 	if (syntax->token->type == TOKEN_READONLY_KEYWORD)
 	{
 		node = syntax_class_readonly(program, syntax, parent, note, flag);
@@ -3764,7 +3810,7 @@ syntax_class_export(program_t *program, syntax_t *syntax, node_t *parent, node_t
 	else
 	if (syntax->token->type == TOKEN_FUN_KEYWORD)
 	{
-		node = syntax_func(program, syntax, parent, note, flag);
+		node = syntax_fun(program, syntax, parent, note, flag);
 		if (node == NULL)
 		{
 			return NULL;
@@ -3845,7 +3891,7 @@ syntax_class_annotation(program_t *program, syntax_t *syntax, node_t *parent, no
 	else
 	if (syntax->token->type == TOKEN_FUN_KEYWORD)
 	{
-		node = syntax_func(program, syntax, parent, note2, SYNTAX_MODIFIER_NONE);
+		node = syntax_fun(program, syntax, parent, note2, SYNTAX_MODIFIER_NONE);
 		if (node == NULL)
 		{
 			return NULL;
@@ -3917,6 +3963,15 @@ syntax_class_block(program_t *program, syntax_t *syntax, node_t *parent)
 			}
 		}
 		else
+		if (syntax->token->type == TOKEN_OVERRIDE_KEYWORD)
+		{
+			decl = syntax_class_override(program, syntax, node, NULL, SYNTAX_MODIFIER_NONE);
+			if (decl == NULL)
+			{
+				return NULL;
+			}
+		}
+		else
 		if (syntax->token->type == TOKEN_READONLY_KEYWORD)
 		{
 			decl = syntax_class_readonly(program, syntax, node, NULL, SYNTAX_MODIFIER_NONE);
@@ -3937,7 +3992,7 @@ syntax_class_block(program_t *program, syntax_t *syntax, node_t *parent)
 		else
 		if (syntax->token->type == TOKEN_FUN_KEYWORD)
 		{
-			decl = syntax_func(program, syntax, node, NULL, SYNTAX_MODIFIER_NONE);
+			decl = syntax_fun(program, syntax, node, NULL, SYNTAX_MODIFIER_NONE);
 			if (decl == NULL)
 			{
 				return NULL;

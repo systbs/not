@@ -91,6 +91,7 @@ const char * const symbols[] = {
   [TOKEN_STATIC_KEYWORD]    = "static",
   [TOKEN_READONLY_KEYWORD]  = "readonly",
   [TOKEN_REFERENCE_KEYWORD] = "reference",
+  [TOKEN_OVERRIDE_KEYWORD]  = "override",
   [TOKEN_THIS_KEYWORD]      = "this",
   [TOKEN_VAR_KEYWORD]     	= "var",
   [TOKEN_ENUM_KEYWORD]     	= "enum",

@@ -46,7 +46,7 @@ semantic_field(program_t *program, node_t *node, uint64_t flag)
                         {
                             if (field1->key->kind != NODE_KIND_ID)
                             {
-                                semantic_error(program, field1->key, "Not a 'Key'");
+                                semantic_error(program, field1->key, "Naming:field key must be an identifier");
                                 return -1;
                             }
 
@@ -55,17 +55,19 @@ semantic_field(program_t *program, node_t *node, uint64_t flag)
                             {
                                 if (field3->key->kind != NODE_KIND_ID)
                                 {
-                                    semantic_error(program, field3->key, "Not a 'Key'");
+                                    semantic_error(program, field3->key, "Naming:field key must be an identifier");
                                     return -1;
                                 }
                                 if (semantic_idcmp(field1->key, field3->key) == 1)
                                 {
-                                    semantic_error(program, field1->key, "Already defined, previous in (%lld:%lld)\n\tInternal:%s-%u",
-                                        field3->key->position.line, field3->key->position.column, __FILE__, __LINE__);
+                                    node_t *key1 = field1->key;
+                                    node_basic_t *key_string1 = key1->value;
+                
+                                    semantic_error(program, field1->key, "Naming:'%s' already defined, previous in (%lld:%lld)\n\tInternal:%s-%u",
+                                        key_string1->value, field3->key->position.line, field3->key->position.column, __FILE__, __LINE__);
                                     return -1;
                                 }
                             }
-                            
                         }
                     }
                 }

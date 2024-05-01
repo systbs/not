@@ -11,7 +11,10 @@ typedef enum syntax_modifier
 	SYNTAX_MODIFIER_STAR 			= 1 << 4,
 	SYNTAX_MODIFIER_PROTECT 		= 1 << 5,
 	SYNTAX_MODIFIER_STATIC 			= 1 << 6,
-	SYNTAX_MODIFIER_ASYNC 			= 1 << 7
+	SYNTAX_MODIFIER_ASYNC 			= 1 << 7,
+	SYNTAX_MODIFIER_OPERATOR 		= 1 << 8,
+	SYNTAX_MODIFIER_CONSTRUCTOR 	= 1 << 9,
+	SYNTAX_MODIFIER_OVERRIDE	 	= 1 << 10
 } syntax_modifier_t;
 
 typedef struct syntax 

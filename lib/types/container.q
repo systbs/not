@@ -1,3 +1,5 @@
+using * from "~/lib/types/primary.q";
+
 export class Array<V>
 {
     export fun Constructor(value:Any) : Array<V>

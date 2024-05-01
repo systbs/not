@@ -17,6 +17,15 @@ export class Null
     }
 }
 
+@Void
+export class Void2 
+{
+    export fun Constructor() : Void2
+    {
+
+    }
+}
+
 export class UInt8
 {
     @Malloc(1)

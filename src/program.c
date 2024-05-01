@@ -41,6 +41,14 @@ program_report(program_t *program)
 		node_t *node1 = error->origin;
 		while (node1 != NULL)
 		{
+			if (node1->kind == NODE_KIND_MODULE)
+			{
+				fprintf(stderr, 
+					", <Module>"
+				);
+				break;
+			}
+			else
 			if (node1->kind == NODE_KIND_CLASS)
 			{
 				node_class_t *class1 = (node_class_t *)node1->value;

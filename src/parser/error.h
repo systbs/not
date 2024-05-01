@@ -1,6 +1,8 @@
 #pragma once
 #ifndef __ERRORS_H__
 
+typedef struct node node_t;
+
 typedef struct error {
     position_t position;
     char *message;
