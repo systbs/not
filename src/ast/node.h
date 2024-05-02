@@ -24,11 +24,13 @@ typedef enum node_kind {
 	NODE_KIND_NUMBER,
 	NODE_KIND_CHAR,
 	NODE_KIND_STRING,
+	NODE_KIND_FSTRING,
 	NODE_KIND_NULL,
 	NODE_KIND_ARRAY,
 	NODE_KIND_OBJECT,
 	NODE_KIND_PSEUDONYM,
 	NODE_KIND_THIS,
+	NODE_KIND_SELF,
 
 	NODE_KIND_TYPEOF,
 	NODE_KIND_SIZEOF,
@@ -380,10 +382,16 @@ node_t *
 node_make_string(node_t *node, char *value);
 
 node_t *
+node_make_fstring(node_t *node, char *value);
+
+node_t *
 node_make_null(node_t *node);
 
 node_t *
 node_make_this(node_t *node);
+
+node_t *
+node_make_self(node_t *node);
 
 node_t *
 node_make_array(node_t *node, list_t *expr_list);

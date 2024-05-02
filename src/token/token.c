@@ -71,6 +71,7 @@ const char * const symbols[] = {
   [TOKEN_NUMBER]    = "number",
   [TOKEN_CHAR]      = "char",
   [TOKEN_STRING]	  = "string",
+  [TOKEN_FSTRING]	  = "fstring",
 
   [TOKEN_CONTINUE_KEYWORD]  = "continue",
   [TOKEN_BREAK_KEYWORD]     = "break",
@@ -93,8 +94,8 @@ const char * const symbols[] = {
   [TOKEN_REFERENCE_KEYWORD] = "reference",
   [TOKEN_OVERRIDE_KEYWORD]  = "override",
   [TOKEN_THIS_KEYWORD]      = "this",
+  [TOKEN_SELF_KEYWORD]      = "self",
   [TOKEN_VAR_KEYWORD]     	= "var",
-  [TOKEN_ENUM_KEYWORD]     	= "enum",
   [TOKEN_EXPORT_KEYWORD]    = "export",
   [TOKEN_USING_KEYWORD]     = "using",
   [TOKEN_FROM_KEYWORD]      = "from"

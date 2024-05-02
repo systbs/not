@@ -320,18 +320,27 @@ semantic_subclass(program_t *program, node_t *node, node_t *target, uint64_t fla
                     else
                     if (r1 == 1)
                     {
-                        if ((fun2->flag & SYNTAX_MODIFIER_CONSTRUCTOR) != SYNTAX_MODIFIER_CONSTRUCTOR)
+                        int32_t r2 = semantic_eqaul_psps(program, fun2->parameters, fun1->parameters);
+                        if (r2 == -1)
                         {
-                            if ((fun2->flag & SYNTAX_MODIFIER_OPERATOR) != SYNTAX_MODIFIER_OPERATOR)
+                            return -1;
+                        }
+                        else
+                        if (r2 == 1)
+                        {
+                            if ((fun2->flag & SYNTAX_MODIFIER_CONSTRUCTOR) != SYNTAX_MODIFIER_CONSTRUCTOR)
                             {
-                                if ((fun2->flag & SYNTAX_MODIFIER_OVERRIDE) != SYNTAX_MODIFIER_OVERRIDE)
+                                if ((fun2->flag & SYNTAX_MODIFIER_OPERATOR) != SYNTAX_MODIFIER_OPERATOR)
                                 {
-                                    node_t *node2 = fun2->key;
-                                    node_basic_t *basic1 = (node_basic_t *)node2->value;
+                                    if ((fun2->flag & SYNTAX_MODIFIER_OVERRIDE) != SYNTAX_MODIFIER_OVERRIDE)
+                                    {
+                                        node_t *node2 = fun2->key;
+                                        node_basic_t *basic1 = (node_basic_t *)node2->value;
 
-                                    semantic_error(program, fun2->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
-                                        basic1->value, fun1->key->position.path, fun1->key->position.line, fun1->key->position.column, __FILE__, __LINE__);
-                                    return -1;
+                                        semantic_error(program, fun2->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
+                                            basic1->value, fun1->key->position.path, fun1->key->position.line, fun1->key->position.column, __FILE__, __LINE__);
+                                        return -1;
+                                    }
                                 }
                             }
                         }
@@ -1464,6 +1473,19 @@ semantic_parameter(program_t *program, node_t *node, uint64_t flag)
                     }
                 }
                 else
+                if (item1->kind == NODE_KIND_ARRAY)
+                {
+                    if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
+                    {
+                        node_t *key1 = parameter1->key;
+                        node_basic_t *key_string1 = key1->value;
+
+                        semantic_error(program, parameter1->key, "Typing:'%s' has an instance of type '%s'\n\tInternal:%s-%u",
+                            key_string1->value, "tuple", __FILE__, __LINE__);
+                        return -1;
+                    }
+                }
+                else
                 {
                     node_t *key1 = parameter1->key;
                     node_basic_t *key_string1 = key1->value;
@@ -2493,6 +2515,19 @@ semantic_var(program_t *program, node_t *node, uint64_t flag)
                     }
                 }
                 else
+                if (item1->kind == NODE_KIND_ARRAY)
+                {
+                    if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
+                    {
+                        node_t *key1 = var1->key;
+                        node_basic_t *key_string1 = key1->value;
+
+                        semantic_error(program, var1->key, "Typing:'%s' has an instance of type '%s'\n\tInternal:%s-%u",
+                            key_string1->value, "tuple", __FILE__, __LINE__);
+                        return -1;
+                    }
+                }
+                else
                 {
                     node_t *key1 = var1->key;
                     node_basic_t *key_string1 = key1->value;
@@ -3192,6 +3227,19 @@ semantic_property(program_t *program, node_t *node, uint64_t flag)
 
                         semantic_error(program, property1->key, "Typing:'%s' has an instance of type '%s'\n\tInternal:%s-%u",
                             key_string1->value, "object", __FILE__, __LINE__);
+                        return -1;
+                    }
+                }
+                else
+                if (item1->kind == NODE_KIND_ARRAY)
+                {
+                    if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
+                    {
+                        node_t *key1 = property1->key;
+                        node_basic_t *key_string1 = key1->value;
+
+                        semantic_error(program, property1->key, "Typing:'%s' has an instance of type '%s'\n\tInternal:%s-%u",
+                            key_string1->value, "tuple", __FILE__, __LINE__);
                         return -1;
                     }
                 }

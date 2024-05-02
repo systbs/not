@@ -4,12 +4,13 @@ using Array<T>: Array<T>, Dictionary<T, V>: Dictionary<T, V>, Set<V>:Set<V> from
 
 export class A {
 	prop1:Any;
+
 	export fun Constructor()
 	{
 	}
-	export fun a () 
+	export fun a2 (a:{b:Int16, c:1}) 
     {
-
+		
     }
 }
 
@@ -29,7 +30,7 @@ export class B extends (a:A) {
     }
 }
 
-export class System<R>
+export class System
 {
 	prop1 = {a:2};
 

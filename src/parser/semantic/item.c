@@ -20,7 +20,7 @@
 int32_t
 semantic_item(program_t *program, node_t *base, node_t *node, list_t *response, uint64_t flag)
 {
-    semantic_error(program, node, "Typing:the split is wrong on typesetting\n\tInternal:%s-%u", 
+    semantic_error(program, node, "Typing:it is wrong to use split in typing\n\tInternal:%s-%u", 
         __FILE__, __LINE__);
     return -1;
 }

@@ -93,9 +93,8 @@ semantic_fields(program_t *program, node_t *node, uint64_t flag)
     for (a1 = fields->list->begin;a1 != fields->list->end;a1 = a1->next)
     {
         node_t *item1 = (node_t *)a1->value;
-        int32_t result;
-        result = semantic_field(program, item1, flag);
-        if (result == -1)
+        int32_t r1 = semantic_field(program, item1, flag);
+        if (r1 == -1)
         {
             return -1;
         }
@@ -131,18 +130,35 @@ semantic_pseudonym(program_t *program, node_t *base, node_t *node, list_t *respo
     }
     else
     {
-        uint64_t cnt_response1 = 0;
-
         ilist_t *a1;
         for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
         {
-            cnt_response1 += 1;
-            
             node_t *item1 = (node_t *)a1->value;
             if (item1->kind == NODE_KIND_CLASS)
             {
                 node_class_t *class1 = (node_class_t *)item1->value;
                 int32_t r1 = semantic_eqaul_gsfs(program, class1->generics, carrier->data);
+                if (r1 == -1)
+                {
+                    return -1;
+                }
+                else
+                if (r1 == 1)
+                {
+                    ilist_t *il1 = list_rpush(response, item1);
+                    if (il1 == NULL)
+                    {
+                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                        return -1;
+                    }
+                }
+                continue;
+            }
+            else
+            if (item1->kind == NODE_KIND_PACKAGE)
+            {
+                node_package_t *package1 = (node_package_t *)item1->value;
+                int32_t r1 = semantic_eqaul_gsfs(program, package1->generics, carrier->data);
                 if (r1 == -1)
                 {
                     return -1;
@@ -204,314 +220,51 @@ semantic_pseudonym(program_t *program, node_t *base, node_t *node, list_t *respo
             else
             if (item1->kind == NODE_KIND_VAR)
             {
-                node_var_t *var1 = (node_var_t *)item1->value;
-                if (var1->type != NULL)
-                {
-                    node_t *type1 = var1->type;
-                    if (type1->kind == NODE_KIND_LAMBDA)
-                    {
-                        node_lambda_t *fun1 = (node_lambda_t *)type1->value;
-                        int32_t r1 = semantic_eqaul_gsfs(program, fun1->generics, carrier->data);
-                        if (r1 == -1)
-                        {
-                            return -1;
-                        }
-                        else
-                        if (r1 == 1)
-                        {
-                            ilist_t *il1 = list_rpush(response, item1);
-                            if (il1 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-                    }
-                    continue;
-                }
-                else
-                {
-                    node_t *node1 = var1->value_update;
-                    if (node1 != NULL)
-                    {
-                        if (node1->kind == NODE_KIND_LAMBDA)
-                        {
-                            node_lambda_t *fun1 = (node_lambda_t *)node1->value;
-                            int32_t r1 = semantic_eqaul_gsfs(program, fun1->generics, carrier->data);
-                            if (r1 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            if (r1 == 1)
-                            {
-                                ilist_t *il1 = list_rpush(response, item1);
-                                if (il1 == NULL)
-                                {
-                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        semantic_error(program, carrier->base, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
-                        return -1;
-                    }
-                    continue;
-                }
+                semantic_error(program, carrier->base, "Typing:content cannot be accessed\n\tInternal:%s-%u", 
+                    __FILE__, __LINE__);
+                return -1;
             }
             else
             if (item1->kind == NODE_KIND_ENTITY)
             {
-                node_entity_t *entity1 = (node_entity_t *)item1->value;
-                if (entity1->type != NULL)
-                {
-                    node_t *node1 = entity1->type;
-                    if (node1->kind == NODE_KIND_LAMBDA)
-                    {
-                        node_lambda_t *fun1 = (node_lambda_t *)node1->value;
-                        int32_t r1 = semantic_eqaul_gsfs(program, fun1->generics, carrier->data);
-                        if (r1 == -1)
-                        {
-                            return -1;
-                        }
-                        else
-                        if (r1 == 1)
-                        {
-                            ilist_t *il1 = list_rpush(response, item1);
-                            if (il1 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-                    }
-                    continue;
-                }
-                else
-                {
-                    node_t *node1 = entity1->value_update;
-                    if (node1 != NULL)
-                    {
-                        if (node1->kind == NODE_KIND_LAMBDA)
-                        {
-                            node_lambda_t *fun1 = (node_lambda_t *)node1->value;
-                            int32_t r1 = semantic_eqaul_gsfs(program, fun1->generics, carrier->data);
-                            if (r1 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            if (r1 == 1)
-                            {
-                                ilist_t *il1 = list_rpush(response, item1);
-                                if (il1 == NULL)
-                                {
-                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        semantic_error(program, carrier->base, "Unitialized\n\tInternal:%s-%u", __FILE__, __LINE__);
-                        return -1;
-                    }
-                    continue;
-                }
+                semantic_error(program, carrier->base, "Typing:content cannot be accessed\n\tInternal:%s-%u", 
+                    __FILE__, __LINE__);
+                return -1;
             }
             else
             if (item1->kind == NODE_KIND_PROPERTY)
             {
-                node_property_t *property1 = (node_property_t *)item1->value;
-                if (property1->type != NULL)
-                {
-                    node_t *node1 = property1->type;
-                    if (node1->kind == NODE_KIND_LAMBDA)
-                    {
-                        node_lambda_t *fun1 = (node_lambda_t *)node1->value;
-                        int32_t r1 = semantic_eqaul_gsfs(program, fun1->generics, carrier->data);
-                        if (r1 == -1)
-                        {
-                            return -1;
-                        }
-                        else
-                        if (r1 == 1)
-                        {
-                            ilist_t *il1 = list_rpush(response, item1);
-                            if (il1 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-                    }
-                    continue;
-                }
-                else
-                {
-                    node_t *node1 = property1->value_update;
-                    if (node1 != NULL)
-                    {
-                        if (node1->kind == NODE_KIND_LAMBDA)
-                        {
-                            node_lambda_t *fun1 = (node_lambda_t *)node1->value;
-                            int32_t r1 = semantic_eqaul_gsfs(program, fun1->generics, carrier->data);
-                            if (r1 == -1)
-                            {
-                                return -1;
-                            }
-                            else
-                            if (r1 == 1)
-                            {
-                                ilist_t *il1 = list_rpush(response, item1);
-                                if (il1 == NULL)
-                                {
-                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        list_t *response2 = list_create();
-                        if (response2 == NULL)
-                        {
-                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                            return -1;
-                        }
-
-                        int32_t r2 = semantic_expression(program, property1->value, response2, flag);
-                        if (r2 == -1)
-                        {
-                            return -1;
-                        }
-                        else
-                        {
-                            uint64_t cnt_response2 = 0;
-
-                            ilist_t *a2;
-                            for (a2 = response2->begin;a2 != response2->end;a2 = a2->next)
-                            {
-                                cnt_response2 += 1;
-                                
-                                node_t *item2 = (node_t *)a2->value;
-                                if (item2->kind == NODE_KIND_LAMBDA)
-                                {
-                                    node_lambda_t *fun1 = (node_lambda_t *)item2->value;
-                                    int32_t r3 = semantic_eqaul_gsfs(program, fun1->generics, carrier->data);
-                                    if (r3 == -1)
-                                    {
-                                        return -1;
-                                    }
-                                    else
-                                    if (r3 == 1)
-                                    {
-                                        property1->value_update = item2;
-                                        ilist_t *il1 = list_rpush(response, item1);
-                                        if (il1 == NULL)
-                                        {
-                                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                            return -1;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    semantic_error(program, carrier->base, "Non-Generic\n\tInternal:%s-%u", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                            }
-
-                            if (cnt_response2 == 0)
-                            {
-                                semantic_error(program, property1->value, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-
-                        list_destroy(response2);
-                    }
-                    continue;
-                }
+                semantic_error(program, carrier->base, "Typing:content cannot be accessed\n\tInternal:%s-%u", 
+                    __FILE__, __LINE__);
+                return -1;
             }
             else
             if (item1->kind == NODE_KIND_PARAMETER)
             {
-                node_parameter_t *parameter1 = (node_parameter_t *)item1->value;
-                if (parameter1->type != NULL)
-                {
-                    node_t *node1 = parameter1->type;
-                    if (node1->kind == NODE_KIND_LAMBDA)
-                    {
-                        node_fn_t *fun1 = (node_fn_t *)node1->value;
-                        int32_t r1 = semantic_eqaul_gsfs(program, fun1->generics, carrier->data);
-                        if (r1 == -1)
-                        {
-                            return -1;
-                        }
-                        else
-                        if (r1 == 1)
-                        {
-                            ilist_t *il1 = list_rpush(response, item1);
-                            if (il1 == NULL)
-                            {
-                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-                    }
-                    continue;
-                }
-                else
-                {
-                    semantic_error(program, carrier->base, "Without type\n\tInternal:%s-%u", __FILE__, __LINE__);
-                    return -1;
-                }
-            }
-            else
-            if (item1->kind == NODE_KIND_PACKAGE)
-            {
-                node_package_t *package1 = (node_package_t *)item1->value;
-                int32_t r1 = semantic_eqaul_gsfs(program, package1->generics, carrier->data);
-                if (r1 == -1)
-                {
-                    return -1;
-                }
-                else
-                if (r1 == 1)
-                {
-                    ilist_t *il1 = list_rpush(response, item1);
-                    if (il1 == NULL)
-                    {
-                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                        return -1;
-                    }
-                }
-                continue;
-            }
-            else
-            if (item1->kind == NODE_KIND_GENERIC)
-            {
-                semantic_error(program, carrier->base, "Non-Generic\n\tInternal:%s-%u", __FILE__, __LINE__);
+                semantic_error(program, carrier->base, "Typing:content cannot be accessed\n\tInternal:%s-%u", 
+                    __FILE__, __LINE__);
                 return -1;
             }
             else
             if (item1->kind == NODE_KIND_HERITAGE)
             {
-                semantic_error(program, carrier->base, "Non-Generic\n\tInternal:%s-%u", __FILE__, __LINE__);
+                semantic_error(program, carrier->base, "Typing:content cannot be accessed\n\tInternal:%s-%u", 
+                    __FILE__, __LINE__);
                 return -1;
             }
-        }
-
-        if (cnt_response1 == 0)
-        {
-            semantic_error(program, carrier->base, "Reference not found\n\tInternal:%s-%u", __FILE__, __LINE__);
-            return -1;
+            else
+            if (item1->kind == NODE_KIND_GENERIC)
+            {
+                semantic_error(program, carrier->base, "Typing:non-generic type\n\tInternal:%s-%u", 
+                    __FILE__, __LINE__);
+                return -1;
+            }
+            else
+            {
+                semantic_error(program, carrier->base, "Typing:non-generic type\n\tInternal:%s-%u", 
+                    __FILE__, __LINE__);
+                return -1;
+            }
         }
     }
 

@@ -282,13 +282,9 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
     }
     else
     {
-        uint64_t cnt_response1 = 0;
-
         ilist_t *a1;
         for (a1 = response1->begin;a1 != response1->end;a1 = a1->next)
         {
-            cnt_response1 += 1;
-
             node_t *item1 = (node_t *)a1->value;
             if (item1->kind == NODE_KIND_CLASS)
             {
@@ -553,12 +549,6 @@ semantic_attribute(program_t *program, node_t *base, node_t *node, list_t *respo
 			}
         }
 
-        if (cnt_response1 == 0)
-        {
-            semantic_error(program, node, "Reference: base of '%s' has no result\n\tInternal:%s-%u", 
-                "attribute", __FILE__, __LINE__);
-            return -1;
-        }
     }
 
     list_destroy(response1);

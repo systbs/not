@@ -20,7 +20,7 @@
 int32_t
 semantic_call(program_t *program, node_t *base, node_t *node, list_t *response, uint64_t flag)
 {
-    semantic_error(program, node, "Typing:the call is wrong on typesetting\n\tInternal:%s-%u", 
+    semantic_error(program, node, "Typing:it is wrong to use call in typing\n\tInternal:%s-%u", 
         __FILE__, __LINE__);
     return -1;
 }

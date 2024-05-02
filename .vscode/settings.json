@@ -42,7 +42,9 @@
         "semantic.h": "c",
         "mensuration.h": "c",
         "text2": "c",
-        "text3": "c"
+        "text3": "c",
+        "ctype.h": "c",
+        "string.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

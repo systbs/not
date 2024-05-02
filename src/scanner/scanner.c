@@ -251,6 +251,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 		{
 			return -1;
 		}
+
 		if (scanner->ch == eof)
 		{
 			break;
@@ -419,7 +420,55 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else if (scanner->ch == '"' || scanner->ch == '`')
+			else if (scanner->ch == '"')
+			{
+				uint64_t start_offset = scanner->offset + 1;
+				char c = scanner->ch;
+				if (scanner_next(program, scanner) == -1)
+				{
+					return -1;
+				}
+
+				while (scanner->ch != c)
+				{
+					if ((scanner->ch == '\n' || scanner->ch == '\r') && c != '"')
+					{
+						scanner_error(program, (position_t){.path = scanner->path, .offset = scanner->offset - 1, .column = scanner->column - (scanner->offset - start_offset) - 1, .line = scanner->line}, "newline in string");
+						return -1;
+					}
+					if (scanner_next(program, scanner) == -1)
+					{
+						return -1;
+					}
+				}
+
+				char *data;
+				if (!(data = malloc(sizeof(char) * (scanner->offset - start_offset))))
+				{
+					fprintf(stderr, "unable to allocted a block of %llu bytes",
+									sizeof(char) * (scanner->offset - start_offset));
+					return -1;
+				}
+				strncpy(data, scanner->source + start_offset, scanner->offset - start_offset);
+				data[scanner->offset - start_offset] = '\0';
+
+				scanner_set_token(program, scanner, (token_t){
+																			 .type = TOKEN_STRING,
+																			 .value = data,
+																			 .position = {
+																					 .path = scanner->path,
+																					 .offset = start_offset - 1,
+																					 .column = scanner->column - (scanner->offset - start_offset) - 1,
+																					 .line = scanner->line,
+																					 .length = scanner->offset - start_offset}});
+
+				if (scanner_next(program, scanner) == -1)
+				{
+					return -1;
+				}
+				return 1;
+			}
+			else if (scanner->ch == '`')
 			{
 				uint64_t start_offset = scanner->offset + 1;
 				char c = scanner->ch;
@@ -452,14 +501,16 @@ scanner_advance(program_t *program, scanner_t *scanner)
 				data[scanner->offset - start_offset] = '\0';
 
 				scanner_set_token(program, scanner, (token_t){
-																			 .type = TOKEN_STRING,
-																			 .value = data,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = start_offset - 1,
-																					 .column = scanner->column - (scanner->offset - start_offset) - 1,
-																					 .line = scanner->line,
-																					 .length = scanner->offset - start_offset}});
+						.type = TOKEN_FSTRING,
+						.value = data,
+						.position = {
+								.path = scanner->path,
+								.offset = start_offset - 1,
+								.column = scanner->column - (scanner->offset - start_offset) - 1,
+								.line = scanner->line,
+								.length = scanner->offset - start_offset
+								}
+						});
 
 				if (scanner_next(program, scanner) == -1)
 				{
@@ -2134,6 +2185,23 @@ scanner_advance(program_t *program, scanner_t *scanner)
 				return 1;
 			}
 			else 
+			if (strncmp(scanner->source + start_offset, "self", max(length, 4)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_SELF_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else 
 			if (strncmp(scanner->source + start_offset, "class", max(length, 5)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2456,24 +2524,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
-			if (strncmp(scanner->source + start_offset, "enum", max(length, 4)) == 0)
-			{
-				scanner_set_token(program, scanner, (token_t){
-					.type = TOKEN_ENUM_KEYWORD,
-					.value = NULL,
-					.position = {
-						.path = scanner->path,
-						.offset = scanner->offset - length,
-						.column = scanner->column - length,
-						.line = scanner->line,
-							.length = length
-					}
-				});
-
-				return 1;
-			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "export", max(length, 6)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){

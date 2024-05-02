@@ -365,6 +365,29 @@ syntax_string(program_t *program, syntax_t *syntax, node_t *parent)
 }
 
 static node_t *
+syntax_fstring(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_fstring(node, syntax->token->value);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_FSTRING) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
 syntax_null(program_t *program, syntax_t *syntax, node_t *parent)
 {
 	node_t *node = node_create(parent, syntax->token->position);
@@ -403,6 +426,29 @@ syntax_this(program_t *program, syntax_t *syntax, node_t *parent)
 	}
 
 	if (syntax_match(program, syntax, TOKEN_THIS_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_self(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_self(node);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_SELF_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -932,6 +978,11 @@ syntax_primary(program_t *program, syntax_t *syntax, node_t *parent)
 	{
 		return syntax_string(program, syntax, parent);
 	}
+	else
+	if (syntax->token->type == TOKEN_FSTRING)
+	{
+		return syntax_fstring(program, syntax, parent);
+	}
 	else 
 	if (syntax->token->type == TOKEN_CHAR)
 	{
@@ -946,6 +997,11 @@ syntax_primary(program_t *program, syntax_t *syntax, node_t *parent)
 	if (syntax->token->type == TOKEN_THIS_KEYWORD)
 	{
 		return syntax_this(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_SELF_KEYWORD)
+	{
+		return syntax_self(program, syntax, parent);
 	}
 	else 
 	if (syntax->token->type == TOKEN_LBRACKET)
@@ -2532,7 +2588,7 @@ syntax_var(program_t *program, syntax_t *syntax, node_t *parent, uint64_t flag)
 	}
 
 	node_t *value = NULL;
-	if ((syntax->token->type == TOKEN_EQ) || (set_used == 1) || ((set_used == 0) && (type == NULL)))
+	if ((syntax->token->type == TOKEN_EQ) || (set_used == 1))
 	{
 		if (syntax_match(program, syntax, TOKEN_EQ) == -1)
 		{
@@ -3296,15 +3352,18 @@ syntax_parameter(program_t *program, syntax_t *syntax, node_t *parent)
 		return NULL;
 	}	
 	
-	if (syntax_match(program, syntax, TOKEN_COLON) == -1)
+	node_t *type = NULL;
+	if (syntax->token->type == TOKEN_COLON)
 	{
-		return NULL;
-	}
-
-	node_t *type = syntax_postfix(program, syntax, node);
-	if (type == NULL)
-	{
-		return NULL;
+		if (syntax_next(program, syntax) == -1)
+		{
+			return NULL;
+		}
+		type = syntax_postfix(program, syntax, node);
+		if (type == NULL)
+		{
+			return NULL;
+		}
 	}
 
 	node_t *value = NULL;
@@ -3638,7 +3697,7 @@ syntax_property(program_t *program, syntax_t *syntax, node_t *parent, node_t *no
 	}
 
 	node_t *value = NULL;
-	if ((syntax->token->type == TOKEN_EQ) || ((flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC) || (type == NULL))
+	if ((syntax->token->type == TOKEN_EQ) || ((flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC))
 	{
 		if (syntax_match(program, syntax, TOKEN_EQ) == -1)
 		{

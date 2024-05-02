@@ -210,6 +210,25 @@ utils_isinteger(double128_t value)
     return 0;
 }
 
+int32_t
+utils_indexof(char *str, char x)
+{
+    int32_t index = -1;
+    for (size_t i = 0; i < strlen(str); i++)
+        if (str[i] == x){
+            index = i;
+            break;
+        }
+            
+    return index;
+}
+
+int32_t
+utils_issfloat(char *str)
+{
+	return utils_indexof(str, '.') >= 0;
+}
+
 /*
 uint64_t 
 utils_xtou64(const char *str)
@@ -235,17 +254,6 @@ last_indexof(char *str, char x)
     return index;
 }
 
-static int32_t
-indexof(char *str, char x)
-{
-    int32_t index = -1;
-    for (size_t i = 0; i < strlen(str); i++)
-        if (str[i] == x){
-            index = i;
-            break;
-        }
-            
-    return index;
-}
+
 */
 
