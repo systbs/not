@@ -1,5 +1,5 @@
 @General
-@Mallocable
+@Allocable
 export class Any 
 {
     export fun Constructor() : Any
@@ -18,9 +18,9 @@ export class Null
 }
 
 @Void
-export class Void2 
+export class Void
 {
-    export fun Constructor() : Void2
+    export fun Constructor() : Void
     {
 
     }

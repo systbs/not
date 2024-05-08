@@ -21,16 +21,52 @@ typedef enum node_flag {
 
 typedef enum node_kind {
 	NODE_KIND_ID,
-	NODE_KIND_NUMBER,
+
+	NODE_KIND_INT8,
+	NODE_KIND_INT16,
+	NODE_KIND_INT32,
+	NODE_KIND_INT64,
+
+	NODE_KIND_UINT8,
+	NODE_KIND_UINT16,
+	NODE_KIND_UINT32,
+	NODE_KIND_UINT64,
+	NODE_KIND_BIGINT,
+
+	NODE_KIND_FLOAT32,
+	NODE_KIND_FLOAT64,
+	NODE_KIND_BIGFLOAT,
+
 	NODE_KIND_CHAR,
 	NODE_KIND_STRING,
-	NODE_KIND_FSTRING,
+
 	NODE_KIND_NULL,
-	NODE_KIND_ARRAY,
+
+	NODE_KIND_TUPLE,
 	NODE_KIND_OBJECT,
+
 	NODE_KIND_PSEUDONYM,
 	NODE_KIND_THIS,
 	NODE_KIND_SELF,
+	
+	NODE_KIND_KINT8,
+	NODE_KIND_KINT16,
+	NODE_KIND_KINT32,
+	NODE_KIND_KINT64,
+
+	NODE_KIND_KUINT8,
+	NODE_KIND_KUINT16,
+	NODE_KIND_KUINT32,
+	NODE_KIND_KUINT64,
+
+	NODE_KIND_KBIGINT,
+
+	NODE_KIND_KFLOAT32,
+	NODE_KIND_KFLOAT64,
+	NODE_KIND_KBIGFLOAT,
+
+	NODE_KIND_KCHAR,
+	NODE_KIND_KSTRING,
 
 	NODE_KIND_TYPEOF,
 	NODE_KIND_SIZEOF,
@@ -94,7 +130,6 @@ typedef enum node_kind {
 
 	NODE_KIND_IF,
 	NODE_KIND_FOR,
-	NODE_KIND_FORIN,
 	NODE_KIND_BREAK,
 	NODE_KIND_CONTINUE,
 	NODE_KIND_CATCH,
@@ -372,8 +407,45 @@ node_prug(node_t *node);
 node_t *
 node_make_id(node_t *node, char *value);
 
+
 node_t *
-node_make_number(node_t *node, char *value);
+node_make_int8(node_t *node, char *value);
+
+node_t *
+node_make_int16(node_t *node, char *value);
+
+node_t *
+node_make_int32(node_t *node, char *value);
+
+node_t *
+node_make_int64(node_t *node, char *value);
+
+
+node_t *
+node_make_uint8(node_t *node, char *value);
+
+node_t *
+node_make_uint16(node_t *node, char *value);
+
+node_t *
+node_make_uint32(node_t *node, char *value);
+
+node_t *
+node_make_uint64(node_t *node, char *value);
+
+node_t *
+node_make_bigint(node_t *node, char *value);
+
+
+node_t *
+node_make_float32(node_t *node, char *value);
+
+node_t *
+node_make_float64(node_t *node, char *value);
+
+node_t *
+node_make_bigfloat(node_t *node, char *value);
+
 
 node_t *
 node_make_char(node_t *node, char *value);
@@ -381,11 +453,55 @@ node_make_char(node_t *node, char *value);
 node_t *
 node_make_string(node_t *node, char *value);
 
-node_t *
-node_make_fstring(node_t *node, char *value);
 
 node_t *
 node_make_null(node_t *node);
+
+node_t *
+node_make_kint8(node_t *node);
+
+node_t *
+node_make_kint16(node_t *node);
+
+node_t *
+node_make_kint32(node_t *node);
+
+node_t *
+node_make_kint64(node_t *node);
+
+
+node_t *
+node_make_kuint8(node_t *node);
+
+node_t *
+node_make_kuint16(node_t *node);
+
+node_t *
+node_make_kuint32(node_t *node);
+
+node_t *
+node_make_kuint64(node_t *node);
+
+node_t *
+node_make_kbigint(node_t *node);
+
+
+node_t *
+node_make_kfloat32(node_t *node);
+
+node_t *
+node_make_kfloat64(node_t *node);
+
+node_t *
+node_make_kbigfloat(node_t *node);
+
+
+node_t *
+node_make_kchar(node_t *node);
+
+node_t *
+node_make_kstring(node_t *node);
+
 
 node_t *
 node_make_this(node_t *node);
@@ -393,11 +509,13 @@ node_make_this(node_t *node);
 node_t *
 node_make_self(node_t *node);
 
+
 node_t *
-node_make_array(node_t *node, list_t *expr_list);
+node_make_tuple(node_t *node, list_t *exprs);
 
 node_t *
 node_make_object(node_t *node, list_t *properties);
+
 
 node_t *
 node_make_pseudonym(node_t *node, node_t *base, node_t *arguments);
@@ -555,9 +673,6 @@ node_make_if(node_t *node, node_t *condition, node_t *then_body, node_t *else_bo
 
 node_t *
 node_make_for(node_t *node, node_t *name, node_t *initializer, node_t *condition, node_t *incrementor, node_t *body);
-
-node_t *
-node_make_forin(node_t *node, node_t *name, node_t *initializer, node_t *expression, node_t *body);
 
 node_t *
 node_make_break(node_t *node, node_t *expression);

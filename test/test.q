@@ -2,41 +2,41 @@
 using * from "~/lib/types/primary.q";
 using Array<T>: Array<T>, Dictionary<T, V>: Dictionary<T, V>, Set<V>:Set<V> from "~/lib/types/container.q";
 
-export class A {
+export class A 
+{
 	prop1:Any;
 
 	export fun Constructor()
 	{
 	}
-	export fun a2 (a:{b:Int16, c:1}) 
+
+	export fun a2 () 
     {
-		
     }
 }
 
-export class B extends (a:A) {
+export class B extends (a:A) 
+{
 	export fun Constructor()
 	{
 	}
 
-	export fun + (val : Any) : Any 
+	export fun + (val : 0) : int64 
     {
-
     }
 
 	export override fun a2 () 
     {
-
     }
 }
 
 export class System
 {
-	prop1 = {a:2};
+	prop1 = {a : 2};
 
 	@Main
-	export static fun Constructor(*args:Array<String>) : Int64
+	export static fun Constructor(*args:Array<string>) : int64
 	{
-
+		var pow = args.where(fun(x) -> x < 10).select(fun(x) -> x ** 2);
 	}
 }

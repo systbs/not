@@ -651,61 +651,6 @@ semantic_for(program_t *program, node_t *node, uint64_t flag)
                 break;
             }
             else
-            if (current1->kind == NODE_KIND_FORIN)
-            {
-                node_forin_t *for2 = (node_forin_t *)current1->value;
-
-                node_t *node1 = for2->initializer;
-                node_block_t *block1 = node1->value;
-
-                ilist_t *a1;
-                for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
-                {
-                    node_t *item1 = (node_t *)a1->value;
-                    if (item1->kind == NODE_KIND_VAR)
-                    {
-                        node_var_t *var2 = (node_var_t *)item1->value;
-                        if (var2->key->kind == NODE_KIND_ID)
-                        {
-                            if (semantic_idcmp(for1->key, var2->key) == 1)
-                            {
-                                node_t *node2 = for1->key;
-                                node_basic_t *basic1 = (node_basic_t *)node2->value;
-
-                                semantic_error(program, for1->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
-                                    basic1->value, var2->key->position.path, var2->key->position.line, var2->key->position.column, __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-                        else
-                        {
-                            node_t *node2 = var2->key;
-                            node_block_t *block2 = (node_block_t *)node2->value;
-
-                            ilist_t *a2;
-                            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
-                            {
-                                node_t *item2 = (node_t *)a2->value;
-                                if (item2->kind == NODE_KIND_ENTITY)
-                                {
-                                    node_entity_t *entity1 = (node_entity_t *)item2->value;
-                                    if (semantic_idcmp(for1->key, entity1->key) == 1)
-                                    {
-                                        node_t *node3 = for1->key;
-                                        node_basic_t *basic1 = (node_basic_t *)node3->value;
-
-                                        semantic_error(program, for1->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
-                                            basic1->value, entity1->key->position.path, entity1->key->position.line, entity1->key->position.column, __FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
-            }
-            else
             if (current1->kind == NODE_KIND_BODY)
             {
                 node_block_t *block1 = (node_block_t *)current1->value;
@@ -722,23 +667,6 @@ semantic_for(program_t *program, node_t *node, uint64_t flag)
                     if (item1->kind == NODE_KIND_FOR)
                     {
                         node_for_t *for2 = (node_for_t *)item1->value;
-                        if (for2->key != NULL)
-                        {
-                            if (semantic_idcmp(for1->key, for2->key) == 1)
-                            {
-                                node_t *node1 = for1->key;
-                                node_basic_t *basic1 = (node_basic_t *)node1->value;
-
-                                semantic_error(program, for1->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
-                                    basic1->value, for2->key->position.path, for2->key->position.line, for2->key->position.column, __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-                    }
-                    else
-                    if (item1->kind == NODE_KIND_FORIN)
-                    {
-                        node_forin_t *for2 = (node_forin_t *)item1->value;
                         if (for2->key != NULL)
                         {
                             if (semantic_idcmp(for1->key, for2->key) == 1)
@@ -923,357 +851,6 @@ semantic_for(program_t *program, node_t *node, uint64_t flag)
 }
 
 static int32_t
-semantic_forin(program_t *program, node_t *node, uint64_t flag)
-{
-    node_forin_t *for1 = (node_forin_t *)node->value;
-
-    if (for1->key != NULL)
-    {
-        node_t *sub1 = node;
-        node_t *current1 = node->parent;
-        while (current1 != NULL)
-        {
-            if (current1->kind == NODE_KIND_CATCH)
-            {
-                node_catch_t *catch1 = (node_catch_t *)current1->value;
-
-                node_t *node1 = catch1->parameters;
-                node_block_t *block1 = node1->value;
-
-                ilist_t *a1;
-                for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
-                {
-                    node_t *item1 = (node_t *)a1->value;
-                    if (item1->kind == NODE_KIND_PARAMETER)
-                    {
-                        node_parameter_t *parameter1 = (node_parameter_t *)item1->value;
-                        if (semantic_idcmp(for1->key, parameter1->key) == 1)
-                        {
-                            node_t *node2 = for1->key;
-                            node_basic_t *basic1 = (node_basic_t *)node2->value;
-
-                            semantic_error(program, for1->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
-                                basic1->value, parameter1->key->position.path, parameter1->key->position.line, parameter1->key->position.column, __FILE__, __LINE__);
-                            return -1;
-                        }
-                    }
-                }
-                sub1 = current1;
-                current1 = current1->parent;
-                continue;
-            }
-            else
-            if (current1->kind == NODE_KIND_FOR)
-            {
-                node_for_t *for2 = (node_for_t *)current1->value;
-
-                node_t *node1 = for2->initializer;
-                node_block_t *block1 = node1->value;
-
-                ilist_t *a1;
-                for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
-                {
-                    node_t *item1 = (node_t *)a1->value;
-                    if (item1->kind == NODE_KIND_VAR)
-                    {
-                        node_var_t *var2 = (node_var_t *)item1->value;
-                        
-                        if (var2->key->kind == NODE_KIND_ID)
-                        {
-                            if (semantic_idcmp(for1->key, var2->key) == 1)
-                            {
-                                node_t *node2 = for1->key;
-                                node_basic_t *basic1 = (node_basic_t *)node2->value;
-
-                                semantic_error(program, for1->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
-                                    basic1->value, var2->key->position.path, var2->key->position.line, var2->key->position.column, __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-                        else
-                        {
-                            node_t *node2 = var2->key;
-                            node_block_t *block2 = (node_block_t *)node2->value;
-
-                            ilist_t *a2;
-                            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
-                            {
-                                node_t *item2 = (node_t *)a2->value;
-                                if (item2->kind == NODE_KIND_ENTITY)
-                                {
-                                    node_entity_t *entity1 = (node_entity_t *)item2->value;
-                                    if (semantic_idcmp(for1->key, entity1->key) == 1)
-                                    {
-                                        node_t *node3 = for1->key;
-                                        node_basic_t *basic1 = (node_basic_t *)node3->value;
-
-                                        semantic_error(program, for1->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
-                                            basic1->value, entity1->key->position.path, entity1->key->position.line, entity1->key->position.column, __FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
-            }
-            else
-            if (current1->kind == NODE_KIND_FORIN)
-            {
-                node_forin_t *for2 = (node_forin_t *)current1->value;
-
-                node_t *node1 = for2->initializer;
-                node_block_t *block1 = node1->value;
-
-                ilist_t *a1;
-                for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
-                {
-                    node_t *item1 = (node_t *)a1->value;
-                    if (item1->kind == NODE_KIND_VAR)
-                    {
-                        node_var_t *var2 = (node_var_t *)item1->value;
-                        if (var2->key->kind == NODE_KIND_ID)
-                        {
-                            if (semantic_idcmp(for1->key, var2->key) == 1)
-                            {
-                                node_t *node2 = for1->key;
-                                node_basic_t *basic1 = (node_basic_t *)node2->value;
-
-                                semantic_error(program, for1->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
-                                    basic1->value, var2->key->position.path, var2->key->position.line, var2->key->position.column, __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-                        else
-                        {
-                            node_t *node2 = var2->key;
-                            node_block_t *block2 = (node_block_t *)node2->value;
-
-                            ilist_t *a2;
-                            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
-                            {
-                                node_t *item2 = (node_t *)a2->value;
-                                if (item2->kind == NODE_KIND_ENTITY)
-                                {
-                                    node_entity_t *entity1 = (node_entity_t *)item2->value;
-                                    if (semantic_idcmp(for1->key, entity1->key) == 1)
-                                    {
-                                        node_t *node3 = for1->key;
-                                        node_basic_t *basic1 = (node_basic_t *)node3->value;
-
-                                        semantic_error(program, for1->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
-                                            basic1->value, entity1->key->position.path, entity1->key->position.line, entity1->key->position.column, __FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
-            }
-            else
-            if (current1->kind == NODE_KIND_BODY)
-            {
-                node_block_t *block1 = (node_block_t *)current1->value;
-
-                ilist_t *a1;
-                for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
-                {
-                    node_t *item1 = (node_t *)a1->value;
-                    if (item1->id == sub1->id)
-                    {
-                        break;
-                    }
-
-                    if (item1->kind == NODE_KIND_FOR)
-                    {
-                        node_for_t *for2 = (node_for_t *)item1->value;
-                        if (for2->key != NULL)
-                        {
-                            if (semantic_idcmp(for1->key, for2->key) == 1)
-                            {
-                                node_t *node1 = for1->key;
-                                node_basic_t *basic1 = (node_basic_t *)node1->value;
-
-                                semantic_error(program, for1->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
-                                    basic1->value, for2->key->position.path, for2->key->position.line, for2->key->position.column, __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-                    }
-                    else
-                    if (item1->kind == NODE_KIND_FORIN)
-                    {
-                        node_forin_t *for2 = (node_forin_t *)item1->value;
-                        if (for2->key != NULL)
-                        {
-                            if (semantic_idcmp(for1->key, for2->key) == 1)
-                            {
-                                node_t *node1 = for1->key;
-                                node_basic_t *basic1 = (node_basic_t *)node1->value;
-
-                                semantic_error(program, for1->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
-                                    basic1->value, for2->key->position.path, for2->key->position.line, for2->key->position.column, __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-                    }
-                    else
-                    if (item1->kind == NODE_KIND_VAR)
-                    {
-                        node_var_t *var2 = (node_var_t *)item1->value;
-                        if (var2->key->kind == NODE_KIND_ID)
-                        {
-                            if (semantic_idcmp(for1->key, var2->key) == 1)
-                            {
-                                node_t *node1 = for1->key;
-                                node_basic_t *basic1 = (node_basic_t *)node1->value;
-
-                                semantic_error(program, for1->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
-                                    basic1->value, var2->key->position.path, var2->key->position.line, var2->key->position.column, __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-                        else
-                        {
-                            node_t *node1 = (node_t *)var2->key;
-                            node_block_t *block2 = (node_block_t *)node1->value;
-
-                            ilist_t *a2;
-                            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
-                            {
-                                node_t *item2 = (node_t *)a2->value;
-                                if (item2->kind == NODE_KIND_ENTITY)
-                                {
-                                    node_entity_t *entity1 = (node_entity_t *)item2->value;
-                                    if (semantic_idcmp(for1->key, entity1->key) == 1)
-                                    {
-                                        node_t *node2 = for1->key;
-                                        node_basic_t *basic1 = (node_basic_t *)node2->value;
-
-                                        semantic_error(program, for1->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
-                                            basic1->value, entity1->key->position.path, entity1->key->position.line, entity1->key->position.column, __FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                sub1 = current1;
-                current1 = current1->parent;
-            }
-            else
-            if (current1->kind == NODE_KIND_FUN)
-            {
-                node_fun_t *fun2 = (node_fun_t *)current1->value;
-
-                if (fun2->generics != NULL)
-                {
-                    node_t *node1 = fun2->generics;
-                    node_block_t *block1 = (node_block_t *)node1->value;
-
-                    ilist_t *a1;
-                    for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
-                    {
-                        node_t *item1 = (node_t *)a1->value;
-                        
-                        if (item1->kind == NODE_KIND_GENERIC)
-                        {
-                            node_generic_t *generic1 = (node_generic_t *)item1->value;
-                            if (semantic_idcmp(for1->key, generic1->key) == 1)
-                            {
-                                node_t *node2 = for1->key;
-                                node_basic_t *basic1 = (node_basic_t *)node2->value;
-
-                                semantic_error(program, for1->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
-                                    basic1->value, generic1->key->position.path, generic1->key->position.line, generic1->key->position.column, __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-                    }
-                }
-
-                if (fun2->parameters != NULL)
-                {
-                    node_t *node1 = fun2->parameters;
-                    node_block_t *block1 = (node_block_t *)node1->value;
-
-                    ilist_t *a2;
-                    for (a2 = block1->list->begin;a2 != block1->list->end;a2 = a2->next)
-                    {
-                        node_t *item2 = (node_t *)a2->value;
-                        
-                        if (item2->kind == NODE_KIND_PARAMETER)
-                        {
-                            node_parameter_t *parameter1 = (node_parameter_t *)item2->value;
-                            if (semantic_idcmp(for1->key, parameter1->key) == 1)
-                            {
-                                node_t *node2 = for1->key;
-                                node_basic_t *basic1 = (node_basic_t *)node2->value;
-
-                                semantic_error(program, for1->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
-                                    basic1->value, parameter1->key->position.path, parameter1->key->position.line, parameter1->key->position.column, __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-                    }
-                }
-                break;
-            }
-            else
-            {
-                sub1 = current1;
-                current1 = current1->parent;
-                continue;
-            }
-        }
-    }
-
-    if (for1->initializer != NULL)
-    {
-        node_t *node1 = for1->initializer;
-        node_block_t *block1 = node1->value;
-
-        ilist_t *a1;
-        for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
-        {
-            node_t *item1 = (node_t *)a1->value;
-            if (item1->kind == NODE_KIND_VAR)
-            {
-                int32_t r1 = semantic_var(program, item1, SEMANTIC_FLAG_NONE);
-                if (r1 == -1)
-                {
-                    return -1;
-                }
-            }
-            else
-            {
-                int32_t r1 = semantic_assign(program, item1, SEMANTIC_FLAG_NONE);
-                if (r1 == -1)
-                {
-                    return -1;
-                }
-            }
-        }
-    }
-
-    if (for1->body != NULL)
-    {
-        int32_t r1 = semantic_body(program, for1->body, flag);
-        if (r1 == -1)
-        {
-            return -1;
-        }
-    }
-
-    return 1;
-}
-
-static int32_t
 semantic_parameter(program_t *program, node_t *node, uint64_t flag)
 {
     node_parameter_t *parameter1 = (node_parameter_t *)node->value;
@@ -1386,7 +963,6 @@ semantic_parameter(program_t *program, node_t *node, uint64_t flag)
         }
     }
     
-
     if (parameter1->type != NULL)
     {
         list_t *response1 = list_create();
@@ -1473,7 +1049,7 @@ semantic_parameter(program_t *program, node_t *node, uint64_t flag)
                     }
                 }
                 else
-                if (item1->kind == NODE_KIND_ARRAY)
+                if (item1->kind == NODE_KIND_TUPLE)
                 {
                     if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                     {
@@ -1486,12 +1062,60 @@ semantic_parameter(program_t *program, node_t *node, uint64_t flag)
                     }
                 }
                 else
+                if (item1->kind == NODE_KIND_KINT8)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KINT16)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KINT32)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KINT64)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT8)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT16)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT32)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT64)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KBIGINT)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KFLOAT32)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KFLOAT64)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KBIGFLOAT)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KCHAR)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KSTRING)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KCHAR)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KSTRING)
+                {}
+                else
                 {
                     node_t *key1 = parameter1->key;
                     node_basic_t *key_string1 = key1->value;
 
-                    semantic_error(program, parameter1->key, "Typing:'%s' does not have a valid type\n\tInternal:%s-%u",
-                        key_string1->value, __FILE__, __LINE__);
+                    semantic_error(program, parameter1->key, "Typing:'%s' does not have a valid type %d \n\tInternal:%s-%u",
+                        key_string1->value, item1->kind, __FILE__, __LINE__);
                     return -1;
                 }
             }
@@ -1985,115 +1609,6 @@ semantic_var(program_t *program, node_t *node, uint64_t flag)
             break;
         }
         else
-        if (current1->kind == NODE_KIND_FORIN)
-        {
-            node_forin_t *for2 = (node_forin_t *)current1->value;
-
-            node_t *node1 = for2->initializer;
-            node_block_t *block1 = node1->value;
-
-            ilist_t *a1;
-            for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
-            {
-                node_t *item1 = (node_t *)a1->value;
-                if (item1->kind == NODE_KIND_VAR)
-                {
-                    node_var_t *var2 = (node_var_t *)item1->value;
-                    if (var2->key->kind == NODE_KIND_ID)
-                    {
-                        if (var1->key->kind == NODE_KIND_ID)
-                        {
-                            if (semantic_idcmp(var1->key, var2->key) == 1)
-                            {
-                                node_t *node2 = var1->key;
-                                node_basic_t *basic1 = (node_basic_t *)node2->value;
-
-                                semantic_error(program, var1->key, "Naming:'%s' already defined, previous in (%lld:%lld)\n\tInternal:%s-%u",
-                                    basic1->value, var2->key->position.path, var2->key->position.line, var2->key->position.column);
-                                return -1;
-                            }
-                        }
-                        else
-                        {
-                            node_t *node2 = (node_t *)var1->key;
-                            node_block_t *block2 = (node_block_t *)node2->value;
-
-                            ilist_t *a2;
-                            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
-                            {
-                                node_t *item2 = (node_t *)a2->value;
-                                if (item2->kind == NODE_KIND_ENTITY)
-                                {
-                                    node_entity_t *entity1 = (node_entity_t *)item2->value;
-                                    if (semantic_idcmp(entity1->key, var2->key) == 1)
-                                    {
-                                        node_t *node3 = entity1->key;
-                                        node_basic_t *basic1 = (node_basic_t *)node3->value;
-
-                                        semantic_error(program, entity1->key, "Naming:'%s' already defined, previous in (%lld:%lld)\n\tInternal:%s-%u",
-                                            basic1->value, var2->key->position.path, var2->key->position.line, var2->key->position.column);
-                                        return -1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        node_t *node2 = var2->key;
-                        node_block_t *block2 = (node_block_t *)node2->value;
-
-                        ilist_t *a2;
-                        for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
-                        {
-                            node_t *item2 = (node_t *)a2->value;
-                            if (item2->kind == NODE_KIND_ENTITY)
-                            {
-                                node_entity_t *entity2 = (node_entity_t *)item2->value;
-                                if (var1->key->kind == NODE_KIND_ID)
-                                {
-                                    if (semantic_idcmp(var1->key, entity2->key) == 1)
-                                    {
-                                        node_t *node3 = var1->key;
-                                        node_basic_t *basic1 = (node_basic_t *)node3->value;
-
-                                        semantic_error(program, var1->key, "Naming:'%s' already defined, previous in (%lld:%lld)\n\tInternal:%s-%u",
-                                            basic1->value, entity2->key->position.path, entity2->key->position.line, entity2->key->position.column, __FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                }
-                                else
-                                {
-                                    node_t *node3 = (node_t *)var1->key;
-                                    node_block_t *block3 = (node_block_t *)node3->value;
-
-                                    ilist_t *a3;
-                                    for (a3 = block3->list->begin;a3 != block3->list->end;a3 = a3->next)
-                                    {
-                                        node_t *item3 = (node_t *)a3->value;
-                                        if (item3->kind == NODE_KIND_ENTITY)
-                                        {
-                                            node_entity_t *entity1 = (node_entity_t *)item3->value;
-                                            if (semantic_idcmp(entity1->key, entity2->key) == 1)
-                                            {
-                                                node_t *node4 = entity1->key;
-                                                node_basic_t *basic1 = (node_basic_t *)node4->value;
-
-                                                semantic_error(program, entity1->key, "Naming:'%s' already defined, previous in (%lld:%lld)\n\tInternal:%s-%u",
-                                                    basic1->value, entity2->key->position.path, entity2->key->position.line, entity2->key->position.column, __FILE__, __LINE__);
-                                                return -1;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            break;
-        }
-        else
         if (current1->kind == NODE_KIND_BODY)
         {
             node_block_t *block1 = (node_block_t *)current1->value;
@@ -2110,50 +1625,6 @@ semantic_var(program_t *program, node_t *node, uint64_t flag)
                 if (item1->kind == NODE_KIND_FOR)
                 {
                     node_for_t *for2 = (node_for_t *)item1->value;
-                    if (for2->key != NULL)
-                    {
-                        if (var1->key->kind == NODE_KIND_ID)
-                        {
-                            if (semantic_idcmp(var1->key, for2->key) == 1)
-                            {
-                                node_t *node1 = var1->key;
-                                node_basic_t *basic1 = (node_basic_t *)node1->value;
-
-                                semantic_error(program, var1->key, "Naming:'%s' already defined, previous in (%lld:%lld)\n\tInternal:%s-%u",
-                                    basic1->value, for2->key->position.path, for2->key->position.line, for2->key->position.column, __FILE__, __LINE__);
-                                return -1;
-                            }
-                        }
-                        else
-                        {
-                            node_t *node1 = (node_t *)var1->key;
-                            node_block_t *block2 = (node_block_t *)node1->value;
-
-                            ilist_t *a2;
-                            for (a2 = block2->list->begin;a2 != block2->list->end;a2 = a2->next)
-                            {
-                                node_t *item2 = (node_t *)a2->value;
-                                if (item2->kind == NODE_KIND_ENTITY)
-                                {
-                                    node_entity_t *entity1 = (node_entity_t *)item2->value;
-                                    if (semantic_idcmp(entity1->key, for2->key) == 1)
-                                    {
-                                        node_t *node2 = entity1->key;
-                                        node_basic_t *basic1 = (node_basic_t *)node2->value;
-
-                                        semantic_error(program, entity1->key, "Naming:'%s' already defined, previous in (%lld:%lld)\n\tInternal:%s-%u",
-                                            basic1->value, for2->key->position.path, for2->key->position.line, for2->key->position.column, __FILE__, __LINE__);
-                                        return -1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                else
-                if (item1->kind == NODE_KIND_FORIN)
-                {
-                    node_forin_t *for2 = (node_forin_t *)item1->value;
                     if (for2->key != NULL)
                     {
                         if (var1->key->kind == NODE_KIND_ID)
@@ -2515,7 +1986,7 @@ semantic_var(program_t *program, node_t *node, uint64_t flag)
                     }
                 }
                 else
-                if (item1->kind == NODE_KIND_ARRAY)
+                if (item1->kind == NODE_KIND_TUPLE)
                 {
                     if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                     {
@@ -2527,6 +1998,48 @@ semantic_var(program_t *program, node_t *node, uint64_t flag)
                         return -1;
                     }
                 }
+                else
+                if (item1->kind == NODE_KIND_KINT8)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KINT16)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KINT32)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KINT64)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT8)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT16)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT32)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT64)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KBIGINT)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KFLOAT32)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KFLOAT64)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KBIGFLOAT)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KCHAR)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KSTRING)
+                {}
                 else
                 {
                     node_t *key1 = var1->key;
@@ -2594,15 +2107,6 @@ semantic_statement(program_t *program, node_t *node, uint64_t flag)
     if (node->kind == NODE_KIND_FOR)
     {
         int32_t result = semantic_for(program, node, flag);
-        if (result == -1)
-        {
-            return -1;
-        }
-    }
-    else
-    if (node->kind == NODE_KIND_FORIN)
-    {
-        int32_t result = semantic_forin(program, node, flag);
         if (result == -1)
         {
             return -1;
@@ -3231,7 +2735,7 @@ semantic_property(program_t *program, node_t *node, uint64_t flag)
                     }
                 }
                 else
-                if (item1->kind == NODE_KIND_ARRAY)
+                if (item1->kind == NODE_KIND_TUPLE)
                 {
                     if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                     {
@@ -3243,6 +2747,54 @@ semantic_property(program_t *program, node_t *node, uint64_t flag)
                         return -1;
                     }
                 }
+                else
+                if (item1->kind == NODE_KIND_KINT8)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KINT16)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KINT32)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KINT64)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT8)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT16)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT32)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT64)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KBIGINT)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KFLOAT32)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KFLOAT64)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KBIGFLOAT)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KCHAR)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KSTRING)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KCHAR)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KSTRING)
+                {}
                 else
                 {
                     node_t *key1 = property1->key;

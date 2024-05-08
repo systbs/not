@@ -3,8 +3,11 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <stdint.h>
+#include <float.h>
 
 #include "../types/types.h"
+#include "../utils/utils.h"
 #include "../container/list.h"
 #include "../token/position.h"
 #include "../token/token.h"
@@ -401,7 +404,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 				char *data;
 				if (!(data = malloc(sizeof(char) * (scanner->offset - start_offset))))
 				{
-					fprintf(stderr, "unable to allocted a block of %llu bytes",
+					fprintf(stderr, "unable to allocted a block of %lu bytes",
 									sizeof(char) * (scanner->offset - start_offset));
 					return -1;
 				}
@@ -445,7 +448,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 				char *data;
 				if (!(data = malloc(sizeof(char) * (scanner->offset - start_offset))))
 				{
-					fprintf(stderr, "unable to allocted a block of %llu bytes",
+					fprintf(stderr, "unable to allocted a block of %lu bytes",
 									sizeof(char) * (scanner->offset - start_offset));
 					return -1;
 				}
@@ -493,7 +496,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 				char *data;
 				if (!(data = malloc(sizeof(char) * (scanner->offset - start_offset))))
 				{
-					fprintf(stderr, "unable to allocted a block of %llu bytes",
+					fprintf(stderr, "unable to allocted a block of %lu bytes",
 									sizeof(char) * (scanner->offset - start_offset));
 					return -1;
 				}
@@ -501,7 +504,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 				data[scanner->offset - start_offset] = '\0';
 
 				scanner_set_token(program, scanner, (token_t){
-						.type = TOKEN_FSTRING,
+						.type = TOKEN_STRING,
 						.value = data,
 						.position = {
 								.path = scanner->path,
@@ -1715,6 +1718,8 @@ scanner_advance(program_t *program, scanner_t *scanner)
 		if (isdigit(scanner->ch))
 		{
 			uint64_t start_offset = scanner->offset;
+			int32_t token_type = TOKEN_INT8;
+			
 
 			if (scanner->ch == '0')
 			{
@@ -1722,19 +1727,26 @@ scanner_advance(program_t *program, scanner_t *scanner)
 				{
 					return -1;
 				}
-				switch (tolower(scanner->ch))
+
+				if (tolower(scanner->ch) == 'x')
 				{
-				case 'x':
 					if (scanner_next(program, scanner) == -1)
 					{
 						return -1;
 					}
+
 					if (!isspace(scanner->ch))
 					{
+						__uint128_t number = 0;
+
 						while (!isspace(scanner->ch))
 						{
 							if (isxdigit(scanner->ch))
 							{
+								char c = scanner->ch;
+								uint8_t value = ((c & 0xF) + (c >> 6)) | ((c >> 3) & 0x8);
+								number = (number << 4) | (uint64_t) value;
+
 								if (scanner_next(program, scanner) == -1)
 								{
 									return -1;
@@ -1742,15 +1754,6 @@ scanner_advance(program_t *program, scanner_t *scanner)
 							}
 							else
 							{
-								if (scanner->ch == 'j')
-								{
-									if (scanner_next(program, scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-
 								if (isalpha(scanner->ch))
 								{
 									scanner_error(program, (position_t){
@@ -1758,11 +1761,56 @@ scanner_advance(program_t *program, scanner_t *scanner)
 										.offset = scanner->offset, 
 										.column = scanner->column - (scanner->offset - start_offset), 
 										.line = scanner->line,
-										.length = scanner->offset - start_offset}, "wrong hexadecimal number format");
+										.length = scanner->offset - start_offset}, "Valuation:wrong hexadecimal number format");
 									return -1;
 								}
 								break;
 							}
+						}
+
+						if (number > UINT64_MAX)
+						{
+							token_type = TOKEN_BIGINT;
+						}
+						else
+						if ((number > INT64_MAX) && (number <= UINT64_MAX))
+						{
+							token_type = TOKEN_UINT64;
+						}
+						else
+						if ((number > UINT32_MAX) && (number <= INT64_MAX))
+						{
+							token_type = TOKEN_INT64;
+						}
+						else
+						if ((number > INT32_MAX) && (number <= UINT32_MAX))
+						{
+							token_type = TOKEN_UINT32;
+						}
+						else
+						if ((number > UINT16_MAX) && (number <= INT32_MAX))
+						{
+							token_type = TOKEN_INT32;
+						}
+						else
+						if ((number > INT16_MAX) && (number <= UINT16_MAX))
+						{
+							token_type = TOKEN_UINT16;
+						}
+						else
+						if ((number > UINT8_MAX) && (number <= INT16_MAX))
+						{
+							token_type = TOKEN_INT16;
+						}
+						else
+						if ((number > INT8_MAX) && (number <= UINT8_MAX))
+						{
+							token_type = TOKEN_UINT8;
+						}
+						else
+						{
+							// int8
+							token_type = TOKEN_INT8;
 						}
 					}
 					else
@@ -1772,22 +1820,31 @@ scanner_advance(program_t *program, scanner_t *scanner)
 							.offset = scanner->offset, 
 							.column = scanner->column - (scanner->offset - start_offset), 
 							.line = scanner->line,
-							.length = scanner->offset - start_offset}, "hexadecimal literal has no digits");
+							.length = scanner->offset - start_offset}, "Valuation:hexadecimal literal has no digits");
 						return -1;
 					}
-					break;
-
-				case 'b':
-					if (scanner_next(program, scanner) == -1)
-				{
-					return -1;
 				}
+				else
+				if (tolower(scanner->ch) == 'b')
+				{
+					if (scanner_next(program, scanner) == -1)
+					{
+						return -1;
+					}
+
 					if (!isspace(scanner->ch))
 					{
+						__uint128_t number = 0;
+
 						while (!isspace(scanner->ch))
 						{
 							if (isbinary(scanner->ch))
 							{
+								char c = scanner->ch;
+
+								uint8_t value = ((c & 0x1) - '0');
+								number = (number << 1) | (uint64_t) value;
+
 								if (scanner_next(program, scanner) == -1)
 								{
 									return -1;
@@ -1795,15 +1852,6 @@ scanner_advance(program_t *program, scanner_t *scanner)
 							}
 							else
 							{
-								if (scanner->ch == 'j')
-								{
-									if (scanner_next(program, scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-
 								if (isalpha(scanner->ch))
 								{
 									scanner_error(program, (position_t){
@@ -1811,11 +1859,56 @@ scanner_advance(program_t *program, scanner_t *scanner)
 										.offset = scanner->offset, 
 										.column = scanner->column - (scanner->offset - start_offset), 
 										.line = scanner->line,
-										.length = scanner->offset - start_offset}, "wrong binary number format");
+										.length = scanner->offset - start_offset}, "Valuation:wrong binary number format");
 									return -1;
 								}
 								break;
 							}
+						}
+
+						if (number > UINT64_MAX)
+						{
+							token_type = TOKEN_BIGINT;
+						}
+						else
+						if ((number > INT64_MAX) && (number <= UINT64_MAX))
+						{
+							token_type = TOKEN_UINT64;
+						}
+						else
+						if ((number > UINT32_MAX) && (number <= INT64_MAX))
+						{
+							token_type = TOKEN_INT64;
+						}
+						else
+						if ((number > INT32_MAX) && (number <= UINT32_MAX))
+						{
+							token_type = TOKEN_UINT32;
+						}
+						else
+						if ((number > UINT16_MAX) && (number <= INT32_MAX))
+						{
+							token_type = TOKEN_INT32;
+						}
+						else
+						if ((number > INT16_MAX) && (number <= UINT16_MAX))
+						{
+							token_type = TOKEN_UINT16;
+						}
+						else
+						if ((number > UINT8_MAX) && (number <= INT16_MAX))
+						{
+							token_type = TOKEN_INT16;
+						}
+						else
+						if ((number > INT8_MAX) && (number <= UINT8_MAX))
+						{
+							token_type = TOKEN_UINT8;
+						}
+						else
+						{
+							// int8
+							token_type = TOKEN_INT8;
 						}
 					}
 					else
@@ -1825,22 +1918,31 @@ scanner_advance(program_t *program, scanner_t *scanner)
 							.offset = scanner->offset, 
 							.column = scanner->column - (scanner->offset - start_offset), 
 							.line = scanner->line,
-							.length = scanner->offset - start_offset}, "binary literal has no digits");
+							.length = scanner->offset - start_offset}, "Valuation:binary literal has no digits");
 						return -1;
 					}
-					break;
-
-				case 'o':
-					if (scanner_next(program, scanner) == -1)
-				{
-					return -1;
 				}
+				else
+				if (tolower(scanner->ch) == 'o')
+				{
+					if (scanner_next(program, scanner) == -1)
+					{
+						return -1;
+					}
+
 					if (!isspace(scanner->ch))
 					{
+						__uint128_t number = 0;
+
 						while (!isspace(scanner->ch))
 						{
 							if (isoctal(scanner->ch))
 							{
+								char c = scanner->ch;
+
+								uint8_t value = (c - '0');
+								number = (number << 3) | (uint64_t) value;
+
 								if (scanner_next(program, scanner) == -1)
 								{
 									return -1;
@@ -1848,15 +1950,6 @@ scanner_advance(program_t *program, scanner_t *scanner)
 							}
 							else
 							{
-								if (scanner->ch == 'j')
-								{
-									if (scanner_next(program, scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-
 								if (isalpha(scanner->ch))
 								{
 									scanner_error(program, (position_t){
@@ -1864,11 +1957,56 @@ scanner_advance(program_t *program, scanner_t *scanner)
 										.offset = scanner->offset, 
 										.column = scanner->column - (scanner->offset - start_offset), 
 										.line = scanner->line,
-										.length = scanner->offset - start_offset}, "wrong octal number format");
+										.length = scanner->offset - start_offset}, "Valuation:wrong octal number format");
 									return -1;
 								}
 								break;
 							}
+						}
+
+						if (number > UINT64_MAX)
+						{
+							token_type = TOKEN_BIGINT;
+						}
+						else
+						if ((number > INT64_MAX) && (number <= UINT64_MAX))
+						{
+							token_type = TOKEN_UINT64;
+						}
+						else
+						if ((number > UINT32_MAX) && (number <= INT64_MAX))
+						{
+							token_type = TOKEN_INT64;
+						}
+						else
+						if ((number > INT32_MAX) && (number <= UINT32_MAX))
+						{
+							token_type = TOKEN_UINT32;
+						}
+						else
+						if ((number > UINT16_MAX) && (number <= INT32_MAX))
+						{
+							token_type = TOKEN_INT32;
+						}
+						else
+						if ((number > INT16_MAX) && (number <= UINT16_MAX))
+						{
+							token_type = TOKEN_UINT16;
+						}
+						else
+						if ((number > UINT8_MAX) && (number <= INT16_MAX))
+						{
+							token_type = TOKEN_INT16;
+						}
+						else
+						if ((number > INT8_MAX) && (number <= UINT8_MAX))
+						{
+							token_type = TOKEN_UINT8;
+						}
+						else
+						{
+							// int8
+							token_type = TOKEN_INT8;
 						}
 					}
 					else
@@ -1878,70 +2016,150 @@ scanner_advance(program_t *program, scanner_t *scanner)
 							.offset = scanner->offset, 
 							.column = scanner->column - (scanner->offset - start_offset), 
 							.line = scanner->line,
-							.length = scanner->offset - start_offset}, "octal literal has no digits");
+							.length = scanner->offset - start_offset}, "Valuation:octal literal has no digits");
 						return -1;
 					}
-					break;
-
-				case '.':
+				}
+				else
+				if (tolower(scanner->ch) == '.')
+				{
 					if (scanner_next(program, scanner) == -1)
 					{
 						return -1;
 					}
-					int is_float = 1;
+
 					if (!isspace(scanner->ch))
 					{
-						while (!isspace(scanner->ch))
+						if (isdigit(scanner->ch))
 						{
-							if (isdigit(scanner->ch) || scanner->ch == '.')
+							double128_t number = 0, fact = 1;
+							int32_t sign = 1;
+
+							while (!isspace(scanner->ch))
 							{
-								if (scanner->ch == '.')
+								if (tolower(scanner->ch) == 'e')
 								{
-									if (is_float > 0)
+									if (scanner_next(program, scanner) == -1)
+									{
+										return -1;
+									}
+
+									if (tolower(scanner->ch) == '+')
+									{
+										sign = 1;
+										if (scanner_next(program, scanner) == -1)
+										{
+											return -1;
+										}
+									}
+									else
+									if (tolower(scanner->ch) == '-')
+									{
+										sign = -1;
+										if (scanner_next(program, scanner) == -1)
+										{
+											return -1;
+										}
+									}
+									else
 									{
 										scanner_error(program, (position_t){
 											.path = scanner->path, 
 											.offset = scanner->offset, 
 											.column = scanner->column - (scanner->offset - start_offset), 
 											.line = scanner->line,
-											.length = scanner->offset - start_offset}, "wrong decimal number format");
+											.length = scanner->offset - start_offset}, "Valuation:wrong number format");
 										return -1;
 									}
-									is_float++;
+
+									uint64_t sym = 0;
+									while (!isspace(scanner->ch))
+									{
+										if (isdigit(scanner->ch))
+										{
+											char c = scanner->ch;
+											uint8_t value = (c - '0');
+											sym = (sym * 10) + (uint64_t) value;
+
+											if (scanner_next(program, scanner) == -1)
+											{
+												return -1;
+											}
+										}
+										else
+										{
+											break;
+										}
+									}
+
+									for (uint64_t k = 0;k < sym;k++)
+									{
+										if (sign == 1)
+										{
+											number *= 10;
+										}
+										else
+										{
+											number /= 10;
+										}
+									}
+									break;
+								}
+								else
+								if (scanner->ch == '.')
+								{
+									break;
+								}
+								if (isdigit(scanner->ch))
+								{
+									char c = scanner->ch;
+
+									uint8_t value = (c - '0');
+									fact /= 10;
+									number = (number *10 ) + (uint64_t) value;
+
 									if (scanner_next(program, scanner) == -1)
 									{
 										return -1;
 									}
 									continue;
 								}
-								if (scanner_next(program, scanner) == -1)
+								else
 								{
-									return -1;
-								}
-							}
-							else
-							{
-								if (scanner->ch == 'j')
-								{
-									if (scanner_next(program, scanner) == -1)
+									if (isalpha(scanner->ch))
 									{
+										scanner_error(program, (position_t){
+											.path = scanner->path, 
+											.offset = scanner->offset, 
+											.column = scanner->column - (scanner->offset - start_offset), 
+											.line = scanner->line,
+											.length = scanner->offset - start_offset}, "Valuation:wrong number format");
 										return -1;
 									}
 									break;
 								}
-
-								if (isalpha(scanner->ch))
-								{
-									scanner_error(program, (position_t){
-										.path = scanner->path, 
-										.offset = scanner->offset, 
-										.column = scanner->column - (scanner->offset - start_offset), 
-										.line = scanner->line,
-										.length = scanner->offset - start_offset}, "wrong number format");
-									return -1;
-								}
-								break;
 							}
+
+							number = number * fact;
+
+							if (number > DBL_MAX)
+							{
+								token_type = TOKEN_BIGFLOAT;
+							}
+							else
+							if ((number > FLT_MAX) && (number <= DBL_MAX))
+							{
+								token_type = TOKEN_FLOAT64;
+							}
+							else
+							{
+								// float32
+								token_type = TOKEN_FLOAT32;
+							}
+						}
+						else
+						{
+							break;
 						}
 					}
 					else
@@ -1951,26 +2169,24 @@ scanner_advance(program_t *program, scanner_t *scanner)
 							.offset = scanner->offset, 
 							.column = scanner->column - (scanner->offset - start_offset), 
 							.line = scanner->line,
-							.length = scanner->offset - start_offset}, "decimal literal has no digits");
+							.length = scanner->offset - start_offset}, "Valuation:decimal literal has no digits");
 						return -1;
 					}
-					break;
-
-				default:
-					if (!isoctal(scanner->ch))
-					{
-						break;
-					}
-					if (scanner_next(program, scanner) == -1)
-					{
-						return -1;
-					}
+				}
+				else
+				{
 					if (!isspace(scanner->ch))
 					{
+						__uint128_t number = 0;
 						while (!isspace(scanner->ch))
 						{
 							if (isoctal(scanner->ch))
 							{
+								char c = scanner->ch;
+
+								uint8_t value = (c - '0');
+								number = (number << 3) | (uint64_t) value;
+
 								if (scanner_next(program, scanner) == -1)
 								{
 									return -1;
@@ -1978,15 +2194,6 @@ scanner_advance(program_t *program, scanner_t *scanner)
 							}
 							else
 							{
-								if (scanner->ch == 'j')
-								{
-									if (scanner_next(program, scanner) == -1)
-									{
-										return -1;
-									}
-									break;
-								}
-								
 								if (isalpha(scanner->ch))
 								{
 									scanner_error(program, (position_t){
@@ -1994,11 +2201,56 @@ scanner_advance(program_t *program, scanner_t *scanner)
 										.offset = scanner->offset, 
 										.column = scanner->column - (scanner->offset - start_offset), 
 										.line = scanner->line,
-										.length = scanner->offset - start_offset}, "wrong octal number format");
+										.length = scanner->offset - start_offset}, "Valuation:wrong octal number format");
 									return -1;
 								}
 								break;
 							}
+						}
+
+						if (number > UINT64_MAX)
+						{
+							token_type = TOKEN_BIGINT;
+						}
+						else
+						if ((number > INT64_MAX) && (number <= UINT64_MAX))
+						{
+							token_type = TOKEN_UINT64;
+						}
+						else
+						if ((number > UINT32_MAX) && (number <= INT64_MAX))
+						{
+							token_type = TOKEN_INT64;
+						}
+						else
+						if ((number > INT32_MAX) && (number <= UINT32_MAX))
+						{
+							token_type = TOKEN_UINT32;
+						}
+						else
+						if ((number > UINT16_MAX) && (number <= INT32_MAX))
+						{
+							token_type = TOKEN_INT32;
+						}
+						else
+						if ((number > INT16_MAX) && (number <= UINT16_MAX))
+						{
+							token_type = TOKEN_UINT16;
+						}
+						else
+						if ((number > UINT8_MAX) && (number <= INT16_MAX))
+						{
+							token_type = TOKEN_INT16;
+						}
+						else
+						if ((number > INT8_MAX) && (number <= UINT8_MAX))
+						{
+							token_type = TOKEN_UINT8;
+						}
+						else
+						{
+							// int8
+							token_type = TOKEN_INT8;
 						}
 					}
 					else
@@ -2008,101 +2260,122 @@ scanner_advance(program_t *program, scanner_t *scanner)
 							.offset = scanner->offset, 
 							.column = scanner->column - (scanner->offset - start_offset), 
 							.line = scanner->line,
-							.length = scanner->offset - start_offset}, "octal literal has no digits");
+							.length = scanner->offset - start_offset}, "Valuation:octal literal has no digits");
 						return -1;
 					}
-					break;
 				}
 			}
 			else
 			{
-				if (scanner_next(program, scanner) == -1)
-				{
-					return -1;
-				}
+				double128_t number = 0, fact = 1;
+
 				int is_float = 0;
-				int is_exp = 0;
-				int sign = 0;
+				int sign = 1;
 				while (!isspace(scanner->ch))
 				{
-					if (isdigit(scanner->ch) || scanner->ch == '.' || tolower(scanner->ch) == 'e')
+					if (tolower(scanner->ch) == 'e')
 					{
-						if (tolower(scanner->ch) == 'e')
-						{
-							if (is_exp > 0)
-							{
-								scanner_error(program, (position_t){
-									.path = scanner->path, 
-									.offset = scanner->offset, 
-									.column = scanner->column - (scanner->offset - start_offset), 
-									.line = scanner->line,
-									.length = scanner->offset - start_offset}, "wrong exponent format");
-								return -1;
-							}
-							is_exp++;
-							if (scanner_next(program, scanner) == -1)
-							{
-								return -1;
-							}
-							if (scanner->ch == '+' || scanner->ch == '-')
-							{
-								if (sign > 0)
-								{
-									break;
-								}
-								if (scanner_next(program, scanner) == -1)
-								{
-									return -1;
-								}
-								sign++;
-							}
-							if (!isdigit(scanner->ch))
-							{
-								scanner_error(program, (position_t){
-									.path = scanner->path, 
-									.offset = scanner->offset, 
-									.column = scanner->column - (scanner->offset - start_offset), 
-									.line = scanner->line,
-									.length = scanner->offset - start_offset}, "exponent has no digits");
-								return -1;
-							}
-							continue;
-						}
-						if (scanner->ch == '.')
-						{
-							if (is_float > 0)
-							{
-								break;
-							}
-							int32_t ch;
-							ch = scanner_peek(program, scanner);
-							if (isdigit(ch))
-							{
-								is_float++;
-								if (scanner_next(program, scanner) == -1)
-								{
-									return -1;
-								}
-								continue;
-							}
-							break;
-						}
 						if (scanner_next(program, scanner) == -1)
 						{
 							return -1;
 						}
-					}
-					else
-					{
-						if (scanner->ch == 'j')
+
+						if (tolower(scanner->ch) == '+')
 						{
+							sign = 1;
 							if (scanner_next(program, scanner) == -1)
 							{
 								return -1;
 							}
+						}
+						else
+						if (tolower(scanner->ch) == '-')
+						{
+							sign = -1;
+							if (scanner_next(program, scanner) == -1)
+							{
+								return -1;
+							}
+						}
+						else
+						{
+							scanner_error(program, (position_t){
+								.path = scanner->path, 
+								.offset = scanner->offset, 
+								.column = scanner->column - (scanner->offset - start_offset), 
+								.line = scanner->line,
+								.length = scanner->offset - start_offset}, "Valuation:wrong number format");
+							return -1;
+						}
+
+						uint64_t sym = 0;
+						while (!isspace(scanner->ch))
+						{
+							if (isdigit(scanner->ch))
+							{
+								char c = scanner->ch;
+								uint8_t value = (c - '0');
+								sym = (sym * 10) + (uint64_t) value;
+
+								if (scanner_next(program, scanner) == -1)
+								{
+									return -1;
+								}
+							}
+							else
+							{
+								break;
+							}
+						}
+
+						for (uint64_t k = 0;k < sym;k++)
+						{
+							if (sign == 1)
+							{
+								number *= 10;
+							}
+							else
+							{
+								number /= 10;
+							}
+						}
+						break;
+					}
+					else
+					if (scanner->ch == '.')
+					{
+						if (is_float > 0)
+						{
 							break;
 						}
 
+						is_float += 1;
+						if (scanner_next(program, scanner) == -1)
+						{
+							return -1;
+						}
+						continue;;
+					}
+					else
+					if (isdigit(scanner->ch))
+					{
+						char c = scanner->ch;
+
+						uint8_t value = (c - '0');
+						if (is_float == 1)
+						{
+							fact /= 10;
+						}
+						number = (number * 10) + (uint64_t) value;
+
+						if (scanner_next(program, scanner) == -1)
+						{
+							return -1;
+						}
+						continue;
+					}
+					else
+					{
 						if (isalpha(scanner->ch))
 						{
 							scanner_error(program, (position_t){
@@ -2116,26 +2389,95 @@ scanner_advance(program_t *program, scanner_t *scanner)
 						break;
 					}
 				}
+
+				number = number * fact;
+
+				if (is_float == 1)
+				{
+					if (number > DBL_MAX)
+					{
+						token_type = TOKEN_BIGFLOAT;
+					}
+					else
+					if ((number > FLT_MAX) && (number <= DBL_MAX))
+					{
+						token_type = TOKEN_FLOAT64;
+					}
+					else
+					{
+						// float32
+						token_type = TOKEN_FLOAT32;
+					}
+				}
+				else
+				{
+					if (number > UINT64_MAX)
+					{
+						token_type = TOKEN_BIGINT;
+					}
+					else
+					if ((number > INT64_MAX) && (number <= UINT64_MAX))
+					{
+						token_type = TOKEN_UINT64;
+					}
+					else
+					if ((number > UINT32_MAX) && (number <= INT64_MAX))
+					{
+						token_type = TOKEN_INT64;
+					}
+					else
+					if ((number > INT32_MAX) && (number <= UINT32_MAX))
+					{
+						token_type = TOKEN_UINT32;
+					}
+					else
+					if ((number > UINT16_MAX) && (number <= INT32_MAX))
+					{
+						token_type = TOKEN_INT32;
+					}
+					else
+					if ((number > INT16_MAX) && (number <= UINT16_MAX))
+					{
+						token_type = TOKEN_UINT16;
+					}
+					else
+					if ((number > UINT8_MAX) && (number <= INT16_MAX))
+					{
+						token_type = TOKEN_INT16;
+					}
+					else
+					if ((number > INT8_MAX) && (number <= UINT8_MAX))
+					{
+						token_type = TOKEN_UINT8;
+					}
+					else
+					{
+						// int8
+						token_type = TOKEN_INT8;
+					}
+				}
 			}
 
 			char *data;
 			if (!(data = malloc(sizeof(char) * (scanner->offset - start_offset))))
 			{
-				fprintf(stderr, "unable to allocted a block of %llu bytes", (scanner->offset - start_offset));
+				fprintf(stderr, "unable to allocted a block of %lu bytes", (scanner->offset - start_offset));
 				return -1;
 			}
 			strncpy(data, scanner->source + start_offset, scanner->offset - start_offset);
 			data[scanner->offset - start_offset] = '\0';
 
 			scanner_set_token(program, scanner, (token_t){
-																		 .type = TOKEN_NUMBER,
-																		 .value = data,
-																		 .position = {
-																				 .path = scanner->path,
-																				 .offset = scanner->offset,
-																				 .column = scanner->column - (scanner->offset - start_offset),
-																				 .line = scanner->line,
-																				 .length = scanner->offset - start_offset}});
+					.type = token_type,
+					.value = data,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset,
+							.column = scanner->column - (scanner->offset - start_offset),
+							.line = scanner->line,
+							.length = scanner->offset - start_offset
+						}
+					});
 			return 1;
 		}
 		else
@@ -2151,6 +2493,261 @@ scanner_advance(program_t *program, scanner_t *scanner)
 			}
 			uint32_t length = scanner->offset - start_offset;
 
+			if (strncmp(scanner->source + start_offset, "null", max(length, 4)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_NULL_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
+			if (strncmp(scanner->source + start_offset, "int8", max(length, 4)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_INT8_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
+			if (strncmp(scanner->source + start_offset, "int16", max(length, 5)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_INT16_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
+			if (strncmp(scanner->source + start_offset, "int32", max(length, 5)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_INT32_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
+			if (strncmp(scanner->source + start_offset, "int64", max(length, 5)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_INT64_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
+			if (strncmp(scanner->source + start_offset, "uint8", max(length, 5)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_UINT8_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
+			if (strncmp(scanner->source + start_offset, "uint16", max(length, 6)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_UINT16_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
+			if (strncmp(scanner->source + start_offset, "uint32", max(length, 6)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_UINT32_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
+			if (strncmp(scanner->source + start_offset, "uint64", max(length, 6)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_UINT64_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
+			if (strncmp(scanner->source + start_offset, "bigint", max(length, 6)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_BIGINT_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
+			if (strncmp(scanner->source + start_offset, "float32", max(length, 7)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_FLOAT32_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
+			if (strncmp(scanner->source + start_offset, "float64", max(length, 7)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_FLOAT64_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
+			if (strncmp(scanner->source + start_offset, "bigfloat", max(length, 8)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_BIGFLOAT_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
+			if (strncmp(scanner->source + start_offset, "char", max(length, 4)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_CHAR_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
+			if (strncmp(scanner->source + start_offset, "string", max(length, 6)) == 0)
+			{
+				scanner_set_token(program, scanner, (token_t){
+					.type = TOKEN_STRING_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
 			if (strncmp(scanner->source + start_offset, "for", max(length, 3)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2167,7 +2764,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "this", max(length, 4)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2184,7 +2781,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "self", max(length, 4)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2201,7 +2798,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "class", max(length, 5)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2218,7 +2815,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "extends", max(length, 7)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2235,7 +2832,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "static", max(length, 6)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2252,7 +2849,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "readonly", max(length, 8)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2269,7 +2866,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "reference", max(length, 9)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2286,7 +2883,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "override", max(length, 8)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2303,7 +2900,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "if", max(length, 2)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2320,7 +2917,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "else", max(length, 4)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2337,7 +2934,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "try", max(length, 3)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2371,7 +2968,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "throw", max(length, 5)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2388,7 +2985,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "break", max(length, 5)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2405,7 +3002,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "continue", max(length, 8)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2422,7 +3019,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "return", max(length, 6)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2456,7 +3053,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "typeof", max(length, 6)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2473,24 +3070,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
-			if (strncmp(scanner->source + start_offset, "null", max(length, 4)) == 0)
-			{
-				scanner_set_token(program, scanner, (token_t){
-					.type = TOKEN_NULL_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
-
-				return 1;
-			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "fun", max(length, 3)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2507,7 +3087,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "var", max(length, 3)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2541,7 +3121,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "using", max(length, 5)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){
@@ -2558,7 +3138,7 @@ scanner_advance(program_t *program, scanner_t *scanner)
 
 				return 1;
 			}
-			else 
+			else
 			if (strncmp(scanner->source + start_offset, "from", max(length, 4)) == 0)
 			{
 				scanner_set_token(program, scanner, (token_t){

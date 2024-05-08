@@ -19,11 +19,14 @@ typedef unsigned long 	ulong_t;
 typedef short int16_t;
 typedef int int32_t;
 //typedef long long int64_t;
+
+#ifndef _BITS_STDINT_UINTN_H
+#define _BITS_STDINT_UINTN_H 1
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
-
 typedef unsigned long long uint64_t;
+#endif
 
 #if defined(__arm__) || defined(__aarch64__) || defined(__linux__)
 #define _MAX_PATH 256

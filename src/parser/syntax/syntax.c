@@ -195,7 +195,21 @@ syntax_expected(program_t *program, syntax_t *syntax, int32_t type)
 	switch (syntax->token->type)
 	{
 	case TOKEN_ID:
-	case TOKEN_NUMBER:
+	case TOKEN_INT8:
+	case TOKEN_INT16:
+	case TOKEN_INT32:
+	case TOKEN_INT64:
+
+	case TOKEN_UINT8:
+	case TOKEN_UINT16:
+	case TOKEN_UINT32:
+	case TOKEN_UINT64:
+	case TOKEN_BIGINT:
+
+	case TOKEN_FLOAT32:
+	case TOKEN_FLOAT64:
+	case TOKEN_BIGFLOAT:
+
 	case TOKEN_CHAR:
 	case TOKEN_STRING:
 		sprintf(
@@ -295,8 +309,9 @@ syntax_id(program_t *program, syntax_t *syntax, node_t *parent)
 	return node2;
 }
 
+
 static node_t *
-syntax_number(program_t *program, syntax_t *syntax, node_t *parent)
+syntax_int8(program_t *program, syntax_t *syntax, node_t *parent)
 {
 	node_t *node = node_create(parent, syntax->token->position);
 	if (node == NULL)
@@ -304,19 +319,275 @@ syntax_number(program_t *program, syntax_t *syntax, node_t *parent)
 		return NULL;
 	}
 
-	node_t *node2 = node_make_number(node, syntax->token->value);
+	node_t *node2 = node_make_int8(node, syntax->token->value);
 	if (node2 == NULL)
 	{
 		return NULL;
 	}
 
-	if (syntax_match(program, syntax, TOKEN_NUMBER) == -1)
+	if (syntax_match(program, syntax, TOKEN_INT8) == -1)
 	{
 		return NULL;
 	}
 
 	return node2;
 }
+
+static node_t *
+syntax_int16(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_int16(node, syntax->token->value);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_INT16) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_int32(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_int32(node, syntax->token->value);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_INT32) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_int64(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_int64(node, syntax->token->value);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_INT64) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+
+static node_t *
+syntax_uint8(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_uint8(node, syntax->token->value);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_UINT8) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_uint16(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_uint16(node, syntax->token->value);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_UINT16) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_uint32(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_uint32(node, syntax->token->value);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_UINT32) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_uint64(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_uint64(node, syntax->token->value);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_UINT64) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_bigint(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_bigint(node, syntax->token->value);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_BIGINT) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+
+static node_t *
+syntax_float32(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_float32(node, syntax->token->value);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_FLOAT32) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_float64(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_float64(node, syntax->token->value);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_FLOAT64) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_bigfloat(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_bigfloat(node, syntax->token->value);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_BIGFLOAT) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
 
 static node_t *
 syntax_char(program_t *program, syntax_t *syntax, node_t *parent)
@@ -364,28 +635,6 @@ syntax_string(program_t *program, syntax_t *syntax, node_t *parent)
 	return node2;
 }
 
-static node_t *
-syntax_fstring(program_t *program, syntax_t *syntax, node_t *parent)
-{
-	node_t *node = node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	node_t *node2 = node_make_fstring(node, syntax->token->value);
-	if (node2 == NULL)
-	{
-		return NULL;
-	}
-
-	if (syntax_match(program, syntax, TOKEN_FSTRING) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
 
 static node_t *
 syntax_null(program_t *program, syntax_t *syntax, node_t *parent)
@@ -409,6 +658,333 @@ syntax_null(program_t *program, syntax_t *syntax, node_t *parent)
 
 	return node2;
 }
+
+
+static node_t *
+syntax_kint8(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_kint8(node);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_INT8_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_kint16(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_kint16(node);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_INT16_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_kint32(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_kint32(node);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_INT32_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_kint64(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_kint64(node);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_INT64_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+
+static node_t *
+syntax_kuint8(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_kuint8(node);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_UINT8_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_kuint16(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_kuint16(node);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_UINT16_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_kuint32(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_kuint32(node);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_UINT32_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_kuint64(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_kuint64(node);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_UINT64_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_kbigint(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_kbigint(node);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_BIGINT_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+
+static node_t *
+syntax_kfloat32(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_kfloat32(node);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_FLOAT32_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_kfloat64(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_kfloat64(node);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_FLOAT64_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_kbigfloat(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_kbigfloat(node);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_BIGFLOAT_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+
+static node_t *
+syntax_kchar(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_kchar(node);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_CHAR_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
+static node_t *
+syntax_kstring(program_t *program, syntax_t *syntax, node_t *parent)
+{
+	node_t *node = node_create(parent, syntax->token->position);
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	node_t *node2 = node_make_kstring(node);
+	if (node2 == NULL)
+	{
+		return NULL;
+	}
+
+	if (syntax_match(program, syntax, TOKEN_STRING_KEYWORD) == -1)
+	{
+		return NULL;
+	}
+
+	return node2;
+}
+
 
 static node_t *
 syntax_this(program_t *program, syntax_t *syntax, node_t *parent)
@@ -665,7 +1241,7 @@ syntax_operator(program_t *program, syntax_t *syntax, node_t *parent)
 }
 
 static node_t *
-syntax_array(program_t *program, syntax_t *syntax, node_t *parent)
+syntax_tuple(program_t *program, syntax_t *syntax, node_t *parent)
 {
 	node_t *node = node_create(parent, syntax->token->position);
 	if (node == NULL)
@@ -715,7 +1291,7 @@ syntax_array(program_t *program, syntax_t *syntax, node_t *parent)
 		return NULL;
 	}
 
-	return node_make_array(node, items);
+	return node_make_tuple(node, items);
 }
 
 static node_t *
@@ -868,7 +1444,7 @@ syntax_lambda(program_t *program, syntax_t *syntax, node_t *parent)
 		}
 
 		generics = syntax_generics(program, syntax, node);
-		if (!generics)
+		if (generics == NULL)
 		{
 			return NULL;
 		}
@@ -895,7 +1471,7 @@ syntax_lambda(program_t *program, syntax_t *syntax, node_t *parent)
 		if (syntax->token->type != TOKEN_RPAREN)
 		{
 			parameters = syntax_parameters(program, syntax, node);
-			if (!parameters)
+			if (parameters == NULL)
 			{
 				return NULL;
 			}
@@ -907,36 +1483,17 @@ syntax_lambda(program_t *program, syntax_t *syntax, node_t *parent)
 		}
 	}
 
-	if (syntax->token->type == TOKEN_MINUS_GT)
+	if (syntax->token->type == TOKEN_COLON)
 	{
 		if (syntax_next(program, syntax) == -1)
 		{
 			return NULL;
 		}
 
-		node_t *result = syntax_postfix(program, syntax, node);
-		if (result == NULL)
+		node_t *return_type = syntax_postfix(program, syntax, node);
+		if (return_type == NULL)
 		{
 			return NULL;
-		}
-
-		return node_make_lambda(node, generics, parameters, NULL, result);
-	}
-	else
-	{
-		node_t *result = NULL;
-		if (syntax->token->type == TOKEN_COLON)
-		{
-			if (syntax_next(program, syntax) == -1)
-			{
-				return NULL;
-			}
-
-			result = syntax_postfix(program, syntax, node);
-			if (result == NULL)
-			{
-				return NULL;
-			}
 		}
 
 		node_t *body = NULL;
@@ -962,16 +1519,115 @@ syntax_lambda(program_t *program, syntax_t *syntax, node_t *parent)
 			}
 		}
 
-		return node_make_lambda(node, generics, parameters, body, result);
+		return node_make_lambda(node, generics, parameters, body, return_type);
+	}
+	
+	if (syntax->token->type == TOKEN_MINUS_GT)
+	{
+		if (syntax_next(program, syntax) == -1)
+		{
+			return NULL;
+		}
+
+		node_t *body = syntax_expression(program, syntax, node);
+		if (body == NULL)
+		{
+			return NULL;
+		}
+
+		return node_make_lambda(node, generics, parameters, body, NULL);
+	}
+
+	if (syntax->token->type == TOKEN_LBRACE)
+	{
+		if (syntax_next(program, syntax) == -1)
+		{
+			return NULL;
+		}
+
+		node_t *body = syntax_body(program, syntax, node);
+		if (body == NULL)
+		{
+			return NULL;
+		}
+
+		return node_make_lambda(node, generics, parameters, body, NULL);
+	}
+	else
+	{
+		return node_make_lambda(node, generics, parameters, NULL, NULL);
 	}
 }
 
 static node_t *
 syntax_primary(program_t *program, syntax_t *syntax, node_t *parent)
 {
-	if (syntax->token->type == TOKEN_NUMBER)
+	if (syntax->token->type == TOKEN_INT8)
 	{
-		return syntax_number(program, syntax, parent);
+		return syntax_int8(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_INT16)
+	{
+		return syntax_int16(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_INT32)
+	{
+		return syntax_int32(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_INT64)
+	{
+		return syntax_int64(program, syntax, parent);
+	}
+	else 
+
+	if (syntax->token->type == TOKEN_UINT8)
+	{
+		return syntax_uint8(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_UINT16)
+	{
+		return syntax_uint16(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_UINT32)
+	{
+		return syntax_uint32(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_UINT64)
+	{
+		return syntax_uint64(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_BIGINT)
+	{
+		return syntax_bigint(program, syntax, parent);
+	}
+	else 
+
+	if (syntax->token->type == TOKEN_FLOAT32)
+	{
+		return syntax_float32(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_FLOAT64)
+	{
+		return syntax_float64(program, syntax, parent);
+	}
+	else
+	if (syntax->token->type == TOKEN_BIGFLOAT)
+	{
+		return syntax_bigfloat(program, syntax, parent);
+	}
+	else
+
+	if (syntax->token->type == TOKEN_CHAR)
+	{
+		return syntax_char(program, syntax, parent);
 	}
 	else 
 	if (syntax->token->type == TOKEN_STRING)
@@ -979,19 +1635,84 @@ syntax_primary(program_t *program, syntax_t *syntax, node_t *parent)
 		return syntax_string(program, syntax, parent);
 	}
 	else
-	if (syntax->token->type == TOKEN_FSTRING)
-	{
-		return syntax_fstring(program, syntax, parent);
-	}
-	else 
-	if (syntax->token->type == TOKEN_CHAR)
-	{
-		return syntax_char(program, syntax, parent);
-	}
-	else 
+	
 	if (syntax->token->type == TOKEN_NULL_KEYWORD)
 	{
 		return syntax_null(program, syntax, parent);
+	}
+	else 
+
+	if (syntax->token->type == TOKEN_INT8_KEYWORD)
+	{
+		return syntax_kint8(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_INT16_KEYWORD)
+	{
+		return syntax_kint16(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_INT32_KEYWORD)
+	{
+		return syntax_kint32(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_INT64_KEYWORD)
+	{
+		return syntax_kint64(program, syntax, parent);
+	}
+	else
+
+	if (syntax->token->type == TOKEN_UINT8_KEYWORD)
+	{
+		return syntax_kuint8(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_UINT16_KEYWORD)
+	{
+		return syntax_kuint16(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_UINT32_KEYWORD)
+	{
+		return syntax_kuint32(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_UINT64_KEYWORD)
+	{
+		return syntax_kuint64(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_BIGINT_KEYWORD)
+	{
+		return syntax_kbigint(program, syntax, parent);
+	}
+	else
+
+	if (syntax->token->type == TOKEN_FLOAT32_KEYWORD)
+	{
+		return syntax_kfloat32(program, syntax, parent);
+	}
+	else
+	if (syntax->token->type == TOKEN_FLOAT64_KEYWORD)
+	{
+		return syntax_kfloat64(program, syntax, parent);
+	}
+	else
+	if (syntax->token->type == TOKEN_BIGFLOAT_KEYWORD)
+	{
+		return syntax_kbigfloat(program, syntax, parent);
+	}
+	else
+
+	if (syntax->token->type == TOKEN_CHAR_KEYWORD)
+	{
+		return syntax_kchar(program, syntax, parent);
+	}
+	else 
+	if (syntax->token->type == TOKEN_STRING_KEYWORD)
+	{
+		return syntax_kstring(program, syntax, parent);
 	}
 	else 
 	if (syntax->token->type == TOKEN_THIS_KEYWORD)
@@ -1006,7 +1727,7 @@ syntax_primary(program_t *program, syntax_t *syntax, node_t *parent)
 	else 
 	if (syntax->token->type == TOKEN_LBRACKET)
 	{
-		return syntax_array(program, syntax, parent);
+		return syntax_tuple(program, syntax, parent);
 	}
 	else 
 	if (syntax->token->type == TOKEN_LBRACE)
@@ -2695,18 +3416,18 @@ syntax_for(program_t *program, syntax_t *syntax, node_t *parent)
 		goto region_condition;
 	}
 
-	int32_t use_readonly = 0;
-	if (syntax->token->type == TOKEN_READONLY_KEYWORD)
-	{
-		if (syntax_next(program, syntax) == -1)
-		{
-			return NULL;
-		}
-		use_readonly = 1;
-	}
-
 	while (true)
 	{
+		int32_t use_readonly = 0;
+		if (syntax->token->type == TOKEN_READONLY_KEYWORD)
+		{
+			if (syntax_next(program, syntax) == -1)
+			{
+				return NULL;
+			}
+			use_readonly = 1;
+		}
+
 		node_t *node2 = NULL;
 		if (use_readonly || (syntax->token->type == TOKEN_VAR_KEYWORD))
 		{
@@ -2725,11 +3446,6 @@ syntax_for(program_t *program, syntax_t *syntax, node_t *parent)
 		if (!list_rpush(initializer, node2))
 		{
 			return NULL;
-		}
-
-		if (use_readonly)
-		{
-			goto region_forin;
 		}
 
 		if (syntax->token->type != TOKEN_COMMA)
@@ -2840,40 +3556,6 @@ syntax_for(program_t *program, syntax_t *syntax, node_t *parent)
 	}
 
 	return node_make_for(node, key, initializer_block, condition, incrementor_block, body);
-
-	region_forin:
-	if (syntax_match(program, syntax, TOKEN_COLON) == -1)
-	{
-		return NULL;
-	}
-
-	node_t *iterator = syntax_expression(program, syntax, node);
-	if (!iterator)
-	{
-		return NULL;
-	}
-
-	if (syntax_match(program, syntax, TOKEN_RPAREN) == -1)
-	{
-		return NULL;
-	}
-
-	syntax->loop_depth += 1;
-
-	body = syntax_body(program, syntax, node);
-	if (body == NULL)
-	{
-		return NULL;
-	}
-
-	syntax->loop_depth -= 1;
-	initializer_block = node_make_initializer(node, initializer);
-	if (initializer_block == NULL)
-	{
-		return NULL;
-	}
-
-	return node_make_forin(node, key, initializer_block, iterator, body);
 }
 
 static node_t *
@@ -3339,7 +4021,16 @@ syntax_parameter(program_t *program, syntax_t *syntax, node_t *parent)
 
 	if (syntax->token->type == TOKEN_STAR)
 	{
-		flag |= SYNTAX_MODIFIER_STAR;
+		flag |= SYNTAX_MODIFIER_KARG;
+		if (syntax_next(program, syntax) == -1)
+		{
+			return NULL;
+		}
+	}
+	else
+	if (syntax->token->type == TOKEN_POWER)
+	{
+		flag |= SYNTAX_MODIFIER_KWARG;
 		if (syntax_next(program, syntax) == -1)
 		{
 			return NULL;

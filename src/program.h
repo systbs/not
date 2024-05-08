@@ -18,6 +18,9 @@ typedef struct program {
     char *out_file;
     FILE *out;
 
+    uint64_t varcnt;
+    list_t *repository_varcnt;
+
     node_t *main;
 
     list_t *errors;

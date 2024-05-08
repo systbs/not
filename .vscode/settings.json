@@ -44,7 +44,12 @@
         "text2": "c",
         "text3": "c",
         "ctype.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "limits.h": "c",
+        "float.h": "c",
+        "stdint.h": "c",
+        "stdint-gcc.h": "c",
+        "math.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

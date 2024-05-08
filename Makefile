@@ -1,7 +1,7 @@
 VERSION := 0.0
 
 CC      :=  gcc
-CFLAGS  := -pedantic -Wall -Wextra -Wno-unused-parameter
+CFLAGS  := -Wall -Wextra -Wno-unused-parameter
 LDFLAGS := -lm
 
 BUILDDIR := build
@@ -26,7 +26,7 @@ else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
 		AR=gcc-ar
-		CFLAGS += -DLINUX -D_XOPEN_SOURCE=700 -D_GNU_SOURCE
+		CFLAGS += -DLINUX -D_XOPEN_SOURCE=700 -D_GNU_SOURCE 
 		LDFLAGS += -Wl,-rpath=./
 	endif
 	ifeq ($(UNAME_S),Darwin)
@@ -53,7 +53,7 @@ OBJECTS := $(addprefix $(BUILDDIR)/,$(SOURCES:$(SOURCEDIR)/%.c=%.o))
 
 $(BINARY): $(OBJECTS)
 	@mkdir -p $(@D)
-	@$(CC) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o $@
 	@echo CC LINK $@
 
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
