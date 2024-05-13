@@ -10,6 +10,7 @@
 
 #include "../../types/types.h"
 #include "../../container/list.h"
+#include "../../container/stack.h"
 #include "../../token/position.h"
 #include "../../token/token.h"
 #include "../../program.h"
@@ -19,14 +20,14 @@
 #include "../../utils/path.h"
 #include "../syntax/syntax.h"
 #include "../error.h"
+#include "../opcode.h"
 #include "semantic.h"
 
 error_t *
 semantic_error(program_t *program, node_t *node, const char *format, ...)
 {
-	char *message;
-	message = malloc(1024);
-	if (!message)
+	char *message = malloc(1024);
+	if (message == NULL)
 	{
 		return NULL;
 	}
@@ -40,7 +41,7 @@ semantic_error(program_t *program, node_t *node, const char *format, ...)
 	}
 
 	error_t *error = error_create(node->position, message);
-	if (!error)
+	if (error == NULL)
 	{
 		return NULL;
 	}
@@ -821,6 +822,15 @@ semantic_for(program_t *program, node_t *node, uint64_t flag)
         }
     }
 
+    if (for1->body != NULL)
+    {
+        int32_t r2 = semantic_body(program, for1->body, flag);
+        if (r2 == -1)
+        {
+            return -1;
+        }
+    }
+
     if (for1->incrementor != NULL)
     {
         node_t *node1 = for1->incrementor;
@@ -830,20 +840,11 @@ semantic_for(program_t *program, node_t *node, uint64_t flag)
         for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
         {
             node_t *item1 = (node_t *)a1->value;
-            int32_t r1 = semantic_assign(program, item1, SEMANTIC_FLAG_NONE);
-            if (r1 == -1)
+            int32_t r2 = semantic_assign(program, item1, SEMANTIC_FLAG_NONE);
+            if (r2 == -1)
             {
                 return -1;
             }
-        }
-    }
-
-    if (for1->body != NULL)
-    {
-        int32_t r1 = semantic_body(program, for1->body, flag);
-        if (r1 == -1)
-        {
-            return -1;
         }
     }
 
@@ -1058,6 +1059,19 @@ semantic_parameter(program_t *program, node_t *node, uint64_t flag)
 
                         semantic_error(program, parameter1->key, "Typing:'%s' has an instance of type '%s'\n\tInternal:%s-%u",
                             key_string1->value, "tuple", __FILE__, __LINE__);
+                        return -1;
+                    }
+                }
+                else
+                if (item1->kind == NODE_KIND_ARRAY)
+                {
+                    if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
+                    {
+                        node_t *key1 = parameter1->key;
+                        node_basic_t *key_string1 = key1->value;
+
+                        semantic_error(program, parameter1->key, "Typing:'%s' has an instance of type '%s'\n\tInternal:%s-%u",
+                            key_string1->value, "array", __FILE__, __LINE__);
                         return -1;
                     }
                 }
@@ -1329,6 +1343,93 @@ semantic_generic(program_t *program, node_t *node, uint64_t flag)
                     }
                 }
                 else
+                if (item1->kind == NODE_KIND_OBJECT)
+                {
+                    if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
+                    {
+                        node_t *key1 = generic1->key;
+                        node_basic_t *key_string1 = key1->value;
+
+                        semantic_error(program, generic1->key, "Typing:'%s' has an instance of type '%s'\n\tInternal:%s-%u",
+                            key_string1->value, "object", __FILE__, __LINE__);
+                        return -1;
+                    }
+                }
+                else
+                if (item1->kind == NODE_KIND_TUPLE)
+                {
+                    if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
+                    {
+                        node_t *key1 = generic1->key;
+                        node_basic_t *key_string1 = key1->value;
+
+                        semantic_error(program, generic1->key, "Typing:'%s' has an instance of type '%s'\n\tInternal:%s-%u",
+                            key_string1->value, "tuple", __FILE__, __LINE__);
+                        return -1;
+                    }
+                }
+                else
+                if (item1->kind == NODE_KIND_ARRAY)
+                {
+                    if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
+                    {
+                        node_t *key1 = generic1->key;
+                        node_basic_t *key_string1 = key1->value;
+
+                        semantic_error(program, generic1->key, "Typing:'%s' has an instance of type '%s'\n\tInternal:%s-%u",
+                            key_string1->value, "array", __FILE__, __LINE__);
+                        return -1;
+                    }
+                }
+                else
+                if (item1->kind == NODE_KIND_KINT8)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KINT16)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KINT32)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KINT64)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT8)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT16)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT32)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KUINT64)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KBIGINT)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KFLOAT32)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KFLOAT64)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KBIGFLOAT)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KCHAR)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KSTRING)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KCHAR)
+                {}
+                else
+                if (item1->kind == NODE_KIND_KSTRING)
+                {}
+                else
                 {
                     node_t *key1 = generic1->key;
                     node_basic_t *key_string1 = key1->value;
@@ -1427,6 +1528,75 @@ semantic_try(program_t *program, node_t *node, uint64_t flag)
             {
                 return -1;
             }
+        }
+    }
+
+	return 1;
+}
+
+static int32_t
+semantic_entity(program_t *program, node_t *node, uint64_t flag)
+{
+    node_entity_t *entity1 = (node_entity_t *)node->value;
+
+    node_t *sub1 = node;
+    node_t *current1 = node->parent;
+    while (current1 != NULL)
+    {
+        if (current1->kind == NODE_KIND_SET)
+        {
+            node_block_t *block1 = (node_block_t *)current1->value;
+
+            ilist_t *a1;
+            for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
+            {
+                node_t *item1 = (node_t *)a1->value;
+                if (item1->id == sub1->id)
+                {
+                    break;
+                }
+
+                if (item1->kind == NODE_KIND_ENTITY)
+                {
+                    node_entity_t *entity2 = (node_entity_t *)item1->value;
+                    if (semantic_idcmp(entity1->key, entity2->key) == 1)
+                    {
+                        node_t *node1 = entity1->key;
+                        node_basic_t *basic1 = (node_basic_t *)node1->value;
+
+                        semantic_error(program, entity1->key, "Naming:'%s' already defined, previous in (%s-%lld:%lld)\n\tInternal:%s-%u",
+                            basic1->value, entity2->key->position.path, entity2->key->position.line, entity2->key->position.column);
+                        return -1;
+                    }
+                }
+            }
+            
+            break;
+        }
+        else
+        {
+            sub1 = current1;
+            current1 = current1->parent;
+            continue;
+        }
+    }
+
+    return 1;
+}
+
+static int32_t
+semantic_set(program_t *program, node_t *node, uint64_t flag)
+{
+    node_block_t *block1 = (node_block_t *)node->value;
+
+    ilist_t *a1;
+    for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
+    {
+        node_t *item1 = (node_t *)a1->value;
+        int32_t r1 = semantic_entity(program, item1, flag);
+        if (r1 == -1)
+        {
+            return -1;
         }
     }
 
@@ -1999,6 +2169,19 @@ semantic_var(program_t *program, node_t *node, uint64_t flag)
                     }
                 }
                 else
+                if (item1->kind == NODE_KIND_ARRAY)
+                {
+                    if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
+                    {
+                        node_t *key1 = var1->key;
+                        node_basic_t *key_string1 = key1->value;
+
+                        semantic_error(program, var1->key, "Typing:'%s' has an instance of type '%s'\n\tInternal:%s-%u",
+                            key_string1->value, "array", __FILE__, __LINE__);
+                        return -1;
+                    }
+                }
+                else
                 if (item1->kind == NODE_KIND_KINT8)
                 {}
                 else
@@ -2063,6 +2246,15 @@ semantic_var(program_t *program, node_t *node, uint64_t flag)
         }
         
         list_destroy(response1);
+    }
+
+    if (var1->key->kind == NODE_KIND_SET)
+    {
+        int32_t r1 = semantic_set(program, var1->key, flag);
+        if (r1 == -1)
+        {
+            return -1;
+        }
     }
 
 	return 1;
@@ -2176,9 +2368,10 @@ semantic_statement(program_t *program, node_t *node, uint64_t flag)
 static int32_t
 semantic_body(program_t *program, node_t *node, uint64_t flag)
 {
-    node_block_t *block1 = (node_block_t *)node->value;
+    node_body_t *body1 = (node_body_t *)node->value;
+
     ilist_t *a1;
-    for (a1 = block1->list->begin;a1 != block1->list->end;a1 = a1->next)
+    for (a1 = body1->list->begin;a1 != body1->list->end;a1 = a1->next)
     {
         node_t *item = (node_t *)a1->value;
         int32_t result = semantic_statement(program, item, flag);
@@ -2744,6 +2937,19 @@ semantic_property(program_t *program, node_t *node, uint64_t flag)
 
                         semantic_error(program, property1->key, "Typing:'%s' has an instance of type '%s'\n\tInternal:%s-%u",
                             key_string1->value, "tuple", __FILE__, __LINE__);
+                        return -1;
+                    }
+                }
+                else
+                if (item1->kind == NODE_KIND_ARRAY)
+                {
+                    if ((item1->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
+                    {
+                        node_t *key1 = property1->key;
+                        node_basic_t *key_string1 = key1->value;
+
+                        semantic_error(program, property1->key, "Typing:'%s' has an instance of type '%s'\n\tInternal:%s-%u",
+                            key_string1->value, "array", __FILE__, __LINE__);
                         return -1;
                     }
                 }

@@ -5,6 +5,7 @@
 
 #include "../../types/types.h"
 #include "../../container/list.h"
+#include "../../container/stack.h"
 #include "../../token/position.h"
 #include "../../token/token.h"
 #include "../../program.h"
@@ -1998,16 +1999,14 @@ syntax_postfix(program_t *program, syntax_t *syntax, node_t *parent)
 				return NULL;
 			}
 
-			if (syntax->token->type == TOKEN_RBRACKET)
+			node_t *arguments = NULL;
+			if (syntax->token->type != TOKEN_RBRACKET)
 			{
-				syntax_error(program, syntax->token->position, "empty array");
-				return NULL;
-			}
-
-			node_t *arguments = syntax_arguments(program, syntax, node);
-			if (arguments == NULL)
-			{
-				return NULL;
+				arguments = syntax_arguments(program, syntax, node);
+				if (arguments == NULL)
+				{
+					return NULL;
+				}
 			}
 
 			if (syntax_match(program, syntax, TOKEN_RBRACKET) == -1)
@@ -2015,7 +2014,7 @@ syntax_postfix(program_t *program, syntax_t *syntax, node_t *parent)
 				return NULL;
 			}
 
-			node2 = node_make_item(node, node2, arguments);
+			node2 = node_make_array(node, node2, arguments);
 			continue;
 		}
 		else
@@ -3778,10 +3777,14 @@ syntax_return(program_t *program, syntax_t *syntax, node_t *parent)
 		return NULL;
 	}
 
-	node_t *value = syntax_expression(program, syntax, node);
-	if (value == NULL)
+	node_t *value = NULL;
+	if (syntax->token->type != TOKEN_SEMICOLON)
 	{
-		return NULL;
+		value = syntax_expression(program, syntax, node);
+		if (value == NULL)
+		{
+			return NULL;
+		}
 	}
 
 	return node_make_return(node, value);

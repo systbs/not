@@ -2,7 +2,7 @@
 using * from "~/lib/types/primary.q";
 using Array<T>: Array<T>, Dictionary<T, V>: Dictionary<T, V>, Set<V>:Set<V> from "~/lib/types/container.q";
 
-export class A 
+export class A
 {
 	prop1:Any;
 
@@ -10,7 +10,7 @@ export class A
 	{
 	}
 
-	export fun a2 () 
+	export fun a2 (a1:int32) 
     {
     }
 }
@@ -21,11 +21,11 @@ export class B extends (a:A)
 	{
 	}
 
-	export fun + (val : 0) : int64 
+	export fun + (val : int32) : int64 
     {
     }
 
-	export override fun a2 () 
+	export fun a2 (a1:float32) 
     {
     }
 }
@@ -35,7 +35,7 @@ export class System
 	prop1 = {a : 2};
 
 	@Main
-	export static fun Constructor(*args:Array<string>) : int64
+	export static fun Constructor(*args:string) : int64
 	{
 		var pow = args.where(fun(x) -> x < 10).select(fun(x) -> x ** 2);
 	}

@@ -6,6 +6,7 @@
 
 #include "../../types/types.h"
 #include "../../container/list.h"
+#include "../../container/stack.h"
 #include "../../token/position.h"
 #include "../../token/token.h"
 #include "../../program.h"

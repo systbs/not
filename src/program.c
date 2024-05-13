@@ -7,6 +7,7 @@
 #include "utils/utils.h"
 #include "utils/path.h"
 #include "container/list.h"
+#include "container/stack.h"
 #include "token/position.h"
 #include "token/token.h"
 #include "program.h"
@@ -162,7 +163,7 @@ program_report(program_t *program)
 }
 
 void_t
-program_resolve(program_t *program, char *path)
+program_putpath(program_t *program, char *path)
 {
 	if (path_is_root(path))
 	{
@@ -330,7 +331,15 @@ program_create()
 		return NULL;
 	}
 
-	program->repository = list_create();
+	program->repository_nvars = stack_create();
+	if(program->repository_nvars == NULL)
+	{
+		return NULL;
+	}
+
+	program->n_variables = 0;
+
+	program->repository = stack_create();
 	if(program->repository == NULL)
 	{
 		return NULL;

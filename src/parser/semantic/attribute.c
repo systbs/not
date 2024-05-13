@@ -6,6 +6,7 @@
 
 #include "../../types/types.h"
 #include "../../container/list.h"
+#include "../../container/stack.h"
 #include "../../token/position.h"
 #include "../../token/token.h"
 #include "../../program.h"
@@ -144,113 +145,74 @@ semantic_cselect(program_t *program, node_t *node, list_t *response, node_t *maj
             {
                 node_heritage_t *heritage1 = (node_heritage_t *)item1->value;
 
-                if (heritage1->value_update != NULL)
+                list_t *response1 = list_create();
+                if (response1 == NULL)
                 {
-                    node_t *value_update1 = heritage1->value_update;
-                    if (value_update1->kind == NODE_KIND_CLASS)
-                    {
-                        list_t *response1 = list_create();
-                        if (response1 == NULL)
-                        {
-                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                            return -1;
-                        }
+                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                    return -1;
+                }
 
-                        int32_t r1 = semantic_cselect(program, value_update1, response1, major, flag);
-                        if (r1 == -1)
-                        {
-                            return -1;
-                        }
-                        else
-                        {
-                            ilist_t *a3;
-                            for (a3 = response1->begin;a3 != response1->end;a3 = a3->next)
-                            {
-                                node_t *item2 = (node_t *)a2->value;
-
-                                ilist_t *il1 = list_rpush(response, item2);
-                                if (il1 == NULL)
-                                {
-                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
-                            }
-                        }
-
-                        list_destroy(response1);
-                    }
+                int32_t r1 = semantic_hresolve(program, item1, response1, flag);
+                if (r1 == -1)
+                {
+                    return -1;
                 }
                 else
                 {
-                    list_t *response1 = list_create();
-                    if (response1 == NULL)
-                    {
-                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                        return -1;
-                    }
+                    uint64_t cnt_response1 = 0;
 
-                    int32_t r1 = semantic_hresolve(program, item1, response1, flag);
-                    if (r1 == -1)
+                    ilist_t *a3;
+                    for (a3 = response1->begin;a3 != response1->end;a3 = a3->next)
                     {
-                        return -1;
-                    }
-                    else
-                    {
-                        uint64_t cnt_response1 = 0;
+                        cnt_response1 += 1;
 
-                        ilist_t *a3;
-                        for (a3 = response1->begin;a3 != response1->end;a3 = a3->next)
+                        node_t *item2 = (node_t *)a3->value;
+                        if (item2->kind == NODE_KIND_CLASS)
                         {
-                            cnt_response1 += 1;
-
-                            node_t *item2 = (node_t *)a3->value;
-                            if (item2->kind == NODE_KIND_CLASS)
+                            list_t *response2 = list_create();
+                            if (response2 == NULL)
                             {
-                                list_t *response2 = list_create();
-                                if (response2 == NULL)
-                                {
-                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                    return -1;
-                                }
+                                fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                return -1;
+                            }
 
-                                int32_t r2 = semantic_cselect(program, item2, response2, major, flag);
-                                if (r2 == -1)
+                            int32_t r2 = semantic_cselect(program, item2, response2, major, flag);
+                            if (r2 == -1)
+                            {
+                                return -1;
+                            }
+                            else
+                            {
+                                ilist_t *a4;
+                                for (a4 = response2->begin;a4 != response2->end;a4 = a4->next)
                                 {
-                                    return -1;
-                                }
-                                else
-                                {
-                                    ilist_t *a4;
-                                    for (a4 = response2->begin;a4 != response2->end;a4 = a4->next)
+                                    node_t *item3 = (node_t *)a4->value;
+
+                                    ilist_t *il1 = list_rpush(response, item3);
+                                    if (il1 == NULL)
                                     {
-                                        node_t *item3 = (node_t *)a4->value;
-
-                                        ilist_t *il1 = list_rpush(response, item3);
-                                        if (il1 == NULL)
-                                        {
-                                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                            return -1;
-                                        }
+                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                        return -1;
                                     }
                                 }
-
-                                list_destroy(response2);
                             }
-                        }
 
-                        if (cnt_response1 == 0)
-                        {
-                            node_t *key1 = heritage1->key;
-                            node_basic_t *key_string1 = key1->value;
-
-                            semantic_error(program, heritage1->key, "Reference: type of heritage '%s' not found\n\tInternal:%s-%u", 
-                                key_string1->value, __FILE__, __LINE__);
-                            return -1;
+                            list_destroy(response2);
                         }
                     }
 
-                    list_destroy(response1);
+                    if (cnt_response1 == 0)
+                    {
+                        node_t *key1 = heritage1->key;
+                        node_basic_t *key_string1 = key1->value;
+
+                        semantic_error(program, heritage1->key, "Reference: type of heritage '%s' not found\n\tInternal:%s-%u", 
+                            key_string1->value, __FILE__, __LINE__);
+                        return -1;
+                    }
                 }
+
+                list_destroy(response1);
             }
         }
     }

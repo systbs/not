@@ -6,6 +6,7 @@
 
 #include "../../types/types.h"
 #include "../../container/list.h"
+#include "../../container/stack.h"
 #include "../../token/position.h"
 #include "../../token/token.h"
 #include "../../program.h"
@@ -246,8 +247,6 @@ semantic_hresolve(program_t *program, node_t *node, list_t *response, uint64_t f
                                         return -1;
                                     }
                                     clone1->flag |= NODE_FLAG_INSTANCE;
-
-                                    heritage1->value_update = clone1;
 
                                     ilist_t *il1 = list_rpush(response, clone1);
                                     if (il1 == NULL)

@@ -1,6 +1,6 @@
 #pragma once
 #ifndef __SYNTAX_H__
-#define __SYNTAX_H__
+#define __SYNTAX_H__ 1
 
 typedef enum syntax_modifier 
 {

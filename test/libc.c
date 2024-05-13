@@ -285,3 +285,10 @@ printf(const char *format, ...)
 	vfprintf(1, format, arg);
 	va_end(arg);
 }
+
+void *
+node_make_class(void *parent, const char *name, uint64_t flag)
+{
+	printf(name);
+	return parent;
+}

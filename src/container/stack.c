@@ -3,17 +3,17 @@
 #include <stdlib.h>
 
 #include "../types/types.h"
-#include "list.h"
+#include "stack.h"
 
-list_t *
-list_apply(list_t *res)
+stack_t *
+stack_apply(stack_t *res)
 {
-  ilist_t *it = (ilist_t *)malloc(sizeof(ilist_t));
+  istack_t *it = (istack_t *)malloc(sizeof(istack_t));
   if(it == NULL) {
     return NULL;
   }
 
-  memset(it, 0, sizeof(ilist_t));
+  memset(it, 0, sizeof(istack_t));
 
   it->next = it->previous = it;
   res->end = res->begin = it;
@@ -21,41 +21,41 @@ list_apply(list_t *res)
   return res;
 }
 
-list_t *
-list_create()
+stack_t *
+stack_create()
 {
-  list_t *res = (list_t *)malloc(sizeof(*res));
+  stack_t *res = (stack_t *)malloc(sizeof(*res));
   if(!res) {
     return NULL;
   }
-  memset(res, 0, sizeof(list_t));
+  memset(res, 0, sizeof(stack_t));
 
-  return list_apply(res);
+  return stack_apply(res);
 }
 
 int32_t
-list_isempty(list_t *res)
+stack_isempty(stack_t *res)
 {
   return (res->begin == res->end);
 }
 
-ilist_t*
-list_next(ilist_t *current)
+istack_t*
+stack_next(istack_t *current)
 {
   return current->next;
 }
 
-ilist_t*
-list_previous(ilist_t *current)
+istack_t*
+stack_previous(istack_t *current)
 {
   return current->previous;
 }
 
 uint64_t
-list_count(list_t *res)
+stack_count(stack_t *res)
 {
   uint64_t cnt = 0;
-  ilist_t *b;
+  istack_t *b;
   for(b = res->begin; b && (b != res->end); b = b->next){
     cnt++;
   }
@@ -63,14 +63,14 @@ list_count(list_t *res)
 }
 
 int32_t
-list_query(list_t *res, int (*f)(ilist_t*))
+stack_query(stack_t *res, int (*f)(istack_t*))
 {
-  if (list_isempty(res))
+  if (stack_isempty(res))
   {
     return 0;
   }
 
-  ilist_t *b, *n;
+  istack_t *b, *n;
   for(b = res->begin; b && (b != res->end); b = n){
     n = b->next;
     if(!(*f)(b)){
@@ -82,14 +82,14 @@ list_query(list_t *res, int (*f)(ilist_t*))
 }
 
 void
-list_destroy(list_t *res)
+stack_destroy(stack_t *res)
 {
-  list_clear(res);
+  stack_clear(res);
   free (res);
 }
 
 void
-list_link(list_t *res, ilist_t *current, ilist_t *it)
+stack_link(stack_t *res, istack_t *current, istack_t *it)
 {
   it->next = current;
   it->previous = current->previous;
@@ -103,7 +103,7 @@ list_link(list_t *res, ilist_t *current, ilist_t *it)
 }
 
 void
-list_unlink(list_t *res, ilist_t* it)
+stack_unlink(stack_t *res, istack_t* it)
 {
   if (it == res->end)
   {
@@ -120,119 +120,119 @@ list_unlink(list_t *res, ilist_t* it)
 }
 
 void
-list_sort(list_t *res, int (*f)(ilist_t *, ilist_t *))
+stack_sort(stack_t *res, int (*f)(istack_t *, istack_t *))
 {
-  ilist_t *b, *n;
+  istack_t *b, *n;
   for(b = res->begin; b != res->end; b = n){
     n = b->next;
     if(n != res->end){
       if((*f)(b, n)){
-        list_unlink(res, b);
-        list_link(res, n, b);
+        stack_unlink(res, b);
+        stack_link(res, n, b);
       }
     }
   }
 }
 
 void
-list_unlinkby(list_t *res, int (*f)(ilist_t *))
+stack_unlinkby(stack_t *res, int (*f)(istack_t *))
 {
-  ilist_t *b, *n;
+  istack_t *b, *n;
   for(b = res->begin; b != res->end; b = n) {
     n = b->next;
     if ((*f)(b)) {
-      list_unlink(res, b);
+      stack_unlink(res, b);
       break;
     }
   }
 }
 
 void
-list_clear(list_t *res)
+stack_clear(stack_t *res)
 {
-  ilist_t *b, *n;
+  istack_t *b, *n;
   for(b = res->begin; b != res->end; b = n){
     n = b->next;
-    list_unlink(res, b);
+    stack_unlink(res, b);
     free(b);
   }
 }
 
-ilist_t *
-list_rpop(list_t *res)
+istack_t *
+stack_rpop(stack_t *res)
 {
-	if(list_isempty(res)){
+	if(stack_isempty(res)){
 		return NULL;
 	}
-  ilist_t *it = res->end->previous;
-  list_unlink(res, it);
+  istack_t *it = res->end->previous;
+  stack_unlink(res, it);
   return it;
 }
 
-ilist_t *
-list_rpush(list_t *res, void *value)
+istack_t *
+stack_rpush(stack_t *res, int64_t value)
 {
-  ilist_t *it = (ilist_t *)malloc(sizeof(*it));
+  istack_t *it = (istack_t *)malloc(sizeof(*it));
   if(it == NULL) {
       return NULL;
   }
-  memset(it, 0, sizeof(ilist_t));
+  memset(it, 0, sizeof(istack_t));
 
   it->value = value;
 
-  list_link(res, res->end, it);
+  stack_link(res, res->end, it);
   return it;
 }
 
-ilist_t *
-list_lpop(list_t *res)
+istack_t *
+stack_lpop(stack_t *res)
 {
-  ilist_t *it = res->begin;
-  list_unlink(res, it);
+  istack_t *it = res->begin;
+  stack_unlink(res, it);
   return it;
 }
 
-ilist_t *
-list_lpush(list_t *res, void *value)
+istack_t *
+stack_lpush(stack_t *res, int64_t value)
 {
-  ilist_t *it = (ilist_t *)malloc(sizeof(*it));
+  istack_t *it = (istack_t *)malloc(sizeof(*it));
   if(it == NULL) {
     return NULL;
   }
-  memset(it, 0, sizeof(ilist_t));
+  memset(it, 0, sizeof(istack_t));
 
   it->value = value;
 
-  list_link(res, res->begin, it);
+  stack_link(res, res->begin, it);
   return it;
 }
 
-ilist_t *
-list_insert(list_t *res, ilist_t *current, void *value)
+istack_t *
+stack_insert(stack_t *res, istack_t *current, int64_t value)
 {
-  ilist_t *it = (ilist_t *)malloc(sizeof(*it));
+  istack_t *it = (istack_t *)malloc(sizeof(*it));
   if(it == NULL) {
       return NULL;
   }
-  memset(it, 0, sizeof(ilist_t));
+  memset(it, 0, sizeof(istack_t));
 
   it->value = value;
 
-  list_link(res, current, it);
+  stack_link(res, current, it);
   return it;
 }
 
 
-ilist_t *
-list_first(list_t *res)
+istack_t *
+stack_first(stack_t *res)
 {
   if(res->begin != 0)
     return res->begin;
   return NULL;
 }
 
-ilist_t *
-list_last(list_t *res)
+istack_t *
+stack_last(stack_t *res)
 {
   if(res->end->previous != 0 && res->end->previous != res->end)
     return res->end->previous;

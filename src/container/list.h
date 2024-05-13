@@ -47,7 +47,7 @@ void
 list_sort(list_t *res, int (*f)(ilist_t *, ilist_t *));
 
 void
-list_unlink_by(list_t *res, int (*f)(ilist_t *));
+list_unlinkby(list_t *res, int (*f)(ilist_t *));
 
 void
 list_clear(list_t *res);
@@ -63,6 +63,9 @@ list_lpop(list_t *res);
 
 ilist_t *
 list_lpush(list_t *res, void *value);
+
+ilist_t *
+list_insert(list_t *res, ilist_t *current, void *value);
 
 ilist_t *
 list_first(list_t *res);

@@ -8,6 +8,7 @@
 #include "utils/utils.h"
 #include "utils/path.h"
 #include "container/list.h"
+#include "container/stack.h"
 #include "token/position.h"
 #include "token/token.h"
 #include "program.h"
@@ -41,7 +42,7 @@ main(int argc, char **argv)
 		if (strcmp(argv[i], "-f") == 0)
 		{
 			i += 1;
-			program_resolve(program, argv[i]);
+			program_putpath(program, argv[i]);
 		}
 		else
 		if (strcmp(argv[i], "-o") == 0)
@@ -59,7 +60,7 @@ main(int argc, char **argv)
 		"type qalam -h for more help.\n");
 		return 0;
 	}
-	
+
 	node_t *node = program_load(program, program->base_file);
 	if(node == NULL)
 	{
@@ -70,16 +71,6 @@ main(int argc, char **argv)
 		return -1;
 	}
 
-	/* int32_t result2 = semantic_run(program, node);
-	if(result2 == -1)
-	{
-		if(list_count(program->errors) > 0)
-		{
-			goto region_report;
-		}
-		return -1;
-	} */
-
 	return 0;
 
 	region_report:
@@ -87,3 +78,4 @@ main(int argc, char **argv)
 
 	return -1;
 }
+

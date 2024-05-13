@@ -9,12 +9,19 @@
 ;cvtsi2sd, cvtsi2ss, cvtsd2si, cvtsd2ss
 
 extern    fprintf
+extern      node_make_class
 
 global    _start
 
 section .text
 
 _start:  
+    mov     rdi, rax
+    mov     rsi, V1
+    mov     rdx, 2
+    call    node_make_class
+
+
 	xor 	rdi, rdi
 	mov		rax, 12
 	syscall
@@ -81,6 +88,9 @@ _start:
     cvtsd2si rax, xmm0
     ;movsd   rax, xmm0
 
+    lea rdi, [error_occurred]
+    call rdi
+
     ;rdi, rsi, rdx, rcx, r8, r9, qword [rsp + 8], qword [rsp + 16]
 
     ;mov     rdi, number
@@ -103,7 +113,8 @@ error_occurred:
     mov		rsi, msg                ; address of string to output
     mov		rdx, msglength          ; number of bytes
     syscall                         ; invoke operating system to do the write
-
+    ret
+    
 	mov		rax, 0x3C               ; system call for exit
     mov		rdi, -1                	; exit code -1
     syscall                         ; invoke operating system to exit
@@ -118,15 +129,49 @@ fputs:
     mov     rax, 0
     ret
 
+global      sbrk
+sbrk:
+    push    rdi
+    xor 	rdi, rdi
+	mov		rax, 12
+	syscall
+
+    cmp		rax, -1
+	je		sbrk_error
+	
+	mov		rdi, rax
+    pop     rbx
+	add		rdi, rbx
+	mov		rax, 12
+	syscall
+
+	cmp		rax, -1
+	je		sbrk_error
+    ret;
+
+sbrk_error:
+    mov		rdi, 0x1
+    mov		rsi, sbrk_error_msg 
+    call    fprintf
+    ret
+    
+	mov		rax, 0x3C
+    mov		rdi, -1
+    syscall
+
 section .bss
     number resb 50
 
 section .data
 	msg: db "Unable to allocate memory", 0xA
 	msglength: equ $ - msg
+
+    sbrk_error_msg: db "Unable to allocate memory", 0xA
+    
 	rows: equ 5
     flt2:	dq	4.3211234
     format: db "Hello %f %d World\n", 0
+    V1: db "VAR1", 0
 
 section .rodata
 section .comment

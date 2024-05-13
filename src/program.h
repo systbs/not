@@ -18,22 +18,22 @@ typedef struct program {
     char *out_file;
     FILE *out;
 
-    uint64_t varcnt;
-    list_t *repository_varcnt;
-
     node_t *main;
+
+    stack_t *repository_nvars;
+    int64_t n_variables;
+
+    stack_t *repository;
 
     list_t *errors;
     list_t *modules;
-    list_t *repository;
-    list_t *frame;
 } program_t;
 
 void_t
 program_report(program_t *program);
 
 void_t
-program_resolve(program_t *program, char *path);
+program_putpath(program_t *program, char *path);
 
 node_t *
 program_load(program_t *program, char *path);
@@ -43,5 +43,6 @@ program_outfile(program_t *program, char *path);
 
 program_t *
 program_create();
+
 
 #endif

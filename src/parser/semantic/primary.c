@@ -6,6 +6,7 @@
 
 #include "../../types/types.h"
 #include "../../container/list.h"
+#include "../../container/stack.h"
 #include "../../token/position.h"
 #include "../../token/token.h"
 #include "../../program.h"
@@ -481,154 +482,136 @@ semantic_select(program_t *program, node_t *base, node_t *name, list_t *response
                         continue;
                     }
 
-                    if (heritage3->value_update == NULL)
+                    list_t *response2 = list_create();
+                    if (response2 == NULL)
                     {
-                        list_t *response2 = list_create();
-                        if (response2 == NULL)
-                        {
-                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                            return -1;
-                        }
-                        
-                        int32_t r1 = semantic_resolve(program, heritage3->type->parent, heritage3->type, response2, SEMANTIC_FLAG_NONE);
-                        if (r1 == -1)
-                        {
-                            return -1;
-                        }
-                        else
-                        {
-                            uint64_t cnt_response2 = 0;
+                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                        return -1;
+                    }
+                    
+                    int32_t r1 = semantic_resolve(program, heritage3->type->parent, heritage3->type, response2, SEMANTIC_FLAG_NONE);
+                    if (r1 == -1)
+                    {
+                        return -1;
+                    }
+                    else
+                    {
+                        uint64_t cnt_response2 = 0;
 
-                            ilist_t *a3;
-                            for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                        ilist_t *a3;
+                        for (a3 = response2->begin;a3 != response2->end;a3 = a3->next)
+                        {
+                            cnt_response2 += 1;
+
+                            node_t *item3 = (node_t *)a3->value;
+                            if (item3->kind == NODE_KIND_CLASS)
                             {
-                                cnt_response2 += 1;
-
-                                node_t *item3 = (node_t *)a3->value;
-                                if (item3->kind == NODE_KIND_CLASS)
+                                if ((item3->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
                                 {
-                                    if ((item3->flag & NODE_FLAG_INSTANCE) == NODE_FLAG_INSTANCE)
-                                    {
-                                        semantic_error(program, heritage3->type, "Instance object, in confronting with (%s-%lld:%lld)",
-                                            item3->position.path, item3->position.line, item3->position.column);
-                                        return -1;
-                                    }
+                                    semantic_error(program, heritage3->type, "Instance object, in confronting with (%s-%lld:%lld)",
+                                        item3->position.path, item3->position.line, item3->position.column);
+                                    return -1;
+                                }
 
-                                    node_t *clone1 = node_clone(item3->parent, item3);
-                                    if (clone1 == NULL)
+                                node_t *clone1 = node_clone(item3->parent, item3);
+                                if (clone1 == NULL)
+                                {
+                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                    return -1;
+                                }
+                                clone1->flag |= NODE_FLAG_INSTANCE;
+
+                                int32_t r2 = semantic_select(program, clone1, name, response, origin_class, 1);
+                                if (r2 == -1)
+                                {
+                                    return -1;
+                                }
+                            }
+                            else
+                            if (item3->kind == NODE_KIND_GENERIC)
+                            {
+                                node_generic_t *generic1 = (node_generic_t *)item3->value;
+                                if (generic1->type != NULL)
+                                {
+                                    list_t *response3 = list_create();
+                                    if (response3 == NULL)
                                     {
                                         fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
                                         return -1;
                                     }
-                                    clone1->flag |= NODE_FLAG_INSTANCE;
 
-                                    heritage3->value_update = clone1;
-                                    int32_t r2 = semantic_select(program, clone1, name, response, origin_class, 1);
+                                    int32_t r2 = semantic_gresolve(program, item3, response3, SEMANTIC_FLAG_NONE);
                                     if (r2 == -1)
                                     {
                                         return -1;
                                     }
-                                }
-                                else
-                                if (item3->kind == NODE_KIND_GENERIC)
-                                {
-                                    node_generic_t *generic1 = (node_generic_t *)item3->value;
-                                    if (generic1->type != NULL)
+                                    else
                                     {
-                                        list_t *response3 = list_create();
-                                        if (response3 == NULL)
-                                        {
-                                            fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                            return -1;
-                                        }
+                                        uint64_t cnt_response3 = 0;
 
-                                        int32_t r2 = semantic_gresolve(program, item3, response3, SEMANTIC_FLAG_NONE);
-                                        if (r2 == -1)
+                                        ilist_t *a4;
+                                        for (a4 = response3->begin;a4 != response3->end;a4 = a4->next)
                                         {
-                                            return -1;
-                                        }
-                                        else
-                                        {
-                                            uint64_t cnt_response3 = 0;
+                                            cnt_response3 += 1;
 
-                                            ilist_t *a4;
-                                            for (a4 = response3->begin;a4 != response3->end;a4 = a4->next)
+                                            node_t *item4 = (node_t *)a4->value;
+
+                                            if (item4->kind == NODE_KIND_CLASS)
                                             {
-                                                cnt_response3 += 1;
-
-                                                node_t *item4 = (node_t *)a4->value;
-
-                                                if (item4->kind == NODE_KIND_CLASS)
+                                                node_t *clone1 = node_clone(item4->parent, item4);
+                                                if (clone1 == NULL)
                                                 {
-                                                    node_t *clone1 = node_clone(item4->parent, item4);
-                                                    if (clone1 == NULL)
-                                                    {
-                                                        fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
-                                                        return -1;
-                                                    }
-                                                    clone1->flag |= NODE_FLAG_INSTANCE;
+                                                    fprintf(stderr, "Internal:%s-%u\n\tUnable to allocate memory\n", __FILE__, __LINE__);
+                                                    return -1;
+                                                }
+                                                clone1->flag |= NODE_FLAG_INSTANCE;
 
-                                                    heritage3->value_update = clone1;
-
-                                                    int32_t r2 = semantic_select(program, clone1, name, response, origin_class, 1);
-                                                    if (r2 == -1)
-                                                    {
-                                                        return -1;
-                                                    }
+                                                int32_t r2 = semantic_select(program, clone1, name, response, origin_class, 1);
+                                                if (r2 == -1)
+                                                {
+                                                    return -1;
                                                 }
                                             }
-
-                                            if (cnt_response3 == 0)
-                                            {
-                                                node_t *node3 = generic1->key;
-                                                node_basic_t *basic1 = (node_basic_t *)node3->value;
-
-                                                semantic_error(program, generic1->key, "Reference:type of '%s' not found\n\tInternal:%s-%u", 
-                                                    basic1->value, __FILE__, __LINE__);
-                                                return -1;
-                                            }
                                         }
 
-                                        list_destroy(response3);
+                                        if (cnt_response3 == 0)
+                                        {
+                                            node_t *node3 = generic1->key;
+                                            node_basic_t *basic1 = (node_basic_t *)node3->value;
+
+                                            semantic_error(program, generic1->key, "Reference:type of '%s' not found\n\tInternal:%s-%u", 
+                                                basic1->value, __FILE__, __LINE__);
+                                            return -1;
+                                        }
                                     }
-                                }
-                                else
-                                {
-                                    node_t *node3 = heritage3->key;
-                                    node_basic_t *basic1 = (node_basic_t *)node3->value;
 
-                                    semantic_error(program, heritage3->type, "Typing:type of '%s' not valid\n\tInternal:%s-%u",
-                                        basic1->value, __FILE__, __LINE__);
-                                    return -1;
+                                    list_destroy(response3);
                                 }
-                                break;
                             }
-
-                            if (cnt_response2 == 0)
+                            else
                             {
                                 node_t *node3 = heritage3->key;
                                 node_basic_t *basic1 = (node_basic_t *)node3->value;
 
-                                semantic_error(program, heritage3->type, "Reference:type of '%s' not found\n\tInternal:%s-%u", 
+                                semantic_error(program, heritage3->type, "Typing:type of '%s' not valid\n\tInternal:%s-%u",
                                     basic1->value, __FILE__, __LINE__);
                                 return -1;
                             }
+                            break;
                         }
 
-                        list_destroy(response2);
-                    }
-                    else
-                    {
-                        node_t *value_update1 = heritage3->value_update;
-                        if (value_update1->kind == NODE_KIND_CLASS)
+                        if (cnt_response2 == 0)
                         {
-                            int32_t r2 = semantic_select(program, value_update1, name, response, origin_class, 1);
-                            if (r2 == -1)
-                            {
-                                return -1;
-                            }
+                            node_t *node3 = heritage3->key;
+                            node_basic_t *basic1 = (node_basic_t *)node3->value;
+
+                            semantic_error(program, heritage3->type, "Reference:type of '%s' not found\n\tInternal:%s-%u", 
+                                basic1->value, __FILE__, __LINE__);
+                            return -1;
                         }
                     }
+
+                    list_destroy(response2);
                 }
             }
         }

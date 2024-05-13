@@ -88,9 +88,9 @@ int32_t
 semantic_call(program_t *program, node_t *base, node_t *node, list_t *response, uint64_t flag);
 
 
-// item.c
+// array.c
 int32_t
-semantic_item(program_t *program, node_t *base, node_t *node, list_t *response, uint64_t flag);
+semantic_array(program_t *program, node_t *base, node_t *node, list_t *response, uint64_t flag);
 
 
 // expression.c

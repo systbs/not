@@ -9,6 +9,7 @@
 #include "../types/types.h"
 #include "../utils/utils.h"
 #include "../container/list.h"
+#include "../container/stack.h"
 #include "../token/position.h"
 #include "../token/token.h"
 #include "../parser/error.h"
