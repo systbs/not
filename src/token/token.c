@@ -69,20 +69,7 @@ const char * const symbols[] = {
 
   [TOKEN_ID]                = "identifier",
 
-  [TOKEN_INT8]              = "int8",
-  [TOKEN_INT16]             = "int16",
-  [TOKEN_INT32]             = "int32",
-  [TOKEN_INT64]             = "int64",
-  [TOKEN_UINT8]             = "uint8",
-  [TOKEN_UINT16]            = "uint16",
-  [TOKEN_UINT32]            = "uint32",
-  [TOKEN_UINT64]            = "uint64",
-  [TOKEN_BIGINT]            = "bigint",
-
-  [TOKEN_FLOAT32]           = "float32",
-  [TOKEN_FLOAT64]           = "float64",
-  [TOKEN_BIGFLOAT]          = "bigfloat",
-
+  [TOKEN_NUMBER]            = "number",
   [TOKEN_CHAR]              = "char",
   [TOKEN_STRING]	          = "string",
 
@@ -133,6 +120,6 @@ const char * const symbols[] = {
 
 
 const char *
-token_get_name(int32_t tp){
+SyToken_GetName(int32_t tp){
     return symbols[tp];
 }

@@ -31,30 +31,30 @@ enum path_style_type path_style = PATH_STYLE_UNIX;
 #define windows_separator '\\'
 #define unix_separator '/'
 
-typedef struct path_segment {
+typedef struct SyPath_Segment {
     const char *path;
     const char *segments;
     const char *begin;
     const char *end;
     size_t size;
-} path_segment_t;
+} SyPath_Segment_t;
 
-typedef enum path_segment_type
+typedef enum SyPath_SegmentType
 {
     PATH_NORMAL,
     PATH_CURRENT,
     PATH_BACK
-} path_segment_type_t;
+} SyPath_SegmentType_t;
 
-typedef struct path_segment_joined
+typedef struct SyPath_SegmentJoined
 {
-    path_segment_t segment;
+    SyPath_Segment_t segment;
     const char **paths;
     size_t path_index;
-} path_segment_joined_t;
+} SyPath_SegmentJoined_t;
 
 int32_t 
-path_is_directory(const char *path)
+SyPath_IsDirectory(const char *path)
 {
     struct stat st;
 
@@ -65,7 +65,7 @@ path_is_directory(const char *path)
 }
 
 static int32_t
-path_is_separator(const char *path)
+SyPath_IsSeparator(const char *path)
 {
     if((*path == windows_separator) || (*path == unix_separator))
     {
@@ -75,9 +75,9 @@ path_is_separator(const char *path)
 }
 
 static const char *
-path_find_next_stop(const char *path)
+SyPath_FindNextStop(const char *path)
 {
-    while (*path != '\0' && !path_is_separator(path)) {
+    while (*path != '\0' && !SyPath_IsSeparator(path)) {
         ++path;
     }
 
@@ -85,14 +85,14 @@ path_find_next_stop(const char *path)
 }
 
 static const char *
-path_find_previous_stop(const char *begin, const char *c)
+SyPath_FindPreviousStop(const char *begin, const char *c)
 {
-    while (c > begin && !path_is_separator(c))
+    while (c > begin && !SyPath_IsSeparator(c))
     {
         --c;
     }
 
-    if (path_is_separator(c))
+    if (SyPath_IsSeparator(c))
     {
         return c + 1;
     }
@@ -103,7 +103,7 @@ path_find_previous_stop(const char *begin, const char *c)
 }
 
 static void
-path_get_root(const char *path, size_t *length)
+SyPath_GetRoot(const char *path, size_t *length)
 {
     const char *c;
     c = path;
@@ -114,10 +114,10 @@ path_get_root(const char *path, size_t *length)
     }
 
     // We have to verify whether this is a network path
-    if(path_is_separator(c))
+    if(SyPath_IsSeparator(c))
     {
         ++c;
-        if(!path_is_separator(c))
+        if(!SyPath_IsSeparator(c))
         {
             // Okey, this is not a network path
             *length = 1;
@@ -126,16 +126,16 @@ path_get_root(const char *path, size_t *length)
 
         // A device path is a path which starts with "\\." or "\\?"
         ++c;
-        if((*c == '.' || *c == '?') && path_is_separator(++c))
+        if((*c == '.' || *c == '?') && SyPath_IsSeparator(++c))
         {
             *length = 4;
             return;
         }
 
         // We will grab anything up to next stop, that will be the server name
-        c = path_find_next_stop(c);
+        c = SyPath_FindNextStop(c);
 
-        while(path_is_separator(c))
+        while(SyPath_IsSeparator(c))
         {
             if(*c == '\0')
             {
@@ -146,9 +146,9 @@ path_get_root(const char *path, size_t *length)
         }
 
         // We are now skipping the shared folder name
-        c = path_find_next_stop(c);
+        c = SyPath_FindNextStop(c);
 
-        if(path_is_separator(c))
+        if(SyPath_IsSeparator(c))
         {
             ++c;
         }
@@ -161,7 +161,7 @@ path_get_root(const char *path, size_t *length)
     {
         *length = 2;
 
-        if(path_is_separator(++c))
+        if(SyPath_IsSeparator(++c))
         {
             *length = 3;
         }
@@ -169,7 +169,7 @@ path_get_root(const char *path, size_t *length)
 }
 
 static int32_t 
-path_is_root_absolute(const char *path, size_t length)
+SyPath_IsRootAbsolute(const char *path, size_t length)
 {
   // This is definitely not absolute if there is no root.
   if (length == 0) {
@@ -178,25 +178,25 @@ path_is_root_absolute(const char *path, size_t length)
 
   // If there is a separator at the end of the root, we can safely consider this
   // to be an absolute path.
-  return path_is_separator(&path[length - 1]);
+  return SyPath_IsSeparator(&path[length - 1]);
 }
 
 int32_t
-path_is_absolute(const char *path)
+SyPath_IsAbsolute(const char *path)
 {
     size_t length;
-    path_get_root(path, &length);
-    return path_is_root_absolute(path, length);
+    SyPath_GetRoot(path, &length);
+    return SyPath_IsRootAbsolute(path, length);
 }
 
 int32_t
-path_is_relative(const char *path)
+SyPath_IsRelative(const char *path)
 {
-    return !path_is_absolute(path);
+    return !SyPath_IsAbsolute(path);
 }
 
-static path_segment_type_t
-path_get_segment_type(const path_segment_t *segment)
+static SyPath_SegmentType_t
+SyPath_GetSegmentType(const SyPath_Segment_t *segment)
 {
     if (strncmp(segment->begin, ".", segment->size) == 0)
     {
@@ -210,7 +210,7 @@ path_get_segment_type(const path_segment_t *segment)
 }
 
 static int32_t
-path_get_next_segment(path_segment_t *segment)
+SyPath_GetNextSegment(SyPath_Segment_t *segment)
 {
     const char *c;
 
@@ -220,12 +220,12 @@ path_get_next_segment(path_segment_t *segment)
         return 0;
     }
 
-    assert(path_is_separator(c));
+    assert(SyPath_IsSeparator(c));
     do
     {
         ++c;
     }
-    while (path_is_separator(c));
+    while (SyPath_IsSeparator(c));
 
     if (*c == '\0')
     {
@@ -234,7 +234,7 @@ path_get_next_segment(path_segment_t *segment)
 
     segment->begin = c;
 
-    c = path_find_next_stop(c);
+    c = SyPath_FindNextStop(c);
     segment->end = c;
     segment->size = (size_t)(c - segment->begin);
 
@@ -242,7 +242,7 @@ path_get_next_segment(path_segment_t *segment)
 }
 
 static int32_t 
-path_get_previous_segment(path_segment_t *segment)
+SyPath_GetPreviousSegment(SyPath_Segment_t *segment)
 {
     const char *c;
 
@@ -260,17 +260,17 @@ path_get_previous_segment(path_segment_t *segment)
             return 0;
         }
     }
-    while (path_is_separator(c));
+    while (SyPath_IsSeparator(c));
 
     segment->end = c + 1;
-    segment->begin = path_find_previous_stop(segment->segments, c);
+    segment->begin = SyPath_FindPreviousStop(segment->segments, c);
     segment->size = (size_t)(segment->end - segment->begin);
 
     return 1;
 }
 
 static int32_t 
-path_get_first_segment_without_root(const char *path, const char *segments, path_segment_t *segment)
+SyPath_GetFirstSegmentWithoutRoot(const char *path, const char *segments, SyPath_Segment_t *segment)
 {
     segment->path = path;
     segment->segments = segments;
@@ -283,7 +283,7 @@ path_get_first_segment_without_root(const char *path, const char *segments, path
         return 0;
     }
 
-    while (path_is_separator(segments))
+    while (SyPath_IsSeparator(segments))
     {
         ++segments;
         if (*segments == '\0')
@@ -294,7 +294,7 @@ path_get_first_segment_without_root(const char *path, const char *segments, path
 
     segment->begin = segments;
 
-    segments = path_find_next_stop(segments);
+    segments = SyPath_FindNextStop(segments);
 
     segment->size = (size_t)(segments - segment->begin);
     segment->end = segments;
@@ -303,26 +303,26 @@ path_get_first_segment_without_root(const char *path, const char *segments, path
 }
 
 static int32_t 
-path_get_first_segment(const char *path, path_segment_t *segment)
+SyPath_GetFirstSegment(const char *path, SyPath_Segment_t *segment)
 {
     size_t length;
     const char *segments;
 
-    path_get_root(path, &length);
+    SyPath_GetRoot(path, &length);
     segments = path + length;
 
-    return path_get_first_segment_without_root(path, segments, segment);
+    return SyPath_GetFirstSegmentWithoutRoot(path, segments, segment);
 }
 
 static int32_t 
-path_get_last_segment(const char *path, path_segment_t *segment)
+SyPath_GetLastSegment(const char *path, SyPath_Segment_t *segment)
 {
-    if (!path_get_first_segment(path, segment))
+    if (!SyPath_GetFirstSegment(path, segment))
     {
         return 0;
     }
 
-    while (path_get_next_segment(segment))
+    while (SyPath_GetNextSegment(segment))
     {
     }
 
@@ -330,7 +330,7 @@ path_get_last_segment(const char *path, path_segment_t *segment)
 }
 
 static size_t 
-path_output_sized(char *buffer, size_t buffer_size, size_t position, const char *str, size_t length)
+SyPath_OutputSized(char *buffer, size_t buffer_size, size_t position, const char *str, size_t length)
 {
     size_t amount_written;
 
@@ -356,7 +356,7 @@ path_output_sized(char *buffer, size_t buffer_size, size_t position, const char 
 }
 
 static void
-path_fix_root(char *buffer, size_t buffer_size, size_t length)
+SyPath_FixRoot(char *buffer, size_t buffer_size, size_t length)
 {
     if (path_style != PATH_STYLE_WINDOWS) {
         return;
@@ -370,7 +370,7 @@ path_fix_root(char *buffer, size_t buffer_size, size_t length)
     size_t i;
     for (i = 0; i < length; ++i)
     {
-        if (path_is_separator(&buffer[i]))
+        if (SyPath_IsSeparator(&buffer[i]))
         {
             buffer[i] = windows_separator;
         }
@@ -378,14 +378,14 @@ path_fix_root(char *buffer, size_t buffer_size, size_t length)
 }
 
 static int32_t 
-path_get_first_segment_joined(const char **paths, path_segment_joined_t *sj)
+SyPath_GetFirstSegmentJoined(const char **paths, SyPath_SegmentJoined_t *sj)
 {
     sj->path_index = 0;
     sj->paths = paths;
 
     int32_t result;
     result = 0;
-    while (paths[sj->path_index] != NULL && (result = path_get_first_segment(paths[sj->path_index], &sj->segment)) == 0)
+    while (paths[sj->path_index] != NULL && (result = SyPath_GetFirstSegment(paths[sj->path_index], &sj->segment)) == 0)
     {
         ++sj->path_index;
     }
@@ -394,14 +394,14 @@ path_get_first_segment_joined(const char **paths, path_segment_joined_t *sj)
 }
 
 static int32_t 
-path_get_last_segment_without_root(const char *path, path_segment_t *segment)
+SyPath_GetLastSegmentWithoutRoot(const char *path, SyPath_Segment_t *segment)
 {
-    if (!path_get_first_segment_without_root(path, path, segment))
+    if (!SyPath_GetFirstSegmentWithoutRoot(path, path, segment))
     {
         return 0;
     }
 
-    while (path_get_next_segment(segment))
+    while (SyPath_GetNextSegment(segment))
     {
     }
 
@@ -409,13 +409,13 @@ path_get_last_segment_without_root(const char *path, path_segment_t *segment)
 }
 
 static int32_t 
-path_get_previous_segment_joined(path_segment_joined_t *sj)
+SyPath_GetPreviousSegmentJoined(SyPath_SegmentJoined_t *sj)
 {
     if (*sj->paths == NULL)
     {
         return 0;
     }
-    else if (path_get_previous_segment(&sj->segment))
+    else if (SyPath_GetPreviousSegment(&sj->segment))
     {
         return 1;
     }
@@ -430,11 +430,11 @@ path_get_previous_segment_joined(path_segment_joined_t *sj)
         --sj->path_index;
         if (sj->path_index == 0)
         {
-            result = path_get_last_segment(sj->paths[sj->path_index],&sj->segment);
+            result = SyPath_GetLastSegment(sj->paths[sj->path_index],&sj->segment);
         }
         else
         {
-            result = path_get_last_segment_without_root(sj->paths[sj->path_index],&sj->segment);
+            result = SyPath_GetLastSegmentWithoutRoot(sj->paths[sj->path_index],&sj->segment);
         }
     }
     while (!result);
@@ -443,13 +443,13 @@ path_get_previous_segment_joined(path_segment_joined_t *sj)
 }
 
 static int32_t 
-path_segment_back_will_be_removed(path_segment_joined_t *sj)
+SyPath_SegmentBackWillBeRemoved(SyPath_SegmentJoined_t *sj)
 {
     int counter = 0;
-    path_segment_type_t type;
-    while (path_get_previous_segment_joined(sj))
+    SyPath_SegmentType_t type;
+    while (SyPath_GetPreviousSegmentJoined(sj))
     {
-        type = path_get_segment_type(&sj->segment);
+        type = SyPath_GetSegmentType(&sj->segment);
         if (type == PATH_NORMAL)
         {
             ++counter;
@@ -467,13 +467,13 @@ path_segment_back_will_be_removed(path_segment_joined_t *sj)
 }
 
 static int32_t 
-path_get_next_segment_joined(path_segment_joined_t *sj)
+SyPath_GetNextSegmentJoined(SyPath_SegmentJoined_t *sj)
 {
     if (sj->paths[sj->path_index] == NULL)
     {
         return 0;
     }
-    else if (path_get_next_segment(&sj->segment))
+    else if (SyPath_GetNextSegment(&sj->segment))
     {
         return 1;
     }
@@ -486,7 +486,7 @@ path_get_next_segment_joined(path_segment_joined_t *sj)
         {
             break;
         }
-        result = path_get_first_segment_without_root(sj->paths[sj->path_index],
+        result = SyPath_GetFirstSegmentWithoutRoot(sj->paths[sj->path_index],
         sj->paths[sj->path_index], &sj->segment);
     }
     while (!result);
@@ -495,13 +495,13 @@ path_get_next_segment_joined(path_segment_joined_t *sj)
 }
 
 static int32_t 
-path_segment_normal_will_be_removed(path_segment_joined_t *sj)
+SyPath_SegmentNormalWillBeRemoved(SyPath_SegmentJoined_t *sj)
 {
-    path_segment_type_t type;
+    SyPath_SegmentType_t type;
     int counter = 0;
-    while (path_get_next_segment_joined(sj))
+    while (SyPath_GetNextSegmentJoined(sj))
     {
-        type = path_get_segment_type(&sj->segment);
+        type = SyPath_GetSegmentType(&sj->segment);
         if (type == PATH_NORMAL)
         {
             ++counter;
@@ -518,46 +518,46 @@ path_segment_normal_will_be_removed(path_segment_joined_t *sj)
 }
 
 static int32_t
-path_segment_will_be_removed(const path_segment_joined_t *sj, int32_t absolute)
+SyPath_SegmentWillBeRemoved(const SyPath_SegmentJoined_t *sj, int32_t absolute)
 {
-    path_segment_type_t type;
-    path_segment_joined_t sjc;
+    SyPath_SegmentType_t type;
+    SyPath_SegmentJoined_t sjc;
 
     sjc = *sj;
 
-    type = path_get_segment_type(&sj->segment);
+    type = SyPath_GetSegmentType(&sj->segment);
     if (type == PATH_CURRENT || (type == PATH_BACK && absolute))
     {
         return 1;
     }
     else if (type == PATH_BACK)
     {
-        return path_segment_back_will_be_removed(&sjc);
+        return SyPath_SegmentBackWillBeRemoved(&sjc);
     }
     else
     {
-        return path_segment_normal_will_be_removed(&sjc);
+        return SyPath_SegmentNormalWillBeRemoved(&sjc);
     }
 }
 
 static size_t 
-path_output_separator(char *buffer, size_t buffer_size, size_t position)
+SyPath_OutputSeparator(char *buffer, size_t buffer_size, size_t position)
 {
     if(path_style == PATH_STYLE_WINDOWS)
     {
-        return path_output_sized(buffer, buffer_size, position, "\\", 1);
+        return SyPath_OutputSized(buffer, buffer_size, position, "\\", 1);
     }
-    return path_output_sized(buffer, buffer_size, position, "/", 1);
+    return SyPath_OutputSized(buffer, buffer_size, position, "/", 1);
 }
 
 static size_t 
-path_output_current(char *buffer, size_t buffer_size, size_t position)
+SyPath_OutputCurrent(char *buffer, size_t buffer_size, size_t position)
 {
-  return path_output_sized(buffer, buffer_size, position, ".", 1);
+  return SyPath_OutputSized(buffer, buffer_size, position, ".", 1);
 }
 
 static void 
-path_terminate_output(char *buffer, size_t buffer_size, size_t pos)
+SyPath_TerminateOutput(char *buffer, size_t buffer_size, size_t pos)
 {
     if (buffer_size > 0)
     {
@@ -573,20 +573,20 @@ path_terminate_output(char *buffer, size_t buffer_size, size_t pos)
 }
 
 static size_t
-path_join_and_normalize_multiple(const char **paths, char *buffer, size_t buffer_size)
+SyPath_JoinAndNormalizeMultiple(const char **paths, char *buffer, size_t buffer_size)
 {
     size_t pos;
-    path_segment_joined_t sj;
+    SyPath_SegmentJoined_t sj;
 
-    path_get_root(paths[0], &pos);
+    SyPath_GetRoot(paths[0], &pos);
 
     int32_t absolute;
-    absolute = path_is_root_absolute(paths[0], pos);
+    absolute = SyPath_IsRootAbsolute(paths[0], pos);
 
-    path_output_sized(buffer, buffer_size, 0, paths[0], pos);
-    path_fix_root(buffer, buffer_size, pos);
+    SyPath_OutputSized(buffer, buffer_size, 0, paths[0], pos);
+    SyPath_FixRoot(buffer, buffer_size, pos);
 
-    if (!path_get_first_segment_joined(paths, &sj))
+    if (!SyPath_GetFirstSegmentJoined(paths, &sj))
     {
         goto done;
     }
@@ -595,46 +595,46 @@ path_join_and_normalize_multiple(const char **paths, char *buffer, size_t buffer
 
     do
     {
-        if (path_segment_will_be_removed(&sj, absolute))
+        if (SyPath_SegmentWillBeRemoved(&sj, absolute))
         {
             continue;
         }
 
         if (has_segment_output)
         {
-            pos += path_output_separator(buffer, buffer_size, pos);
+            pos += SyPath_OutputSeparator(buffer, buffer_size, pos);
         }
 
         has_segment_output = true;
 
-        pos += path_output_sized(buffer, buffer_size, pos, sj.segment.begin, sj.segment.size);
+        pos += SyPath_OutputSized(buffer, buffer_size, pos, sj.segment.begin, sj.segment.size);
     } 
-    while (path_get_next_segment_joined(&sj));
+    while (SyPath_GetNextSegmentJoined(&sj));
 
     if (!has_segment_output && pos == 0)
     {
         assert(absolute == false);
-        pos += path_output_current(buffer, buffer_size, pos);
+        pos += SyPath_OutputCurrent(buffer, buffer_size, pos);
     }
 
 done:
-    path_terminate_output(buffer, buffer_size, pos);
+    SyPath_TerminateOutput(buffer, buffer_size, pos);
     return pos;
 }
 
 size_t
-path_normalize(const char *path, char *buffer, size_t buffer_size)
+SyPath_Normalize(const char *path, char *buffer, size_t buffer_size)
 {
     const char *paths[2];
 
     paths[0] = path;
     paths[1] = NULL;
 
-    return path_join_and_normalize_multiple(paths, buffer, buffer_size);
+    return SyPath_JoinAndNormalizeMultiple(paths, buffer, buffer_size);
 }
 
 size_t
-path_join(const char *path_a, const char *path_b, char *buffer, size_t buffer_size)
+SyPath_Join(const char *path_a, const char *path_b, char *buffer, size_t buffer_size)
 {
     const char *paths[3];
 
@@ -642,22 +642,22 @@ path_join(const char *path_a, const char *path_b, char *buffer, size_t buffer_si
     paths[1] = path_b;
     paths[2] = NULL;
 
-    return path_join_and_normalize_multiple(paths, buffer, buffer_size);
+    return SyPath_JoinAndNormalizeMultiple(paths, buffer, buffer_size);
 }
 
 size_t
-path_join_multiple(const char **paths, char *buffer, size_t buffer_size)
+SyPath_JoinMultiple(const char **paths, char *buffer, size_t buffer_size)
 {
-    return path_join_and_normalize_multiple(paths, buffer, buffer_size);
+    return SyPath_JoinAndNormalizeMultiple(paths, buffer, buffer_size);
 }
 
 size_t 
-path_get_absolute(const char *base, const char *path, char *buffer, size_t buffer_size)
+SyPath_GetAbsolute(const char *base, const char *path, char *buffer, size_t buffer_size)
 {
     size_t i;
     const char *paths[4];
 
-    if (path_is_absolute(base)) {
+    if (SyPath_IsAbsolute(base)) {
         i = 0;
     } else if (path_style == PATH_STYLE_WINDOWS) {
         paths[0] = "\\";
@@ -667,7 +667,7 @@ path_get_absolute(const char *base, const char *path, char *buffer, size_t buffe
         i = 1;
     }
 
-    if (path_is_absolute(path)) {
+    if (SyPath_IsAbsolute(path)) {
         paths[i++] = path;
         paths[i] = NULL;
     } else {
@@ -676,15 +676,15 @@ path_get_absolute(const char *base, const char *path, char *buffer, size_t buffe
         paths[i] = NULL;
     }
 
-    return path_join_and_normalize_multiple(paths, buffer, buffer_size);
+    return SyPath_JoinAndNormalizeMultiple(paths, buffer, buffer_size);
 }
 
 static int32_t
-path_segment_joined_skip_invisible(path_segment_joined_t *sj, int32_t absolute)
+SyPath_SegmentJoinedSkipInvisible(SyPath_SegmentJoined_t *sj, int32_t absolute)
 {
-    while (path_segment_will_be_removed(sj, absolute))
+    while (SyPath_SegmentWillBeRemoved(sj, absolute))
     {
-        if (!path_get_next_segment_joined(sj))
+        if (!SyPath_GetNextSegmentJoined(sj))
         {
             return 0;
         }
@@ -694,7 +694,7 @@ path_segment_joined_skip_invisible(path_segment_joined_t *sj, int32_t absolute)
 }
 
 static int32_t 
-path_is_string_equal(const char *first, const char *second, size_t first_size, size_t second_size)
+SyPath_IsStringEqual(const char *first, const char *second, size_t first_size, size_t second_size)
 {
     if (first_size != second_size)
     {
@@ -733,61 +733,61 @@ path_is_string_equal(const char *first, const char *second, size_t first_size, s
 }
 
 static void 
-path_skip_segments_until_diverge(path_segment_joined_t *bsj, path_segment_joined_t *osj, int32_t absolute, int32_t *base_available, int32_t *other_available)
+SyPath_SkipSegmentsUntilDiverge(SyPath_SegmentJoined_t *bsj, SyPath_SegmentJoined_t *osj, int32_t absolute, int32_t *base_available, int32_t *other_available)
 {
     do {
-        *base_available = path_segment_joined_skip_invisible(bsj, absolute);
-        *other_available = path_segment_joined_skip_invisible(osj, absolute);
+        *base_available = SyPath_SegmentJoinedSkipInvisible(bsj, absolute);
+        *other_available = SyPath_SegmentJoinedSkipInvisible(osj, absolute);
 
         if (!*base_available || !*other_available) {
         break;
         }
 
-        if (!path_is_string_equal(bsj->segment.begin, osj->segment.begin,
+        if (!SyPath_IsStringEqual(bsj->segment.begin, osj->segment.begin,
             bsj->segment.size, osj->segment.size)) {
         break;
         }
 
-        *base_available = path_get_next_segment_joined(bsj);
-        *other_available = path_get_next_segment_joined(osj);
+        *base_available = SyPath_GetNextSegmentJoined(bsj);
+        *other_available = SyPath_GetNextSegmentJoined(osj);
     } while (*base_available && *other_available);
 }
 
 static size_t 
-path_output_back(char *buffer, size_t buffer_size, size_t position)
+SyPath_OutputBack(char *buffer, size_t buffer_size, size_t position)
 {
-    return path_output_sized(buffer, buffer_size, position, "..", 2);
+    return SyPath_OutputSized(buffer, buffer_size, position, "..", 2);
 }
 
 size_t 
-path_get_relative(const char *base_directory, const char *path, char *buffer, size_t buffer_size)
+SyPath_GetRelative(const char *base_directory, const char *path, char *buffer, size_t buffer_size)
 {
     size_t pos = 0;
 
     size_t base_root_length, path_root_length;
-    path_get_root(base_directory, &base_root_length);
-    path_get_root(path, &path_root_length);
-    if (base_root_length != path_root_length || !path_is_string_equal(base_directory, path, base_root_length, path_root_length))
+    SyPath_GetRoot(base_directory, &base_root_length);
+    SyPath_GetRoot(path, &path_root_length);
+    if (base_root_length != path_root_length || !SyPath_IsStringEqual(base_directory, path, base_root_length, path_root_length))
     {
-        path_terminate_output(buffer, buffer_size, pos);
+        SyPath_TerminateOutput(buffer, buffer_size, pos);
         return pos;
     }
 
     int32_t absolute;
-    absolute = path_is_root_absolute(base_directory, base_root_length);
+    absolute = SyPath_IsRootAbsolute(base_directory, base_root_length);
 
     const char *base_paths[2], *other_paths[2];
-    path_segment_joined_t bsj, osj;
+    SyPath_SegmentJoined_t bsj, osj;
 
     base_paths[0] = base_directory;
     base_paths[1] = NULL;
     other_paths[0] = path;
     other_paths[1] = NULL;
-    path_get_first_segment_joined(base_paths, &bsj);
-    path_get_first_segment_joined(other_paths, &osj);
+    SyPath_GetFirstSegmentJoined(base_paths, &bsj);
+    SyPath_GetFirstSegmentJoined(other_paths, &osj);
 
     int32_t base_available, other_available;
-    path_skip_segments_until_diverge(&bsj, &osj, absolute, &base_available, &other_available);
+    SyPath_SkipSegmentsUntilDiverge(&bsj, &osj, absolute, &base_available, &other_available);
 
     int32_t has_output = 0;
 
@@ -795,30 +795,30 @@ path_get_relative(const char *base_directory, const char *path, char *buffer, si
     {
         do
         {
-            if (!path_segment_joined_skip_invisible(&bsj, absolute))
+            if (!SyPath_SegmentJoinedSkipInvisible(&bsj, absolute))
             {
                 break;
             }
             has_output = 1;
-            pos += path_output_back(buffer, buffer_size, pos);
-            pos += path_output_separator(buffer, buffer_size, pos);
+            pos += SyPath_OutputBack(buffer, buffer_size, pos);
+            pos += SyPath_OutputSeparator(buffer, buffer_size, pos);
         }
-        while (path_get_next_segment_joined(&bsj));
+        while (SyPath_GetNextSegmentJoined(&bsj));
     }
 
     if (other_available)
     {
         do
         {
-            if (!path_segment_joined_skip_invisible(&osj, absolute))
+            if (!SyPath_SegmentJoinedSkipInvisible(&osj, absolute))
             {
                 break;
             }
             has_output = 1;
-            pos += path_output_sized(buffer, buffer_size, pos, osj.segment.begin, osj.segment.size);
-            pos += path_output_separator(buffer, buffer_size, pos);
+            pos += SyPath_OutputSized(buffer, buffer_size, pos, osj.segment.begin, osj.segment.size);
+            pos += SyPath_OutputSeparator(buffer, buffer_size, pos);
         }
-        while (path_get_next_segment_joined(&osj));
+        while (SyPath_GetNextSegmentJoined(&osj));
     }
 
     if (has_output)
@@ -827,22 +827,22 @@ path_get_relative(const char *base_directory, const char *path, char *buffer, si
     }
     else
     {
-        pos += path_output_current(buffer, buffer_size, pos);
+        pos += SyPath_OutputCurrent(buffer, buffer_size, pos);
     }
 
-    path_terminate_output(buffer, buffer_size, pos);
+    SyPath_TerminateOutput(buffer, buffer_size, pos);
 
     return pos;
 }
 
 char *
-path_get_current_directory(char *buffer, size_t buffer_size)
+SyPath_GetCurrentDirectory(char *buffer, size_t buffer_size)
 {
     return getcwd(buffer, buffer_size);
 }
 
 int32_t
-path_is_root(const char *path)
+SyPath_IsRoot(const char *path)
 {
     if(!path)
     {
@@ -856,7 +856,7 @@ path_is_root(const char *path)
 }
 
 size_t
-path_get_filename(const char *path, char *buffer, size_t buffer_size)
+SyPath_GetFilename(const char *path, char *buffer, size_t buffer_size)
 {
     size_t length;
     const char *c, *d;
@@ -867,50 +867,50 @@ path_get_filename(const char *path, char *buffer, size_t buffer_size)
         if((size_t)c > (size_t)d)
         {
             length = strlen(c + 1);
-            path_output_sized(buffer, buffer_size, 0, c + 1, length);
-            path_terminate_output(buffer, buffer_size, length);
+            SyPath_OutputSized(buffer, buffer_size, 0, c + 1, length);
+            SyPath_TerminateOutput(buffer, buffer_size, length);
             return length;
         }
         else
         {
             length = strlen(d + 1);
-            path_output_sized(buffer, buffer_size, 0, d + 1, length);
-            path_terminate_output(buffer, buffer_size, length);
+            SyPath_OutputSized(buffer, buffer_size, 0, d + 1, length);
+            SyPath_TerminateOutput(buffer, buffer_size, length);
             return length;
         }
     }
     else if (!!c)
     {
         length = strlen(c + 1);
-        path_output_sized(buffer, buffer_size, 0, c + 1, length);
-        path_terminate_output(buffer, buffer_size, length);
+        SyPath_OutputSized(buffer, buffer_size, 0, c + 1, length);
+        SyPath_TerminateOutput(buffer, buffer_size, length);
         return length;
     }
     else if (!!d)
     {
         length = strlen(d + 1);
-        path_output_sized(buffer, buffer_size, 0, d + 1, length);
-        path_terminate_output(buffer, buffer_size, length);
+        SyPath_OutputSized(buffer, buffer_size, 0, d + 1, length);
+        SyPath_TerminateOutput(buffer, buffer_size, length);
         return length;
     }
     else
     {
         length = strlen(path);
-        path_output_sized(buffer, buffer_size, 0, path, length);
-        path_terminate_output(buffer, buffer_size, length);
+        SyPath_OutputSized(buffer, buffer_size, 0, path, length);
+        SyPath_TerminateOutput(buffer, buffer_size, length);
         return length;
     }
 }
 
 size_t
-path_get_directory_path(const char *path, char *buffer, size_t buffer_size)
+SyPath_GetDirectoryPath(const char *path, char *buffer, size_t buffer_size)
 {
     size_t length = 0;
-    if(path_is_directory(path))
+    if(SyPath_IsDirectory(path))
     {
         length = strlen(path);
-        path_output_sized(buffer, buffer_size, 0, path, length);
-        path_terminate_output(buffer, buffer_size, length);
+        SyPath_OutputSized(buffer, buffer_size, 0, path, length);
+        SyPath_TerminateOutput(buffer, buffer_size, length);
         return length;
     }
 
@@ -940,18 +940,18 @@ path_get_directory_path(const char *path, char *buffer, size_t buffer_size)
         }
         else 
         {
-            path_terminate_output(buffer, buffer_size, 0);
+            SyPath_TerminateOutput(buffer, buffer_size, 0);
             return 0;
         }
     }
 
-    path_output_sized(buffer, buffer_size, 0, path, length);
-    path_terminate_output(buffer, buffer_size, length);
+    SyPath_OutputSized(buffer, buffer_size, 0, path, length);
+    SyPath_TerminateOutput(buffer, buffer_size, length);
     return length;
 }
 
 int32_t
-path_exist(const char *path)
+SyPath_Exist(const char *path)
 {
     if (access(path, F_OK) == 0) 
     {

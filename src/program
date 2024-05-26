@@ -6,40 +6,50 @@
 #include "types/types.h"
 #include "utils/utils.h"
 #include "utils/path.h"
-#include "container/list.h"
-#include "container/stack.h"
+#include "container/queue.h"
 #include "token/position.h"
 #include "token/token.h"
 #include "program.h"
+#include "error.h"
 #include "scanner/scanner.h"
 #include "ast/node.h"
-#include "parser/error.h"
 #include "parser/syntax/syntax.h"
 #include "parser/semantic/semantic.h"
 
 
 void_t
-program_report(program_t *program)
+Sy_programReport(program_t *program)
 {
-  ilist_t *a;
+	fprintf(stderr,"Traceback:\n");
+
+  sy_queue_entry_t *a;
   for(a = program->errors->begin; a != program->errors->end; a = a->next)
   {
 		error_t *error = (error_t *)a->value;
 
 		char base_path[MAX_URI];
-		path_get_current_directory(base_path, MAX_URI);
+		SyPath_GetCurrentDirectory(base_path, MAX_URI);
+
+		if (error->position.offset == 0)
+		{
+			fprintf(stderr, 
+				"%s\n", error->message
+			);
+
+			continue;
+		}
 
 		char relative_path[MAX_URI];
-		path_get_relative(base_path, error->position.path, relative_path, sizeof(relative_path));
+		SyPath_GetRelative(base_path, error->position.path, relative_path, sizeof(relative_path));
 		
 		fprintf(stderr, 
-				"Traceback:\nFile \"%s\", Line %lld, Column %lld", 
+				"File \"%s\", Line %lld, Column %lld", 
 				relative_path, 
 				error->position.line, 
 				error->position.column
 		);
 
-		node_t *node1 = error->origin;
+		sy_node_t *node1 = error->origin;
 		while (node1 != NULL)
 		{
 			if (node1->kind == NODE_KIND_MODULE)
@@ -52,24 +62,24 @@ program_report(program_t *program)
 			else
 			if (node1->kind == NODE_KIND_CLASS)
 			{
-				node_class_t *class1 = (node_class_t *)node1->value;
-				node_t *key1 = class1->key;
-				node_basic_t *key_string1 = key1->value;
+				sy_node_class_t *class1 = (sy_node_class_t *)node1->value;
+				sy_node_t *key1 = class1->key;
+				sy_node_basic_t *keSy_string1 = key1->value;
 
 				fprintf(stderr, 
-					", Class <%s>", key_string1->value
+					", Class <%s>", keSy_string1->value
 				);
 				break;
 			}
 			else
 			if (node1->kind == NODE_KIND_FUN)
 			{
-				node_fun_t *fun1 = (node_fun_t *)node1->value;
-				node_t *key1 = fun1->key;
-				node_basic_t *key_string1 = key1->value;
+				sy_node_fun_t *fun1 = (sy_node_fun_t *)node1->value;
+				sy_node_t *key1 = fun1->key;
+				sy_node_basic_t *keSy_string1 = key1->value;
 
 				fprintf(stderr, 
-					", fun <%s>", key_string1->value
+					", fun <%s>", keSy_string1->value
 				);
 			}
 			node1 = node1->parent;
@@ -163,125 +173,37 @@ program_report(program_t *program)
 }
 
 void_t
-program_putpath(program_t *program, char *path)
+Sy_programPutPath(program_t *program, char *path)
 {
-	if (path_is_root(path))
+	if (SyPath_IsRoot(path))
 	{
 		char base_path[MAX_URI];
-		path_normalize(getenv ("QALAM_PATH"), base_path, MAX_URI);
-		path_join(base_path, path + 2, program->base_file, MAX_URI);
+		SyPath_Normalize(getenv ("QALAM_PATH"), base_path, MAX_URI);
+		SyPath_Join(base_path, path + 2, program->base_file, MAX_URI);
 	}
 	else
 	{
 		char base_path[MAX_URI];
-		path_get_current_directory(base_path, MAX_URI);
-		if(path_is_relative(path))
+		SyPath_GetCurrentDirectory(base_path, MAX_URI);
+		if(SyPath_IsRelative(path))
 		{
-			path_join(base_path, path, program->base_file, MAX_URI);
+			SyPath_Join(base_path, path, program->base_file, MAX_URI);
 		}
 		else 
 		{
-			path_normalize(path, program->base_file, MAX_URI);
+			SyPath_Normalize(path, program->base_file, MAX_URI);
 		}
 	}
-}
-
-node_t *
-program_load(program_t *program, char *path)
-{
-	char *base_file = malloc(MAX_URI);
-	if (base_file == NULL)
-	{
-		fprintf(stderr, "%s-(%u):Unable to allocted a block of %d bytes\n", 
-			__FILE__, __LINE__, MAX_URI);
-		return NULL;
-	}
-	memset(base_file, 0, MAX_URI);
-
-	if (path_is_root(path))
-	{
-		char base_path[MAX_URI];
-		path_normalize(getenv ("QALAM_PATH"), base_path, MAX_URI);
-		path_join(base_path, path + 2, base_file, MAX_URI);
-	}
-	else
-	{
-		char base_path[MAX_URI];
-		path_get_current_directory(base_path, MAX_URI);
-		if(path_is_relative(path))
-		{
-			path_join(base_path, path, base_file, MAX_URI);
-		}
-		else 
-		{
-			path_normalize(path, base_file, MAX_URI);
-		}
-	}
-
-	node_t *module1 = NULL;
-
-	ilist_t *b1;
-	for (b1 = program->modules->begin;b1 != program->modules->end;b1 = b1->next)
-	{
-		pair_t *pair1 = (pair_t *)b1->value;
-		if (strcmp(pair1->key, base_file) == 0)
-		{
-			module1 = (node_t *)pair1->value;
-			break;
-		}
-	}
-
-	if (module1 == NULL)
-	{
-		syntax_t *syntax1 = syntax_create(program, base_file);
-		if(syntax1 == NULL)
-		{
-			return NULL;
-		}
-		
-		node_t *node1 = syntax_module(program, syntax1);
-		if(node1 == NULL)
-		{
-			return NULL;
-		}
-
-		pair_t *pair1 = (pair_t *)malloc(sizeof(pair_t));
-		if (pair1 == NULL)
-		{
-			fprintf(stderr, "%s-(%u):Unable to allocted a block of %zu bytes\n", 
-				__FILE__, __LINE__, sizeof(program_t));
-			return NULL;
-		}
-
-		pair1->key = base_file;
-		pair1->value = node1;
-
-		ilist_t *r1 = list_rpush(program->modules, pair1);
-		if (r1 == NULL)
-		{
-			return NULL;
-		}
-
-		int32_t r2 = semantic_module(program, node1);
-		if(r2 == -1)
-		{
-			return NULL;
-		}
-
-		module1 = node1;
-	}
-
-	return module1;
 }
 
 void_t
-program_outfile(program_t *program, char *path)
+Sy_programOutfile(program_t *program, char *path)
 {
 	memcpy(program->out_file, path, strlen(path));
 }
 
 program_t *
-program_create()
+Sy_programCreate()
 {
 	program_t *program = (program_t *)malloc(sizeof(program_t));
 	if (program == NULL)
@@ -319,27 +241,19 @@ program_create()
 	}
   	memset(program->out_file, 0, MAX_URI);
 
-	program->errors = list_create();
+	program->errors = sy_queue_create();
 	if(program->errors == NULL)
 	{
 		return NULL;
 	}
 
-	program->modules = list_create();
+	program->modules = sy_queue_create();
 	if(program->modules == NULL)
 	{
 		return NULL;
 	}
 
-	program->repository_nvars = stack_create();
-	if(program->repository_nvars == NULL)
-	{
-		return NULL;
-	}
-
-	program->n_variables = 0;
-
-	program->repository = stack_create();
+	program->repository = sy_queue_create();
 	if(program->repository == NULL)
 	{
 		return NULL;

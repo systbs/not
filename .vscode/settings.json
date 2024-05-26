@@ -1,6 +1,6 @@
 {
     "files.associations": {
-        "type_traits": "cpp",
+        "sy_record_type_traits": "cpp",
         "optional": "cpp",
         "istream": "cpp",
         "ostream": "cpp",
@@ -15,7 +15,7 @@
         "stdarg.h": "c",
         "lexer.h": "c",
         "sketch.h": "c",
-        "list.h": "c",
+        "queue.h": "c",
         "parser.h": "c",
         "scanner.h": "c",
         "diagnostic.h": "c",
@@ -54,7 +54,27 @@
         "cstdarg": "c",
         "compare": "c",
         "opcode.h": "c",
-        "stack.h": "c"
+        "stack.h": "c",
+        "expression": "c",
+        "pack.h": "c",
+        "assert.h": "c",
+        "ar.h": "c",
+        "record.h": "c",
+        "garbage.h": "c",
+        "st.h": "c",
+        "gmp.h": "c",
+        "config.h": "c",
+        "pthread.h": "c",
+        "module.h": "c",
+        "memory.h": "c",
+        "mutex.h": "c",
+        "execute.h": "c",
+        "thread.h": "c",
+        "errno.h": "c",
+        "program": "c",
+        "symbol_table.h": "c",
+        "strip.h": "c",
+        "type_traits": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

@@ -287,7 +287,7 @@ printf(const char *format, ...)
 }
 
 void *
-node_make_class(void *parent, const char *name, uint64_t flag)
+sy_node_make_class(void *parent, const char *name, uint64_t flag)
 {
 	printf(name);
 	return parent;

@@ -1,0 +1,2030 @@
+error_t *
+Sy_ExecuteErrorByNode(program_t *program, sy_node_t *node, const char *format, ...)
+{
+	char *message = malloc(1024);
+	if (message == NULL)
+	{
+		return NULL;
+	}
+
+	va_list arg;
+	if (format)
+	{
+		va_start(arg, format);
+		vsprintf(message, format, arg);
+		va_end(arg);
+	}
+
+	error_t *error = error_create(node->position, message);
+	if (error == NULL)
+	{
+		return NULL;
+	}
+
+    error->origin = node;
+
+	if (sy_queue_right_push(program->errors, error))
+	{
+		return NULL;
+	}
+
+	return error;
+}
+
+error_t * /* error without position */
+Sy_ExecuteError(program_t *program, const char *format, ...)
+{
+	char *message = malloc(1024);
+	if (message == NULL)
+	{
+		return NULL;
+	}
+
+	va_list arg;
+	if (format)
+	{
+		va_start(arg, format);
+		vsprintf(message, format, arg);
+		va_end(arg);
+	}
+
+	error_t *error = error_create_without_position(message);
+	if (error == NULL)
+	{
+		return NULL;
+	}
+
+	if (sy_queue_right_push(program->errors, error))
+	{
+		return NULL;
+	}
+
+	return error;
+}
+
+static int32_t
+Sy_ExecuteIdCmp(sy_node_t *n1, sy_node_t *n2)
+{
+	sy_node_basic_t *nb1 = (sy_node_basic_t *)n1->value;
+	sy_node_basic_t *nb2 = (sy_node_basic_t *)n2->value;
+
+	return (strcmp(nb1->value, nb2->value) == 0);
+}
+
+
+sy_record_t *
+Sy_ExecuteExpression(program_t *program, sy_symbol_table_t *st, strip_t *ar, garbage_t *gb, sy_node_t *node)
+{
+	return NULL;
+}
+
+int32_t 
+Sy_ExecuteEntityFromStruct(program_t *program, sy_symbol_table_t *st, strip_t *ar, garbage_t *gb, sy_node_t *scope, sy_node_t *node, sy_record_t *value)
+{
+	assert (value->kind == RECORD_KIND_STRUCT);
+
+	sy_record_struct_t *struct1 = (sy_record_struct_t *)value->value;
+	sy_node_t *type1 = struct1->type;
+
+	assert (type1->kind == NODE_KIND_CLASS);
+
+	sy_node_entity_t *entity1 = (sy_node_entity_t *)node->value;
+
+	sy_node_t *keSy_search = entity1->key;
+	if (entity1->type != NULL)
+	{
+		keSy_search = entity1->type;
+	}
+
+	sy_node_class_t *class1 = (sy_node_class_t *)type1->value;
+	for (sy_node_t *item1 = class1->block; item1 != NULL; item1 = item1->next)
+	{
+		if (item1->kind == NODE_KIND_PROPERTY)
+		{
+			sy_node_property_t *property1 = (sy_node_property_t *)item1->value;
+			if ((property1->flag & SYNTAX_MODIFIER_EXPORT) == SYNTAX_MODIFIER_EXPORT)
+			{
+				if (Sy_ExecuteIdCmp(property1->key, keSy_search) == 1)
+				{
+					sy_strip_entry_t *are1 = sy_strip_variable_find(struct1->value, property1->key);
+					if (are1 == NULL)
+					{
+						sy_node_basic_t *basic1 = (sy_node_basic_t *)property1->key;
+						Sy_ExecuteErrorByNode(program, property1->key, "Runtime:'%s' is not initialized", basic1->value);
+						return -1;
+					}
+
+					if ((entity1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
+					{
+						assert (st != NULL);
+
+						sy_symbol_table_entry_t *ste1 = sy_symbol_table_find(st, scope, entity1->key);
+						if (ste1 != NULL)
+						{
+							sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key;
+							Sy_ExecuteErrorByNode(program, entity1->key, "Naming:'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u", 
+								basic1->value, ste1->key->position.line, ste1->key->position.column, __FILE__, __LINE__);
+							return -1;
+						}
+
+						if ((entity1->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
+						{
+							sy_symbol_table_entry_t *ste2 = sy_symbol_table_push(st, scope, node, entity1->key, are1->value);
+							if (ste2 == NULL)
+							{
+								Sy_ExecuteError(program, "Internal:no new activation record entry was created\n\tMajor:%s-%u", __FILE__, __LINE__);
+								return -1;
+							}
+
+							are1->value->link += 1;
+
+							return 1;
+						}
+						else
+						{
+							sy_record_t *sy_record_copy1 = sy_record_copy(are1->value);
+							if (sy_record_copy1 == NULL)
+							{
+								Sy_ExecuteError(program, "Internal:a copy of the record was not made\n\tMajor:%s-%u", __FILE__, __LINE__);
+								return -1;
+							}
+
+							sy_record_copy1->reference += 1;
+
+							sy_symbol_table_entry_t *ste2 = sy_symbol_table_push(st, scope, node, entity1->key, sy_record_copy1);
+							if (ste2 == NULL)
+							{
+								Sy_ExecuteError(program, "Internal:no new activation record entry was created\n\tMajor:%s-%u", __FILE__, __LINE__);
+								return -1;
+							}
+
+							return 1;
+						}
+					}
+					else
+					{
+						assert (ar != NULL);
+
+						sy_strip_entry_t *are2 = sy_strip_variable_find(ar, entity1->key);
+						if (are2 != NULL)
+						{
+							sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key;
+							Sy_ExecuteErrorByNode(program, entity1->key, "Naming:'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u", 
+								basic1->value, are2->key->position.line, are2->key->position.column, __FILE__, __LINE__);
+							return -1;
+						}
+
+						if ((entity1->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
+						{
+							sy_strip_entry_t *are3 = sy_strip_variable_push(ar, scope, node, entity1->key, are1->value);
+							if (are3 == NULL)
+							{
+								Sy_ExecuteError(program, "Internal:no new activation record entry was created\n\tMajor:%s-%u", __FILE__, __LINE__);
+								return -1;
+							}
+
+							are1->value->link += 1;
+
+							return 1;
+						}
+						else
+						{
+							sy_record_t *sy_record_copy1 = sy_record_copy(are2->value);
+							if (sy_record_copy1 == NULL)
+							{
+								Sy_ExecuteError(program, "Internal:a copy of the record was not made\n\tMajor:%s-%u", __FILE__, __LINE__);
+								return -1;
+							}
+
+							sy_record_copy1->reference += 1;
+
+							sy_strip_entry_t *are3 = sy_strip_variable_push(ar, scope, node, entity1->key, sy_record_copy1);
+							if (are3 == NULL)
+							{
+								Sy_ExecuteError(program, "Internal:no new activation record entry was created\n\tMajor:%s-%u", __FILE__, __LINE__);
+								return -1;
+							}
+
+							return 1;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	sy_node_block_t *block1 = (sy_node_block_t *)class1->heritages->value;
+	for (sy_node_t *item1 = block1->items;item1 != NULL;item1 = item1->next)
+	{
+		assert (item1->kind == NODE_KIND_HERITAGE);
+
+		sy_node_heritage_t *heritage1 = (sy_node_heritage_t *)item1->value;
+
+		sy_strip_entry_t *are1 = sy_strip_variable_find(struct1->value, heritage1->key);
+		if (are1 == NULL)
+		{
+			sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage1->key;
+			Sy_ExecuteErrorByNode(program, heritage1->key, "Runtime:'%s' is not initialized", basic1->value);
+			return -1;
+		}
+
+		int32_t r1 = Sy_ExecuteEntityFromStruct(program, st, ar, gb, scope, node, are1->value);
+		if (r1 == 0)
+		{
+			continue;
+		}
+
+		return r1;
+	}
+
+	return 0;
+}
+
+int32_t 
+Sy_ExecuteEntity(program_t *program, sy_symbol_table_t *st, strip_t *ar, garbage_t *gb, sy_node_t *scope, sy_node_t *node, sy_record_t *value)
+{
+	if (value->kind == RECORD_KIND_STRUCT)
+	{
+		int32_t r1 = Sy_ExecuteEntityFromStruct(program, st, ar, gb, scope, node, value);
+		if (r1 == 0)
+		{
+			goto region_default_value;
+		}
+		
+		return r1;
+	}
+	else
+	if (value->kind == RECORD_KIND_OBJECT)
+	{
+		sy_node_entity_t *entity1 = (sy_node_entity_t *)node->value;
+
+		sy_node_t *keSy_search = entity1->key;
+		if (entity1->type != NULL)
+		{
+			keSy_search = entity1->type;
+		}
+
+		for (sy_record_object_t *object = value->value;object != NULL;object = object->next)
+		{
+			if (Sy_ExecuteIdCmp(object->key, keSy_search) == 1)
+			{
+				if ((entity1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
+				{
+					assert (st != NULL);
+
+					sy_symbol_table_entry_t *ste1 = sy_symbol_table_find(st, scope, entity1->key);
+					if (ste1 != NULL)
+					{
+						sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key;
+						Sy_ExecuteErrorByNode(program, entity1->key, "Naming:'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u", 
+							basic1->value, ste1->key->position.line, ste1->key->position.column, __FILE__, __LINE__);
+						return -1;
+					}
+
+					if ((entity1->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
+					{
+						sy_symbol_table_entry_t *ste2 = sy_symbol_table_push(st, scope, node, entity1->key, object->value);
+						if (ste2 == NULL)
+						{
+							Sy_ExecuteError(program, "Internal:no new activation record entry was created\n\tMajor:%s-%u", __FILE__, __LINE__);
+							return -1;
+						}
+
+						object->value->link += 1;
+
+						return 1;
+					}
+					else
+					{
+						sy_record_t *sy_record_copy1 = sy_record_copy(object->value);
+						if (sy_record_copy1 == NULL)
+						{
+							Sy_ExecuteError(program, "Internal:a copy of the record was not made\n\tMajor:%s-%u", __FILE__, __LINE__);
+							return -1;
+						}
+
+						sy_record_copy1->reference += 1;
+
+						sy_symbol_table_entry_t *ste2 = sy_symbol_table_push(st, scope, node, entity1->key, sy_record_copy1);
+						if (ste2 == NULL)
+						{
+							Sy_ExecuteError(program, "Internal:no new activation record entry was created\n\tMajor:%s-%u", __FILE__, __LINE__);
+							return -1;
+						}
+
+						return 1;
+					}
+				}
+				else
+				{
+					assert (ar != NULL);
+
+					sy_strip_entry_t *are2 = sy_strip_variable_find(ar, entity1->key);
+					if (are2 != NULL)
+					{
+						sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key;
+						Sy_ExecuteErrorByNode(program, entity1->key, "Naming:'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u", 
+							basic1->value, are2->key->position.line, are2->key->position.column, __FILE__, __LINE__);
+						return -1;
+					}
+
+					if ((entity1->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
+					{
+						sy_strip_entry_t *are3 = sy_strip_variable_push(ar, scope, node, entity1->key, object->value);
+						if (are3 == NULL)
+						{
+							Sy_ExecuteError(program, "Internal:no new activation record entry was created\n\tMajor:%s-%u", __FILE__, __LINE__);
+							return -1;
+						}
+
+						object->value->link += 1;
+
+						return 1;
+					}
+					else
+					{
+						sy_record_t *sy_record_copy1 = sy_record_copy(object->value);
+						if (sy_record_copy1 == NULL)
+						{
+							Sy_ExecuteError(program, "Internal:a copy of the record was not made\n\tMajor:%s-%u", __FILE__, __LINE__);
+							return -1;
+						}
+
+						sy_record_copy1->reference += 1;
+
+						sy_strip_entry_t *are3 = sy_strip_variable_push(ar, scope, node, entity1->key, sy_record_copy1);
+						if (are3 == NULL)
+						{
+							Sy_ExecuteError(program, "Internal:no new activation record entry was created\n\tMajor:%s-%u", __FILE__, __LINE__);
+							return -1;
+						}
+
+						return 1;
+					}
+				}
+			}
+		}
+
+		goto region_default_value;
+	}
+	else
+	{
+		goto region_default_value;
+	}
+
+	region_default_value:
+	sy_record_t *sy_record_value1 = NULL;
+	sy_node_entity_t *entity1 = (sy_node_entity_t *)node->value;
+	if (entity1->value != NULL)
+	{
+		sy_record_value1 = Sy_ExecuteExpression(program, st, ar, gb, entity1->value);
+		if (sy_record_value1 == NULL)
+		{
+			Sy_ExecuteErrorByNode(program, entity1->key, "Valuation:it has no value type\n\tMajor:%s-%u", __FILE__, __LINE__);
+			return -1;
+		}
+	}
+	else
+	{
+		sy_record_value1 = sy_record_make_null();
+		if (sy_record_value1 == NULL)
+		{
+			Sy_ExecuteError(program, "Internal:no new record was created\n\tMajor:%s-%u", __FILE__, __LINE__);
+			return -1;
+		}
+	}
+
+	if ((entity1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
+	{
+		assert (st != NULL);
+
+		sy_symbol_table_entry_t *ste1 = sy_symbol_table_find(st, scope, entity1->key);
+		if (ste1 != NULL)
+		{
+			sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key;
+			Sy_ExecuteErrorByNode(program, entity1->key, "Naming:'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u", 
+				basic1->value, ste1->key->position.line, ste1->key->position.column, __FILE__, __LINE__);
+			return -1;
+		}
+
+		if ((entity1->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
+		{
+			sy_symbol_table_entry_t *ste2 = sy_symbol_table_push(st, scope, node, entity1->key, sy_record_value1);
+			if (ste2 == NULL)
+			{
+				Sy_ExecuteError(program, "Internal:no new activation record entry was created\n\tMajor:%s-%u", __FILE__, __LINE__);
+				return -1;
+			}
+
+			sy_record_value1->link += 1;
+
+			sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value1);
+			if (gbe1 == NULL)
+			{
+				Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+				return -1;
+			}
+
+			return 1;
+		}
+		else
+		{
+			sy_record_t *sy_record_copy1 = sy_record_copy(sy_record_value1);
+			if (sy_record_copy1 == NULL)
+			{
+				Sy_ExecuteError(program, "Internal:a copy of the record was not made\n\tMajor:%s-%u", __FILE__, __LINE__);
+				return -1;
+			}
+
+			sy_record_copy1->reference += 1;
+
+			int32_t r1 = sy_record_remove_by_check(sy_record_value1);
+			if (r1 == 0)
+			{
+				sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value1);
+				if (gbe1 == NULL)
+				{
+					Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+					return -1;
+				}
+			}
+
+			sy_symbol_table_entry_t *ste2 = sy_symbol_table_push(st, scope, node, entity1->key, sy_record_copy1);
+			if (ste2 == NULL)
+			{
+				Sy_ExecuteError(program, "Internal:no new activation record entry was created\n\tMajor:%s-%u", __FILE__, __LINE__);
+				return -1;
+			}
+
+			return 1;
+		}
+	}
+	else
+	{
+		assert (ar != NULL);
+
+		sy_strip_entry_t *are2 = sy_strip_variable_find(ar, entity1->key);
+		if (are2 != NULL)
+		{
+			sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key;
+			Sy_ExecuteErrorByNode(program, entity1->key, "Naming:'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u", 
+				basic1->value, are2->key->position.line, are2->key->position.column, __FILE__, __LINE__);
+			return -1;
+		}
+
+		if ((entity1->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
+		{
+			sy_strip_entry_t *are3 = sy_strip_variable_push(ar, scope, node, entity1->key, sy_record_value1);
+			if (are3 == NULL)
+			{
+				Sy_ExecuteError(program, "Internal:no new activation record entry was created\n\tMajor:%s-%u", __FILE__, __LINE__);
+				return -1;
+			}
+
+			sy_record_value1->link += 1;
+
+			sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value1);
+			if (gbe1 == NULL)
+			{
+				Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+				return -1;
+			}
+
+			return 1;
+		}
+		else
+		{
+			sy_record_t *sy_record_copy1 = sy_record_copy(sy_record_value1);
+			if (sy_record_copy1 == NULL)
+			{
+				Sy_ExecuteError(program, "Internal:a copy of the record was not made\n\tMajor:%s-%u", __FILE__, __LINE__);
+				return -1;
+			}
+
+			sy_record_copy1->reference += 1;
+
+			int32_t r1 = sy_record_remove_by_check(sy_record_value1);
+			if (r1 == 0)
+			{
+				sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value1);
+				if (gbe1 == NULL)
+				{
+					Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+					return -1;
+				}
+			}
+
+			sy_strip_entry_t *are3 = sy_strip_variable_push(ar, scope, node, entity1->key, sy_record_copy1);
+			if (are3 == NULL)
+			{
+				Sy_ExecuteError(program, "Internal:no new activation record entry was created\n\tMajor:%s-%u", __FILE__, __LINE__);
+				return -1;
+			}
+
+			return 1;
+		}
+	}
+
+	return 1;
+}
+
+int32_t 
+Sy_ExecuteSet(program_t *program, sy_symbol_table_t *st, strip_t *ar, garbage_t *gb, sy_node_t *scope, sy_node_t *node, sy_record_t *value)
+{
+	sy_node_block_t *block = (sy_node_block_t *)node->value;
+
+    for (sy_node_t *item = block->items;item != NULL;item = item->next)
+    {
+        int32_t r1 = Sy_ExecuteEntity(program, st, ar, gb, scope, item, value);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+    }
+
+    return 1;
+}
+
+int32_t
+Sy_ExecuteEqualTypeByType(program_t *program, sy_symbol_table_t *st, strip_t *ar, garbage_t *gb, sy_record_t *sy_record_type1, sy_record_t *sy_record_type2)
+{
+	assert (sy_record_type1->kind == RECORD_KIND_TYPE);
+	assert (sy_record_type2->kind == RECORD_KIND_TYPE);
+
+	sy_record_type_t *type1 = (sy_record_type_t *)sy_record_type1->value;
+	sy_record_type_t *type2 = (sy_record_type_t *)sy_record_type2->value;
+
+	if (type1->type->kind == NODE_KIND_KINT8)
+	{
+		if (type2->type->kind == NODE_KIND_KINT8)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KINT16)
+	{
+		if (type2->type->kind == NODE_KIND_KINT16)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KINT32)
+	{
+		if (type2->type->kind == NODE_KIND_KINT32)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KINT64)
+	{
+		if (type2->type->kind == NODE_KIND_KINT64)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT8)
+	{
+		if (type2->type->kind == NODE_KIND_KUINT8)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT16)
+	{
+		if (type2->type->kind == NODE_KIND_KUINT16)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT32)
+	{
+		if (type2->type->kind == NODE_KIND_KUINT32)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT64)
+	{
+		if (type2->type->kind == NODE_KIND_KUINT64)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KBIGINT)
+	{
+		if (type2->type->kind == NODE_KIND_KBIGINT)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KFLOAT32)
+	{
+		if (type2->type->kind == NODE_KIND_KFLOAT32)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KFLOAT64)
+	{
+		if (type2->type->kind == NODE_KIND_KFLOAT64)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KBIGFLOAT)
+	{
+		if (type2->type->kind == NODE_KIND_KBIGFLOAT)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_OBJECT)
+	{
+		sy_node_block_t *block1 = (sy_node_block_t *)type1->type->value;
+		if (type2->type->kind == NODE_KIND_OBJECT)
+		{
+			uint64_t cnt1 = 0;
+			sy_node_block_t *block2 = (sy_node_block_t *)type1->type->value;
+			for (sy_node_t *item1 = block1->items;item1 != NULL;item1 = item1->next)
+			{
+				assert (item1->kind == NODE_KIND_PAIR);
+
+				cnt1 += 1;
+
+				sy_node_pair_t *pair1 = (sy_node_pair_t *)item1->value;
+				for (sy_node_t *item2 = block2->items;item2 != NULL;item2 = item2->next)
+				{
+					assert (item2->kind == NODE_KIND_PAIR);
+
+					sy_node_pair_t *pair2 = (sy_node_pair_t *)item2->value;
+					if (Sy_ExecuteIdCmp(pair1->key, pair2->key) == 1)
+					{
+						sy_record_t *sy_record_value_type1 = Sy_ExecuteExpression(program, st, ar, gb, pair1->value);
+						if (sy_record_value_type1 == NULL)
+						{
+							Sy_ExecuteErrorByNode(program, pair1->key, "Typing: type not found\n\tMajor:%s-%u", __FILE__, __LINE__);
+							return -1;
+						}
+
+						if (sy_record_value_type1->kind != RECORD_KIND_TYPE)
+						{
+							sy_node_basic_t *basic1 = (sy_node_basic_t *)pair1->key;
+							Sy_ExecuteErrorByNode(program, pair1->key, "Typing: '%s' does not have a valid type\n\tMajor:%s-%u", 
+								basic1->value, __FILE__, __LINE__);
+							return -1;
+						}
+
+						sy_record_t *sy_record_value_type2 = Sy_ExecuteExpression(program, st, ar, gb, pair2->value);
+						if (sy_record_value_type2 == NULL)
+						{
+							Sy_ExecuteErrorByNode(program, pair2->key, "Typing: type not found\n\tMajor:%s-%u", __FILE__, __LINE__);
+							return -1;
+						}
+
+						if (sy_record_value_type2->kind != RECORD_KIND_TYPE)
+						{
+							sy_node_basic_t *basic1 = (sy_node_basic_t *)pair2->key;
+							Sy_ExecuteErrorByNode(program, pair2->key, "Typing: '%s' does not have a valid type\n\tMajor:%s-%u", 
+								basic1->value, __FILE__, __LINE__);
+							return -1;
+						}
+
+						int32_t r1 = Sy_ExecuteEqualTypeByType(program, st, ar, gb, sy_record_value_type1, sy_record_value_type2);
+						if (r1 == 0)
+						{
+							int32_t r2 = sy_record_remove_by_check(sy_record_value_type1);
+							if (r2 == 0)
+							{
+								sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value_type1);
+								if (gbe1 == NULL)
+								{
+									Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+									return -1;
+								}
+							}
+
+							int32_t r3 = sy_record_remove_by_check(sy_record_value_type2);
+							if (r3 == 0)
+							{
+								sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value_type2);
+								if (gbe1 == NULL)
+								{
+									Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+									return -1;
+								}
+							}
+							
+							return 0;
+						}
+						else
+						if (r1 == -1)
+						{
+							return -1;
+						}
+
+						int32_t r2 = sy_record_remove_by_check(sy_record_value_type1);
+						if (r2 == 0)
+						{
+							sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value_type1);
+							if (gbe1 == NULL)
+							{
+								Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+								return -1;
+							}
+						}
+
+						int32_t r3 = sy_record_remove_by_check(sy_record_value_type2);
+						if (r3 == 0)
+						{
+							sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value_type2);
+							if (gbe1 == NULL)
+							{
+								Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+								return -1;
+							}
+						}
+					}
+				}
+			}
+
+			uint64_t cnt2 = 0;
+			for (sy_node_t *item2 = block2->items;item2 != NULL;item2 = item2->next)
+			{
+				cnt2 += 1;
+			}
+
+			if (cnt1 != cnt2)
+			{
+				return 0;
+			}
+
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_ARRAY)
+	{
+		sy_node_carrier_t *carrier1 = (sy_node_carrier_t *)type1->type->value;
+		if (type2->type->kind == NODE_KIND_ARRAY)
+		{
+			sy_node_carrier_t *carrier2 = (sy_node_carrier_t *)type2->type->value;
+
+			sy_record_t *sy_record_value_type1 = Sy_ExecuteExpression(program, st, ar, gb, carrier1->base);
+			if (sy_record_value_type1 == NULL)
+			{
+				Sy_ExecuteErrorByNode(program, carrier1->base, "Typing: type not found\n\tMajor:%s-%u", __FILE__, __LINE__);
+				return -1;
+			}
+
+			if (sy_record_value_type1->kind != RECORD_KIND_TYPE)
+			{
+				Sy_ExecuteErrorByNode(program, carrier1->base, "Typing: '%s' does not have a valid type\n\tMajor:%s-%u", 
+					"Array", __FILE__, __LINE__);
+				return -1;
+			}
+
+			sy_record_t *sy_record_value_type2 = Sy_ExecuteExpression(program, st, ar, gb, carrier2->base);
+			if (sy_record_value_type2 == NULL)
+			{
+				Sy_ExecuteErrorByNode(program, carrier2->base, "Typing: type not found\n\tMajor:%s-%u", __FILE__, __LINE__);
+				return -1;
+			}
+
+			if (sy_record_value_type2->kind != RECORD_KIND_TYPE)
+			{
+				Sy_ExecuteErrorByNode(program, carrier2->base, "Typing: '%s' does not have a valid type\n\tMajor:%s-%u", 
+					"Array", __FILE__, __LINE__);
+				return -1;
+			}
+
+			int32_t r1 = Sy_ExecuteEqualTypeByType(program, st, ar, gb, sy_record_value_type1, sy_record_value_type2);
+			if (r1 == 0)
+			{
+				int32_t r2 = sy_record_remove_by_check(sy_record_value_type1);
+				if (r2 == 0)
+				{
+					sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value_type1);
+					if (gbe1 == NULL)
+					{
+						Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+						return -1;
+					}
+				}
+
+				int32_t r3 = sy_record_remove_by_check(sy_record_value_type2);
+				if (r3 == 0)
+				{
+					sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value_type2);
+					if (gbe1 == NULL)
+					{
+						Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+						return -1;
+					}
+				}
+				
+				return 0;
+			}
+			else
+			if (r1 == -1)
+			{
+				return -1;
+			}
+
+			int32_t r2 = sy_record_remove_by_check(sy_record_value_type1);
+			if (r2 == 0)
+			{
+				sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value_type1);
+				if (gbe1 == NULL)
+				{
+					Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+					return -1;
+				}
+			}
+
+			int32_t r3 = sy_record_remove_by_check(sy_record_value_type2);
+			if (r3 == 0)
+			{
+				sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value_type2);
+				if (gbe1 == NULL)
+				{
+					Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+					return -1;
+				}
+			}
+
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_TUPLE)
+	{
+		sy_node_block_t *block1 = (sy_node_block_t *)type1->type->value;
+		if (type2->type->kind == NODE_KIND_OBJECT)
+		{
+			sy_node_block_t *block2 = (sy_node_block_t *)type1->type->value;
+			sy_node_t *item2 = block2->items;
+			for (sy_node_t *item1 = block1->items;item1 != NULL;item1 = item1->next, item2 = item2->next)
+			{
+				if (item2 == NULL)
+				{
+					return 0;
+				}
+
+				sy_record_t *sy_record_value_type1 = Sy_ExecuteExpression(program, st, ar, gb, item1);
+				if (sy_record_value_type1 == NULL)
+				{
+					Sy_ExecuteErrorByNode(program, item1, "Typing: type not found\n\tMajor:%s-%u", __FILE__, __LINE__);
+					return -1;
+				}
+
+				if (sy_record_value_type1->kind != RECORD_KIND_TYPE)
+				{
+					Sy_ExecuteErrorByNode(program, item1, "Typing: '%s' does not have a valid type\n\tMajor:%s-%u", 
+						"Tuple item", __FILE__, __LINE__);
+					return -1;
+				}
+
+				sy_record_t *sy_record_value_type2 = Sy_ExecuteExpression(program, st, ar, gb, item2);
+				if (sy_record_value_type2 == NULL)
+				{
+					Sy_ExecuteErrorByNode(program, item2, "Typing: type not found\n\tMajor:%s-%u", __FILE__, __LINE__);
+					return -1;
+				}
+
+				if (sy_record_value_type2->kind != RECORD_KIND_TYPE)
+				{
+					Sy_ExecuteErrorByNode(program, item2, "Typing: '%s' does not have a valid type\n\tMajor:%s-%u", 
+						"Tuple item", __FILE__, __LINE__);
+					return -1;
+				}
+
+				int32_t r1 = Sy_ExecuteEqualTypeByType(program, st, ar, gb, sy_record_value_type1, sy_record_value_type2);
+				if (r1 == 0)
+				{
+					int32_t r2 = sy_record_remove_by_check(sy_record_value_type1);
+					if (r2 == 0)
+					{
+						sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value_type1);
+						if (gbe1 == NULL)
+						{
+							Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+							return -1;
+						}
+					}
+
+					int32_t r3 = sy_record_remove_by_check(sy_record_value_type2);
+					if (r3 == 0)
+					{
+						sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value_type2);
+						if (gbe1 == NULL)
+						{
+							Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+							return -1;
+						}
+					}
+					
+					return 0;
+				}
+				else
+				if (r1 == -1)
+				{
+					return -1;
+				}
+
+				int32_t r2 = sy_record_remove_by_check(sy_record_value_type1);
+				if (r2 == 0)
+				{
+					sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value_type1);
+					if (gbe1 == NULL)
+					{
+						Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+						return -1;
+					}
+				}
+
+				int32_t r3 = sy_record_remove_by_check(sy_record_value_type2);
+				if (r3 == 0)
+				{
+					sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value_type2);
+					if (gbe1 == NULL)
+					{
+						Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+						return -1;
+					}
+				}
+			}
+		
+			if (item2 != NULL)
+			{
+				return 0;
+			}
+
+			return 1;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_CLASS)
+	{
+		if (type2->type->kind == NODE_KIND_CLASS)
+		{
+			if (type1->type->id != type2->type->id)
+			{
+				return 0;
+			}
+
+			sy_node_class_t *class1 = (sy_node_class_t *)type1->type->value;
+			sy_node_block_t *block1 = (sy_node_block_t *)class1->generics;
+
+			for (sy_node_t *item1 = block1->items;item1 != NULL;item1 = item1->next)
+			{
+				assert (item1->kind == NODE_KIND_GENERIC);
+
+				sy_node_generic_t *generic1 = (sy_node_generic_t *)item1->value;
+
+				sy_strip_entry_t *are1 = sy_strip_variable_find(type1->value, generic1->key);
+				if (are1 == NULL)
+				{
+					sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key;
+					Sy_ExecuteErrorByNode(program, generic1->key, "Runtime:'%s' is not initialized", basic1->value);
+					return -1;
+				}
+
+				assert(are1->value->kind == RECORD_KIND_TYPE);
+				
+				sy_strip_entry_t *are2 = sy_strip_variable_find(type2->value, generic1->key);
+				if (are2 == NULL)
+				{
+					sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key;
+					Sy_ExecuteErrorByNode(program, generic1->key, "Runtime:'%s' is not initialized", basic1->value);
+					return -1;
+				}
+
+				assert(are2->value->kind == RECORD_KIND_TYPE);
+
+				int32_t r1 = Sy_ExecuteEqualTypeByType(program, st, ar, gb, are1->value, are2->value);
+				if (r1 == 0)
+				{
+					return 0;
+				}
+				else
+				if (r1 == -1)
+				{
+					return -1;
+				}
+			}
+
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	return 0;
+}
+
+int32_t
+Sy_ExecuteEqualValueByType(program_t *program, sy_symbol_table_t *st, strip_t *ar, garbage_t *gb, sy_record_t *sy_record_value, sy_record_t *sy_record_type)
+{
+	assert (sy_record_type->kind == RECORD_KIND_TYPE);
+
+	sy_record_type_t *type1 = (sy_record_type_t *)sy_record_type->value;
+
+	if (type1->type->kind == NODE_KIND_KINT8)
+	{
+		if (sy_record_value->kind == RECORD_KIND_INT8)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KINT16)
+	{
+		if (sy_record_value->kind == RECORD_KIND_INT16)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KINT32)
+	{
+		if (sy_record_value->kind == RECORD_KIND_INT32)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KINT64)
+	{
+		if (sy_record_value->kind == RECORD_KIND_INT64)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT8)
+	{
+		if (sy_record_value->kind == RECORD_KIND_UINT8)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT16)
+	{
+		if (sy_record_value->kind == RECORD_KIND_UINT16)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT32)
+	{
+		if (sy_record_value->kind == RECORD_KIND_UINT32)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT64)
+	{
+		if (sy_record_value->kind == RECORD_KIND_UINT64)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KBIGINT)
+	{
+		if (sy_record_value->kind == RECORD_KIND_BIGINT)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KFLOAT32)
+	{
+		if (sy_record_value->kind == RECORD_KIND_FLOAT32)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KFLOAT64)
+	{
+		if (sy_record_value->kind == RECORD_KIND_FLOAT64)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KBIGFLOAT)
+	{
+		if (sy_record_value->kind == RECORD_KIND_BIGFLOAT)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_OBJECT)
+	{
+		sy_node_block_t *block1 = (sy_node_block_t *)type1->type->value;
+		if (sy_record_value->kind == RECORD_KIND_OBJECT)
+		{
+			sy_record_object_t *object1 = (sy_record_object_t *)sy_record_value->value;
+			if (block1->items != NULL)
+			{
+				if (object1 == NULL)
+				{
+					return 0;
+				}
+
+				uint64_t cnt1 = 0;
+				while (object1 != NULL)
+				{
+					int32_t found = 0;
+					for (sy_node_t *item1 = block1->items;item1 != NULL;item1 = item1->next)
+					{
+						assert (item1->kind == NODE_KIND_PAIR);
+
+						sy_node_pair_t *pair1 = (sy_node_pair_t *)item1->value;
+						if (Sy_ExecuteIdCmp(pair1->key, object1->key) == 1)
+						{
+							sy_record_t *sy_record_type1 = Sy_ExecuteExpression(program, st, ar, gb, pair1->value);
+							if (sy_record_type1 == NULL)
+							{
+								Sy_ExecuteErrorByNode(program, pair1->key, "Typing: type not found\n\tMajor:%s-%u", __FILE__, __LINE__);
+								return -1;
+							}
+
+							if (sy_record_type1->kind != RECORD_KIND_TYPE)
+							{
+								sy_node_basic_t *basic1 = (sy_node_basic_t *)pair1->key;
+								Sy_ExecuteErrorByNode(program, pair1->key, "Typing: '%s' does not have a valid type\n\tMajor:%s-%u", 
+									basic1->value, __FILE__, __LINE__);
+								return -1;
+							}
+
+							int32_t r1 = Sy_ExecuteEqualValueByType(program, st, ar, gb, object1->value, sy_record_type1);
+							if (r1 == 0)
+							{
+								int32_t r2 = sy_record_remove_by_check(sy_record_type1);
+								if (r2 == 0)
+								{
+									sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_type1);
+									if (gbe1 == NULL)
+									{
+										Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+										return -1;
+									}
+								}
+								return 0;
+							}
+							else
+							if (r1 == -1)
+							{
+								return -1;
+							}
+
+							int32_t r2 = sy_record_remove_by_check(sy_record_type1);
+							if (r2 == 0)
+							{
+								sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_type1);
+								if (gbe1 == NULL)
+								{
+									Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+									return -1;
+								}
+							}
+
+							object1 = object1->next;
+							found = 1;
+							break;
+						}
+					}
+
+					if (found == 0)
+					{
+						return 0;
+					}
+
+					cnt1 += 1;
+				}
+
+				uint64_t cnt2 = 0;
+				for (sy_node_t *item1 = block1->items;item1 != NULL;item1 = item1->next)
+				{
+					cnt2 += 1;
+				}
+
+				if (cnt1 != cnt2)
+				{
+					return 0;
+				}
+
+				return 1;
+			}
+			else
+			{
+				if (object1->value == NULL)
+				{
+					return 1;
+				}
+				return 0;
+			}
+		}
+		return 0;
+	}
+	else
+	if (type1->type->kind == NODE_KIND_ARRAY)
+	{
+		sy_node_carrier_t *carrier1 = (sy_node_carrier_t *)type1->type->value;
+		if (sy_record_value->kind == RECORD_KIND_TUPLE)
+		{
+			sy_record_t *sy_record_type1 = Sy_ExecuteExpression(program, st, ar, gb, carrier1->base);
+			if (sy_record_type1 == NULL)
+			{
+				Sy_ExecuteErrorByNode(program, carrier1->base, "Typing: type not found\n\tMajor:%s-%u", __FILE__, __LINE__);
+				return -1;
+			}
+
+			if (sy_record_type1->kind != RECORD_KIND_TYPE)
+			{
+				Sy_ExecuteErrorByNode(program, carrier1->base, "Typing: '%s' does not have a valid type\n\tMajor:%s-%u", 
+					"Array", __FILE__, __LINE__);
+				return -1;
+			}
+
+			sy_record_tuple_t *tuple1 = (sy_record_tuple_t *)sy_record_value->value;
+			while (tuple1 != NULL)
+			{
+				int32_t r1 = Sy_ExecuteEqualValueByType(program, st, ar, gb, tuple1->value, sy_record_type1);
+				if (r1 == 0)
+				{
+					int32_t r2 = sy_record_remove_by_check(sy_record_type1);
+					if (r2 == 0)
+					{
+						sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_type1);
+						if (gbe1 == NULL)
+						{
+							Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+							return -1;
+						}
+					}
+					return 0;
+				}
+				else
+				if (r1 == -1)
+				{
+					return -1;
+				}
+
+				int32_t r2 = sy_record_remove_by_check(sy_record_type1);
+				if (r2 == 0)
+				{
+					sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_type1);
+					if (gbe1 == NULL)
+					{
+						Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+						return -1;
+					}
+				}
+
+				tuple1 = tuple1->next;
+			}
+
+			return 1;
+		}
+		return 0;
+	}
+	else
+	if (type1->type->kind == NODE_KIND_TUPLE)
+	{
+		sy_node_block_t *block1 = (sy_node_block_t *)type1->type->value;
+		if (sy_record_value->kind == RECORD_KIND_TUPLE)
+		{
+			sy_record_tuple_t *tuple1 = (sy_record_tuple_t *)sy_record_value->value;
+			if (block1->items != NULL)
+			{
+				if (tuple1 == NULL)
+				{
+					return 0;
+				}
+
+				for (sy_node_t *item1 = block1->items; (item1 != NULL);item1 = item1->next, tuple1 = tuple1->next)
+				{
+					if (tuple1 == NULL)
+					{
+						return 0;
+					}
+
+					sy_record_t *sy_record_type1 = Sy_ExecuteExpression(program, st, ar, gb, item1);
+					if (sy_record_type1 == NULL)
+					{
+						Sy_ExecuteErrorByNode(program, item1, "Typing: type not found\n\tMajor:%s-%u", __FILE__, __LINE__);
+						return -1;
+					}
+
+					if (sy_record_type1->kind != RECORD_KIND_TYPE)
+					{
+						Sy_ExecuteErrorByNode(program, item1, "Typing: '%s' does not have a valid type\n\tMajor:%s-%u", 
+							"Tuple item", __FILE__, __LINE__);
+						return -1;
+					}
+
+					int32_t r1 = Sy_ExecuteEqualValueByType(program, st, ar, gb, tuple1->value, sy_record_type1);
+					if (r1 == 0)
+					{
+						int32_t r2 = sy_record_remove_by_check(sy_record_type1);
+						if (r2 == 0)
+						{
+							sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_type1);
+							if (gbe1 == NULL)
+							{
+								Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+								return -1;
+							}
+						}
+						return 0;
+					}
+					else
+					if (r1 == -1)
+					{
+						return -1;
+					}
+
+					int32_t r2 = sy_record_remove_by_check(sy_record_type1);
+					if (r2 == 0)
+					{
+						sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_type1);
+						if (gbe1 == NULL)
+						{
+							Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+							return -1;
+						}
+					}
+				}
+
+				if (tuple1 != NULL)
+				{
+					return 0;
+				}
+
+				return 1;
+			}
+			else
+			{
+				if (tuple1->value == NULL)
+				{
+					return 1;
+				}
+				return 0;
+			}
+		}
+		return 0;
+	}
+	else
+	if (type1->type->kind == NODE_KIND_CLASS)
+	{
+		if (sy_record_value->kind == RECORD_KIND_STRUCT)
+		{
+			sy_record_struct_t *struct1 = (sy_record_struct_t *)sy_record_value->value;
+			if (type1->type->id != struct1->type->id)
+			{
+				return 0;
+			}
+
+			sy_node_class_t *class1 = (sy_node_class_t *)struct1->type;
+			sy_node_block_t *block1 = (sy_node_block_t *)class1->generics;
+			if (block1 != NULL)
+			{
+				for (sy_node_t *item1 = block1->items;item1 != NULL;item1 = item1->next)
+				{
+					sy_node_generic_t *generic1 = (sy_node_generic_t *)item1->value;
+
+					sy_strip_entry_t *are1 = sy_strip_variable_find(struct1->value, generic1->key);
+					if (are1 == NULL)
+					{
+						sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key;
+						Sy_ExecuteErrorByNode(program, generic1->key, "Runtime:'%s' is not initialized", basic1->value);
+						return -1;
+					}
+
+					assert(are1->value->kind == RECORD_KIND_TYPE);
+					
+					sy_strip_entry_t *are2 = sy_strip_variable_find(type1->value, generic1->key);
+					if (are2 == NULL)
+					{
+						sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key;
+						Sy_ExecuteErrorByNode(program, generic1->key, "Runtime:'%s' is not initialized", basic1->value);
+						return -1;
+					}
+
+					assert(are2->value->kind == RECORD_KIND_TYPE);
+
+					int32_t r1 = Sy_ExecuteEqualTypeByType(program, st, ar, gb, are1->value, are2->value);
+					if (r1 == 0)
+					{
+						return 0;
+					}
+					else
+					if (r1 == -1)
+					{
+						return -1;
+					}
+				}
+			}
+			return 1;
+		}
+		return 0;
+	}
+
+	return 0;
+}
+
+sy_record_t *
+Sy_ExecuteConvertValueByType(program_t *program, sy_symbol_table_t *st, strip_t *ar, garbage_t *gb, sy_record_t *sy_record_value, sy_record_t *sy_record_type)
+{
+	assert (sy_record_type->kind == RECORD_KIND_TYPE);
+
+	sy_record_type_t *type1 = (sy_record_type_t *)sy_record_type->value;
+
+	if (type1->type->kind == NODE_KIND_KINT8)
+	{
+		if (sy_record_value->kind == RECORD_KIND_INT8)
+		{
+			return sy_record_value;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KINT16)
+	{
+		if (sy_record_value->kind == RECORD_KIND_INT8)
+		{
+			return sy_record_make_int16(*(int16_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_INT16)
+		{
+			return sy_record_value;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KINT32)
+	{
+		if (sy_record_value->kind == RECORD_KIND_INT8)
+		{
+			return sy_record_make_int32(*(int32_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_INT16)
+		{
+			return sy_record_make_int32(*(int32_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_INT32)
+		{
+			return sy_record_value;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KINT64)
+	{
+		if (sy_record_value->kind == RECORD_KIND_INT8)
+		{
+			return sy_record_make_int64(*(int64_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_INT16)
+		{
+			return sy_record_make_int64(*(int64_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_INT32)
+		{
+			return sy_record_make_int64(*(int64_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_INT64)
+		{
+			return sy_record_value;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT8)
+	{
+		if (sy_record_value->kind == RECORD_KIND_UINT8)
+		{
+			return sy_record_value;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT16)
+	{
+		if (sy_record_value->kind == RECORD_KIND_UINT8)
+		{
+			return sy_record_make_uint16(*(uint16_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_UINT16)
+		{
+			return sy_record_value;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT32)
+	{
+		if (sy_record_value->kind == RECORD_KIND_UINT8)
+		{
+			return sy_record_make_uint16(*(uint16_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_UINT16)
+		{
+			return sy_record_make_uint32(*(uint32_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_UINT32)
+		{
+			return sy_record_value;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT64)
+	{
+		if (sy_record_value->kind == RECORD_KIND_UINT8)
+		{
+			return sy_record_make_uint64(*(uint64_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_UINT16)
+		{
+			return sy_record_make_uint64(*(uint64_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_UINT32)
+		{
+			return sy_record_make_uint64(*(uint64_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_UINT64)
+		{
+			return sy_record_value;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KBIGINT)
+	{
+		if (sy_record_value->kind == RECORD_KIND_INT8)
+		{
+			return sy_record_make_bigint_from_si(*(int64_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_INT16)
+		{
+			return sy_record_make_bigint_from_si(*(int64_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_INT32)
+		{
+			return sy_record_make_bigint_from_si(*(int64_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_INT64)
+		{
+			return sy_record_make_bigint_from_si(*(int64_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_UINT8)
+		{
+			return sy_record_make_bigint_from_ui(*(uint64_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_UINT16)
+		{
+			return sy_record_make_bigint_from_ui(*(uint64_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_UINT32)
+		{
+			return sy_record_make_bigint_from_ui(*(uint64_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_UINT64)
+		{
+			return sy_record_make_bigint_from_ui(*(uint64_t *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_BIGINT)
+		{
+			return sy_record_value;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KFLOAT32)
+	{
+		if (sy_record_value->kind == RECORD_KIND_FLOAT32)
+		{
+			return sy_record_value;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KFLOAT64)
+	{
+		if (sy_record_value->kind == RECORD_KIND_FLOAT32)
+		{
+			return sy_record_make_float64(*(double *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_FLOAT64)
+		{
+			return sy_record_value;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KBIGFLOAT)
+	{
+		if (sy_record_value->kind == RECORD_KIND_FLOAT32)
+		{
+			return sy_record_make_bigfloat_from_d(*(double *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_FLOAT64)
+		{
+			return sy_record_make_bigfloat_from_d(*(double *)(sy_record_value->value));
+		}
+		else
+		if (sy_record_value->kind == RECORD_KIND_BIGFLOAT)
+		{
+			return sy_record_value;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_OBJECT)
+	{
+
+	}
+
+	return NULL;
+}
+
+int32_t 
+Sy_ExecuteVar(program_t *program, sy_symbol_table_t *st, strip_t *ar, garbage_t *gb, sy_node_t *scope, sy_node_t *node)
+{
+	sy_node_var_t *var1 = (sy_node_var_t *)node->value;
+
+	if (var1->key->kind == NODE_KIND_SET)
+	{
+		sy_record_t *sy_record_value1 = Sy_ExecuteExpression(program, st, ar, gb, var1->value);
+		if (sy_record_value1 == NULL)
+		{
+			Sy_ExecuteErrorByNode(program, var1->value, "Valuation:it has no value type\n\tMajor:%s-%u", __FILE__, __LINE__);
+			return -1;
+		}
+
+		sy_garbage_entry_t *gbe1 = sy_garbage_AppendEntry(gb, sy_record_value1);
+		if (gbe1 == NULL)
+		{
+			Sy_ExecuteError(program, "Internal:a new garbage entry was not created\n\tMajor:%s-%u", __FILE__, __LINE__);
+        	return -1;
+		}
+
+		int32_t r1 = Sy_ExecuteSet(program, st, ar, gb, scope, var1->key, sy_record_value1);
+		if (r1 == -1)
+		{
+			return -1;
+		}
+
+		return 1;
+	}
+	else
+	{
+		sy_record_t *sy_record_value1 = NULL;
+
+		if (var1->value != NULL)
+		{
+			sy_record_value1 = Sy_ExecuteExpression(program, st, ar, gb, var1->value);
+			if (sy_record_value1 == NULL)
+			{
+				Sy_ExecuteErrorByNode(program, var1->key, "Valuation: it has no value type\n\tMajor:%s-%u", __FILE__, __LINE__);
+				return -1;
+			}
+
+			if (var1->type != NULL)
+			{
+				sy_record_t *sy_record_type1 = Sy_ExecuteExpression(program, st, ar, gb, var1->type);
+				if (sy_record_type1 == NULL)
+				{
+					Sy_ExecuteErrorByNode(program, var1->key, "Typing: type not found\n\tMajor:%s-%u", __FILE__, __LINE__);
+					return -1;
+				}
+
+				if (sy_record_type1->kind != RECORD_KIND_TYPE)
+				{
+					sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key;
+					Sy_ExecuteErrorByNode(program, var1->key, "Typing: '%s' does not have a valid type\n\tMajor:%s-%u", 
+						basic1->value, __FILE__, __LINE__);
+					return -1;
+				}
+
+				int32_t r1 = Sy_ExecuteEqualValueByType(program, st, ar, gb, sy_record_value1, sy_record_type1);
+				if (r1 == -1)
+				{
+					return -1;
+				}
+				else
+				if (r1 == 0)
+				{
+					if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
+					{
+						sy_record_t *sy_record_value2 = Sy_ExecuteConvertValueByType(program, st, ar, gb, sy_record_value1, sy_record_type1);
+						if (sy_record_value2 != NULL)
+						{
+							int32_t r2 = sy_record_remove_by_check(sy_record_value1);
+							if (r2 == 0)
+							{
+								assert(NULL != sy_garbage_AppendEntry(gb, sy_record_value1));
+							}
+							sy_record_value1 = sy_record_value2;
+
+							goto region_type_is_match;
+						}
+					}
+
+					sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key;
+					Sy_ExecuteErrorByNode(program, var1->key, "Typing: the value of '%s' does not match its type\n\tMajor:%s-%u", 
+						basic1->value, __FILE__, __LINE__);
+					return -1;
+				}
+
+				region_type_is_match:
+			}
+
+			if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
+			{
+				sy_record_t *sy_record_value2 = sy_record_copy(sy_record_value1);
+				if (sy_record_value2 != NULL)
+				{
+					int32_t r2 = sy_record_remove_by_check(sy_record_value1);
+					if (r2 == 0)
+					{
+						assert(NULL != sy_garbage_AppendEntry(gb, sy_record_value1));
+					}
+					sy_record_value1 = sy_record_value2;
+
+					goto region_type_is_match;
+				}
+			}
+		}
+		else
+		{
+			assert (NULL != (sy_record_value1 = sy_record_make_undefined()));
+		}		
+
+		if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
+		{
+			sy_record_value1->link += 1;
+		}
+		else
+		{
+			sy_record_value1->reference += 1;
+		}
+
+		if ((var1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
+		{
+			assert (st != NULL);
+
+			sy_symbol_table_entry_t *ste1 = sy_symbol_table_find(st, scope, var1->key);
+			if (ste1 != NULL)
+			{
+				sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key;
+				Sy_ExecuteErrorByNode(program, var1->key, "Naming:'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u", 
+					basic1->value, ste1->key->position.line, ste1->key->position.column, __FILE__, __LINE__);
+				return -1;
+			}
+
+			assert(NULL != sy_symbol_table_push(st, scope, node, var1->key, sy_record_value1));
+
+			return 1;
+		}
+		else
+		{
+			assert (ar != NULL);
+
+			sy_strip_entry_t *are2 = sy_strip_variable_find(ar, var1->key);
+			if (are2 != NULL)
+			{
+				sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key;
+				Sy_ExecuteErrorByNode(program, var1->key, "Naming:'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u", 
+					basic1->value, are2->key->position.line, are2->key->position.column, __FILE__, __LINE__);
+				return -1;
+			}
+
+			assert(NULL != sy_strip_variable_push(ar, scope, node, var1->key, sy_record_value1));
+
+			return 1;
+		}
+	}
+
+	return 1;
+}
+
+int32_t 
+Sy_ExecuteModule(program_t *program, context_t *context, sy_node_t *node)
+{
+    sy_node_block_t *block1 = (sy_node_block_t *)node->value;
+
+    for (sy_node_t *item1 = block1->items;item1 != NULL;item1 = item1->next)
+    {
+        if (item1->kind == NODE_KIND_VAR)
+        {
+            int32_t r1 = Sy_ExecuteVar(program, st, NULL, gb, node, item1);
+			if (r1 == -1)
+			{
+				return -1;
+			}
+        }
+    }
+
+    return 1;
+}
+
+
+int32_t 
+Sy_ExecuteRun(program_t *program, sy_node_t *root)
+{
+    
+
+    int32_t r1 = Sy_ExecuteModule(program, context, root);
+    if (r1 == -1)
+    {
+        return -1;
+    }
+
+    return 1;
+}

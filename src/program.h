@@ -4,12 +4,13 @@
 
 #define MAX_URI (_MAX_DIR + _MAX_FNAME + _MAX_EXT)
 
-typedef struct node node_t;
+typedef struct node sy_node_t;
+typedef struct pack pack_t;
 
-typedef struct pair {
+typedef struct module {
     char *key;
     void *value;
-} pair_t;
+} module_t;
 
 typedef struct program {
     char *base_path;
@@ -18,31 +19,27 @@ typedef struct program {
     char *out_file;
     FILE *out;
 
-    node_t *main;
+    sy_node_t *main;
 
-    stack_t *repository_nvars;
-    int64_t n_variables;
+    // using in execute
+    sy_queue_t *repository;
+    pack_t *rax;
 
-    stack_t *repository;
-
-    list_t *errors;
-    list_t *modules;
+    sy_queue_t *errors;
+    sy_queue_t *modules;
 } program_t;
 
 void_t
-program_report(program_t *program);
+Sy_programReport(program_t *program);
 
 void_t
-program_putpath(program_t *program, char *path);
-
-node_t *
-program_load(program_t *program, char *path);
+Sy_programPutPath(program_t *program, char *path);
 
 void_t
-program_outfile(program_t *program, char *path);
+Sy_programOutfile(program_t *program, char *path);
 
 program_t *
-program_create();
+Sy_programCreate();
 
 
 #endif

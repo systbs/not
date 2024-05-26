@@ -3,18 +3,18 @@
 #define __UTILS_H__
 
 char * 
-utils_replace_char(char* str, char find, char replace);
+SyUtils_ReplaceChar(char* str, char find, char replace);
 
 double128_t
-utils_stold(char *str);
+SyUtils_SToUiD(const char *str);
+
+uint64_t
+SyUtils_SToUi(const char *str);
 
 int32_t
-utils_isinteger(double128_t value);
+SyUtils_IndexOf(char *str, char x);
 
 int32_t
-utils_indexof(char *str, char x);
-
-int32_t
-utils_issfloat(char *str);
+SyUtils_StrIsFloat(char *str);
 
 #endif

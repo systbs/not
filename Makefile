@@ -2,7 +2,7 @@ VERSION := 0.0
 
 CC      :=  gcc
 CFLAGS  := -Wall -Wextra -Wno-unused-parameter
-LDFLAGS := -lm
+LDFLAGS := -lm -lgmp 
 
 BUILDDIR := build
 SOURCEDIR := src
@@ -20,14 +20,14 @@ ifeq ($(OS),Windows_NT)
 	else
 		CC = gcc
 		CFLAGS += -DWINDOWS
-		LDFLAGS += -lws2_32 -lShlwapi
+		LDFLAGS += -lws2_32 -lShlwapi 
 	endif
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
 		AR=gcc-ar
 		CFLAGS += -DLINUX -D_XOPEN_SOURCE=700 -D_GNU_SOURCE 
-		LDFLAGS += -Wl,-rpath=./
+		LDFLAGS += -Wl,-rpath=./ -lpthread -pthread
 	endif
 	ifeq ($(UNAME_S),Darwin)
 		AR=ar
@@ -53,7 +53,7 @@ OBJECTS := $(addprefix $(BUILDDIR)/,$(SOURCES:$(SOURCEDIR)/%.c=%.o))
 
 $(BINARY): $(OBJECTS)
 	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o $@
+	$(CC) $(OBJECTS) -o $@ $(LDFLAGS)
 	@echo CC LINK $@
 
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c

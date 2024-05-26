@@ -30,125 +30,125 @@ section .text
 	L0:
 	_start:
 	mov     rdi, rax
-	call    __node_make_module__
+	call    __sy_node_make_module__
 	mov     rdi, rax
-	call    __node_make_module__
+	call    __sy_node_make_module__
 	mov     rdi, rax
 	mov     rsi, RV0
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L1
 	;jumpping
 	L1:
 	mov     rdi, rax
 	mov     rsi, RV1
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L2
 	;jumpping
 	L2:
 	mov     rdi, rax
 	mov     rsi, RV2
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L3
 	;jumpping
 	L3:
 	mov     rdi, rax
 	mov     rsi, RV3
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L4
 	;jumpping
 	L4:
 	mov     rdi, rax
 	mov     rsi, RV4
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L5
 	;jumpping
 	L5:
 	mov     rdi, rax
 	mov     rsi, RV5
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L6
 	;jumpping
 	L6:
 	mov     rdi, rax
 	mov     rsi, RV6
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L7
 	;jumpping
 	L7:
 	mov     rdi, rax
 	mov     rsi, RV7
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L8
 	;jumpping
 	L8:
 	mov     rdi, rax
 	mov     rsi, RV8
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L9
 	;jumpping
 	L9:
 	mov     rdi, rax
 	mov     rsi, RV9
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L10
 	;jumpping
 	L10:
 	mov     rdi, rax
 	mov     rsi, RV10
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L11
 	;jumpping
 	L11:
 	mov     rdi, rax
 	mov     rsi, RV11
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L12
 	;jumpping
 	L12:
 	mov     rdi, rax
 	mov     rsi, RV12
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L13
 	;jumpping
 	L13:
 	mov     rdi, rax
 	mov     rsi, RV13
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L14
 	;jumpping
 	L14:
 	mov     rdi, rax
 	mov     rsi, RV14
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L15
 	;jumpping
 	L15:
 	mov     rdi, rax
 	mov     rsi, RV15
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L16
 	;jumpping
 	L16:
 	mov     rdi, rax
 	mov     rsi, RV16
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L17
 	;jumpping
 	L17:
@@ -158,7 +158,7 @@ section .text
 	mov     rdi, rax
 	mov     rsi, RV17
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L19
 	;jumpping
 	L19:
@@ -171,7 +171,7 @@ section .text
 	mov     rdi, rax
 	mov     rsi, RV18
 	mov     rdx, 2
-	call    __node_make_class__
+	call    __sy_node_make_class__
 	jmp    L22
 	;jumpping
 	L22:

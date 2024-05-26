@@ -2,20 +2,21 @@
 #ifndef __TYPES_H__
 #define __TYPES_H__
 
-typedef char 		char_t;
+typedef char 		chstrip_t;
 typedef short 		short_t;
 typedef int 		int_t;
-typedef long 		long_t;
+typedef long 		lonSy_t;
 typedef float 		float_t;
 typedef double 		double_t;
 typedef long double	double128_t;
 typedef void 		void_t;
 
-typedef unsigned char 	uchar_t;
+typedef unsigned char 	uchstrip_t;
 typedef unsigned short 	ushort_t;
 typedef unsigned int 	uint_t;
-typedef unsigned long 	ulong_t;
+typedef unsigned long 	ulonSy_t;
 
+//typedef char int8_t;
 typedef short int16_t;
 typedef int int32_t;
 //typedef long long int64_t;
@@ -45,5 +46,7 @@ typedef int bool_t;
 #ifndef NULL
 #define NULL ((void *)0)
 #endif
+
+#define ERROR ((void *)(int *)-1)
 
 #endif /* __TYPES_H__ */

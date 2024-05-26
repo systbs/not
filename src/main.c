@@ -3,38 +3,51 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <gmp.h>
 
 #include "types/types.h"
 #include "utils/utils.h"
 #include "utils/path.h"
-#include "container/list.h"
-#include "container/stack.h"
+#include "container/queue.h"
 #include "token/position.h"
 #include "token/token.h"
-#include "program.h"
+#include "error.h"
+#include "mutex.h"
+#include "config.h"
+#include "module.h"
+#include "thread.h"
 #include "scanner/scanner.h"
 #include "ast/node.h"
-#include "parser/error.h"
 #include "parser/syntax/syntax.h"
 #include "parser/semantic/semantic.h"
-
-
+#include "interpreter/execute.h"
+#include "interpreter/record.h"
+#include "interpreter/garbage.h"
+#include "interpreter/symbol_table.h"
 
 int
 main(int argc, char **argv)
 {
-	program_t *program = program_create();
-	if (program == NULL)
+	if (sy_config_init() < 0)
+	{
+		return -1;
+	}
+
+	if (sy_module_init() < 0)
+	{
+		return -1;
+	}
+
+	if (sy_thread_init() < 0)
 	{
 		return -1;
 	}
 	
-	char *env = getenv ("QALAM_PATH");
+	char *env = getenv (ENV_LIBRARY_KEY);
 	if (env == NULL)
 	{
-		setenv("QALAM_PATH", "/home/qalam/", 1);
+		setenv(ENV_LIBRARY_KEY, DEFAULT_LIBRARY_PATH, 1);
 	}
-	
 
 	int32_t i;
 	for (i = 1;i < argc; i++)
@@ -42,40 +55,63 @@ main(int argc, char **argv)
 		if (strcmp(argv[i], "-f") == 0)
 		{
 			i += 1;
-			program_putpath(program, argv[i]);
-		}
-		else
-		if (strcmp(argv[i], "-o") == 0)
-		{
-			i += 1;
-			program_outfile(program, argv[i]);
+			if (sy_config_set_input_file(argv[i]) < 0)
+			{
+				return -1;
+			}
 		}
 	}
 
-	if (strcmp(program->base_file, "") == 0)
+	if (strcmp(sy_config_get_input_file(), "") == 0)
 	{
 		fprintf(stderr, 
-		"qalam: fatal: no input file specified\n"
-		"using:qalam -f [file] ...\n"
-		"type qalam -h for more help.\n");
+		"syntax-lang: fatal: no input file specified\n"
+		"using:syntax -f [file] ...\n"
+		"type syntax -h for more help.\n");
 		return 0;
 	}
 
-	node_t *node = program_load(program, program->base_file);
-	if(node == NULL)
+	sy_module_entry_t_t *module_entry = sy_module_load(sy_config_get_input_file());
+    if (module_entry == ERROR)
+    {
+		return -1;
+	}
+
+	if (sy_garbage_init() < 0)
 	{
-		if(list_count(program->errors) > 0)
-		{
-			goto region_report;
-		}
+		return -1;
+	}
+
+	if (sy_symbol_table_init() < 0)
+	{
+		return -1;
+	}
+
+	if(sy_execute_run(module_entry->root) < 0)
+	{
+		return -1;
+	}
+
+	if (sy_symbol_table_destroy() < 0)
+	{
+		return -1;
+	}
+
+	if (sy_garbage_destroy() < 0)
+	{
+		return -1;
+	}
+
+	if (sy_thread_destroy() < 0)
+	{
+		return -1;
+	}
+
+	if (sy_config_destroy() < 0)
+	{
 		return -1;
 	}
 
 	return 0;
-
-	region_report:
-	program_report(program);
-
-	return -1;
 }
 

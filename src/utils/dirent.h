@@ -10,7 +10,7 @@
 #define DIRENT_H
 
 /* Hide warnings about unreferenced local functions */
-#if defined(__clang__)
+#if defined(__clanSy__)
 #	pragma clang diagnostic ignored "-Wunused-function"
 #elif defined(_MSC_VER)
 #	pragma warning(disable:4505)
@@ -238,7 +238,7 @@ struct _wdirent {
 	int d_type;
 
 	/* File name */
-	wchar_t d_name[PATH_MAX+1];
+	wchstrip_t d_name[PATH_MAX+1];
 };
 typedef struct _wdirent _wdirent;
 
@@ -259,7 +259,7 @@ struct _WDIR {
 	HANDLE handle;
 
 	/* Initial directory name */
-	wchar_t *patt;
+	wchstrip_t *patt;
 };
 typedef struct _WDIR _WDIR;
 
@@ -294,7 +294,7 @@ typedef struct DIR DIR;
 
 /* Dirent functions */
 static DIR *opendir(const char *dirname);
-static _WDIR *_wopendir(const wchar_t *dirname);
+static _WDIR *_wopendir(const wchstrip_t *dirname);
 
 static struct dirent *readdir(DIR *dirp);
 static struct _wdirent *_wreaddir(_WDIR *dirp);
@@ -355,14 +355,14 @@ static long dirent_hash(WIN32_FIND_DATAW *datap);
 
 #if !defined(_MSC_VER) || _MSC_VER < 1400
 static int dirent_mbstowcs_s(
-	size_t *pReturnValue, wchar_t *wcstr, size_t sizeInWords,
+	size_t *pReturnValue, wchstrip_t *wcstr, size_t sizeInWords,
 	const char *mbstr, size_t count);
 #endif
 
 #if !defined(_MSC_VER) || _MSC_VER < 1400
 static int dirent_wcstombs_s(
 	size_t *pReturnValue, char *mbstr, size_t sizeInBytes,
-	const wchar_t *wcstr, size_t count);
+	const wchstrip_t *wcstr, size_t count);
 #endif
 
 #if !defined(_MSC_VER) || _MSC_VER < 1400
@@ -376,9 +376,9 @@ static void dirent_set_errno(int error);
  * entries.
  */
 static _WDIR *
-_wopendir(const wchar_t *dirname)
+_wopendir(const wchstrip_t *dirname)
 {
-	wchar_t *p;
+	wchstrip_t *p;
 
 	/* Must have directory name */
 	if (dirname == NULL || dirname[0] == '\0') {
@@ -412,7 +412,7 @@ _wopendir(const wchar_t *dirname)
 #endif
 
 	/* Allocate room for absolute directory name and search pattern */
-	dirp->patt = (wchar_t*) malloc(sizeof(wchar_t) * n + 16);
+	dirp->patt = (wchstrip_t*) malloc(sizeof(wchstrip_t) * n + 16);
 	if (dirp->patt == NULL)
 		goto exit_closedir;
 
@@ -431,7 +431,7 @@ _wopendir(const wchar_t *dirname)
 		goto exit_closedir;
 #else
 	/* WinRT */
-	wcsncpy_s(dirp->patt, n+1, dirname, n);
+	wcsncpSy_s(dirp->patt, n+1, dirname, n);
 #endif
 
 	/* Append search pattern \* to the directory name */
@@ -682,8 +682,8 @@ dirent_hash(WIN32_FIND_DATAW *datap)
 {
 	unsigned long hash = 5381;
 	unsigned long c;
-	const wchar_t *p = datap->cFileName;
-	const wchar_t *e = p + MAX_PATH;
+	const wchstrip_t *p = datap->cFileName;
+	const wchstrip_t *e = p + MAX_PATH;
 	while (p != e && (c = *p++) != 0) {
 		hash = (hash << 5) + hash + c;
 	}
@@ -706,7 +706,7 @@ static DIR *opendir(const char *dirname)
 		return NULL;
 
 	/* Convert directory name to wide-character string */
-	wchar_t wname[PATH_MAX + 1];
+	wchstrip_t wname[PATH_MAX + 1];
 	size_t n;
 	int error = mbstowcs_s(&n, wname, PATH_MAX + 1, dirname, PATH_MAX+1);
 	if (error)
@@ -1142,7 +1142,7 @@ strverscmp(const char *a, const char *b)
 #if !defined(_MSC_VER) || _MSC_VER < 1400
 static int
 dirent_mbstowcs_s(
-	size_t *pReturnValue, wchar_t *wcstr,
+	size_t *pReturnValue, wchstrip_t *wcstr,
 	size_t sizeInWords, const char *mbstr, size_t count)
 {
 	/* Older Visual Studio or non-Microsoft compiler */
@@ -1172,7 +1172,7 @@ dirent_mbstowcs_s(
 static int
 dirent_wcstombs_s(
 	size_t *pReturnValue, char *mbstr,
-	size_t sizeInBytes, const wchar_t *wcstr, size_t count)
+	size_t sizeInBytes, const wchstrip_t *wcstr, size_t count)
 {
 	/* Older Visual Studio or non-Microsoft compiler */
 	size_t n = wcstombs(mbstr, wcstr, sizeInBytes);

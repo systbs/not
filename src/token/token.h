@@ -74,20 +74,7 @@ enum
 
   TOKEN_ID,
 
-  TOKEN_INT8,
-  TOKEN_INT16,
-  TOKEN_INT32,
-  TOKEN_INT64,
-  TOKEN_UINT8,
-  TOKEN_UINT16,
-  TOKEN_UINT32,
-  TOKEN_UINT64,
-  TOKEN_BIGINT,
-
-  TOKEN_FLOAT32,
-  TOKEN_FLOAT64,
-  TOKEN_BIGFLOAT,
-
+  TOKEN_NUMBER,
   TOKEN_CHAR,
   TOKEN_STRING,
 
@@ -137,13 +124,13 @@ enum
 };
 
 
-typedef struct token {
-	position_t position;
+typedef struct SyToken {
+	sy_position_t position;
 	int32_t type;
 	char *value;
-} token_t;
+} SyToken_t;
 
 const char *
-token_get_name(int32_t tp);
+SyToken_GetName(int32_t tp);
 
 #endif //__TOKEN_H__

@@ -9,7 +9,7 @@
 ;cvtsi2sd, cvtsi2ss, cvtsd2si, cvtsd2ss
 
 extern    fprintf
-extern      node_make_class
+extern      sy_node_make_class
 
 global    _start
 
@@ -19,7 +19,7 @@ _start:
     mov     rdi, rax
     mov     rsi, V1
     mov     rdx, 2
-    call    node_make_class
+    call    sy_node_make_class
 
 
 	xor 	rdi, rdi

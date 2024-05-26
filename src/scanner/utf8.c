@@ -77,7 +77,7 @@ const acceptRange_t acceptRanges[5] = {
 };
 
 void 
-utf8_decode(char *p, int32_t *r, int32_t *w) {
+Sy_Utf8Decode(char *p, int32_t *r, int32_t *w) {
 	size_t n = strlen(p);
 	if (n < 1) {
         *r = utf8_error;

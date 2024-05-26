@@ -1,9 +1,8 @@
 #pragma once
+#ifndef __SCANNER_H__
+#define __SCANNER_H__
 
-#ifndef __scanner_H__
-#define __scanner_H__
-
-typedef struct scanner 
+typedef struct SyScanner 
 {
     char path[_MAX_DIR + _MAX_FNAME + _MAX_EXT];
 	char *source;
@@ -15,19 +14,19 @@ typedef struct scanner
 	uint64_t column;
 	uint64_t line;
 
-	token_t token;
-} scanner_t;
+	SyToken_t token;
+} SyScanner_t;
 
-scanner_t *
-scanner_create(program_t *program, char *path);
+SyScanner_t *
+SyScanner_Create(char *path);
 
 void
-scanner_destroy(program_t *program, scanner_t *scanner);
+SyScanner_Destroy(SyScanner_t *scanner);
 
 int32_t
-scanner_advance(program_t *program, scanner_t *scanner);
+SyScanner_Advance(SyScanner_t *scanner);
 
 int32_t
-scanner_gt (program_t *program, scanner_t *scanner);
+SyScanner_Gt(SyScanner_t *scanner);
 
 #endif // __scanner_H__

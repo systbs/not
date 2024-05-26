@@ -21,7 +21,7 @@
 #define DIR_SEPARATOR '/'
 
 char * 
-utils_replace_char(char* str, char find, char replace)
+SyUtils_ReplaceChar(char* str, char find, char replace)
 {
     char *current_pos = strchr(str,find);
     while (current_pos)
@@ -33,7 +33,7 @@ utils_replace_char(char* str, char find, char replace)
 }
 
 double128_t
-utils_stold(char *str)
+SyUtils_SToUiD(const char *str)
 {
     for (uint64_t i = 0; i < strlen(str); i++)
     {
@@ -140,7 +140,7 @@ utils_stold(char *str)
         }
         else
         {
-			double number = 0, fact = 1;
+			double128_t number = 0, fact = 1;
 			int32_t sign = 0, exp = 0;
 			for (uint64_t j = i; j < strlen(str); j++)
 			{
@@ -193,25 +193,182 @@ utils_stold(char *str)
 				}
 			}
 			number = number * fact;
-			return (double128_t)number;
+			return number;
         }
     }
 	return 0;
 }
 
-int32_t
-utils_isinteger(double128_t value)
+uint64_t
+SyUtils_SToUi(const char *str)
 {
-    uint64_t value2 = (uint64_t)value;
-    if (value2 == value)
+    for (uint64_t i = 0; i < strlen(str); i++)
     {
-        return 1;
+        if (str[i] == '0')
+        {
+            i += 1;
+            if (tolower(str[i]) == 'x')
+            {
+				i += 1;
+				uint64_t number = 0;
+				for (uint64_t j = i; j < strlen(str); j++)
+    			{
+					uint8_t value = ((str[j] & 0xF) + (str[j] >> 6)) | ((str[j] >> 3) & 0x8);
+					number = (number << 4) | (uint64_t) value;
+				}
+                return number;
+            }
+            else
+            if (tolower(str[i]) == 'b')
+            {
+				i += 1;
+				uint64_t number = 0;
+				for (uint64_t j = i; j < strlen(str); j++)
+    			{
+					uint8_t value = ((str[j] & 0x1) - '0');
+					number = (number << 1) | (uint64_t) value;
+				}
+                return number;
+            }
+            else
+            if (tolower(str[i]) == 'o')
+            {
+                i += 1;
+				uint64_t number = 0;
+				for (uint64_t j = i; j < strlen(str); j++)
+    			{
+					uint8_t value = (str[j] - '0');
+					number = (number << 3) | (uint64_t) value;
+				}
+				return number;
+            }
+            else
+            if (tolower(str[i]) == '.')
+            {
+				i += 1;
+				double128_t number = 0, fact = 1;
+				int32_t sign = 1;
+				for (uint64_t j = i; j < strlen(str); j++)
+    			{
+					if (tolower(str[j]) == 'e')
+					{
+						j += 1;
+						if (tolower(str[j]) == '+')
+						{
+							sign = 1;
+							j += 1;
+						}
+						else
+						if (tolower(str[j]) == '-')
+						{
+							sign = -1;
+							j += 1;
+						}
+						uint64_t sym = 0;
+						for (uint64_t k = j;k < strlen(str);k++)
+    					{
+							uint8_t value = (str[k] - '0');
+							sym = (sym * 10) + (uint64_t) value;
+						}
+						for (uint64_t k = 0;k < sym;k++)
+    					{
+							if (sign == 1)
+							{
+								number *= 10;
+							}
+							else
+							{
+								number /= 10;
+							}
+						}
+						break;
+					}
+					else
+					{
+						uint8_t value = (str[j] - '0');
+						fact /= 10;
+						number = (number *10 ) + (uint64_t) value;
+					}
+				}
+				number = number * fact;
+                return (uint64_t)number;
+            }
+            else
+            {
+				i += 1;
+				uint64_t number = 0;
+				for (uint64_t j = i; j < strlen(str); j++)
+    			{
+					uint8_t value = (str[j] - '0');
+					number = (number << 3) | (uint64_t) value;
+				}
+				return number;
+            }
+        }
+        else
+        {
+			double128_t number = 0, fact = 1;
+			int32_t sign = 0, exp = 0;
+			for (uint64_t j = i; j < strlen(str); j++)
+			{
+				if (tolower(str[j]) == 'e')
+				{
+					j += 1;
+					if (tolower(str[j]) == '+')
+					{
+						sign = 1;
+						j += 1;
+					}
+					else
+					if (tolower(str[j]) == '-')
+					{
+						sign = -1;
+						j += 1;
+					}
+					uint64_t sym = 0;
+					for (uint64_t k = j;k < strlen(str);k++)
+					{
+						uint8_t value = (str[k] - '0');
+						sym = (sym * 10) + (uint64_t) value;
+					}
+					for (uint64_t k = 0;k < (exp ? sym : sym + 1);k++)
+					{
+						if (sign == 1)
+						{
+							number *= 10;
+						}
+						else
+						{
+							number /= 10;
+						}
+					}
+					break;
+				}
+				if (tolower(str[j]) == '.')
+				{
+					exp = 1;
+					continue;
+				}
+				else
+				{
+					uint8_t value = (str[j] - '0');
+					if (exp == 1)
+					{
+						fact /= 10;
+					}
+					number = (number * 10) + (uint64_t) value;
+				}
+			}
+			number = number * fact;
+			return (uint64_t)number;
+        }
     }
-    return 0;
+
+	return 0;
 }
 
 int32_t
-utils_indexof(char *str, char x)
+SyUtils_IndexOf(char *str, char x)
 {
     int32_t index = -1;
     for (size_t i = 0; i < strlen(str); i++)
@@ -224,14 +381,14 @@ utils_indexof(char *str, char x)
 }
 
 int32_t
-utils_issfloat(char *str)
+SyUtils_StrIsFloat(char *str)
 {
-	return utils_indexof(str, '.') >= 0;
+	return SyUtils_IndexOf(str, '.') >= 0;
 }
 
 /*
 uint64_t 
-utils_xtou64(const char *str)
+SyUtils_xtou64(const char *str)
 {
     uint64_t res = 0;
     char c;
