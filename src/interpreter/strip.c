@@ -346,9 +346,9 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_var_t *var1 = (sy_node_var_t *)item->block->value;
                 if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
+                    item->value->reference = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        sy_error_system("'%s' could not destroy a record", "sy_strip");
                         if (sy_mutex_lock(&strip->lock) < 0)
                         {
                             sy_error_system("'%s' could not lock", "sy_strip.lock");
@@ -364,9 +364,9 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_entity_t *entity1 = (sy_node_entity_t *)item->block->value;
                 if ((entity1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
+                    item->value->reference = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        sy_error_system("'%s' could not destroy a record", "sy_strip");
                         if (sy_mutex_lock(&strip->lock) < 0)
                         {
                             sy_error_system("'%s' could not lock", "sy_strip.lock");
@@ -382,9 +382,9 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_property_t *property1 = (sy_node_property_t *)item->block->value;
                 if ((property1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
+                    item->value->reference = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        sy_error_system("'%s' could not destroy a record", "sy_strip");
                         if (sy_mutex_lock(&strip->lock) < 0)
                         {
                             sy_error_system("'%s' could not lock", "sy_strip.lock");
@@ -400,9 +400,9 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_parameter_t *parameter1 = (sy_node_parameter_t *)item->block->value;
                 if ((parameter1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
+                    item->value->reference = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        sy_error_system("'%s' could not destroy a record", "sy_strip");
                         if (sy_mutex_lock(&strip->lock) < 0)
                         {
                             sy_error_system("'%s' could not lock", "sy_strip.lock");
@@ -414,9 +414,9 @@ sy_strip_destroy(strip_t *strip)
             }
             else
             {
+                item->value->reference = 0;
                 if (sy_record_destroy(item->value) < 0)
                 {
-                    sy_error_system("'%s' could not destroy a record", "sy_strip");
                     if (sy_mutex_lock(&strip->lock) < 0)
                     {
                         sy_error_system("'%s' could not lock", "sy_strip.lock");
@@ -443,9 +443,9 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_var_t *var1 = (sy_node_var_t *)item->block->value;
                 if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
+                    item->value->reference = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        sy_error_system("'%s' could not destroy a record", "sy_strip");
                         if (sy_mutex_lock(&strip->lock) < 0)
                         {
                             sy_error_system("'%s' could not lock", "sy_strip.lock");
@@ -461,9 +461,9 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_entity_t *entity1 = (sy_node_entity_t *)item->block->value;
                 if ((entity1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
+                    item->value->reference = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        sy_error_system("'%s' could not destroy a record", "sy_strip");
                         if (sy_mutex_lock(&strip->lock) < 0)
                         {
                             sy_error_system("'%s' could not lock", "sy_strip.lock");
@@ -479,9 +479,9 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_property_t *property1 = (sy_node_property_t *)item->block->value;
                 if ((property1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
+                    item->value->reference = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        sy_error_system("'%s' could not destroy a record", "sy_strip");
                         if (sy_mutex_lock(&strip->lock) < 0)
                         {
                             sy_error_system("'%s' could not lock", "sy_strip.lock");
@@ -497,9 +497,9 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_parameter_t *parameter1 = (sy_node_parameter_t *)item->block->value;
                 if ((parameter1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
+                    item->value->reference = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        sy_error_system("'%s' could not destroy a record", "sy_strip");
                         if (sy_mutex_lock(&strip->lock) < 0)
                         {
                             sy_error_system("'%s' could not lock", "sy_strip.lock");
@@ -511,9 +511,9 @@ sy_strip_destroy(strip_t *strip)
             }
             else
             {
+                item->value->reference = 0;
                 if (sy_record_destroy(item->value) < 0)
                 {
-                    sy_error_system("'%s' could not destroy a record", "sy_strip");
                     if (sy_mutex_lock(&strip->lock) < 0)
                     {
                         sy_error_system("'%s' could not lock", "sy_strip.lock");
@@ -604,7 +604,6 @@ sy_strip_copy(strip_t *strip)
         {
             if (sy_strip_destroy(strip_copy) < 0)
             {
-                sy_error_system("'%s' could not destroy", "sy_strip");
                 return ERROR;
             }
             if (sy_mutex_unlock(&strip->lock) < 0)
@@ -621,7 +620,6 @@ sy_strip_copy(strip_t *strip)
             sy_error_no_memory();
             if (sy_strip_destroy(strip_copy) < 0)
             {
-                sy_error_system("'%s' could not destroy", "sy_strip");
                 return ERROR;
             }
             if (sy_mutex_unlock(&strip->lock) < 0)
@@ -632,9 +630,11 @@ sy_strip_copy(strip_t *strip)
             return ERROR;
         }
 
+        record->reference = 1;
+
         entry->scope = item->scope;
         entry->key = item->key;
-        entry->value = item->value;
+        entry->value = record;
         entry->block = item->block;
 
         if (ERROR == sy_queue_right_push(strip_copy->variables, entry))
@@ -642,7 +642,6 @@ sy_strip_copy(strip_t *strip)
             sy_memory_free(entry);
             if (sy_strip_destroy(strip_copy) < 0)
             {
-                sy_error_system("'%s' could not destroy", "sy_strip");
                 return ERROR;
             }
             if (sy_mutex_unlock(&strip->lock) < 0)
@@ -663,7 +662,6 @@ sy_strip_copy(strip_t *strip)
         {
             if (sy_strip_destroy(strip_copy) < 0)
             {
-                sy_error_system("'%s' could not destroy", "sy_strip");
                 return ERROR;
             }
             if (sy_mutex_unlock(&strip->lock) < 0)
@@ -680,7 +678,6 @@ sy_strip_copy(strip_t *strip)
             sy_error_no_memory();
             if (sy_strip_destroy(strip_copy) < 0)
             {
-                sy_error_system("'%s' could not destroy", "sy_strip");
                 return ERROR;
             }
             if (sy_mutex_unlock(&strip->lock) < 0)
@@ -691,9 +688,11 @@ sy_strip_copy(strip_t *strip)
             return ERROR;
         }
 
+        record->reference = 1;
+
         entry->scope = item->scope;
         entry->key = item->key;
-        entry->value = item->value;
+        entry->value = record;
         entry->block = item->block;
 
         if (ERROR == sy_queue_right_push(strip_copy->inputs, entry))
@@ -701,7 +700,6 @@ sy_strip_copy(strip_t *strip)
             sy_memory_free(entry);
             if (sy_strip_destroy(strip_copy) < 0)
             {
-                sy_error_system("'%s' could not destroy", "sy_strip");
                 return ERROR;
             }
             if (sy_mutex_unlock(&strip->lock) < 0)

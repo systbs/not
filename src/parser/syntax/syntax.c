@@ -4970,7 +4970,7 @@ sy_syntax_modul_statement(SySyntax_t *syntax, sy_node_t *parent)
 	else
 	if (syntax->token->type == TOKEN_VAR_KEYWORD)
 	{
-		node = sy_syntax_var_stmt(syntax, parent, SYNTAX_MODIFIER_NONE);
+		node = sy_syntax_var_stmt(syntax, parent, SYNTAX_MODIFIER_STATIC);
 		if (node == NULL)
 		{
 			return NULL;
@@ -4983,12 +4983,12 @@ sy_syntax_modul_statement(SySyntax_t *syntax, sy_node_t *parent)
 	else
 	if (syntax->token->type == TOKEN_READONLY_KEYWORD)
 	{
-		node = sy_syntax_readonly_stmt(syntax, parent, SYNTAX_MODIFIER_NONE);
+		node = sy_syntax_readonly_stmt(syntax, parent, SYNTAX_MODIFIER_STATIC);
 	}
 	else
 	if (syntax->token->type == TOKEN_REFERENCE_KEYWORD)
 	{
-		node = sy_syntax_reference_stmt(syntax, parent, SYNTAX_MODIFIER_NONE);
+		node = sy_syntax_reference_stmt(syntax, parent, SYNTAX_MODIFIER_STATIC);
 	}
 	else
 	{

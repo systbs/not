@@ -6,6 +6,7 @@ typedef struct strip strip_t;
 
 typedef struct record {
     uint8_t kind;
+    uint8_t reference;
     void *value;
 } sy_record_t;
 
