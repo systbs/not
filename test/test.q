@@ -10,7 +10,7 @@ export static class System
 	}
 }
 
-var a = 1;
+var a:int64 = 50 * 60;
 for b (a = 1;a < 10;a += 1)
 {
 	print("value a=${a}");

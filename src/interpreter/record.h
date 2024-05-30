@@ -2,11 +2,16 @@
 #ifndef __RECORD_H__
 #define __RECORD_H__ 1
 
-typedef struct strip strip_t;
+typedef struct sy_strip sy_strip_t;
+typedef struct sy_entry sy_entry_t;
 
 typedef struct record {
+    uint8_t reference:1;
+    uint8_t readonly:1;
+    uint8_t typed:1;
+    uint8_t link:1;
+    uint8_t reserved:4;
     uint8_t kind;
-    uint8_t reference;
     void *value;
 } sy_record_t;
 
@@ -26,21 +31,22 @@ typedef enum sy_record_kind {
     RECORD_KIND_CHAR,
     RECORD_KIND_STRING,
     RECORD_KIND_OBJECT,
-    RECORD_KIND_ARRAY,
     RECORD_KIND_TUPLE,
     RECORD_KIND_TYPE,
     RECORD_KIND_STRUCT,
-    RECORD_KIND_NULL
+    RECORD_KIND_NULL,
+    RECORD_KIND_UNDEFINED,
+    RECORD_KIND_NAN
 } sy_record_kind_t;
 
 typedef struct sy_record_struct {
     sy_node_t *type;
-    strip_t *value;
+    sy_strip_t *value;
 } sy_record_struct_t;
 
 typedef struct sy_record_type {
     sy_node_t *type;
-    strip_t *value;
+    void *value;
 } sy_record_type_t;
 
 typedef struct sy_record_object {
@@ -56,6 +62,8 @@ typedef struct sy_record_tuple {
     struct sy_record_tuple *next;
 } sy_record_tuple_t;
 
+const char *
+sy_record_type_as_string(sy_record_t *record);
 
 sy_record_t *
 sy_record_copy(sy_record_t *record);
@@ -67,10 +75,13 @@ sy_record_t *
 sy_record_make_undefined();
 
 sy_record_t *
-sy_record_make_type(sy_node_t *type, strip_t *value);
+sy_record_make_nan();
 
 sy_record_t *
-sy_record_make_struct(sy_node_t *type, strip_t *value);
+sy_record_make_type(sy_node_t *type, sy_strip_t *value);
+
+sy_record_t *
+sy_record_make_struct(sy_node_t *type, sy_strip_t *value);
 
 sy_record_t *
 sy_record_make_tuple(sy_record_t *value, sy_record_tuple_t *next);
@@ -137,5 +148,29 @@ sy_record_make_int8(int8_t value);
 
 int32_t
 sy_record_destroy(sy_record_t *record);
+
+sy_record_tuple_t *
+sy_record_tuple_copy(sy_record_tuple_t *tuple);
+
+sy_record_object_t *
+sy_record_object_copy(sy_record_object_t *object);
+
+int32_t
+sy_record_tuple_destroy(sy_record_tuple_t *tuple);
+
+int32_t
+sy_record_object_destroy(sy_record_object_t *object);
+
+sy_record_type_t *
+sy_record_type_copy(sy_record_type_t *type);
+
+sy_record_struct_t *
+sy_record_struct_copy(sy_record_struct_t *struct1);
+
+int32_t
+sy_record_type_destroy(sy_record_type_t *type);
+
+int32_t
+sy_record_struct_destroy(sy_record_struct_t *struct1);
 
 #endif

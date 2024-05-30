@@ -23,4 +23,7 @@ sy_error_semantic_by_node(sy_node_t *node, const char *format, ...);
 void
 sy_error_runtime_by_node(sy_node_t *node, const char *format, ...);
 
+void
+sy_error_type_by_node(sy_node_t *node, const char *format, ...);
+
 #endif

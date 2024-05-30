@@ -18,6 +18,7 @@
 #include "../memory.h"
 #include "../mutex.h"
 #include "record.h"
+#include "entry.h"
 #include "strip.h"
 #include "garbage.h"
 
@@ -30,29 +31,18 @@ sy_strip_id_cmp(sy_node_t *n1, sy_node_t *n2)
 	return (strcmp(nb1->value, nb2->value) == 0);
 }
 
-strip_t *
-sy_strip_create(strip_t *previous)
+sy_strip_t *
+sy_strip_create(sy_strip_t *previous)
 {
-    strip_t *strip = (strip_t *)sy_memory_calloc(1, sizeof(strip_t));
+    sy_strip_t *strip = (sy_strip_t *)sy_memory_calloc(1, sizeof(sy_strip_t));
     if (strip == ERROR)
     {
         sy_error_no_memory();
         return ERROR;
     }
 
-    strip->inputs = sy_queue_create();
-    if (strip->inputs == ERROR)
-    {
-        sy_memory_free(strip);
-        return ERROR;
-    }
-
-    strip->variables = sy_queue_create();
-    if (strip->variables == ERROR)
-    {
-        sy_memory_free(strip);
-        return ERROR;
-    }
+    strip->inputs = NULL;
+    strip->variables = NULL;
 
     strip->previous = previous;
 
@@ -66,8 +56,86 @@ sy_strip_create(strip_t *previous)
     return strip;
 }
 
-sy_strip_entry_t *
-sy_strip_variable_push(strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_record_t *value)
+static void
+sy_strip_variable_link(sy_strip_t *strip, sy_entry_t *current, sy_entry_t *entry)
+{
+    entry->next = current;
+    if (current)
+    {
+        entry->previous = current->previous;
+        current->previous = entry;
+        if (current->previous)
+        {
+            current->previous->next = entry;
+        }
+    }
+    
+    if(strip->variables == current)
+    {
+        strip->variables = entry;
+    }
+}
+
+static void
+sy_strip_variable_unlink(sy_strip_t *strip, sy_entry_t *entry)
+{
+    if (entry == strip->variables)
+	{
+		strip->variables = entry->next;
+	}
+
+	if (entry->next)
+	{
+		entry->next->previous = entry->previous;
+	}
+
+	if (entry->previous)
+	{
+		entry->previous->next = entry->next;
+	}
+}
+
+static void
+sy_strip_input_link(sy_strip_t *strip, sy_entry_t *current, sy_entry_t *entry)
+{
+    entry->next = current;
+    if (current)
+    {
+        entry->previous = current->previous;
+        current->previous = entry;
+        if (current->previous)
+        {
+            current->previous->next = entry;
+        }
+    }
+    
+    if(strip->inputs == current)
+    {
+        strip->inputs = entry;
+    }
+}
+
+static void
+sy_strip_input_unlink(sy_strip_t *strip, sy_entry_t *entry)
+{
+    if (entry == strip->inputs)
+	{
+		strip->inputs = entry->next;
+	}
+
+	if (entry->next)
+	{
+		entry->next->previous = entry->previous;
+	}
+
+	if (entry->previous)
+	{
+		entry->previous->next = entry->next;
+	}
+}
+
+sy_entry_t *
+sy_strip_variable_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_record_t *value)
 {
     if (sy_mutex_lock(&strip->lock) < 0)
     {
@@ -75,10 +143,8 @@ sy_strip_variable_push(strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_no
         return ERROR;
     }
 
-    sy_queue_entry_t *a1;
-    for (a1 = strip->variables->begin;a1 != strip->variables->end;a1 = a1->next)
+    for (sy_entry_t *item = strip->variables;item != NULL;item = item->next)
     {
-        sy_strip_entry_t *item = (sy_strip_entry_t *)a1->value;
         if (sy_strip_id_cmp(item->key, key) == 1)
         {
             sy_node_basic_t *basic1 = (sy_node_basic_t *)key->value;
@@ -95,7 +161,7 @@ sy_strip_variable_push(strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_no
         }
     }
 
-    sy_strip_entry_t *entry = (sy_strip_entry_t *)sy_memory_calloc(1, sizeof(sy_strip_entry_t));
+    sy_entry_t *entry = (sy_entry_t *)sy_memory_calloc(1, sizeof(sy_entry_t));
     if(entry == NULL)
     {
         sy_error_no_memory();
@@ -112,16 +178,7 @@ sy_strip_variable_push(strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_no
     entry->value = value;
     entry->block = block;
 
-    if (ERROR == sy_queue_right_push(strip->variables, entry))
-    {
-        sy_memory_free(entry);
-        if (sy_mutex_unlock(&strip->lock) < 0)
-        {
-            sy_error_system("'%s' could not unlock", "sy_strip.lock");
-            return ERROR;
-        }
-        return ERROR;
-    }
+    sy_strip_variable_link(strip, strip->variables, entry);
 
     if (sy_mutex_unlock(&strip->lock) < 0)
     {
@@ -132,8 +189,8 @@ sy_strip_variable_push(strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_no
     return entry;
 }
 
-sy_strip_entry_t *
-sy_strip_variable_find(strip_t *strip, sy_node_t *key)
+sy_entry_t *
+sy_strip_variable_find(sy_strip_t *strip, sy_node_t *key)
 {
     if (sy_mutex_lock(&strip->lock) < 0)
     {
@@ -141,24 +198,22 @@ sy_strip_variable_find(strip_t *strip, sy_node_t *key)
         return ERROR;
     }
 
-    sy_queue_entry_t *a1;
-    for (a1 = strip->variables->begin;a1 != strip->variables->end;a1 = a1->next)
+    for (sy_entry_t *entry = strip->variables;entry != NULL;entry = entry->next)
     {
-        sy_strip_entry_t *item = (sy_strip_entry_t *)a1->value;
-        if (sy_strip_id_cmp(item->key, key) == 1)
+        if (sy_strip_id_cmp(entry->key, key) == 1)
         {
             if (sy_mutex_unlock(&strip->lock) < 0)
             {
                 sy_error_system("'%s' could not unlock", "sy_strip.lock");
                 return ERROR;
             }
-            return item;
+            return entry;
         }
     }
 
     if (strip->previous)
     {
-        sy_strip_entry_t *entry = sy_strip_variable_find(strip->previous, key);
+        sy_entry_t *entry = sy_strip_variable_find(strip->previous, key);
         if (entry == ERROR)
         {
             if (sy_mutex_unlock(&strip->lock) < 0)
@@ -189,8 +244,8 @@ sy_strip_variable_find(strip_t *strip, sy_node_t *key)
     return NULL;
 }
 
-sy_strip_entry_t *
-sy_strip_input_find(strip_t *strip, sy_node_t *key)
+sy_entry_t *
+sy_strip_input_find(sy_strip_t *strip, sy_node_t *key)
 {
     if (sy_mutex_lock(&strip->lock) < 0)
     {
@@ -198,24 +253,23 @@ sy_strip_input_find(strip_t *strip, sy_node_t *key)
         return ERROR;
     }
 
-    sy_queue_entry_t *a1;
-    for (a1 = strip->inputs->begin;a1 != strip->inputs->end;a1 = a1->next)
+    for (sy_entry_t *entry = strip->inputs;entry != NULL;entry = entry->next)
     {
-        sy_strip_entry_t *item = (sy_strip_entry_t *)a1->value;
-        if (sy_strip_id_cmp(item->key, key) == 1)
+        if (sy_strip_id_cmp(entry->key, key) == 1)
         {
             if (sy_mutex_unlock(&strip->lock) < 0)
             {
                 sy_error_system("'%s' could not unlock", "sy_strip.lock");
                 return ERROR;
             }
-            return item;
+            return entry;
         }
     }
 
+
     if (strip->previous)
     {
-        sy_strip_entry_t *entry = sy_strip_input_find(strip->previous, key);
+        sy_entry_t *entry = sy_strip_input_find(strip->previous, key);
         if (entry == ERROR)
         {
             if (sy_mutex_unlock(&strip->lock) < 0)
@@ -246,8 +300,8 @@ sy_strip_input_find(strip_t *strip, sy_node_t *key)
     return NULL;
 }
 
-sy_strip_entry_t *
-sy_strip_input_push(strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_record_t *value)
+sy_entry_t *
+sy_strip_input_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_record_t *value)
 {
     if (sy_mutex_lock(&strip->lock) < 0)
     {
@@ -255,10 +309,8 @@ sy_strip_input_push(strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_node_
         return ERROR;
     }
 
-    sy_queue_entry_t *a1;
-    for (a1 = strip->inputs->begin;a1 != strip->inputs->end;a1 = a1->next)
+    for (sy_entry_t *item = strip->inputs;item != NULL;item = item->next)
     {
-        sy_strip_entry_t *item = (sy_strip_entry_t *)a1->value;
         if (sy_strip_id_cmp(item->key, key) == 1)
         {
             sy_node_basic_t *basic1 = (sy_node_basic_t *)key->value;
@@ -275,7 +327,7 @@ sy_strip_input_push(strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_node_
         }
     }
 
-    sy_strip_entry_t *entry = (sy_strip_entry_t *)sy_memory_calloc(1, sizeof(sy_strip_entry_t));
+    sy_entry_t *entry = (sy_entry_t *)sy_memory_calloc(1, sizeof(sy_entry_t));
     if(entry == NULL)
     {
         sy_error_no_memory();
@@ -292,16 +344,7 @@ sy_strip_input_push(strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_node_
     entry->value = value;
     entry->block = block;
 
-    if (ERROR == sy_queue_right_push(strip->inputs, entry))
-    {
-        sy_memory_free(entry);
-        if (sy_mutex_unlock(&strip->lock) < 0)
-        {
-            sy_error_system("'%s' could not unlock", "sy_strip.lock");
-            return ERROR;
-        }
-        return ERROR;
-    }
+    sy_strip_input_link(strip, strip->inputs, entry);
 
     if (sy_mutex_unlock(&strip->lock) < 0)
     {
@@ -313,7 +356,7 @@ sy_strip_input_push(strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_node_
 }
 
 int32_t
-sy_strip_destroy(strip_t *strip)
+sy_strip_destroy(sy_strip_t *strip)
 {
     if (sy_mutex_lock(&strip->lock) < 0)
     {
@@ -334,10 +377,9 @@ sy_strip_destroy(strip_t *strip)
         }
     }
 
-    sy_queue_entry_t *a1;
-    for (a1 = strip->variables->begin;a1 != strip->variables->end;a1 = a1->next)
+    for (sy_entry_t *item = strip->variables, *next = NULL;item != NULL;item = next)
     {
-        sy_strip_entry_t *item = (sy_strip_entry_t *)a1->value;
+        next = item->next;
 
         if (item->value)
         {
@@ -346,7 +388,7 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_var_t *var1 = (sy_node_var_t *)item->block->value;
                 if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->reference = 0;
+                    item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
                         if (sy_mutex_lock(&strip->lock) < 0)
@@ -364,7 +406,7 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_entity_t *entity1 = (sy_node_entity_t *)item->block->value;
                 if ((entity1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->reference = 0;
+                    item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
                         if (sy_mutex_lock(&strip->lock) < 0)
@@ -382,7 +424,7 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_property_t *property1 = (sy_node_property_t *)item->block->value;
                 if ((property1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->reference = 0;
+                    item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
                         if (sy_mutex_lock(&strip->lock) < 0)
@@ -400,7 +442,7 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_parameter_t *parameter1 = (sy_node_parameter_t *)item->block->value;
                 if ((parameter1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->reference = 0;
+                    item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
                         if (sy_mutex_lock(&strip->lock) < 0)
@@ -414,7 +456,7 @@ sy_strip_destroy(strip_t *strip)
             }
             else
             {
-                item->value->reference = 0;
+                item->value->link = 0;
                 if (sy_record_destroy(item->value) < 0)
                 {
                     if (sy_mutex_lock(&strip->lock) < 0)
@@ -427,14 +469,13 @@ sy_strip_destroy(strip_t *strip)
             }
         }
 
+        sy_strip_variable_unlink(strip, item);
         sy_memory_free(item);
     }
 
-    sy_queue_destroy(strip->variables);
-
-    for (a1 = strip->inputs->begin;a1 != strip->inputs->end;a1 = a1->next)
+    for (sy_entry_t *item = strip->inputs, *next = NULL;item != NULL;item = next)
     {
-        sy_strip_entry_t *item = (sy_strip_entry_t *)a1->value;
+        next = item->next;
 
         if (item->value)
         {
@@ -443,7 +484,7 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_var_t *var1 = (sy_node_var_t *)item->block->value;
                 if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->reference = 0;
+                    item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
                         if (sy_mutex_lock(&strip->lock) < 0)
@@ -461,7 +502,7 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_entity_t *entity1 = (sy_node_entity_t *)item->block->value;
                 if ((entity1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->reference = 0;
+                    item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
                         if (sy_mutex_lock(&strip->lock) < 0)
@@ -479,7 +520,7 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_property_t *property1 = (sy_node_property_t *)item->block->value;
                 if ((property1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->reference = 0;
+                    item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
                         if (sy_mutex_lock(&strip->lock) < 0)
@@ -497,7 +538,7 @@ sy_strip_destroy(strip_t *strip)
                 sy_node_parameter_t *parameter1 = (sy_node_parameter_t *)item->block->value;
                 if ((parameter1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->reference = 0;
+                    item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
                         if (sy_mutex_lock(&strip->lock) < 0)
@@ -511,7 +552,7 @@ sy_strip_destroy(strip_t *strip)
             }
             else
             {
-                item->value->reference = 0;
+                item->value->link = 0;
                 if (sy_record_destroy(item->value) < 0)
                 {
                     if (sy_mutex_lock(&strip->lock) < 0)
@@ -524,11 +565,9 @@ sy_strip_destroy(strip_t *strip)
             }
         }
 
+        sy_strip_input_unlink(strip, item);
         sy_memory_free(item);
     }
-
-    sy_queue_destroy(strip->inputs);
-    sy_memory_free(strip);
 
     if (sy_mutex_lock(&strip->lock) < 0)
     {
@@ -536,11 +575,19 @@ sy_strip_destroy(strip_t *strip)
         return -1;
     }
 
+    if (sy_mutex_destroy(&strip->lock) < 0)
+    {
+        sy_error_system("'%s' could not destroy the lock", "sy_strip.lock");
+        return -1;
+    }
+
+    sy_memory_free(strip);
+
     return 0;
 }
 
-strip_t *
-sy_strip_copy(strip_t *strip)
+sy_strip_t *
+sy_strip_copy(sy_strip_t *strip)
 {
     if (sy_mutex_lock(&strip->lock) < 0)
     {
@@ -548,7 +595,7 @@ sy_strip_copy(strip_t *strip)
         return ERROR;
     }
 
-    strip_t *strip_previous = NULL;
+    sy_strip_t *strip_previous = NULL;
     if (strip->previous)
     {
         strip_previous = sy_strip_copy(strip->previous);
@@ -563,7 +610,7 @@ sy_strip_copy(strip_t *strip)
         }
     }
 
-    strip_t *strip_copy = sy_strip_create(strip_previous);
+    sy_strip_t *strip_copy = sy_strip_create(strip_previous);
     if (strip_copy == ERROR)
     {
         if (sy_mutex_unlock(&strip->lock) < 0)
@@ -594,11 +641,8 @@ sy_strip_copy(strip_t *strip)
 		return ERROR;
 	}
 
-    sy_queue_entry_t *a1;
-    for (a1 = strip->variables->begin;a1 != strip->variables->end;a1 = a1->next)
+    for (sy_entry_t *item = strip->variables;item != NULL;item = item->next)
     {
-        sy_strip_entry_t *item = (sy_strip_entry_t *)a1->value;
-
         sy_record_t *record = sy_record_copy(item->value);
         if (record == ERROR)
         {
@@ -614,7 +658,7 @@ sy_strip_copy(strip_t *strip)
             return ERROR;
         }
 
-        sy_strip_entry_t *entry = (sy_strip_entry_t *)sy_memory_calloc(1, sizeof(sy_strip_entry_t));
+        sy_entry_t *entry = (sy_entry_t *)sy_memory_calloc(1, sizeof(sy_entry_t));
         if(entry == NULL)
         {
             sy_error_no_memory();
@@ -630,33 +674,18 @@ sy_strip_copy(strip_t *strip)
             return ERROR;
         }
 
-        record->reference = 1;
+        record->link = 1;
 
         entry->scope = item->scope;
         entry->key = item->key;
         entry->value = record;
         entry->block = item->block;
 
-        if (ERROR == sy_queue_right_push(strip_copy->variables, entry))
-        {
-            sy_memory_free(entry);
-            if (sy_strip_destroy(strip_copy) < 0)
-            {
-                return ERROR;
-            }
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                return ERROR;
-            }
-            return ERROR;
-        }
+        sy_strip_variable_link(strip_copy, strip_copy->variables, entry);
     }
 
-    for (a1 = strip->inputs->begin;a1 != strip->inputs->end;a1 = a1->next)
+    for (sy_entry_t *item = strip->inputs;item != NULL;item = item->next)
     {
-        sy_strip_entry_t *item = (sy_strip_entry_t *)a1->value;
-
         sy_record_t *record = sy_record_copy(item->value);
         if (record == ERROR)
         {
@@ -672,7 +701,7 @@ sy_strip_copy(strip_t *strip)
             return ERROR;
         }
 
-        sy_strip_entry_t *entry = (sy_strip_entry_t *)sy_memory_calloc(1, sizeof(sy_strip_entry_t));
+        sy_entry_t *entry = (sy_entry_t *)sy_memory_calloc(1, sizeof(sy_entry_t));
         if(entry == NULL)
         {
             sy_error_no_memory();
@@ -688,27 +717,14 @@ sy_strip_copy(strip_t *strip)
             return ERROR;
         }
 
-        record->reference = 1;
+        record->link = 1;
 
         entry->scope = item->scope;
         entry->key = item->key;
         entry->value = record;
         entry->block = item->block;
 
-        if (ERROR == sy_queue_right_push(strip_copy->inputs, entry))
-        {
-            sy_memory_free(entry);
-            if (sy_strip_destroy(strip_copy) < 0)
-            {
-                return ERROR;
-            }
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                return ERROR;
-            }
-            return ERROR;
-        }
+        sy_strip_input_link(strip_copy, strip_copy->inputs, entry);
     }
 
     if (sy_mutex_unlock(&strip->lock) < 0)

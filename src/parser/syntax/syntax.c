@@ -155,7 +155,7 @@ sy_syntax_expected(SySyntax_t *syntax, int32_t type)
 			sprintf(
 					message,
 					"expected '%s', got '%s'\n\tMajor:%s-%u",
-					SyToken_GetName(type),
+					sy_token_get_name(type),
 					syntax->token->value, __FILE__, __LINE__);
 			break;
 
@@ -163,8 +163,8 @@ sy_syntax_expected(SySyntax_t *syntax, int32_t type)
 			sprintf(
 					message,
 					"expected '%s', got '%s'\n\tMajor:%s-%u",
-					SyToken_GetName(type),
-					SyToken_GetName(syntax->token->type), __FILE__, __LINE__);
+					sy_token_get_name(type),
+					sy_token_get_name(syntax->token->type), __FILE__, __LINE__);
 			break;
 	}
 

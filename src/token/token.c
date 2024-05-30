@@ -120,6 +120,6 @@ const char * const symbols[] = {
 
 
 const char *
-SyToken_GetName(int32_t tp){
+sy_token_get_name(int32_t tp){
     return symbols[tp];
 }

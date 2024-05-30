@@ -18,6 +18,7 @@
 #include "../memory.h"
 #include "../mutex.h"
 #include "record.h"
+#include "entry.h"
 #include "symbol_table.h"
 
 sy_symbol_table_t base_symbol_table;
@@ -65,7 +66,7 @@ sy_symbol_table_id_cmp(sy_node_t *n1, sy_node_t *n2)
 }
 
 static void
-sy_symbol_table_link(sy_symbol_table_entry_t *current, sy_symbol_table_entry_t *entry)
+sy_symbol_table_link(sy_entry_t *current, sy_entry_t *entry)
 {
     sy_symbol_table_t *st = sy_symbol_table_get();
 
@@ -87,7 +88,7 @@ sy_symbol_table_link(sy_symbol_table_entry_t *current, sy_symbol_table_entry_t *
 }
 
 static void
-sy_symbol_table_unlink(sy_symbol_table_entry_t *entry)
+sy_symbol_table_unlink(sy_entry_t *entry)
 {
     sy_symbol_table_t *st = sy_symbol_table_get();
 
@@ -107,10 +108,10 @@ sy_symbol_table_unlink(sy_symbol_table_entry_t *entry)
 	}
 }
 
-sy_symbol_table_entry_t *
+sy_entry_t *
 sy_symbol_table_push(sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_record_t *value)
 {
-    sy_symbol_table_entry_t *entry = (sy_symbol_table_entry_t *)sy_memory_calloc(1, sizeof(sy_symbol_table_entry_t));
+    sy_entry_t *entry = (sy_entry_t *)sy_memory_calloc(1, sizeof(sy_entry_t));
     if(!entry)
     {
         sy_error_no_memory();
@@ -144,7 +145,7 @@ sy_symbol_table_push(sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_reco
     return entry;
 }
 
-sy_symbol_table_entry_t *
+sy_entry_t *
 sy_symbol_table_find(sy_node_t *scope, sy_node_t *key)
 {
     sy_symbol_table_t *st = sy_symbol_table_get();
@@ -155,7 +156,7 @@ sy_symbol_table_find(sy_node_t *scope, sy_node_t *key)
         return ERROR;
     }
 
-    sy_symbol_table_entry_t *a1;
+    sy_entry_t *a1;
     for (a1 = st->begin;a1 != NULL;a1 = a1->next)
     {
         if ((a1->scope->id == scope->id) && (sy_symbol_table_id_cmp(a1->key, key) == 1))

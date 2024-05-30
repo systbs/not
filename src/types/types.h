@@ -48,5 +48,6 @@ typedef int bool_t;
 #endif
 
 #define ERROR ((void *)(int *)-1)
+#define NAN ((void *)(int *)(-2))
 
 #endif /* __TYPES_H__ */

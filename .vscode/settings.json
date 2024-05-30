@@ -74,7 +74,10 @@
         "program": "c",
         "symbol_table.h": "c",
         "strip.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "entry.h": "c",
+        "inttypes.h": "c",
+        "cmath": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

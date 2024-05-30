@@ -39,7 +39,7 @@ SyScanner_DigitValue(int32_t ch)
 void 
 SyScanner_SetToken(SyScanner_t *scanner, SyToken_t token)
 {
-	//printf("%s-%lld:%lld  %s\n", token.position.path, token.position.line, token.position.column, SyToken_GetName(token.type));
+	//printf("%s-%lld:%lld  %s\n", token.position.path, token.position.line, token.position.column, sy_token_get_name(token.type));
 	scanner->token = token;
 }
 

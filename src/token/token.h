@@ -131,6 +131,6 @@ typedef struct SyToken {
 } SyToken_t;
 
 const char *
-SyToken_GetName(int32_t tp);
+sy_token_get_name(int32_t tp);
 
 #endif //__TOKEN_H__
