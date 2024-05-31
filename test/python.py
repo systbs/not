@@ -1,8 +1,5 @@
-import pywhatkit
-
-try:
-    pywhatkit.sendwhatmsg("+989150995993", "hello paython", 22, 44)
-    print("successfuly sent!")
-
-except:
-    print("An unexpected error")
+sum = 0
+i = 0
+while i < 10000000:
+    sum += i
+    i += 1

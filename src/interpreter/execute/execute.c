@@ -34,6 +34,12 @@ sy_execute_id_cmp(sy_node_t *n1, sy_node_t *n2)
 	return (strcmp(nb1->value, nb2->value) == 0);
 }
 
+static int32_t 
+sy_execute_for(sy_node_t *node, sy_strip_t *strip);
+
+static int32_t 
+sy_execute_if(sy_node_t *node, sy_strip_t *strip);
+
 
 
 static int32_t
@@ -2437,9 +2443,79 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
 }
 
 static int32_t 
+sy_execute_body(sy_node_t *node, sy_strip_t *strip)
+{
+    sy_strip_t *new_strip = sy_strip_create(strip);
+    if (new_strip == ERROR)
+    {
+        return -1;
+    }
+
+    sy_node_block_t *block = (sy_node_block_t *)node->value;
+
+    for (sy_node_t *item = block->items;item != NULL;item = item->next)
+    {
+        if (item->kind == NODE_KIND_VAR)
+        {
+			if (sy_execute_var(node, item, new_strip) < 0)
+			{
+				goto region_error;
+			}
+        }
+        else
+        if (item->kind == NODE_KIND_FOR)
+        {
+            if (sy_execute_for(item, new_strip) < 0)
+			{
+				goto region_error;
+			}
+        }
+        else
+        if (item->kind == NODE_KIND_IF)
+        {
+            if (sy_execute_if(item, new_strip) < 0)
+			{
+				goto region_error;
+			}
+        }
+        else
+        {
+            if (sy_execute_assign(item, new_strip) < 0)
+			{
+				goto region_error;
+			}
+        }
+    }
+
+    if (new_strip)
+    {
+        if (sy_strip_destroy(new_strip) < 0)
+        {
+            return -1;
+        }
+    }
+
+    return 0;
+
+    region_error:
+    if (new_strip)
+    {
+        sy_strip_destroy(new_strip);
+    }
+
+    return -1;
+}
+
+static int32_t 
 sy_execute_for(sy_node_t *node, sy_strip_t *strip)
 {
     sy_node_for_t *for1 = (sy_node_for_t *)node->value;
+
+    sy_strip_t *new_strip = sy_strip_create(strip);
+    if (new_strip == ERROR)
+    {
+        return -1;
+    }
 
     if (for1->initializer != NULL)
     {
@@ -2447,49 +2523,181 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip)
         {
             if (item1->kind == NODE_KIND_VAR)
             {
-                int32_t r1 = sy_execute_var(node, item1, strip);
+                int32_t r1 = sy_execute_var(node, item1, new_strip);
                 if (r1 == -1)
                 {
-                    return -1;
+                    goto region_init_error;
                 }
             }
             else
             {
-                int32_t r1 = sy_execute_assign(item1, strip);
+                int32_t r1 = sy_execute_assign(item1, new_strip);
                 if (r1 == -1)
                 {
-                    return -1;
+                    goto region_init_error;
                 }
             }
         }
     }
 
-    sy_record_t *condition;
-    if (for1->condition != NULL)
+    sy_record_t *zero = sy_record_make_int8(0);
+    if (zero == ERROR)
     {
-        condition = sy_execute_expression(for1->condition, strip);
+        goto region_init_error;
+    }
+
+    int32_t truthy = 1;
+
+    region_start_loop:
+    if (for1->condition)
+    {
+        sy_record_t *condition = sy_execute_expression(for1->condition, new_strip);
         if (condition == ERROR)
         {
-            return -1;
+            goto region_error;
+        }
+
+        truthy = !sy_execute_truthy_equal(zero, condition);
+        if (condition->link == 0)
+        {
+            if (sy_record_destroy(condition) < 0)
+            {
+                goto region_error;
+            }
         }
     }
 
-    /*
-    if (for1->body != NULL)
+    if (truthy)
     {
-        int32_t r2 = sy_semantic_body(for1->body);
-        if (r2 == -1)
+        if (for1->body)
+        {
+            int32_t r2 = sy_execute_body(for1->body, new_strip);
+            if (r2 == -1)
+            {
+                goto region_error;
+            }
+        }
+
+        if (for1->incrementor)
+        {
+            for (sy_node_t *item1 = for1->incrementor;item1 != NULL;item1 = item1->next)
+            {
+                int32_t r1 = sy_execute_assign(item1, new_strip);
+                if (r1 == -1)
+                {
+                    goto region_error;
+                }
+            }
+        }
+
+        goto region_start_loop;
+    }
+
+    if (zero)
+    {
+        if (sy_record_destroy(zero) < 0)
         {
             return -1;
         }
     }
-    */
 
-    if (for1->incrementor != NULL)
+    if (new_strip)
     {
-        for (sy_node_t *item1 = for1->incrementor;item1 != NULL;item1 = item1->next)
+        if (sy_strip_destroy(new_strip) < 0)
         {
-            int32_t r1 = sy_execute_assign(item1, strip);
+            return -1;
+        }
+    }
+
+    return 0;
+
+    region_error:
+    if (zero)
+    {
+        if (zero->link == 0)
+        {
+            sy_record_destroy(zero);
+        }
+    }
+
+    region_init_error:
+    if (new_strip)
+    {
+        sy_strip_destroy(new_strip);
+    }
+
+    return -1;
+}
+
+static int32_t 
+sy_execute_if(sy_node_t *node, sy_strip_t *strip)
+{
+    sy_node_if_t *if1 = (sy_node_if_t *)node->value;
+    if (if1->condition != NULL)
+    {
+        sy_record_t *condition = sy_execute_expression(if1->condition, strip);
+        if (condition == ERROR)
+        {            
+            return -1;
+        }
+
+        sy_record_t *zero = sy_record_make_int8(0);
+        if (zero == ERROR)
+        {
+            return -1;
+        }
+
+        int32_t truthy = !sy_execute_truthy_equal(zero, condition);
+        if (condition->link == 0)
+        {
+            if (sy_record_destroy(condition) < 0)
+            {
+                if (sy_record_destroy(zero) < 0)
+                {
+                    return -1;
+                }
+                return -1;
+            }
+        }
+
+        if (sy_record_destroy(zero) < 0)
+        {
+            return -1;
+        }
+
+        if (!truthy)
+        {
+            goto region_else;
+        }
+    }
+
+    if (if1->then_body != NULL)
+    {
+        int32_t r1 = sy_execute_body(if1->then_body, strip);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+    }
+
+    return 0;
+
+    region_else:
+    if (if1->else_body != NULL)
+    {
+        sy_node_t *else_body1 = if1->else_body;
+
+        if (else_body1->kind == NODE_KIND_IF)
+        {
+            int32_t r1 = sy_execute_if(if1->else_body, strip);
+            if (r1 == -1)
+            {
+                return -1;
+            }
+        }
+        else
+        {
+            int32_t r1 = sy_execute_body(if1->else_body, strip);
             if (r1 == -1)
             {
                 return -1;
@@ -2517,7 +2725,15 @@ sy_execute_module(sy_node_t *node)
         else
         if (item->kind == NODE_KIND_FOR)
         {
-            if (sy_execute_for(node, item, NULL) < 0)
+            if (sy_execute_for(item, NULL) < 0)
+			{
+				return -1;
+			}
+        }
+        else
+        if (item->kind == NODE_KIND_IF)
+        {
+            if (sy_execute_if(item, NULL) < 0)
 			{
 				return -1;
 			}

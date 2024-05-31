@@ -71,4 +71,4 @@ setup:
 
 # Builder uses this target to run your application.
 test: $(BINARY)
-	time ./$(BINARY) -f ./test/test.q -o ./test/test.asm
+	time ./$(BINARY) -f ./test/test.q -o ./test/test.

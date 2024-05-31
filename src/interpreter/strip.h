@@ -31,6 +31,9 @@ sy_strip_t *
 sy_strip_copy(sy_strip_t *ar);
 
 int32_t
+sy_strip_destroy_all(sy_strip_t *strip);
+
+int32_t
 sy_strip_destroy(sy_strip_t *strip);
 
 #endif

@@ -18,15 +18,15 @@ typedef struct SyScanner
 } SyScanner_t;
 
 SyScanner_t *
-SyScanner_Create(char *path);
+sy_scanner_create(char *path);
 
 void
-SyScanner_Destroy(SyScanner_t *scanner);
+sy_scanner_destroy(SyScanner_t *scanner);
 
 int32_t
-SyScanner_Advance(SyScanner_t *scanner);
+sy_scanner_advance(SyScanner_t *scanner);
 
 int32_t
-SyScanner_Gt(SyScanner_t *scanner);
+sy_scanner_gt(SyScanner_t *scanner);
 
 #endif // __scanner_H__

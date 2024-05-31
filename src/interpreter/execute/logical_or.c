@@ -25,6 +25,532 @@
 #include "execute.h"
 
 sy_record_t *
+sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
+{
+    if (left->kind == RECORD_KIND_UNDEFINED)
+    {
+        return right;
+    }
+    else
+    if (left->kind == RECORD_KIND_NAN)
+    {
+        return right;
+    }
+    else
+    if (left->kind == RECORD_KIND_INT8)
+    {
+        int a_is_nonzero = (*(int8_t *)(left->value)) != 0;
+        if (a_is_nonzero)
+        {
+            if (right)
+            {
+                if (right->link == 0)
+                {
+                    if (sy_record_destroy(right) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+            return left;
+        }
+        else
+        {
+            if (left->link == 0)
+            {
+                if (sy_record_destroy(left) < 0)
+                {
+                    return ERROR;
+                }
+            }
+            return right;
+        }
+    }
+    else
+    if (left->kind == RECORD_KIND_INT16)
+    {
+        int a_is_nonzero = (*(int16_t *)(left->value)) != 0;
+        if (a_is_nonzero)
+        {
+            if (right)
+            {
+                if (right->link == 0)
+                {
+                    if (sy_record_destroy(right) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+            return left;
+        }
+        else
+        {
+            if (left->link == 0)
+            {
+                if (sy_record_destroy(left) < 0)
+                {
+                    return ERROR;
+                }
+            }
+            return right;
+        }
+    }
+    else
+    if (left->kind == RECORD_KIND_INT32)
+    {
+        int a_is_nonzero = (*(int32_t *)(left->value)) != 0;
+        if (a_is_nonzero)
+        {
+            if (right)
+            {
+                if (right->link == 0)
+                {
+                    if (sy_record_destroy(right) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+            return left;
+        }
+        else
+        {
+            if (left->link == 0)
+            {
+                if (sy_record_destroy(left) < 0)
+                {
+                    return ERROR;
+                }
+            }
+            return right;
+        }
+    }
+    else
+    if (left->kind == RECORD_KIND_INT64)
+    {
+        int a_is_nonzero = (*(int64_t *)(left->value)) != 0;
+        if (a_is_nonzero)
+        {
+            if (right)
+            {
+                if (right->link == 0)
+                {
+                    if (sy_record_destroy(right) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+            return left;
+        }
+        else
+        {
+            if (left->link == 0)
+            {
+                if (sy_record_destroy(left) < 0)
+                {
+                    return ERROR;
+                }
+            }
+            return right;
+        }
+    }
+    else
+    if (left->kind == RECORD_KIND_UINT8)
+    {
+        int a_is_nonzero = (*(uint8_t *)(left->value)) != 0;
+        if (a_is_nonzero)
+        {
+            if (right)
+            {
+                if (right->link == 0)
+                {
+                    if (sy_record_destroy(right) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+            return left;
+        }
+        else
+        {
+            if (left->link == 0)
+            {
+                if (sy_record_destroy(left) < 0)
+                {
+                    return ERROR;
+                }
+            }
+            return right;
+        }
+    }
+    else
+    if (left->kind == RECORD_KIND_UINT16)
+    {
+        int a_is_nonzero = (*(uint16_t *)(left->value)) != 0;
+        if (a_is_nonzero)
+        {
+            if (right)
+            {
+                if (right->link == 0)
+                {
+                    if (sy_record_destroy(right) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+            return left;
+        }
+        else
+        {
+            if (left->link == 0)
+            {
+                if (sy_record_destroy(left) < 0)
+                {
+                    return ERROR;
+                }
+            }
+            return right;
+        }
+    }
+    else
+    if (left->kind == RECORD_KIND_UINT32)
+    {
+        int a_is_nonzero = (*(uint32_t *)(left->value)) != 0;
+        if (a_is_nonzero)
+        {
+            if (right)
+            {
+                if (right->link == 0)
+                {
+                    if (sy_record_destroy(right) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+            return left;
+        }
+        else
+        {
+            if (left->link == 0)
+            {
+                if (sy_record_destroy(left) < 0)
+                {
+                    return ERROR;
+                }
+            }
+            return right;
+        }
+    }
+    else
+    if (left->kind == RECORD_KIND_UINT64)
+    {
+        int a_is_nonzero = (*(uint64_t *)(left->value)) != 0;
+        if (a_is_nonzero)
+        {
+            if (right)
+            {
+                if (right->link == 0)
+                {
+                    if (sy_record_destroy(right) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+            return left;
+        }
+        else
+        {
+            if (left->link == 0)
+            {
+                if (sy_record_destroy(left) < 0)
+                {
+                    return ERROR;
+                }
+            }
+            return right;
+        }
+    }
+    else
+    if (left->kind == RECORD_KIND_BIGINT)
+    {
+        int32_t a_is_nonzero = mpz_cmp_ui(*(mpz_t *)(left->value), 0) != 0;
+        if (a_is_nonzero)
+        {
+            if (right)
+            {
+                if (right->link == 0)
+                {
+                    if (sy_record_destroy(right) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+            return left;
+        }
+        else
+        {
+            if (left->link == 0)
+            {
+                if (sy_record_destroy(left) < 0)
+                {
+                    return ERROR;
+                }
+            }
+            return right;
+        }
+    }
+    else
+    if (left->kind == RECORD_KIND_FLOAT32)
+    {
+        int a_is_nonzero = (*(float *)(left->value)) != 0.0;
+        if (a_is_nonzero)
+        {
+            if (right)
+            {
+                if (right->link == 0)
+                {
+                    if (sy_record_destroy(right) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+            return left;
+        }
+        else
+        {
+            if (left->link == 0)
+            {
+                if (sy_record_destroy(left) < 0)
+                {
+                    return ERROR;
+                }
+            }
+            return right;
+        }
+    }
+    else
+    if (left->kind == RECORD_KIND_FLOAT64)
+    {
+        int a_is_nonzero = (*(double *)(left->value)) != 0.0;
+        if (a_is_nonzero)
+        {
+            if (right)
+            {
+                if (right->link == 0)
+                {
+                    if (sy_record_destroy(right) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+            return left;
+        }
+        else
+        {
+            if (left->link == 0)
+            {
+                if (sy_record_destroy(left) < 0)
+                {
+                    return ERROR;
+                }
+            }
+            return right;
+        }
+    }
+    else
+    if (left->kind == RECORD_KIND_BIGFLOAT)
+    {
+        int a_is_nonzero = mpf_cmp_ui(*(mpf_t *)(left->value), 0) != 0;
+        if (a_is_nonzero)
+        {
+            if (right)
+            {
+                if (right->link == 0)
+                {
+                    if (sy_record_destroy(right) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+            return left;
+        }
+        else
+        {
+            if (left->link == 0)
+            {
+                if (sy_record_destroy(left) < 0)
+                {
+                    return ERROR;
+                }
+            }
+            return right;
+        }
+    }
+    else
+    if (left->kind == RECORD_KIND_CHAR)
+    {
+        int a_is_nonzero = (*(char *)(left->value)) != 0;
+        if (a_is_nonzero)
+        {
+            if (right)
+            {
+                if (right->link == 0)
+                {
+                    if (sy_record_destroy(right) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+            return left;
+        }
+        else
+        {
+            if (left->link == 0)
+            {
+                if (sy_record_destroy(left) < 0)
+                {
+                    return ERROR;
+                }
+            }
+            return right;
+        }
+    }
+    else
+    if (left->kind == RECORD_KIND_STRING)
+    {
+        int a_is_nonzero = strcmp((char *)(left->value), "") != 0;
+        if (a_is_nonzero)
+        {
+            if (right)
+            {
+                if (right->link == 0)
+                {
+                    if (sy_record_destroy(right) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+            return left;
+        }
+        else
+        {
+            if (left->link == 0)
+            {
+                if (sy_record_destroy(left) < 0)
+                {
+                    return ERROR;
+                }
+            }
+            return right;
+        }
+    }
+    else
+    if (left->kind == RECORD_KIND_OBJECT)
+    {
+        if (right)
+        {
+            if (right->link == 0)
+            {
+                if (sy_record_destroy(right) < 0)
+                {
+                    return ERROR;
+                }
+            }
+        }
+        return left;
+    }
+    else
+    if (left->kind == RECORD_KIND_TUPLE)
+    {
+        if (right)
+        {
+            if (right->link == 0)
+            {
+                if (sy_record_destroy(right) < 0)
+                {
+                    return ERROR;
+                }
+            }
+        }
+        return left;
+    }
+    else
+    if (left->kind == RECORD_KIND_TYPE)
+    {
+        if (right)
+        {
+            if (right->link == 0)
+            {
+                if (sy_record_destroy(right) < 0)
+                {
+                    return ERROR;
+                }
+            }
+        }
+        return left;
+    }
+    else
+    if (left->kind == RECORD_KIND_STRUCT)
+    {
+        if (right)
+        {
+            if (right->link == 0)
+            {
+                if (sy_record_destroy(right) < 0)
+                {
+                    return ERROR;
+                }
+            }
+        }
+        return left;
+    }
+    else
+    if (left->kind == RECORD_KIND_NULL)
+    {
+        int a_is_nonzero = (*(int64_t *)(left->value)) != 0;
+        if (a_is_nonzero)
+        {
+            if (right)
+            {
+                if (right->link == 0)
+                {
+                    if (sy_record_destroy(right) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+            return left;
+        }
+        else
+        {
+            if (left->link == 0)
+            {
+                if (sy_record_destroy(left) < 0)
+                {
+                    return ERROR;
+                }
+            }
+            return right;
+        }
+    }
+
+    return sy_record_make_undefined();
+}
+
+sy_record_t *
 sy_execute_logical_or(sy_node_t *node, sy_strip_t *strip)
 {
     if (node->kind == NODE_KIND_LOR)
@@ -42,527 +568,7 @@ sy_execute_logical_or(sy_node_t *node, sy_strip_t *strip)
             return ERROR;
         }
 
-        if (left == NULL)
-        {
-            return right;
-        }
-        else
-        if (left == NAN)
-        {
-            return right;
-        }
-        else
-        if (left->kind == RECORD_KIND_INT8)
-        {
-            int a_is_nonzero = (*(int8_t *)(left->value)) != 0;
-            if (a_is_nonzero)
-            {
-                if (right)
-                {
-                    if (right->reference == 0)
-                    {
-                        if (sy_record_destroy(right) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                }
-                return left;
-            }
-            else
-            {
-                if (left->reference == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-                return right;
-            }
-        }
-        else
-        if (left->kind == RECORD_KIND_INT16)
-        {
-            int a_is_nonzero = (*(int16_t *)(left->value)) != 0;
-            if (a_is_nonzero)
-            {
-                if (right)
-                {
-                    if (right->reference == 0)
-                    {
-                        if (sy_record_destroy(right) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                }
-                return left;
-            }
-            else
-            {
-                if (left->reference == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-                return right;
-            }
-        }
-        else
-        if (left->kind == RECORD_KIND_INT32)
-        {
-            int a_is_nonzero = (*(int32_t *)(left->value)) != 0;
-            if (a_is_nonzero)
-            {
-                if (right)
-                {
-                    if (right->reference == 0)
-                    {
-                        if (sy_record_destroy(right) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                }
-                return left;
-            }
-            else
-            {
-                if (left->reference == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-                return right;
-            }
-        }
-        else
-        if (left->kind == RECORD_KIND_INT64)
-        {
-            int a_is_nonzero = (*(int64_t *)(left->value)) != 0;
-            if (a_is_nonzero)
-            {
-                if (right)
-                {
-                    if (right->reference == 0)
-                    {
-                        if (sy_record_destroy(right) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                }
-                return left;
-            }
-            else
-            {
-                if (left->reference == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-                return right;
-            }
-        }
-        else
-        if (left->kind == RECORD_KIND_UINT8)
-        {
-            int a_is_nonzero = (*(uint8_t *)(left->value)) != 0;
-            if (a_is_nonzero)
-            {
-                if (right)
-                {
-                    if (right->reference == 0)
-                    {
-                        if (sy_record_destroy(right) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                }
-                return left;
-            }
-            else
-            {
-                if (left->reference == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-                return right;
-            }
-        }
-        else
-        if (left->kind == RECORD_KIND_UINT16)
-        {
-            int a_is_nonzero = (*(uint16_t *)(left->value)) != 0;
-            if (a_is_nonzero)
-            {
-                if (right)
-                {
-                    if (right->reference == 0)
-                    {
-                        if (sy_record_destroy(right) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                }
-                return left;
-            }
-            else
-            {
-                if (left->reference == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-                return right;
-            }
-        }
-        else
-        if (left->kind == RECORD_KIND_UINT32)
-        {
-            int a_is_nonzero = (*(uint32_t *)(left->value)) != 0;
-            if (a_is_nonzero)
-            {
-                if (right)
-                {
-                    if (right->reference == 0)
-                    {
-                        if (sy_record_destroy(right) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                }
-                return left;
-            }
-            else
-            {
-                if (left->reference == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-                return right;
-            }
-        }
-        else
-        if (left->kind == RECORD_KIND_UINT64)
-        {
-            int a_is_nonzero = (*(uint64_t *)(left->value)) != 0;
-            if (a_is_nonzero)
-            {
-                if (right)
-                {
-                    if (right->reference == 0)
-                    {
-                        if (sy_record_destroy(right) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                }
-                return left;
-            }
-            else
-            {
-                if (left->reference == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-                return right;
-            }
-        }
-        else
-        if (left->kind == RECORD_KIND_BIGINT)
-        {
-            int32_t a_is_nonzero = mpz_cmp_ui(*(mpz_t *)(left->value), 0) != 0;
-            if (a_is_nonzero)
-            {
-                if (right)
-                {
-                    if (right->reference == 0)
-                    {
-                        if (sy_record_destroy(right) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                }
-                return left;
-            }
-            else
-            {
-                if (left->reference == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-                return right;
-            }
-        }
-        else
-        if (left->kind == RECORD_KIND_FLOAT32)
-        {
-            int a_is_nonzero = (*(float *)(left->value)) != 0.0;
-            if (a_is_nonzero)
-            {
-                if (right)
-                {
-                    if (right->reference == 0)
-                    {
-                        if (sy_record_destroy(right) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                }
-                return left;
-            }
-            else
-            {
-                if (left->reference == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-                return right;
-            }
-        }
-        else
-        if (left->kind == RECORD_KIND_FLOAT64)
-        {
-            int a_is_nonzero = (*(double *)(left->value)) != 0.0;
-            if (a_is_nonzero)
-            {
-                if (right)
-                {
-                    if (right->reference == 0)
-                    {
-                        if (sy_record_destroy(right) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                }
-                return left;
-            }
-            else
-            {
-                if (left->reference == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-                return right;
-            }
-        }
-        else
-        if (left->kind == RECORD_KIND_BIGFLOAT)
-        {
-            int a_is_nonzero = mpf_cmp_ui(*(mpf_t *)(left->value), 0) != 0;
-            if (a_is_nonzero)
-            {
-                if (right)
-                {
-                    if (right->reference == 0)
-                    {
-                        if (sy_record_destroy(right) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                }
-                return left;
-            }
-            else
-            {
-                if (left->reference == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-                return right;
-            }
-        }
-        else
-        if (left->kind == RECORD_KIND_CHAR)
-        {
-            int a_is_nonzero = (*(char *)(left->value)) != 0;
-            if (a_is_nonzero)
-            {
-                if (right)
-                {
-                    if (right->reference == 0)
-                    {
-                        if (sy_record_destroy(right) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                }
-                return left;
-            }
-            else
-            {
-                if (left->reference == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-                return right;
-            }
-        }
-        else
-        if (left->kind == RECORD_KIND_STRING)
-        {
-            int a_is_nonzero = strcmp((char *)(left->value), "") != 0;
-            if (a_is_nonzero)
-            {
-                if (right)
-                {
-                    if (right->reference == 0)
-                    {
-                        if (sy_record_destroy(right) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                }
-                return left;
-            }
-            else
-            {
-                if (left->reference == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-                return right;
-            }
-        }
-        else
-        if (left->kind == RECORD_KIND_OBJECT)
-        {
-            if (right)
-            {
-                if (right->reference == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-            }
-            return left;
-        }
-        else
-        if (left->kind == RECORD_KIND_TUPLE)
-        {
-            if (right)
-            {
-                if (right->reference == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-            }
-            return left;
-        }
-        else
-        if (left->kind == RECORD_KIND_TYPE)
-        {
-            if (right)
-            {
-                if (right->reference == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-            }
-            return left;
-        }
-        else
-        if (left->kind == RECORD_KIND_STRUCT)
-        {
-            if (right)
-            {
-                if (right->reference == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-            }
-            return left;
-        }
-        else
-        if (left->kind == RECORD_KIND_NULL)
-        {
-            int a_is_nonzero = (*(int64_t *)(left->value)) != 0;
-            if (a_is_nonzero)
-            {
-                if (right)
-                {
-                    if (right->reference == 0)
-                    {
-                        if (sy_record_destroy(right) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                }
-                return left;
-            }
-            else
-            {
-                if (left->reference == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
-                return right;
-            }
-        }
-
-        return NULL;
+        return sy_execute_lor(node, left, right);
     }
     else
     {

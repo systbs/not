@@ -694,7 +694,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_node_t *origin_class, 
         }
     }
 
-    return NULL;
+    return sy_record_make_undefined();
 }
 
 
@@ -923,13 +923,13 @@ sy_execute_kstring(sy_node_t *node, sy_strip_t *strip)
 static sy_record_t *
 sy_execute_self(sy_node_t *node, sy_strip_t *strip)
 {
-    return NULL;
+    return sy_record_make_undefined();
 }
 
 static sy_record_t *
 sy_execute_this(sy_node_t *node, sy_strip_t *strip)
 {
-    return NULL;
+    return sy_record_make_undefined();
 }
 
 static sy_record_t *
@@ -1067,13 +1067,13 @@ sy_execute_primary(sy_node_t *node, sy_strip_t *strip)
     if (node->kind == NODE_KIND_TUPLE)
     {
         // return semantic_tuple(node, strip);
-        return NULL;
+        return sy_record_make_undefined();
     }
     else
     if (node->kind == NODE_KIND_OBJECT)
     {
         // return semantic_object(node, strip);
-        return NULL;
+        return sy_record_make_undefined();
     }
     else
 

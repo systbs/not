@@ -176,7 +176,7 @@ sy_syntax_match(SySyntax_t *syntax, int32_t type)
 {
 	if (syntax->token->type == type)
 	{
-		if (SyScanner_Advance(syntax->scanner) == -1)
+		if (sy_scanner_advance(syntax->scanner) == -1)
 		{
 			return -1;
 		}
@@ -192,7 +192,7 @@ sy_syntax_match(SySyntax_t *syntax, int32_t type)
 static int32_t
 sy_syntax_next(SySyntax_t *syntax)
 {
-	if (SyScanner_Advance(syntax->scanner) == -1)
+	if (sy_scanner_advance(syntax->scanner) == -1)
 	{
 		return -1;
 	}
@@ -202,7 +202,7 @@ sy_syntax_next(SySyntax_t *syntax)
 static int32_t
 sy_syntax_gt(SySyntax_t *syntax)
 {
-	return SyScanner_Gt(syntax->scanner);
+	return sy_scanner_gt(syntax->scanner);
 }
 
 static int32_t
@@ -245,7 +245,7 @@ sy_syntax_number(SySyntax_t *syntax, sy_node_t *parent)
 	{
 		return NULL;
 	}
-
+	
 	sy_node_t *node2 = sy_node_make_number(node, syntax->token->value);
 	if (node2 == NULL)
 	{
@@ -256,7 +256,7 @@ sy_syntax_number(SySyntax_t *syntax, sy_node_t *parent)
 	{
 		return NULL;
 	}
-
+	
 	return node2;
 }
 
@@ -2887,7 +2887,7 @@ sy_syntax_var_stmt(SySyntax_t *syntax, sy_node_t *parent, uint64_t flag)
 	{
 		return NULL;
 	}
-
+	
 	if (sy_syntax_match(syntax, TOKEN_VAR_KEYWORD) == -1)
 	{
 		return NULL;
@@ -2912,7 +2912,7 @@ sy_syntax_var_stmt(SySyntax_t *syntax, sy_node_t *parent, uint64_t flag)
 			return NULL;
 		}
 	}
-
+	
 	sy_node_t *type = NULL;
 	if (syntax->token->type == TOKEN_COLON)
 	{
@@ -2931,7 +2931,7 @@ sy_syntax_var_stmt(SySyntax_t *syntax, sy_node_t *parent, uint64_t flag)
 			return NULL;
 		}
 	}
-
+	
 	sy_node_t *value = NULL;
 	if ((syntax->token->type == TOKEN_EQ) || (set_used == 1))
 	{
@@ -2939,14 +2939,14 @@ sy_syntax_var_stmt(SySyntax_t *syntax, sy_node_t *parent, uint64_t flag)
 		{
 			return NULL;
 		}
-
+		
 		value = sy_syntax_expression(syntax, node);
 		if (value == NULL)
 		{
 			return NULL;
 		}
 	}
-
+	
 	return sy_node_make_var(node, flag, key, type, value);
 }
 
@@ -5123,7 +5123,7 @@ sy_syntax_create(char *path)
 		return NULL;
 	}
 
-	SyScanner_t *scanner = SyScanner_Create(path);
+	SyScanner_t *scanner = sy_scanner_create(path);
 	if (!scanner)
 	{
 		return NULL;

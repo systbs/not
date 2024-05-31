@@ -23,17 +23,17 @@
 #include "../strip.h"
 #include "execute.h"
 
-static int32_t
+int32_t
 sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
 {
-    if (left == NULL)
+    if (left->kind == RECORD_KIND_UNDEFINED)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -43,14 +43,14 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
         }
     }
     else
-    if (left == NAN)
+    if (left->kind == RECORD_KIND_NAN)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -62,12 +62,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_INT8)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -188,12 +188,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_INT16)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -314,12 +314,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_INT32)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -440,12 +440,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_INT64)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -566,13 +566,13 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_UINT8)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
 
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
 
             return 0;
@@ -701,13 +701,13 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_UINT16)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
 
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
 
             return 0;
@@ -846,12 +846,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_UINT32)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -976,12 +976,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_UINT64)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -1106,12 +1106,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_BIGINT)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -1221,12 +1221,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_FLOAT32)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -1331,12 +1331,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_FLOAT64)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -1442,13 +1442,13 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_BIGFLOAT)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
 
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
 
             return 0;
@@ -1559,12 +1559,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_CHAR)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -1688,12 +1688,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_STRING)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -1794,12 +1794,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_OBJECT)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -1899,12 +1899,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_TUPLE)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -2005,12 +2005,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_TYPE)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -2110,12 +2110,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_STRUCT)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -2215,12 +2215,12 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_NULL)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -2320,17 +2320,17 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
     return 0;
 }
 
-static int32_t
+int32_t
 sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
 {
-    if (left == NULL)
+    if (left->kind == RECORD_KIND_UNDEFINED)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 1;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -2340,14 +2340,14 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
         }
     }
     else
-    if (left == NAN)
+    if (left->kind == RECORD_KIND_NAN)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 1;
         }
@@ -2359,12 +2359,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_INT8)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -2485,12 +2485,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_INT16)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -2611,12 +2611,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_INT32)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -2737,12 +2737,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_INT64)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -2863,13 +2863,13 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_UINT8)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
 
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
 
             return 0;
@@ -2998,13 +2998,13 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_UINT16)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
 
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
 
             return 0;
@@ -3143,12 +3143,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_UINT32)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -3273,12 +3273,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_UINT64)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -3403,12 +3403,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_BIGINT)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -3518,12 +3518,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_FLOAT32)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -3628,12 +3628,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_FLOAT64)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -3739,13 +3739,13 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_BIGFLOAT)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
 
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
 
             return 0;
@@ -3856,12 +3856,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_CHAR)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -3985,12 +3985,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_STRING)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -4091,12 +4091,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_OBJECT)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -4196,12 +4196,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_TUPLE)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -4302,12 +4302,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_TYPE)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -4407,12 +4407,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_STRUCT)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -4512,12 +4512,12 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_NULL)
     {
-        if (right == NULL)
+        if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return 0;
         }
         else
-        if (right == NAN)
+        if (right->kind == RECORD_KIND_NAN)
         {
             return 0;
         }
@@ -4614,6 +4614,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
 
         return 0;
     }
+    
     return 0;
 }
 
@@ -4637,25 +4638,19 @@ sy_execute_relational(sy_node_t *node, sy_strip_t *strip)
 
         sy_record_t *record = sy_record_make_int32(sy_execute_truthy_lt(left, right));
 
-        if (left && (left != NAN))
+        if (left->link == 0)
         {
-            if (left->reference == 0)
+            if (sy_record_destroy(left) < 0)
             {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
+                return ERROR;
             }
         }
 
-        if (right && (right != NAN))
+        if (right->link == 0)
         {
-            if (right->reference == 0)
+            if (sy_record_destroy(right) < 0)
             {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return ERROR;
-                }
+                return ERROR;
             }
         }
 
@@ -4679,25 +4674,19 @@ sy_execute_relational(sy_node_t *node, sy_strip_t *strip)
 
         sy_record_t *record = sy_record_make_int32(sy_execute_truthy_le(left, right));
 
-        if (left && (left != NAN))
+        if (left->link == 0)
         {
-            if (left->reference == 0)
+            if (sy_record_destroy(left) < 0)
             {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
+                return ERROR;
             }
         }
 
-        if (right && (right != NAN))
+        if (right->link == 0)
         {
-            if (right->reference == 0)
+            if (sy_record_destroy(right) < 0)
             {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return ERROR;
-                }
+                return ERROR;
             }
         }
 
@@ -4721,25 +4710,19 @@ sy_execute_relational(sy_node_t *node, sy_strip_t *strip)
 
         sy_record_t *record = sy_record_make_int32(!sy_execute_truthy_le(left, right));
 
-        if (left && (left != NAN))
+        if (left->link == 0)
         {
-            if (left->reference == 0)
+            if (sy_record_destroy(left) < 0)
             {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
+                return ERROR;
             }
         }
 
-        if (right && (right != NAN))
+        if (right->link == 0)
         {
-            if (right->reference == 0)
+            if (sy_record_destroy(right) < 0)
             {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return ERROR;
-                }
+                return ERROR;
             }
         }
 
@@ -4763,25 +4746,19 @@ sy_execute_relational(sy_node_t *node, sy_strip_t *strip)
 
         sy_record_t *record = sy_record_make_int32(!sy_execute_truthy_lt(left, right));
 
-        if (left && (left != NAN))
+        if (left->link == 0)
         {
-            if (left->reference == 0)
+            if (sy_record_destroy(left) < 0)
             {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
+                return ERROR;
             }
         }
 
-        if (right && (right != NAN))
+        if (right->link == 0)
         {
-            if (right->reference == 0)
+            if (sy_record_destroy(right) < 0)
             {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return ERROR;
-                }
+                return ERROR;
             }
         }
 

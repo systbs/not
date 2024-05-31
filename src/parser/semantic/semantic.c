@@ -1229,6 +1229,11 @@ sy_semantic_var(sy_node_t *node)
 
             for (sy_node_t *item1 = for1->initializer;item1 != NULL;item1 = item1->next)
             {
+                if (item1 == node)
+                {
+                    break;
+                }
+
                 if (item1->kind == NODE_KIND_VAR)
                 {
                     sy_node_var_t *var2 = (sy_node_var_t *)item1->value;

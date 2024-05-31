@@ -64,9 +64,6 @@ sy_record_create(uint64_t kind, void *value)
 
     record->kind = kind;
     record->value = value;
-    record->link = 0;
-    record->readonly = 0;
-    record->reference = 0;
 
     return record;
 }
@@ -648,7 +645,7 @@ sy_record_struct_destroy(sy_record_struct_t *struct1)
 {
     if (struct1->value)
     {
-        if (sy_strip_destroy(struct1->value) < 0)
+        if (sy_strip_destroy_all(struct1->value) < 0)
         {
             return -1;
         }
@@ -688,7 +685,7 @@ sy_record_type_destroy(sy_record_type_t *type)
     else
     if (type->type->kind == NODE_KIND_CLASS)
     {
-        if (sy_strip_destroy((sy_strip_t *)type->value) < 0)
+        if (sy_strip_destroy_all((sy_strip_t *)type->value) < 0)
         {
             return -1;
         }
@@ -820,7 +817,7 @@ sy_record_struct_copy(sy_record_struct_t *struct1)
         sy_error_no_memory();
         if (value)
         {
-            if (sy_strip_destroy(value) < 0)
+            if (sy_strip_destroy_all(value) < 0)
             {
                 return ERROR;
             }
@@ -918,7 +915,7 @@ sy_record_type_copy(sy_record_type_t *type)
         else
         if (type->type->kind == NODE_KIND_CLASS)
         {
-            if (sy_strip_destroy((sy_strip_t *)value) < 0)
+            if (sy_strip_destroy_all((sy_strip_t *)value) < 0)
             {
                 return ERROR;
             }

@@ -205,7 +205,7 @@ sy_module_load_by_thread(void *arg)
         {
             goto region_finalize;
         }
-
+        
         int32_t r4 = sy_semantic_module(module->root);
         if(r4 == -1)
         {
