@@ -19,6 +19,8 @@ typedef struct sy_thread {
 
     struct sy_thread *parent;
 
+    sy_interpreter_t *interpreter;
+
 #ifdef _WIN32
     DWORD id;
     HANDLE thread;

@@ -43,7 +43,25 @@ sy_execute_prefix(sy_node_t *node, sy_strip_t *strip)
             return ERROR;
         }
 
-        return sy_execute_xor(node, left, right);
+        sy_record_t *record = sy_execute_xor(node, left, right);
+
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
     }
     else
     if (node->kind == NODE_KIND_POS)
@@ -61,7 +79,25 @@ sy_execute_prefix(sy_node_t *node, sy_strip_t *strip)
             return ERROR;
         }
 
-        return sy_execute_plus(node, left, right);
+        sy_record_t *record = sy_execute_plus(node, left, right);
+
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
     }
     else
     if (node->kind == NODE_KIND_NEG)
@@ -79,7 +115,25 @@ sy_execute_prefix(sy_node_t *node, sy_strip_t *strip)
             return ERROR;
         }
 
-        return sy_execute_minus(node, left, right);
+        sy_record_t *record = sy_execute_minus(node, left, right);
+
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
     }
     else
     if (node->kind == NODE_KIND_NOT)
@@ -97,7 +151,7 @@ sy_execute_prefix(sy_node_t *node, sy_strip_t *strip)
             return ERROR;
         }
 
-        sy_record_t *record = sy_record_make_int32(sy_execute_truthy_equal(left, right));
+        sy_record_t *record = sy_record_make_int32(sy_execute_truthy_eq(left, right));
 
         if (left->link == 0)
         {

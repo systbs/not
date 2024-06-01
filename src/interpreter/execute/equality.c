@@ -24,7 +24,7 @@
 #include "execute.h"
 
 int32_t
-sy_execute_truthy_equal(sy_record_t *left, sy_record_t *right)
+sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
 {
     if (left->kind == RECORD_KIND_UNDEFINED)
     {
@@ -2324,7 +2324,7 @@ sy_execute_equality(sy_node_t *node, sy_strip_t *strip)
             return ERROR;
         }
 
-        sy_record_t *record = sy_record_make_int32(sy_execute_truthy_equal(left, right));
+        sy_record_t *record = sy_record_make_int32(sy_execute_truthy_eq(left, right));
 
         if (left->link == 0)
         {
@@ -2360,7 +2360,7 @@ sy_execute_equality(sy_node_t *node, sy_strip_t *strip)
             return ERROR;
         }
 
-        sy_record_t *record = sy_record_make_int32(!sy_execute_truthy_equal(left, right));
+        sy_record_t *record = sy_record_make_int32(!sy_execute_truthy_eq(left, right));
 
         if (left->link == 0)
         {

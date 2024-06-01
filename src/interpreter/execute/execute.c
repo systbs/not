@@ -18,6 +18,8 @@
 #include "../../error.h"
 #include "../../mutex.h"
 #include "../../memory.h"
+#include "../../interpreter.h"
+#include "../../thread.h"
 #include "../record.h"
 #include "../garbage.h"
 #include "../entry.h"
@@ -35,10 +37,7 @@ sy_execute_id_cmp(sy_node_t *n1, sy_node_t *n2)
 }
 
 static int32_t 
-sy_execute_for(sy_node_t *node, sy_strip_t *strip);
-
-static int32_t 
-sy_execute_if(sy_node_t *node, sy_strip_t *strip);
+sy_execute_body(sy_node_t *node, sy_strip_t *strip);
 
 
 
@@ -2443,73 +2442,10 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
 }
 
 static int32_t 
-sy_execute_body(sy_node_t *node, sy_strip_t *strip)
-{
-    sy_strip_t *new_strip = sy_strip_create(strip);
-    if (new_strip == ERROR)
-    {
-        return -1;
-    }
-
-    sy_node_block_t *block = (sy_node_block_t *)node->value;
-
-    for (sy_node_t *item = block->items;item != NULL;item = item->next)
-    {
-        if (item->kind == NODE_KIND_VAR)
-        {
-			if (sy_execute_var(node, item, new_strip) < 0)
-			{
-				goto region_error;
-			}
-        }
-        else
-        if (item->kind == NODE_KIND_FOR)
-        {
-            if (sy_execute_for(item, new_strip) < 0)
-			{
-				goto region_error;
-			}
-        }
-        else
-        if (item->kind == NODE_KIND_IF)
-        {
-            if (sy_execute_if(item, new_strip) < 0)
-			{
-				goto region_error;
-			}
-        }
-        else
-        {
-            if (sy_execute_assign(item, new_strip) < 0)
-			{
-				goto region_error;
-			}
-        }
-    }
-
-    if (new_strip)
-    {
-        if (sy_strip_destroy(new_strip) < 0)
-        {
-            return -1;
-        }
-    }
-
-    return 0;
-
-    region_error:
-    if (new_strip)
-    {
-        sy_strip_destroy(new_strip);
-    }
-
-    return -1;
-}
-
-static int32_t 
 sy_execute_for(sy_node_t *node, sy_strip_t *strip)
 {
     sy_node_for_t *for1 = (sy_node_for_t *)node->value;
+    int32_t ret_code = 0;
 
     sy_strip_t *new_strip = sy_strip_create(strip);
     if (new_strip == ERROR)
@@ -2540,6 +2476,9 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip)
         }
     }
 
+    sy_thread_t *thread = sy_thread_get_current();
+    assert (thread != NULL);
+
     sy_record_t *zero = sy_record_make_int8(0);
     if (zero == ERROR)
     {
@@ -2557,7 +2496,7 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip)
             goto region_error;
         }
 
-        truthy = !sy_execute_truthy_equal(zero, condition);
+        truthy = !sy_execute_truthy_eq(zero, condition);
         if (condition->link == 0)
         {
             if (sy_record_destroy(condition) < 0)
@@ -2576,8 +2515,124 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip)
             {
                 goto region_error;
             }
+            else
+            if (r2 == -2)
+            {
+                ret_code = -2;
+                if (sy_mutex_lock(&thread->lock) < 0)
+                {
+                    sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", thread->id);
+                    goto region_error;
+                }
+
+                if (thread->interpreter->rax)
+                {
+                    if (for1->key)
+                    {
+                        sy_record_t *rax = thread->interpreter->rax;
+                        sy_record_type_t *type = (sy_record_type_t *)rax->value;
+                        sy_node_for_t *for2 = (sy_node_for_t *)type->type->value;
+                        if (sy_execute_id_cmp(for1->key, for2->key) == 1)
+                        {
+                            if (rax->link == 0)
+                            {
+                                if (sy_record_destroy(rax) < 0)
+                                {
+                                    if (sy_mutex_unlock(&thread->lock) < 0)
+                                    {
+                                        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
+                                        goto region_error;
+                                    }
+                                    goto region_error;
+                                }
+                            }
+                            thread->interpreter->rax = NULL;
+                            ret_code = 0;
+                        }
+                    }
+
+                    if (sy_mutex_unlock(&thread->lock) < 0)
+                    {
+                        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
+                        goto region_error;
+                    }
+                    goto region_end_loop;
+                }
+                else
+                {
+                    ret_code = 0;
+                    if (sy_mutex_unlock(&thread->lock) < 0)
+                    {
+                        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
+                        goto region_error;
+                    }
+                    goto region_end_loop;
+                }
+            }
+            else
+            if (r2 == -3)
+            {
+                ret_code = -3;
+                if (sy_mutex_lock(&thread->lock) < 0)
+                {
+                    sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", thread->id);
+                    goto region_error;
+                }
+
+                if (thread->interpreter->rax)
+                {
+                    if (for1->key)
+                    {
+                        sy_record_t *rax = thread->interpreter->rax;
+                        sy_record_type_t *type = (sy_record_type_t *)rax->value;
+                        sy_node_for_t *for2 = (sy_node_for_t *)type->type->value;
+                        if (sy_execute_id_cmp(for1->key, for2->key) == 1)
+                        {
+                            if (rax->link == 0)
+                            {
+                                if (sy_record_destroy(rax) < 0)
+                                {
+                                    if (sy_mutex_unlock(&thread->lock) < 0)
+                                    {
+                                        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
+                                        goto region_error;
+                                    }
+                                    goto region_error;
+                                }
+                            }
+                            thread->interpreter->rax = NULL;
+                            ret_code = 0;
+
+                            if (sy_mutex_unlock(&thread->lock) < 0)
+                            {
+                                sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
+                                goto region_error;
+                            }
+                            goto region_continue_loop;
+                        }
+                    }
+
+                    if (sy_mutex_unlock(&thread->lock) < 0)
+                    {
+                        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
+                        goto region_error;
+                    }
+                    goto region_end_loop;
+                }
+                else
+                {
+                    ret_code = 0;
+                    if (sy_mutex_unlock(&thread->lock) < 0)
+                    {
+                        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
+                        goto region_error;
+                    }
+                    goto region_continue_loop;
+                }
+            }
         }
 
+        region_continue_loop:
         if (for1->incrementor)
         {
             for (sy_node_t *item1 = for1->incrementor;item1 != NULL;item1 = item1->next)
@@ -2593,6 +2648,7 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip)
         goto region_start_loop;
     }
 
+    region_end_loop:
     if (zero)
     {
         if (sy_record_destroy(zero) < 0)
@@ -2609,7 +2665,7 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip)
         }
     }
 
-    return 0;
+    return ret_code;
 
     region_error:
     if (zero)
@@ -2647,7 +2703,7 @@ sy_execute_if(sy_node_t *node, sy_strip_t *strip)
             return -1;
         }
 
-        int32_t truthy = !sy_execute_truthy_equal(zero, condition);
+        int32_t truthy = !sy_execute_truthy_eq(zero, condition);
         if (condition->link == 0)
         {
             if (sy_record_destroy(condition) < 0)
@@ -2674,9 +2730,9 @@ sy_execute_if(sy_node_t *node, sy_strip_t *strip)
     if (if1->then_body != NULL)
     {
         int32_t r1 = sy_execute_body(if1->then_body, strip);
-        if (r1 == -1)
+        if (r1 < 0)
         {
-            return -1;
+            return r1;
         }
     }
 
@@ -2690,22 +2746,279 @@ sy_execute_if(sy_node_t *node, sy_strip_t *strip)
         if (else_body1->kind == NODE_KIND_IF)
         {
             int32_t r1 = sy_execute_if(if1->else_body, strip);
-            if (r1 == -1)
+            if (r1 < 0)
             {
-                return -1;
+                return r1;
             }
         }
         else
         {
             int32_t r1 = sy_execute_body(if1->else_body, strip);
-            if (r1 == -1)
+            if (r1 < 0)
             {
-                return -1;
+                return r1;
             }
         }
     }
 
     return 0;
+}
+
+static int32_t 
+sy_execute_break(sy_node_t *node, sy_strip_t *strip)
+{
+    sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
+
+    if (unary->right)
+    {
+        sy_record_t *record = sy_execute_expression(unary->right, strip);
+        if (record == ERROR)
+        {            
+            return -1;
+        }
+
+        if (record->kind != RECORD_KIND_TYPE)
+        {
+            if (record->link == 0)
+            {
+                if (sy_record_destroy(record) < 0)
+                {
+                    return -1;
+                }
+            }
+            goto region_error;
+        }
+
+        sy_record_type_t *type = (sy_record_type_t *)record->value;
+        if (type->type->kind != NODE_KIND_FOR)
+        {
+            if (record->link == 0)
+            {
+                if (sy_record_destroy(record) < 0)
+                {
+                    return -1;
+                }
+            }
+            goto region_error;
+        }
+
+        sy_thread_t *thread = sy_thread_get_current();
+        assert (thread != NULL);
+
+        if (sy_mutex_lock(&thread->lock) < 0)
+        {
+            sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", thread->id);
+            if (record->link == 0)
+            {
+                if (sy_record_destroy(record) < 0)
+                {
+                    return -1;
+                }
+            }
+            goto region_error;
+        }
+
+        thread->interpreter->rax = record;
+
+        if (sy_mutex_unlock(&thread->lock) < 0)
+        {
+            sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
+            if (record->link == 0)
+            {
+                if (sy_record_destroy(record) < 0)
+                {
+                    return -1;
+                }
+            }
+            goto region_error;
+        }
+    }
+
+    return -2;
+
+    region_error:
+    sy_error_type_by_node(unary->right, "for loop is not mentioned");
+    return -1;
+}
+
+static int32_t 
+sy_execute_continue(sy_node_t *node, sy_strip_t *strip)
+{
+    sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
+
+    if (unary->right)
+    {
+        sy_record_t *record = sy_execute_expression(unary->right, strip);
+        if (record == ERROR)
+        {            
+            return -1;
+        }
+
+        if (record->kind != RECORD_KIND_TYPE)
+        {
+            if (record->link == 0)
+            {
+                if (sy_record_destroy(record) < 0)
+                {
+                    return -1;
+                }
+            }
+            goto region_error;
+        }
+
+        sy_record_type_t *type = (sy_record_type_t *)record->value;
+        if (type->type->kind != NODE_KIND_FOR)
+        {
+            if (record->link == 0)
+            {
+                if (sy_record_destroy(record) < 0)
+                {
+                    return -1;
+                }
+            }
+            goto region_error;
+        }
+
+        sy_thread_t *thread = sy_thread_get_current();
+        assert (thread != NULL);
+
+        if (sy_mutex_lock(&thread->lock) < 0)
+        {
+            sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", thread->id);
+            if (record->link == 0)
+            {
+                if (sy_record_destroy(record) < 0)
+                {
+                    return -1;
+                }
+            }
+            goto region_error;
+        }
+
+        thread->interpreter->rax = record;
+
+        if (sy_mutex_unlock(&thread->lock) < 0)
+        {
+            sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
+            if (record->link == 0)
+            {
+                if (sy_record_destroy(record) < 0)
+                {
+                    return -1;
+                }
+            }
+            goto region_error;
+        }
+    }
+
+    return -3;
+
+    region_error:
+    sy_error_type_by_node(unary->right, "for loop is not mentioned");
+    return -1;
+}
+
+static int32_t 
+sy_execute_statement(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
+{
+    if (node->kind == NODE_KIND_VAR)
+    {
+        int32_t r1 = sy_execute_var(scope, node, strip);
+        if (r1 < 0)
+        {
+            return r1;
+        }
+    }
+    else
+    if (node->kind == NODE_KIND_FOR)
+    {
+        int32_t r1 = sy_execute_for(node, strip);
+        if (r1 < 0)
+        {
+            return r1;
+        }
+    }
+    else
+    if (node->kind == NODE_KIND_IF)
+    {
+        int32_t r1 = sy_execute_if(node, strip);
+        if (r1 < 0)
+        {
+            return r1;
+        }
+    }
+    else
+    if (node->kind == NODE_KIND_BREAK)
+    {
+        int32_t r1 = sy_execute_break(node, strip);
+        if (r1 < 0)
+        {
+            return r1;
+        }
+    }
+    else
+    if (node->kind == NODE_KIND_CONTINUE)
+    {
+        int32_t r1 = sy_execute_continue(node, strip);
+        if (r1 < 0)
+        {
+            return r1;
+        }
+    }
+    else
+    {
+        int32_t r1 = sy_execute_assign(node, strip);
+        if (r1 < 0)
+        {
+            return r1;
+        }
+    }
+
+    return 0;
+}
+
+static int32_t 
+sy_execute_body(sy_node_t *node, sy_strip_t *strip)
+{
+    int32_t ret_code = 0;
+    sy_strip_t *new_strip = sy_strip_create(strip);
+    if (new_strip == ERROR)
+    {
+        return -1;
+    }
+
+    sy_node_block_t *block = (sy_node_block_t *)node->value;
+
+    for (sy_node_t *item = block->items;item != NULL;item = item->next)
+    {
+        int32_t r1 = sy_execute_statement(node, item, new_strip);
+        if (r1 == -1)
+        {
+            goto region_error;
+        }
+        else
+        if (r1 < 0)
+        {
+            ret_code = r1;
+            goto region_end;
+        }
+    }
+
+    region_end:
+    if (sy_strip_destroy(new_strip) < 0)
+    {
+        return -1;
+    }
+
+    return ret_code;
+
+    region_error:
+    if (sy_strip_destroy(new_strip) < 0)
+    {
+        return -1;
+    }
+
+    return -1;
 }
 
 static int32_t 
@@ -2715,28 +3028,21 @@ sy_execute_module(sy_node_t *node)
 
     for (sy_node_t *item = block->items;item != NULL;item = item->next)
     {
-        if (item->kind == NODE_KIND_VAR)
+        if (item->kind == NODE_KIND_CLASS)
         {
-			if (sy_execute_var(node, item, NULL) < 0)
-			{
-				return -1;
-			}
+			continue;
         }
         else
-        if (item->kind == NODE_KIND_FOR)
+        if (item->kind == NODE_KIND_USING)
         {
-            if (sy_execute_for(item, NULL) < 0)
-			{
-				return -1;
-			}
+            continue;
         }
         else
-        if (item->kind == NODE_KIND_IF)
         {
-            if (sy_execute_if(item, NULL) < 0)
-			{
-				return -1;
-			}
+            if (sy_execute_statement(node, item, NULL) < 0)
+            {
+                return -1;
+            }
         }
     }
 

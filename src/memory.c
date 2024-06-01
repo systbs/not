@@ -106,14 +106,7 @@ sy_memory_calloc(size_t num, size_t size)
 #ifdef _WIN32
     return calloc(num, size);
 #else
-    size_t total = num * size;
-    void *ptr = sy_memory_arena_malloc(total);
-    if (ptr == NULL)
-    {
-        return NULL;
-    }
-    memset(ptr, 0, total);
-    return ptr;
+    return calloc(num, size);
 #endif
 }
 
@@ -123,7 +116,7 @@ sy_memory_malloc(size_t size)
 #ifdef _WIN32
     return malloc(size);
 #else
-    return sy_memory_arena_malloc(size);
+    return malloc(size);
 #endif
 }
 
@@ -133,13 +126,7 @@ sy_memory_realloc(void *ptr, size_t size)
 #ifdef _WIN32
     return realloc(ptr, size);
 #else
-    sy_memory_arena_free(ptr);
-    void *result = sy_memory_arena_malloc(size);
-    if (result == NULL)
-    {
-        return NULL;
-    }
-    return result;
+    return realloc(ptr, size);
 #endif
 }
 
@@ -149,6 +136,6 @@ sy_memory_free(void *ptr)
 #ifdef _WIN32
     return free(size);
 #else
-    sy_memory_arena_free(ptr);
+    free(ptr);
 #endif
 }

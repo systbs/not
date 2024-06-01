@@ -15,6 +15,7 @@
 #include "mutex.h"
 #include "config.h"
 #include "module.h"
+#include "interpreter.h"
 #include "thread.h"
 #include "scanner/scanner.h"
 #include "ast/node.h"

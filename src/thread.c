@@ -10,6 +10,7 @@
 #include "error.h"
 #include "mutex.h"
 #include "memory.h"
+#include "interpreter.h"
 #include "thread.h"
 
 sy_thread_t base_thread;
@@ -35,6 +36,13 @@ sy_thread_init()
     bt->begin  = NULL;
     bt->parent = NULL;
 
+    sy_interpreter_t *interpreter = sy_interpreter_create();
+    if (!interpreter)
+    {
+        return -1;
+    }
+    bt->interpreter = interpreter;
+
     return 0;
 }
 
@@ -42,6 +50,12 @@ int32_t
 sy_thread_destroy()
 {
     sy_thread_t *thread = sy_thread_get();
+
+    if (sy_interpreter_destroy(thread->interpreter) < 0)
+    {
+        return -1;
+    }
+
     if (sy_mutex_destroy(&thread->lock) < 0)
     {
         sy_error_system("'%s' could not destroy the lock", "sy_thread.lock");
@@ -121,9 +135,20 @@ sy_thread_create(void *(*start_routine)(void *), void *arg)
 
     t->begin = NULL;
 
+    sy_interpreter_t *interpreter = sy_interpreter_create();
+    if (!interpreter)
+    {
+        return ERROR;
+    }
+    t->interpreter = interpreter;
+
     sy_thread_t *parent = sy_thread_get_current();
     if (parent == ERROR)
     {
+        if (sy_interpreter_destroy(interpreter) < 0)
+        {
+            return ERROR;
+        }
         sy_memory_free(t);
         return ERROR;
     }
@@ -132,6 +157,10 @@ sy_thread_create(void *(*start_routine)(void *), void *arg)
 
     if (sy_mutex_lock(&parent->lock) < 0)
     {
+        if (sy_interpreter_destroy(interpreter) < 0)
+        {
+            return ERROR;
+        }
         sy_memory_free(t);
         sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", parent->id);
         return ERROR;
@@ -141,6 +170,10 @@ sy_thread_create(void *(*start_routine)(void *), void *arg)
 
     if (sy_mutex_unlock(&parent->lock) < 0)
     {
+        if (sy_interpreter_destroy(interpreter) < 0)
+        {
+            return ERROR;
+        }
         sy_memory_free(t);
         sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", parent->id);
         return ERROR;
@@ -151,6 +184,10 @@ sy_thread_create(void *(*start_routine)(void *), void *arg)
     HANDLE thread = CreateThread(NULL, 0, sy_module_load_by_thread, &data, 0, &threadId);
     if (!thread)
     {
+        if (sy_interpreter_destroy(interpreter) < 0)
+        {
+            return ERROR;
+        }
         sy_memory_free(t);
         sy_error_system("new thread not created\n");
         return ERROR;
@@ -162,6 +199,10 @@ sy_thread_create(void *(*start_routine)(void *), void *arg)
     pthread_t thread;
     if (pthread_create(&thread, NULL, start_routine, arg) != 0)
     {
+        if (sy_interpreter_destroy(interpreter) < 0)
+        {
+            return ERROR;
+        }
         sy_memory_free(t);
         sy_error_system("new thread not created\n");
         return ERROR;

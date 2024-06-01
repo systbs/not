@@ -77,7 +77,8 @@
         "type_traits": "c",
         "entry.h": "c",
         "inttypes.h": "c",
-        "cmath": "c"
+        "cmath": "c",
+        "interpreter.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

@@ -27,7 +27,7 @@
 #include "execute.h"
 
 
-static sy_record_t *
+sy_record_t *
 sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_node_t *origin_class, sy_strip_t *strip)
 {
     if (base->kind == NODE_KIND_CATCH)
@@ -698,13 +698,13 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_node_t *origin_class, 
 }
 
 
-static sy_record_t *
+sy_record_t *
 sy_execute_id(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_execute_selection(node->parent, node, NULL, strip);
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_number(sy_node_t *node, sy_strip_t *strip)
 {
     sy_node_basic_t *basic1 = (sy_node_basic_t *)node->value;
@@ -807,7 +807,7 @@ sy_execute_number(sy_node_t *node, sy_strip_t *strip)
     return record;
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_char(sy_node_t *node, sy_strip_t *strip)
 {
     sy_node_basic_t *basic1 = (sy_node_basic_t *)node->value;
@@ -816,7 +816,7 @@ sy_execute_char(sy_node_t *node, sy_strip_t *strip)
     return sy_record_make_char((*(char *)str));
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_string(sy_node_t *node, sy_strip_t *strip)
 {
     sy_node_basic_t *basic1 = (sy_node_basic_t *)node->value;
@@ -825,120 +825,116 @@ sy_execute_string(sy_node_t *node, sy_strip_t *strip)
     return sy_record_make_string((*(char **)str));
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_null(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_null();
 }
 
 
-static sy_record_t *
+sy_record_t *
 sy_execute_kint8(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_type(node, NULL);
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_kint16(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_type(node, NULL);
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_kint32(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_type(node, NULL);
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_kint64(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_type(node, NULL);
 }
 
-
-static sy_record_t *
+sy_record_t *
 sy_execute_kuint8(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_type(node, NULL);
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_kuint16(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_type(node, NULL);
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_kuint32(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_type(node, NULL);
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_kuint64(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_type(node, NULL);
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_kbigint(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_type(node, NULL);
 }
 
-
-static sy_record_t *
+sy_record_t *
 sy_execute_kfloat32(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_type(node, NULL);
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_kfloat64(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_type(node, NULL);
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_kbigfloat(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_type(node, NULL);
 }
 
-
-static sy_record_t *
+sy_record_t *
 sy_execute_kchar(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_type(node, NULL);
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_kstring(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_type(node, NULL);
 }
 
-
-static sy_record_t *
+sy_record_t *
 sy_execute_self(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_undefined();
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_this(sy_node_t *node, sy_strip_t *strip)
 {
     return sy_record_make_undefined();
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_lambda(sy_node_t *node, sy_strip_t *strip)
 {
 	return sy_record_make_type(node, NULL);
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_parenthesis(sy_node_t *node, sy_strip_t *strip)
 {
     sy_node_unary_t *unary1 = (sy_node_unary_t *)node->value;
@@ -950,7 +946,7 @@ sy_execute_parenthesis(sy_node_t *node, sy_strip_t *strip)
 sy_record_t *
 sy_execute_primary(sy_node_t *node, sy_strip_t *strip)
 {
-     if (node->kind == NODE_KIND_ID)
+    if (node->kind == NODE_KIND_ID)
     {
         return sy_execute_id(node, strip);
     }

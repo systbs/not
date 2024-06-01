@@ -18,6 +18,7 @@
 #include "config.h"
 #include "memory.h"
 #include "module.h"
+#include "interpreter.h"
 #include "thread.h"
 
 SyModule_t base_module;
@@ -170,7 +171,7 @@ sy_module_load_by_thread(void *arg)
     thread_data_t *data = (thread_data_t*)arg;
     data->module = ERROR;
 
-    SySyntax_t *syntax = sy_syntax_create(data->base_file);
+    sy_syntax_t *syntax = sy_syntax_create(data->base_file);
     if(!syntax)
     {
         goto region_finalize;
