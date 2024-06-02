@@ -1218,11 +1218,6 @@ sy_syntax_lambda(sy_syntax_t *syntax, sy_node_t *parent)
 
 	if (syntax->token->type == TOKEN_LBRACE)
 	{
-		if (sy_syntax_next(syntax) == -1)
-		{
-			return NULL;
-		}
-
 		syntax->fun_depth += 1;
 
 		sy_node_t *body = sy_syntax_body(syntax, node);
@@ -1420,7 +1415,7 @@ sy_syntax_fields(sy_syntax_t *syntax, sy_node_t *parent)
 
 	while (true)
 	{
-		sy_node_t *item = sy_syntax_field(syntax, parent);
+		sy_node_t *item = sy_syntax_field(syntax, node);
 		if (item == NULL)
 		{
 			return NULL;
@@ -1498,7 +1493,7 @@ sy_syntax_arguments(sy_syntax_t *syntax, sy_node_t *parent)
 
 	while (true)
 	{
-		sy_node_t *item = sy_syntax_argument(syntax, parent);
+		sy_node_t *item = sy_syntax_argument(syntax, node);
 		if (item == NULL)
 		{
 			return NULL;
@@ -1548,7 +1543,7 @@ sy_syntax_postfix(sy_syntax_t *syntax, sy_node_t *parent)
 				return NULL;
 			}
 
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1617,7 +1612,7 @@ sy_syntax_postfix(sy_syntax_t *syntax, sy_node_t *parent)
 		else
 		if (syntax->token->type == TOKEN_LBRACKET)
 		{
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1649,7 +1644,7 @@ sy_syntax_postfix(sy_syntax_t *syntax, sy_node_t *parent)
 		else
 		if (syntax->token->type == TOKEN_DOT)
 		{
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1672,7 +1667,7 @@ sy_syntax_postfix(sy_syntax_t *syntax, sy_node_t *parent)
 		else
 		if (syntax->token->type == TOKEN_LPAREN)
 		{
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1743,8 +1738,6 @@ sy_syntax_prefix(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		
-
 		if (sy_syntax_next(syntax) == -1)
 		{
 			return NULL;
@@ -1766,8 +1759,6 @@ sy_syntax_prefix(sy_syntax_t *syntax, sy_node_t *parent)
 		{
 			return NULL;
 		}
-
-		
 
 		if (sy_syntax_next(syntax) == -1)
 		{
@@ -1791,8 +1782,6 @@ sy_syntax_prefix(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		
-
 		if (sy_syntax_next(syntax) == -1)
 		{
 			return NULL;
@@ -1815,8 +1804,6 @@ sy_syntax_prefix(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		
-
 		if (sy_syntax_next(syntax) == -1)
 		{
 			return NULL;
@@ -1838,8 +1825,6 @@ sy_syntax_prefix(sy_syntax_t *syntax, sy_node_t *parent)
 		{
 			return NULL;
 		}
-
-		
 
 		if (sy_syntax_next(syntax) == -1)
 		{
@@ -1873,13 +1858,11 @@ sy_syntax_pow(sy_syntax_t *syntax, sy_node_t *parent)
 	{
 		if (syntax->token->type == TOKEN_POWER)
 		{
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
 			}
-
-			
 
 			if (sy_syntax_next(syntax) == -1)
 			{
@@ -1917,7 +1900,7 @@ sy_syntax_multiplicative(sy_syntax_t *syntax, sy_node_t *parent)
 	{
 		if (syntax->token->type == TOKEN_STAR)
 		{
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1940,7 +1923,7 @@ sy_syntax_multiplicative(sy_syntax_t *syntax, sy_node_t *parent)
 		else
 		if (syntax->token->type == TOKEN_SLASH)
 		{
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1963,7 +1946,7 @@ sy_syntax_multiplicative(sy_syntax_t *syntax, sy_node_t *parent)
 		else
 		if (syntax->token->type == TOKEN_PERCENT)
 		{
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1986,7 +1969,7 @@ sy_syntax_multiplicative(sy_syntax_t *syntax, sy_node_t *parent)
 		else
 		if (syntax->token->type == TOKEN_BACKSLASH)
 		{
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -2028,7 +2011,7 @@ sy_syntax_addative(sy_syntax_t *syntax, sy_node_t *parent)
 	{
 		if (syntax->token->type == TOKEN_PLUS)
 		{
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -2051,7 +2034,7 @@ sy_syntax_addative(sy_syntax_t *syntax, sy_node_t *parent)
 		else
 		if (syntax->token->type == TOKEN_MINUS)
 		{
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -2091,7 +2074,7 @@ sy_syntax_shifting(sy_syntax_t *syntax, sy_node_t *parent)
 	
 	if (syntax->token->type == TOKEN_LT_LT)
 	{
-		sy_node_t *node = sy_node_create(parent, syntax->token->position);
+		sy_node_t *node = sy_node_create(node2, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -2113,7 +2096,7 @@ sy_syntax_shifting(sy_syntax_t *syntax, sy_node_t *parent)
 	else
 	if (syntax->token->type == TOKEN_GT_GT)
 	{
-		sy_node_t *node = sy_node_create(parent, syntax->token->position);
+		sy_node_t *node = sy_node_create(node2, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -2147,7 +2130,7 @@ sy_syntax_relational(sy_syntax_t *syntax, sy_node_t *parent)
 	
 	if (syntax->token->type == TOKEN_LT)
 	{
-		sy_node_t *node = sy_node_create(parent, syntax->token->position);
+		sy_node_t *node = sy_node_create(node2, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -2169,7 +2152,7 @@ sy_syntax_relational(sy_syntax_t *syntax, sy_node_t *parent)
 	else
 	if (syntax->token->type == TOKEN_LT_EQ)
 	{
-		sy_node_t *node = sy_node_create(parent, syntax->token->position);
+		sy_node_t *node = sy_node_create(node2, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -2191,7 +2174,7 @@ sy_syntax_relational(sy_syntax_t *syntax, sy_node_t *parent)
 	else
 	if (syntax->token->type == TOKEN_GT)
 	{
-		sy_node_t *node = sy_node_create(parent, syntax->token->position);
+		sy_node_t *node = sy_node_create(node2, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -2213,7 +2196,7 @@ sy_syntax_relational(sy_syntax_t *syntax, sy_node_t *parent)
 	else
 	if (syntax->token->type == TOKEN_GT_EQ)
 	{
-		sy_node_t *node = sy_node_create(parent, syntax->token->position);
+		sy_node_t *node = sy_node_create(node2, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -2247,7 +2230,7 @@ sy_syntax_equality(sy_syntax_t *syntax, sy_node_t *parent)
 	
 	if (syntax->token->type == TOKEN_EQ_EQ)
 	{
-		sy_node_t *node = sy_node_create(parent, syntax->token->position);
+		sy_node_t *node = sy_node_create(node2, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -2269,7 +2252,7 @@ sy_syntax_equality(sy_syntax_t *syntax, sy_node_t *parent)
 	else
 	if (syntax->token->type == TOKEN_NOT_EQ)
 	{
-		sy_node_t *node = sy_node_create(parent, syntax->token->position);
+		sy_node_t *node = sy_node_create(node2, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -2305,7 +2288,7 @@ sy_syntax_bitwise_and(sy_syntax_t *syntax, sy_node_t *parent)
 	{
 		if (syntax->token->type == TOKEN_AND)
 		{
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -2347,7 +2330,7 @@ sy_syntax_bitwise_xor(sy_syntax_t *syntax, sy_node_t *parent)
 	{
 		if (syntax->token->type == TOKEN_CARET)
 		{
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -2389,7 +2372,7 @@ sy_syntax_bitwise_or(sy_syntax_t *syntax, sy_node_t *parent)
 	{
 		if (syntax->token->type == TOKEN_OR)
 		{
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -2431,7 +2414,7 @@ sy_syntax_logical_and(sy_syntax_t *syntax, sy_node_t *parent)
 	{
 		if (syntax->token->type == TOKEN_AND_AND)
 		{
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -2473,7 +2456,7 @@ sy_syntax_logical_or(sy_syntax_t *syntax, sy_node_t *parent)
 	{
 		if (syntax->token->type == TOKEN_OR_OR)
 		{
-			sy_node_t *node = sy_node_create(parent, syntax->token->position);
+			sy_node_t *node = sy_node_create(node2, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -3501,24 +3484,9 @@ sy_syntax_statement(sy_syntax_t *syntax, sy_node_t *parent, uint64_t flag)
 			return NULL;
 		}
 
-		if (node->kind == NODE_KIND_ASSIGN)
+		if (sy_syntax_match(syntax, TOKEN_SEMICOLON) == -1)
 		{
-			sy_node_binary_t *binary1 = (sy_node_binary_t *)node->value;
-			sy_node_t *right1 = binary1->right;
-			if (right1->kind != NODE_KIND_LAMBDA)
-			{
-				if (sy_syntax_match(syntax, TOKEN_SEMICOLON) == -1)
-				{
-					return NULL;
-				}
-			}
-		}
-		else
-		{
-			if (sy_syntax_match(syntax, TOKEN_SEMICOLON) == -1)
-			{
-				return NULL;
-			}
+			return NULL;
 		}
 	}
 
@@ -4563,61 +4531,17 @@ sy_syntax_package(sy_syntax_t *syntax, sy_node_t *parent)
 		return NULL;
 	}
 
-	sy_node_t *generics = NULL;
-	if (syntax->token->type == TOKEN_LT)
+	sy_node_t *value = NULL;
+	if (syntax->token->type == TOKEN_COLON)
 	{
 		if (sy_syntax_next(syntax) == -1)
 		{
 			return NULL;
 		}
-
-		if (sy_syntax_gt(syntax) == -1)
-		{
-			return NULL;
-		}
-
-		if (syntax->token->type == TOKEN_GT)
-		{
-			sy_error_syntax_by_position(syntax->token->position, "empty generic types\n\tMajor:%s-%u", __FILE__, __LINE__);
-			return NULL;
-		}
-
-		generics = sy_syntax_generics(syntax, node);
-		if (generics == NULL)
-		{
-			return NULL;
-		}
-
-		if (sy_syntax_gt(syntax) == -1)
-		{
-			return NULL;
-		}
-
-		if (sy_syntax_match(syntax, TOKEN_GT) == -1)
-		{
-			return NULL;
-		}
+		value = sy_syntax_expression(syntax, node);
 	}
 
-	if (sy_syntax_match(syntax, TOKEN_COLON) == -1)
-	{
-		return NULL;
-	}
-
-	sy_node_t *address = NULL;
-	if (syntax->token->type == TOKEN_STAR)
-	{
-		if (sy_syntax_next(syntax) == -1)
-		{
-			return NULL;
-		}
-	}
-	else
-	{
-		address = sy_syntax_postfix(syntax, node);
-	}
-
-	return sy_node_make_package(node, key, generics, address);
+	return sy_node_make_package(node, key, value);
 }
 
 static sy_node_t *
@@ -4795,27 +4719,13 @@ sy_syntax_export(sy_syntax_t *syntax, sy_node_t *parent, sy_node_t *note)
 		node = sy_syntax_class(syntax, parent, note, flag);
 	}
 	else
-	if (syntax->token->type == TOKEN_READONLY_KEYWORD)
+	if ((syntax->token->type == TOKEN_READONLY_KEYWORD) && (note == NULL))
 	{
-		if (note != NULL)
-		{
-			sy_error_syntax_by_position(syntax->token->position, 
-				"'Annotation' is not defined for variable\n\tMajor:%s-%u",
-				__FILE__, __LINE__);
-			return NULL;
-		}
 		node = sy_syntax_readonly(syntax, parent, flag);
 	}
 	else
-	if (syntax->token->type == TOKEN_REFERENCE_KEYWORD)
+	if ((syntax->token->type == TOKEN_REFERENCE_KEYWORD) && (note == NULL))
 	{
-		if (note != NULL)
-		{
-			sy_error_syntax_by_position(syntax->token->position, 
-				"'Annotation' is not defined for variable\n\tMajor:%s-%u",
-				__FILE__, __LINE__);
-			return NULL;
-		}
 		node = sy_syntax_reference(syntax, parent, flag);
 	}
 	else
@@ -5001,6 +4911,15 @@ sy_syntax_module(sy_syntax_t *syntax)
 			}
 		}
 		else
+		if (syntax->token->type == TOKEN_READONLY_KEYWORD)
+		{
+			item = sy_syntax_readonly(syntax, node, SYNTAX_MODIFIER_NONE);
+			if (item == NULL)
+			{
+				return NULL;
+			}
+		}
+		else
 		if (syntax->token->type == TOKEN_CLASS_KEYWORD)
 		{
 			item = sy_syntax_class(syntax, node, NULL, SYNTAX_MODIFIER_NONE);
@@ -5011,7 +4930,7 @@ sy_syntax_module(sy_syntax_t *syntax)
 		}
 		else
 		{
-			item = sy_syntax_statement(syntax, node, SYNTAX_MODIFIER_STATIC);
+			item = sy_syntax_statement(syntax, node, SYNTAX_MODIFIER_NONE);
 			if (item == NULL)
 			{
 				return NULL;

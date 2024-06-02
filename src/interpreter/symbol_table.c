@@ -66,25 +66,17 @@ sy_symbol_table_id_cmp(sy_node_t *n1, sy_node_t *n2)
 }
 
 static void
-sy_symbol_table_link(sy_entry_t *current, sy_entry_t *entry)
+sy_symbol_table_link(sy_entry_t *entry)
 {
     sy_symbol_table_t *st = sy_symbol_table_get();
 
-    entry->next = current;
-    if (current)
+    entry->next = st->begin;
+    if (st->begin)
     {
-        entry->previous = current->previous;
-        current->previous = entry;
-        if (current->previous)
-        {
-            current->previous->next = entry;
-        }
+        st->begin->previous = entry;
     }
-    
-    if(st->begin == current)
-    {
-        st->begin = entry;
-    }
+    entry->previous = NULL;
+    st->begin = entry;
 }
 
 static void
@@ -92,7 +84,7 @@ sy_symbol_table_unlink(sy_entry_t *entry)
 {
     sy_symbol_table_t *st = sy_symbol_table_get();
 
-    if (entry == st->begin)
+    if (st->begin == entry)
 	{
 		st->begin = entry->next;
 	}
@@ -106,6 +98,8 @@ sy_symbol_table_unlink(sy_entry_t *entry)
 	{
 		entry->previous->next = entry->next;
 	}
+
+    entry->previous = entry->next = NULL;
 }
 
 sy_entry_t *
@@ -133,7 +127,7 @@ sy_symbol_table_push(sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_reco
         return ERROR;
     }
 
-    sy_symbol_table_link(st->begin, entry);
+    sy_symbol_table_link(entry);
 
     if (sy_mutex_unlock(&st->lock) < 0)
     {

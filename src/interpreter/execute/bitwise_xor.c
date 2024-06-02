@@ -3226,18 +3226,18 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
 }
 
 sy_record_t *
-sy_execute_bitwise_xor(sy_node_t *node, sy_strip_t *strip)
+sy_execute_bitwise_xor(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
 {
     if (node->kind == NODE_KIND_XOR)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_bitwise_xor(binary->left, strip);
+        sy_record_t *left = sy_execute_bitwise_xor(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        sy_record_t *right = sy_execute_bitwise_and(binary->right, strip);
+        sy_record_t *right = sy_execute_bitwise_and(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -3265,6 +3265,6 @@ sy_execute_bitwise_xor(sy_node_t *node, sy_strip_t *strip)
     }
     else
     {
-        return sy_execute_bitwise_and(node, strip);
+        return sy_execute_bitwise_and(node, strip, applicant, origin);
     }
 }

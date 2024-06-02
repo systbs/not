@@ -26,8 +26,44 @@
 #include "execute.h"
 
 sy_record_t *
-sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip)
+sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
 {
-    sy_error_type_by_node(node, "pseudonym implement not support");
+    sy_node_carrier_t *carrier = (sy_node_carrier_t *)node->value;
+
+    sy_record_t *base = sy_execute_expression(carrier->base, strip, applicant, NULL);
+    if (base == ERROR)
+    {
+        return ERROR;
+    }
+
+    if (base->kind != RECORD_KIND_TYPE)
+    {
+        goto region_no_genericable;
+    }
+    
+    sy_record_type_t *base_type = (sy_record_type_t *)base->value;
+    if (base_type->type->kind == NODE_KIND_CLASS)
+    {
+
+    }
+    else
+    if (base_type->type->kind == NODE_KIND_FUN)
+    {
+        
+    }
+    else
+    if (base_type->type->kind == NODE_KIND_LAMBDA)
+    {
+        
+    }
+    else
+    {
+        goto region_no_genericable;
+    }
+    
+    return base;
+
+    region_no_genericable:
+    sy_error_type_by_node(node, "it has no generic type");
     return ERROR;
 }

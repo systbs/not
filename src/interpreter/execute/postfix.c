@@ -26,29 +26,29 @@
 #include "execute.h"
 
 sy_record_t *
-sy_execute_postfix(sy_node_t *node, sy_strip_t *strip)
+sy_execute_postfix(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
 {
     if (node->kind == NODE_KIND_CALL)
     {
-        return sy_execute_call(node, strip);
+        return sy_execute_call(node, strip, applicant, origin);
     }
     else
     if (node->kind == NODE_KIND_ARRAY)
     {
-        return sy_execute_array(node, strip);
+        return sy_execute_array(node, strip, applicant, origin);
     }
     else
     if (node->kind == NODE_KIND_ATTRIBUTE)
     {
-        return sy_execute_attribute(node, strip);
+        return sy_execute_attribute(node, strip, applicant, origin);
     }
     else
     if (node->kind == NODE_KIND_PSEUDONYM)
     {
-        return sy_execute_pseudonym(node, strip);
+        return sy_execute_pseudonym(node, strip, applicant, origin);
     }
     else
     {
-        return sy_execute_primary(node, strip);
+        return sy_execute_primary(node, strip, applicant, origin);
     }
 }

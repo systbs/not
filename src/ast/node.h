@@ -298,8 +298,7 @@ typedef struct sy_node_note {
 
 typedef struct sy_node_package {
 	sy_node_t *key;
-	sy_node_t *generics;
-	sy_node_t *address;
+	sy_node_t *value;
 } sy_node_package_t;
 
 typedef struct sy_node_using {
@@ -613,7 +612,7 @@ sy_node_t *
 sy_node_make_notes(sy_node_t *node, sy_node_t *items);
 
 sy_node_t *
-sy_node_make_package(sy_node_t *node, sy_node_t *key, sy_node_t *generics, sy_node_t *route);
+sy_node_make_package(sy_node_t *node, sy_node_t *key, sy_node_t *value);
 
 sy_node_t *
 sy_node_make_packages(sy_node_t *node, sy_node_t *items);

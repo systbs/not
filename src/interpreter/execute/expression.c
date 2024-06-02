@@ -27,7 +27,7 @@
 #include "execute.h"
 
 sy_record_t *
-sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
+sy_execute_expression(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
 {
     sy_node_binary_t *binary;
     sy_node_unary_t *unary;
@@ -37,7 +37,7 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
     {
     case NODE_KIND_TILDE:
         unary = (sy_node_unary_t *)node->value;
-        right = sy_execute_expression(unary->right, strip);
+        right = sy_execute_expression(unary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -71,7 +71,7 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_POS:
         unary = (sy_node_unary_t *)node->value;
-        right = sy_execute_expression(unary->right, strip);
+        right = sy_execute_expression(unary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -105,7 +105,7 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_NEG:
         unary = (sy_node_unary_t *)node->value;
-        right = sy_execute_expression(unary->right, strip);
+        right = sy_execute_expression(unary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -139,7 +139,7 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_NOT:
         unary = (sy_node_unary_t *)node->value;
-        right = sy_execute_expression(unary->right, strip);
+        right = sy_execute_expression(unary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -173,13 +173,13 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_POW:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -207,12 +207,12 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_MUL:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
-       right = sy_execute_expression(binary->right, strip);
+       right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -236,12 +236,12 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_DIV:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
-       right = sy_execute_expression(binary->right, strip);
+       right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -266,12 +266,12 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_MOD:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
-       right = sy_execute_expression(binary->right, strip);
+       right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -296,12 +296,12 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_EPI:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
-       right = sy_execute_expression(binary->right, strip);
+       right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -325,13 +325,13 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_PLUS:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -359,13 +359,13 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_MINUS:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -392,13 +392,13 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_SHR:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -426,13 +426,13 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_SHL:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -460,20 +460,21 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_LT:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
         }
+        
 
         record = sy_record_make_int32(sy_execute_truthy_lt(left, right));
-
+        
         if (left->link == 0)
         {
             if (sy_record_destroy(left) < 0)
@@ -494,13 +495,13 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_LE:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -528,13 +529,13 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_GT:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -562,13 +563,13 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_GE:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -596,13 +597,13 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_EQ:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -630,13 +631,13 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_NEQ:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -664,13 +665,13 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_AND:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {            
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {            
             return ERROR;
@@ -698,13 +699,13 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_XOR:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -732,13 +733,13 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_OR:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -766,13 +767,13 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_LAND:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -782,13 +783,13 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
     case NODE_KIND_LOR:
         binary = (sy_node_binary_t *)node->value;
-        left = sy_execute_expression(binary->left, strip);
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        right = sy_execute_expression(binary->right, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -796,6 +797,6 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip)
 
         return sy_execute_lor(node, left, right);
     default:
-        return sy_execute_postfix(node, strip);
+        return sy_execute_postfix(node, strip, applicant, origin);
     }
 }

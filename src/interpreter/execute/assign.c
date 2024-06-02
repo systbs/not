@@ -12266,18 +12266,18 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
 }
 
 int32_t
-sy_execute_assign(sy_node_t *node, sy_strip_t *strip)
+sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
 {
     if (node->kind == NODE_KIND_ASSIGN)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_expression(binary->left, strip);
+        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return -1;
         }
 
-        sy_record_t *right = sy_execute_expression(binary->right, strip);
+        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return -1;
@@ -12294,13 +12294,13 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip)
     if (node->kind == NODE_KIND_ADD_ASSIGN)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_expression(binary->left, strip);
+        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return -1;
         }
 
-        sy_record_t *right = sy_execute_expression(binary->right, strip);
+        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return -1;
@@ -12323,13 +12323,13 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip)
     if (node->kind == NODE_KIND_SUB_ASSIGN)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_expression(binary->left, strip);
+        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return -1;
         }
 
-        sy_record_t *right = sy_execute_expression(binary->right, strip);
+        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return -1;
@@ -12350,7 +12350,7 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip)
     }
     else
     {
-        sy_record_t *record = sy_execute_expression(node, strip);
+        sy_record_t *record = sy_execute_expression(node, strip, applicant, origin);
         if (record == ERROR)
         {
             return -1;

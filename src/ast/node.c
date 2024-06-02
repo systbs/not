@@ -1636,7 +1636,7 @@ sy_node_make_notes(sy_node_t *node, sy_node_t *items)
 }
 
 sy_node_t *
-sy_node_make_package(sy_node_t *node, sy_node_t *key, sy_node_t *generics, sy_node_t *address)
+sy_node_make_package(sy_node_t *node, sy_node_t *key, sy_node_t *value)
 {
 	sy_node_package_t *basic = (sy_node_package_t *)sy_memory_calloc(1, sizeof(sy_node_package_t));
 	if(!basic)
@@ -1646,8 +1646,7 @@ sy_node_make_package(sy_node_t *node, sy_node_t *key, sy_node_t *generics, sy_no
 	}
 
 	basic->key = key;
-	basic->generics = generics;
-	basic->address = address;
+	basic->value = value;
 	
 	sy_node_Update(node, NODE_KIND_PACKAGE, basic);
 	return node;

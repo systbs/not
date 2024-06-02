@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <gmp.h>
 
 #include "types/types.h"
 #include "utils/path.h"
@@ -20,6 +21,11 @@
 #include "module.h"
 #include "interpreter.h"
 #include "thread.h"
+#include "interpreter/record.h"
+#include "interpreter/garbage.h"
+#include "interpreter/symbol_table.h"
+#include "interpreter/strip.h"
+#include "interpreter/execute/execute.h"
 
 SyModule_t base_module;
 
@@ -44,7 +50,7 @@ sy_module_get()
     return &base_module;
 }
 
-sy_module_entry_t_t *
+sy_module_entry_t *
 sy_module_get_entry_by_path(const char *path)
 {
     SyModule_t *module = sy_module_get();
@@ -55,7 +61,7 @@ sy_module_get_entry_by_path(const char *path)
         return ERROR;
     }
 
-    for (sy_module_entry_t_t *item = module->begin; item != NULL; item = item->next)
+    for (sy_module_entry_t *item = module->begin; item != NULL; item = item->next)
     {
         if (strcmp(item->path, path) == 0)
         {
@@ -78,7 +84,7 @@ sy_module_get_entry_by_path(const char *path)
 }
 
 static void
-sy_module_link(sy_module_entry_t_t *current, sy_module_entry_t_t *it)
+sy_module_link(sy_module_entry_t *current, sy_module_entry_t *it)
 {
     SyModule_t *module = sy_module_get();
 
@@ -99,7 +105,7 @@ sy_module_link(sy_module_entry_t_t *current, sy_module_entry_t_t *it)
     }
 }
 
-static sy_module_entry_t_t *
+static sy_module_entry_t *
 sy_module_push(const char *path, sy_node_t *root)
 {
     SyModule_t *module = sy_module_get();
@@ -110,7 +116,7 @@ sy_module_push(const char *path, sy_node_t *root)
         return ERROR;
     }
 
-    for (sy_module_entry_t_t *item = module->begin; item != NULL; item = item->next)
+    for (sy_module_entry_t *item = module->begin; item != NULL; item = item->next)
     {
         if (strcmp(item->path, path) == 0)
         {
@@ -123,7 +129,7 @@ sy_module_push(const char *path, sy_node_t *root)
         }
     }
 
-    sy_module_entry_t_t *entry = (sy_module_entry_t_t *)sy_memory_calloc(1, sizeof(sy_module_entry_t_t));
+    sy_module_entry_t *entry = (sy_module_entry_t *)sy_memory_calloc(1, sizeof(sy_module_entry_t));
     if (!entry)
     {
         if (sy_mutex_unlock(&module->lock) < 0)
@@ -155,7 +161,7 @@ typedef struct {
     /* inputs */
     char *base_file;
     /* outputs */
-    sy_module_entry_t_t *module;
+    sy_module_entry_t *module;
 } thread_data_t;
 
 #if _WIN32
@@ -183,7 +189,7 @@ sy_module_load_by_thread(void *arg)
         goto region_finalize;
     }
 
-    sy_module_entry_t_t *module = sy_module_push(data->base_file, root);
+    sy_module_entry_t *module = sy_module_push(data->base_file, root);
     if (module == ERROR)
     {
         goto region_finalize;
@@ -206,7 +212,7 @@ sy_module_load_by_thread(void *arg)
         {
             goto region_finalize;
         }
-        
+
         int32_t r4 = sy_semantic_module(module->root);
         if(r4 == -1)
         {
@@ -234,7 +240,7 @@ sy_module_load_by_thread(void *arg)
     return data;
 }
 
-sy_module_entry_t_t *
+sy_module_entry_t *
 sy_module_load(char *path)
 {
 	char base_file[MAX_PATH];
@@ -259,7 +265,7 @@ sy_module_load(char *path)
 		}
 	}
 
-	sy_module_entry_t_t *module_entry = sy_module_get_entry_by_path(base_file);
+	sy_module_entry_t *module_entry = sy_module_get_entry_by_path(base_file);
     if (module_entry == ERROR)
     {
         return ERROR;
@@ -283,6 +289,11 @@ sy_module_load(char *path)
         }
 
         if (data.module == ERROR)
+        {
+            return ERROR;
+        }
+
+        if(sy_execute_run(data.module->root) < 0)
         {
             return ERROR;
         }

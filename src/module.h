@@ -8,10 +8,10 @@ typedef struct sy_module_entry_t {
 
     char path[MAX_PATH];
     sy_node_t *root;
-} sy_module_entry_t_t;
+} sy_module_entry_t;
 
 typedef struct SyModule {
-    sy_module_entry_t_t *begin;
+    sy_module_entry_t *begin;
     sy_mutex_t lock;
 } SyModule_t;
 
@@ -21,10 +21,10 @@ sy_module_init();
 SyModule_t *
 sy_module_get();
 
-sy_module_entry_t_t *
+sy_module_entry_t *
 sy_module_get_entry_by_path(const char *path);
 
-sy_module_entry_t_t *
+sy_module_entry_t *
 sy_module_load(char *path);
 
 #endif

@@ -73,12 +73,6 @@ main(int argc, char **argv)
 		return 0;
 	}
 
-	sy_module_entry_t_t *module_entry = sy_module_load(sy_config_get_input_file());
-    if (module_entry == ERROR)
-    {
-		return -1;
-	}
-
 	if (sy_garbage_init() < 0)
 	{
 		return -1;
@@ -89,8 +83,9 @@ main(int argc, char **argv)
 		return -1;
 	}
 
-	if(sy_execute_run(module_entry->root) < 0)
-	{
+	sy_module_entry_t *module_entry = sy_module_load(sy_config_get_input_file());
+    if (module_entry == ERROR)
+    {
 		return -1;
 	}
 

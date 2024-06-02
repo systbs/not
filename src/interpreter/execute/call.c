@@ -26,7 +26,7 @@
 #include "execute.h"
 
 sy_record_t *
-sy_execute_call(sy_node_t *node, sy_strip_t *strip)
+sy_execute_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
 {
     sy_error_type_by_node(node, "call implement not support");
     return ERROR;

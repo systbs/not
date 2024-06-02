@@ -75,132 +75,132 @@ sy_semantic_assign(sy_node_t *node);
 static int32_t
 sy_semantic_id(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_number(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_char(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_string(sy_node_t *node)
 {
-    return 1; 
+    return 0; 
 }
 
 static int32_t
 sy_semantic_null(sy_node_t *node)
 {
-    return 1; 
+    return 0; 
 }
 
 
 static int32_t
 sy_semantic_kint8(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_kint16(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_kint32(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_kint64(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 
 static int32_t
 sy_semantic_kuint8(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_kuint16(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_kuint32(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_kuint64(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_kbigint(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 
 static int32_t
 sy_semantic_kfloat32(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_kfloat64(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_kbigfloat(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 
 static int32_t
 sy_semantic_kchar(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_kstring(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 
 static int32_t
 sy_semantic_self(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_this(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 
@@ -208,7 +208,7 @@ static int32_t
 sy_semantic_lambda(sy_node_t *node)
 {
     sy_node_lambda_t *fun1 = (sy_node_lambda_t *)node->value;
-    
+
     if (fun1->generics != NULL)
     {
         int32_t r1 = sy_semantic_generics(fun1->generics);
@@ -247,7 +247,7 @@ sy_semantic_lambda(sy_node_t *node)
         }
     }
 
-	return 1;
+	return 0;
 }
 
 static int32_t
@@ -261,7 +261,7 @@ sy_semantic_parenthesis(sy_node_t *node)
         return -1;
     }
 
-    return 1;
+    return 0;
 }
 
 
@@ -385,13 +385,13 @@ sy_semantic_primary(sy_node_t *node)
     if (node->kind == NODE_KIND_TUPLE)
     {
         // return semantic_tuple(node);
-        return 1;
+        return 0;
     }
     else
     if (node->kind == NODE_KIND_OBJECT)
     {
         // return semantic_object(node);
-        return 1;
+        return 0;
     }
     else
 
@@ -430,7 +430,7 @@ sy_semantic_call(sy_node_t *node)
         return -1;
     }
 
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -451,10 +451,10 @@ sy_semantic_array(sy_node_t *node)
         {
             return -1;
         }
-        return 1;
+        return 0;
     }
 
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -474,7 +474,7 @@ sy_semantic_attribute(sy_node_t *node)
         return -1;
     }
 
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -494,7 +494,7 @@ sy_semantic_pseudonym(sy_node_t *node)
         return -1;
     }
 
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -531,22 +531,22 @@ sy_semantic_prefix(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_TILDE)
     {
-        return 1;
+        return 0;
     }
     else
     if (node->kind == NODE_KIND_POS)
     {
-        return 1;
+        return 0;
     }
     else
     if (node->kind == NODE_KIND_NEG)
     {
-        return 1;
+        return 0;
     }
     else
     if (node->kind == NODE_KIND_NOT)
     {
-        return 1;
+        return 0;
     }
     else
     {
@@ -559,7 +559,7 @@ sy_semantic_pow(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_POW)
     {
-        return 1;
+        return 0;
     }
     else
     {
@@ -572,22 +572,22 @@ sy_semantic_multipicative(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_MUL)
     {
-        return 1;
+        return 0;
     }
     else
     if (node->kind == NODE_KIND_DIV)
     {
-        return 1;
+        return 0;
     }
     else
     if (node->kind == NODE_KIND_MOD)
     {
-        return 1;
+        return 0;
     }
     else
     if (node->kind == NODE_KIND_EPI)
     {
-        return 1;
+        return 0;
     }
     else
     {
@@ -600,12 +600,12 @@ sy_semantic_addative(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_PLUS)
     {
-        return 1;
+        return 0;
     }
     else
     if (node->kind == NODE_KIND_MINUS)
     {
-        return 1;
+        return 0;
     }
     else
     {
@@ -618,12 +618,12 @@ sy_semantic_shifting(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_SHR)
     {
-        return 1;
+        return 0;
     }
     else
     if (node->kind == NODE_KIND_SHL)
     {
-        return 1;
+        return 0;
     }
     else
     {
@@ -636,22 +636,22 @@ sy_semantic_relational(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_LT)
     {
-        return 1;
+        return 0;
     }
     else
     if (node->kind == NODE_KIND_LE)
     {
-        return 1;
+        return 0;
     }
     else
     if (node->kind == NODE_KIND_GT)
     {
-        return 1;
+        return 0;
     }
     else
     if (node->kind == NODE_KIND_GE)
     {
-        return 1;
+        return 0;
     }
     else
     {
@@ -664,12 +664,12 @@ sy_semantic_equality(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_EQ)
     {
-        return 1;
+        return 0;
     }
     else
     if (node->kind == NODE_KIND_NEQ)
     {
-        return 1;
+        return 0;
     }
     else
     {
@@ -682,7 +682,7 @@ sy_semantic_bitwise_and(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_AND)
     {
-        return 1;
+        return 0;
     }
     else
     {
@@ -695,7 +695,7 @@ sy_semantic_bitwise_xor(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_XOR)
     {
-        return 1;
+        return 0;
     }
     else
     {
@@ -708,7 +708,7 @@ sy_semantic_bitwise_or(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_OR)
     {
-        return 1;
+        return 0;
     }
     else
     {
@@ -721,7 +721,7 @@ sy_semantic_logical_and(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_LAND)
     {
-        return 1;
+        return 0;
     }
     else
     {
@@ -734,7 +734,7 @@ sy_semantic_logical_or(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_LOR)
     {
-        return 1;
+        return 0;
     }
     else
     {
@@ -751,7 +751,7 @@ sy_semantic_expression(sy_node_t *node)
 static int32_t
 sy_semantic_assign(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 
@@ -800,7 +800,7 @@ sy_semantic_if(sy_node_t *node)
         }
     }
 
-	return 1;
+	return 0;
 }
 
 static int32_t
@@ -1132,7 +1132,7 @@ sy_semantic_for(sy_node_t *node)
         }
     }
 
-	return 1;
+	return 0;
 }
 
 static int32_t
@@ -1155,7 +1155,7 @@ sy_semantic_entity(sy_node_t *node)
         }
     }
 
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -1171,7 +1171,7 @@ sy_semantic_set(sy_node_t *node)
             return -1;
         }
     }
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -1755,7 +1755,7 @@ sy_semantic_var(sy_node_t *node)
         }
     }
 
-	return 1;
+	return 0;
 }
 
 
@@ -1824,7 +1824,7 @@ sy_semantic_field(sy_node_t *node)
         }
     }
 
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -1840,7 +1840,7 @@ sy_semantic_fields(sy_node_t *node)
             return -1;
         }
     }
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -1905,7 +1905,7 @@ sy_semantic_argument(sy_node_t *node)
         }
     }
 
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -1920,7 +1920,7 @@ sy_semantic_arguments(sy_node_t *node)
             return -1;
         }
     }
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -1989,7 +1989,7 @@ sy_semantic_parameter(sy_node_t *node)
         }
     }
 
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -2005,7 +2005,7 @@ sy_semantic_parameters(sy_node_t *node)
             return -1;
         }
     }
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -2055,7 +2055,7 @@ sy_semantic_generic(sy_node_t *node)
         }
     }
 
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -2071,7 +2071,7 @@ sy_semantic_generics(sy_node_t *node)
             return -1;
         }
     }
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -2103,7 +2103,7 @@ sy_semantic_catch(sy_node_t *node)
         }
     }
 
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -2129,31 +2129,31 @@ sy_semantic_try(sy_node_t *node)
         }
     }
 
-	return 1;
+	return 0;
 }
 
 static int32_t
 sy_semantic_throw(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_return(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_continue(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
 sy_semantic_break(sy_node_t *node)
 {
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -2234,7 +2234,7 @@ sy_semantic_statement(sy_node_t *node)
     {
         return sy_semantic_assign(node);
     }
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -2248,7 +2248,7 @@ sy_semantic_body(sy_node_t *node)
             return -1;
         }
     }
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -2292,7 +2292,7 @@ sy_semantic_note(sy_node_t *node)
         }
     }
 
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -2308,7 +2308,7 @@ sy_semantic_notes(sy_node_t *node)
             return -1;
         }
     }
-	return 1;
+	return 0;
 }
 
 static int32_t
@@ -2450,7 +2450,7 @@ sy_semantic_fun(sy_node_t *node)
         }
     }
 
-	return 1;
+	return 0;
 }
 
 static int32_t
@@ -2583,7 +2583,7 @@ sy_semantic_property(sy_node_t *node)
         }
     }
 
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -2652,7 +2652,7 @@ sy_semantic_heritage(sy_node_t *node)
         }
     }
 
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -2668,7 +2668,7 @@ sy_semantic_heritages(sy_node_t *node)
             return -1;
         }
     }
-	return 1;
+	return 0;
 }
 
 static int32_t
@@ -2976,42 +2976,13 @@ sy_semantic_class(sy_node_t *node)
         }
     }
     
-	return 1;
+	return 0;
 }
 
 static int32_t
 sy_semantic_package(sy_node_t *node)
 {
     sy_node_package_t *package1 = (sy_node_package_t *)node->value;
-
-    if (package1->address != NULL)
-    {
-        sy_node_t *address1 = package1->address;
-        while(address1 != NULL)
-        {
-            if (address1->kind == NODE_KIND_PSEUDONYM)
-            {
-                sy_node_carrier_t *carrier1 = (sy_node_carrier_t *)address1->value;
-                address1 = carrier1->base;
-            }
-            else
-            if (address1->kind == NODE_KIND_ATTRIBUTE)
-            {
-                sy_node_binary_t *binary = (sy_node_binary_t *)address1->value;
-                address1 = binary->left;
-            }
-            else
-            if (address1->kind == NODE_KIND_ID)
-            {
-                break;
-            }
-            else
-            {
-                sy_error_semantic_by_node(package1->address, "Not a address\n\tMajor:%s-%u", __FILE__, __LINE__);
-                return -1;
-            }
-        }  
-    }   
 
     for (sy_node_t *item1 = node->previous; item1 != NULL; item1 = item1->previous)
     {
@@ -3130,25 +3101,16 @@ sy_semantic_package(sy_node_t *node)
         }
     }
 
-    if (package1->generics != NULL)
+    if (package1->value != NULL)
     {
-        int32_t r1 = sy_semantic_generics(package1->generics);
+        int32_t r1 = sy_semantic_expression(package1->value);
         if (r1 == -1)
         {
             return -1;
         }
     }
 
-    if (package1->address != NULL)
-    {
-        int32_t r1 = sy_semantic_expression(package1->address);
-        if (r1 == -1)
-        {
-            return -1;
-        }
-    }
-
-    return 1;
+    return 0;
 }
 
 static int32_t
@@ -3165,7 +3127,7 @@ sy_semantic_packages(sy_node_t *node)
         }
     }
 
-	return 1;
+	return 0;
 }
 
 static int32_t
@@ -3185,21 +3147,21 @@ sy_semantic_using(sy_node_t *node)
     sy_node_t *node1 = using1->path;
     sy_node_basic_t *basic1 = (sy_node_basic_t *)node1->value;
 
-    sy_module_entry_t_t *module_entry = sy_module_load(basic1->value);
+    sy_module_entry_t *module_entry = sy_module_load(basic1->value);
     if (module_entry == ERROR)
     {
         sy_error_semantic_by_node(node, "Error:incapable of loading the modulus\n\tMajor:%s-%u", __FILE__, __LINE__);
         return -1;
     }
 
-	return 1;
+	return 0;
 }
 
 int32_t
 sy_semantic_module(sy_node_t *node)
 {
 	sy_node_block_t *module = (sy_node_block_t *)node->value;
-    
+
     for (sy_node_t *item = module->items;item != NULL;item = item->next)
     {
         if (item->kind == NODE_KIND_USING)
@@ -3257,6 +3219,6 @@ sy_semantic_module(sy_node_t *node)
         }
 
     }
-    
-	return 1;
+
+	return 0;
 }

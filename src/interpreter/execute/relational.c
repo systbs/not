@@ -4619,25 +4619,25 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
 }
 
 sy_record_t *
-sy_execute_relational(sy_node_t *node, sy_strip_t *strip)
+sy_execute_relational(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
 {
     if (node->kind == NODE_KIND_LT)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_shifting(binary->left, strip);
+        sy_record_t *left = sy_execute_shifting(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        sy_record_t *right = sy_execute_shifting(binary->right, strip);
+        sy_record_t *right = sy_execute_shifting(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
         }
-
+        
         sy_record_t *record = sy_record_make_int32(sy_execute_truthy_lt(left, right));
-
+        
         if (left->link == 0)
         {
             if (sy_record_destroy(left) < 0)
@@ -4660,13 +4660,13 @@ sy_execute_relational(sy_node_t *node, sy_strip_t *strip)
     if (node->kind == NODE_KIND_LE)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_shifting(binary->left, strip);
+        sy_record_t *left = sy_execute_shifting(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        sy_record_t *right = sy_execute_shifting(binary->right, strip);
+        sy_record_t *right = sy_execute_shifting(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -4696,13 +4696,13 @@ sy_execute_relational(sy_node_t *node, sy_strip_t *strip)
     if (node->kind == NODE_KIND_GT)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_shifting(binary->left, strip);
+        sy_record_t *left = sy_execute_shifting(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        sy_record_t *right = sy_execute_shifting(binary->right, strip);
+        sy_record_t *right = sy_execute_shifting(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -4732,13 +4732,13 @@ sy_execute_relational(sy_node_t *node, sy_strip_t *strip)
     if (node->kind == NODE_KIND_GE)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_shifting(binary->left, strip);
+        sy_record_t *left = sy_execute_shifting(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        sy_record_t *right = sy_execute_shifting(binary->right, strip);
+        sy_record_t *right = sy_execute_shifting(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -4766,6 +4766,6 @@ sy_execute_relational(sy_node_t *node, sy_strip_t *strip)
     }
     else
     {
-        return sy_execute_shifting(node, strip);
+        return sy_execute_shifting(node, strip, applicant, origin);
     }
 }

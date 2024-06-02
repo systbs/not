@@ -37,12 +37,12 @@ sy_execute_id_cmp(sy_node_t *n1, sy_node_t *n2)
 }
 
 static int32_t 
-sy_execute_body(sy_node_t *node, sy_strip_t *strip);
+sy_execute_body(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant);
 
 
 
 static int32_t
-sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_type2, sy_strip_t *strip)
+sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_type2, sy_strip_t *strip, sy_node_t *applicant)
 {
     if (!record_type1 || (record_type1 == NAN))
     {
@@ -214,7 +214,7 @@ sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_typ
                 {
                     if (sy_execute_id_cmp(object1->key, object2->key) == 1)
 					{
-                        int32_t r1 = sy_execute_type_check_by_type(object1->value, object2->value, strip);
+                        int32_t r1 = sy_execute_type_check_by_type(object1->value, object2->value, strip, applicant);
                         if (r1 == -1)
                         {
                             return -1;
@@ -253,7 +253,7 @@ sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_typ
 	{
         if (type2->type->kind == NODE_KIND_ARRAY)
 	    {
-            int32_t r1 = sy_execute_type_check_by_type(type1->value, type2->value, strip);
+            int32_t r1 = sy_execute_type_check_by_type(type1->value, type2->value, strip, applicant);
             if (r1 == -1)
             {
                 return -1;
@@ -285,7 +285,7 @@ sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_typ
                     return 0;
                 }
 
-                int32_t r1 = sy_execute_type_check_by_type(tuple2->value, tuple1->value, strip);
+                int32_t r1 = sy_execute_type_check_by_type(tuple2->value, tuple1->value, strip, applicant);
                 if (r1 == -1)
                 {
                     return -1;
@@ -354,7 +354,7 @@ sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_typ
 					return -1;
 				}
 
-				int32_t r1 = sy_execute_type_check_by_type(strip_entry1->value, strip_entry2->value, strip);
+				int32_t r1 = sy_execute_type_check_by_type(strip_entry1->value, strip_entry2->value, strip, applicant);
                 if (r1 == -1)
 				{
 					return -1;
@@ -378,7 +378,7 @@ sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_typ
 }
 
 static int32_t
-sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_type, sy_strip_t *strip)
+sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_type, sy_strip_t *strip, sy_node_t *applicant)
 {
     if (!record_value || (record_value == NAN))
     {
@@ -549,7 +549,7 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
                 {
                     if (sy_execute_id_cmp(object1->key, object2->key) == 1)
 					{
-                        int32_t r1 = sy_execute_value_check_by_type(object1->value, object2->value, strip);
+                        int32_t r1 = sy_execute_value_check_by_type(object1->value, object2->value, strip, applicant);
                         if (r1 == -1)
                         {
                             return -1;
@@ -590,7 +590,7 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
 		{
             for (sy_record_tuple_t *tuple = (sy_record_tuple_t *)record_value->value;tuple != NULL;tuple = tuple->next)
             {
-                int32_t r1 = sy_execute_value_check_by_type(tuple->value, (sy_record_t *)type1->value, strip);
+                int32_t r1 = sy_execute_value_check_by_type(tuple->value, (sy_record_t *)type1->value, strip, applicant);
                 if (r1 == -1)
 				{
 					return -1;
@@ -625,7 +625,7 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
                     return 0;
                 }
 
-                int32_t r1 = sy_execute_value_check_by_type(tuple2->value, tuple1->value, strip);
+                int32_t r1 = sy_execute_value_check_by_type(tuple2->value, tuple1->value, strip, applicant);
                 if (r1 == -1)
                 {
                     return -1;
@@ -696,7 +696,7 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
 						return -1;
 					}
 
-					int32_t r1 = sy_execute_type_check_by_type(strip_entry1->value, strip_entry2->value, strip);
+					int32_t r1 = sy_execute_type_check_by_type(strip_entry1->value, strip_entry2->value, strip, applicant);
                     if (r1 == -1)
 					{
 						return -1;
@@ -716,7 +716,7 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
 }
 
 static sy_record_t *
-sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_type, sy_strip_t *strip)
+sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_type, sy_strip_t *strip, sy_node_t *applicant)
 {
     if (!record_value || (record_value == NAN))
     {
@@ -1544,7 +1544,7 @@ sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_
                 {
                     if (sy_execute_id_cmp(object1->key, object2->key) == 1)
 					{
-                        sy_record_t *r1 = sy_execute_value_casting_by_type(object2->value, object1->value, strip);
+                        sy_record_t *r1 = sy_execute_value_casting_by_type(object2->value, object1->value, strip, applicant);
                         if (r1 == ERROR)
                         {
                             if (sy_record_object_destroy(object_copy) < 0)
@@ -1618,7 +1618,7 @@ sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_
 
             for (sy_record_tuple_t *tuple = tuple_copy;tuple != NULL;tuple = tuple->next)
             {
-                sy_record_t *r1 = sy_execute_value_casting_by_type(tuple->value, array_type, strip);
+                sy_record_t *r1 = sy_execute_value_casting_by_type(tuple->value, array_type, strip, applicant);
                 if (r1 == ERROR)
 				{
                     if (sy_record_tuple_destroy(tuple_copy) < 0)
@@ -1673,7 +1673,7 @@ sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_
                     return NULL;
                 }
 
-                sy_record_t *r1 = sy_execute_value_casting_by_type(tuple2->value, tuple1->value, strip);
+                sy_record_t *r1 = sy_execute_value_casting_by_type(tuple2->value, tuple1->value, strip, applicant);
                 if (r1 == ERROR)
 				{
                     if (sy_record_tuple_destroy(tuple_copy) < 0)
@@ -1765,7 +1765,7 @@ sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_
 						return ERROR;
 					}
 
-					int32_t r1 = sy_execute_type_check_by_type(strip_entry1->value, strip_entry2->value, strip);
+					int32_t r1 = sy_execute_type_check_by_type(strip_entry1->value, strip_entry2->value, strip, applicant);
                     if (r1 == -1)
 					{
 						return ERROR;
@@ -1785,7 +1785,7 @@ sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_
 }
 
 static sy_record_t *
-sy_execute_attribute_from_struct(sy_record_t *record, sy_node_t *key)
+sy_execute_attribute_from_struct(sy_record_t *record, sy_node_t *key, sy_node_t *applicant)
 {
     assert (record->kind == RECORD_KIND_STRUCT);
 
@@ -1838,7 +1838,7 @@ sy_execute_attribute_from_struct(sy_record_t *record, sy_node_t *key)
             return ERROR;
         }
 
-        sy_record_t *r1 = sy_execute_attribute_from_struct(entry->value, key);
+        sy_record_t *r1 = sy_execute_attribute_from_struct(entry->value, key, applicant);
         if (r1 == ERROR)
         {
             return ERROR;
@@ -1854,7 +1854,7 @@ sy_execute_attribute_from_struct(sy_record_t *record, sy_node_t *key)
 }
 
 static sy_record_t *
-sy_execute_attribute_from_type(sy_record_t *record, sy_node_t *key)
+sy_execute_attribute_from_type(sy_record_t *record, sy_node_t *key, sy_node_t *applicant)
 {
     assert (record->kind == RECORD_KIND_TYPE);
 
@@ -1883,7 +1883,7 @@ sy_execute_attribute_from_type(sy_record_t *record, sy_node_t *key)
                             else
                             if (entry == NULL)
                             {
-                                sy_record_t *record_value = sy_execute_expression(property1->value, type1->value);
+                                sy_record_t *record_value = sy_execute_expression(property1->value, type1->value, applicant, NULL);
                                 if (record_value == ERROR)
                                 {
                                     return ERROR;
@@ -1948,7 +1948,7 @@ sy_execute_attribute_from_type(sy_record_t *record, sy_node_t *key)
         {
             sy_node_heritage_t *heritage1 = (sy_node_heritage_t *)item1->value;
 
-            sy_record_t *record_type = sy_execute_expression(heritage1->type, type1->value);
+            sy_record_t *record_type = sy_execute_expression(heritage1->type, type1->value, applicant, NULL);
             if (record_type == ERROR)
             {
                 return ERROR;
@@ -1989,7 +1989,7 @@ sy_execute_attribute_from_type(sy_record_t *record, sy_node_t *key)
                 }
             }
 
-            sy_record_t *r1 = sy_execute_attribute_from_type(record_type, key);
+            sy_record_t *r1 = sy_execute_attribute_from_type(record_type, key, applicant);
             if (r1 == ERROR)
             {
                 if (sy_record_destroy(record_type) < 0)
@@ -2019,7 +2019,7 @@ sy_execute_attribute_from_type(sy_record_t *record, sy_node_t *key)
 }
 
 static int32_t 
-sy_execute_entity(sy_node_t *scope, sy_node_t *node, sy_record_t *value, sy_strip_t *strip)
+sy_execute_entity(sy_node_t *scope, sy_node_t *node, sy_record_t *value, sy_strip_t *strip, sy_node_t *applicant)
 {
     sy_node_entity_t *entity = (sy_node_entity_t *)node->value;
 
@@ -2035,7 +2035,7 @@ sy_execute_entity(sy_node_t *scope, sy_node_t *node, sy_record_t *value, sy_stri
     {
         if (value->kind == RECORD_KIND_STRUCT)
         {
-            value_select = sy_execute_attribute_from_struct(value, key_search);
+            value_select = sy_execute_attribute_from_struct(value, key_search, applicant);
             if (value_select == ERROR)
             {
                 return -1;
@@ -2044,7 +2044,7 @@ sy_execute_entity(sy_node_t *scope, sy_node_t *node, sy_record_t *value, sy_stri
         else
         if (value->kind == RECORD_KIND_TYPE)
         {
-            value_select = sy_execute_attribute_from_type(value, key_search);
+            value_select = sy_execute_attribute_from_type(value, key_search, applicant);
             if (value_select == ERROR)
             {
                 return -1;
@@ -2068,7 +2068,7 @@ sy_execute_entity(sy_node_t *scope, sy_node_t *node, sy_record_t *value, sy_stri
     {
         if (entity->value)
         {
-            value_select = sy_execute_expression(entity->value, strip);
+            value_select = sy_execute_expression(entity->value, strip, applicant, NULL);
             if (value_select == ERROR)
             {
                 return -1;
@@ -2104,7 +2104,7 @@ sy_execute_entity(sy_node_t *scope, sy_node_t *node, sy_record_t *value, sy_stri
         }
     }
 
-    if ((entity->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
+    if (((entity->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC) || (scope->kind == NODE_KIND_MODULE))
     {
         if (NULL == sy_symbol_table_push(scope, node, entity->key, value_select))
         {
@@ -2143,9 +2143,9 @@ sy_execute_entity(sy_node_t *scope, sy_node_t *node, sy_record_t *value, sy_stri
 }
 
 static int32_t 
-sy_execute_set(sy_node_t *scope, sy_node_t *node, sy_node_t *value, sy_strip_t *strip)
+sy_execute_set(sy_node_t *scope, sy_node_t *node, sy_node_t *value, sy_strip_t *strip, sy_node_t *applicant)
 {
-    sy_record_t *record_value = sy_execute_expression(value, strip);
+    sy_record_t *record_value = sy_execute_expression(value, strip, applicant, NULL);
     if (record_value == ERROR)
     {
         return -1;
@@ -2155,7 +2155,7 @@ sy_execute_set(sy_node_t *scope, sy_node_t *node, sy_node_t *value, sy_strip_t *
 
     for (sy_node_t *item = block->items;item != NULL;item = item->next)
     {
-        if (sy_execute_entity(scope, item, record_value, strip) < 0)
+        if (sy_execute_entity(scope, item, record_value, strip, applicant) < 0)
         {
             if (ERROR == sy_garbage_push(record_value))
             {
@@ -2174,12 +2174,12 @@ sy_execute_set(sy_node_t *scope, sy_node_t *node, sy_node_t *value, sy_strip_t *
 }
 
 static int32_t 
-sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
+sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
 {
     sy_node_var_t *var1 = (sy_node_var_t *)node->value;
     if (var1->key->kind == NODE_KIND_SET)
 	{
-		if (sy_execute_set(scope, var1->key, var1->value, strip) < 0)
+		if (sy_execute_set(scope, var1->key, var1->value, strip, applicant) < 0)
 		{
 			return -1;
 		}
@@ -2189,7 +2189,7 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
         sy_record_t *record_value = NULL;
         if (var1->value)
         {
-            record_value = sy_execute_expression(var1->value, strip);
+            record_value = sy_execute_expression(var1->value, strip, applicant, NULL);
             if (record_value == ERROR)
             {
                 return -1;
@@ -2197,7 +2197,7 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
 
             if (var1->type)
             {
-                sy_record_t *record_type = sy_execute_expression(var1->type, strip);
+                sy_record_t *record_type = sy_execute_expression(var1->type, strip, applicant, NULL);
                 if (record_type == ERROR)
                 {
                     if (record_value && (record_value != NAN))
@@ -2244,7 +2244,7 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
                     return -1;
                 }
 
-                int32_t r1 = sy_execute_value_check_by_type(record_value, record_type, strip);
+                int32_t r1 = sy_execute_value_check_by_type(record_value, record_type, strip, applicant);
                 if (r1 < 0)
                 {
                     if (record_type && (record_type != NAN))
@@ -2311,7 +2311,7 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
                             }
                         }
 
-                        sy_record_t *record_value2 = sy_execute_value_casting_by_type(record_value, record_type, strip);
+                        sy_record_t *record_value2 = sy_execute_value_casting_by_type(record_value, record_type, strip, applicant);
                         if (record_value2 == ERROR)
                         {
                             if (record_type && (record_type != NAN))
@@ -2398,7 +2398,7 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
             }
         }
 
-        if ((var1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
+        if (((var1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC) || (scope->kind == NODE_KIND_MODULE))
         {
             if (NULL == sy_symbol_table_push(scope, node, var1->key, record_value))
             {
@@ -2442,7 +2442,7 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
 }
 
 static int32_t 
-sy_execute_for(sy_node_t *node, sy_strip_t *strip)
+sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
 {
     sy_node_for_t *for1 = (sy_node_for_t *)node->value;
     int32_t ret_code = 0;
@@ -2459,7 +2459,7 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip)
         {
             if (item1->kind == NODE_KIND_VAR)
             {
-                int32_t r1 = sy_execute_var(node, item1, new_strip);
+                int32_t r1 = sy_execute_var(node, item1, new_strip, applicant);
                 if (r1 == -1)
                 {
                     goto region_init_error;
@@ -2467,7 +2467,7 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip)
             }
             else
             {
-                int32_t r1 = sy_execute_assign(item1, new_strip);
+                int32_t r1 = sy_execute_assign(item1, new_strip, applicant, NULL);
                 if (r1 == -1)
                 {
                     goto region_init_error;
@@ -2490,7 +2490,7 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip)
     region_start_loop:
     if (for1->condition)
     {
-        sy_record_t *condition = sy_execute_expression(for1->condition, new_strip);
+        sy_record_t *condition = sy_execute_expression(for1->condition, new_strip, applicant, NULL);
         if (condition == ERROR)
         {
             goto region_error;
@@ -2510,7 +2510,7 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip)
     {
         if (for1->body)
         {
-            int32_t r2 = sy_execute_body(for1->body, new_strip);
+            int32_t r2 = sy_execute_body(for1->body, new_strip, applicant);
             if (r2 == -1)
             {
                 goto region_error;
@@ -2637,7 +2637,7 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip)
         {
             for (sy_node_t *item1 = for1->incrementor;item1 != NULL;item1 = item1->next)
             {
-                int32_t r1 = sy_execute_assign(item1, new_strip);
+                int32_t r1 = sy_execute_assign(item1, new_strip, applicant, NULL);
                 if (r1 == -1)
                 {
                     goto region_error;
@@ -2686,12 +2686,12 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip)
 }
 
 static int32_t 
-sy_execute_if(sy_node_t *node, sy_strip_t *strip)
+sy_execute_if(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
 {
     sy_node_if_t *if1 = (sy_node_if_t *)node->value;
     if (if1->condition != NULL)
     {
-        sy_record_t *condition = sy_execute_expression(if1->condition, strip);
+        sy_record_t *condition = sy_execute_expression(if1->condition, strip, applicant, NULL);
         if (condition == ERROR)
         {            
             return -1;
@@ -2729,7 +2729,7 @@ sy_execute_if(sy_node_t *node, sy_strip_t *strip)
 
     if (if1->then_body != NULL)
     {
-        int32_t r1 = sy_execute_body(if1->then_body, strip);
+        int32_t r1 = sy_execute_body(if1->then_body, strip, applicant);
         if (r1 < 0)
         {
             return r1;
@@ -2745,7 +2745,7 @@ sy_execute_if(sy_node_t *node, sy_strip_t *strip)
 
         if (else_body1->kind == NODE_KIND_IF)
         {
-            int32_t r1 = sy_execute_if(if1->else_body, strip);
+            int32_t r1 = sy_execute_if(if1->else_body, strip, applicant);
             if (r1 < 0)
             {
                 return r1;
@@ -2753,7 +2753,7 @@ sy_execute_if(sy_node_t *node, sy_strip_t *strip)
         }
         else
         {
-            int32_t r1 = sy_execute_body(if1->else_body, strip);
+            int32_t r1 = sy_execute_body(if1->else_body, strip, applicant);
             if (r1 < 0)
             {
                 return r1;
@@ -2765,13 +2765,13 @@ sy_execute_if(sy_node_t *node, sy_strip_t *strip)
 }
 
 static int32_t 
-sy_execute_break(sy_node_t *node, sy_strip_t *strip)
+sy_execute_break(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
 {
     sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
 
     if (unary->right)
     {
-        sy_record_t *record = sy_execute_expression(unary->right, strip);
+        sy_record_t *record = sy_execute_expression(unary->right, strip, applicant, NULL);
         if (record == ERROR)
         {            
             return -1;
@@ -2842,13 +2842,13 @@ sy_execute_break(sy_node_t *node, sy_strip_t *strip)
 }
 
 static int32_t 
-sy_execute_continue(sy_node_t *node, sy_strip_t *strip)
+sy_execute_continue(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
 {
     sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
 
     if (unary->right)
     {
-        sy_record_t *record = sy_execute_expression(unary->right, strip);
+        sy_record_t *record = sy_execute_expression(unary->right, strip, applicant, NULL);
         if (record == ERROR)
         {            
             return -1;
@@ -2919,11 +2919,11 @@ sy_execute_continue(sy_node_t *node, sy_strip_t *strip)
 }
 
 static int32_t 
-sy_execute_statement(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
+sy_execute_statement(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
 {
     if (node->kind == NODE_KIND_VAR)
     {
-        int32_t r1 = sy_execute_var(scope, node, strip);
+        int32_t r1 = sy_execute_var(scope, node, strip, applicant);
         if (r1 < 0)
         {
             return r1;
@@ -2932,7 +2932,7 @@ sy_execute_statement(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
     else
     if (node->kind == NODE_KIND_FOR)
     {
-        int32_t r1 = sy_execute_for(node, strip);
+        int32_t r1 = sy_execute_for(node, strip, applicant);
         if (r1 < 0)
         {
             return r1;
@@ -2941,7 +2941,7 @@ sy_execute_statement(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
     else
     if (node->kind == NODE_KIND_IF)
     {
-        int32_t r1 = sy_execute_if(node, strip);
+        int32_t r1 = sy_execute_if(node, strip, applicant);
         if (r1 < 0)
         {
             return r1;
@@ -2950,7 +2950,7 @@ sy_execute_statement(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
     else
     if (node->kind == NODE_KIND_BREAK)
     {
-        int32_t r1 = sy_execute_break(node, strip);
+        int32_t r1 = sy_execute_break(node, strip, applicant);
         if (r1 < 0)
         {
             return r1;
@@ -2959,7 +2959,7 @@ sy_execute_statement(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
     else
     if (node->kind == NODE_KIND_CONTINUE)
     {
-        int32_t r1 = sy_execute_continue(node, strip);
+        int32_t r1 = sy_execute_continue(node, strip, applicant);
         if (r1 < 0)
         {
             return r1;
@@ -2967,7 +2967,7 @@ sy_execute_statement(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
     }
     else
     {
-        int32_t r1 = sy_execute_assign(node, strip);
+        int32_t r1 = sy_execute_assign(node, strip, applicant, NULL);
         if (r1 < 0)
         {
             return r1;
@@ -2978,7 +2978,7 @@ sy_execute_statement(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip)
 }
 
 static int32_t 
-sy_execute_body(sy_node_t *node, sy_strip_t *strip)
+sy_execute_body(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
 {
     int32_t ret_code = 0;
     sy_strip_t *new_strip = sy_strip_create(strip);
@@ -2991,7 +2991,7 @@ sy_execute_body(sy_node_t *node, sy_strip_t *strip)
 
     for (sy_node_t *item = block->items;item != NULL;item = item->next)
     {
-        int32_t r1 = sy_execute_statement(node, item, new_strip);
+        int32_t r1 = sy_execute_statement(node, item, new_strip, applicant);
         if (r1 == -1)
         {
             goto region_error;
@@ -3039,7 +3039,7 @@ sy_execute_module(sy_node_t *node)
         }
         else
         {
-            if (sy_execute_statement(node, item, NULL) < 0)
+            if (sy_execute_statement(node, item, NULL, node) < 0)
             {
                 return -1;
             }
