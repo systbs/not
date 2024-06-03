@@ -78,7 +78,7 @@ sy_record_t *
 sy_record_make_nan();
 
 sy_record_t *
-sy_record_make_type(sy_node_t *type, sy_strip_t *value);
+sy_record_make_type(sy_node_t *type, void *value);
 
 sy_record_t *
 sy_record_make_struct(sy_node_t *type, sy_strip_t *value);

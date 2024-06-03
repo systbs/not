@@ -22,6 +22,9 @@ sy_entry_t *
 sy_strip_variable_find(sy_strip_t *strip, sy_node_t *key);
 
 sy_entry_t *
+sy_strip_variable_find_by_scope(sy_strip_t *strip, sy_node_t *scope, sy_node_t *key);
+
+sy_entry_t *
 sy_strip_input_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_record_t *value);
 
 sy_entry_t *

@@ -1694,42 +1694,19 @@ sy_scanner_advance(SyScanner_t *scanner)
 						return -1;
 					}
 
-					if (!isspace(scanner->ch))
+					while (!isspace(scanner->ch))
 					{
-						while (!isspace(scanner->ch))
+						if (isxdigit(scanner->ch))
 						{
-							if (isxdigit(scanner->ch))
+							if (sy_scanner_next(scanner) == -1)
 							{
-								if (sy_scanner_next(scanner) == -1)
-								{
-									return -1;
-								}
-							}
-							else
-							{
-								if (isalpha(scanner->ch))
-								{
-									sy_error_lexer_by_position((sy_position_t){
-										.path = scanner->path, 
-										.offset = scanner->offset, 
-										.column = scanner->column - (scanner->offset - start_offset), 
-										.line = scanner->line,
-										.length = scanner->offset - start_offset}, "wrong hexadecimal number format");
-									return -1;
-								}
-								break;
+								return -1;
 							}
 						}
-					}
-					else
-					{
-						sy_error_lexer_by_position((sy_position_t){
-							.path = scanner->path, 
-							.offset = scanner->offset, 
-							.column = scanner->column - (scanner->offset - start_offset), 
-							.line = scanner->line,
-							.length = scanner->offset - start_offset}, "hexadecimal literal has no digits");
-						return -1;
+						else
+						{
+							break;
+						}
 					}
 				}
 				else
@@ -1740,42 +1717,19 @@ sy_scanner_advance(SyScanner_t *scanner)
 						return -1;
 					}
 
-					if (!isspace(scanner->ch))
+					while (!isspace(scanner->ch))
 					{
-						while (!isspace(scanner->ch))
+						if (isbinary(scanner->ch))
 						{
-							if (isbinary(scanner->ch))
+							if (sy_scanner_next(scanner) == -1)
 							{
-								if (sy_scanner_next(scanner) == -1)
-								{
-									return -1;
-								}
-							}
-							else
-							{
-								if (isalpha(scanner->ch))
-								{
-									sy_error_lexer_by_position((sy_position_t){
-										.path = scanner->path, 
-										.offset = scanner->offset, 
-										.column = scanner->column - (scanner->offset - start_offset), 
-										.line = scanner->line,
-										.length = scanner->offset - start_offset}, "wrong binary number format");
-									return -1;
-								}
-								break;
+								return -1;
 							}
 						}
-					}
-					else
-					{
-						sy_error_lexer_by_position((sy_position_t){
-							.path = scanner->path, 
-							.offset = scanner->offset, 
-							.column = scanner->column - (scanner->offset - start_offset), 
-							.line = scanner->line,
-							.length = scanner->offset - start_offset}, "binary literal has no digits");
-						return -1;
+						else
+						{
+							break;
+						}
 					}
 				}
 				else
@@ -1786,42 +1740,19 @@ sy_scanner_advance(SyScanner_t *scanner)
 						return -1;
 					}
 
-					if (!isspace(scanner->ch))
+					while (!isspace(scanner->ch))
 					{
-						while (!isspace(scanner->ch))
+						if (isoctal(scanner->ch))
 						{
-							if (isoctal(scanner->ch))
+							if (sy_scanner_next(scanner) == -1)
 							{
-								if (sy_scanner_next(scanner) == -1)
-								{
-									return -1;
-								}
-							}
-							else
-							{
-								if (isalpha(scanner->ch))
-								{
-									sy_error_lexer_by_position((sy_position_t){
-										.path = scanner->path, 
-										.offset = scanner->offset, 
-										.column = scanner->column - (scanner->offset - start_offset), 
-										.line = scanner->line,
-										.length = scanner->offset - start_offset}, "wrong octal number format");
-									return -1;
-								}
-								break;
+								return -1;
 							}
 						}
-					}
-					else
-					{
-						sy_error_lexer_by_position((sy_position_t){
-							.path = scanner->path, 
-							.offset = scanner->offset, 
-							.column = scanner->column - (scanner->offset - start_offset), 
-							.line = scanner->line,
-							.length = scanner->offset - start_offset}, "octal literal has no digits");
-						return -1;
+						else
+						{
+							break;
+						}
 					}
 				}
 				else
@@ -1832,114 +1763,24 @@ sy_scanner_advance(SyScanner_t *scanner)
 						return -1;
 					}
 
-					if (!isspace(scanner->ch))
+					while (!isspace(scanner->ch))
 					{
-						if (isdigit(scanner->ch))
+						if (tolower(scanner->ch) == 'e')
 						{
-							while (!isspace(scanner->ch))
+							if (sy_scanner_next(scanner) == -1)
 							{
-								if (tolower(scanner->ch) == 'e')
-								{
-									if (sy_scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
+								return -1;
+							}
 
-									if (tolower(scanner->ch) == '+')
-									{
-										if (sy_scanner_next(scanner) == -1)
-										{
-											return -1;
-										}
-									}
-									else
-									if (tolower(scanner->ch) == '-')
-									{
-										if (sy_scanner_next(scanner) == -1)
-										{
-											return -1;
-										}
-									}
-									else
-									{
-										sy_error_lexer_by_position((sy_position_t){
-											.path = scanner->path, 
-											.offset = scanner->offset, 
-											.column = scanner->column - (scanner->offset - start_offset), 
-											.line = scanner->line,
-											.length = scanner->offset - start_offset}, "wrong number format");
-										return -1;
-									}
-
-									while (!isspace(scanner->ch))
-									{
-										if (isdigit(scanner->ch))
-										{
-											if (sy_scanner_next(scanner) == -1)
-											{
-												return -1;
-											}
-										}
-										else
-										{
-											break;
-										}
-									}
-
-									break;
-								}
-								else
-								if (scanner->ch == '.')
+							if (tolower(scanner->ch) == '+')
+							{
+								if (sy_scanner_next(scanner) == -1)
 								{
-									break;
-								}
-								if (isdigit(scanner->ch))
-								{
-									if (sy_scanner_next(scanner) == -1)
-									{
-										return -1;
-									}
-									continue;
-								}
-								else
-								{
-									if (isalpha(scanner->ch))
-									{
-										sy_error_lexer_by_position((sy_position_t){
-											.path = scanner->path, 
-											.offset = scanner->offset, 
-											.column = scanner->column - (scanner->offset - start_offset), 
-											.line = scanner->line,
-											.length = scanner->offset - start_offset}, "wrong number format");
-										return -1;
-									}
-									break;
+									return -1;
 								}
 							}
-						}
-						else
-						{
-							break;
-						}
-					}
-					else
-					{
-						sy_error_lexer_by_position((sy_position_t){
-							.path = scanner->path, 
-							.offset = scanner->offset, 
-							.column = scanner->column - (scanner->offset - start_offset), 
-							.line = scanner->line,
-							.length = scanner->offset - start_offset}, "decimal literal has no digits");
-						return -1;
-					}
-				}
-				else
-				{
-					if (!isspace(scanner->ch))
-					{
-						while (!isspace(scanner->ch))
-						{
-							if (isoctal(scanner->ch))
+							else
+							if (tolower(scanner->ch) == '-')
 							{
 								if (sy_scanner_next(scanner) == -1)
 								{
@@ -1948,29 +1789,66 @@ sy_scanner_advance(SyScanner_t *scanner)
 							}
 							else
 							{
-								if (isalpha(scanner->ch))
-								{
-									sy_error_lexer_by_position((sy_position_t){
-										.path = scanner->path, 
-										.offset = scanner->offset, 
-										.column = scanner->column - (scanner->offset - start_offset), 
-										.line = scanner->line,
-										.length = scanner->offset - start_offset}, "wrong octal number format");
-									return -1;
-								}
-								break;
+								sy_error_lexer_by_position((sy_position_t){
+									.path = scanner->path, 
+									.offset = scanner->offset, 
+									.column = scanner->column - (scanner->offset - start_offset), 
+									.line = scanner->line,
+									.length = scanner->offset - start_offset}, "wrong number format");
+								return -1;
 							}
+
+							while (!isspace(scanner->ch))
+							{
+								if (isdigit(scanner->ch))
+								{
+									if (sy_scanner_next(scanner) == -1)
+									{
+										return -1;
+									}
+								}
+								else
+								{
+									break;
+								}
+							}
+
+							break;
+						}
+						else
+						if (scanner->ch == '.')
+						{
+							break;
+						}
+						if (isdigit(scanner->ch))
+						{
+							if (sy_scanner_next(scanner) == -1)
+							{
+								return -1;
+							}
+							continue;
+						}
+						else
+						{
+							break;
 						}
 					}
-					else
+				}
+				else
+				{
+					while (!isspace(scanner->ch))
 					{
-						sy_error_lexer_by_position((sy_position_t){
-							.path = scanner->path, 
-							.offset = scanner->offset, 
-							.column = scanner->column - (scanner->offset - start_offset), 
-							.line = scanner->line,
-							.length = scanner->offset - start_offset}, "octal literal has no digits");
-						return -1;
+						if (isoctal(scanner->ch))
+						{
+							if (sy_scanner_next(scanner) == -1)
+							{
+								return -1;
+							}
+						}
+						else
+						{
+							break;
+						}
 					}
 				}
 			}
@@ -2003,13 +1881,7 @@ sy_scanner_advance(SyScanner_t *scanner)
 						}
 						else
 						{
-							sy_error_lexer_by_position((sy_position_t){
-								.path = scanner->path, 
-								.offset = scanner->offset, 
-								.column = scanner->column - (scanner->offset - start_offset), 
-								.line = scanner->line,
-								.length = scanner->offset - start_offset}, "wrong number format");
-							return -1;
+							break;
 						}
 
 						while (!isspace(scanner->ch))
@@ -2055,16 +1927,6 @@ sy_scanner_advance(SyScanner_t *scanner)
 					}
 					else
 					{
-						if (isalpha(scanner->ch))
-						{
-							sy_error_lexer_by_position((sy_position_t){
-								.path = scanner->path, 
-								.offset = scanner->offset, 
-								.column = scanner->column - (scanner->offset - start_offset), 
-								.line = scanner->line,
-								.length = scanner->offset - start_offset}, "wrong number format");
-							return -1;
-						}
 						break;
 					}
 				}

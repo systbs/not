@@ -407,7 +407,7 @@ sy_semantic_primary(sy_node_t *node)
     
     else
     {
-        sy_error_semantic_by_node(node, "not a primary type\n\tMajor:%s-%u", __FILE__, __LINE__);
+        sy_error_semantic_by_node(node, "not a primary type");
         return -1;
     }
 }
@@ -824,8 +824,8 @@ sy_semantic_for(sy_node_t *node)
                     if (sy_semantic_idcmp(for1->key, parameter1->key) == 1)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
-                        sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, parameter1->key->position.line, parameter1->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, parameter1->key->position.line, parameter1->key->position.column);
                         return -1;
                     }
                 }
@@ -848,8 +848,8 @@ sy_semantic_for(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
 
-                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, var2->key->position.line, var2->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, var2->key->position.line, var2->key->position.column);
                                 return -1;
                             }
                         }
@@ -864,8 +864,8 @@ sy_semantic_for(sy_node_t *node)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
 
-                                    sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                        basic1->value, entity1->key->position.line, entity1->key->position.column, __FILE__, __LINE__);
+                                    sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                        basic1->value, entity1->key->position.line, entity1->key->position.column);
                                     return -1;
                                 }
                             }
@@ -895,8 +895,8 @@ sy_semantic_for(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
 
-                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, for2->key->position.line, for2->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, for2->key->position.line, for2->key->position.column);
                                 return -1;
                             }
                         }
@@ -911,8 +911,8 @@ sy_semantic_for(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
 
-                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, var2->key->position.line, var2->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, var2->key->position.line, var2->key->position.column);
                                 return -1;
                             }
                         }
@@ -926,8 +926,8 @@ sy_semantic_for(sy_node_t *node)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
 
-                                    sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                        basic1->value, entity1->key->position.line, entity1->key->position.column, __FILE__, __LINE__);
+                                    sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                        basic1->value, entity1->key->position.line, entity1->key->position.column);
                                     return -1;
                                 }
                             }
@@ -953,8 +953,8 @@ sy_semantic_for(sy_node_t *node)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
 
-                            sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                basic1->value, generic1->key->position.line, generic1->key->position.column, __FILE__, __LINE__);
+                            sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, generic1->key->position.line, generic1->key->position.column);
                             return -1;
                         }
                     }
@@ -971,8 +971,8 @@ sy_semantic_for(sy_node_t *node)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
 
-                            sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                basic1->value, parameter1->key->position.line, parameter1->key->position.column, __FILE__, __LINE__);
+                            sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, parameter1->key->position.line, parameter1->key->position.column);
                             return -1;
                         }
                     }
@@ -1004,8 +1004,8 @@ sy_semantic_for(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
 
-                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, package2->key->position.line, package2->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, package2->key->position.line, package2->key->position.column);
                                 return -1;
                             }
                         }
@@ -1019,8 +1019,8 @@ sy_semantic_for(sy_node_t *node)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
 
-                            sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                basic1->value, class1->key->position.line, class1->key->position.column, __FILE__, __LINE__);
+                            sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, class1->key->position.line, class1->key->position.column);
                             return -1;
                         }
                     }
@@ -1034,8 +1034,8 @@ sy_semantic_for(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
 
-                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, for2->key->position.line, for2->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, for2->key->position.line, for2->key->position.column);
                                 return -1;
                             }
                         }
@@ -1050,8 +1050,8 @@ sy_semantic_for(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
 
-                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, var2->key->position.line, var2->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, var2->key->position.line, var2->key->position.column);
                                 return -1;
                             }
                         }
@@ -1065,8 +1065,8 @@ sy_semantic_for(sy_node_t *node)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
 
-                                    sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                        basic1->value, entity1->key->position.line, entity1->key->position.column, __FILE__, __LINE__);
+                                    sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                        basic1->value, entity1->key->position.line, entity1->key->position.column);
                                     return -1;
                                 }
                             }
@@ -1149,8 +1149,8 @@ sy_semantic_entity(sy_node_t *node)
         {
             sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
 
-            sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                basic1->value, entity2->key->position.line, entity2->key->position.column, __FILE__, __LINE__);
+            sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)",
+                basic1->value, entity2->key->position.line, entity2->key->position.column);
             return -1;
         }
     }
@@ -1196,8 +1196,8 @@ sy_semantic_var(sy_node_t *node)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
 
-                        sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, parameter2->key->position.line, parameter2->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, parameter2->key->position.line, parameter2->key->position.column);
                         return -1;
                     }
                 }
@@ -1212,8 +1212,8 @@ sy_semantic_var(sy_node_t *node)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
 
-                            sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                basic1->value, parameter2->key->position.line, parameter2->key->position.column, __FILE__, __LINE__);
+                            sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, parameter2->key->position.line, parameter2->key->position.column);
                             return -1;
                         }
                     }
@@ -1245,8 +1245,8 @@ sy_semantic_var(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
 
-                                sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, var2->key->position.line, var2->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, var2->key->position.line, var2->key->position.column);
                                 return -1;
                             }
                         }
@@ -1261,8 +1261,8 @@ sy_semantic_var(sy_node_t *node)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
 
-                                    sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                        basic1->value, var2->key->position.line, var2->key->position.column, __FILE__, __LINE__);
+                                    sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                        basic1->value, var2->key->position.line, var2->key->position.column);
                                     return -1;
                                 }
                             }
@@ -1281,8 +1281,8 @@ sy_semantic_var(sy_node_t *node)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
 
-                                    sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                        basic1->value, entity2->key->position.path, entity2->key->position.line, entity2->key->position.column, __FILE__, __LINE__);
+                                    sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                        basic1->value, entity2->key->position.path, entity2->key->position.line, entity2->key->position.column);
                                     return -1;
                                 }
                             }
@@ -1297,8 +1297,8 @@ sy_semantic_var(sy_node_t *node)
                                     {
                                         sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
 
-                                        sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                            basic1->value, entity2->key->position.path, entity2->key->position.line, entity2->key->position.column, __FILE__, __LINE__);
+                                        sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                            basic1->value, entity2->key->position.path, entity2->key->position.line, entity2->key->position.column);
                                         return -1;
                                     }
                                 }
@@ -1332,8 +1332,8 @@ sy_semantic_var(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
 
-                                sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, for2->key->position.line, for2->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, for2->key->position.line, for2->key->position.column);
                                 return -1;
                             }
                         }
@@ -1348,8 +1348,8 @@ sy_semantic_var(sy_node_t *node)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
 
-                                    sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                        basic1->value, for2->key->position.line, for2->key->position.column, __FILE__, __LINE__);
+                                    sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                        basic1->value, for2->key->position.line, for2->key->position.column);
                                     return -1;
                                 }
                             }
@@ -1368,8 +1368,8 @@ sy_semantic_var(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
 
-                                sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, var2->key->position.line, var2->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, var2->key->position.line, var2->key->position.column);
                                 return -1;
                             }
                         }
@@ -1384,8 +1384,8 @@ sy_semantic_var(sy_node_t *node)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
 
-                                    sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                        basic1->value, var2->key->position.line, var2->key->position.column, __FILE__, __LINE__);
+                                    sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                        basic1->value, var2->key->position.line, var2->key->position.column);
                                     return -1;
                                 }
                             }
@@ -1404,8 +1404,8 @@ sy_semantic_var(sy_node_t *node)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
 
-                                    sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                        basic1->value, entity1->key->position.line, entity1->key->position.column, __FILE__, __LINE__);
+                                    sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                        basic1->value, entity1->key->position.line, entity1->key->position.column);
                                     return -1;
                                 }
                             }
@@ -1427,8 +1427,8 @@ sy_semantic_var(sy_node_t *node)
                                     {
                                         sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
 
-                                        sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                            basic1->value, entity2->key->position.path, entity2->key->position.line, entity2->key->position.column, __FILE__, __LINE__);
+                                        sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                            basic1->value, entity2->key->position.path, entity2->key->position.line, entity2->key->position.column);
                                         return -1;
                                     }
                                 }
@@ -1458,8 +1458,8 @@ sy_semantic_var(sy_node_t *node)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
 
-                            sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                basic1->value, generic2->key->position.line, generic2->key->position.column, __FILE__, __LINE__);
+                            sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, generic2->key->position.line, generic2->key->position.column);
                             return -1;
                         }
                     }
@@ -1474,8 +1474,8 @@ sy_semantic_var(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
 
-                                sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, generic2->key->position.line, generic2->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, generic2->key->position.line, generic2->key->position.column);
                                 return -1;
                             }
                         }
@@ -1496,7 +1496,7 @@ sy_semantic_var(sy_node_t *node)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
 
-                            sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
+                            sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)",
                                 basic1->value, parameter1->key->position.line, parameter1->key->position.column);
                             return -1;
                         }
@@ -1512,8 +1512,8 @@ sy_semantic_var(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
 
-                                sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, parameter1->key->position.line, parameter1->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, parameter1->key->position.line, parameter1->key->position.column);
                                 return -1;
                             }
                         }
@@ -1550,8 +1550,8 @@ sy_semantic_var(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
 
-                                sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, package1->key->position.line, package1->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, package1->key->position.line, package1->key->position.column);
                                 return -1;
                             }
                         }
@@ -1567,8 +1567,8 @@ sy_semantic_var(sy_node_t *node)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
 
-                                    sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                        basic1->value, package1->key->position.line, package1->key->position.column, __FILE__, __LINE__);
+                                    sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                        basic1->value, package1->key->position.line, package1->key->position.column);
                                     return -1;
                                 }
                             }
@@ -1585,8 +1585,8 @@ sy_semantic_var(sy_node_t *node)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
 
-                            sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                basic1->value, class1->key->position.line, class1->key->position.column, __FILE__, __LINE__);
+                            sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, class1->key->position.line, class1->key->position.column);
                             return -1;
                         }
                     }
@@ -1601,8 +1601,8 @@ sy_semantic_var(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
 
-                                sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, class1->key->position.line, class1->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, class1->key->position.line, class1->key->position.column);
                                 return -1;
                             }
                         }
@@ -1620,8 +1620,8 @@ sy_semantic_var(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
 
-                                sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, for2->key->position.line, for2->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, for2->key->position.line, for2->key->position.column);
                                 return -1;
                             }
                         }
@@ -1636,8 +1636,8 @@ sy_semantic_var(sy_node_t *node)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
 
-                                    sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                        basic1->value, for2->key->position.line, for2->key->position.column, __FILE__, __LINE__);
+                                    sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                        basic1->value, for2->key->position.line, for2->key->position.column);
                                     return -1;
                                 }
                             }
@@ -1656,8 +1656,8 @@ sy_semantic_var(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
 
-                                sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, var2->key->position.line, var2->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, var2->key->position.line, var2->key->position.column);
                                 return -1;
                             }
                         }
@@ -1672,8 +1672,8 @@ sy_semantic_var(sy_node_t *node)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
 
-                                    sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                        basic1->value, var2->key->position.line, var2->key->position.column, __FILE__, __LINE__);
+                                    sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                        basic1->value, var2->key->position.line, var2->key->position.column);
                                     return -1;
                                 }
                             }
@@ -1692,8 +1692,8 @@ sy_semantic_var(sy_node_t *node)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
 
-                                    sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                        basic1->value, entity1->key->position.line, entity1->key->position.column, __FILE__, __LINE__);
+                                    sy_error_semantic_by_node(var1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                        basic1->value, entity1->key->position.line, entity1->key->position.column);
                                     return -1;
                                 }
                             }
@@ -1714,8 +1714,8 @@ sy_semantic_var(sy_node_t *node)
                                     {
                                         sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
 
-                                        sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                            basic1->value, entity2->key->position.path, entity2->key->position.line, entity2->key->position.column, __FILE__, __LINE__);
+                                        sy_error_semantic_by_node(entity1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                            basic1->value, entity2->key->position.path, entity2->key->position.line, entity2->key->position.column);
                                         return -1;
                                     }
                                 }
@@ -1768,40 +1768,34 @@ sy_semantic_field(sy_node_t *node)
     {
         if (field1->key->kind != NODE_KIND_ID)
         {
-            sy_error_semantic_by_node(field1->key, "'%s' not a name\n\tMajor:%s-%u",
-                "Key", __FILE__, __LINE__);
+            sy_error_semantic_by_node(field1->key, "'%s' not a name", "Key");
             return -1;
         }
     }
 
     for (sy_node_t *item1 = node->previous; item1 != NULL; item1 = item1->previous)
     {
-        assert (item1->kind == NODE_KIND_FIELD);
-
         if (field1->value != NULL)
         {
-            if (field1->key->kind != NODE_KIND_ID)
-            {
-                sy_error_semantic_by_node(field1->key, "field key must be an identifier");
-                return -1;
-            }
-
             sy_node_field_t *field2 = (sy_node_field_t *)item1->value;
             if (field2->value != NULL)
             {
-                if (field2->key->kind != NODE_KIND_ID)
-                {
-                    sy_error_semantic_by_node(field2->key, "field key must be an identifier");
-                    return -1;
-                }
                 if (sy_semantic_idcmp(field1->key, field2->key) == 1)
                 {
-                    sy_node_basic_t *keSy_string1 = field1->key->value;
-
-                    sy_error_semantic_by_node(field1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                        keSy_string1->value, field2->key->position.line, field2->key->position.column, __FILE__, __LINE__);
+                    sy_node_basic_t *key_string1 = field1->key->value;
+                    sy_error_semantic_by_node(field1->key, "'%s' already defined, previous in (%lld:%lld)",
+                        key_string1->value, field2->key->position.line, field2->key->position.column);
                     return -1;
                 }
+            }
+        }
+        else
+        {
+            sy_node_field_t *field2 = (sy_node_field_t *)item1->value;
+            if (field2->value != NULL)
+            {
+                sy_error_semantic_by_node(field1->key, "the single field is used after the pair field");
+                return -1;
             }
         }
     }
@@ -1852,8 +1846,8 @@ sy_semantic_argument(sy_node_t *node)
     {
         if (argument1->key->kind != NODE_KIND_ID)
         {
-            sy_error_semantic_by_node(argument1->key, "'%s' not a name\n\tMajor:%s-%u",
-                "Key", __FILE__, __LINE__);
+            sy_error_semantic_by_node(argument1->key, "'%s' not a name",
+                "Key");
             return -1;
         }
     }
@@ -1868,8 +1862,8 @@ sy_semantic_argument(sy_node_t *node)
         {
             if (argument2->key->kind != NODE_KIND_ID)
             {
-                sy_error_semantic_by_node(argument2->key, "'%s' not a name\n\tMajor:%s-%u",
-                    "Key", __FILE__, __LINE__);
+                sy_error_semantic_by_node(argument2->key, "'%s' not a name",
+                    "Key");
                 return -1;
             }
         }
@@ -1880,8 +1874,8 @@ sy_semantic_argument(sy_node_t *node)
             {
                 sy_node_basic_t *basic1 = (sy_node_basic_t *)argument1->key->value;
 
-                sy_error_semantic_by_node(argument1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                    basic1->value, argument2->key->position.line, argument2->key->position.column, __FILE__, __LINE__);
+                sy_error_semantic_by_node(argument1->key, "'%s' already defined, previous in (%lld:%lld)",
+                    basic1->value, argument2->key->position.line, argument2->key->position.column);
                 return -1;
             }
         }
@@ -1937,8 +1931,8 @@ sy_semantic_parameter(sy_node_t *node)
         {
             sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter1->key->value;
 
-            sy_error_semantic_by_node(parameter1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                basic1->value, parameter2->key->position.line, parameter2->key->position.column, __FILE__, __LINE__);
+            sy_error_semantic_by_node(parameter1->key, "'%s' already defined, previous in (%lld:%lld)",
+                basic1->value, parameter2->key->position.line, parameter2->key->position.column);
             return -1;
         }
     }
@@ -1961,7 +1955,7 @@ sy_semantic_parameter(sy_node_t *node)
                     if (sy_semantic_idcmp(parameter1->key, generic1->key) == 1)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter1->key->value;
-                        sy_error_semantic_by_node(parameter1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
+                        sy_error_semantic_by_node(parameter1->key, "'%s' already defined, previous in (%lld:%lld)",
                             basic1->value, generic1->key->position.line, generic1->key->position.column);
                         return -1;
                     }
@@ -2022,8 +2016,8 @@ sy_semantic_generic(sy_node_t *node)
         {
             sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key->value;
 
-            sy_error_semantic_by_node(generic1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                basic1->value, generic2->key->position.line, generic2->key->position.column, __FILE__, __LINE__);
+            sy_error_semantic_by_node(generic1->key, "'%s' already defined, previous in (%lld:%lld)",
+                basic1->value, generic2->key->position.line, generic2->key->position.column);
             return -1;
         }
     }
@@ -2268,8 +2262,8 @@ sy_semantic_note(sy_node_t *node)
         {
             sy_node_basic_t *basic1 = (sy_node_basic_t *)carrier1->base->value;
 
-            sy_error_semantic_by_node(carrier1->base, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u", 
-                basic1->value, carrier2->base->position.line, carrier2->base->position.column, __FILE__, __LINE__);
+            sy_error_semantic_by_node(carrier1->base, "'%s' already defined, previous in (%lld:%lld)", 
+                basic1->value, carrier2->base->position.line, carrier2->base->position.column);
             return -1;
         }
     }
@@ -2335,8 +2329,8 @@ sy_semantic_fun(sy_node_t *node)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)fun1->key->value;
 
-                        sy_error_semantic_by_node(fun1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, generic1->key->position.line, generic1->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(fun1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, generic1->key->position.line, generic1->key->position.column);
                         return -1;
                     }
                 }
@@ -2356,8 +2350,8 @@ sy_semantic_fun(sy_node_t *node)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)fun1->key->value;
 
-                        sy_error_semantic_by_node(fun1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, heritage1->key->position.line, heritage1->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(fun1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, heritage1->key->position.line, heritage1->key->position.column);
                         return -1;
                     }
                 }
@@ -2378,8 +2372,8 @@ sy_semantic_fun(sy_node_t *node)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)fun1->key->value;
 
-                        sy_error_semantic_by_node(fun1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, class2->key->position.line, class2->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(fun1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, class2->key->position.line, class2->key->position.column);
                         return -1;
                     }
                 }
@@ -2391,8 +2385,8 @@ sy_semantic_fun(sy_node_t *node)
                     if (sy_semantic_idcmp(fun1->key, fun2->key) == 1)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)fun1->key->value;
-                        sy_error_semantic_by_node(fun1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, fun2->key->position.line, fun2->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(fun1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, fun2->key->position.line, fun2->key->position.column);
                         return -1;
                     }
                 }
@@ -2403,8 +2397,8 @@ sy_semantic_fun(sy_node_t *node)
                     if (sy_semantic_idcmp(fun1->key, property1->key) == 1)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)fun1->key->value;
-                        sy_error_semantic_by_node(fun1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, property1->key->position.line, property1->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(fun1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, property1->key->position.line, property1->key->position.column);
                         return -1;
                     }
                 }
@@ -2477,8 +2471,8 @@ sy_semantic_property(sy_node_t *node)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)property1->key->value;
 
-                        sy_error_semantic_by_node(property1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, generic1->key->position.line, generic1->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(property1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, generic1->key->position.line, generic1->key->position.column);
                         return -1;
                     }
                 }
@@ -2498,8 +2492,8 @@ sy_semantic_property(sy_node_t *node)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)property1->key->value;
 
-                        sy_error_semantic_by_node(property1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, heritage1->key->position.line, heritage1->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(property1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, heritage1->key->position.line, heritage1->key->position.column);
                         return -1;
                     }
                 }
@@ -2520,8 +2514,8 @@ sy_semantic_property(sy_node_t *node)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)property1->key->value;
 
-                        sy_error_semantic_by_node(property1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, class2->key->position.line, class2->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(property1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, class2->key->position.line, class2->key->position.column);
                         return -1;
                     }
                 }
@@ -2533,8 +2527,8 @@ sy_semantic_property(sy_node_t *node)
                     if (sy_semantic_idcmp(property1->key, fun1->key) == 1)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)property1->key->value;
-                        sy_error_semantic_by_node(property1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, fun1->key->position.line, fun1->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(property1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, fun1->key->position.line, fun1->key->position.column);
                         return -1;
                     }
                 }
@@ -2545,8 +2539,8 @@ sy_semantic_property(sy_node_t *node)
                     if (sy_semantic_idcmp(property1->key, property2->key) == 1)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)property1->key->value;
-                        sy_error_semantic_by_node(property1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, property2->key->position.line, property2->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(property1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, property2->key->position.line, property2->key->position.column);
                         return -1;
                     }
                 }
@@ -2600,8 +2594,8 @@ sy_semantic_heritage(sy_node_t *node)
         {
             sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage1->key->value;
 
-            sy_error_semantic_by_node(heritage1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                basic1->value, heritage2->key->position.line, heritage2->key->position.column, __FILE__, __LINE__);
+            sy_error_semantic_by_node(heritage1->key, "'%s' already defined, previous in (%lld:%lld)",
+                basic1->value, heritage2->key->position.line, heritage2->key->position.column);
             return -1;
         }
     }
@@ -2623,8 +2617,8 @@ sy_semantic_heritage(sy_node_t *node)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage1->key->value;
 
-                        sy_error_semantic_by_node(heritage1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, generic1->key->position.line, generic1->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(heritage1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, generic1->key->position.line, generic1->key->position.column);
                         return -1;
                     }
                 }
@@ -2700,8 +2694,8 @@ sy_semantic_class(sy_node_t *node)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
 
-                            sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                basic1->value, package1->key->position.line, package1->key->position.column, __FILE__, __LINE__);
+                            sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, package1->key->position.line, package1->key->position.column);
                             return -1;
                         }
                     }
@@ -2714,8 +2708,8 @@ sy_semantic_class(sy_node_t *node)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
 
-                        sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, class2->key->position.line, class2->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, class2->key->position.line, class2->key->position.column);
                         return -1;
                     }
                 }
@@ -2729,8 +2723,8 @@ sy_semantic_class(sy_node_t *node)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
 
-                            sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                basic1->value, for1->key->position.line, for1->key->position.column, __FILE__, __LINE__);
+                            sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, for1->key->position.line, for1->key->position.column);
                             return -1;
                         }
                     }
@@ -2745,8 +2739,8 @@ sy_semantic_class(sy_node_t *node)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
 
-                            sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                basic1->value, var1->key->position.line, var1->key->position.column, __FILE__, __LINE__);
+                            sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, var1->key->position.line, var1->key->position.column);
                             return -1;
                         }
                     }
@@ -2761,8 +2755,8 @@ sy_semantic_class(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
 
-                                sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, entity1->key->position.line, entity1->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, entity1->key->position.line, entity1->key->position.column);
                                 return -1;
                             }
                         }
@@ -2790,8 +2784,8 @@ sy_semantic_class(sy_node_t *node)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
 
-                        sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, generic1->key->position.line, generic1->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, generic1->key->position.line, generic1->key->position.column);
                         return -1;
                     }
                 }
@@ -2811,8 +2805,8 @@ sy_semantic_class(sy_node_t *node)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
 
-                        sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, heritage1->key->position.line, heritage1->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, heritage1->key->position.line, heritage1->key->position.column);
                         return -1;
                     }
                 }
@@ -2832,8 +2826,8 @@ sy_semantic_class(sy_node_t *node)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
 
-                        sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, class3->key->position.line, class3->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, class3->key->position.line, class3->key->position.column);
                         return -1;
                     }
                 }
@@ -2845,8 +2839,8 @@ sy_semantic_class(sy_node_t *node)
                     if (sy_semantic_idcmp(class1->key, fun1->key) == 1)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
-                        sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, fun1->key->position.line, fun1->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, fun1->key->position.line, fun1->key->position.column);
                         return -1;
                     }
                 }
@@ -2857,8 +2851,8 @@ sy_semantic_class(sy_node_t *node)
                     if (sy_semantic_idcmp(class1->key, property1->key) == 1)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
-                        sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, property1->key->position.line, property1->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(class1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, property1->key->position.line, property1->key->position.column);
                         return -1;
                     }
                 }
@@ -2881,7 +2875,7 @@ sy_semantic_class(sy_node_t *node)
     {
         if ((class1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
         {
-            sy_error_semantic_by_node(class1->key, "Generic type in static class\n\tMajor:%s-%u", 
+            sy_error_semantic_by_node(class1->key, "Generic type in static class", 
                 __FILE__, __LINE__);
             return -1;
         }
@@ -2897,7 +2891,7 @@ sy_semantic_class(sy_node_t *node)
     {
         if ((class1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
         {
-            sy_error_semantic_by_node(class1->key, "Generic type in inheritance\n\tMajor:%s-%u", 
+            sy_error_semantic_by_node(class1->key, "Generic type in inheritance", 
                 __FILE__, __LINE__);
             return -1;
         }
@@ -2918,8 +2912,8 @@ sy_semantic_class(sy_node_t *node)
                 sy_node_class_t *class2 = (sy_node_class_t *)item->value;
                 if ((class2->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                 {
-                    sy_error_semantic_by_node(class2->key, "Static class(%lld:%lld), members must be static\n\tMajor:%s-%u", 
-                        class1->key->position.line, class1->key->position.column, __FILE__, __LINE__);
+                    sy_error_semantic_by_node(class2->key, "Static class(%lld:%lld), members must be static", 
+                        class1->key->position.line, class1->key->position.column);
                     return -1;
                 }
             }
@@ -2938,8 +2932,8 @@ sy_semantic_class(sy_node_t *node)
                 sy_node_fun_t *fun1 = (sy_node_fun_t *)item->value;
                 if ((fun1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                 {
-                    sy_error_semantic_by_node(fun1->key, "Static class(%lld:%lld), members must be static\n\tMajor:%s-%u", 
-                        class1->key->position.line, class1->key->position.column, __FILE__, __LINE__);
+                    sy_error_semantic_by_node(fun1->key, "Static class(%lld:%lld), members must be static", 
+                        class1->key->position.line, class1->key->position.column);
                     return -1;
                 }
             }
@@ -2958,8 +2952,8 @@ sy_semantic_class(sy_node_t *node)
                 sy_node_property_t *property1 = (sy_node_property_t *)item->value;
                 if ((property1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
                 {
-                    sy_error_semantic_by_node(property1->key, "Static class(%lld:%lld), members must be static\n\tMajor:%s-%u", 
-                        class1->key->position.line, class1->key->position.column, __FILE__, __LINE__);
+                    sy_error_semantic_by_node(property1->key, "Static class(%lld:%lld), members must be static", 
+                        class1->key->position.line, class1->key->position.column);
                     return -1;
                 }
             }
@@ -2993,8 +2987,8 @@ sy_semantic_package(sy_node_t *node)
         {
             sy_node_basic_t *basic1 = (sy_node_basic_t *)package1->key->value;
 
-            sy_error_semantic_by_node(package1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                basic1->value, package2->key->position.line, package2->key->position.column, __FILE__, __LINE__);
+            sy_error_semantic_by_node(package1->key, "'%s' already defined, previous in (%lld:%lld)",
+                basic1->value, package2->key->position.line, package2->key->position.column);
             return -1;
         }
     }
@@ -3025,8 +3019,8 @@ sy_semantic_package(sy_node_t *node)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)package1->key->value;
 
-                            sy_error_semantic_by_node(package1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                basic1->value, package2->key->position.line, package2->key->position.column, __FILE__, __LINE__);
+                            sy_error_semantic_by_node(package1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, package2->key->position.line, package2->key->position.column);
                             return -1;
                         }
                     }
@@ -3040,8 +3034,8 @@ sy_semantic_package(sy_node_t *node)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)package1->key->value;
 
-                        sy_error_semantic_by_node(package1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                            basic1->value, class1->key->position.line, class1->key->position.column, __FILE__, __LINE__);
+                        sy_error_semantic_by_node(package1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, class1->key->position.line, class1->key->position.column);
                         return -1;
                     }
                 }
@@ -3055,8 +3049,8 @@ sy_semantic_package(sy_node_t *node)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)package1->key->value;
 
-                            sy_error_semantic_by_node(package1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                basic1->value, for1->key->position.line, for1->key->position.column, __FILE__, __LINE__);
+                            sy_error_semantic_by_node(package1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, for1->key->position.line, for1->key->position.column);
                             return -1;
                         }
                     }
@@ -3071,8 +3065,8 @@ sy_semantic_package(sy_node_t *node)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)package1->key->value;
 
-                            sy_error_semantic_by_node(package1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                basic1->value, var1->key->position.line, var1->key->position.column, __FILE__, __LINE__);
+                            sy_error_semantic_by_node(package1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, var1->key->position.line, var1->key->position.column);
                             return -1;
                         }
                     }
@@ -3088,8 +3082,8 @@ sy_semantic_package(sy_node_t *node)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)package1->key->value;
 
-                                sy_error_semantic_by_node(package1->key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                                    basic1->value, entity1->key->position.line, entity1->key->position.column, __FILE__, __LINE__);
+                                sy_error_semantic_by_node(package1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, entity1->key->position.line, entity1->key->position.column);
                                 return -1;
                             }
                         }
@@ -3150,7 +3144,7 @@ sy_semantic_using(sy_node_t *node)
     sy_module_entry_t *module_entry = sy_module_load(basic1->value);
     if (module_entry == ERROR)
     {
-        sy_error_semantic_by_node(node, "Error:incapable of loading the modulus\n\tMajor:%s-%u", __FILE__, __LINE__);
+        sy_error_semantic_by_node(node, "Error:incapable of loading the modulus");
         return -1;
     }
 

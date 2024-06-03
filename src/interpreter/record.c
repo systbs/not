@@ -552,7 +552,7 @@ sy_record_make_struct(sy_node_t *type, sy_strip_t *value)
 }
 
 sy_record_t *
-sy_record_make_type(sy_node_t *type, sy_strip_t *value)
+sy_record_make_type(sy_node_t *type, void *value)
 {
     sy_record_type_t *basic = (sy_record_type_t *)sy_memory_calloc(1, sizeof(sy_record_type_t));
     if (basic == NULL)
@@ -645,7 +645,7 @@ sy_record_struct_destroy(sy_record_struct_t *struct1)
 {
     if (struct1->value)
     {
-        if (sy_strip_destroy_all(struct1->value) < 0)
+        if (sy_strip_destroy(struct1->value) < 0)
         {
             return -1;
         }
@@ -685,7 +685,23 @@ sy_record_type_destroy(sy_record_type_t *type)
     else
     if (type->type->kind == NODE_KIND_CLASS)
     {
-        if (sy_strip_destroy_all((sy_strip_t *)type->value) < 0)
+        if (sy_strip_destroy((sy_strip_t *)type->value) < 0)
+        {
+            return -1;
+        }
+    }
+    else
+    if (type->type->kind == NODE_KIND_FUN)
+    {
+        if (sy_strip_destroy((sy_strip_t *)type->value) < 0)
+        {
+            return -1;
+        }
+    }
+    else
+    if (type->type->kind == NODE_KIND_LAMBDA)
+    {
+        if (sy_strip_destroy((sy_strip_t *)type->value) < 0)
         {
             return -1;
         }
@@ -817,7 +833,7 @@ sy_record_struct_copy(sy_record_struct_t *struct1)
         sy_error_no_memory();
         if (value)
         {
-            if (sy_strip_destroy_all(value) < 0)
+            if (sy_strip_destroy(value) < 0)
             {
                 return ERROR;
             }
@@ -884,6 +900,30 @@ sy_record_type_copy(sy_record_type_t *type)
             }
         }
     }
+    else
+    if (type->type->kind == NODE_KIND_FUN)
+    {
+        if (type->value)
+        {
+            value = sy_strip_copy((sy_strip_t *)type->value);
+            if (value == ERROR)
+            {
+                return ERROR;
+            }
+        }
+    }
+    else
+    if (type->type->kind == NODE_KIND_LAMBDA)
+    {
+        if (type->value)
+        {
+            value = sy_strip_copy((sy_strip_t *)type->value);
+            if (value == ERROR)
+            {
+                return ERROR;
+            }
+        }
+    }
 
     sy_record_type_t *basic = (sy_record_type_t *)sy_memory_calloc(1, sizeof(sy_record_type_t));
     if (basic == NULL)
@@ -915,7 +955,7 @@ sy_record_type_copy(sy_record_type_t *type)
         else
         if (type->type->kind == NODE_KIND_CLASS)
         {
-            if (sy_strip_destroy_all((sy_strip_t *)value) < 0)
+            if (sy_strip_destroy((sy_strip_t *)value) < 0)
             {
                 return ERROR;
             }

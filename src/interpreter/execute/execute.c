@@ -41,7 +41,7 @@ sy_execute_body(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant);
 
 
 
-static int32_t
+int32_t
 sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_type2, sy_strip_t *strip, sy_node_t *applicant)
 {
     if (!record_type1 || (record_type1 == NAN))
@@ -377,7 +377,7 @@ sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_typ
 	return 0;
 }
 
-static int32_t
+int32_t
 sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_type, sy_strip_t *strip, sy_node_t *applicant)
 {
     if (!record_value || (record_value == NAN))
@@ -715,7 +715,7 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
     return 0;
 }
 
-static sy_record_t *
+sy_record_t *
 sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_type, sy_strip_t *strip, sy_node_t *applicant)
 {
     if (!record_value || (record_value == NAN))
@@ -1907,7 +1907,7 @@ sy_execute_attribute_from_type(sy_record_t *record, sy_node_t *key, sy_node_t *a
                                     {
                                         if ((property1->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                                         {
-                                            sy_error_semantic_by_node(property1->key, "the unreferenced type is assigned to the reference type");
+                                            sy_error_type_by_node(property1->key, "the unreferenced type is assigned to the reference type");
                                             return ERROR;
                                         }
                                         else
@@ -1957,14 +1957,14 @@ sy_execute_attribute_from_type(sy_record_t *record, sy_node_t *key, sy_node_t *a
             if (record_type == NULL)
             {
                 sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage1->key;
-                sy_error_semantic_by_node(heritage1->key, "type of '%s' is not defined", basic1->value);
+                sy_error_type_by_node(heritage1->key, "type of '%s' is not defined", basic1->value);
                 return ERROR;
             }
 
             if (record_type->kind != RECORD_KIND_TYPE)
             {
                 sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage1->key;
-                sy_error_semantic_by_node(heritage1->key, "type of '%s' is not a type", basic1->value);
+                sy_error_type_by_node(heritage1->key, "type of '%s' is not a type", basic1->value);
                 if (sy_record_destroy(record_type) < 0)
                 {
                     return ERROR;
@@ -1979,7 +1979,7 @@ sy_execute_attribute_from_type(sy_record_t *record, sy_node_t *key, sy_node_t *a
                     if (type2->type->kind != NODE_KIND_GENERIC)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage1->key;
-                        sy_error_semantic_by_node(heritage1->key, "type of '%s' is not an inheritable type", basic1->value);
+                        sy_error_type_by_node(heritage1->key, "type of '%s' is not an inheritable type", basic1->value);
                         if (sy_record_destroy(record_type) < 0)
                         {
                             return ERROR;
@@ -2094,7 +2094,7 @@ sy_execute_entity(sy_node_t *scope, sy_node_t *node, sy_record_t *value, sy_stri
         {
             if ((entity->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
             {
-                sy_error_semantic_by_node(entity->key, "the unreferenced type is assigned to the reference type");
+                sy_error_type_by_node(entity->key, "the unreferenced type is assigned to the reference type");
                 return -1;
             }
             else
@@ -2213,10 +2213,10 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_node_t *
                     return -1;
                 }
 
-                if (!record_type || (record_type == NAN) || (record_type->kind != RECORD_KIND_TYPE))
+                if (record_type->kind != RECORD_KIND_TYPE)
                 {
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
-                    sy_error_semantic_by_node(var1->key, "'%s' unsupported type: '%s'", 
+                    sy_error_type_by_node(var1->key, "'%s' unsupported type: '%s'", 
                         basic1->value, sy_record_type_as_string(record_type));
                     
                     if (record_type && (record_type != NAN))
@@ -2275,7 +2275,7 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_node_t *
                     if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
-                        sy_error_semantic_by_node(var1->key, "'%s' mismatch: '%s' and '%s'", 
+                        sy_error_type_by_node(var1->key, "'%s' mismatch: '%s' and '%s'", 
                             basic1->value, sy_record_type_as_string(record_type), sy_record_type_as_string(record_value));
 
                         if (record_type && (record_type != NAN))
@@ -2341,7 +2341,7 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_node_t *
                         if (record_value2 == NULL)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
-                            sy_error_semantic_by_node(var1->key, "'%s' mismatch: '%s' and '%s'", 
+                            sy_error_type_by_node(var1->key, "'%s' mismatch: '%s' and '%s'", 
                                 basic1->value, sy_record_type_as_string(record_type), sy_record_type_as_string(record_value));
 
                             if (record_type && (record_type != NAN))

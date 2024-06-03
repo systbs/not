@@ -5,6 +5,16 @@
 int32_t
 sy_execute_id_cmp(sy_node_t *n1, sy_node_t *n2);
 
+int32_t
+sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_type2, sy_strip_t *strip, sy_node_t *applicant);
+
+int32_t
+sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_type, sy_strip_t *strip, sy_node_t *applicant);
+
+sy_record_t *
+sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_type, sy_strip_t *strip, sy_node_t *applicant);
+
+
 int32_t 
 sy_execute_run(sy_node_t *root);
 

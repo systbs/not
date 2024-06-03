@@ -32,7 +32,6 @@ sy_execute_expression(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, 
     sy_node_binary_t *binary;
     sy_node_unary_t *unary;
     sy_record_t *left, *right, *record;
-
     switch (node->kind)
     {
     case NODE_KIND_TILDE:

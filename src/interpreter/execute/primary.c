@@ -32,6 +32,8 @@
 sy_record_t *
 sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_node_t *applicant)
 {
+    //sy_node_basic_t *basic2 = (sy_node_basic_t *)name->value;
+    //printf("select %d %s\n", base->kind, basic2->value);
     if (base->kind == NODE_KIND_CATCH)
     {
         sy_node_catch_t *catch1 = (sy_node_catch_t *)base->value;
@@ -403,17 +405,19 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
             }
         }
 
-        sy_node_t *node1 = class1->block;
-        sy_node_block_t *block1 = (sy_node_block_t *)node1->value;
-
-        for (sy_node_t *item1 = block1->items;item1 != NULL;item1 = item1->next)
+        for (sy_node_t *item1 = class1->block;item1 != NULL;item1 = item1->next)
         {
             if (item1->kind == NODE_KIND_CLASS)
             {
                 sy_node_class_t *class2 = (sy_node_class_t *)item1->value;
                 if (sy_execute_id_cmp(class2->key, name) == 1)
                 {
-                    return sy_record_make_type(item1, NULL);
+                    sy_strip_t *new_strip = sy_strip_create(strip);
+                    if (new_strip == ERROR)
+                    {
+                        return ERROR;
+                    }
+                    return sy_record_make_type(item1, new_strip);
                 }
                 continue;
             }
@@ -423,7 +427,12 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                 sy_node_fun_t *fun1 = (sy_node_fun_t *)item1->value;
                 if (sy_execute_id_cmp(fun1->key, name) == 1)
                 {
-                    return sy_record_make_type(item1, NULL);  
+                    sy_strip_t *new_strip = sy_strip_create(strip);
+                    if (new_strip == ERROR)
+                    {
+                        return ERROR;
+                    }
+                    return sy_record_make_type(item1, new_strip);  
                 }
                 continue;
             }
@@ -549,7 +558,13 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                         }
                     }
 
-                    return sy_record_make_type(item1, NULL); 
+                    sy_strip_t *new_strip = sy_strip_create(strip);
+                    if (new_strip == ERROR)
+                    {
+                        return ERROR;
+                    }
+
+                    return sy_record_make_type(item1, new_strip); 
                 }
                 
                 continue;
@@ -911,7 +926,20 @@ sy_execute_this(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_nod
 sy_record_t *
 sy_execute_lambda(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
 {
-	return sy_record_make_type(node, NULL);
+    sy_node_lambda_t *fun1 = (sy_node_lambda_t *)node->value;
+    if (fun1->body)
+    {
+        sy_strip_t *new_strip = sy_strip_create(strip);
+        if (new_strip == ERROR)
+        {
+            return ERROR;
+        }
+        return sy_record_make_type(node, new_strip);
+    }
+    else
+    {
+        return sy_record_make_type(node, NULL);
+    }
 }
 
 sy_record_t *

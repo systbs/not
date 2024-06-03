@@ -58,12 +58,10 @@ typedef enum sy_node_kind {
 	NODE_KIND_ARRAY,
 	NODE_KIND_ATTRIBUTE,
 	
-	NODE_KIND_CAST,
 	NODE_KIND_TILDE,
 	NODE_KIND_NOT,
 	NODE_KIND_NEG,
 	NODE_KIND_POS,
-	NODE_KIND_ELLIPSIS,
 	
 	NODE_KIND_POW,
 	NODE_KIND_EPI,
@@ -95,7 +93,6 @@ typedef enum sy_node_kind {
 	NODE_KIND_CONDITIONAL,
 	
 	NODE_KIND_ASSIGN,
-	NODE_KIND_DEFINE,
 	NODE_KIND_ADD_ASSIGN,
 	NODE_KIND_SUB_ASSIGN,
 	NODE_KIND_MUL_ASSIGN,
@@ -305,6 +302,10 @@ typedef struct sy_node_using {
 	sy_node_t *path;
 	sy_node_t *packages;
 } sy_node_using_t;
+
+
+const char *
+sy_node_kind_as_string(sy_node_t *node);
 
 void
 sy_node_destroy(sy_node_t *node);

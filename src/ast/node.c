@@ -12,6 +12,137 @@
 
 uint64_t node_counter = 0;
 
+static const char * const symbols[] = {
+	[NODE_KIND_ID]			= "id",
+
+	[NODE_KIND_NUMBER]		= "number",
+	[NODE_KIND_CHAR]		= "char",
+	[NODE_KIND_STRING]		= "string",
+
+	[NODE_KIND_NULL]		= "null",
+
+	[NODE_KIND_TUPLE]		= "tuple",
+	[NODE_KIND_OBJECT]		= "object",
+
+	[NODE_KIND_PSEUDONYM]	= "pseudonym",
+	[NODE_KIND_THIS]		= "this",
+	[NODE_KIND_SELF]		= "self",
+	
+	[NODE_KIND_KINT8]		= "int8",
+	[NODE_KIND_KINT16]		= "int16",
+	[NODE_KIND_KINT32]		= "int32",
+	[NODE_KIND_KINT64]		= "int64",
+
+	[NODE_KIND_KUINT8]		= "uint8",
+	[NODE_KIND_KUINT16]		= "uint16",
+	[NODE_KIND_KUINT32]		= "uint32",
+	[NODE_KIND_KUINT64]		= "uint64",
+
+	[NODE_KIND_KBIGINT]		= "bigint",
+
+	[NODE_KIND_KFLOAT32]	= "float32",
+	[NODE_KIND_KFLOAT64]	= "float64",
+	[NODE_KIND_KBIGFLOAT]	= "bigfloat",
+
+	[NODE_KIND_KCHAR]		= "char",
+	[NODE_KIND_KSTRING]		= "string",
+
+	[NODE_KIND_TYPEOF]		= "typeof",
+	[NODE_KIND_SIZEOF]		= "sizeof",
+	[NODE_KIND_PARENTHESIS]	= "parenthesis",
+	
+	[NODE_KIND_CALL]		= "call",
+	[NODE_KIND_ARRAY]		= "array",
+	[NODE_KIND_ATTRIBUTE]	= "attribute",
+	
+	[NODE_KIND_TILDE]		= "~",
+	[NODE_KIND_NOT]			= "!",
+	[NODE_KIND_NEG]			= "-",
+	[NODE_KIND_POS]			= "+",
+	
+	[NODE_KIND_POW]			= "**",
+	[NODE_KIND_EPI]			= "\\",
+
+	[NODE_KIND_MUL]			= "*",
+	[NODE_KIND_DIV]			= "/",
+	[NODE_KIND_MOD]			= "%",
+	
+	[NODE_KIND_PLUS]		= "+",
+	[NODE_KIND_MINUS]		= "-",
+	
+	[NODE_KIND_SHL]			= "<<",
+	[NODE_KIND_SHR]			= ">>",
+	
+	[NODE_KIND_LT]			= "<",
+	[NODE_KIND_LE]			= "<=",
+	[NODE_KIND_GT]			= ">",
+	[NODE_KIND_GE]			= ">=",
+	
+	[NODE_KIND_EQ]			= "==",
+	[NODE_KIND_NEQ]			= "!=",
+	
+	[NODE_KIND_AND]			= "&",
+	[NODE_KIND_XOR]			= "^",
+	[NODE_KIND_OR]			= "|",
+	[NODE_KIND_LAND]		= "&&",
+	[NODE_KIND_LOR]			= "||",
+	
+	[NODE_KIND_CONDITIONAL] = "?",
+	
+	[NODE_KIND_ASSIGN]		= "=",
+	[NODE_KIND_ADD_ASSIGN]	= "+=",
+	[NODE_KIND_SUB_ASSIGN]	= "-=",
+	[NODE_KIND_MUL_ASSIGN]	= "*=",
+	[NODE_KIND_DIV_ASSIGN]	= "/=",
+	[NODE_KIND_EPI_ASSIGN]	= "\\=",
+	[NODE_KIND_MOD_ASSIGN]	= "%=",
+	[NODE_KIND_AND_ASSIGN]	= "&=",
+	[NODE_KIND_OR_ASSIGN]	= "|=",
+	[NODE_KIND_SHL_ASSIGN]	= "<<=",
+	[NODE_KIND_SHR_ASSIGN]	= ">>=",
+
+	[NODE_KIND_IF]			= "if",
+	[NODE_KIND_FOR]			= "for",
+	[NODE_KIND_BREAK]		= "break",
+	[NODE_KIND_CONTINUE]	= "continue",
+	[NODE_KIND_CATCH]		= "catch",
+	[NODE_KIND_TRY]			= "try",
+	[NODE_KIND_RETURN]		= "return",
+	[NODE_KIND_THROW]		= "throw",
+	
+	[NODE_KIND_VAR]			= "var",
+	[NODE_KIND_LAMBDA]		= "lambda",
+	[NODE_KIND_BODY]		= "body",
+	[NODE_KIND_FUN]			= "fun",
+	[NODE_KIND_CLASS]		= "class",
+	[NODE_KIND_PAIR]		= "pair",
+	[NODE_KIND_ENTITY]		= "entity",
+	[NODE_KIND_SET]			= "set",
+	[NODE_KIND_PROPERTY]	= "property",
+	[NODE_KIND_NOTE]		= "note",
+	[NODE_KIND_NOTES]		= "notes",
+	[NODE_KIND_ARGUMENT]	= "argument",
+	[NODE_KIND_ARGUMENTS]	= "arguments",
+	[NODE_KIND_PARAMETER]	= "parameter",
+	[NODE_KIND_PARAMETERS]	= "parameters",
+	[NODE_KIND_FIELD]		= "field",
+	[NODE_KIND_FIELDS]		= "fields",
+	[NODE_KIND_GENERIC]		= "generic",
+	[NODE_KIND_GENERICS]	= "generics",
+	[NODE_KIND_HERITAGE]	= "heritage",
+	[NODE_KIND_HERITAGES]	= "heritages",
+	[NODE_KIND_PACKAGE]		= "package",
+	[NODE_KIND_PACKAGES]	= "packages",
+	[NODE_KIND_USING]		= "using",
+	[NODE_KIND_MODULE]		= "module"
+};
+
+const char *
+sy_node_kind_as_string(sy_node_t *node)
+{
+	return symbols[node->kind];
+}
+
 void
 sy_node_destroy(sy_node_t *node)
 {
@@ -958,23 +1089,6 @@ sy_node_make_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->right = right;
 	
 	sy_node_Update(node, NODE_KIND_ASSIGN, basic);
-	return node;
-}
-
-sy_node_t *
-sy_node_MakeDefine(sy_node_t *node, sy_node_t *left, sy_node_t *right)
-{
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
-	if(!basic)
-	{
-		sy_error_no_memory();
-		return NULL;
-	}
-	
-	basic->left = left;
-	basic->right = right;
-	
-	sy_node_Update(node, NODE_KIND_DEFINE, basic);
 	return node;
 }
 
