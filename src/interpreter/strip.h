@@ -8,6 +8,9 @@ typedef struct sy_strip /*Activation Records*/ {
     sy_entry_t *variables;
     sy_entry_t *inputs;
 
+    uint8_t link:1;
+    uint8_t reserved:7;
+
     struct sy_strip *previous;
     sy_mutex_t lock;
 } sy_strip_t;
@@ -19,22 +22,22 @@ sy_entry_t *
 sy_strip_variable_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_record_t *value);
 
 sy_entry_t *
-sy_strip_variable_find(sy_strip_t *strip, sy_node_t *key);
-
-sy_entry_t *
-sy_strip_variable_find_by_scope(sy_strip_t *strip, sy_node_t *scope, sy_node_t *key);
+sy_strip_variable_find(sy_strip_t *strip, sy_node_t *scope, sy_node_t *key);
 
 sy_entry_t *
 sy_strip_input_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_record_t *value);
 
 sy_entry_t *
-sy_strip_input_find(sy_strip_t *strip, sy_node_t *key);
+sy_strip_input_find(sy_strip_t *strip, sy_node_t *scope, sy_node_t *key);
+
+int32_t
+sy_strip_variable_remove_by_scope(sy_strip_t *strip, sy_node_t *scope);
 
 sy_strip_t *
 sy_strip_copy(sy_strip_t *ar);
 
 int32_t
-sy_strip_destroy_all(sy_strip_t *strip);
+sy_strip_destroy(sy_strip_t *strip);
 
 int32_t
 sy_strip_destroy(sy_strip_t *strip);

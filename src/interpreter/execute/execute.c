@@ -36,6 +36,14 @@ sy_execute_id_cmp(sy_node_t *n1, sy_node_t *n2)
 	return (strcmp(nb1->value, nb2->value) == 0);
 }
 
+int32_t
+sy_execute_id_strcmp(sy_node_t *n1, const char *name)
+{
+    sy_node_basic_t *nb1 = (sy_node_basic_t *)n1->value;
+
+	return (strcmp(nb1->value, name) == 0);
+}
+
 static int32_t 
 sy_execute_body(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant);
 
@@ -330,7 +338,7 @@ sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_typ
 			{
 				sy_node_generic_t *generic1 = (sy_node_generic_t *)item1->value;
 
-				sy_entry_t *strip_entry1 = sy_strip_variable_find(type1->value, generic1->key);
+				sy_entry_t *strip_entry1 = sy_strip_variable_find(type1->value, type1->type, generic1->key);
                 if (strip_entry1 == ERROR)
 				{
                     return -1;
@@ -342,7 +350,7 @@ sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_typ
 					return -1;
 				}
 
-				sy_entry_t *strip_entry2 = sy_strip_variable_find(type2->value, generic1->key);
+				sy_entry_t *strip_entry2 = sy_strip_variable_find(type2->value, type2->type, generic1->key);
                 if (strip_entry2 == ERROR)
 				{
                     return -1;
@@ -664,7 +672,7 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
 				return 0;
 			}
 
-			sy_node_class_t *class1 = (sy_node_class_t *)struct1->type;
+			sy_node_class_t *class1 = (sy_node_class_t *)struct1->type->value;
 			sy_node_block_t *block1 = (sy_node_block_t *)class1->generics;
 			if (block1 != NULL)
 			{
@@ -672,7 +680,7 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
 				{
 					sy_node_generic_t *generic1 = (sy_node_generic_t *)item1->value;
 
-					sy_entry_t *strip_entry1 = sy_strip_variable_find(struct1->value, generic1->key);
+					sy_entry_t *strip_entry1 = sy_strip_variable_find(struct1->value, struct1->type, generic1->key);
                     if (strip_entry1 == ERROR)
 					{
                         return -1;
@@ -684,7 +692,7 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
 						return -1;
 					}
 
-					sy_entry_t *strip_entry2 = sy_strip_variable_find(type1->value, generic1->key);
+					sy_entry_t *strip_entry2 = sy_strip_variable_find(type1->value, type1->type, generic1->key);
                     if (strip_entry2 == ERROR)
 					{
                         return -1;
@@ -1733,7 +1741,7 @@ sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_
 				return NULL;
 			}
 
-			sy_node_class_t *class1 = (sy_node_class_t *)struct1->type;
+			sy_node_class_t *class1 = (sy_node_class_t *)struct1->type->value;
 			sy_node_block_t *block1 = (sy_node_block_t *)class1->generics;
 			if (block1 != NULL)
 			{
@@ -1741,7 +1749,7 @@ sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_
 				{
 					sy_node_generic_t *generic1 = (sy_node_generic_t *)item1->value;
 
-					sy_entry_t *strip_entry1 = sy_strip_variable_find(struct1->value, generic1->key);
+					sy_entry_t *strip_entry1 = sy_strip_variable_find(struct1->value, struct1->type, generic1->key);
                     if (strip_entry1 == ERROR)
 					{
                         return ERROR;
@@ -1753,7 +1761,7 @@ sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_
 						return ERROR;
 					}
 
-					sy_entry_t *strip_entry2 = sy_strip_variable_find(type1->value, generic1->key);
+					sy_entry_t *strip_entry2 = sy_strip_variable_find(type1->value, type1->type, generic1->key);
                     if (strip_entry2 == ERROR)
 					{
                         return ERROR;
@@ -1802,7 +1810,7 @@ sy_execute_attribute_from_struct(sy_record_t *record, sy_node_t *key, sy_node_t 
 			{
 				if (sy_execute_id_cmp(property1->key, key) == 1)
 				{
-                    sy_entry_t *entry = sy_strip_variable_find(struct1->value, property1->key);
+                    sy_entry_t *entry = sy_strip_variable_find(struct1->value, struct1->type, property1->key);
                     if (entry == ERROR)
                     {
                         return ERROR;
@@ -1825,7 +1833,7 @@ sy_execute_attribute_from_struct(sy_record_t *record, sy_node_t *key, sy_node_t 
 	for (sy_node_t *item1 = block1->items;item1 != NULL;item1 = item1->next)
 	{
 		sy_node_heritage_t *heritage1 = (sy_node_heritage_t *)item1->value;
-        sy_entry_t *entry = sy_strip_variable_find(struct1->value, heritage1->key);
+        sy_entry_t *entry = sy_strip_variable_find(struct1->value, struct1->type, heritage1->key);
         if (entry == ERROR)
         {
             return ERROR;
@@ -2200,16 +2208,14 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_node_t *
                 sy_record_t *record_type = sy_execute_expression(var1->type, strip, applicant, NULL);
                 if (record_type == ERROR)
                 {
-                    if (record_value && (record_value != NAN))
+                    if (record_value->link == 0)
                     {
-                        if (record_value->link == 0)
+                        if (sy_record_destroy(record_value) < 0)
                         {
-                            if (sy_record_destroy(record_value) < 0)
-                            {
-                                return -1;
-                            }
+                            return -1;
                         }
                     }
+
                     return -1;
                 }
 
@@ -2219,25 +2225,19 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_node_t *
                     sy_error_type_by_node(var1->key, "'%s' unsupported type: '%s'", 
                         basic1->value, sy_record_type_as_string(record_type));
                     
-                    if (record_type && (record_type != NAN))
+                    if (record_type->link == 0)
                     {
-                        if (record_type->link == 0)
+                        if (sy_record_destroy(record_type) < 0)
                         {
-                            if (sy_record_destroy(record_type) < 0)
-                            {
-                                return -1;
-                            }
+                            return -1;
                         }
                     }
 
-                    if (record_value && (record_value != NAN))
+                    if (record_value->link == 0)
                     {
-                        if (record_value->link == 0)
+                        if (sy_record_destroy(record_value) < 0)
                         {
-                            if (sy_record_destroy(record_value) < 0)
-                            {
-                                return -1;
-                            }
+                            return -1;
                         }
                     }
 
@@ -2278,7 +2278,33 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_node_t *
                         sy_error_type_by_node(var1->key, "'%s' mismatch: '%s' and '%s'", 
                             basic1->value, sy_record_type_as_string(record_type), sy_record_type_as_string(record_value));
 
-                        if (record_type && (record_type != NAN))
+                        if (record_type->link == 0)
+                        {
+                            if (sy_record_destroy(record_type) < 0)
+                            {
+                                return -1;
+                            }
+                        }
+
+                        if (record_value->link == 0)
+                        {
+                            if (sy_record_destroy(record_value) < 0)
+                            {
+                                return -1;
+                            }
+                        }
+
+                        return -1;
+                    }
+                    else
+                    {
+                        if (record_value->link == 1)
+                        {
+                            record_value = sy_record_copy(record_value);
+                        }
+
+                        sy_record_t *record_value2 = sy_execute_value_casting_by_type(record_value, record_type, strip, applicant);
+                        if (record_value2 == ERROR)
                         {
                             if (record_type->link == 0)
                             {
@@ -2287,10 +2313,7 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_node_t *
                                     return -1;
                                 }
                             }
-                        }
 
-                        if (record_value && (record_value != NAN))
-                        {
                             if (record_value->link == 0)
                             {
                                 if (sy_record_destroy(record_value) < 0)
@@ -2298,43 +2321,7 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_node_t *
                                     return -1;
                                 }
                             }
-                        }
-                        return -1;
-                    }
-                    else
-                    {
-                        if (record_value && (record_value != NAN))
-                        {
-                            if (record_value->link == 1)
-                            {
-                                record_value = sy_record_copy(record_value);
-                            }
-                        }
 
-                        sy_record_t *record_value2 = sy_execute_value_casting_by_type(record_value, record_type, strip, applicant);
-                        if (record_value2 == ERROR)
-                        {
-                            if (record_type && (record_type != NAN))
-                            {
-                                if (record_type->link == 0)
-                                {
-                                    if (sy_record_destroy(record_type) < 0)
-                                    {
-                                        return -1;
-                                    }
-                                }
-                            }
-
-                            if (record_value && (record_value != NAN))
-                            {
-                                if (record_value->link == 0)
-                                {
-                                    if (sy_record_destroy(record_value) < 0)
-                                    {
-                                        return -1;
-                                    }
-                                }
-                            }
                             return -1;
                         }
                         else
@@ -2372,14 +2359,11 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_node_t *
                     }
                 }
 
-                if (record_type && (record_type != NAN))
+                if (record_type->link == 0)
                 {
-                    if (record_type->link == 0)
+                    if (sy_record_destroy(record_type) < 0)
                     {
-                        if (sy_record_destroy(record_type) < 0)
-                        {
-                            return -1;
-                        }
+                        return -1;
                     }
                 }
             }
@@ -2387,31 +2371,30 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_node_t *
 
         if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
         {
-            if (record_value && (record_value != NAN))
+            if (record_value->link == 1)
             {
-                if (record_value->link == 1)
-                {
-                    record_value = sy_record_copy(record_value);
-                }
-
-                record_value->link = 1;
+                record_value = sy_record_copy(record_value);
             }
+
+            record_value->link = 1;
         }
 
         if (((var1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC) || (scope->kind == NODE_KIND_MODULE))
         {
-            if (NULL == sy_symbol_table_push(scope, node, var1->key, record_value))
+            sy_entry_t *entry = sy_symbol_table_push(scope, node, var1->key, record_value);
+            if (entry == NULL)
             {
-                if (record_value && (record_value != NAN))
-                {
-                    if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
-                    {
-                        record_value->link = 0;
+                sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
+                sy_error_type_by_node(var1->key, "'%s' already defined", 
+                    basic1->value);
 
-                        if (sy_record_destroy(record_value) < 0)
-                        {
-                            return -1;
-                        }
+                if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
+                {
+                    record_value->link = 0;
+
+                    if (sy_record_destroy(record_value) < 0)
+                    {
+                        return -1;
                     }
                 }
                 return -1;
@@ -2447,42 +2430,35 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
     sy_node_for_t *for1 = (sy_node_for_t *)node->value;
     int32_t ret_code = 0;
 
-    sy_strip_t *new_strip = sy_strip_create(strip);
-    if (new_strip == ERROR)
-    {
-        return -1;
-    }
-
     if (for1->initializer != NULL)
     {
         for (sy_node_t *item1 = for1->initializer;item1 != NULL;item1 = item1->next)
         {
             if (item1->kind == NODE_KIND_VAR)
             {
-                int32_t r1 = sy_execute_var(node, item1, new_strip, applicant);
+                int32_t r1 = sy_execute_var(node, item1, strip, applicant);
                 if (r1 == -1)
                 {
-                    goto region_init_error;
+                    return -1;
                 }
             }
             else
             {
-                int32_t r1 = sy_execute_assign(item1, new_strip, applicant, NULL);
+                int32_t r1 = sy_execute_assign(item1, strip, applicant, NULL);
                 if (r1 == -1)
                 {
-                    goto region_init_error;
+                    return -1;
                 }
             }
         }
     }
 
     sy_thread_t *thread = sy_thread_get_current();
-    assert (thread != NULL);
 
     sy_record_t *zero = sy_record_make_int8(0);
     if (zero == ERROR)
     {
-        goto region_init_error;
+        return -1;
     }
 
     int32_t truthy = 1;
@@ -2490,7 +2466,7 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
     region_start_loop:
     if (for1->condition)
     {
-        sy_record_t *condition = sy_execute_expression(for1->condition, new_strip, applicant, NULL);
+        sy_record_t *condition = sy_execute_expression(for1->condition, strip, applicant, NULL);
         if (condition == ERROR)
         {
             goto region_error;
@@ -2510,7 +2486,7 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
     {
         if (for1->body)
         {
-            int32_t r2 = sy_execute_body(for1->body, new_strip, applicant);
+            int32_t r2 = sy_execute_body(for1->body, strip, applicant);
             if (r2 == -1)
             {
                 goto region_error;
@@ -2637,7 +2613,7 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
         {
             for (sy_node_t *item1 = for1->incrementor;item1 != NULL;item1 = item1->next)
             {
-                int32_t r1 = sy_execute_assign(item1, new_strip, applicant, NULL);
+                int32_t r1 = sy_execute_assign(item1, strip, applicant, NULL);
                 if (r1 == -1)
                 {
                     goto region_error;
@@ -2657,12 +2633,9 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
         }
     }
 
-    if (new_strip)
+    if (sy_strip_variable_remove_by_scope(strip, node) < 0)
     {
-        if (sy_strip_destroy(new_strip) < 0)
-        {
-            return -1;
-        }
+        return -1;
     }
 
     return ret_code;
@@ -2675,13 +2648,6 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
             sy_record_destroy(zero);
         }
     }
-
-    region_init_error:
-    if (new_strip)
-    {
-        sy_strip_destroy(new_strip);
-    }
-
     return -1;
 }
 
@@ -2980,50 +2946,41 @@ sy_execute_statement(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_no
 static int32_t 
 sy_execute_body(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
 {
-    int32_t ret_code = 0;
-    sy_strip_t *new_strip = sy_strip_create(strip);
-    if (new_strip == ERROR)
-    {
-        return -1;
-    }
-
     sy_node_block_t *block = (sy_node_block_t *)node->value;
 
     for (sy_node_t *item = block->items;item != NULL;item = item->next)
     {
-        int32_t r1 = sy_execute_statement(node, item, new_strip, applicant);
+        int32_t r1 = sy_execute_statement(node, item, strip, applicant);
         if (r1 == -1)
         {
-            goto region_error;
+            return -1;
         }
         else
         if (r1 < 0)
         {
-            ret_code = r1;
-            goto region_end;
+            return r1;
         }
     }
 
-    region_end:
-    if (sy_strip_destroy(new_strip) < 0)
+    if (sy_strip_variable_remove_by_scope(strip, node) < 0)
     {
         return -1;
     }
 
-    return ret_code;
-
-    region_error:
-    if (sy_strip_destroy(new_strip) < 0)
-    {
-        return -1;
-    }
-
-    return -1;
+    return 0;
 }
 
 static int32_t 
 sy_execute_module(sy_node_t *node)
 {
+    sy_strip_t *strip = sy_strip_create(NULL);
+    if (strip == ERROR)
+    {
+        return -1;
+    }
+
+    strip->link = 1;
+
     sy_node_block_t *block = (sy_node_block_t *)node->value;
 
     for (sy_node_t *item = block->items;item != NULL;item = item->next)
@@ -3039,11 +2996,17 @@ sy_execute_module(sy_node_t *node)
         }
         else
         {
-            if (sy_execute_statement(node, item, NULL, node) < 0)
+            if (sy_execute_statement(node, item, strip, node) < 0)
             {
                 return -1;
             }
         }
+    }
+
+    strip->link = 0;
+    if (sy_strip_destroy(strip) < 0)
+    {
+        return -1;
     }
 
     return 0;

@@ -48,8 +48,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                 sy_node_parameter_t *parameter1 = (sy_node_parameter_t *)item1->value;
                 if (sy_execute_id_cmp(parameter1->key, name) == 1)
                 {
-                    assert(strip != NULL);
-                    sy_entry_t *entry = sy_strip_variable_find(strip, parameter1->key);
+                    sy_entry_t *entry = sy_strip_variable_find(strip, base, parameter1->key);
                     if (entry == ERROR)
                     {
                         return ERROR;
@@ -81,7 +80,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                     if (sy_execute_id_cmp(var1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, var1->key);
+                        sy_entry_t *entry = sy_strip_variable_find(strip, base, var1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
@@ -109,7 +108,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                             if (sy_execute_id_cmp(entity1->key, name) == 1)
                             {
                                 assert(strip != NULL);
-                                sy_entry_t *entry = sy_strip_variable_find(strip, entity1->key);
+                                sy_entry_t *entry = sy_strip_variable_find(strip, base, entity1->key);
                                 if (entry == ERROR)
                                 {
                                     return ERROR;
@@ -156,7 +155,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                     if (sy_execute_id_cmp(var1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, var1->key);
+                        sy_entry_t *entry = sy_strip_variable_find(strip, base, var1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
@@ -184,7 +183,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                             if (sy_execute_id_cmp(entity1->key, name) == 1)
                             {
                                 assert(strip != NULL);
-                                sy_entry_t *entry = sy_strip_variable_find(strip, entity1->key);
+                                sy_entry_t *entry = sy_strip_variable_find(strip, base, entity1->key);
                                 if (entry == ERROR)
                                 {
                                     return ERROR;
@@ -222,7 +221,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                     if (sy_execute_id_cmp(generic1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, generic1->key);
+                        sy_entry_t *entry = sy_strip_variable_find(strip, base, generic1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
@@ -253,7 +252,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                     if (sy_execute_id_cmp(parameter1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, parameter1->key);
+                        sy_entry_t *entry = sy_strip_variable_find(strip, base, parameter1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
@@ -289,7 +288,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                     if (sy_execute_id_cmp(generic1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, generic1->key);
+                        sy_entry_t *entry = sy_strip_variable_find(strip, base, generic1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
@@ -320,7 +319,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                     if (sy_execute_id_cmp(parameter1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, parameter1->key);
+                        sy_entry_t *entry = sy_strip_variable_find(strip, base, parameter1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
@@ -356,7 +355,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                     if (sy_execute_id_cmp(generic1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, generic1->key);
+                        sy_entry_t *entry = sy_strip_variable_find(strip, base, generic1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
@@ -387,7 +386,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                     if (sy_execute_id_cmp(heritage1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, heritage1->key);
+                        sy_entry_t *entry = sy_strip_variable_find(strip, base, heritage1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
@@ -461,7 +460,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                     else
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, property1->key);
+                        sy_entry_t *entry = sy_strip_variable_find(strip, base, property1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
@@ -657,8 +656,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                                 }
                                 else
                                 {
-                                    assert(strip != NULL);
-                                    sy_entry_t *entry = sy_strip_variable_find(strip, entity1->key);
+                                    sy_entry_t *entry = sy_strip_variable_find(strip, base, entity1->key);
                                     if (entry == ERROR)
                                     {
                                         return ERROR;

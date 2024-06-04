@@ -5,6 +5,7 @@
 #define MAX_PATH (_MAX_PATH + _MAX_DIR + _MAX_FNAME + _MAX_EXT)
 #define ENV_LIBRARY_KEY "SYNTAX_LIBRARY_PATH"
 #define DEFAULT_LIBRARY_PATH "/home/qalam/"
+#define CONSTRUCTOR_STR "Constructor"
 
 typedef struct sy_config {
     char input_file[MAX_PATH];

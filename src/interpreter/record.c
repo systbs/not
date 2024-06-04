@@ -484,7 +484,7 @@ sy_record_make_string(char *value)
     return record;
 }
 
-sy_record_t *
+sy_record_object_t *
 sy_record_make_object(sy_node_t *key, sy_record_t *value, sy_record_object_t *next)
 {
     sy_record_object_t *basic = (sy_record_object_t *)sy_memory_calloc(1, sizeof(sy_record_object_t));
@@ -498,16 +498,10 @@ sy_record_make_object(sy_node_t *key, sy_record_t *value, sy_record_object_t *ne
     basic->value = value;
     basic->next = next;
 
-    sy_record_t *record = sy_record_create(RECORD_KIND_OBJECT, basic);
-    if (record == ERROR)
-    {
-        sy_memory_free(basic);
-        return ERROR;
-    }
-    return record;
+    return basic;
 }
 
-sy_record_t *
+sy_record_tuple_t *
 sy_record_make_tuple(sy_record_t *value, sy_record_tuple_t *next)
 {
     sy_record_tuple_t *basic = (sy_record_tuple_t *)sy_memory_calloc(1, sizeof(sy_record_tuple_t));
@@ -520,13 +514,7 @@ sy_record_make_tuple(sy_record_t *value, sy_record_tuple_t *next)
     basic->value = value;
     basic->next = next;
 
-    sy_record_t *record = sy_record_create(RECORD_KIND_TUPLE, basic);
-    if (record == ERROR)
-    {
-        sy_memory_free(basic);
-        return ERROR;
-    }
-    return record;
+    return basic;
 }
 
 sy_record_t *

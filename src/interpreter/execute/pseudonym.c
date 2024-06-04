@@ -30,7 +30,7 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
 {
     sy_node_carrier_t *carrier = (sy_node_carrier_t *)node->value;
 
-    sy_record_t *base = sy_execute_expression(carrier->base, strip, applicant, NULL);
+    sy_record_t *base = sy_execute_expression(carrier->base, strip, applicant, origin);
     if (base == ERROR)
     {
         return ERROR;
@@ -98,18 +98,18 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
     sy_node_block_t *block2 = carrier->data->value;
     for (sy_node_t *item2 = block2->items;item2 != NULL;item2 = item2->next)
     {
-        sy_node_field_t *field1 = (sy_node_field_t *)item2->value;
+        sy_node_field_t *field = (sy_node_field_t *)item2->value;
 
         if (!item1)
         {
-            if (field1->value)
+            if (field->value)
             {
                 if (base_type->type->kind == NODE_KIND_CLASS)
                 {
                     sy_node_class_t *class1 = (sy_node_class_t *)base_type->type->value;
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
-                    sy_node_basic_t *basic2 = (sy_node_basic_t *)field1->key->value;
-                    sy_error_type_by_node(field1->key, "'%s' got an unexpected keyword field '%s'", basic1->value, basic2->value);
+                    sy_node_basic_t *basic2 = (sy_node_basic_t *)field->key->value;
+                    sy_error_type_by_node(field->key, "'%s' got an unexpected keyword field '%s'", basic1->value, basic2->value);
                     goto region_error;
                 }
                 else
@@ -117,14 +117,14 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                 {
                     sy_node_fun_t *fun1 = (sy_node_fun_t *)base_type->type->value;
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)fun1->key->value;
-                    sy_node_basic_t *basic2 = (sy_node_basic_t *)field1->key->value;
-                    sy_error_type_by_node(field1->key, "'%s' got an unexpected keyword field '%s'", basic1->value, basic2->value);
+                    sy_node_basic_t *basic2 = (sy_node_basic_t *)field->key->value;
+                    sy_error_type_by_node(field->key, "'%s' got an unexpected keyword field '%s'", basic1->value, basic2->value);
                     goto region_error;
                 }
                 else
                 {
-                    sy_node_basic_t *basic2 = (sy_node_basic_t *)field1->key->value;
-                    sy_error_type_by_node(field1->key, "'%s' got an unexpected keyword field '%s'", "lambda", basic2->value);
+                    sy_node_basic_t *basic2 = (sy_node_basic_t *)field->key->value;
+                    sy_error_type_by_node(field->key, "'%s' got an unexpected keyword field '%s'", "lambda", basic2->value);
                     goto region_error;
                 }
             }
@@ -146,7 +146,7 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                 {
                     sy_node_class_t *class1 = (sy_node_class_t *)base_type->type->value;
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
-                    sy_error_type_by_node(field1->key, "'%s' takes %lld positional fields but %lld were given", basic1->value, cnt1, cnt2);
+                    sy_error_type_by_node(field->key, "'%s' takes %lld positional fields but %lld were given", basic1->value, cnt1, cnt2);
                     goto region_error;
                 }
                 else
@@ -154,12 +154,12 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                 {
                     sy_node_fun_t *fun1 = (sy_node_fun_t *)base_type->type->value;
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)fun1->key->value;
-                    sy_error_type_by_node(field1->key, "'%s' takes %lld positional fields but %lld were given", basic1->value, cnt1, cnt2);
+                    sy_error_type_by_node(field->key, "'%s' takes %lld positional fields but %lld were given", basic1->value, cnt1, cnt2);
                     goto region_error;
                 }
                 else
                 {
-                    sy_error_type_by_node(field1->key, "'%s' takes %lld positional fields but %lld were given", "lambda", cnt1, cnt2);
+                    sy_error_type_by_node(field->key, "'%s' takes %lld positional fields but %lld were given", "lambda", cnt1, cnt2);
                     goto region_error;
                 }
 
@@ -167,16 +167,16 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
             }
         }
         
-        if (field1->value)
+        if (field->value)
         {
             int8_t found = 0;
             for (sy_node_t *item3 = item1;item3 != NULL;item3 = item3->next)
             {
                 sy_node_generic_t *generic = (sy_node_generic_t *)item3->value;
-                if (sy_execute_id_cmp(field1->key, generic->key) == 1)
+                if (sy_execute_id_cmp(field->key, generic->key) == 1)
                 {
                     found = 1;
-                    sy_record_t *record_field = sy_execute_expression(field1->value, new_strip, applicant, NULL);
+                    sy_record_t *record_field = sy_execute_expression(field->value, new_strip, applicant, NULL);
                     if (record_field == ERROR)
                     {
                         goto region_error;
@@ -184,16 +184,16 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
 
                     if (record_field->kind != RECORD_KIND_TYPE)
                     {
-                        sy_node_basic_t *basic1 = (sy_node_basic_t *)field1->key->value;
-                        sy_error_type_by_node(field1->value, "'%s' unsupported type: '%s'", 
+                        sy_node_basic_t *basic1 = (sy_node_basic_t *)field->key->value;
+                        sy_error_type_by_node(field->value, "'%s' unsupported type: '%s'", 
                             basic1->value, sy_record_type_as_string(record_field));
                         goto region_error;
                     }
 
                     if (generic->type)
                     {
-                        sy_record_t *record_type = sy_execute_expression(generic->type, new_strip, applicant, NULL);
-                        if (record_type == ERROR)
+                        sy_record_t *record_gen_type = sy_execute_expression(generic->type, new_strip, applicant, NULL);
+                        if (record_gen_type == ERROR)
                         {
                             if (record_field->link == 0)
                             {
@@ -205,16 +205,33 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                             goto region_error;
                         }
 
-                        int32_t r1 = sy_execute_type_check_by_type(record_field, record_type, new_strip, applicant);
+                        if (record_gen_type->kind != RECORD_KIND_TYPE)
+                        {
+                            sy_node_basic_t *basic1 = (sy_node_basic_t *)generic->key->value;
+                            sy_error_type_by_node(generic->type, "'%s' unsupported type: '%s'", 
+                                basic1->value, sy_record_type_as_string(record_gen_type));
+
+                            if (record_field->link == 0)
+                            {
+                                if (sy_record_destroy(record_field) < 0)
+                                {
+                                    goto region_error;
+                                }
+                            }
+                            
+                            goto region_error;
+                        }
+
+                        int32_t r1 = sy_execute_type_check_by_type(record_field, record_gen_type, new_strip, applicant);
                         if (r1 < 0)
                         {
                             if (record_field->link == 0)
                             {
                                 if (sy_record_destroy(record_field) < 0)
                                 {
-                                    if (record_type->link == 0)
+                                    if (record_gen_type->link == 0)
                                     {
-                                        if (sy_record_destroy(record_type) < 0)
+                                        if (sy_record_destroy(record_gen_type) < 0)
                                         {
                                             goto region_error;
                                         }
@@ -222,9 +239,9 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                                     goto region_error;
                                 }
                             }
-                            if (record_type->link == 0)
+                            if (record_gen_type->link == 0)
                             {
-                                if (sy_record_destroy(record_type) < 0)
+                                if (sy_record_destroy(record_gen_type) < 0)
                                 {
                                     goto region_error;
                                 }
@@ -238,9 +255,9 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                             {
                                 if (sy_record_destroy(record_field) < 0)
                                 {
-                                    if (record_type->link == 0)
+                                    if (record_gen_type->link == 0)
                                     {
-                                        if (sy_record_destroy(record_type) < 0)
+                                        if (sy_record_destroy(record_gen_type) < 0)
                                         {
                                             goto region_error;
                                         }
@@ -248,32 +265,45 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                                     goto region_error;
                                 }
                             }
-                            if (record_type->link == 0)
+                            if (record_gen_type->link == 0)
                             {
-                                if (sy_record_destroy(record_type) < 0)
+                                if (sy_record_destroy(record_gen_type) < 0)
                                 {
                                     goto region_error;
                                 }
                             }
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)field1->key->value;
-                            sy_error_type_by_node(field1->key, "'%s' mismatch: '%s' and '%s'", 
-                            basic1->value, sy_record_type_as_string(record_field), sy_record_type_as_string(record_type));
+                            sy_node_basic_t *basic1 = (sy_node_basic_t *)field->key->value;
+                            sy_error_type_by_node(field->key, "'%s' mismatch: '%s' and '%s'", 
+                            basic1->value, sy_record_type_as_string(record_field), sy_record_type_as_string(record_gen_type));
                             goto region_error;
                         }
 
-                        if (record_type->link == 0)
+                        if (record_gen_type->link == 0)
                         {
-                            if (sy_record_destroy(record_type) < 0)
+                            if (sy_record_destroy(record_gen_type) < 0)
                             {
                                 goto region_error;
                             }
                         }
                     }
 
-                    if (NULL == sy_strip_variable_push(new_strip, base_type->type, item3, generic->key, record_field))
+                    sy_entry_t *entry = sy_strip_variable_push(new_strip, base_type->type, item3, generic->key, record_field);
+                    if (entry == ERROR)
+                    {
+                        if (record_field->link == 0)
+                        {
+                            if (sy_record_destroy(record_field) < 0)
+                            {
+                                goto region_error;
+                            }
+                        }
+                        goto region_error;
+                    }
+                    else
+                    if (entry == NULL)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)generic->key->value;
-                        sy_error_type_by_node(field1->key, "'%s' already set", basic1->value);
+                        sy_error_type_by_node(field->key, "'%s' already set", basic1->value);
 
                         if (record_field->link == 0)
                         {
@@ -294,8 +324,8 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                 {
                     sy_node_class_t *class1 = (sy_node_class_t *)base_type->type->value;
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
-                    sy_node_basic_t *basic2 = (sy_node_basic_t *)field1->key->value;
-                    sy_error_type_by_node(field1->key, "'%s' got an unexpected keyword field '%s'", basic1->value ,basic2->value);
+                    sy_node_basic_t *basic2 = (sy_node_basic_t *)field->key->value;
+                    sy_error_type_by_node(field->key, "'%s' got an unexpected keyword field '%s'", basic1->value ,basic2->value);
                     goto region_error;
                 }
                 else
@@ -303,14 +333,14 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                 {
                     sy_node_fun_t *fun1 = (sy_node_fun_t *)base_type->type->value;
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)fun1->key->value;
-                    sy_node_basic_t *basic2 = (sy_node_basic_t *)field1->key->value;
-                    sy_error_type_by_node(field1->key, "'%s' got an unexpected keyword field '%s'", basic1->value ,basic2->value);
+                    sy_node_basic_t *basic2 = (sy_node_basic_t *)field->key->value;
+                    sy_error_type_by_node(field->key, "'%s' got an unexpected keyword field '%s'", basic1->value ,basic2->value);
                     goto region_error;
                 }
                 else
                 {
-                    sy_node_basic_t *basic2 = (sy_node_basic_t *)field1->key->value;
-                    sy_error_type_by_node(field1->key, "'%s' got an unexpected keyword field '%s'", "lambda",basic2->value);
+                    sy_node_basic_t *basic2 = (sy_node_basic_t *)field->key->value;
+                    sy_error_type_by_node(field->key, "'%s' got an unexpected keyword field '%s'", "lambda",basic2->value);
                     goto region_error;
                 }
             }
@@ -319,7 +349,7 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
         {
             sy_node_generic_t *generic = (sy_node_generic_t *)item1->value;
 
-            sy_record_t *record_field = sy_execute_expression(field1->key, new_strip, applicant, NULL);
+            sy_record_t *record_field = sy_execute_expression(field->key, new_strip, applicant, NULL);
 
             if (record_field == ERROR)
             {
@@ -328,15 +358,15 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
 
             if (record_field->kind != RECORD_KIND_TYPE)
             {
-                sy_error_type_by_node(field1->key, "'%s' unsupported type: '%s'", 
+                sy_error_type_by_node(field->key, "'%s' unsupported type: '%s'", 
                     "field", sy_record_type_as_string(record_field));
                 goto region_error;
             }
 
             if (generic->type)
             {
-                sy_record_t *record_type = sy_execute_expression(generic->type, new_strip, applicant, NULL);
-                if (record_type == ERROR)
+                sy_record_t *record_gen_type = sy_execute_expression(generic->type, new_strip, applicant, NULL);
+                if (record_gen_type == ERROR)
                 {
                     if (record_field->link == 0)
                     {
@@ -348,16 +378,16 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                     goto region_error;
                 }
 
-                int32_t r1 = sy_execute_type_check_by_type(record_field, record_type, new_strip, applicant);
+                int32_t r1 = sy_execute_type_check_by_type(record_field, record_gen_type, new_strip, applicant);
                 if (r1 < 0)
                 {
                     if (record_field->link == 0)
                     {
                         if (sy_record_destroy(record_field) < 0)
                         {
-                            if (record_type->link == 0)
+                            if (record_gen_type->link == 0)
                             {
-                                if (sy_record_destroy(record_type) < 0)
+                                if (sy_record_destroy(record_gen_type) < 0)
                                 {
                                     goto region_error;
                                 }
@@ -365,9 +395,9 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                             goto region_error;
                         }
                     }
-                    if (record_type->link == 0)
+                    if (record_gen_type->link == 0)
                     {
-                        if (sy_record_destroy(record_type) < 0)
+                        if (sy_record_destroy(record_gen_type) < 0)
                         {
                             goto region_error;
                         }
@@ -381,9 +411,9 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                     {
                         if (sy_record_destroy(record_field) < 0)
                         {
-                            if (record_type->link == 0)
+                            if (record_gen_type->link == 0)
                             {
-                                if (sy_record_destroy(record_type) < 0)
+                                if (sy_record_destroy(record_gen_type) < 0)
                                 {
                                     goto region_error;
                                 }
@@ -391,31 +421,44 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                             goto region_error;
                         }
                     }
-                    if (record_type->link == 0)
+                    if (record_gen_type->link == 0)
                     {
-                        if (sy_record_destroy(record_type) < 0)
+                        if (sy_record_destroy(record_gen_type) < 0)
                         {
                             goto region_error;
                         }
                     }
-                    sy_error_type_by_node(field1->key, "'%s' mismatch: '%s' and '%s'", 
-                    "field", sy_record_type_as_string(record_field), sy_record_type_as_string(record_type));
+                    sy_error_type_by_node(field->key, "'%s' mismatch: '%s' and '%s'", 
+                    "field", sy_record_type_as_string(record_field), sy_record_type_as_string(record_gen_type));
                     goto region_error;
                 }
 
-                if (record_type->link == 0)
+                if (record_gen_type->link == 0)
                 {
-                    if (sy_record_destroy(record_type) < 0)
+                    if (sy_record_destroy(record_gen_type) < 0)
                     {
                         goto region_error;
                     }
                 }
             }
 
-            if (NULL == sy_strip_variable_push(new_strip, base_type->type, item1, generic->key, record_field))
+            sy_entry_t *entry = sy_strip_variable_push(new_strip, base_type->type, item1, generic->key, record_field);
+            if (entry == ERROR)
+            {
+                if (record_field->link == 0)
+                {
+                    if (sy_record_destroy(record_field) < 0)
+                    {
+                        goto region_error;
+                    }
+                }
+                goto region_error;
+            }
+            else
+            if (entry == NULL)
             {
                 sy_node_basic_t *basic1 = (sy_node_basic_t *)generic->key->value;
-                sy_error_type_by_node(field1->key, "'%s' already set", basic1->value);
+                sy_error_type_by_node(field->key, "'%s' already set", basic1->value);
 
                 if (record_field->link == 0)
                 {
@@ -434,7 +477,7 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
     for (;item1 != NULL;item1 = item1->next)
     {
         sy_node_generic_t *generic = (sy_node_generic_t *)item1->value;
-        sy_entry_t *entry = sy_strip_variable_find_by_scope(new_strip, base_type->type, generic->key);
+        sy_entry_t *entry = sy_strip_variable_find(new_strip, base_type->type, generic->key);
         if (!entry)
         {
             if (generic->value)
@@ -453,7 +496,20 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                     goto region_error;
                 }
 
-                if (NULL == sy_strip_variable_push(new_strip, base_type->type, item1, generic->key, record_field))
+                sy_entry_t *entry = sy_strip_variable_push(new_strip, base_type->type, item1, generic->key, record_field);
+                if (entry == ERROR)
+                {
+                    if (record_field->link == 0)
+                    {
+                        if (sy_record_destroy(record_field) < 0)
+                        {
+                            goto region_error;
+                        }
+                    }
+                    goto region_error;
+                }
+                else
+                if (entry == NULL)
                 {
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)generic->key->value;
                     sy_error_type_by_node(generic->key, "'%s' already set", basic1->value);

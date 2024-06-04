@@ -424,10 +424,13 @@ sy_semantic_call(sy_node_t *node)
         return -1;
     }
 
-    int32_t r2 = sy_semantic_arguments(carrier1->data);
-    if (r2 == -1)
+    if (carrier1->data)
     {
-        return -1;
+        int32_t r2 = sy_semantic_arguments(carrier1->data);
+        if (r2 == -1)
+        {
+            return -1;
+        }
     }
 
     return 0;
@@ -1854,19 +1857,7 @@ sy_semantic_argument(sy_node_t *node)
     
     for (sy_node_t *item1 = node->previous; item1 != NULL; item1 = item1->previous)
     {
-        assert (item1->kind == NODE_KIND_ARGUMENT);
-
         sy_node_argument_t *argument2 = (sy_node_argument_t *)item1->value;
-
-        if (argument2->value != NULL)
-        {
-            if (argument2->key->kind != NODE_KIND_ID)
-            {
-                sy_error_semantic_by_node(argument2->key, "'%s' not a name",
-                    "Key");
-                return -1;
-            }
-        }
 
         if ((argument1->value != NULL) && (argument2->value != NULL))
         {

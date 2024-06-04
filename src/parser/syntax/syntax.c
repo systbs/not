@@ -12,6 +12,8 @@
 #include "../../utils/utils.h"
 #include "../../error.h"
 #include "../../memory.h"
+#include "../../mutex.h"
+#include "../../config.h"
 #include "syntax.h"
 
 
@@ -3799,7 +3801,7 @@ sy_syntax_class_fun(sy_syntax_t *syntax, sy_node_t *parent, sy_node_t *note, uin
 			return NULL;
 		}
 		
-		if (sy_syntax_id_strcmp(key, "Constructor") == 1)
+		if (sy_syntax_id_strcmp(key, CONSTRUCTOR_STR) == 1)
 		{
 			used_constructor = 1;
 		}
