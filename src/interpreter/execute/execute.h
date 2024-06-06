@@ -17,6 +17,14 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
 sy_record_t *
 sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_type, sy_strip_t *strip, sy_node_t *applicant);
 
+int32_t 
+sy_execute_run_fun(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant);
+
+int32_t 
+sy_execute_run_lambda(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant);
+
+int32_t
+parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy_node_t *parameters, sy_node_t *arguments, sy_node_t *applicant);
 
 int32_t 
 sy_execute_run(sy_node_t *root);

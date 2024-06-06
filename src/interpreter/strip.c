@@ -46,13 +46,6 @@ sy_strip_create(sy_strip_t *previous)
 
     strip->previous = previous;
 
-    if (sy_mutex_init(&strip->lock) < 0)
-	{
-        sy_memory_free(strip);
-		sy_error_system("'%s' could not initialize the lock", "sy_strip.lock");
-		return ERROR;
-	}
-
     return strip;
 }
 
@@ -121,22 +114,10 @@ sy_strip_input_unlink(sy_strip_t *strip, sy_entry_t *entry)
 sy_entry_t *
 sy_strip_variable_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_record_t *value)
 {
-    if (sy_mutex_lock(&strip->lock) < 0)
-    {
-        sy_error_system("'%s' could not lock", "sy_strip.lock");
-        return ERROR;
-    }
-
     for (sy_entry_t *item = strip->variables;item != NULL;item = item->next)
     {
         if (sy_strip_id_cmp(item->key, key) == 1)
         {
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                return ERROR;
-            }
-
             return NULL;
         }
     }
@@ -145,14 +126,9 @@ sy_strip_variable_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy
     if(entry == NULL)
     {
         sy_error_no_memory();
-        if (sy_mutex_unlock(&strip->lock) < 0)
-        {
-            sy_error_system("'%s' could not unlock", "sy_strip.lock");
-            return ERROR;
-        }
         return ERROR;
     }
-
+    
     entry->scope = scope;
     entry->key = key;
     entry->value = value;
@@ -160,33 +136,16 @@ sy_strip_variable_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy
 
     sy_strip_variable_link(strip, entry);
 
-    if (sy_mutex_unlock(&strip->lock) < 0)
-    {
-        sy_error_system("'%s' could not unlock", "sy_strip.lock");
-        return ERROR;
-    }
-
     return entry;
 }
 
 sy_entry_t *
 sy_strip_variable_find(sy_strip_t *strip, sy_node_t *scope, sy_node_t *key)
 {
-    if (sy_mutex_lock(&strip->lock) < 0)
-    {
-        sy_error_system("'%s' could not lock", "sy_strip.lock");
-        return ERROR;
-    }
-
     for (sy_entry_t *entry = strip->variables;entry != NULL;entry = entry->next)
     {
         if ((entry->scope->id == scope->id) && sy_strip_id_cmp(entry->key, key) == 1)
         {
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                return ERROR;
-            }
             return entry;
         }
     }
@@ -196,29 +155,13 @@ sy_strip_variable_find(sy_strip_t *strip, sy_node_t *scope, sy_node_t *key)
         sy_entry_t *entry = sy_strip_variable_find(strip->previous, scope, key);
         if (entry == ERROR)
         {
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                return ERROR;
-            }
             return ERROR;
         }
         else
         if (entry != NULL)
         {
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                return ERROR;
-            }
             return entry;
         }
-    }
-
-    if (sy_mutex_unlock(&strip->lock) < 0)
-    {
-        sy_error_system("'%s' could not unlock", "sy_strip.lock");
-        return ERROR;
     }
 
     return NULL;
@@ -227,29 +170,12 @@ sy_strip_variable_find(sy_strip_t *strip, sy_node_t *scope, sy_node_t *key)
 sy_entry_t *
 sy_strip_input_find(sy_strip_t *strip, sy_node_t *scope, sy_node_t *key)
 {
-    if (sy_mutex_lock(&strip->lock) < 0)
-    {
-        sy_error_system("'%s' could not lock", "sy_strip.lock");
-        return ERROR;
-    }
-
     for (sy_entry_t *entry = strip->inputs;entry != NULL;entry = entry->next)
     {
         if ((entry->scope->id == scope->id) && sy_strip_id_cmp(entry->key, key) == 1)
         {
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                return ERROR;
-            }
             return entry;
         }
-    }
-
-    if (sy_mutex_unlock(&strip->lock) < 0)
-    {
-        sy_error_system("'%s' could not unlock", "sy_strip.lock");
-        return ERROR;
     }
 
     return NULL;
@@ -258,27 +184,11 @@ sy_strip_input_find(sy_strip_t *strip, sy_node_t *scope, sy_node_t *key)
 sy_entry_t *
 sy_strip_input_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_record_t *value)
 {
-    if (sy_mutex_lock(&strip->lock) < 0)
-    {
-        sy_error_system("'%s' could not lock", "sy_strip.lock");
-        return ERROR;
-    }
-
     for (sy_entry_t *item = strip->inputs;item != NULL;item = item->next)
     {
         if (sy_strip_id_cmp(item->key, key) == 1)
         {
-            sy_node_basic_t *basic1 = (sy_node_basic_t *)key->value;
-            sy_error_semantic_by_node(key, "'%s' already defined, previous in (%lld:%lld)\n\tMajor:%s-%u",
-                basic1->value, item->key->position.line, item->key->position.column, __FILE__, __LINE__);
-
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                return ERROR;
-            }
-            
-            return ERROR;
+            return NULL;
         }
     }
 
@@ -286,11 +196,6 @@ sy_strip_input_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_no
     if(entry == NULL)
     {
         sy_error_no_memory();
-        if (sy_mutex_unlock(&strip->lock) < 0)
-        {
-            sy_error_system("'%s' could not unlock", "sy_strip.lock");
-            return ERROR;
-        }
         return ERROR;
     }
 
@@ -301,34 +206,17 @@ sy_strip_input_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_no
 
     sy_strip_input_link(strip, entry);
 
-    if (sy_mutex_unlock(&strip->lock) < 0)
-    {
-        sy_error_system("'%s' could not unlock", "sy_strip.lock");
-        return ERROR;
-    }
-
     return entry;
 }
 
 int32_t
 sy_strip_variable_remove_by_scope(sy_strip_t *strip, sy_node_t *scope)
 {
-    if (sy_mutex_lock(&strip->lock) < 0)
-    {
-        sy_error_system("'%s' could not lock", "sy_strip.lock");
-        return -1;
-    }
-
     for (sy_entry_t *entry = strip->variables, *b = NULL;entry != NULL;entry = b)
     {
         b = entry->next;
         if (entry->scope->id == scope->id)
         {
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                return -1;
-            }
             sy_strip_variable_unlink(strip, entry);
             if (sy_record_destroy(entry->value) < 0)
             {
@@ -342,19 +230,8 @@ sy_strip_variable_remove_by_scope(sy_strip_t *strip, sy_node_t *scope)
     {
         if (sy_strip_variable_remove_by_scope(strip->previous, scope) < 0)
         {
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                return -1;
-            }
             return -1;
         }
-    }
-
-    if (sy_mutex_unlock(&strip->lock) < 0)
-    {
-        sy_error_system("'%s' could not unlock", "sy_strip.lock");
-        return -1;
     }
 
     return 0;
@@ -363,35 +240,19 @@ sy_strip_variable_remove_by_scope(sy_strip_t *strip, sy_node_t *scope)
 int32_t
 sy_strip_destroy(sy_strip_t *strip)
 {
-    if (sy_mutex_lock(&strip->lock) < 0)
-    {
-        sy_error_system("'%s' could not lock", "sy_strip.lock");
-        return -1;
-    }
-
     if (strip->link == 1)
     {
-        if (sy_mutex_unlock(&strip->lock) < 0)
-        {
-            sy_error_system("'%s' could not unlock", "sy_strip.lock");
-            return -1;
-        }
         return 0;
     }
 
     if (strip->previous)
     {
-        /*
         if (sy_strip_destroy(strip->previous) < 0)
         {
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                return -1;
-            }
             return 0;
         }
-        */
+        
+        strip->previous = NULL;
     }
 
     for (sy_entry_t *item = strip->variables, *next = NULL;item != NULL;item = next)
@@ -408,11 +269,6 @@ sy_strip_destroy(sy_strip_t *strip)
                     item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        if (sy_mutex_unlock(&strip->lock) < 0)
-                        {
-                            sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                            return -1;
-                        }
                         return -1;
                     }
                 }
@@ -426,11 +282,6 @@ sy_strip_destroy(sy_strip_t *strip)
                     item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        if (sy_mutex_unlock(&strip->lock) < 0)
-                        {
-                            sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                            return -1;
-                        }
                         return -1;
                     }
                 }
@@ -444,11 +295,6 @@ sy_strip_destroy(sy_strip_t *strip)
                     item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        if (sy_mutex_unlock(&strip->lock) < 0)
-                        {
-                            sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                            return -1;
-                        }
                         return -1;
                     }
                 }
@@ -462,11 +308,6 @@ sy_strip_destroy(sy_strip_t *strip)
                     item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        if (sy_mutex_unlock(&strip->lock) < 0)
-                        {
-                            sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                            return -1;
-                        }
                         return -1;
                     }
                 }
@@ -476,11 +317,6 @@ sy_strip_destroy(sy_strip_t *strip)
                 item->value->link = 0;
                 if (sy_record_destroy(item->value) < 0)
                 {
-                    if (sy_mutex_unlock(&strip->lock) < 0)
-                    {
-                        sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                        return -1;
-                    }
                     return -1;
                 }
             }
@@ -504,11 +340,6 @@ sy_strip_destroy(sy_strip_t *strip)
                     item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        if (sy_mutex_unlock(&strip->lock) < 0)
-                        {
-                            sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                            return -1;
-                        }
                         return -1;
                     }
                 }
@@ -522,11 +353,6 @@ sy_strip_destroy(sy_strip_t *strip)
                     item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        if (sy_mutex_unlock(&strip->lock) < 0)
-                        {
-                            sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                            return -1;
-                        }
                         return -1;
                     }
                 }
@@ -540,11 +366,6 @@ sy_strip_destroy(sy_strip_t *strip)
                     item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        if (sy_mutex_unlock(&strip->lock) < 0)
-                        {
-                            sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                            return -1;
-                        }
                         return -1;
                     }
                 }
@@ -558,11 +379,6 @@ sy_strip_destroy(sy_strip_t *strip)
                     item->value->link = 0;
                     if (sy_record_destroy(item->value) < 0)
                     {
-                        if (sy_mutex_unlock(&strip->lock) < 0)
-                        {
-                            sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                            return -1;
-                        }
                         return -1;
                     }
                 }
@@ -572,11 +388,6 @@ sy_strip_destroy(sy_strip_t *strip)
                 item->value->link = 0;
                 if (sy_record_destroy(item->value) < 0)
                 {
-                    if (sy_mutex_unlock(&strip->lock) < 0)
-                    {
-                        sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                        return -1;
-                    }
                     return -1;
                 }
             }
@@ -584,18 +395,6 @@ sy_strip_destroy(sy_strip_t *strip)
 
         sy_strip_input_unlink(strip, item);
         sy_memory_free(item);
-    }
-
-    if (sy_mutex_unlock(&strip->lock) < 0)
-    {
-        sy_error_system("'%s' could not unlock", "sy_strip.lock");
-        return -1;
-    }
-
-    if (sy_mutex_destroy(&strip->lock) < 0)
-    {
-        sy_error_system("'%s' could not destroy the lock", "sy_strip.lock");
-        return -1;
     }
 
     sy_memory_free(strip);
@@ -606,12 +405,6 @@ sy_strip_destroy(sy_strip_t *strip)
 sy_strip_t *
 sy_strip_copy(sy_strip_t *strip)
 {
-    if (sy_mutex_lock(&strip->lock) < 0)
-    {
-        sy_error_system("'%s' could not lock", "sy_strip.lock");
-        return ERROR;
-    }
-
     sy_strip_t *strip_previous = NULL;
     if (strip->previous)
     {
@@ -620,11 +413,6 @@ sy_strip_copy(sy_strip_t *strip)
             strip_previous = sy_strip_copy(strip->previous);
             if (strip_previous == ERROR)
             {
-                if (sy_mutex_unlock(&strip->lock) < 0)
-                {
-                    sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                    return ERROR;
-                }
                 return ERROR;
             }
         }
@@ -645,33 +433,8 @@ sy_strip_copy(sy_strip_t *strip)
             }
         }
 
-        if (sy_mutex_unlock(&strip->lock) < 0)
-        {
-            sy_error_system("'%s' could not unlock", "sy_strip.lock");
-            return ERROR;
-        }
         return ERROR;
     }
-
-    if (sy_mutex_init(&strip_copy->lock) < 0)
-	{
-        if (sy_strip_destroy(strip_copy) < 0)
-        {
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                return ERROR;
-            }
-            return ERROR;
-        }
-		sy_error_system("'%s' could not initialize the lock", "sy_strip.lock");
-        if (sy_mutex_unlock(&strip->lock) < 0)
-        {
-            sy_error_system("'%s' could not unlock", "sy_strip.lock");
-            return ERROR;
-        }
-		return ERROR;
-	}
 
     for (sy_entry_t *item = strip->variables;item != NULL;item = item->next)
     {
@@ -680,11 +443,6 @@ sy_strip_copy(sy_strip_t *strip)
         {
             if (sy_strip_destroy(strip_copy) < 0)
             {
-                return ERROR;
-            }
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
                 return ERROR;
             }
             return ERROR;
@@ -696,11 +454,6 @@ sy_strip_copy(sy_strip_t *strip)
             sy_error_no_memory();
             if (sy_strip_destroy(strip_copy) < 0)
             {
-                return ERROR;
-            }
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
                 return ERROR;
             }
             return ERROR;
@@ -725,11 +478,6 @@ sy_strip_copy(sy_strip_t *strip)
             {
                 return ERROR;
             }
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
-                return ERROR;
-            }
             return ERROR;
         }
 
@@ -739,11 +487,6 @@ sy_strip_copy(sy_strip_t *strip)
             sy_error_no_memory();
             if (sy_strip_destroy(strip_copy) < 0)
             {
-                return ERROR;
-            }
-            if (sy_mutex_unlock(&strip->lock) < 0)
-            {
-                sy_error_system("'%s' could not unlock", "sy_strip.lock");
                 return ERROR;
             }
             return ERROR;
@@ -757,12 +500,6 @@ sy_strip_copy(sy_strip_t *strip)
         entry->block = item->block;
 
         sy_strip_input_link(strip_copy, entry);
-    }
-
-    if (sy_mutex_unlock(&strip->lock) < 0)
-    {
-        sy_error_system("'%s' could not unlock", "sy_strip.lock");
-        return ERROR;
     }
 
     return strip_copy;

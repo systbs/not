@@ -1,86 +1,769 @@
-    case NODE_KIND_ID:
-        return sy_execute_id(node, strip);
+    sy_node_binary_t *binary;
+    sy_node_unary_t *unary;
+    sy_record_t *left, *right, *record;
+    switch (node->kind)
+    {
+    case NODE_KIND_TILDE:
+        unary = (sy_node_unary_t *)node->value;
+        right = sy_execute_expression(unary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
 
-    case NODE_KIND_NUMBER:
-        return sy_execute_number(node, strip);
+        left = sy_record_make_int64(-1);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
 
-    case NODE_KIND_CHAR:
-        return sy_execute_char(node, strip);
+        record = sy_execute_xor(node, left, right);
 
-    case NODE_KIND_STRING:
-        return sy_execute_string(node, strip);
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
 
-    case NODE_KIND_NULL:
-        return sy_execute_null(node, strip);
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
 
-    case NODE_KIND_KINT8:
-        return sy_execute_kint8(node, strip);
+        return record;
 
-    case NODE_KIND_KINT16:
-        return sy_execute_kint16(node, strip);
+    case NODE_KIND_POS:
+        unary = (sy_node_unary_t *)node->value;
+        right = sy_execute_expression(unary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
 
-    case NODE_KIND_KINT32:
-        return sy_execute_kint32(node, strip);
+        left = sy_record_make_int64(0);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
 
-    case NODE_KIND_KINT64:
-        return sy_execute_kint64(node, strip);
+        record = sy_execute_plus(node, left, right);
 
-    case NODE_KIND_KUINT8:
-        return sy_execute_kuint8(node, strip);
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
 
-    case NODE_KIND_KUINT16:
-        return sy_execute_kuint16(node, strip);
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
 
-    case NODE_KIND_KUINT32:
-        return sy_execute_kuint32(node, strip);
+        return record;
 
-    case NODE_KIND_KUINT64:
-        return sy_execute_kuint64(node, strip);
+    case NODE_KIND_NEG:
+        unary = (sy_node_unary_t *)node->value;
+        right = sy_execute_expression(unary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
 
-    case NODE_KIND_KBIGINT:
-        return sy_execute_kbigint(node, strip);
+        left = sy_record_make_int64(0);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
 
-    case NODE_KIND_KFLOAT32:
-        return sy_execute_kfloat32(node, strip);
+        record = sy_execute_minus(node, left, right);
 
-    case NODE_KIND_KFLOAT64:
-        return sy_execute_kfloat64(node, strip);
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
 
-    case NODE_KIND_KBIGFLOAT:
-        return sy_execute_kbigfloat(node, strip);
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
 
-    case NODE_KIND_KCHAR:
-        return sy_execute_kchar(node, strip);
+        return record;
 
-    case NODE_KIND_KSTRING:
-        return sy_execute_kstring(node, strip);
+    case NODE_KIND_NOT:
+        unary = (sy_node_unary_t *)node->value;
+        right = sy_execute_expression(unary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
 
-    case NODE_KIND_THIS:
-        return sy_execute_this(node, strip);
+        left = sy_record_make_int64(0);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
 
-    case NODE_KIND_SELF:
-        return sy_execute_self(node, strip);
+        record = sy_record_make_int32(sy_execute_truthy_eq(left, right));
 
-    case NODE_KIND_TUPLE:
-        return sy_record_make_undefined();
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
 
-    case NODE_KIND_OBJECT:
-        return sy_record_make_undefined();
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
 
-    case NODE_KIND_LAMBDA:
-        return sy_execute_lambda(node, strip);
+        return record;
 
-    case NODE_KIND_PARENTHESIS:
-        return sy_execute_parenthesis(node, strip);
+    case NODE_KIND_POW:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
 
-    case NODE_KIND_CALL:
-        return sy_execute_call(node, strip);
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
 
-    case NODE_KIND_ARRAY:
-        return sy_execute_array(node, strip);
+        record = sy_execute_pow(node, left, right);
+        
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
 
-    case NODE_KIND_ATTRIBUTE:
-        return sy_execute_attribute(node, strip);
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
 
-    case NODE_KIND_PSEUDONYM:
-        return sy_execute_pseudonym(node, strip);
+        return record;
+
+    case NODE_KIND_MUL:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+       right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+       record = sy_execute_mul(node, left, right);
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+       if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+       return record;
+
+    case NODE_KIND_DIV:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+       right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+        
+        record = sy_execute_div(node, left, right);
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+       if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+       return record;
+
+    case NODE_KIND_MOD:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+       right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+        
+        record = sy_execute_mod(node, left, right);
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+       if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+       return record;
+
+    case NODE_KIND_EPI:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+       right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+       record = sy_execute_epi(node, left, right);
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+       if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+       return record;
+
+    case NODE_KIND_PLUS:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+
+        record = sy_execute_plus(node, left, right);
+
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
+
+    case NODE_KIND_MINUS:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+
+        record = sy_execute_minus(node, left, right);
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
+
+    case NODE_KIND_SHR:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+
+        record = sy_execute_shr(node, left, right);
+
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
+
+    case NODE_KIND_SHL:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+
+        record = sy_execute_shl(node, left, right);
+
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
+
+    case NODE_KIND_LT:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+        
+
+        record = sy_record_make_int32(sy_execute_truthy_lt(left, right));
+        
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
+
+    case NODE_KIND_LE:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+
+        record = sy_record_make_int32(sy_execute_truthy_le(left, right));
+
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
+
+    case NODE_KIND_GT:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+
+        record = sy_record_make_int32(!sy_execute_truthy_le(left, right));
+
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
+
+    case NODE_KIND_GE:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+
+        record = sy_record_make_int32(!sy_execute_truthy_lt(left, right));
+
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
+
+    case NODE_KIND_EQ:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+
+        record = sy_record_make_int32(sy_execute_truthy_eq(left, right));
+
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
+
+    case NODE_KIND_NEQ:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+
+        record = sy_record_make_int32(!sy_execute_truthy_eq(left, right));
+
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
+
+    case NODE_KIND_AND:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {            
+            return ERROR;
+        }
+
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {            
+            return ERROR;
+        }
+
+        record = sy_execute_and(node, left, right);
+        
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
+
+    case NODE_KIND_XOR:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+
+        record = sy_execute_xor(node, left, right);
+
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
+
+    case NODE_KIND_OR:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+
+        record = sy_execute_or(node, left, right);
+
+        if (left->link == 0)
+        {
+            if (sy_record_destroy(left) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        if (right->link == 0)
+        {
+            if (sy_record_destroy(right) < 0)
+            {
+                return ERROR;
+            }
+        }
+
+        return record;
+
+    case NODE_KIND_LAND:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+
+        return sy_execute_land(node, left, right);
+
+    case NODE_KIND_LOR:
+        binary = (sy_node_binary_t *)node->value;
+        left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return ERROR;
+        }
+
+        right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+
+        return sy_execute_lor(node, left, right);
+    default:
+        return sy_execute_postfix(node, strip, applicant, origin);
+    }

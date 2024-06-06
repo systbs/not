@@ -458,22 +458,13 @@ sy_record_make_char(char value)
 sy_record_t *
 sy_record_make_string(char *value)
 {
-    char **basic = (char **)sy_memory_calloc(1, sizeof(char *));
+    char *basic = (char *)sy_memory_calloc(1, strlen(value));
     if (basic == NULL)
     {
         sy_error_no_memory();
         return ERROR;
     }
-
-    char *str = (char *)sy_memory_calloc(1, strlen(value));
-    if (str == NULL)
-    {
-        sy_error_no_memory();
-        return ERROR;
-    }
-    strcpy(str, value);
-
-    *basic = str;
+    strcpy(basic, value);
 
     sy_record_t *record = sy_record_create(RECORD_KIND_STRING, basic);
     if (record == ERROR)
@@ -529,6 +520,8 @@ sy_record_make_struct(sy_node_t *type, sy_strip_t *value)
 
     basic->type = type;
     basic->value = value;
+    
+    value->link = 1;
 
     sy_record_t *record = sy_record_create(RECORD_KIND_STRUCT, basic);
     if (record == ERROR)
@@ -633,6 +626,7 @@ sy_record_struct_destroy(sy_record_struct_t *struct1)
 {
     if (struct1->value)
     {
+        struct1->value->link = 0;
         if (sy_strip_destroy(struct1->value) < 0)
         {
             return -1;
@@ -813,6 +807,7 @@ sy_record_struct_copy(sy_record_struct_t *struct1)
         {
             return ERROR;
         }
+        value->link = 1;
     }
 
     sy_record_struct_t *basic = (sy_record_struct_t *)sy_memory_calloc(1, sizeof(sy_record_struct_t));
@@ -821,6 +816,7 @@ sy_record_struct_copy(sy_record_struct_t *struct1)
         sy_error_no_memory();
         if (value)
         {
+            value->link = 0;
             if (sy_strip_destroy(value) < 0)
             {
                 return ERROR;
@@ -1023,6 +1019,16 @@ sy_record_copy(sy_record_t *record)
     if (record->kind == RECORD_KIND_BIGFLOAT)
     {
         return sy_record_make_bigfloat_from_mpf(*(mpf_t *)(record->value));
+    }
+    else
+    if (record->kind == RECORD_KIND_CHAR)
+    {
+        return sy_record_make_char(*(char *)(record->value));
+    }
+    else
+    if (record->kind == RECORD_KIND_STRING)
+    {
+        return sy_record_make_string(*(char **)(record->value));
     }
     else
     if (record->kind == RECORD_KIND_OBJECT)

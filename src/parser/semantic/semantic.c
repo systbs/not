@@ -192,19 +192,6 @@ sy_semantic_kstring(sy_node_t *node)
 
 
 static int32_t
-sy_semantic_self(sy_node_t *node)
-{
-    return 0;
-}
-
-static int32_t
-sy_semantic_this(sy_node_t *node)
-{
-    return 0;
-}
-
-
-static int32_t
 sy_semantic_lambda(sy_node_t *node)
 {
     sy_node_lambda_t *fun1 = (sy_node_lambda_t *)node->value;
@@ -367,18 +354,6 @@ sy_semantic_primary(sy_node_t *node)
     if (node->kind == NODE_KIND_KSTRING)
     {
         return sy_semantic_kstring(node);
-    }
-    else
-
-
-    if (node->kind == NODE_KIND_THIS)
-    {
-        return sy_semantic_this(node);
-    }
-    else
-    if (node->kind == NODE_KIND_SELF)
-    {
-        return sy_semantic_self(node);
     }
     else
 

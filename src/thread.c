@@ -408,3 +408,68 @@ sy_thread_exit()
 #endif
     return 0;
 }
+
+
+sy_record_t *
+sy_thread_get_rax()
+{
+    sy_thread_t *thread = sy_thread_get_current();
+    if (sy_mutex_lock(&thread->lock) < 0)
+    {
+        sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", thread->id);
+        return ERROR;
+    }
+
+    sy_record_t *value = thread->interpreter->rax;
+
+    if (sy_mutex_unlock(&thread->lock) < 0)
+    {
+        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
+        return ERROR;
+    }
+
+    return value;
+}
+
+int32_t
+sy_thread_set_rax(sy_record_t *value)
+{
+    sy_thread_t *thread = sy_thread_get_current();
+    if (sy_mutex_lock(&thread->lock) < 0)
+    {
+        sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", thread->id);
+        return -1;
+    }
+
+    thread->interpreter->rax = value;
+
+    if (sy_mutex_unlock(&thread->lock) < 0)
+    {
+        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
+        return -1;
+    }
+
+    return 0;
+}
+
+sy_record_t *
+sy_thread_get_and_set_rax(sy_record_t *value)
+{
+    sy_thread_t *thread = sy_thread_get_current();
+    if (sy_mutex_lock(&thread->lock) < 0)
+    {
+        sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", thread->id);
+        return ERROR;
+    }
+
+    sy_record_t *result = thread->interpreter->rax;
+    thread->interpreter->rax = value;
+
+    if (sy_mutex_unlock(&thread->lock) < 0)
+    {
+        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
+        return ERROR;
+    }
+
+    return result;
+}

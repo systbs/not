@@ -20,14 +20,19 @@
 #include "../../error.h"
 #include "../../mutex.h"
 #include "../../config.h"
+#include "../../interpreter.h"
+#include "../../thread.h"
 #include "../record.h"
 #include "../garbage.h"
 #include "../symbol_table.h"
 #include "../strip.h"
 #include "execute.h"
 
-static int32_t
-parameters_substitute(sy_node_t *base, sy_node_t *node, sy_strip_t *strip, sy_node_t *parameters, sy_node_t *arguments, sy_node_t *applicant)
+static sy_record_t *
+provide_class(sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant);
+
+int32_t
+parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy_node_t *parameters, sy_node_t *arguments, sy_node_t *applicant)
 {
     if (arguments)
     {
@@ -41,9 +46,9 @@ parameters_substitute(sy_node_t *base, sy_node_t *node, sy_strip_t *strip, sy_no
                 cnt1 += 1;
             }
 
-            if (node->kind == NODE_KIND_FUN)
+            if (scope->kind == NODE_KIND_FUN)
             {
-                sy_node_fun_t *fun1 = (sy_node_fun_t *)node->value;
+                sy_node_fun_t *fun1 = (sy_node_fun_t *)scope->value;
                 sy_node_basic_t *basic1 = (sy_node_basic_t *)fun1->key->value;
                 sy_error_type_by_node(base, "'%s' takes %lld positional arguments but %lld were given", basic1->value, 0, cnt1);
                 return -1;
@@ -71,9 +76,9 @@ parameters_substitute(sy_node_t *base, sy_node_t *node, sy_strip_t *strip, sy_no
                 {
                     if (argument->value)
                     {
-                        if (node->kind == NODE_KIND_FUN)
+                        if (scope->kind == NODE_KIND_FUN)
                         {
-                            sy_node_fun_t *fun1 = (sy_node_fun_t *)node->value;
+                            sy_node_fun_t *fun1 = (sy_node_fun_t *)scope->value;
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)fun1->key->value;
                             sy_node_basic_t *basic2 = (sy_node_basic_t *)argument->key->value;
                             sy_error_type_by_node(argument->key, "'%s' got an unexpected keyword argument '%s'", basic1->value, basic2->value);
@@ -100,9 +105,9 @@ parameters_substitute(sy_node_t *base, sy_node_t *node, sy_strip_t *strip, sy_no
                             cnt2 += 1;
                         }
 
-                        if (node->kind == NODE_KIND_FUN)
+                        if (scope->kind == NODE_KIND_FUN)
                         {
-                            sy_node_fun_t *fun1 = (sy_node_fun_t *)node->value;
+                            sy_node_fun_t *fun1 = (sy_node_fun_t *)scope->value;
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)fun1->key->value;
                             sy_error_type_by_node(argument->key, "'%s' takes %lld positional arguments but %lld were given", basic1->value, cnt1, cnt2);
                             return -1;
@@ -396,7 +401,7 @@ parameters_substitute(sy_node_t *base, sy_node_t *node, sy_strip_t *strip, sy_no
                             return -1;
                         }
 
-                        sy_entry_t *entry = sy_strip_input_push(strip, node, item1, parameter->key, record_arg);
+                        sy_entry_t *entry = sy_strip_input_push(strip, scope, item1, parameter->key, record_arg);
                         if (entry == ERROR)
                         {
                             if (record_arg->link == 0)
@@ -628,7 +633,7 @@ parameters_substitute(sy_node_t *base, sy_node_t *node, sy_strip_t *strip, sy_no
                                     record_arg->link = 1;
                                 }
 
-                                sy_entry_t *entry = sy_strip_input_push(strip, node, item3, parameter->key, record_arg);
+                                sy_entry_t *entry = sy_strip_input_push(strip, scope, item3, parameter->key, record_arg);
                                 if (entry == ERROR)
                                 {
                                     if (record_arg->link == 0)
@@ -647,9 +652,9 @@ parameters_substitute(sy_node_t *base, sy_node_t *node, sy_strip_t *strip, sy_no
 
                         if (found == 0)
                         {
-                            if (node->kind == NODE_KIND_FUN)
+                            if (scope->kind == NODE_KIND_FUN)
                             {
-                                sy_node_fun_t *fun1 = (sy_node_fun_t *)node->value;
+                                sy_node_fun_t *fun1 = (sy_node_fun_t *)scope->value;
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)fun1->key->value;
                                 sy_node_basic_t *basic2 = (sy_node_basic_t *)argument->key->value;
                                 sy_error_type_by_node(argument->key, "'%s' got an unexpected keyword argument '%s'", basic1->value ,basic2->value);
@@ -939,7 +944,7 @@ parameters_substitute(sy_node_t *base, sy_node_t *node, sy_strip_t *strip, sy_no
                             return -1;
                         }
 
-                        sy_entry_t *entry = sy_strip_input_push(strip, node, item1, parameter->key, record_arg);
+                        sy_entry_t *entry = sy_strip_input_push(strip, scope, item1, parameter->key, record_arg);
                         if (entry == ERROR)
                         {
                             if (record_arg->link == 0)
@@ -1183,7 +1188,7 @@ parameters_substitute(sy_node_t *base, sy_node_t *node, sy_strip_t *strip, sy_no
                             record_arg->link = 1;
                         }
 
-                        sy_entry_t *entry = sy_strip_input_push(strip, node, item1, parameter->key, record_arg);
+                        sy_entry_t *entry = sy_strip_input_push(strip, scope, item1, parameter->key, record_arg);
                         if (entry == ERROR)
                         {
                             if (record_arg->link == 0)
@@ -1207,7 +1212,7 @@ parameters_substitute(sy_node_t *base, sy_node_t *node, sy_strip_t *strip, sy_no
         for (;item1 != NULL;item1 = item1->next)
         {
             sy_node_parameter_t *parameter = (sy_node_parameter_t *)item1->value;
-            sy_entry_t *entry = sy_strip_input_find(strip, node, parameter->key);
+            sy_entry_t *entry = sy_strip_input_find(strip, scope, parameter->key);
             if (!entry)
             {
                 if (parameter->value)
@@ -1418,7 +1423,7 @@ parameters_substitute(sy_node_t *base, sy_node_t *node, sy_strip_t *strip, sy_no
                         record_arg->link = 1;
                     }
 
-                    sy_entry_t *entry2 = sy_strip_input_push(strip, node, item1, parameter->key, record_arg);
+                    sy_entry_t *entry2 = sy_strip_input_push(strip, scope, item1, parameter->key, record_arg);
                     if (entry2 == ERROR)
                     {
                         if (record_arg->link == 0)
@@ -1433,9 +1438,9 @@ parameters_substitute(sy_node_t *base, sy_node_t *node, sy_strip_t *strip, sy_no
                 }
                 else
                 {
-                    if (node->kind == NODE_KIND_FUN)
+                    if (scope->kind == NODE_KIND_FUN)
                     {
-                        sy_node_fun_t *fun1 = (sy_node_fun_t *)node->value;
+                        sy_node_fun_t *fun1 = (sy_node_fun_t *)scope->value;
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)fun1->key->value;
                         sy_node_basic_t *basic2 = (sy_node_basic_t *)parameter->key->value;
                         sy_error_type_by_node(base, "'%s' missing '%s' required positional argument", basic1->value, basic2->value);
@@ -1456,28 +1461,45 @@ parameters_substitute(sy_node_t *base, sy_node_t *node, sy_strip_t *strip, sy_no
 }
 
 static int32_t
-heritages_substitute(sy_node_t *node, sy_strip_t *strip, sy_node_t *heritages, sy_node_t *applicant)
+heritage_substitute(sy_node_t *scope, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
 {
-    sy_node_class_t *class1 = (sy_node_class_t *)node->value;
+    sy_node_heritage_t *heritage = (sy_node_heritage_t *)node->value;
 
-    sy_node_block_t *block = (sy_node_block_t *)class1->heritages->value;
-    for (sy_node_t *item = block->items;item != NULL;item = item->next)
+    sy_record_t *record_heritage = sy_execute_expression(heritage->type, strip, applicant, NULL);
+    if (record_heritage == ERROR)
     {
-        sy_node_heritage_t *heritage = (sy_node_heritage_t *)item->value;
-        
-        sy_record_t *record_heritage = sy_execute_expression(heritage->type, strip, applicant, NULL);
-        if (record_heritage == ERROR)
+        return -1;
+    }
+
+    sy_node_class_t *class1 = (sy_node_class_t *)scope->value;
+
+    if (record_heritage->kind != RECORD_KIND_TYPE)
+    {
+        sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage->key->value;
+        sy_node_basic_t *basic2 = (sy_node_basic_t *)class1->key->value;
+        sy_error_type_by_node(heritage->key, "'%s' unexpected type as heritage '%s'", 
+            basic2->value, basic1->value);
+
+        if (record_heritage->link == 0)
         {
-            return -1;
+            if (sy_record_destroy(record_heritage) < 0)
+            {
+                return -1;
+            }
         }
+        return -1;
+    }
 
-        if (record_heritage->kind != RECORD_KIND_TYPE)
+    sy_record_type_t *record_type = (sy_record_type_t *)record_heritage->value;
+    sy_node_t *type = record_type->type;
+
+    if (type->kind == NODE_KIND_CLASS)
+    {
+        sy_strip_t *strip_new = (sy_strip_t *)record_type->value;
+
+        sy_record_t *content = provide_class(strip_new, type, applicant);
+        if (content == ERROR)
         {
-            sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage->key->value;
-            sy_node_basic_t *basic2 = (sy_node_basic_t *)class1->key->value;
-            sy_error_type_by_node(heritage->key, "'%s' unexpected type as heritage '%s'", 
-                basic2->value, basic1->value);
-
             if (record_heritage->link == 0)
             {
                 if (sy_record_destroy(record_heritage) < 0)
@@ -1488,90 +1510,611 @@ heritages_substitute(sy_node_t *node, sy_strip_t *strip, sy_node_t *heritages, s
             return -1;
         }
 
-        sy_record_type_t *record_type = (sy_record_type_t *)record_heritage->value;
-        sy_node_t *type = record_type->type;
-
-        if (type->kind == NODE_KIND_CLASS)
+        if (record_heritage->link == 0)
         {
-            sy_strip_t *new_strip = sy_strip_copy((sy_strip_t *)record_type->value);
-            if (new_strip == ERROR)
+            if (sy_record_destroy(record_heritage) < 0)
             {
-                if (record_heritage->link == 0)
+                if (content->link == 0)
                 {
-                    if (sy_record_destroy(record_heritage) < 0)
+                    if (sy_record_destroy(content) < 0)
                     {
                         return -1;
                     }
                 }
                 return -1;
             }
+        }
 
-            sy_record_t *record = sy_record_make_struct(type, new_strip);
-            if (record == ERROR)
-            {
-                if (sy_strip_destroy(new_strip) < 0)
-                {
-                    if (record_heritage->link == 0)
-                    {
-                        if (sy_record_destroy(record_heritage) < 0)
-                        {
-                            return -1;
-                        }
-                    }
-                    return -1;
-                }
-                if (record_heritage->link == 0)
-                {
-                    if (sy_record_destroy(record_heritage) < 0)
-                    {
-                        return -1;
-                    }
-                }
-                return -1;
-            }
+        content->link = 1;
 
-            if (record_heritage->link == 0)
+        sy_entry_t *entry = sy_strip_variable_push(strip, scope, node, heritage->key, content);
+        if (entry == ERROR)
+        {
+            content->link = 0;
+            if (content->link == 0)
             {
-                if (sy_record_destroy(record_heritage) < 0)
+                if (sy_record_destroy(content) < 0)
                 {
                     return -1;
                 }
             }
-
-            sy_entry_t *entry = sy_strip_variable_push(strip, node, item, heritage->key, record);
-            if (entry == ERROR)
-            {
-                return -1;
-            }
-            else
-            if (entry == NULL)
-            {
-                sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage->key->value;
-                sy_error_type_by_node(heritage->key, "'%s' already set", basic1->value);
-                return -1;
-            }
+            return -1;
         }
         else
+        if (entry == NULL)
         {
             sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage->key->value;
-            sy_node_basic_t *basic2 = (sy_node_basic_t *)class1->key->value;
-            sy_error_type_by_node(heritage->key, "'%s' unexpected type as heritage '%s'", 
-                basic2->value, basic1->value);
-
-            if (record_heritage->link == 0)
+            sy_error_type_by_node(heritage->key, "'%s' already set", basic1->value);
+            content->link = 0;
+            if (content->link == 0)
             {
-                if (sy_record_destroy(record_heritage) < 0)
+                if (sy_record_destroy(content) < 0)
                 {
                     return -1;
                 }
             }
+
             return -1;
         }
+    }
+    else
+    {
+        sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage->key->value;
+        sy_node_basic_t *basic2 = (sy_node_basic_t *)class1->key->value;
+        sy_error_type_by_node(heritage->key, "'%s' unexpected type as heritage '%s'", 
+            basic2->value, basic1->value);
+
+        if (record_heritage->link == 0)
+        {
+            if (sy_record_destroy(record_heritage) < 0)
+            {
+                return -1;
+            }
+        }
+        return -1;
     }
 
     return 0;
 }
 
+static int32_t
+property_substitute(sy_node_t *scope, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
+{
+    sy_node_property_t *property = (sy_node_property_t *)node->value;
+    sy_record_t *record_value = NULL;
+    
+    if (property->value)
+    {
+        
+        record_value = sy_execute_expression(property->value, strip, applicant, NULL);
+        if (record_value == ERROR)
+        {
+            return -1;
+        }
+        
+        if (property->type)
+        {
+            sy_record_t *record_param_type = sy_execute_expression(property->type, strip, applicant, NULL);
+            if (record_param_type == ERROR)
+            {
+                if (record_value->link == 0)
+                {
+                    if (sy_record_destroy(record_value) < 0)
+                    {
+                        return -1;
+                    }
+                }
+                return -1;
+            }
+
+            if (record_param_type->kind != RECORD_KIND_TYPE)
+            {
+                sy_node_basic_t *basic1 = (sy_node_basic_t *)property->key->value;
+                sy_error_type_by_node(property->type, "'%s' unsupported type: '%s'", 
+                    basic1->value, sy_record_type_as_string(record_param_type));
+                
+                if (record_param_type->link == 0)
+                {
+                    if (sy_record_destroy(record_param_type) < 0)
+                    {
+                        if (record_value->link == 0)
+                        {
+                            if (sy_record_destroy(record_value) < 0)
+                            {
+                                return -1;
+                            }
+                        }
+                        return -1;
+                    }
+                }
+
+                if (record_value->link == 0)
+                {
+                    if (sy_record_destroy(record_value) < 0)
+                    {
+                        return -1;
+                    }
+                }
+
+                return -1;
+            }
+
+            int32_t r1 = sy_execute_value_check_by_type(record_value, record_param_type, strip, applicant);
+            if (r1 < 0)
+            {
+                if (record_param_type->link == 0)
+                {
+                    if (sy_record_destroy(record_param_type) < 0)
+                    {
+                        if (record_value->link == 0)
+                        {
+                            if (sy_record_destroy(record_value) < 0)
+                            {
+                                return -1;
+                            }
+                        }
+                        return -1;
+                    }
+                }
+
+                if (record_value->link == 0)
+                {
+                    if (sy_record_destroy(record_value) < 0)
+                    {
+                        return -1;
+                    }
+                }
+                
+                return -1;
+            }
+            else
+            if (r1 == 0)
+            {
+                if (record_value->link == 1)
+                {
+                    record_value = sy_record_copy(record_value);
+                }
+
+                sy_record_t *record_arg2 = sy_execute_value_casting_by_type(record_value, record_param_type, strip, applicant);
+                if (record_arg2 == ERROR)
+                {
+                    if (record_param_type->link == 0)
+                    {
+                        if (sy_record_destroy(record_param_type) < 0)
+                        {
+                            if (record_value->link == 0)
+                            {
+                                if (sy_record_destroy(record_value) < 0)
+                                {
+                                    return -1;
+                                }
+                            }
+                            return -1;
+                        }
+                    }
+
+                    if (record_value->link == 0)
+                    {
+                        if (sy_record_destroy(record_value) < 0)
+                        {
+                            return -1;
+                        }
+                    }
+                    
+                    return -1;
+                }
+                else
+                if (record_arg2 == NULL)
+                {
+                    sy_node_basic_t *basic1 = (sy_node_basic_t *)property->key->value;
+                    sy_error_type_by_node(property->key, "'%s' mismatch: '%s' and '%s'", 
+                        basic1->value, sy_record_type_as_string(record_value), sy_record_type_as_string(record_param_type));
+
+                    if (record_param_type->link == 0)
+                    {
+                        if (sy_record_destroy(record_param_type) < 0)
+                        {
+                            if (record_value->link == 0)
+                            {
+                                if (sy_record_destroy(record_value) < 0)
+                                {
+                                    return -1;
+                                }
+                            }
+                            return -1;
+                        }
+                    }
+
+                    if (record_value->link == 0)
+                    {
+                        if (sy_record_destroy(record_value) < 0)
+                        {
+                            return -1;
+                        }
+                    }
+                    
+                    return -1;
+                }
+
+                record_value = record_arg2;
+            }
+
+            if (record_param_type->link == 0)
+            {
+                if (sy_record_destroy(record_param_type) < 0)
+                {
+                    return -1;
+                }
+            }
+        }
+    }
+    else
+    {
+        record_value = sy_record_make_undefined();
+        if (record_value == ERROR)
+        {
+            return -1;
+        }
+    }
+    
+    if (record_value->link == 1)
+    {
+        record_value = sy_record_copy(record_value);
+    }
+
+    record_value->link = 1;
+    
+    sy_entry_t *entry = sy_strip_variable_push(strip, scope, node, property->key, record_value);
+    if (entry == ERROR)
+    {
+        if (record_value->link == 0)
+        {
+            if (sy_record_destroy(record_value) < 0)
+            {
+                return -1;
+            }
+        }
+        return -1;
+    }
+
+    return 0;
+}
+
+static sy_record_t *
+provide_class(sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
+{
+    sy_node_class_t *class1 = (sy_node_class_t *)node->value;
+    
+    sy_strip_t *strip_class = sy_strip_copy(strip);
+    if (strip_class == ERROR)
+    {
+        return ERROR;
+    }
+
+    strip_class->link = 1;
+
+    if (class1->heritages)
+    {
+        sy_node_block_t *block = (sy_node_block_t *)class1->heritages->value;
+        for (sy_node_t *item = block->items;item != NULL;item = item->next)
+        {
+            if (heritage_substitute(node, strip_class, item, applicant) < 0)
+            {
+                strip_class->link = 0;
+                if (sy_strip_destroy(strip_class) < 0)
+                {
+                    return ERROR;
+                }
+            }
+        }
+    }
+
+    for (sy_node_t *item = class1->block; item != NULL; item = item->next)
+    {
+        if (item->kind == NODE_KIND_PROPERTY)
+        {
+            sy_node_property_t *property = (sy_node_property_t *)item->value;
+            if ((property->flag & SYNTAX_MODIFIER_STATIC ) != SYNTAX_MODIFIER_STATIC)
+            {
+                if (property_substitute(node, strip_class, item, applicant) < 0)
+                {
+                    strip_class->link = 0;
+                    if (sy_strip_destroy(strip_class) < 0)
+                    {
+                        return ERROR;
+                    }
+                }
+            }
+        }
+    }
+
+    sy_record_t *result = sy_record_make_struct(node, strip_class);
+    if (result == ERROR)
+    {
+        strip_class->link = 0;
+        if (sy_strip_destroy(strip_class) < 0)
+        {
+            return ERROR;
+        }
+    }
+
+    return result;
+}
+
+static sy_record_t *
+call_for_class(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
+{    
+    sy_record_t *content = provide_class(strip, node, applicant);
+    if (content == ERROR)
+    {
+        return ERROR;
+    }
+
+    sy_record_struct_t *struct1 = (sy_record_struct_t *)content->value;
+    sy_node_t *type = struct1->type;
+    sy_strip_t *strip_class = struct1->value;
+
+    sy_node_class_t *class1 = (sy_node_class_t *)type->value;
+
+    for (sy_node_t *item = class1->block; item != NULL; item = item->next)
+    {
+        if (item->kind == NODE_KIND_FUN)
+        {
+            sy_node_fun_t *fun1 = (sy_node_fun_t *)item->value;
+            if (sy_execute_id_strcmp(fun1->key, CONSTRUCTOR_STR) == 1)
+            {
+                sy_strip_t *strip_fun = sy_strip_create(strip_class);
+                if (strip_fun == ERROR)
+                {
+                    if (content->link == 0)
+                    {
+                        if (sy_record_destroy(content) < 0)
+                        {
+                            return ERROR;
+                        }
+                    }
+                    return ERROR;
+                }
+                strip_fun->link = 1;
+
+                if (parameters_substitute(base, item, strip_fun, fun1->parameters, arguments, applicant) < 0)
+                {
+                    strip_fun->link = 0;
+                    if (sy_strip_destroy(strip_fun) < 0)
+                    {
+                        if (content->link == 0)
+                        {
+                            if (sy_record_destroy(content) < 0)
+                            {
+                                return ERROR;
+                            }
+                        }
+                        return ERROR;
+                    }
+                    if (content->link == 0)
+                    {
+                        if (sy_record_destroy(content) < 0)
+                        {
+                            return ERROR;
+                        }
+                    }
+                    return ERROR;
+                }
+
+                int32_t r1 = sy_execute_run_fun(item, strip_fun, applicant);
+                if (r1 == -1)
+                {
+                    strip_fun->link = 0;
+                    
+                    if (sy_strip_destroy(strip_fun) < 0)
+                    {
+                        if (content->link == 0)
+                        {
+                            if (sy_record_destroy(content) < 0)
+                            {
+                                return ERROR;
+                            }
+                        }
+                        return ERROR;
+                    }
+
+                    if (content->link == 0)
+                    {
+                        if (sy_record_destroy(content) < 0)
+                        {
+                            return ERROR;
+                        }
+                    }
+
+                    return ERROR;
+                }
+
+                strip_fun->link = 0;
+                if (sy_strip_destroy(strip_fun) < 0)
+                {
+                    if (content->link == 0)
+                    {
+                        if (sy_record_destroy(content) < 0)
+                        {
+                            return ERROR;
+                        }
+                    }
+                    return ERROR;
+                }
+
+                sy_record_t *rax = sy_thread_get_and_set_rax(NULL);
+                if (rax == ERROR)
+                {
+                    return ERROR;
+                }
+                else
+                if (!rax)
+                {
+                    rax = content;
+                }
+                else
+                {
+                    if (content->link == 0)
+                    {
+                        if (sy_record_destroy(content) < 0)
+                        {
+                            return ERROR;
+                        }
+                    }
+                }
+
+                return rax;
+            }
+        }
+    }
+
+    sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
+    sy_error_type_by_node(base, "'%s' no constructor was found", basic1->value);
+    if (content->link == 0)
+    {
+        if (sy_record_destroy(content) < 0)
+        {
+            return ERROR;
+        }
+    }
+    return ERROR;
+}
+
+static sy_record_t *
+call_for_fun(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
+{
+    sy_node_fun_t *fun1 = (sy_node_fun_t *)node->value;
+    
+    sy_strip_t *strip_copy = sy_strip_copy(strip);
+    if (strip_copy == ERROR)
+    {
+        return ERROR;
+    }
+    
+    sy_strip_t *strip_lambda = sy_strip_create(strip_copy);
+    if (strip_lambda == ERROR)
+    {
+        if (sy_strip_destroy(strip_copy) < 0)
+        {
+            return ERROR;
+        }
+        return ERROR;
+    }
+    
+    strip_lambda->link = 1;
+
+    if (parameters_substitute(base, node, strip_lambda, fun1->parameters, arguments, applicant) < 0)
+    {
+        strip_lambda->link = 0;
+        if (sy_strip_destroy(strip_lambda) < 0)
+        {
+            return ERROR;
+        }
+        return ERROR;
+    }
+    
+    strip_lambda->link = 0;
+
+    int32_t r1 = sy_execute_run_fun(node, strip_lambda, applicant);
+    if (r1 == -1)
+    {
+        if (sy_strip_destroy(strip_lambda) < 0)
+        {
+            return ERROR;
+        }
+        return ERROR;
+    }
+    
+    if (sy_strip_destroy(strip_lambda) < 0)
+    {
+        return ERROR;
+    }
+    
+    sy_record_t *rax = sy_thread_get_and_set_rax(NULL);
+    if (rax == ERROR)
+    {
+        return ERROR;
+    }
+    else
+    if (!rax)
+    {
+        rax = sy_record_make_undefined();
+        if (rax == ERROR)
+        {
+            return ERROR;
+        }
+    }
+
+    return rax;
+}
+
+static sy_record_t *
+call_for_lambda(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
+{
+    sy_node_lambda_t *fun1 = (sy_node_lambda_t *)node->value;
+
+    sy_strip_t *strip_copy = sy_strip_copy(strip);
+    if (strip_copy == ERROR)
+    {
+        return ERROR;
+    }
+
+    sy_strip_t *strip_lambda = sy_strip_create(strip_copy);
+    if (strip_lambda == ERROR)
+    {
+        if (sy_strip_destroy(strip_copy) < 0)
+        {
+            return ERROR;
+        }
+        return ERROR;
+    }
+
+    strip_lambda->link = 1;
+
+    if (parameters_substitute(base, node, strip_lambda, fun1->parameters, arguments, applicant) < 0)
+    {
+        strip_lambda->link = 0;
+        if (sy_strip_destroy(strip_lambda) < 0)
+        {
+            return ERROR;
+        }
+        return ERROR;
+    }
+
+    strip_lambda->link = 0;
+
+    int32_t r1 = sy_execute_run_lambda(node, strip_lambda, applicant);
+    if (r1 == -1)
+    {
+        if (sy_strip_destroy(strip_lambda) < 0)
+        {
+            return ERROR;
+        }
+        return ERROR;
+    }
+
+    if (sy_strip_destroy(strip_lambda) < 0)
+    {
+        return ERROR;
+    }
+
+    sy_record_t *rax = sy_thread_get_and_set_rax(NULL);
+    if (rax == ERROR)
+    {
+        return ERROR;
+    }
+    else
+    if (!rax)
+    {
+        rax = sy_record_make_undefined();
+        if (rax == ERROR)
+        {
+            return ERROR;
+        }
+    }
+
+    return rax;
+}
 
 sy_record_t *
 sy_execute_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
@@ -1588,84 +2131,73 @@ sy_execute_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_nod
     {
         sy_record_type_t *record_type = (sy_record_type_t *)base->value;
         sy_node_t *type = record_type->type;
+
         if (type->kind == NODE_KIND_CLASS)
         {
-            sy_node_class_t *class1 = (sy_node_class_t *)type->value;
+            sy_strip_t *strip_new = (sy_strip_t *)record_type->value;
+            sy_record_t *result = call_for_class(node, carrier->data, strip_new, type, applicant);
             
-            sy_strip_t *new_strip_class = sy_strip_copy((sy_strip_t *)record_type->value);
-            if (new_strip_class == ERROR)
+            if (base->link == 0)
             {
-                return ERROR;
-            }
-
-            if (class1->heritages)
-            {
-                if (heritages_substitute(type, new_strip_class, class1->heritages, applicant) < 0)
+                if (sy_record_destroy(base) < 0)
                 {
-                    if (sy_strip_destroy(new_strip_class) < 0)
-                    {
-                        if (base->link == 0)
-                        {
-                            if (sy_record_destroy(base) < 0)
-                            {
-                                return ERROR;
-                            }
-                        }
-                        return ERROR;
-                    }
-                    if (base->link == 0)
-                    {
-                        if (sy_record_destroy(base) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
                     return ERROR;
                 }
             }
 
-            for (sy_node_t *item = class1->block; item != NULL; item = item->next)
+            if (result == ERROR)
             {
-                if (item->kind == NODE_KIND_FUN)
-                {
-                    sy_node_fun_t *fun1 = (sy_node_fun_t *)item->value;
-                    if (sy_execute_id_strcmp(fun1->key, CONSTRUCTOR_STR) == 1)
-                    {
-                        sy_strip_t *new_strip_fun = sy_strip_create(new_strip_class);
-                        if (new_strip_fun == ERROR)
-                        {
-                            if (sy_strip_destroy(new_strip_class) < 0)
-                            {
-                                return ERROR;
-                            }
-                            return ERROR;
-                        }
+                return ERROR;
+            }
 
-                        if (parameters_substitute(carrier->base, item, new_strip_fun, fun1->parameters, carrier->data, applicant) < 0)
-                        {
-                            if (sy_strip_destroy(new_strip_fun) < 0)
-                            {
-                                if (sy_strip_destroy(new_strip_class) < 0)
-                                {
-                                    return ERROR;
-                                }
-                                return ERROR;
-                            }
-                            if (sy_strip_destroy(new_strip_class) < 0)
-                            {
-                                return ERROR;
-                            }
-                        }
-                    }
+            return result;
+        }
+        else
+        if (type->kind == NODE_KIND_FUN)
+        {
+            sy_strip_t *strip_new = (sy_strip_t *)record_type->value;
+            sy_record_t *result = call_for_fun(node, carrier->data, strip_new, type, applicant);
+            
+            if (base->link == 0)
+            {
+                if (sy_record_destroy(base) < 0)
+                {
+                    return ERROR;
                 }
             }
 
-            return base;
+            if (result == ERROR)
+            {
+                return ERROR;
+            }
+            
+            return result;
+        }
+        else
+        if (type->kind == NODE_KIND_LAMBDA)
+        {
+            sy_strip_t *strip_new = (sy_strip_t *)record_type->value;
+            sy_record_t *result = call_for_lambda(node, carrier->data, strip_new, type, applicant);
+            
+            if (base->link == 0)
+            {
+                if (sy_record_destroy(base) < 0)
+                {
+                    return ERROR;
+                }
+            }
+
+            if (result == ERROR)
+            {
+                return ERROR;
+            }
+            
+            return result;
         }
         else
         {
             sy_error_type_by_node(carrier->base, "'%s' object is not callable", 
-                sy_node_kind_as_string(type));
+                sy_record_type_as_string(base));
 
             if (base->link == 0)
             {
@@ -1678,7 +2210,17 @@ sy_execute_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_nod
             return ERROR;
         }
     }
+    
+    sy_error_type_by_node(carrier->base, "'%s' object is not callable", 
+        sy_record_type_as_string(base));
 
-    sy_error_type_by_node(node, "call implement not support");
+    if (base->link == 0)
+    {
+        if (sy_record_destroy(base) < 0)
+        {
+            return ERROR;
+        }
+    }
+
     return ERROR;
 }

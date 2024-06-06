@@ -60,4 +60,13 @@ sy_thread_join_all_childrens();
 int32_t
 sy_thread_exit();
 
+int32_t
+sy_thread_set_rax(sy_record_t *value);
+
+sy_record_t *
+sy_thread_get_rax();
+
+sy_record_t *
+sy_thread_get_and_set_rax(sy_record_t *value);
+
 #endif

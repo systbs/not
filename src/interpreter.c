@@ -31,3 +31,4 @@ sy_interpreter_destroy(sy_interpreter_t *it)
     sy_memory_free(it);
     return 0;
 }
+

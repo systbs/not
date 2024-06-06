@@ -12355,6 +12355,7 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         {
             return -1;
         }
+
         return 0;
     }
 }

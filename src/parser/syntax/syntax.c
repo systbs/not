@@ -661,52 +661,6 @@ sy_syntax_kstring(sy_syntax_t *syntax, sy_node_t *parent)
 
 
 static sy_node_t *
-sy_syntax_this(sy_syntax_t *syntax, sy_node_t *parent)
-{
-	sy_node_t *node = sy_node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	sy_node_t *node2 = sy_node_make_this(node);
-	if (node2 == NULL)
-	{
-		return NULL;
-	}
-
-	if (sy_syntax_match(syntax, TOKEN_THIS_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
-
-static sy_node_t *
-sy_syntax_self(sy_syntax_t *syntax, sy_node_t *parent)
-{
-	sy_node_t *node = sy_node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	sy_node_t *node2 = sy_node_make_self(node);
-	if (node2 == NULL)
-	{
-		return NULL;
-	}
-
-	if (sy_syntax_match(syntax, TOKEN_SELF_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
-
-static sy_node_t *
 sy_syntax_operator(sy_syntax_t *syntax, sy_node_t *parent)
 {
 	sy_node_t *node = sy_node_create(parent, syntax->token->position);
@@ -1335,17 +1289,7 @@ sy_syntax_primary(sy_syntax_t *syntax, sy_node_t *parent)
 	{
 		return sy_syntax_kstring(syntax, parent);
 	}
-	else 
-	if (syntax->token->type == TOKEN_THIS_KEYWORD)
-	{
-		return sy_syntax_this(syntax, parent);
-	}
-	else 
-	if (syntax->token->type == TOKEN_SELF_KEYWORD)
-	{
-		return sy_syntax_self(syntax, parent);
-	}
-	else 
+	else
 	if (syntax->token->type == TOKEN_LBRACKET)
 	{
 		return sy_syntax_tuple(syntax, parent);
@@ -4626,28 +4570,6 @@ sy_syntax_using(sy_syntax_t *syntax, sy_node_t *parent)
 }
 
 static sy_node_t *
-sy_syntax_reference(sy_syntax_t *syntax, sy_node_t *parent, uint64_t flag)
-{
-	if (sy_syntax_match(syntax, TOKEN_REFERENCE_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	flag |= SYNTAX_MODIFIER_REFERENCE;
-
-	sy_node_t *node = sy_syntax_var_stmt(syntax, parent, flag);
-
-	flag &= ~SYNTAX_MODIFIER_REFERENCE;
-
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	return node;
-}
-
-static sy_node_t *
 sy_syntax_readonly(sy_syntax_t *syntax, sy_node_t *parent, uint64_t flag)
 {
 	if (sy_syntax_match(syntax, TOKEN_READONLY_KEYWORD) == -1)
@@ -4657,15 +4579,7 @@ sy_syntax_readonly(sy_syntax_t *syntax, sy_node_t *parent, uint64_t flag)
 
 	flag |= SYNTAX_MODIFIER_READONLY;
 
-	sy_node_t *node = NULL;
-	if (syntax->token->type == TOKEN_REFERENCE_KEYWORD)
-	{
-		node = sy_syntax_reference(syntax, parent, flag);
-	}
-	else
-	{
-		node = sy_syntax_var_stmt(syntax, parent, flag);
-	}
+	sy_node_t *node = sy_syntax_var_stmt(syntax, parent, flag);
 
 	flag &= ~SYNTAX_MODIFIER_READONLY;
 
@@ -4724,11 +4638,6 @@ sy_syntax_export(sy_syntax_t *syntax, sy_node_t *parent, sy_node_t *note)
 	if ((syntax->token->type == TOKEN_READONLY_KEYWORD) && (note == NULL))
 	{
 		node = sy_syntax_readonly(syntax, parent, flag);
-	}
-	else
-	if ((syntax->token->type == TOKEN_REFERENCE_KEYWORD) && (note == NULL))
-	{
-		node = sy_syntax_reference(syntax, parent, flag);
 	}
 	else
 	{

@@ -266,7 +266,7 @@ attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node
             sy_node_class_t *class2 = (sy_node_class_t *)item->value;
             if (sy_execute_id_cmp(class2->key, right) == 1)
             {
-                if ((class2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                if ((class2->flag & (SYNTAX_MODIFIER_STATIC | SYNTAX_MODIFIER_EXPORT)) != (SYNTAX_MODIFIER_STATIC | SYNTAX_MODIFIER_EXPORT))
                 {
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)class2->key->value;
                     sy_node_basic_t *basic2 = (sy_node_basic_t *)class1->key->value;
@@ -275,13 +275,23 @@ attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node
                     return ERROR;
                 }
 
-                sy_strip_t *new_strip = sy_strip_copy(strip);
-                if (new_strip)
+                sy_strip_t *copy_strip = sy_strip_copy(strip);
+                if (copy_strip == ERROR)
                 {
                     return ERROR;
                 }
 
-                return sy_record_make_type(item, new_strip); 
+                sy_strip_t *strip_new = sy_strip_create(copy_strip);
+                if (strip_new == ERROR)
+                {
+                    if (sy_strip_destroy(copy_strip) < 0)
+                    {
+                        return ERROR;
+                    }
+                    return ERROR;
+                }
+
+                return sy_record_make_type(item, strip_new); 
             }
         }
         else
@@ -299,13 +309,23 @@ attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node
                     return ERROR;
                 }
 
-                sy_strip_t *new_strip = sy_strip_copy(strip);
-                if (new_strip)
+                sy_strip_t *copy_strip = sy_strip_copy(strip);
+                if (copy_strip == ERROR)
                 {
                     return ERROR;
                 }
 
-                return sy_record_make_type(item, new_strip);
+                sy_strip_t *strip_new = sy_strip_create(copy_strip);
+                if (strip_new == ERROR)
+                {
+                    if (sy_strip_destroy(copy_strip) < 0)
+                    {
+                        return ERROR;
+                    }
+                    return ERROR;
+                }
+
+                return sy_record_make_type(item, strip_new); 
             }
         }
     }
@@ -450,17 +470,17 @@ attribute_from_struct(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_no
                     return ERROR;
                 }
 
-                sy_strip_t *new_strip = sy_strip_create(strip);
-                if (new_strip == ERROR)
+                sy_strip_t *strip_new = sy_strip_create(strip);
+                if (strip_new == ERROR)
                 {
                     return ERROR;
                 }
 
-                return sy_record_make_type(item, new_strip); 
+                return sy_record_make_type(item, strip_new); 
             }
         }
         else
-        if (item->kind == NODE_KIND_IF)
+        if (item->kind == NODE_KIND_FUN)
         {
             sy_node_fun_t *fun1 = (sy_node_fun_t *)item->value;
             if (sy_execute_id_cmp(fun1->key, right) == 1)
@@ -483,13 +503,13 @@ attribute_from_struct(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_no
                     return ERROR;
                 }
 
-                sy_strip_t *new_strip = sy_strip_create(strip);
-                if (new_strip == ERROR)
+                sy_strip_t *strip_new = sy_strip_create(strip);
+                if (strip_new == ERROR)
                 {
                     return ERROR;
                 }
 
-                return sy_record_make_type(item, new_strip);
+                return sy_record_make_type(item, strip_new); 
             }
         }
     }
@@ -519,8 +539,7 @@ attribute_from_struct(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_no
             sy_record_struct_t *record_struct = (sy_record_struct_t *)entry->value->value;
             sy_node_t *type = record_struct->type;
 
-            sy_record_t *result = attribute_from_struct(
-                node, (sy_strip_t *)record_struct->value, type, right, applicant);
+            sy_record_t *result = attribute_from_struct(node, (sy_strip_t *)record_struct->value, type, right, applicant);
 
             if (result == ERROR)
             {
@@ -552,11 +571,10 @@ sy_execute_attribute(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
     {
         sy_record_type_t *record_type = (sy_record_type_t *)left->value;
         sy_node_t *type = record_type->type;
+        sy_strip_t *strip_new = (sy_strip_t *)record_type->value;
         if (type->kind == NODE_KIND_CLASS)
         {
-            
-            sy_record_t *result = attribute_from_type(
-                node, (sy_strip_t *)record_type->value, type, binary->right, applicant);
+            sy_record_t *result = attribute_from_type(node, strip_new, type, binary->right, applicant);
             
             if (result == ERROR)
             {
@@ -625,10 +643,10 @@ sy_execute_attribute(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
     {
         sy_record_struct_t *record_struct = (sy_record_struct_t *)left->value;
         sy_node_t *type = record_struct->type;
-
-        sy_record_t *result = attribute_from_struct(
-            node, (sy_strip_t *)record_struct->value, type, binary->right, applicant);
-            
+        sy_strip_t *strip_new = (sy_strip_t *)record_struct->value;
+        
+        sy_record_t *result = attribute_from_struct(node, strip_new, type, binary->right, applicant);
+        
         if (result == ERROR)
         {
             return ERROR;
@@ -683,7 +701,7 @@ sy_execute_attribute(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
         }
 
         sy_node_basic_t *basic1 = (sy_node_basic_t *)binary->right->value;
-        sy_error_type_by_node(binary->right, "'%s' has no attribute '%s'", 
+        sy_error_type_by_node(node, "'%s' has no attribute '%s'", 
             sy_record_type_as_string(left), basic1->value);
 
         if (left->link == 0)

@@ -2453,8 +2453,6 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
         }
     }
 
-    sy_thread_t *thread = sy_thread_get_current();
-
     sy_record_t *zero = sy_record_make_int8(0);
     if (zero == ERROR)
     {
@@ -2495,17 +2493,16 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
             if (r2 == -2)
             {
                 ret_code = -2;
-                if (sy_mutex_lock(&thread->lock) < 0)
+                sy_record_t *rax = sy_thread_get_rax();
+                if (rax == ERROR)
                 {
-                    sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", thread->id);
                     goto region_error;
                 }
 
-                if (thread->interpreter->rax)
+                if (rax)
                 {
                     if (for1->key)
                     {
-                        sy_record_t *rax = thread->interpreter->rax;
                         sy_record_type_t *type = (sy_record_type_t *)rax->value;
                         sy_node_for_t *for2 = (sy_node_for_t *)type->type->value;
                         if (sy_execute_id_cmp(for1->key, for2->key) == 1)
@@ -2514,34 +2511,22 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
                             {
                                 if (sy_record_destroy(rax) < 0)
                                 {
-                                    if (sy_mutex_unlock(&thread->lock) < 0)
-                                    {
-                                        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
-                                        goto region_error;
-                                    }
                                     goto region_error;
                                 }
                             }
-                            thread->interpreter->rax = NULL;
+                            if (sy_thread_set_rax(NULL) < 0)
+                            {
+                                goto region_error;
+                            }
                             ret_code = 0;
                         }
                     }
 
-                    if (sy_mutex_unlock(&thread->lock) < 0)
-                    {
-                        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
-                        goto region_error;
-                    }
                     goto region_end_loop;
                 }
                 else
                 {
                     ret_code = 0;
-                    if (sy_mutex_unlock(&thread->lock) < 0)
-                    {
-                        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
-                        goto region_error;
-                    }
                     goto region_end_loop;
                 }
             }
@@ -2549,17 +2534,17 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
             if (r2 == -3)
             {
                 ret_code = -3;
-                if (sy_mutex_lock(&thread->lock) < 0)
+
+                sy_record_t *rax = sy_thread_get_rax();
+                if (rax == ERROR)
                 {
-                    sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", thread->id);
                     goto region_error;
                 }
 
-                if (thread->interpreter->rax)
+                if (rax)
                 {
                     if (for1->key)
                     {
-                        sy_record_t *rax = thread->interpreter->rax;
                         sy_record_type_t *type = (sy_record_type_t *)rax->value;
                         sy_node_for_t *for2 = (sy_node_for_t *)type->type->value;
                         if (sy_execute_id_cmp(for1->key, for2->key) == 1)
@@ -2568,41 +2553,24 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
                             {
                                 if (sy_record_destroy(rax) < 0)
                                 {
-                                    if (sy_mutex_unlock(&thread->lock) < 0)
-                                    {
-                                        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
-                                        goto region_error;
-                                    }
                                     goto region_error;
                                 }
                             }
-                            thread->interpreter->rax = NULL;
-                            ret_code = 0;
-
-                            if (sy_mutex_unlock(&thread->lock) < 0)
+                            if (sy_thread_set_rax(NULL) < 0)
                             {
-                                sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
                                 goto region_error;
                             }
+                            ret_code = 0;
+
                             goto region_continue_loop;
                         }
                     }
 
-                    if (sy_mutex_unlock(&thread->lock) < 0)
-                    {
-                        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
-                        goto region_error;
-                    }
                     goto region_end_loop;
                 }
                 else
                 {
                     ret_code = 0;
-                    if (sy_mutex_unlock(&thread->lock) < 0)
-                    {
-                        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
-                        goto region_error;
-                    }
                     goto region_continue_loop;
                 }
             }
@@ -2737,17 +2705,17 @@ sy_execute_break(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
 
     if (unary->right)
     {
-        sy_record_t *record = sy_execute_expression(unary->right, strip, applicant, NULL);
-        if (record == ERROR)
+        sy_record_t *value = sy_execute_expression(unary->right, strip, applicant, NULL);
+        if (value == ERROR)
         {            
             return -1;
         }
 
-        if (record->kind != RECORD_KIND_TYPE)
+        if (value->kind != RECORD_KIND_TYPE)
         {
-            if (record->link == 0)
+            if (value->link == 0)
             {
-                if (sy_record_destroy(record) < 0)
+                if (sy_record_destroy(value) < 0)
                 {
                     return -1;
                 }
@@ -2755,12 +2723,12 @@ sy_execute_break(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
             goto region_error;
         }
 
-        sy_record_type_t *type = (sy_record_type_t *)record->value;
+        sy_record_type_t *type = (sy_record_type_t *)value->value;
         if (type->type->kind != NODE_KIND_FOR)
         {
-            if (record->link == 0)
+            if (value->link == 0)
             {
-                if (sy_record_destroy(record) < 0)
+                if (sy_record_destroy(value) < 0)
                 {
                     return -1;
                 }
@@ -2768,35 +2736,9 @@ sy_execute_break(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
             goto region_error;
         }
 
-        sy_thread_t *thread = sy_thread_get_current();
-        assert (thread != NULL);
-
-        if (sy_mutex_lock(&thread->lock) < 0)
+        if (sy_thread_set_rax(value) < 0)
         {
-            sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", thread->id);
-            if (record->link == 0)
-            {
-                if (sy_record_destroy(record) < 0)
-                {
-                    return -1;
-                }
-            }
-            goto region_error;
-        }
-
-        thread->interpreter->rax = record;
-
-        if (sy_mutex_unlock(&thread->lock) < 0)
-        {
-            sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
-            if (record->link == 0)
-            {
-                if (sy_record_destroy(record) < 0)
-                {
-                    return -1;
-                }
-            }
-            goto region_error;
+            return -1;
         }
     }
 
@@ -2814,17 +2756,17 @@ sy_execute_continue(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
 
     if (unary->right)
     {
-        sy_record_t *record = sy_execute_expression(unary->right, strip, applicant, NULL);
-        if (record == ERROR)
+        sy_record_t *value = sy_execute_expression(unary->right, strip, applicant, NULL);
+        if (value == ERROR)
         {            
             return -1;
         }
 
-        if (record->kind != RECORD_KIND_TYPE)
+        if (value->kind != RECORD_KIND_TYPE)
         {
-            if (record->link == 0)
+            if (value->link == 0)
             {
-                if (sy_record_destroy(record) < 0)
+                if (sy_record_destroy(value) < 0)
                 {
                     return -1;
                 }
@@ -2832,12 +2774,12 @@ sy_execute_continue(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
             goto region_error;
         }
 
-        sy_record_type_t *type = (sy_record_type_t *)record->value;
+        sy_record_type_t *type = (sy_record_type_t *)value->value;
         if (type->type->kind != NODE_KIND_FOR)
         {
-            if (record->link == 0)
+            if (value->link == 0)
             {
-                if (sy_record_destroy(record) < 0)
+                if (sy_record_destroy(value) < 0)
                 {
                     return -1;
                 }
@@ -2845,35 +2787,9 @@ sy_execute_continue(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
             goto region_error;
         }
 
-        sy_thread_t *thread = sy_thread_get_current();
-        assert (thread != NULL);
-
-        if (sy_mutex_lock(&thread->lock) < 0)
+        if (sy_thread_set_rax(value) < 0)
         {
-            sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", thread->id);
-            if (record->link == 0)
-            {
-                if (sy_record_destroy(record) < 0)
-                {
-                    return -1;
-                }
-            }
-            goto region_error;
-        }
-
-        thread->interpreter->rax = record;
-
-        if (sy_mutex_unlock(&thread->lock) < 0)
-        {
-            sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
-            if (record->link == 0)
-            {
-                if (sy_record_destroy(record) < 0)
-                {
-                    return -1;
-                }
-            }
-            goto region_error;
+            return -1;
         }
     }
 
@@ -2882,6 +2798,28 @@ sy_execute_continue(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
     region_error:
     sy_error_type_by_node(unary->right, "for loop is not mentioned");
     return -1;
+}
+
+static int32_t 
+sy_execute_return(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
+{
+    sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
+
+    if (unary->right)
+    {
+        sy_record_t *value = sy_execute_expression(unary->right, strip, applicant, NULL);
+        if (value == ERROR)
+        {            
+            return -1;
+        }
+
+        if (sy_thread_set_rax(value) < 0)
+        {
+            return -1;
+        }
+    }
+
+    return 0;
 }
 
 static int32_t 
@@ -2932,6 +2870,15 @@ sy_execute_statement(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_no
         }
     }
     else
+    if (node->kind == NODE_KIND_RETURN)
+    {
+        int32_t r1 = sy_execute_return(node, strip, applicant);
+        if (r1 < 0)
+        {
+            return r1;
+        }
+    }
+    else
     {
         int32_t r1 = sy_execute_assign(node, strip, applicant, NULL);
         if (r1 < 0)
@@ -2953,17 +2900,126 @@ sy_execute_body(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
         int32_t r1 = sy_execute_statement(node, item, strip, applicant);
         if (r1 == -1)
         {
+            if (sy_strip_variable_remove_by_scope(strip, node) < 0)
+            {
+                return -1;
+            }
+            
             return -1;
         }
         else
         if (r1 < 0)
         {
+            if (sy_strip_variable_remove_by_scope(strip, node) < 0)
+            {
+                return -1;
+            }
             return r1;
         }
     }
 
     if (sy_strip_variable_remove_by_scope(strip, node) < 0)
     {
+        return -1;
+    }
+
+    return 0;
+}
+
+int32_t 
+sy_execute_run_fun(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
+{
+    sy_node_fun_t *fun = (sy_node_fun_t *)node->value;
+
+    if (fun->parameters)
+    {
+        sy_node_block_t *parameters = (sy_node_block_t *)fun->parameters->value;
+        for (sy_node_t *item = parameters->items;item != NULL;item = item->next)
+        {
+            sy_node_parameter_t *parameter = (sy_node_parameter_t *)item->value;
+            sy_entry_t *entry = sy_strip_input_find(strip, node, parameter->key);
+            if (entry == ERROR)
+            {
+                return -1;
+            }
+            
+            sy_entry_t *entry2 = sy_strip_variable_push(strip, node, item, parameter->key, entry->value);
+            if (entry2 == ERROR)
+            {
+                return -1;
+            }
+        }
+    }
+
+    strip->link = 1;
+    
+    int32_t r1 = sy_execute_body(fun->body, strip, applicant);
+
+    strip->link = 0;
+    
+    if (sy_strip_variable_remove_by_scope(strip, node) < 0)
+    {
+        return -1;
+    }
+
+    if (r1 == -1)
+    {
+        return -1;
+    }
+    else
+    if (r1 < 0)
+    {
+        sy_error_runtime_by_node(node, "there is no loop");
+        return -1;
+    }
+
+    return 0;
+}
+
+int32_t 
+sy_execute_run_lambda(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
+{
+    sy_node_lambda_t *fun = (sy_node_lambda_t *)node->value;
+    
+    if (fun->parameters)
+    {
+        sy_node_block_t *parameters = (sy_node_block_t *)fun->parameters->value;
+        for (sy_node_t *item = parameters->items;item != NULL;item = item->next)
+        {
+            sy_node_parameter_t *parameter = (sy_node_parameter_t *)item->value;
+            sy_entry_t *entry = sy_strip_input_find(strip, node, parameter->key);
+            if (entry == ERROR)
+            {
+                return -1;
+            }
+
+            sy_entry_t *entry2 = sy_strip_variable_push(strip, node, item, parameter->key, entry->value);
+            if (entry2 == ERROR)
+            {
+                return -1;
+            }
+        }
+    }
+
+    strip->link = 1;
+    
+    int32_t r1 = sy_execute_body(fun->body, strip, applicant);
+
+    strip->link = 0;
+    
+    if (sy_strip_variable_remove_by_scope(strip, node) < 0)
+    {
+        return -1;
+    }
+
+    if (r1 == -1)
+    {
+        return -1;
+    }
+    else
+    if (r1 < 0)
+    {
+        sy_error_runtime_by_node(node, "there is no loop");
         return -1;
     }
 

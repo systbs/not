@@ -2241,40 +2241,6 @@ sy_scanner_advance(SyScanner_t *scanner)
 				return 1;
 			}
 			else
-			if (strncmp(scanner->source + start_offset, "this", max(length, 4)) == 0)
-			{
-				sy_scanner_set_token(scanner, (SyToken_t){
-					.type = TOKEN_THIS_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
-
-				return 1;
-			}
-			else
-			if (strncmp(scanner->source + start_offset, "self", max(length, 4)) == 0)
-			{
-				sy_scanner_set_token(scanner, (SyToken_t){
-					.type = TOKEN_SELF_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
-
-				return 1;
-			}
-			else
 			if (strncmp(scanner->source + start_offset, "class", max(length, 5)) == 0)
 			{
 				sy_scanner_set_token(scanner, (SyToken_t){
@@ -2347,23 +2313,6 @@ sy_scanner_advance(SyScanner_t *scanner)
 			{
 				sy_scanner_set_token(scanner, (SyToken_t){
 					.type = TOKEN_REFERENCE_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-							}
-					});
-
-				return 1;
-			}
-			else
-			if (strncmp(scanner->source + start_offset, "override", max(length, 8)) == 0)
-			{
-				sy_scanner_set_token(scanner, (SyToken_t){
-					.type = TOKEN_OVERRIDE_KEYWORD,
 					.value = NULL,
 					.position = {
 							.path = scanner->path,
