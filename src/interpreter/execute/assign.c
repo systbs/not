@@ -27,8 +27,14 @@
 #include "execute.h"
 
 int32_t
-sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
+sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
 {
+    if (left->readonly)
+    {
+        sy_error_type_by_node(node, "readonly assignment: '%s' and '%s'", "int8", "int16");
+        return -1;
+    }
+
     if (left->kind == RECORD_KIND_INT8)
     {
         if (right->kind == RECORD_KIND_INT8)
@@ -43,13 +49,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -71,13 +70,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -99,13 +91,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -127,13 +112,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -155,13 +133,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -183,13 +154,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -211,13 +175,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -239,13 +196,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -268,13 +218,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -296,13 +239,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -324,13 +260,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -353,13 +282,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -376,13 +298,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -404,13 +319,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -431,13 +339,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -458,13 +359,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -485,13 +379,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -512,13 +399,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -534,13 +414,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -556,13 +429,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -578,13 +444,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -606,13 +465,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -629,13 +481,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -657,13 +502,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -685,13 +523,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -708,13 +539,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -736,13 +560,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -764,13 +581,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -792,13 +602,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -821,13 +624,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -849,13 +645,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -877,13 +666,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -906,13 +688,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -929,13 +704,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -957,13 +725,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -984,13 +745,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1011,13 +765,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1038,13 +785,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1065,13 +805,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1087,13 +820,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1109,13 +835,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1131,13 +850,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1159,13 +871,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1182,13 +887,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1205,13 +903,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1233,13 +924,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1256,13 +940,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1279,13 +956,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1307,13 +977,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1335,13 +998,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1364,13 +1020,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1392,13 +1041,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1420,13 +1062,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1449,13 +1084,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1472,13 +1100,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1500,13 +1121,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1527,13 +1141,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1554,13 +1161,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1581,13 +1181,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1608,13 +1201,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1630,13 +1216,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1652,13 +1231,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1674,13 +1246,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1702,13 +1267,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1725,13 +1283,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1748,13 +1299,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1771,13 +1315,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1794,13 +1331,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1817,13 +1347,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1840,13 +1363,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1868,13 +1384,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1897,13 +1406,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1925,13 +1427,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1953,13 +1448,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -1982,13 +1470,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2005,13 +1486,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2033,13 +1507,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2060,13 +1527,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2087,13 +1547,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2114,13 +1567,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2141,13 +1587,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2163,13 +1602,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2185,13 +1617,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2207,13 +1632,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2240,13 +1658,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2268,13 +1679,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2296,13 +1700,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2324,13 +1721,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2347,13 +1737,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2375,13 +1758,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2403,13 +1779,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2431,13 +1800,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2460,13 +1822,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2488,13 +1843,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2516,13 +1864,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2545,13 +1886,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2573,13 +1907,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2601,13 +1928,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2628,13 +1948,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2655,13 +1968,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2682,13 +1988,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2709,13 +2008,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2731,13 +2023,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2753,13 +2038,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2775,13 +2053,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2808,13 +2079,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2836,13 +2100,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2864,13 +2121,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2892,13 +2142,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2915,13 +2158,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2938,13 +2174,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2966,13 +2195,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -2994,13 +2216,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3023,13 +2238,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3051,13 +2259,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3079,13 +2280,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3108,13 +2302,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3136,13 +2323,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3164,13 +2344,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3191,13 +2364,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3218,13 +2384,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3245,13 +2404,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3272,13 +2424,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3294,13 +2439,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3316,13 +2454,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3338,13 +2469,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3371,13 +2495,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3399,13 +2516,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3427,13 +2537,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3455,13 +2558,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3478,13 +2574,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3501,13 +2590,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3524,13 +2606,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3552,13 +2627,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3581,13 +2649,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3609,13 +2670,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3637,13 +2691,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3666,13 +2713,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3694,13 +2734,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3722,13 +2755,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3749,13 +2775,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3776,13 +2795,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3803,13 +2815,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3830,13 +2835,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3852,13 +2850,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3874,13 +2865,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3896,13 +2880,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3929,13 +2906,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3957,13 +2927,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -3985,13 +2948,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4013,13 +2969,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4036,13 +2985,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4059,13 +3001,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4082,13 +3017,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4105,13 +3033,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4134,13 +3055,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4162,13 +3076,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4190,13 +3097,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4219,13 +3119,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4247,13 +3140,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4275,13 +3161,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4302,13 +3181,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4329,13 +3201,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4356,13 +3221,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4383,13 +3241,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4405,13 +3256,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4427,13 +3271,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4449,13 +3286,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4479,13 +3309,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4504,13 +3327,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4529,13 +3345,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4554,13 +3363,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4579,13 +3381,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4604,13 +3399,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4629,13 +3417,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4654,13 +3435,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4678,13 +3452,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4707,13 +3474,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4736,13 +3496,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4765,13 +3518,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4790,13 +3536,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4819,13 +3558,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4847,13 +3579,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4875,13 +3600,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4903,13 +3621,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4931,13 +3642,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4954,13 +3658,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -4977,13 +3674,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5000,13 +3690,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5028,13 +3711,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5051,13 +3727,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5079,13 +3748,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5107,13 +3769,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5130,13 +3785,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5153,13 +3801,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5181,13 +3822,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5209,13 +3843,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5238,13 +3865,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5261,13 +3881,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5289,13 +3902,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5318,13 +3924,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5341,13 +3940,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5369,13 +3961,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5396,13 +3981,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5423,13 +4001,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5450,13 +4021,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5477,13 +4041,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5499,13 +4056,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5521,13 +4071,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5543,13 +4086,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5571,13 +4107,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5594,13 +4123,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5617,13 +4139,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5645,13 +4160,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5668,13 +4176,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5691,13 +4192,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5714,13 +4208,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5742,13 +4229,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5770,13 +4250,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5793,13 +4266,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5816,13 +4282,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5845,13 +4304,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5868,13 +4320,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5896,13 +4341,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5923,13 +4361,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5950,13 +4381,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -5977,13 +4401,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6004,13 +4421,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6026,13 +4436,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6048,13 +4451,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6070,13 +4466,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6100,13 +4489,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6125,13 +4507,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6150,13 +4525,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6175,13 +4543,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6200,13 +4561,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6225,13 +4579,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6250,13 +4597,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6275,13 +4615,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6300,13 +4633,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6325,13 +4651,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6350,13 +4669,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6374,13 +4686,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6399,13 +4704,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6428,13 +4726,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6456,13 +4747,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6484,13 +4768,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6512,13 +4789,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6540,13 +4810,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6563,13 +4826,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6586,13 +4842,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6609,13 +4858,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6637,13 +4879,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6665,13 +4900,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6693,13 +4921,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6721,13 +4942,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6749,13 +4963,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6777,13 +4984,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6805,13 +5005,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6833,13 +5026,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6862,13 +5048,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6890,13 +5069,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6918,13 +5090,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6947,13 +5112,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6970,13 +5128,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -6998,13 +5149,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7025,13 +5169,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7052,13 +5189,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7079,13 +5209,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7106,13 +5229,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7128,13 +5244,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7150,13 +5259,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7172,13 +5274,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7205,13 +5300,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7233,13 +5321,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7261,13 +5342,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7289,13 +5363,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7317,13 +5384,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7345,13 +5405,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7373,13 +5426,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7401,13 +5447,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7430,13 +5469,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7458,13 +5490,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7486,13 +5511,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7515,13 +5533,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7538,13 +5549,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7561,13 +5565,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7588,13 +5585,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7615,13 +5605,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7642,13 +5625,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7669,13 +5645,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7691,13 +5660,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7713,13 +5675,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7735,13 +5690,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7774,13 +5722,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7808,13 +5749,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7842,13 +5776,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7876,13 +5803,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7910,13 +5830,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7944,13 +5857,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -7978,13 +5884,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8012,13 +5911,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8046,13 +5938,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8080,13 +5965,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8114,13 +5992,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8148,13 +6019,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8182,13 +6046,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8216,13 +6073,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8249,13 +6099,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8282,13 +6125,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8315,13 +6151,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8348,13 +6177,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8376,13 +6198,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8404,13 +6219,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8432,13 +6240,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8471,13 +6272,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8505,13 +6299,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8539,13 +6326,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8573,13 +6353,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8607,13 +6380,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8641,13 +6407,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8675,13 +6434,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8709,13 +6461,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8743,13 +6488,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8777,13 +6515,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8811,13 +6542,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8845,13 +6569,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8879,13 +6596,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8913,13 +6623,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8946,13 +6649,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -8979,13 +6675,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9012,13 +6701,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9045,13 +6727,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9073,13 +6748,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9101,13 +6769,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9129,13 +6790,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9168,13 +6822,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9202,13 +6849,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9236,13 +6876,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9270,13 +6903,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9304,13 +6930,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9338,13 +6957,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9372,13 +6984,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9406,13 +7011,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9440,13 +7038,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9474,13 +7065,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9508,13 +7092,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9542,13 +7119,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9576,13 +7146,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9610,13 +7173,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9643,13 +7199,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9676,13 +7225,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9709,13 +7251,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9742,13 +7277,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9770,13 +7298,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9798,13 +7319,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9826,13 +7340,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9865,13 +7372,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9899,13 +7399,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9933,13 +7426,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -9967,13 +7453,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10001,13 +7480,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10035,13 +7507,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10069,13 +7534,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10103,13 +7561,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10137,13 +7588,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10171,13 +7615,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10205,13 +7642,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10239,13 +7669,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10273,13 +7696,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10307,13 +7723,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10340,13 +7749,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10373,13 +7775,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10406,13 +7801,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10439,13 +7827,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10467,13 +7848,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10495,13 +7869,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10523,13 +7890,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10557,13 +7917,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10585,13 +7938,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10613,13 +7959,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10641,13 +7980,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10669,13 +8001,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10697,13 +8022,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10725,13 +8043,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10753,13 +8064,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10782,13 +8086,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10810,13 +8107,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10838,13 +8128,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10867,13 +8150,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10896,13 +8172,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10924,13 +8193,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10951,13 +8213,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -10978,13 +8233,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11005,13 +8253,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11032,13 +8273,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11054,13 +8288,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11076,13 +8303,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11098,13 +8318,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11132,13 +8345,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11160,13 +8366,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11188,13 +8387,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11216,13 +8408,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11244,13 +8429,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11272,13 +8450,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11300,13 +8471,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11328,13 +8492,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11357,13 +8514,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11385,13 +8535,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11413,13 +8556,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11442,13 +8578,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11471,13 +8600,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11499,13 +8621,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11526,13 +8641,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11553,13 +8661,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11580,13 +8681,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11607,13 +8701,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11629,13 +8716,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11651,13 +8731,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11673,13 +8746,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11707,13 +8773,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11735,13 +8794,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11763,13 +8815,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11791,13 +8836,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11819,13 +8857,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11847,13 +8878,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT16;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11875,13 +8899,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11903,13 +8920,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_UINT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11932,13 +8942,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGINT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11960,13 +8963,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT32;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -11988,13 +8984,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT64;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -12017,13 +9006,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BIGFLOAT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -12046,13 +9028,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT8;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -12074,13 +9049,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -12101,13 +9069,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -12128,13 +9089,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -12155,13 +9109,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -12182,13 +9129,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -12204,13 +9144,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -12226,13 +9159,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -12248,13 +9174,6 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return -1;
-                }
-            }
 
             return 0;
         }
@@ -12280,13 +9199,19 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
+            left->link -= 1;
             return -1;
         }
 
-        if (sy_execute_eq(node, left, right) < 0)
+        if (sy_execute_set_value(node, left, right) < 0)
         {
+            left->link -= 1;
+            right->link -= 1;
             return -1;
         }
+        
+        left->link -= 1;
+        right->link -= 1;
 
         return 0;
     }
@@ -12303,19 +9228,30 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
+            left->link -= 1;
             return -1;
         }
 
-        sy_record_t *result = sy_execute_plus(node, left, right);
+        sy_record_t *result = sy_execute_plus(node, left, right, applicant);
         if (result == ERROR)
         {
+            right->link -= 1;
+
+            left->link -= 1;
+
             return -1;
         }
 
-        if (sy_execute_eq(node, left, result) < 0)
+        right->link -= 1;
+
+        if (sy_execute_set_value(node, left, result) < 0)
         {
+            left->link -= 1;
             return -1;
         }
+
+        left->link -= 1;
+        result->link -= 1;
 
         return 0;
     }
@@ -12332,29 +9268,381 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
+            left->link -= 1;
             return -1;
         }
 
-        sy_record_t *result = sy_execute_minus(node, left, right);
+        sy_record_t *result = sy_execute_minus(node, left, right, applicant);
         if (result == ERROR)
         {
+            right->link -= 1;
+            left->link -= 1;
             return -1;
         }
 
-        if (sy_execute_eq(node, left, result) < 0)
+        right->link -= 1;
+
+        if (sy_execute_set_value(node, left, result) < 0)
         {
+            left->link -= 1;
             return -1;
         }
+
+        left->link -= 1;
+        result->link -= 1;
 
         return 0;
     }
     else
+    if (node->kind == NODE_KIND_MUL_ASSIGN)
     {
-        sy_record_t *record = sy_execute_expression(node, strip, applicant, origin);
-        if (record == ERROR)
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
         {
             return -1;
         }
+
+        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        sy_record_t *result = sy_execute_mul(node, left, right, applicant);
+        if (result == ERROR)
+        {
+            right->link -= 1;
+            left->link -= 1;
+            return -1;
+        }
+
+        right->link -= 1;
+
+        if (sy_execute_set_value(node, left, result) < 0)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        left->link -= 1;
+        result->link -= 1;
+
+        return 0;
+    }
+    else
+    if (node->kind == NODE_KIND_DIV_ASSIGN)
+    {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return -1;
+        }
+
+        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        sy_record_t *result = sy_execute_plus(node, left, right, applicant);
+        if (result == ERROR)
+        {
+            right->link -= 1;
+            left->link -= 1;
+            return -1;
+        }
+
+        right->link -= 1;
+
+        if (sy_execute_set_value(node, left, result) < 0)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        left->link -= 1;
+        result->link -= 1;
+
+        return 0;
+    }
+    else
+    if (node->kind == NODE_KIND_EPI_ASSIGN)
+    {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return -1;
+        }
+
+        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        sy_record_t *result = sy_execute_epi(node, left, right, applicant);
+        if (result == ERROR)
+        {
+            right->link -= 1;
+            left->link -= 1;
+            return -1;
+        }
+
+        right->link -= 1;
+
+        if (sy_execute_set_value(node, left, result) < 0)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        left->link -= 1;
+        result->link -= 1;
+
+        return 0;
+    }
+    else
+    if (node->kind == NODE_KIND_MOD_ASSIGN)
+    {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return -1;
+        }
+
+        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        sy_record_t *result = sy_execute_mod(node, left, right, applicant);
+        if (result == ERROR)
+        {
+            right->link -= 1;
+            left->link -= 1;
+            return -1;
+        }
+
+        right->link -= 1;
+
+        if (sy_execute_set_value(node, left, result) < 0)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        left->link -= 1;
+        result->link -= 1;
+        return 0;
+    }
+    else
+    if (node->kind == NODE_KIND_POW_ASSIGN)
+    {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return -1;
+        }
+
+        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        sy_record_t *result = sy_execute_pow(node, left, right, applicant);
+        if (result == ERROR)
+        {
+            right->link -= 1;
+            left->link -= 1;
+            return -1;
+        }
+
+        right->link -= 1;
+
+        if (sy_execute_set_value(node, left, result) < 0)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        left->link -= 1;
+        result->link -= 1;
+
+        return 0;
+    }
+    else
+    if (node->kind == NODE_KIND_SHL_ASSIGN)
+    {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return -1;
+        }
+
+        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        sy_record_t *result = sy_execute_shl(node, left, right, applicant);
+        if (result == ERROR)
+        {
+            right->link -= 1;
+            left->link -= 1;
+            return -1;
+        }
+
+        right->link -= 1;
+
+        if (sy_execute_set_value(node, left, result) < 0)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        left->link -= 1;
+        result->link -= 1;
+
+        return 0;
+    }
+    else
+    if (node->kind == NODE_KIND_SHR_ASSIGN)
+    {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return -1;
+        }
+
+        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        sy_record_t *result = sy_execute_shr(node, left, right, applicant);
+        if (result == ERROR)
+        {
+            right->link -= 1;
+            left->link -= 1;
+            return -1;
+        }
+
+        right->link -= 1;
+
+        if (sy_execute_set_value(node, left, result) < 0)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        left->link -= 1;
+        result->link -= 1;
+
+        return 0;
+    }
+    else
+    if (node->kind == NODE_KIND_AND_ASSIGN)
+    {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return -1;
+        }
+
+        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        sy_record_t *result = sy_execute_and(node, left, right, applicant);
+        if (result == ERROR)
+        {
+            right->link -= 1;
+            left->link -= 1;
+
+            return -1;
+        }
+
+        right->link -= 1;
+
+        if (sy_execute_set_value(node, left, result) < 0)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        left->link -= 1;
+        result->link -= 1;
+
+        return 0;
+    }
+    else
+    if (node->kind == NODE_KIND_OR_ASSIGN)
+    {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        if (left == ERROR)
+        {
+            return -1;
+        }
+
+        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        sy_record_t *result = sy_execute_or(node, left, right, applicant);
+        if (result == ERROR)
+        {
+            right->link -= 1;
+            left->link -= 1;
+            return -1;
+        }
+
+        right->link -= 1;
+
+        if (sy_execute_set_value(node, left, result) < 0)
+        {
+            left->link -= 1;
+            return -1;
+        }
+
+        left->link -= 1;
+        result->link -= 1;
+        return 0;
+    }
+    else
+    {
+        sy_record_t *value = sy_execute_expression(node, strip, applicant, origin);
+        if (value == ERROR)
+        {
+            return -1;
+        }
+
+        value->link -= 1;
 
         return 0;
     }

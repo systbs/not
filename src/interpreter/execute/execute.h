@@ -24,7 +24,10 @@ int32_t
 sy_execute_run_lambda(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant);
 
 int32_t
-parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy_node_t *parameters, sy_node_t *arguments, sy_node_t *applicant);
+sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy_node_t *parameters, sy_node_t *arguments, sy_node_t *applicant);
+
+sy_record_t *
+sy_execute_call_for_operator_by_one_argument(sy_node_t *base, sy_record_t *content, sy_record_t *arg, const char *operator, sy_node_t *applicant);
 
 int32_t 
 sy_execute_run(sy_node_t *root);
@@ -142,54 +145,63 @@ sy_record_t *
 sy_execute_parenthesis(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin);
 
 sy_record_t *
-sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right);
+sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
 sy_record_t *
-sy_execute_mul(sy_node_t *node, sy_record_t *left, sy_record_t *right);
+sy_execute_mul(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
 sy_record_t *
-sy_execute_div(sy_node_t *node, sy_record_t *left, sy_record_t *right);
+sy_execute_div(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
 sy_record_t *
-sy_execute_mod(sy_node_t *node, sy_record_t *left, sy_record_t *right);
+sy_execute_mod(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
 sy_record_t *
-sy_execute_epi(sy_node_t *node, sy_record_t *left, sy_record_t *right);
+sy_execute_epi(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
 sy_record_t *
-sy_execute_shr(sy_node_t *node, sy_record_t *left, sy_record_t *right);
+sy_execute_shr(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
 sy_record_t *
-sy_execute_shl(sy_node_t *node, sy_record_t *left, sy_record_t *right);
+sy_execute_shl(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
 sy_record_t *
-sy_execute_plus(sy_node_t *node, sy_record_t *left, sy_record_t *right);
+sy_execute_plus(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
 sy_record_t *
-sy_execute_minus(sy_node_t *node, sy_record_t *left, sy_record_t *right);
+sy_execute_minus(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
 sy_record_t *
-sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right);
+sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
 sy_record_t *
-sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right);
+sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
 sy_record_t *
-sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right);
+sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
 sy_record_t *
-sy_execute_or(sy_node_t *node, sy_record_t *left, sy_record_t *right);
+sy_execute_or(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
 sy_record_t *
-sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right);
+sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
-int32_t
-sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right);
+sy_record_t *
+sy_execute_lt(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
-int32_t
-sy_execute_truthy_le(sy_record_t *left, sy_record_t *right);
+sy_record_t *
+sy_execute_le(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
-int32_t
-sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right);
+sy_record_t *
+sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
+
+sy_record_t *
+sy_execute_attribute_from_struct(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node_t *right, sy_node_t *applicant);
+
+sy_record_t *
+sy_execute_attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node_t *right, sy_node_t *applicant);
+
+sy_record_t *
+sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
 
 #endif

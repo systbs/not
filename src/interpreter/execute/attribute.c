@@ -26,8 +26,8 @@
 #include "../entry.h"
 #include "execute.h"
 
-static sy_record_t *
-attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node_t *right, sy_node_t *applicant)
+sy_record_t *
+sy_execute_attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node_t *right, sy_node_t *applicant)
 {
     sy_node_class_t *class1 = (sy_node_class_t *)left->value;
     for (sy_node_t *item = class1->block;item != NULL;item = item->next)
@@ -71,16 +71,7 @@ attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node
                         sy_record_t *record_type = sy_execute_expression(property->type, strip, applicant, NULL);
                         if (record_type == ERROR)
                         {
-                            if (record_value && (record_value != NAN))
-                            {
-                                if (record_value->link == 0)
-                                {
-                                    if (sy_record_destroy(record_value) < 0)
-                                    {
-                                        return ERROR;
-                                    }
-                                }
-                            }
+                            record_value->link -= 1;
                             return ERROR;
                         }
 
@@ -90,21 +81,8 @@ attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node
                             sy_error_type_by_node(property->key, "'%s' unsupported type: '%s'", 
                                 basic1->value, sy_record_type_as_string(record_type));
                             
-                            if (record_type->link == 0)
-                            {
-                                if (sy_record_destroy(record_type) < 0)
-                                {
-                                    return ERROR;
-                                }
-                            }
-
-                            if (record_value->link == 0)
-                            {
-                                if (sy_record_destroy(record_value) < 0)
-                                {
-                                    return ERROR;
-                                }
-                            }
+                            record_type->link -= 1;
+                            record_value->link -= 1;
 
                             return ERROR;
                         }
@@ -112,21 +90,9 @@ attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node
                         int32_t r1 = sy_execute_value_check_by_type(record_value, record_type, strip, applicant);
                         if (r1 < 0)
                         {
-                            if (record_type->link == 0)
-                            {
-                                if (sy_record_destroy(record_type) < 0)
-                                {
-                                    return ERROR;
-                                }
-                            }
-
-                            if (record_value->link == 0)
-                            {
-                                if (sy_record_destroy(record_value) < 0)
-                                {
-                                    return ERROR;
-                                }
-                            }
+                            record_type->link -= 1;
+                            record_value->link -= 1;
+                            return ERROR;
                         }
                         else
                         if (r1 == 0)
@@ -137,52 +103,21 @@ attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node
                                 sy_error_type_by_node(property->key, "'%s' mismatch: '%s' and '%s'", 
                                     basic1->value, sy_record_type_as_string(record_type), sy_record_type_as_string(record_value));
 
-                                if (record_type->link == 0)
-                                {
-                                    if (sy_record_destroy(record_type) < 0)
-                                    {
-                                        return ERROR;
-                                    }
-                                }
-
-                                if (record_value->link == 0)
-                                {
-                                    if (sy_record_destroy(record_value) < 0)
-                                    {
-                                        return ERROR;
-                                    }
-                                }
+                                record_type->link -= 1;
+                                record_value->link -= 1;
 
                                 return ERROR;
                             }
                             else
                             {
-                                if (record_value && (record_value != NAN))
-                                {
-                                    if (record_value->link == 1)
-                                    {
-                                        record_value = sy_record_copy(record_value);
-                                    }
-                                }
+                                record_value = sy_record_copy(record_value);
 
                                 sy_record_t *record_value2 = sy_execute_value_casting_by_type(record_value, record_type, strip, applicant);
                                 if (record_value2 == ERROR)
                                 {
-                                    if (record_type->link == 0)
-                                    {
-                                        if (sy_record_destroy(record_type) < 0)
-                                        {
-                                            return ERROR;
-                                        }
-                                    }
+                                    record_type->link -= 1;
+                                    record_value->link -= 1;
 
-                                    if (record_value->link == 0)
-                                    {
-                                        if (sy_record_destroy(record_value) < 0)
-                                        {
-                                            return ERROR;
-                                        }
-                                    }
                                     return ERROR;
                                 }
                                 else
@@ -192,21 +127,9 @@ attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node
                                     sy_error_type_by_node(property->key, "'%s' mismatch: '%s' and '%s'", 
                                         basic1->value, sy_record_type_as_string(record_type), sy_record_type_as_string(record_value));
 
-                                    if (record_type->link == 0)
-                                    {
-                                        if (sy_record_destroy(record_type) < 0)
-                                        {
-                                            return ERROR;
-                                        }
-                                    }
+                                    record_type->link -= 1;
+                                    record_value->link -= 1;
 
-                                    if (record_value->link == 0)
-                                    {
-                                        if (sy_record_destroy(record_value) < 0)
-                                        {
-                                            return ERROR;
-                                        }
-                                    }
                                     return ERROR;
                                 }
 
@@ -214,27 +137,13 @@ attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node
                             }
                         }
 
-                        if (record_type && (record_type != NAN))
-                        {
-                            if (record_type->link == 0)
-                            {
-                                if (sy_record_destroy(record_type) < 0)
-                                {
-                                    return ERROR;
-                                }
-                            }
-                        }
+                        record_type->link -= 1;
                     }
                 }
 
                 if ((property->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    if (record_value->link == 1)
-                    {
-                        record_value = sy_record_copy(record_value);
-                    }
-
-                    record_value->link = 1;
+                    record_value = sy_record_copy(record_value);
                 }
 
                 entry = sy_symbol_table_push(left, item, property->key, record_value);
@@ -242,12 +151,7 @@ attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node
                 {
                     if ((property->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                     {
-                        record_value->link = 0;
-
-                        if (sy_record_destroy(record_value) < 0)
-                        {
-                            return ERROR;
-                        }
+                        record_value->link -= 1;
                     }
                     return ERROR;
                 }
@@ -350,13 +254,8 @@ attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node
                 sy_error_type_by_node(node, "'%s' unexpected type as heritage '%s'", 
                     basic2->value, basic1->value);
 
-                if (resp->link == 0)
-                {
-                    if (sy_record_destroy(resp) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                resp->link -= 1;
+
                 return ERROR;
             }
 
@@ -365,16 +264,10 @@ attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node
 
             if (type->kind == NODE_KIND_CLASS)
             {
-                sy_record_t *result = attribute_from_type(
+                sy_record_t *result = sy_execute_attribute_from_type(
                     node, (sy_strip_t *)record_type->value, type, right, applicant);
 
-                if (resp->link == 0)
-                {
-                    if (sy_record_destroy(resp) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                resp->link -= 1;
 
                 if (result == ERROR)
                 {
@@ -393,13 +286,8 @@ attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node
                 sy_error_type_by_node(node, "'%s' unexpected type as heritage '%s'", 
                     basic2->value, basic1->value);
 
-                if (resp->link == 0)
-                {
-                    if (sy_record_destroy(resp) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                resp->link -= 1;
+
                 return ERROR;
             }
         }
@@ -408,8 +296,8 @@ attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node
     return NULL;
 }
 
-static sy_record_t *
-attribute_from_struct(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node_t *right, sy_node_t *applicant)
+sy_record_t *
+sy_execute_attribute_from_struct(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_node_t *right, sy_node_t *applicant)
 {
     sy_node_class_t *class1 = (sy_node_class_t *)left->value;
     for (sy_node_t *item = class1->block;item != NULL;item = item->next)
@@ -470,9 +358,19 @@ attribute_from_struct(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_no
                     return ERROR;
                 }
 
-                sy_strip_t *strip_new = sy_strip_create(strip);
+                sy_strip_t *copy_strip = sy_strip_copy(strip);
+                if (copy_strip == ERROR)
+                {
+                    return ERROR;
+                }
+
+                sy_strip_t *strip_new = sy_strip_create(copy_strip);
                 if (strip_new == ERROR)
                 {
+                    if (sy_strip_destroy(copy_strip) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
@@ -503,9 +401,19 @@ attribute_from_struct(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_no
                     return ERROR;
                 }
 
-                sy_strip_t *strip_new = sy_strip_create(strip);
+                sy_strip_t *copy_strip = sy_strip_copy(strip);
+                if (copy_strip == ERROR)
+                {
+                    return ERROR;
+                }
+
+                sy_strip_t *strip_new = sy_strip_create(copy_strip);
                 if (strip_new == ERROR)
                 {
+                    if (sy_strip_destroy(copy_strip) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
@@ -539,15 +447,17 @@ attribute_from_struct(sy_node_t *node, sy_strip_t *strip, sy_node_t *left, sy_no
             sy_record_struct_t *record_struct = (sy_record_struct_t *)entry->value->value;
             sy_node_t *type = record_struct->type;
 
-            sy_record_t *result = attribute_from_struct(node, (sy_strip_t *)record_struct->value, type, right, applicant);
+            sy_record_t *result = sy_execute_attribute_from_struct(node, (sy_strip_t *)record_struct->value, type, right, applicant);
 
             if (result == ERROR)
             {
+                entry->value->link -= 1;
                 return ERROR;
             }
             else
             if (result != NULL)
             {
+                entry->value->link -= 1;
                 return result;
             }
         }
@@ -574,7 +484,7 @@ sy_execute_attribute(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
         sy_strip_t *strip_new = (sy_strip_t *)record_type->value;
         if (type->kind == NODE_KIND_CLASS)
         {
-            sy_record_t *result = attribute_from_type(node, strip_new, type, binary->right, applicant);
+            sy_record_t *result = sy_execute_attribute_from_type(node, strip_new, type, binary->right, applicant);
             
             if (result == ERROR)
             {
@@ -589,24 +499,12 @@ sy_execute_attribute(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                 sy_error_type_by_node(binary->right, "'%s' object has no attribute '%s'", 
                     basic2->value, basic1->value);
 
-                if (left->link == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                left->link -= 1;
 
                 return ERROR;
             }
 
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
 
             return result;
         }
@@ -627,13 +525,7 @@ sy_execute_attribute(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                     sy_node_kind_as_string(type), basic1->value);
             }
 
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
 
             return ERROR;
         }
@@ -645,7 +537,7 @@ sy_execute_attribute(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
         sy_node_t *type = record_struct->type;
         sy_strip_t *strip_new = (sy_strip_t *)record_struct->value;
         
-        sy_record_t *result = attribute_from_struct(node, strip_new, type, binary->right, applicant);
+        sy_record_t *result = sy_execute_attribute_from_struct(node, strip_new, type, binary->right, applicant);
         
         if (result == ERROR)
         {
@@ -660,24 +552,12 @@ sy_execute_attribute(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
             sy_error_type_by_node(binary->right, "'%s' object has no attribute '%s'", 
                 basic2->value, basic1->value);
 
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
 
             return ERROR;
         }
 
-        if (left->link == 0)
-        {
-            if (sy_record_destroy(left) < 0)
-            {
-                return ERROR;
-            }
-        }
+        left->link -= 1;
 
         return result;
     }
@@ -688,13 +568,7 @@ sy_execute_attribute(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
         {
             if (sy_execute_id_cmp(item->key, binary->right) == 1)
             {
-                if (left->link == 0)
-                {
-                    if (sy_record_destroy(left) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                left->link -= 1;
 
                 return item->value;
             }
@@ -704,13 +578,7 @@ sy_execute_attribute(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
         sy_error_type_by_node(node, "'%s' has no attribute '%s'", 
             sy_record_type_as_string(left), basic1->value);
 
-        if (left->link == 0)
-        {
-            if (sy_record_destroy(left) < 0)
-            {
-                return ERROR;
-            }
-        }
+        left->link -= 1;
 
         return ERROR;
     }
@@ -720,13 +588,7 @@ sy_execute_attribute(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
         sy_error_type_by_node(binary->right, "'%s' has no attribute '%s'", 
             sy_record_type_as_string(left), basic1->value);
 
-        if (left->link == 0)
-        {
-            if (sy_record_destroy(left) < 0)
-            {
-                return ERROR;
-            }
-        }
+        left->link -= 1;
 
         return ERROR;
     }

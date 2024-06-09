@@ -25,19 +25,13 @@
 #include "execute.h"
 
 sy_record_t *
-sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
+sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant)
 {
     if (left->kind == RECORD_KIND_UNDEFINED)
     {
         if (right)
         {
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            right->link -= 1;
         }
         return left;
     }
@@ -46,13 +40,7 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
     {
         if (right)
         {
-            if (right->link == 0)
-            {
-                if (sy_record_destroy(right) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            right->link -= 1;
         }
         return left;
     }
@@ -64,25 +52,13 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (right)
             {
-                if (right->link == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                right->link -= 1;
             }
             return left;
         }
         else
         {
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
             return right;
         }
     }
@@ -94,25 +70,13 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (right)
             {
-                if (right->link == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                right->link -= 1;
             }
             return left;
         }
         else
         {
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
             return right;
         }
     }
@@ -124,25 +88,13 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (right)
             {
-                if (right->link == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                right->link -= 1;
             }
             return left;
         }
         else
         {
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
             return right;
         }
     }
@@ -154,25 +106,13 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (right)
             {
-                if (right->link == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                right->link -= 1;
             }
             return left;
         }
         else
         {
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
             return right;
         }
     }
@@ -184,25 +124,13 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (right)
             {
-                if (right->link == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                right->link -= 1;
             }
             return left;
         }
         else
         {
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
             return right;
         }
     }
@@ -214,25 +142,13 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (right)
             {
-                if (right->link == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                right->link -= 1;
             }
             return left;
         }
         else
         {
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
             return right;
         }
     }
@@ -244,25 +160,13 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (right)
             {
-                if (right->link == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                right->link -= 1;
             }
             return left;
         }
         else
         {
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
             return right;
         }
     }
@@ -274,25 +178,13 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (right)
             {
-                if (right->link == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                right->link -= 1;
             }
             return left;
         }
         else
         {
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
             return right;
         }
     }
@@ -304,25 +196,13 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (right)
             {
-                if (right->link == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                right->link -= 1;
             }
             return left;
         }
         else
         {
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
             return right;
         }
     }
@@ -334,25 +214,13 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (right)
             {
-                if (right->link == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                right->link -= 1;
             }
             return left;
         }
         else
         {
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
             return right;
         }
     }
@@ -364,25 +232,13 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (right)
             {
-                if (right->link == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                right->link -= 1;
             }
             return left;
         }
         else
         {
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
             return right;
         }
     }
@@ -394,25 +250,13 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (right)
             {
-                if (right->link == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                right->link -= 1;
             }
             return left;
         }
         else
         {
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
             return right;
         }
     }
@@ -424,25 +268,13 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (right)
             {
-                if (right->link == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                right->link -= 1;
             }
             return left;
         }
         else
         {
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
             return right;
         }
     }
@@ -454,74 +286,38 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (right)
             {
-                if (right->link == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                right->link -= 1;
             }
             return left;
         }
         else
         {
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
             return right;
         }
     }
     else
     if (left->kind == RECORD_KIND_OBJECT)
     {
-        if (left->link == 0)
-        {
-            if (sy_record_destroy(left) < 0)
-            {
-                return ERROR;
-            }
-        }
+        left->link -= 1;
         return right;
     }
     else
     if (left->kind == RECORD_KIND_TUPLE)
     {
-        if (left->link == 0)
-        {
-            if (sy_record_destroy(left) < 0)
-            {
-                return ERROR;
-            }
-        }
+        left->link -= 1;
         return right;
     }
     else
     if (left->kind == RECORD_KIND_TYPE)
     {
-        if (left->link == 0)
-        {
-            if (sy_record_destroy(left) < 0)
-            {
-                return ERROR;
-            }
-        }
+        left->link -= 1;
         return right;
     }
     else
     if (left->kind == RECORD_KIND_STRUCT)
     {
-        if (left->link == 0)
-        {
-            if (sy_record_destroy(left) < 0)
-            {
-                return ERROR;
-            }
-        }
+        left->link -= 1;
         return right;
     }
     else
@@ -532,25 +328,13 @@ sy_execute_land(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (right)
             {
-                if (right->link == 0)
-                {
-                    if (sy_record_destroy(right) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                right->link -= 1;
             }
             return left;
         }
         else
         {
-            if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            left->link -= 1;
             return right;
         }
     }
@@ -573,10 +357,11 @@ sy_execute_logical_and(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant,
         sy_record_t *right = sy_execute_bitwise_or(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
+            left->link -= 1;
             return ERROR;
         }
 
-        return sy_execute_land(node, left, right);
+        return sy_execute_land(node, left, right, applicant);
     }
     else
     {

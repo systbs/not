@@ -409,6 +409,15 @@ sy_thread_exit()
     return 0;
 }
 
+void 
+sy_thread_sleep(uint64_t ms)
+{
+#if _WIN32
+    sleep(ms);
+#else
+    usleep(ms * 1000);
+#endif
+}
 
 sy_record_t *
 sy_thread_get_rax()

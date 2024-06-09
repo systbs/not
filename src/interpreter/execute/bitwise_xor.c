@@ -24,7 +24,7 @@
 #include "execute.h"
 
 sy_record_t *
-sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
+sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant)
 {
     if (left->kind == RECORD_KIND_UNDEFINED)
     {
@@ -82,7 +82,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         else
         if (right->kind == RECORD_KIND_BIGINT)
         {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(right->value)));
+            sy_record_t *record = sy_record_make_bigint_from_z((*(mpz_t *)(right->value)));
             return record;
         }
         else
@@ -104,7 +104,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -204,7 +204,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         else
         if (right->kind == RECORD_KIND_BIGINT)
         {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(right->value)));
+            sy_record_t *record = sy_record_make_bigint_from_z((*(mpz_t *)(right->value)));
             return record;
         }
         else
@@ -226,7 +226,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -340,7 +340,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(right->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -368,7 +368,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, result, op2_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -488,7 +488,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(right->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -516,7 +516,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, result, op2_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -636,7 +636,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(right->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -664,7 +664,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, result, op2_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -784,7 +784,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(right->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -812,7 +812,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, result, op2_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -932,7 +932,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(right->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -960,7 +960,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, result, op2_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1080,7 +1080,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(right->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1108,7 +1108,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, result, op2_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1228,7 +1228,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(right->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1256,7 +1256,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, result, op2_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1376,7 +1376,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(right->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1404,7 +1404,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, result, op2_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1458,13 +1458,13 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(left->value)));            
+            sy_record_t *record = sy_record_make_bigint_from_z((*(mpz_t *)(left->value)));            
             return record;
         }
         else
         if (right->kind == RECORD_KIND_NAN)
         {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(left->value)));            
+            sy_record_t *record = sy_record_make_bigint_from_z((*(mpz_t *)(left->value)));            
             return record;
         }
         else
@@ -1478,7 +1478,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(left->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1493,7 +1493,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(left->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1508,7 +1508,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(left->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1523,7 +1523,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(left->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1538,7 +1538,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(left->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1553,7 +1553,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(left->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1568,7 +1568,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(left->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1583,7 +1583,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(left->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1594,7 +1594,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_xor(result, (*(mpz_t *)(left->value)), (*(mpz_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -1609,7 +1609,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(left->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1624,7 +1624,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(left->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1637,7 +1637,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
 
             mpz_xor(result, (*(mpz_t *)(left->value)), result);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1652,44 +1652,44 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(left->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
         else
         if (right->kind == RECORD_KIND_STRING)
         {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(left->value)));
+            sy_record_t *record = sy_record_make_bigint_from_z((*(mpz_t *)(left->value)));
             return record;
         }
         else
         if (right->kind == RECORD_KIND_OBJECT)
         {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(left->value)));
+            sy_record_t *record = sy_record_make_bigint_from_z((*(mpz_t *)(left->value)));
             return record;
         }
         else
         if (right->kind == RECORD_KIND_TUPLE)
         {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(left->value)));
+            sy_record_t *record = sy_record_make_bigint_from_z((*(mpz_t *)(left->value)));
             return record;
         }
         else
         if (right->kind == RECORD_KIND_TYPE)
         {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(left->value)));
+            sy_record_t *record = sy_record_make_bigint_from_z((*(mpz_t *)(left->value)));
             return record;
         }
         else
         if (right->kind == RECORD_KIND_STRUCT)
         {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(left->value)));
+            sy_record_t *record = sy_record_make_bigint_from_z((*(mpz_t *)(left->value)));
             return record;
         }
         else
         if (right->kind == RECORD_KIND_NULL)
         {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(left->value)));
+            sy_record_t *record = sy_record_make_bigint_from_z((*(mpz_t *)(left->value)));
             return record;
         }
         
@@ -1766,7 +1766,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(right->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1794,7 +1794,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, result, op2_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1914,7 +1914,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(right->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -1942,7 +1942,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, result, op2_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2000,7 +2000,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2011,7 +2011,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2031,7 +2031,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -2051,7 +2051,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2071,7 +2071,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2091,7 +2091,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2111,7 +2111,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2131,7 +2131,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2151,7 +2151,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2171,7 +2171,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2187,7 +2187,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, op1_mpz, (*(mpz_t *)(right->value)));
             mpz_clear(op1_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2207,7 +2207,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2227,7 +2227,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2248,7 +2248,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2268,7 +2268,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2279,7 +2279,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -2290,7 +2290,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -2301,7 +2301,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -2312,7 +2312,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -2323,7 +2323,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -2334,7 +2334,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -2412,7 +2412,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, (*(mpz_t *)(right->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2440,7 +2440,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_xor(result, result, op2_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);            
             return record;
         }
@@ -2546,7 +2546,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         else
         if (right->kind == RECORD_KIND_BIGINT)
         {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(right->value)));
+            sy_record_t *record = sy_record_make_bigint_from_z((*(mpz_t *)(right->value)));
             return record;
         }
         else
@@ -2568,7 +2568,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -2668,7 +2668,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         else
         if (right->kind == RECORD_KIND_BIGINT)
         {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(right->value)));
+            sy_record_t *record = sy_record_make_bigint_from_z((*(mpz_t *)(right->value)));
             return record;
         }
         else
@@ -2690,7 +2690,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -2790,7 +2790,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         else
         if (right->kind == RECORD_KIND_BIGINT)
         {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(right->value)));
+            sy_record_t *record = sy_record_make_bigint_from_z((*(mpz_t *)(right->value)));
             return record;
         }
         else
@@ -2812,7 +2812,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -2912,7 +2912,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         else
         if (right->kind == RECORD_KIND_BIGINT)
         {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(right->value)));
+            sy_record_t *record = sy_record_make_bigint_from_z((*(mpz_t *)(right->value)));
             return record;
         }
         else
@@ -2934,7 +2934,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -2980,124 +2980,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_STRUCT)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return sy_record_make_nan();
-        }
-        else
-        if (right->kind == RECORD_KIND_NAN)
-        {
-            return sy_record_make_nan();
-        }
-        else
-        if (right->kind == RECORD_KIND_INT8)
-        {
-            sy_record_t *record = sy_record_make_int8((*(int8_t *)(right->value)));
-            return record;
-        }
-        else
-        if (right->kind == RECORD_KIND_INT32)
-        {
-            sy_record_t *record = sy_record_make_int32((*(int32_t *)(right->value)));
-            return record;
-        }
-        else
-        if (right->kind == RECORD_KIND_INT64)
-        {
-            sy_record_t *record = sy_record_make_int64((*(int64_t *)(right->value)));
-            return record;
-        }
-        else
-        if (right->kind == RECORD_KIND_UINT8)
-        {
-            sy_record_t *record = sy_record_make_uint8((*(uint8_t *)(right->value)));
-            return record;
-        }
-        else
-        if (right->kind == RECORD_KIND_UINT16)
-        {
-            sy_record_t *record = sy_record_make_uint16((*(uint16_t *)(right->value)));
-            return record;
-        }
-        else
-        if (right->kind == RECORD_KIND_UINT32)
-        {
-            sy_record_t *record = sy_record_make_uint32((*(uint32_t *)(right->value)));
-            return record;
-        }
-        else
-        if (right->kind == RECORD_KIND_UINT64)
-        {
-            sy_record_t *record = sy_record_make_uint64((*(uint64_t *)(right->value)));
-            return record;
-        }
-        else
-        if (right->kind == RECORD_KIND_BIGINT)
-        {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(right->value)));
-            return record;
-        }
-        else
-        if (right->kind == RECORD_KIND_FLOAT32)
-        {
-            sy_record_t *record = sy_record_make_float32((*(float *)(right->value)));
-            return record;
-        }
-        else
-        if (right->kind == RECORD_KIND_FLOAT64)
-        {
-            sy_record_t *record = sy_record_make_uint8((*(double *)(right->value)));
-            return record;
-        }
-        else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
-        {
-            mpz_t result;
-            mpz_init(result);
-            mpz_set_f(result, (*(mpf_t *)(right->value)));
-
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
-            mpz_clear(result);
-            return record;
-        }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
-        {
-            sy_record_t *record = sy_record_make_char((*(char *)(right->value)));
-            return record;
-        }
-        else
-        if (right->kind == RECORD_KIND_STRING)
-        {
-            return sy_record_make_nan();
-        }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
-        {
-            return sy_record_make_nan();
-        }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
-        {
-            return sy_record_make_nan();
-        }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
-        {
-            return sy_record_make_nan();
-        }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
-        {
-            return sy_record_make_nan();
-        }
-        else
-        if (right->kind == RECORD_KIND_NULL)
-        {
-            return sy_record_make_nan();
-        }
-
-        return sy_record_make_undefined();
+        return sy_execute_call_for_operator_by_one_argument(node, left, right, "^", applicant);
     }
     else
     if (left->kind == RECORD_KIND_NULL)
@@ -3156,7 +3039,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         else
         if (right->kind == RECORD_KIND_BIGINT)
         {
-            sy_record_t *record = sy_record_make_bigint_from_mpz((*(mpz_t *)(right->value)));
+            sy_record_t *record = sy_record_make_bigint_from_z((*(mpz_t *)(right->value)));
             return record;
         }
         else
@@ -3178,7 +3061,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_bigint_from_mpz(result);
+            sy_record_t *record = sy_record_make_bigint_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -3243,23 +3126,10 @@ sy_execute_bitwise_xor(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant,
             return ERROR;
         }
 
-        sy_record_t *record = sy_execute_xor(node, left, right);
+        sy_record_t *record = sy_execute_xor(node, left, right, applicant);
 
-        if (left->link == 0)
-        {
-            if (sy_record_destroy(left) < 0)
-            {
-                return ERROR;
-            }
-        }
-
-        if (right->link == 0)
-        {
-            if (sy_record_destroy(right) < 0)
-            {
-                return ERROR;
-            }
-        }
+        left->link -= 1;
+        right->link -= 1;
 
         return record;
     }

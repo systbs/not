@@ -172,8 +172,6 @@ static void *
 sy_module_load_by_thread(void *arg)
 #endif
 {
-    assert (arg != NULL);
-
     thread_data_t *data = (thread_data_t*)arg;
     data->module = ERROR;
 
@@ -245,23 +243,23 @@ sy_module_load(char *path)
 {
 	char base_file[MAX_PATH];
 
-	if (SyPath_IsRoot(path))
+	if (sy_path_is_root(path))
 	{
 		char base_path[MAX_PATH];
-		SyPath_Normalize(getenv (ENV_LIBRARY_KEY), base_path, MAX_PATH);
-		SyPath_Join(base_path, path + 2, base_file, MAX_PATH);
+		sy_path_normalize(getenv (ENV_LIBRARY_KEY), base_path, MAX_PATH);
+		sy_path_join(base_path, path + 2, base_file, MAX_PATH);
 	}
 	else
 	{
 		char base_path[MAX_PATH];
-		SyPath_GetCurrentDirectory(base_path, MAX_PATH);
-		if(SyPath_IsRelative(path))
+		sy_path_get_current_directory(base_path, MAX_PATH);
+		if(sy_path_is_relative(path))
 		{
-			SyPath_Join(base_path, path, base_file, MAX_PATH);
+			sy_path_join(base_path, path, base_file, MAX_PATH);
 		}
 		else 
 		{
-			SyPath_Normalize(path, base_file, MAX_PATH);
+			sy_path_normalize(path, base_file, MAX_PATH);
 		}
 	}
 

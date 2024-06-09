@@ -5,12 +5,12 @@
 typedef struct sy_strip sy_strip_t;
 typedef struct sy_entry sy_entry_t;
 
-typedef struct record {
+typedef struct sy_record {
     uint8_t reference:1;
     uint8_t readonly:1;
     uint8_t typed:1;
-    uint8_t link:1;
-    uint8_t reserved:4;
+    uint8_t reserved:5;
+    int64_t link;
     uint8_t kind;
     void *value;
 } sy_record_t;
@@ -99,7 +99,16 @@ sy_record_t *
 sy_record_make_char(char value);
 
 sy_record_t *
-sy_record_make_bigfloat_from_mpf(mpf_t value);
+sy_record_make_bigfloat_from_ui(uint64_t value);
+
+sy_record_t *
+sy_record_make_bigfloat_from_si(int64_t value);
+
+sy_record_t *
+sy_record_make_bigfloat_from_f(mpf_t value);
+
+sy_record_t *
+sy_record_make_bigfloat_from_z(mpz_t value);
 
 sy_record_t *
 sy_record_make_bigfloat_from_d(double value);
@@ -120,7 +129,10 @@ sy_record_t *
 sy_record_make_bigint_from_si(int64_t value);
 
 sy_record_t *
-sy_record_make_bigint_from_mpz(mpz_t value);
+sy_record_make_bigint_from_z(mpz_t value);
+
+sy_record_t *
+sy_record_make_bigint_from_f(mpf_t value);
 
 sy_record_t *
 sy_record_make_bigint(const char *value);
@@ -148,6 +160,12 @@ sy_record_make_int16(int16_t value);
 
 sy_record_t *
 sy_record_make_int8(int8_t value);
+
+void
+sy_record_link_inc(sy_record_t *record);
+
+void
+sy_record_link_dec(sy_record_t *record);
 
 int32_t
 sy_record_destroy(sy_record_t *record);

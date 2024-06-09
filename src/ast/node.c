@@ -1195,6 +1195,23 @@ sy_node_make_mod_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 }
 
 sy_node_t *
+sy_node_make_pow_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+{
+	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	if(!basic)
+	{
+		sy_error_no_memory();
+		return NULL;
+	}
+	
+	basic->left = left;
+	basic->right = right;
+	
+	sy_node_Update(node, NODE_KIND_POW_ASSIGN, basic);
+	return node;
+}
+
+sy_node_t *
 sy_node_make_and_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 {
 	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));

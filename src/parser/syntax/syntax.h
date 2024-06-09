@@ -17,7 +17,7 @@ typedef struct sy_syntax
 {
 	SyScanner_t *scanner;
 	sy_queue_t *states;
-	SyToken_t *token;
+	sy_token_t *token;
 	int32_t loop_depth;
 	int32_t fun_depth;
 } sy_syntax_t;
@@ -32,7 +32,7 @@ typedef struct sy_syntax_state
 	uint64_t line;
 	uint64_t column;
 	uint64_t count_error;
-	SyToken_t token;
+	sy_token_t token;
 } sy_syntax_state_t;
 
 sy_syntax_t *

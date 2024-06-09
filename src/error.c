@@ -83,10 +83,10 @@ sy_error_lexer_by_position(sy_position_t position, const char *format, ...)
     fputs("Traceback:\n", stderr);
 
     char base_path[MAX_PATH];
-    SyPath_GetCurrentDirectory(base_path, MAX_PATH);
+    sy_path_get_current_directory(base_path, MAX_PATH);
 
     char relative_path[MAX_PATH];
-    SyPath_GetRelative(base_path, position.path, relative_path, sizeof(relative_path));
+    sy_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
     
     fprintf(stderr, 
             "File \"%s\", Line %lld, Column %lld\n", 
@@ -202,10 +202,10 @@ sy_error_syntax_by_position(sy_position_t position, const char *format, ...)
     fputs("Traceback:\n", stderr);
 
     char base_path[MAX_PATH];
-    SyPath_GetCurrentDirectory(base_path, MAX_PATH);
+    sy_path_get_current_directory(base_path, MAX_PATH);
 
     char relative_path[MAX_PATH];
-    SyPath_GetRelative(base_path, position.path, relative_path, sizeof(relative_path));
+    sy_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
     
     fprintf(stderr, 
             "File \"%s\", Line %lld, Column %lld\n", 
@@ -323,10 +323,10 @@ sy_error_semantic_by_node(sy_node_t *node, const char *format, ...)
     sy_position_t position = node->position;
 
     char base_path[MAX_PATH];
-    SyPath_GetCurrentDirectory(base_path, MAX_PATH);
+    sy_path_get_current_directory(base_path, MAX_PATH);
 
     char relative_path[MAX_PATH];
-    SyPath_GetRelative(base_path, position.path, relative_path, sizeof(relative_path));
+    sy_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
     
     fprintf(stderr, 
             "File \"%s\", Line %lld, Column %lld", 
@@ -481,10 +481,10 @@ sy_error_runtime_by_node(sy_node_t *node, const char *format, ...)
     sy_position_t position = node->position;
 
     char base_path[MAX_PATH];
-    SyPath_GetCurrentDirectory(base_path, MAX_PATH);
+    sy_path_get_current_directory(base_path, MAX_PATH);
 
     char relative_path[MAX_PATH];
-    SyPath_GetRelative(base_path, position.path, relative_path, sizeof(relative_path));
+    sy_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
     
     fprintf(stderr, 
             "File \"%s\", Line %lld, Column %lld", 
@@ -639,10 +639,10 @@ sy_error_type_by_node(sy_node_t *node, const char *format, ...)
     sy_position_t position = node->position;
 
     char base_path[MAX_PATH];
-    SyPath_GetCurrentDirectory(base_path, MAX_PATH);
+    sy_path_get_current_directory(base_path, MAX_PATH);
 
     char relative_path[MAX_PATH];
-    SyPath_GetRelative(base_path, position.path, relative_path, sizeof(relative_path));
+    sy_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
     
     fprintf(stderr, 
             "File \"%s\", Line %lld, Column %lld", 

@@ -31,35 +31,24 @@ sy_execute_prefix(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     if (node->kind == NODE_KIND_TILDE)
     {
         sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
-        sy_record_t *right = sy_execute_prefix(unary->right, strip, applicant, origin);
-        if (right == ERROR)
-        {
-            return ERROR;
-        }
 
-        sy_record_t *left = sy_record_make_int64(-1);
+        sy_record_t *left = sy_record_make_int8(-1);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        sy_record_t *record = sy_execute_xor(node, left, right);
-
-        if (left->link == 0)
+        sy_record_t *right = sy_execute_prefix(unary->right, strip, applicant, origin);
+        if (right == ERROR)
         {
-            if (sy_record_destroy(left) < 0)
-            {
-                return ERROR;
-            }
+            left->link -= 1;
+            return ERROR;
         }
 
-        if (right->link == 0)
-        {
-            if (sy_record_destroy(right) < 0)
-            {
-                return ERROR;
-            }
-        }
+        sy_record_t *record = sy_execute_xor(node, left, right, applicant);
+
+        left->link -= 1;
+        right->link -= 1;
 
         return record;
     }
@@ -67,35 +56,24 @@ sy_execute_prefix(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     if (node->kind == NODE_KIND_POS)
     {
         sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
-        sy_record_t *right = sy_execute_prefix(unary->right, strip, applicant, origin);
-        if (right == ERROR)
-        {
-            return ERROR;
-        }
 
-        sy_record_t *left = sy_record_make_int64(0);
+        sy_record_t *left = sy_record_make_int8(0);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        sy_record_t *record = sy_execute_plus(node, left, right);
-
-        if (left->link == 0)
+        sy_record_t *right = sy_execute_prefix(unary->right, strip, applicant, origin);
+        if (right == ERROR)
         {
-            if (sy_record_destroy(left) < 0)
-            {
-                return ERROR;
-            }
+            left->link -= 1;
+            return ERROR;
         }
 
-        if (right->link == 0)
-        {
-            if (sy_record_destroy(right) < 0)
-            {
-                return ERROR;
-            }
-        }
+        sy_record_t *record = sy_execute_plus(node, left, right, applicant);
+
+        left->link -= 1;
+        right->link -= 1;
 
         return record;
     }
@@ -103,35 +81,24 @@ sy_execute_prefix(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     if (node->kind == NODE_KIND_NEG)
     {
         sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
-        sy_record_t *right = sy_execute_prefix(unary->right, strip, applicant, origin);
-        if (right == ERROR)
-        {
-            return ERROR;
-        }
 
-        sy_record_t *left = sy_record_make_int64(0);
+        sy_record_t *left = sy_record_make_int8(0);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        sy_record_t *record = sy_execute_minus(node, left, right);
-
-        if (left->link == 0)
+        sy_record_t *right = sy_execute_prefix(unary->right, strip, applicant, origin);
+        if (right == ERROR)
         {
-            if (sy_record_destroy(left) < 0)
-            {
-                return ERROR;
-            }
+            left->link -= 1;
+            return ERROR;
         }
 
-        if (right->link == 0)
-        {
-            if (sy_record_destroy(right) < 0)
-            {
-                return ERROR;
-            }
-        }
+        sy_record_t *record = sy_execute_minus(node, left, right, applicant);
+
+        left->link -= 1;
+        right->link -= 1;
 
         return record;
     }
@@ -139,35 +106,24 @@ sy_execute_prefix(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     if (node->kind == NODE_KIND_NOT)
     {
         sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
-        sy_record_t *right = sy_execute_prefix(unary->right, strip, applicant, origin);
-        if (right == ERROR)
-        {
-            return ERROR;
-        }
 
-        sy_record_t *left = sy_record_make_int64(0);
+        sy_record_t *left = sy_record_make_int8(0);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        sy_record_t *record = sy_record_make_int32(sy_execute_truthy_eq(left, right));
-
-        if (left->link == 0)
+        sy_record_t *right = sy_execute_prefix(unary->right, strip, applicant, origin);
+        if (right == ERROR)
         {
-            if (sy_record_destroy(left) < 0)
-            {
-                return ERROR;
-            }
+            left->link -= 1;
+            return ERROR;
         }
 
-        if (right->link == 0)
-        {
-            if (sy_record_destroy(right) < 0)
-            {
-                return ERROR;
-            }
-        }
+        sy_record_t *record = sy_execute_eq(node, left, right, applicant);
+
+        left->link -= 1;
+        right->link -= 1;
 
         return record;
     }

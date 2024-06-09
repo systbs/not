@@ -25,7 +25,7 @@
  * truncated.
  */
 size_t
-SyPath_Normalize(const char *path, char *buffer, size_t buffer_size);
+sy_path_normalize(const char *path, char *buffer, size_t buffer_size);
 
 /**
  * @brief Generates a relative path based on a base.
@@ -46,7 +46,7 @@ SyPath_Normalize(const char *path, char *buffer, size_t buffer_size);
  * @return Returns the total amount of characters of the full path.
  */
 size_t 
-SyPath_GetRelative(const char *base_directory, const char *path, char *buffer, size_t buffer_size);
+sy_path_get_relative(const char *base_directory, const char *path, char *buffer, size_t buffer_size);
 
 /**
  * @brief Generates an absolute path based on a base.
@@ -68,13 +68,13 @@ SyPath_GetRelative(const char *base_directory, const char *path, char *buffer, s
  * @return Returns the total amount of characters of the new absolute path.
  */
 size_t 
-SyPath_GetAbsolute(const char *base, const char *path, char *buffer, size_t buffer_size);
+sy_path_get_absolute(const char *base, const char *path, char *buffer, size_t buffer_size);
 
 /**
  * @brief Joins two paths together.
  *
  * This function generates a new path by combining the two submitted paths. It
- * will remove double separators, and unlike cwk_SyPath_GetAbsolute it permits
+ * will remove double separators, and unlike cwk_sy_path_get_absolute it permits
  * the use of two relative paths to combine. The result will be written to a
  * buffer, which might be truncated if the buffer is not large enough to hold
  * the full path. However, the truncated result will always be
@@ -89,13 +89,13 @@ SyPath_GetAbsolute(const char *base, const char *path, char *buffer, size_t buff
  * @return Returns the total amount of characters of the full, combined path.
  */
 size_t
-SyPath_Join(const char *path_a, const char *path_b, char *buffer, size_t buffer_size);
+sy_path_join(const char *path_a, const char *path_b, char *buffer, size_t buffer_size);
 
 /**
  * @brief Joins multiple paths together.
  *
  * This function generates a new path by joining multiple paths together. It
- * will remove double separators, and unlike cwk_SyPath_GetAbsolute it permits
+ * will remove double separators, and unlike cwk_sy_path_get_absolute it permits
  * the use of multiple relative paths to combine. The last path of the
  * submitted string array must be set to NULL. The result will be written to a
  * buffer, which might be truncated if the buffer is not large enough to hold
@@ -110,7 +110,7 @@ SyPath_Join(const char *path_a, const char *path_b, char *buffer, size_t buffer_
  * @return Returns the total amount of characters of the full, combined path.
  */
 size_t
-SyPath_JoinMultiple(const char **paths, char *buffer, size_t buffer_size);
+sy_path_join_multiple(const char **paths, char *buffer, size_t buffer_size);
 
 /**
  * @brief Determine whether the path is relative or not.
@@ -122,7 +122,7 @@ SyPath_JoinMultiple(const char **paths, char *buffer, size_t buffer_size);
  * @return Returns true if the path is relative or false otherwise.
  */
 int32_t
-SyPath_IsRelative(const char *path);
+sy_path_is_relative(const char *path);
 
 /**
  * @brief Determine whether the path is absolute or not.
@@ -134,24 +134,24 @@ SyPath_IsRelative(const char *path);
  * @return Returns true if the path is absolute or false otherwise.
  */
 int32_t
-SyPath_IsAbsolute(const char *path);
+sy_path_is_absolute(const char *path);
 
 int32_t 
 path_is_directory(const char *path);
 
 char *
-SyPath_GetCurrentDirectory(char *buffer, size_t buffer_size);
+sy_path_get_current_directory(char *buffer, size_t buffer_size);
 
 int32_t
-SyPath_IsRoot(const char *path);
+sy_path_is_root(const char *path);
 
 size_t
-SyPath_GetFilename(const char *path, char *buffer, size_t buffer_size);
+sy_path_get_filename(const char *path, char *buffer, size_t buffer_size);
 
 size_t
-SyPath_GetDirectoryPath(const char *path, char *buffer, size_t buffer_size);
+sy_path_get_directory_path(const char *path, char *buffer, size_t buffer_size);
 
 int32_t
-SyPath_Exist(const char *path);
+sy_path_exist(const char *path);
 
 #endif

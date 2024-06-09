@@ -99,6 +99,7 @@ typedef enum sy_node_kind {
 	NODE_KIND_DIV_ASSIGN,
 	NODE_KIND_EPI_ASSIGN,
 	NODE_KIND_MOD_ASSIGN,
+	NODE_KIND_POW_ASSIGN,
 	NODE_KIND_AND_ASSIGN,
 	NODE_KIND_OR_ASSIGN,
 	NODE_KIND_SHL_ASSIGN,
@@ -523,6 +524,9 @@ sy_node_make_epi_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right);
 
 sy_node_t *
 sy_node_make_mod_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right);
+
+sy_node_t *
+sy_node_make_pow_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right);
 
 sy_node_t *
 sy_node_make_and_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right);

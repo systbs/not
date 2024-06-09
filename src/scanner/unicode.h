@@ -1,7 +1,7 @@
 #pragma once
 #ifndef __UNICODE_H__
 
-enum CharacterCodes {
+enum character_codes {
     nullCharacter = 0,
     maxAsciiCharacter = 0x7F,
 

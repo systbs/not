@@ -14,7 +14,7 @@ typedef struct SyScanner
 	uint64_t column;
 	uint64_t line;
 
-	SyToken_t token;
+	sy_token_t token;
 } SyScanner_t;
 
 SyScanner_t *

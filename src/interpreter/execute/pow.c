@@ -97,7 +97,7 @@ mpf_is_int(mpf_t num)
 }
 
 sy_record_t *
-sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
+sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant)
 {
     if (left->kind == RECORD_KIND_UNDEFINED)
     {
@@ -464,7 +464,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -481,7 +481,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -556,7 +556,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -573,7 +573,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -648,7 +648,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -665,7 +665,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -740,7 +740,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -757,7 +757,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -832,7 +832,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -849,7 +849,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -924,7 +924,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -941,7 +941,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -1016,7 +1016,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -1033,7 +1033,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -1108,7 +1108,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -1125,7 +1125,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -1200,7 +1200,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -1217,7 +1217,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -1252,7 +1252,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -1286,7 +1286,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -1318,7 +1318,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -1392,7 +1392,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -1409,7 +1409,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -1551,7 +1551,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -1568,7 +1568,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -1643,7 +1643,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -1660,7 +1660,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -1735,7 +1735,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -1752,7 +1752,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -1827,7 +1827,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -1844,7 +1844,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -1919,7 +1919,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -1936,7 +1936,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -2011,7 +2011,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -2028,7 +2028,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -2103,7 +2103,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -2120,7 +2120,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -2195,7 +2195,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -2212,7 +2212,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -2287,7 +2287,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -2304,7 +2304,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -2339,7 +2339,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -2373,7 +2373,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -2405,7 +2405,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -2479,7 +2479,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -2496,7 +2496,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -2638,7 +2638,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -2655,7 +2655,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -2730,7 +2730,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -2747,7 +2747,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -2822,7 +2822,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -2839,7 +2839,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -2914,7 +2914,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -2931,7 +2931,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -3006,7 +3006,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -3023,7 +3023,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -3098,7 +3098,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -3115,7 +3115,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -3190,7 +3190,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -3207,7 +3207,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -3282,7 +3282,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -3299,7 +3299,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -3374,7 +3374,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -3391,7 +3391,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -3426,7 +3426,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -3460,7 +3460,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -3492,7 +3492,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -3566,7 +3566,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -3583,7 +3583,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -3725,7 +3725,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -3742,7 +3742,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -3817,7 +3817,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -3834,7 +3834,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -3909,7 +3909,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -3926,7 +3926,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -4001,7 +4001,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -4018,7 +4018,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -4093,7 +4093,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -4110,7 +4110,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -4185,7 +4185,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -4202,7 +4202,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -4277,7 +4277,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -4294,7 +4294,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -4369,7 +4369,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -4386,7 +4386,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -4461,7 +4461,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -4478,7 +4478,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -4513,7 +4513,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -4547,7 +4547,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -4579,7 +4579,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -4653,7 +4653,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -4670,7 +4670,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -4812,7 +4812,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -4829,7 +4829,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -4904,7 +4904,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -4921,7 +4921,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -4996,7 +4996,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -5013,7 +5013,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -5088,7 +5088,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -5105,7 +5105,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -5180,7 +5180,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -5197,7 +5197,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -5272,7 +5272,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -5289,7 +5289,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -5364,7 +5364,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -5381,7 +5381,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -5456,7 +5456,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -5473,7 +5473,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -5548,7 +5548,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -5565,7 +5565,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -5600,7 +5600,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -5634,7 +5634,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -5666,7 +5666,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -5740,7 +5740,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -5757,7 +5757,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -5899,7 +5899,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -5916,7 +5916,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -5991,7 +5991,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -6008,7 +6008,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -6083,7 +6083,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -6100,7 +6100,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -6175,7 +6175,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -6192,7 +6192,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -6267,7 +6267,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -6284,7 +6284,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -6359,7 +6359,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -6376,7 +6376,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -6451,7 +6451,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -6468,7 +6468,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -6543,7 +6543,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -6560,7 +6560,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -6635,7 +6635,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -6652,7 +6652,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -6687,7 +6687,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -6721,7 +6721,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -6753,7 +6753,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -6827,7 +6827,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -6844,7 +6844,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -6986,7 +6986,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -7003,7 +7003,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -7078,7 +7078,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -7095,7 +7095,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -7170,7 +7170,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -7187,7 +7187,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -7262,7 +7262,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -7279,7 +7279,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -7354,7 +7354,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -7371,7 +7371,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -7446,7 +7446,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -7463,7 +7463,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -7538,7 +7538,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -7555,7 +7555,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -7630,7 +7630,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -7647,7 +7647,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -7722,7 +7722,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -7739,7 +7739,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -7774,7 +7774,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -7808,7 +7808,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -7840,7 +7840,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -7914,7 +7914,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -7931,7 +7931,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -8073,7 +8073,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -8090,7 +8090,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -8165,7 +8165,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -8182,7 +8182,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -8257,7 +8257,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -8274,7 +8274,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -8349,7 +8349,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -8366,7 +8366,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -8441,7 +8441,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -8458,7 +8458,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -8533,7 +8533,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -8550,7 +8550,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -8625,7 +8625,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -8642,7 +8642,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -8717,7 +8717,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -8734,7 +8734,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -8809,7 +8809,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -8826,7 +8826,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -8861,7 +8861,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -8895,7 +8895,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -8927,7 +8927,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -9001,7 +9001,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -9018,7 +9018,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -9160,7 +9160,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -9177,7 +9177,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -9252,7 +9252,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -9269,7 +9269,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -9344,7 +9344,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -9361,7 +9361,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -9436,7 +9436,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -9453,7 +9453,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -9528,7 +9528,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -9545,7 +9545,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -9620,7 +9620,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -9637,7 +9637,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -9712,7 +9712,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -9729,7 +9729,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -9804,7 +9804,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -9821,7 +9821,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -9896,7 +9896,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -9913,7 +9913,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -9949,7 +9949,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -9984,7 +9984,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -10017,7 +10017,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -10091,7 +10091,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -10108,7 +10108,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -10210,7 +10210,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -10244,7 +10244,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -10278,7 +10278,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -10312,7 +10312,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -10346,7 +10346,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -10380,18 +10380,10 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
-           if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
-
 
            return record;
         }
@@ -10420,18 +10412,10 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
-           if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
-
 
            return record;
         }
@@ -10460,18 +10444,10 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
-           if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
-
 
            return record;
         }
@@ -10501,18 +10477,10 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
-           if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
-
 
            return record;
         }
@@ -10541,18 +10509,10 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
-           if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
-
 
            return record;
         }
@@ -10581,7 +10541,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -10613,18 +10573,10 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
-           if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
-
 
            return record;
         }
@@ -10653,18 +10605,10 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
-           if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
-
 
            return record;
         }
@@ -10800,7 +10744,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -10817,7 +10761,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -10892,7 +10836,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -10909,7 +10853,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -10984,7 +10928,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -11001,7 +10945,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -11076,7 +11020,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -11093,7 +11037,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -11168,7 +11112,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -11185,7 +11129,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -11260,7 +11204,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -11277,7 +11221,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -11352,7 +11296,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -11369,7 +11313,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -11444,7 +11388,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -11461,7 +11405,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -11536,7 +11480,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -11553,7 +11497,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -11588,18 +11532,10 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
-           if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
-
 
            return record;
         }
@@ -11628,18 +11564,10 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
-           if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
-
 
            return record;
         }
@@ -11666,7 +11594,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -11740,7 +11668,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -11757,7 +11685,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -11900,7 +11828,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -11917,7 +11845,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -11993,7 +11921,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -12010,7 +11938,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -12086,7 +12014,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -12103,7 +12031,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -12179,7 +12107,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -12196,7 +12124,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -12272,7 +12200,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -12289,7 +12217,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -12365,7 +12293,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -12382,7 +12310,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -12458,7 +12386,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -12475,7 +12403,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -12551,7 +12479,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -12568,7 +12496,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -12644,7 +12572,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -12661,7 +12589,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -12694,18 +12622,10 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
-           if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
-
 
            return record;
         }
@@ -12732,18 +12652,10 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
-           if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
-
 
            return record;
         }
@@ -12767,18 +12679,10 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
-           if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
-
 
            return record;
         }
@@ -12805,7 +12709,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -12946,7 +12850,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -12963,7 +12867,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -13038,7 +12942,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -13055,7 +12959,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -13130,7 +13034,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -13147,7 +13051,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -13222,7 +13126,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -13239,7 +13143,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -13314,7 +13218,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -13331,7 +13235,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -13406,7 +13310,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -13423,7 +13327,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -13498,7 +13402,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -13515,7 +13419,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -13590,7 +13494,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -13607,7 +13511,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -13682,7 +13586,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -13699,7 +13603,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -13734,18 +13638,10 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
-           if (left->link == 0)
-            {
-                if (sy_record_destroy(left) < 0)
-                {
-                    return ERROR;
-                }
-            }
-
 
            return record;
         }
@@ -13774,7 +13670,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -13806,7 +13702,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             } 
             // mpf_t
             else {
-                record = sy_record_make_bigfloat_from_mpf(result);
+                record = sy_record_make_bigfloat_from_f(result);
             }
 
             mpf_clear(result);
@@ -13880,7 +13776,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 }
                 // mpz_t
                 else {
-                    record = sy_record_make_bigint_from_mpz(result_mpz);
+                    record = sy_record_make_bigint_from_z(result_mpz);
                 }
 
                 mpz_clear(result_mpz);
@@ -13897,7 +13793,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 } 
                 // mpf_t
                 else {
-                    record = sy_record_make_bigfloat_from_mpf(result);
+                    record = sy_record_make_bigfloat_from_f(result);
                 }
             }
 
@@ -14637,171 +14533,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
     else
     if (left->kind == RECORD_KIND_STRUCT)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "undefined");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_NAN)
-        {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "nan");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_INT8)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "int8");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_INT16)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "int16");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_INT32)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "int32");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_INT64)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "int64");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_UINT8)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "uint8");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_UINT16)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "uint16");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_UINT32)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "uint32");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_UINT64)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "uint64");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_BIGINT)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "bigint");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_FLOAT32)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "float32");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_FLOAT64)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "float64");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "bigfloat");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "char");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_STRING)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "struct");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "object");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "tuple");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "type");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "struct");
-            return ERROR;
-        }
-        else
-        if (right->kind == RECORD_KIND_NULL)
-        {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "struct", "null");
-            return ERROR;
-        }
-
-        return sy_record_make_undefined();
+        return sy_execute_call_for_operator_by_one_argument(node, left, right, "**", applicant);
     }
     else
     if (left->kind == RECORD_KIND_NULL)
@@ -14950,23 +14682,19 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
 
 
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "type");
+            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "type");
             return ERROR;
         }
         else
         if (right->kind == RECORD_KIND_STRUCT)
         {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "struct");
+            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "struct");
             return ERROR;
         }
         else
         if (right->kind == RECORD_KIND_NULL)
         {
-
-
-           sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "null");
+            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "null");
             return ERROR;
         }
 
@@ -14991,26 +14719,14 @@ sy_execute_power(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
         sy_record_t *right = sy_execute_prefix(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
+            left->link -= 1;
             return ERROR;
         }
 
-        sy_record_t *record = sy_execute_pow(node, left, right);
+        sy_record_t *record = sy_execute_pow(node, left, right, applicant);
         
-        if (left->link == 0)
-        {
-            if (sy_record_destroy(left) < 0)
-            {
-                return ERROR;
-            }
-        }
-
-        if (right->link == 0)
-        {
-            if (sy_record_destroy(right) < 0)
-            {
-                return ERROR;
-            }
-        }
+        left->link -= 1;
+        right->link -= 1;
 
         return record;
     }

@@ -60,6 +60,7 @@ const char * const symbols[] = {
   [TOKEN_SLASH_EQ]  = "/=",
   [TOKEN_BACKSLASH_EQ]  = "\\=",	
   [TOKEN_PERCENT_EQ]= "%=",
+  [TOKEN_POWER_EQ]= "**=",
   [TOKEN_AND_EQ]    = "&=",	
   [TOKEN_OR_EQ]     = "|=",	
   [TOKEN_LT_LT_EQ]  = "<<=",	

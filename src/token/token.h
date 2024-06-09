@@ -65,6 +65,7 @@ enum
   TOKEN_SLASH_EQ,     // /=
   TOKEN_BACKSLASH_EQ, // \=
   TOKEN_PERCENT_EQ,   // %=
+  TOKEN_POWER_EQ,       // **=
   TOKEN_AND_EQ,       // &=
   TOKEN_OR_EQ,        // |=
   TOKEN_LT_LT_EQ,     // <<=
@@ -121,11 +122,11 @@ enum
 };
 
 
-typedef struct SyToken {
+typedef struct sy_token {
 	sy_position_t position;
 	int32_t type;
 	char *value;
-} SyToken_t;
+} sy_token_t;
 
 const char *
 sy_token_get_name(int32_t tp);

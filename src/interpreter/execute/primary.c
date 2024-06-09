@@ -58,6 +58,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                         sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                         return ERROR;
                     }
+
                     return entry->value;
                 }
             }
@@ -118,6 +119,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                                     sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                                     return ERROR;
                                 }
+
                                 return entry->value;
                             }
                         }
@@ -165,6 +167,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                             sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
+
                         return entry->value;
                     }
                 }
@@ -193,6 +196,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                                     sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                                     return ERROR;
                                 }
+
                                 return entry->value;
                             }
                         }
@@ -231,6 +235,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                             sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
+
                         return entry->value;
                     }
                 }
@@ -262,6 +267,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                             sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
+
                         return entry->value;
                     }
                 }
@@ -298,6 +304,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                             sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
+
                         return entry->value;
                     }
                 }
@@ -329,6 +336,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                             sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
+
                         return entry->value;
                     }
                 }
@@ -365,6 +373,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                             sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
+
                         return entry->value;
                     }
                 }
@@ -396,6 +405,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                             sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
+
                         return entry->value;
                     }
                 }
@@ -409,7 +419,13 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                 sy_node_class_t *class2 = (sy_node_class_t *)item1->value;
                 if (sy_execute_id_cmp(class2->key, name) == 1)
                 {
-                    sy_strip_t *new_strip = sy_strip_create(strip);
+                    sy_strip_t *strip_copy = sy_strip_copy(strip);
+                    if (strip_copy == ERROR)
+                    {
+                        return ERROR;
+                    }
+
+                    sy_strip_t *new_strip = sy_strip_create(strip_copy);
                     if (new_strip == ERROR)
                     {
                         return ERROR;
@@ -424,7 +440,13 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                 sy_node_fun_t *fun1 = (sy_node_fun_t *)item1->value;
                 if (sy_execute_id_cmp(fun1->key, name) == 1)
                 {
-                    sy_strip_t *new_strip = sy_strip_create(strip);
+                    sy_strip_t *strip_copy = sy_strip_copy(strip);
+                    if (strip_copy == ERROR)
+                    {
+                        return ERROR;
+                    }
+
+                    sy_strip_t *new_strip = sy_strip_create(strip_copy);
                     if (new_strip == ERROR)
                     {
                         return ERROR;
@@ -453,6 +475,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                             sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
+
                         return entry->value;
                     }
                     else
@@ -469,6 +492,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                             sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
+                        
                         return entry->value;
                     }
                 }
@@ -554,7 +578,13 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                         }
                     }
 
-                    sy_strip_t *new_strip = sy_strip_create(strip);
+                    sy_strip_t *strip_copy = sy_strip_copy(strip);
+                    if (strip_copy == ERROR)
+                    {
+                        return ERROR;
+                    }
+
+                    sy_strip_t *new_strip = sy_strip_create(strip_copy);
                     if (new_strip == ERROR)
                     {
                         return ERROR;
@@ -607,10 +637,11 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                         else
                         if (entry == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key;
+                            sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
                             sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
+
                         return entry->value;
                     }
                 }
@@ -635,38 +666,21 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                                     }
                                 }
 
-                                if ((entity1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
+                                sy_entry_t *entry = sy_symbol_table_find(base, entity1->key);
+                                if (entry == ERROR)
                                 {
-                                    sy_entry_t *entry = sy_symbol_table_find(base, entity1->key);
-                                    if (entry == ERROR)
-                                    {
-                                        return ERROR;
-                                    }
-                                    else
-                                    if (entry == NULL)
-                                    {
-                                        sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key;
-                                        sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
-                                        return ERROR;
-                                    }
-                                    return entry->value;
+                                    return ERROR;
                                 }
                                 else
+                                if (entry == NULL)
                                 {
-                                    sy_entry_t *entry = sy_strip_variable_find(strip, base, entity1->key);
-                                    if (entry == ERROR)
-                                    {
-                                        return ERROR;
-                                    }
-                                    else
-                                    if (entry == NULL)
-                                    {
-                                        sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key;
-                                        sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
-                                        return ERROR;
-                                    }
-                                    return entry->value;
+                                    sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
+                                    sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                                    return ERROR;
                                 }
+
+                                return entry->value;
+                                
                             }
                         }
                     }
@@ -738,7 +752,7 @@ sy_execute_number(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         } 
         // mpf_t
         else {
-            record = sy_record_make_bigfloat_from_mpf(result);
+            record = sy_record_make_bigfloat_from_f(result);
         }
 
         mpf_clear(result);
@@ -790,7 +804,7 @@ sy_execute_number(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         }
         // mpz_t
         else {
-            record = sy_record_make_bigint_from_mpz(result_mpz);
+            record = sy_record_make_bigint_from_z(result_mpz);
         }
 
         mpz_clear(result_mpz);
@@ -912,7 +926,13 @@ sy_execute_lambda(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     sy_node_lambda_t *fun1 = (sy_node_lambda_t *)node->value;
     if (fun1->body)
     {
-        sy_strip_t *new_strip = sy_strip_create(strip);
+        sy_strip_t *strip_copy = sy_strip_copy(strip);
+        if (strip_copy == ERROR)
+        {
+            return ERROR;
+        }
+        
+        sy_strip_t *new_strip = sy_strip_create(strip_copy);
         if (new_strip == ERROR)
         {
             return ERROR;
@@ -963,33 +983,19 @@ sy_execute_tuple(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
             is_tuple = 1;
         }
 
-        record_value->link = 1;
         sy_record_tuple_t *tuple = sy_record_make_tuple(record_value, NULL);
         if (tuple == ERROR)
         {
-            record_value->link = 0;
             if (top)
             {
                 if (sy_record_tuple_destroy(top) < 0)
                 {
-                    if (record_value->kind == 0)
-                    {
-                        if (sy_record_destroy(record_value) < 0)
-                        {
-                            return NULL;
-                        }
-                    }
+                    record_value->link -= 1;
                     return NULL;
                 }
             }
 
-            if (record_value->kind == 0)
-            {
-                if (sy_record_destroy(record_value) < 0)
-                {
-                    return NULL;
-                }
-            }
+            record_value->link -= 1;
             return NULL;
         }
 
@@ -1071,33 +1077,20 @@ sy_execute_object(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             is_object = 1;
         }
 
-        record_value->link = 1;
         sy_record_object_t *object = sy_record_make_object(pair->key, record_value, NULL);
         if (object == ERROR)
         {
-            record_value->link = 0;
+            record_value->link -= 1;
             if (top)
             {
                 if (sy_record_object_destroy(top) < 0)
                 {
-                    if (record_value->kind == 0)
-                    {
-                        if (sy_record_destroy(record_value) < 0)
-                        {
-                            return NULL;
-                        }
-                    }
+                    record_value->link -= 1;
                     return NULL;
                 }
             }
 
-            if (record_value->kind == 0)
-            {
-                if (sy_record_destroy(record_value) < 0)
-                {
-                    return NULL;
-                }
-            }
+            record_value->link -= 1;
             return NULL;
         }
 

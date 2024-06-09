@@ -40,16 +40,20 @@ call_for_bracket(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, sy_no
             sy_node_fun_t *fun1 = (sy_node_fun_t *)item->value;
             if (sy_execute_id_strcmp(fun1->key, "[]") == 1)
             {
-                sy_strip_t *strip_fun = sy_strip_create(strip);
+                sy_strip_t *strip_copy = sy_strip_copy(strip);
+                if (strip_copy == ERROR)
+                {
+                    return ERROR;
+                }
+
+                sy_strip_t *strip_fun = sy_strip_create(strip_copy);
                 if (strip_fun == ERROR)
                 {
                     return ERROR;
                 }
-                strip_fun->link = 1;
 
-                if (parameters_substitute(base, item, strip_fun, fun1->parameters, arguments, applicant) < 0)
+                if (sy_execute_parameters_substitute(base, item, strip_fun, fun1->parameters, arguments, applicant) < 0)
                 {
-                    strip_fun->link = 0;
                     if (sy_strip_destroy(strip_fun) < 0)
                     {
                         return ERROR;
@@ -60,8 +64,6 @@ call_for_bracket(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, sy_no
                 int32_t r1 = sy_execute_run_fun(item, strip_fun, applicant);
                 if (r1 == -1)
                 {
-                    strip_fun->link = 0;
-                    
                     if (sy_strip_destroy(strip_fun) < 0)
                     {
                         return ERROR;
@@ -70,7 +72,6 @@ call_for_bracket(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, sy_no
                     return ERROR;
                 }
 
-                strip_fun->link = 0;
                 if (sy_strip_destroy(strip_fun) < 0)
                 {
                     return ERROR;
@@ -232,13 +233,7 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
             sy_strip_t *strip_new = (sy_strip_t *)record_struct->value;
             sy_record_t *result = call_for_bracket(node, carrier->data, strip_new, type, applicant);
 
-            if (base->link == 0)
-            {
-                if (sy_record_destroy(base) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            base->link -= 1;
 
             if (result == ERROR)
             {
@@ -263,13 +258,7 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 sy_error_type_by_node(node, "'%s' takes %lld positional arguments but %lld were given", 
                     sy_record_type_as_string(base), 1, arg_cnt);
 
-                if (base->link == 0)
-                {
-                    if (sy_record_destroy(base) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                base->link -= 1;
 
                 return ERROR;
             }
@@ -280,26 +269,14 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
             if (argument->value)
             {
                 sy_error_type_by_node(item1, "'%s' not support", "pair");
-                if (base->link == 0)
-                {
-                    if (sy_record_destroy(base) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                base->link -= 1;
                 return ERROR;
             }
 
             sy_record_t *record_arg = sy_execute_expression(argument->key, strip, applicant, origin);
             if (record_arg == ERROR)
             {
-                if (base->link == 0)
-                {
-                    if (sy_record_destroy(base) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                base->link -= 1;
                 return ERROR;
             }
 
@@ -307,28 +284,8 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
             {
                 sy_error_type_by_node(item1, "'%s' must be of '%s' type", "key", "string");
 
-                if (record_arg->link == 0)
-                {
-                    if (sy_record_destroy(record_arg) < 0)
-                    {
-                        if (base->link == 0)
-                        {
-                            if (sy_record_destroy(base) < 0)
-                            {
-                                return ERROR;
-                            }
-                        }
-                        return ERROR;
-                    }
-                }
-                
-                if (base->link == 0)
-                {
-                    if (sy_record_destroy(base) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                record_arg->link -= 1;
+                base->link -= 1;
 
                 return ERROR;
             }
@@ -337,29 +294,8 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
             {
                 if (sy_execute_id_strcmp(item->key, *(char **)record_arg->value) == 1)
                 {
-                    if (record_arg->link == 0)
-                    {
-                        if (sy_record_destroy(record_arg) < 0)
-                        {
-                            if (base->link == 0)
-                            {
-                                if (sy_record_destroy(base) < 0)
-                                {
-                                    return ERROR;
-                                }
-                            }
-                            return ERROR;
-                        }
-                    }
-                    
-                    if (base->link == 0)
-                    {
-                        if (sy_record_destroy(base) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-
+                    record_arg->link -= 1;
+                    base->link -= 1;
                     return item->value;
                 }
             }
@@ -367,28 +303,8 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
             sy_error_type_by_node(node, "'%s' has no contain key '%s'", 
                 sy_record_type_as_string(base), *(char **)record_arg->value);
 
-            if (record_arg->link == 0)
-            {
-                if (sy_record_destroy(record_arg) < 0)
-                {
-                    if (base->link == 0)
-                    {
-                        if (sy_record_destroy(base) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
-                    return ERROR;
-                }
-            }
-            
-            if (base->link == 0)
-            {
-                if (sy_record_destroy(base) < 0)
-                {
-                    return ERROR;
-                }
-            }
+            record_arg->link -= 1;
+            base->link -= 1;
 
             return ERROR;
         }
@@ -408,13 +324,7 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 sy_error_type_by_node(node, "'%s' takes %lld positional arguments but %lld were given", 
                     sy_record_type_as_string(base), 3, arg_cnt);
 
-                if (base->link == 0)
-                {
-                    if (sy_record_destroy(base) < 0)
-                    {
-                        return ERROR;
-                    }
-                }
+                base->link -= 1;
 
                 return ERROR;
             }
@@ -439,13 +349,7 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 {
                     mpz_clears(start, stop, step);
                     sy_error_type_by_node(item, "'%s' not support", "pair");
-                    if (base->link == 0)
-                    {
-                        if (sy_record_destroy(base) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
+                    base->link -= 1;
                     return ERROR;
                 }
 
@@ -453,13 +357,7 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 if (record_arg == ERROR)
                 {
                     mpz_clears(start, stop, step);
-                    if (base->link == 0)
-                    {
-                        if (sy_record_destroy(base) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
+                    base->link -= 1;
                     return ERROR;
                 }
 
@@ -468,28 +366,8 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                     mpz_clears(start, stop, step);
                     sy_error_type_by_node(item, "'%s' must be of '%s' type", "key", "int");
 
-                    if (record_arg->link == 0)
-                    {
-                        if (sy_record_destroy(record_arg) < 0)
-                        {
-                            if (base->link == 0)
-                            {
-                                if (sy_record_destroy(base) < 0)
-                                {
-                                    return ERROR;
-                                }
-                            }
-                            return ERROR;
-                        }
-                    }
-                    
-                    if (base->link == 0)
-                    {
-                        if (sy_record_destroy(base) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
+                    record_arg->link -= 1;
+                    base->link -= 1;
 
                     return ERROR;
                 }
@@ -535,13 +413,7 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                     mpz_clear(term);
                     mpz_clear(cnt);
                     mpz_clear(length);
-                    if (base->link == 0)
-                    {
-                        if (sy_record_destroy(base) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
+                    base->link -= 1;
                     return ERROR;
                 }
 
@@ -554,13 +426,7 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                     mpz_clear(term);
                     mpz_clear(cnt);
                     mpz_clear(length);
-                    if (base->link == 0)
-                    {
-                        if (sy_record_destroy(base) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
+                    base->link -= 1;
                     return ERROR;
                 }
 
@@ -586,7 +452,6 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                         {
                             if (mpz_cmp(term, cnt) == 0)
                             {
-                                item->value->link += 1;
                                 sy_record_tuple_t *tuple = sy_record_make_tuple(item->value, NULL);
                                 if (tuple == ERROR)
                                 {
@@ -602,24 +467,12 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                                     {
                                         if (sy_record_tuple_destroy(top) < 0)
                                         {
-                                            if (base->link == 0)
-                                            {
-                                                if (sy_record_destroy(base) < 0)
-                                                {
-                                                    return ERROR;
-                                                }
-                                            }
+                                            base->link -= 1;
                                             return ERROR;
                                         }
                                     }
 
-                                    if (base->link == 0)
-                                    {
-                                        if (sy_record_destroy(base) < 0)
-                                        {
-                                            return ERROR;
-                                        }
-                                    }
+                                    base->link -= 1;
                                     return ERROR;
                                 }
 
@@ -650,7 +503,6 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                         {
                             if (mpz_cmp(term, cnt) == 0)
                             {
-                                item->value->link += 1;
                                 sy_record_tuple_t *tuple = sy_record_make_tuple(item->value, NULL);
                                 if (tuple == ERROR)
                                 {
@@ -666,24 +518,12 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                                     {
                                         if (sy_record_tuple_destroy(top) < 0)
                                         {
-                                            if (base->link == 0)
-                                            {
-                                                if (sy_record_destroy(base) < 0)
-                                                {
-                                                    return ERROR;
-                                                }
-                                            }
+                                            base->link -= 1;
                                             return ERROR;
                                         }
                                     }
 
-                                    if (base->link == 0)
-                                    {
-                                        if (sy_record_destroy(base) < 0)
-                                        {
-                                            return ERROR;
-                                        }
-                                    }
+                                    base->link -= 1;
                                     return ERROR;
                                 }
 
@@ -716,30 +556,11 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 sy_record_t *result = sy_record_create(NODE_KIND_TUPLE, top);
                 if (result == ERROR)
                 {
-                    if (base->link == 0)
-                    {
-                        if (sy_record_destroy(base) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
+                    base->link -= 1;
                     return ERROR;
                 }
 
-                if (base->link == 0)
-                {
-                    if (sy_record_destroy(base) < 0)
-                    {
-                        if (result->link == 0)
-                        {
-                            if (sy_record_destroy(result) < 0)
-                            {
-                                return ERROR;
-                            }
-                        }
-                        return ERROR;
-                    }
-                }
+                base->link -= 1;
 
                 return result;
             }
@@ -754,13 +575,7 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                     mpz_clear(term);
                     mpz_clear(cnt);
                     mpz_clear(length);
-                    if (base->link == 0)
-                    {
-                        if (sy_record_destroy(base) < 0)
-                        {
-                            return ERROR;
-                        }
-                    }
+                    base->link -= 1;
                     return ERROR;
                 }
 
@@ -780,13 +595,7 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                         mpz_clear(term);
                         mpz_clear(cnt);
                         mpz_clear(length);
-                        if (base->link == 0)
-                        {
-                            if (sy_record_destroy(base) < 0)
-                            {
-                                return ERROR;
-                            }
-                        }
+                        base->link -= 1;
                         return item->value;
                     }
                     mpz_add_ui(cnt, cnt, 1);

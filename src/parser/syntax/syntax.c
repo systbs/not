@@ -670,15 +670,6 @@ sy_syntax_operator(sy_syntax_t *syntax, sy_node_t *parent)
 	}
 
 	char *operator = NULL;
-	if (syntax->token->type == TOKEN_EQ)
-	{
-		if (sy_syntax_match(syntax, TOKEN_EQ) == -1)
-		{
-			return NULL;
-		}
-		operator = "=";
-	}
-	else 
 	if (syntax->token->type == TOKEN_PLUS)
 	{
 		if (sy_syntax_match(syntax, TOKEN_PLUS) == -1)
@@ -696,25 +687,7 @@ sy_syntax_operator(sy_syntax_t *syntax, sy_node_t *parent)
 		}
 		operator = "-";
 	}
-	else 
-	if (syntax->token->type == TOKEN_TILDE)
-	{
-		if (sy_syntax_match(syntax, TOKEN_TILDE) == -1)
-		{
-			return NULL;
-		}
-		operator = "~";
-	}
-	else 
-	if (syntax->token->type == TOKEN_NOT)
-	{
-		if (sy_syntax_match(syntax, TOKEN_NOT) == -1)
-		{
-			return NULL;
-		}
-		operator = "!";
-	}
-	else 
+	else
 	if (syntax->token->type == TOKEN_STAR)
 	{
 		if (sy_syntax_match(syntax, TOKEN_STAR) == -1)
@@ -777,25 +750,7 @@ sy_syntax_operator(sy_syntax_t *syntax, sy_node_t *parent)
 		}
 		operator = "|";
 	}
-	else 
-	if (syntax->token->type == TOKEN_AND_AND)
-	{
-		if (sy_syntax_match(syntax, TOKEN_AND_AND) == -1)
-		{
-			return NULL;
-		}
-		operator = "&&";
-	}
-	else 
-	if (syntax->token->type == TOKEN_OR_OR)
-	{
-		if (sy_syntax_match(syntax, TOKEN_OR_OR) == -1)
-		{
-			return NULL;
-		}
-		operator = "||";
-	}
-	else 
+	else
 	if (syntax->token->type == TOKEN_CARET)
 	{
 		if (sy_syntax_match(syntax, TOKEN_CARET) == -1)
@@ -2572,6 +2527,24 @@ sy_syntax_assign(sy_syntax_t *syntax, sy_node_t *parent)
 		return sy_node_make_mod_assign(node, node2, right);
 	}
 	else
+	if (syntax->token->type == TOKEN_POWER_EQ)
+	{
+		sy_node_t *node = sy_node_create(parent, syntax->token->position);
+		
+		if (sy_syntax_next(syntax) == -1)
+		{
+			return NULL;
+		}
+
+		sy_node_t *right = sy_syntax_expression(syntax, node);
+		if (right == NULL)
+		{
+			return NULL;
+		}
+
+		return sy_node_make_pow_assign(node, node2, right);
+	}
+	else
 	if (syntax->token->type == TOKEN_AND_EQ)
 	{
 		sy_node_t *node = sy_node_create(parent, syntax->token->position);
@@ -2848,15 +2821,10 @@ sy_syntax_var_stmt(sy_syntax_t *syntax, sy_node_t *parent, uint64_t flag)
 	}
 	
 	sy_node_t *type = NULL;
-	if (syntax->token->type == TOKEN_COLON)
+	if ((syntax->token->type == TOKEN_COLON) && (set_used == 0))
 	{
 		if (sy_syntax_next(syntax) == -1)
 		{
-			return NULL;
-		}
-		if (set_used == 1)
-		{
-			sy_error_syntax_by_position(syntax->token->position, "variable set with type\n\tMajor:%s-%u", __FILE__, __LINE__);
 			return NULL;
 		}
 		type = sy_syntax_postfix(syntax, node);

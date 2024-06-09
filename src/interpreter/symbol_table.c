@@ -122,6 +122,7 @@ sy_symbol_table_push(sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_reco
 
     if (sy_mutex_lock(&st->lock) < 0)
     {
+        value->link -= 1;
         sy_memory_free(entry);
         sy_error_system("'%s' could not lock", "sy_tymbol_table.lock");
         return ERROR;
@@ -131,6 +132,7 @@ sy_symbol_table_push(sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_reco
 
     if (sy_mutex_unlock(&st->lock) < 0)
     {
+        value->link -= 1;
         sy_memory_free(entry);
         sy_error_system("'%s' could not unlock", "sy_tymbol_table.lock");
         return ERROR;
@@ -159,6 +161,10 @@ sy_symbol_table_find(sy_node_t *scope, sy_node_t *key)
             {
                 sy_error_system("'%s' could not unlock", "sy_tymbol_table.lock");
                 return ERROR;
+            }
+            if (a1->value)
+            {
+                a1->value->link += 1;
             }
             return a1;
         }

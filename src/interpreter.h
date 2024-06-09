@@ -2,7 +2,7 @@
 #ifndef __INTERPRETER_H__
 #define __INTERPRETER_H__ 1
 
-typedef struct record sy_record_t;
+typedef struct sy_record sy_record_t;
 
 typedef struct sy_interpreter {
     sy_record_t *rax;

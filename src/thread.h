@@ -6,6 +6,7 @@
 #include <windows.h>
 typedef DWORD sy_thread_id_t;
 #else
+#include <unistd.h>
 #include <pthread.h>
 #include <errno.h>
 typedef pthread_t sy_thread_id_t;
@@ -68,5 +69,8 @@ sy_thread_get_rax();
 
 sy_record_t *
 sy_thread_get_and_set_rax(sy_record_t *value);
+
+void 
+sy_thread_sleep(uint64_t ms);
 
 #endif

@@ -64,6 +64,14 @@ sy_record_create(uint64_t kind, void *value)
 
     record->kind = kind;
     record->value = value;
+    record->link = 1;
+
+    if (sy_garbage_push(record) < 0)
+    {
+        record->link = 0;
+        sy_record_destroy(record);
+        return ERROR;
+    }
 
     return record;
 }
@@ -294,7 +302,6 @@ sy_record_make_bigint_from_si(int64_t value)
     }
 
     mpz_init(*basic);
-
     mpz_set_si(*basic, value);
 
     sy_record_t *record = sy_record_create(RECORD_KIND_BIGINT, basic);
@@ -307,7 +314,7 @@ sy_record_make_bigint_from_si(int64_t value)
 }
 
 sy_record_t *
-sy_record_make_bigint_from_mpz(mpz_t value)
+sy_record_make_bigint_from_z(mpz_t value)
 {
     mpz_t *basic = (mpz_t *)sy_memory_calloc(1, sizeof(mpz_t));
     if (basic == NULL)
@@ -326,6 +333,29 @@ sy_record_make_bigint_from_mpz(mpz_t value)
     }
     return record;
 }
+
+sy_record_t *
+sy_record_make_bigint_from_f(mpf_t value)
+{
+    mpz_t *basic = (mpz_t *)sy_memory_calloc(1, sizeof(mpz_t));
+    if (basic == NULL)
+    {
+        sy_error_no_memory();
+        return ERROR;
+    }
+
+    mpz_init(*basic);
+    mpz_set_f(*basic, value);
+
+    sy_record_t *record = sy_record_create(RECORD_KIND_BIGINT, basic);
+    if (record == ERROR)
+    {
+        sy_memory_free(basic);
+        return ERROR;
+    }
+    return record;
+}
+
 
 sy_record_t *
 sy_record_make_float32(float value)
@@ -379,7 +409,7 @@ sy_record_make_bigfloat(const char *value)
         return ERROR;
     }
 
-    mpf_init2(*basic, 256);
+    mpf_init(*basic);
     mpf_set_str(*basic, value, 10);
 
     sy_record_t *record = sy_record_create(RECORD_KIND_BIGFLOAT, basic);
@@ -401,7 +431,7 @@ sy_record_make_bigfloat_from_d(double value)
         return ERROR;
     }
 
-    mpf_init2(*basic, 256);
+    mpf_init(*basic);
     mpf_set_d(*basic, value);
 
     sy_record_t *record = sy_record_create(RECORD_KIND_BIGFLOAT, basic);
@@ -414,7 +444,51 @@ sy_record_make_bigfloat_from_d(double value)
 }
 
 sy_record_t *
-sy_record_make_bigfloat_from_mpf(mpf_t value)
+sy_record_make_bigfloat_from_si(int64_t value)
+{
+    mpf_t *basic = (mpf_t *)sy_memory_calloc(1, sizeof(mpf_t));
+    if (basic == NULL)
+    {
+        sy_error_no_memory();
+        return ERROR;
+    }
+
+    mpf_init(*basic);
+    mpf_set_si(*basic, value);
+
+    sy_record_t *record = sy_record_create(RECORD_KIND_BIGFLOAT, basic);
+    if (record == ERROR)
+    {
+        sy_memory_free(basic);
+        return ERROR;
+    }
+    return record;
+}
+
+sy_record_t *
+sy_record_make_bigfloat_from_ui(uint64_t value)
+{
+    mpf_t *basic = (mpf_t *)sy_memory_calloc(1, sizeof(mpf_t));
+    if (basic == NULL)
+    {
+        sy_error_no_memory();
+        return ERROR;
+    }
+
+    mpf_init(*basic);
+    mpf_set_ui(*basic, value);
+
+    sy_record_t *record = sy_record_create(RECORD_KIND_BIGFLOAT, basic);
+    if (record == ERROR)
+    {
+        sy_memory_free(basic);
+        return ERROR;
+    }
+    return record;
+}
+
+sy_record_t *
+sy_record_make_bigfloat_from_f(mpf_t value)
 {
     mpf_t *basic = (mpf_t *)sy_memory_calloc(1, sizeof(mpf_t));
     if (basic == NULL)
@@ -433,6 +507,29 @@ sy_record_make_bigfloat_from_mpf(mpf_t value)
     }
     return record;
 }
+
+sy_record_t *
+sy_record_make_bigfloat_from_z(mpz_t value)
+{
+    mpf_t *basic = (mpf_t *)sy_memory_calloc(1, sizeof(mpf_t));
+    if (basic == NULL)
+    {
+        sy_error_no_memory();
+        return ERROR;
+    }
+
+    mpf_init(*basic);
+    mpf_set_z(*basic, value);
+
+    sy_record_t *record = sy_record_create(RECORD_KIND_BIGFLOAT, basic);
+    if (record == ERROR)
+    {
+        sy_memory_free(basic);
+        return ERROR;
+    }
+    return record;
+}
+
 
 sy_record_t *
 sy_record_make_char(char value)
@@ -520,8 +617,6 @@ sy_record_make_struct(sy_node_t *type, sy_strip_t *value)
 
     basic->type = type;
     basic->value = value;
-    
-    value->link = 1;
 
     sy_record_t *record = sy_record_create(RECORD_KIND_STRUCT, basic);
     if (record == ERROR)
@@ -586,11 +681,7 @@ sy_record_object_destroy(sy_record_object_t *object)
         object->next = NULL;
     }
 
-    object->value->link = 0;
-    if (sy_record_destroy(object->value) < 0)
-    {
-        return -1;
-    }
+    object->value->link -= 1;
 
     sy_memory_free(object);
 
@@ -609,12 +700,7 @@ sy_record_tuple_destroy(sy_record_tuple_t *tuple)
         tuple->next = NULL;
     }
 
-    tuple->value->link = 0;
-
-    if (sy_record_destroy(tuple->value) < 0)
-    {
-        return -1;
-    }
+    tuple->value->link -= 1;
 
     sy_memory_free(tuple);
 
@@ -626,7 +712,6 @@ sy_record_struct_destroy(sy_record_struct_t *struct1)
 {
     if (struct1->value)
     {
-        struct1->value->link = 0;
         if (sy_strip_destroy(struct1->value) < 0)
         {
             return -1;
@@ -651,10 +736,8 @@ sy_record_type_destroy(sy_record_type_t *type)
     else
     if (type->type->kind == NODE_KIND_ARRAY)
     {
-        if (sy_record_destroy((sy_record_t *)type->value) < 0)
-        {
-            return -1;
-        }
+        sy_record_t *value = (sy_record_t *)type->value;
+        value->link -= 1;
     }
     else
     if (type->type->kind == NODE_KIND_TUPLE)
@@ -737,8 +820,6 @@ sy_record_object_copy(sy_record_object_t *object)
         return ERROR;
     }
 
-    record_copy->link = 1;
-
     basic->key = object->key;
     basic->value = record_copy;
     basic->next = next;
@@ -787,8 +868,6 @@ sy_record_tuple_copy(sy_record_tuple_t *tuple)
         return ERROR;
     }
 
-    record_copy->link = 1;
-
     basic->value = record_copy;
     basic->next = next;
 
@@ -802,12 +881,13 @@ sy_record_struct_copy(sy_record_struct_t *struct1)
 
     if (struct1->value)
     {
+        printf("pass 7\n");
         value = sy_strip_copy(struct1->value);
         if (value == ERROR)
         {
             return ERROR;
         }
-        value->link = 1;
+        printf("pass 97\n");
     }
 
     sy_record_struct_t *basic = (sy_record_struct_t *)sy_memory_calloc(1, sizeof(sy_record_struct_t));
@@ -816,7 +896,6 @@ sy_record_struct_copy(sy_record_struct_t *struct1)
         sy_error_no_memory();
         if (value)
         {
-            value->link = 0;
             if (sy_strip_destroy(value) < 0)
             {
                 return ERROR;
@@ -923,10 +1002,8 @@ sy_record_type_copy(sy_record_type_t *type)
         else
         if (type->type->kind == NODE_KIND_ARRAY)
         {
-            if (sy_record_destroy((sy_record_t *)value) < 0)
-            {
-                return ERROR;
-            }
+            sy_record_t *rec = (sy_record_t *)value;
+            rec->link -= 1;
         }
         else
         if (type->type->kind == NODE_KIND_TUPLE)
@@ -959,8 +1036,6 @@ sy_record_type_copy(sy_record_type_t *type)
 sy_record_t *
 sy_record_copy(sy_record_t *record)
 {
-    assert (record != NULL);
-
     if (record->kind == RECORD_KIND_INT8)
     {
         return sy_record_make_int8(*(int8_t *)(record->value));
@@ -1003,7 +1078,7 @@ sy_record_copy(sy_record_t *record)
     else
     if (record->kind == RECORD_KIND_BIGINT)
     {
-        return sy_record_make_bigint_from_mpz(*(mpz_t *)(record->value));
+        return sy_record_make_bigint_from_z(*(mpz_t *)(record->value));
     }
     else
     if (record->kind == RECORD_KIND_FLOAT32)
@@ -1018,7 +1093,7 @@ sy_record_copy(sy_record_t *record)
     else
     if (record->kind == RECORD_KIND_BIGFLOAT)
     {
-        return sy_record_make_bigfloat_from_mpf(*(mpf_t *)(record->value));
+        return sy_record_make_bigfloat_from_f(*(mpf_t *)(record->value));
     }
     else
     if (record->kind == RECORD_KIND_CHAR)
@@ -1078,6 +1153,7 @@ sy_record_copy(sy_record_t *record)
         {
             return ERROR;
         }
+        printf("pass 98\n");
 
         sy_record_t *record_copy = sy_record_create(RECORD_KIND_STRUCT, basic);
         if (record_copy == ERROR)
@@ -1094,7 +1170,7 @@ sy_record_copy(sy_record_t *record)
     else
     if (record->kind == RECORD_KIND_TYPE)
     {
-        sy_record_type_t *basic = sy_record_type_copy((sy_record_type_t *)record->value);;
+        sy_record_type_t *basic = sy_record_type_copy((sy_record_type_t *)record->value);
         if (basic == ERROR)
         {
             return ERROR;
@@ -1136,15 +1212,6 @@ sy_record_destroy(sy_record_t *record)
 {
     if (!record)
     {
-        return 0;
-    }
-
-    if (record->link > 0)
-    {
-        if (NULL == sy_garbage_push(record))
-        {
-            return -1;
-        }
         return 0;
     }
 

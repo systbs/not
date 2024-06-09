@@ -896,7 +896,8 @@ sy_semantic_for(sy_node_t *node)
                         }
                         else
                         {
-                            for (sy_node_t *item2 = var2->key;item2 != NULL;item2 = item2->next)
+                            sy_node_block_t *block = (sy_node_block_t *)var2->key->value;
+                            for (sy_node_t *item2 = block->items;item2 != NULL;item2 = item2->next)
                             {
                                 assert (item2->kind == NODE_KIND_ENTITY);
                                 sy_node_entity_t *entity1 = (sy_node_entity_t *)item2->value;
@@ -1035,7 +1036,8 @@ sy_semantic_for(sy_node_t *node)
                         }
                         else
                         {
-                            for (sy_node_t *item2 = var2->key;item2 != NULL;item2 = item2->next)
+                            sy_node_block_t *block = (sy_node_block_t *)var2->key->value;
+                            for (sy_node_t *item2 = block->items;item2 != NULL;item2 = item2->next)
                             {
                                 assert (item2->kind == NODE_KIND_ENTITY);
                                 sy_node_entity_t *entity1 = (sy_node_entity_t *)item2->value;
@@ -1165,8 +1167,6 @@ sy_semantic_var(sy_node_t *node)
 
             for (sy_node_t *item1 = catch1->parameters;item1 != NULL;item1 = item1->next)
             {
-                assert (item1->kind == NODE_KIND_PARAMETER);
-
                 sy_node_parameter_t *parameter2 = (sy_node_parameter_t *)item1->value;
                 if (var1->key->kind == NODE_KIND_ID)
                 {
@@ -1181,10 +1181,9 @@ sy_semantic_var(sy_node_t *node)
                 }
                 else
                 {
-                    for (sy_node_t *item2 = var1->key;item2 != NULL;item2 = item2->next)
+                    sy_node_block_t *block = (sy_node_block_t *)var1->key->value;
+                    for (sy_node_t *item2 = block->items;item2 != NULL;item2 = item2->next)
                     {
-                        assert (item2->kind == NODE_KIND_ENTITY);
-
                         sy_node_entity_t *entity1 = (sy_node_entity_t *)item2->value;
                         if (sy_semantic_idcmp(entity1->key, parameter2->key) == 1)
                         {
@@ -1248,7 +1247,8 @@ sy_semantic_var(sy_node_t *node)
                     }
                     else
                     {
-                        for (sy_node_t *item2 = var2->key;item2 != NULL;item2 = item2->next)
+                        sy_node_block_t *block = (sy_node_block_t *)var1->key->value;
+                        for (sy_node_t *item2 = block->items;item2 != NULL;item2 = item2->next)
                         {
                             assert (item2->kind == NODE_KIND_ENTITY);
 
@@ -1317,7 +1317,8 @@ sy_semantic_var(sy_node_t *node)
                         }
                         else
                         {
-                            for (sy_node_t *item2 = var1->key;item2 != NULL;item2 = item2->next)
+                            sy_node_block_t *block = (sy_node_block_t *)var1->key->value;
+                            for (sy_node_t *item2 = block->items;item2 != NULL;item2 = item2->next)
                             {
                                 assert (item2->kind == NODE_KIND_ENTITY);
 
@@ -1353,7 +1354,8 @@ sy_semantic_var(sy_node_t *node)
                         }
                         else
                         {
-                            for (sy_node_t *item2 = var1->key;item2 != NULL;item2 = item2->next)
+                            sy_node_block_t *block = (sy_node_block_t *)var1->key->value;
+                            for (sy_node_t *item2 = block->items;item2 != NULL;item2 = item2->next)
                             {
                                 assert (item2->kind == NODE_KIND_ENTITY);
 
@@ -1373,7 +1375,8 @@ sy_semantic_var(sy_node_t *node)
                     {
                         if (var1->key->kind == NODE_KIND_ID)
                         {
-                            for (sy_node_t *item2 = var2->key;item2 != NULL;item2 = item2->next)
+                            sy_node_block_t *block = (sy_node_block_t *)var2->key->value;
+                            for (sy_node_t *item2 = block->items;item2 != NULL;item2 = item2->next)
                             {
                                 assert (item2->kind == NODE_KIND_ENTITY);
 
@@ -1390,13 +1393,13 @@ sy_semantic_var(sy_node_t *node)
                         }
                         else
                         {
-                            for (sy_node_t *item2 = var1->key;item2 != NULL;item2 = item2->next)
+                            sy_node_block_t *block1 = (sy_node_block_t *)var1->key->value;
+                            for (sy_node_t *item2 = block1->items;item2 != NULL;item2 = item2->next)
                             {
-                                assert (item2->kind == NODE_KIND_ENTITY);
-
                                 sy_node_entity_t *entity1 = (sy_node_entity_t *)item2->value;
                                 
-                                for (sy_node_t *item3 = var2->key;item3 != NULL;item3 = item3->next)
+                                sy_node_block_t *block2 = (sy_node_block_t *)var2->key->value;
+                                for (sy_node_t *item3 = block2->items;item3 != NULL;item3 = item3->next)
                                 {
                                     assert (item3->kind == NODE_KIND_ENTITY);
 
@@ -1427,8 +1430,6 @@ sy_semantic_var(sy_node_t *node)
             {
                 for (sy_node_t *item1 = fun1->generics;item1 != NULL;item1 = item1->next)
                 {
-                    assert (item1->kind == NODE_KIND_GENERIC);
-
                     sy_node_generic_t *generic2 = (sy_node_generic_t *)item1->value;
                     if (var1->key->kind == NODE_KIND_ID)
                     {
@@ -1443,10 +1444,9 @@ sy_semantic_var(sy_node_t *node)
                     }
                     else
                     {
-                        for (sy_node_t *item3 = var1->key;item3 != NULL;item3 = item3->next)
+                        sy_node_block_t *block = (sy_node_block_t *)var1->key->value;
+                        for (sy_node_t *item3 = block->items;item3 != NULL;item3 = item3->next)
                         {
-                            assert (item3->kind == NODE_KIND_ENTITY);
-                            
                             sy_node_entity_t *entity1 = (sy_node_entity_t *)item3->value;
                             if (sy_semantic_idcmp(entity1->key, generic2->key) == 1)
                             {
@@ -1465,8 +1465,6 @@ sy_semantic_var(sy_node_t *node)
             {
                 for (sy_node_t *item1 = fun1->parameters;item1 != NULL;item1 = item1->next)
                 {
-                    assert (item1->kind == NODE_KIND_PARAMETER);
-
                     sy_node_parameter_t *parameter1 = (sy_node_parameter_t *)item1->value;
                     if (var1->key->kind == NODE_KIND_ID)
                     {
@@ -1481,7 +1479,8 @@ sy_semantic_var(sy_node_t *node)
                     }
                     else
                     {
-                        for (sy_node_t *item2 = var1->key;item2 != NULL;item2 = item2->next)
+                        sy_node_block_t *block = (sy_node_block_t *)var1->key->value;
+                        for (sy_node_t *item2 = block->items;item2 != NULL;item2 = item2->next)
                         {
                             assert (item2->kind == NODE_KIND_ENTITY);
 
@@ -1518,8 +1517,6 @@ sy_semantic_var(sy_node_t *node)
                     sy_node_block_t *packages1 = (sy_node_block_t *)using1->packages->value;
                     for (sy_node_t *item2 = packages1->items;item2 != NULL;item2 = item2->next)
                     {
-                        assert (item2->kind == NODE_KIND_PACKAGE);
-
                         sy_node_package_t *package1 = (sy_node_package_t *)item2->value;
                         
                         if (var1->key->kind == NODE_KIND_ID)
@@ -1535,10 +1532,9 @@ sy_semantic_var(sy_node_t *node)
                         }
                         else
                         {
-                            for (sy_node_t *item3 = var1->key;item3 != NULL;item3 = item3->next)
+                            sy_node_block_t *block = (sy_node_block_t *)var1->key->value;
+                            for (sy_node_t *item3 = block->items;item3 != NULL;item3 = item3->next)
                             {
-                                assert (item3->kind == NODE_KIND_ENTITY);
-
                                 sy_node_entity_t *entity1 = (sy_node_entity_t *)item3->value;
 
                                 if (sy_semantic_idcmp(entity1->key, package1->key) == 1)
@@ -1570,7 +1566,8 @@ sy_semantic_var(sy_node_t *node)
                     }
                     else
                     {
-                        for (sy_node_t *item2 = var1->key;item2 != NULL;item2 = item2->next)
+                        sy_node_block_t *block = (sy_node_block_t *)var1->key->value;
+                        for (sy_node_t *item2 = block->items;item2 != NULL;item2 = item2->next)
                         {
                             assert (item2->kind == NODE_KIND_ENTITY);
 
@@ -1605,7 +1602,8 @@ sy_semantic_var(sy_node_t *node)
                         }
                         else
                         {
-                            for (sy_node_t *item2 = var1->key;item2 != NULL;item2 = item2->next)
+                            sy_node_block_t *block = (sy_node_block_t *)var1->key->value;
+                            for (sy_node_t *item2 = block->items;item2 != NULL;item2 = item2->next)
                             {
                                 assert (item2->kind == NODE_KIND_ENTITY);
 
@@ -1641,7 +1639,8 @@ sy_semantic_var(sy_node_t *node)
                         }
                         else
                         {
-                            for (sy_node_t *item2 = var1->key;item2 != NULL;item2 = item2->next)
+                            sy_node_block_t *block = (sy_node_block_t *)var1->key->value;
+                            for (sy_node_t *item2 = block->items;item2 != NULL;item2 = item2->next)
                             {
                                 assert (item2->kind == NODE_KIND_ENTITY);
 
@@ -1661,7 +1660,8 @@ sy_semantic_var(sy_node_t *node)
                     {
                         if (var1->key->kind == NODE_KIND_ID)
                         {
-                            for (sy_node_t *item2 = var2->key;item2 != NULL;item2 = item2->next)
+                            sy_node_block_t *block = (sy_node_block_t *)var2->key->value;
+                            for (sy_node_t *item2 = block->items;item2 != NULL;item2 = item2->next)
                             {
                                 assert (item2->kind == NODE_KIND_ENTITY);
 
@@ -1678,15 +1678,13 @@ sy_semantic_var(sy_node_t *node)
                         }
                         else
                         {
-                            for (sy_node_t *item2 = var1->key;item2 != NULL;item2 = item2->next)
+                            sy_node_block_t *block1 = (sy_node_block_t *)var1->key->value;
+                            for (sy_node_t *item2 = block1->items;item2 != NULL;item2 = item2->next)
                             {
-                                assert (item2->kind == NODE_KIND_ENTITY);
-
                                 sy_node_entity_t *entity1 = (sy_node_entity_t *)item2->value;
-                                for (sy_node_t *item3 = var2->key;item3 != NULL;item3 = item3->next)
+                                sy_node_block_t *block2 = (sy_node_block_t *)var2->key->value;
+                                for (sy_node_t *item3 = block2->items;item3 != NULL;item3 = item3->next)
                                 {
-                                    assert (item3->kind == NODE_KIND_ENTITY);
-
                                     sy_node_entity_t *entity2 = (sy_node_entity_t *)item3->value;
                                     if (sy_semantic_idcmp(entity1->key, entity2->key) == 1)
                                     {

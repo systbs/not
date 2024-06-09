@@ -8,9 +8,6 @@ typedef struct sy_strip /*Activation Records*/ {
     sy_entry_t *variables;
     sy_entry_t *inputs;
 
-    uint8_t link:1;
-    uint8_t reserved:7;
-
     struct sy_strip *previous;
     sy_mutex_t lock;
 } sy_strip_t;

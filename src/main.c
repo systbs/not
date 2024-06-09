@@ -83,6 +83,15 @@ main(int argc, char **argv)
 		return -1;
 	}
 
+	sy_grabage_thread_data_t data;
+	data.ret = 0;
+	sy_thread_t *thread = sy_thread_create(sy_garbage_clean_by_thread, &data);
+	if (thread == ERROR)
+	{
+		sy_error_system("garbage thread not created\n");
+		return -1;
+	}
+
 	sy_module_entry_t *module_entry = sy_module_load(sy_config_get_input_file());
     if (module_entry == ERROR)
     {

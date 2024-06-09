@@ -53,23 +53,23 @@ sy_config_set_input_file(const char *path)
         return -1;
     }
 
-    if (SyPath_IsRoot(path))
+    if (sy_path_is_root(path))
 	{
 		char base_path[MAX_PATH];
-		SyPath_Normalize(getenv (ENV_LIBRARY_KEY), base_path, MAX_PATH);
-		SyPath_Join(base_path, path + 2, sy_config_get()->input_file, MAX_PATH);
+		sy_path_normalize(getenv (ENV_LIBRARY_KEY), base_path, MAX_PATH);
+		sy_path_join(base_path, path + 2, sy_config_get()->input_file, MAX_PATH);
 	}
 	else
 	{
 		char base_path[MAX_PATH];
-		SyPath_GetCurrentDirectory(base_path, MAX_PATH);
-		if(SyPath_IsRelative(path))
+		sy_path_get_current_directory(base_path, MAX_PATH);
+		if(sy_path_is_relative(path))
 		{
-			SyPath_Join(base_path, path, sy_config_get()->input_file, MAX_PATH);
+			sy_path_join(base_path, path, sy_config_get()->input_file, MAX_PATH);
 		}
 		else 
 		{
-			SyPath_Normalize(path, sy_config_get()->input_file, MAX_PATH);
+			sy_path_normalize(path, sy_config_get()->input_file, MAX_PATH);
 		}
 	}
 

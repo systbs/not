@@ -21,7 +21,7 @@
 #define DIR_SEPARATOR '/'
 
 char * 
-SyUtils_ReplaceChar(char* str, char find, char replace)
+sy_utils_replace_char(char* str, char find, char replace)
 {
     char *current_pos = strchr(str,find);
     while (current_pos)
@@ -33,7 +33,7 @@ SyUtils_ReplaceChar(char* str, char find, char replace)
 }
 
 double128_t
-SyUtils_SToUiD(const char *str)
+sy_utils_stod(const char *str)
 {
     for (uint64_t i = 0; i < strlen(str); i++)
     {
@@ -200,7 +200,7 @@ SyUtils_SToUiD(const char *str)
 }
 
 uint64_t
-SyUtils_SToUi(const char *str)
+sy_utils_stoui(const char *str)
 {
     for (uint64_t i = 0; i < strlen(str); i++)
     {
@@ -368,7 +368,7 @@ SyUtils_SToUi(const char *str)
 }
 
 int32_t
-SyUtils_IndexOf(char *str, char x)
+sy_utils_index_of(char *str, char x)
 {
     int32_t index = -1;
     for (size_t i = 0; i < strlen(str); i++)
@@ -381,9 +381,9 @@ SyUtils_IndexOf(char *str, char x)
 }
 
 int32_t
-SyUtils_StrIsFloat(char *str)
+sy_utils_str_is_float(char *str)
 {
-	return SyUtils_IndexOf(str, '.') >= 0;
+	return sy_utils_index_of(str, '.') >= 0;
 }
 
 /*

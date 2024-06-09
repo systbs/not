@@ -21,9 +21,385 @@
 #include "../../mutex.h"
 #include "../record.h"
 #include "../garbage.h"
+#include "../entry.h"
 #include "../symbol_table.h"
 #include "../strip.h"
 #include "execute.h"
+
+int32_t
+sy_execute_type_extends_of_type(sy_record_t *record_type1, sy_record_t *record_type2, sy_strip_t *strip, sy_node_t *applicant)
+{
+    sy_record_type_t *type1 = (sy_record_type_t *)record_type1->value;
+	sy_record_type_t *type2 = (sy_record_type_t *)record_type2->value;
+
+	if (type1->type->kind == NODE_KIND_KINT8)
+	{
+		if (type2->type->kind == NODE_KIND_KINT8)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KINT16)
+	{
+		if (type2->type->kind == NODE_KIND_KINT16)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KINT32)
+	{
+		if (type2->type->kind == NODE_KIND_KINT32)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KINT64)
+	{
+		if (type2->type->kind == NODE_KIND_KINT64)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT8)
+	{
+		if (type2->type->kind == NODE_KIND_KUINT8)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT16)
+	{
+		if (type2->type->kind == NODE_KIND_KUINT16)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT32)
+	{
+		if (type2->type->kind == NODE_KIND_KUINT32)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KUINT64)
+	{
+		if (type2->type->kind == NODE_KIND_KUINT64)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KBIGINT)
+	{
+		if (type2->type->kind == NODE_KIND_KBIGINT)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KFLOAT32)
+	{
+		if (type2->type->kind == NODE_KIND_KFLOAT32)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KFLOAT64)
+	{
+		if (type2->type->kind == NODE_KIND_KFLOAT64)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_KBIGFLOAT)
+	{
+		if (type2->type->kind == NODE_KIND_KBIGFLOAT)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	if (type1->type->kind == NODE_KIND_OBJECT)
+	{
+		if (type2->type->kind == RECORD_KIND_OBJECT)
+		{
+            uint64_t cnt1 = 0;
+            for (sy_record_object_t *object1 = (sy_record_object_t *)type1->value;object1 != NULL;object1 = object1->next)
+            {
+                int32_t found = 0;
+                cnt1 += 1;
+                for (sy_record_object_t *object2 = (sy_record_object_t *)type2->value;object2 != NULL;object2 = object2->next)
+                {
+                    if (sy_execute_id_cmp(object1->key, object2->key) == 1)
+					{
+                        int32_t r1 = sy_execute_type_check_by_type(object1->value, object2->value, strip, applicant);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else
+                        if (r1 == 0)
+                        {
+                            return 0;
+                        }
+                        found = 1;
+                    }
+                }
+                if (found == 0)
+                {
+                    return 0;
+                }
+            }
+
+            uint64_t cnt2 = 0;
+            for (sy_record_object_t *object2 = (sy_record_object_t *)type2->value;object2 != NULL;object2 = object2->next)
+            {
+                cnt2 += 1;
+            }
+
+            if (cnt1 != cnt2)
+            {
+                return 0;
+            }
+
+            return 1;
+		}
+		return 0;
+	}
+	else
+	if (type1->type->kind == NODE_KIND_ARRAY)
+	{
+        if (type2->type->kind == NODE_KIND_ARRAY)
+	    {
+            int32_t r1 = sy_execute_type_check_by_type(type1->value, type2->value, strip, applicant);
+            if (r1 == -1)
+            {
+                return -1;
+            }
+            else
+            if (r1 == 0)
+            {
+                return 0;
+            }
+            return 1;
+        }
+        return 0;
+	}
+	else
+	if (type1->type->kind == NODE_KIND_TUPLE)
+	{
+		if (type2->type->kind == NODE_KIND_TUPLE)
+		{
+            uint64_t cnt1 = 0;
+            for (
+                sy_record_tuple_t *tuple1 = (sy_record_tuple_t *)type1->value, *tuple2 = (sy_record_tuple_t *)type2->value;
+                tuple1 != NULL;
+                tuple1 = tuple1->next, tuple2 = tuple2->next)
+            {
+                cnt1 += 1;
+
+                if (tuple2 == NULL)
+                {
+                    return 0;
+                }
+
+                int32_t r1 = sy_execute_type_check_by_type(tuple2->value, tuple1->value, strip, applicant);
+                if (r1 == -1)
+                {
+                    return -1;
+                }
+                else
+                if (r1 == 0)
+                {
+                    return 0;
+                }
+            }
+
+            uint64_t cnt2 = 0;
+            for (sy_record_tuple_t *tuple2 = (sy_record_tuple_t *)type2->value;tuple2 != NULL;tuple2 = tuple2->next)
+            {
+                cnt2 += 1;
+            }
+
+            if (cnt1 != cnt2)
+            {
+                return 0;
+            }
+
+			return 1;
+		}
+
+		return 0;
+	}
+	else
+	if (type1->type->kind == NODE_KIND_CLASS)
+	{
+		if (type2->type->kind == NODE_KIND_CLASS)
+		{
+			if (type1->type->id != type2->type->id)
+			{
+                sy_node_class_t *class1 = (sy_node_class_t *)type1->type->value;
+                if (class1->heritages)
+                {
+                    sy_node_block_t *block1 = (sy_node_block_t *)class1->heritages->value;
+
+                    for (sy_node_t *item = block1->items;item != NULL;item = item->next)
+                    {
+                        sy_node_heritage_t *heritage = (sy_node_heritage_t *)item->value;
+
+                        sy_record_t *record_heritage = sy_execute_expression(heritage->type, strip, applicant, NULL);
+                        if (record_heritage == ERROR)
+                        {
+                            return -1;
+                        }
+
+                        if (record_heritage->kind != RECORD_KIND_TYPE)
+                        {
+                            sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage->key->value;
+                            sy_node_basic_t *basic2 = (sy_node_basic_t *)class1->key->value;
+                            sy_error_type_by_node(heritage->key, "'%s' unexpected type as heritage '%s'", 
+                                basic2->value, basic1->value);
+
+                            record_heritage->link -= 1;
+                            return -1;
+                        }
+
+                        int32_t r1 = sy_execute_type_extends_of_type(record_heritage, record_type2, strip, applicant);
+                        if (r1 == -1)
+                        {
+                            record_heritage->link -= 1;
+                            return -1;
+                        }
+                        else
+                        if (r1 == 1)
+                        {
+                            record_heritage->link -= 1;
+                            return 1;
+                        }
+
+                        record_heritage->link -= 1;	
+                    }
+                }
+				return 0;
+			}
+            sy_node_class_t *class1 = (sy_node_class_t *)type1->type->value;
+            if (class1->generics)
+            {
+                sy_node_block_t *block1 = (sy_node_block_t *)class1->generics->value;
+
+                for (sy_node_t *item1 = block1->items;item1 != NULL;item1 = item1->next)
+                {
+                    sy_node_generic_t *generic1 = (sy_node_generic_t *)item1->value;
+
+                    sy_entry_t *strip_entry1 = sy_strip_variable_find(type1->value, type1->type, generic1->key);
+                    if (strip_entry1 == ERROR)
+                    {
+                        return -1;
+                    }
+                    if (strip_entry1 == NULL)
+                    {
+                        sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key;
+                        sy_error_runtime_by_node(generic1->key, "'%s' is not initialized", basic1->value);
+                        return -1;
+                    }
+                    
+                    sy_entry_t *strip_entry2 = sy_strip_variable_find(type2->value, type2->type, generic1->key);
+                    if (strip_entry2 == ERROR)
+                    {
+                        strip_entry1->value->link -= 1;
+                        return -1;
+                    }
+                    if (strip_entry2 == NULL)
+                    {
+                        sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key;
+                        sy_error_runtime_by_node(generic1->key, "'%s' is not initialized", basic1->value);
+                        strip_entry1->value->link -= 1;
+                        return -1;
+                    }
+
+                    int32_t r1 = sy_execute_type_extends_of_type(strip_entry1->value, strip_entry2->value, strip, applicant);
+                    if (r1 == -1)
+                    {
+                        strip_entry1->value->link -= 1;
+                        strip_entry2->value->link -= 1;
+                        return -1;
+                    }
+                    else
+                    if (r1 == 0)
+                    {
+                        strip_entry1->value->link -= 1;
+                        strip_entry2->value->link -= 1;
+                        return 0;
+                    }		
+                }
+            }
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	return 0;
+}
 
 sy_record_t *
 sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
@@ -41,7 +417,7 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
         goto region_error_nogen;
     }
     
-    if (base->link == 1)
+    if (base->link > 0)
     {
         base = sy_record_copy(base);
         if (base == ERROR)
@@ -195,13 +571,7 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                         sy_record_t *record_gen_type = sy_execute_expression(generic->type, new_strip, applicant, NULL);
                         if (record_gen_type == ERROR)
                         {
-                            if (record_field->link == 0)
-                            {
-                                if (sy_record_destroy(record_field) < 0)
-                                {
-                                    goto region_error;
-                                }
-                            }
+                            record_field->link -= 1;
                             goto region_error;
                         }
 
@@ -211,92 +581,36 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                             sy_error_type_by_node(generic->type, "'%s' unsupported type: '%s'", 
                                 basic1->value, sy_record_type_as_string(record_gen_type));
 
-                            if (record_field->link == 0)
-                            {
-                                if (sy_record_destroy(record_field) < 0)
-                                {
-                                    goto region_error;
-                                }
-                            }
+                            record_field->link -= 1;
                             
                             goto region_error;
                         }
 
-                        int32_t r1 = sy_execute_type_check_by_type(record_field, record_gen_type, new_strip, applicant);
+                        int32_t r1 = sy_execute_type_extends_of_type(record_field, record_gen_type, new_strip, applicant);
                         if (r1 < 0)
                         {
-                            if (record_field->link == 0)
-                            {
-                                if (sy_record_destroy(record_field) < 0)
-                                {
-                                    if (record_gen_type->link == 0)
-                                    {
-                                        if (sy_record_destroy(record_gen_type) < 0)
-                                        {
-                                            goto region_error;
-                                        }
-                                    }
-                                    goto region_error;
-                                }
-                            }
-                            if (record_gen_type->link == 0)
-                            {
-                                if (sy_record_destroy(record_gen_type) < 0)
-                                {
-                                    goto region_error;
-                                }
-                            }
+                            record_field->link -= 1;
+                            record_gen_type->link -= 1;
                             goto region_error;
                         }
                         else
                         if (r1 == 0)
                         {
-                            if (record_field->link == 0)
-                            {
-                                if (sy_record_destroy(record_field) < 0)
-                                {
-                                    if (record_gen_type->link == 0)
-                                    {
-                                        if (sy_record_destroy(record_gen_type) < 0)
-                                        {
-                                            goto region_error;
-                                        }
-                                    }
-                                    goto region_error;
-                                }
-                            }
-                            if (record_gen_type->link == 0)
-                            {
-                                if (sy_record_destroy(record_gen_type) < 0)
-                                {
-                                    goto region_error;
-                                }
-                            }
+                            record_field->link -= 1;
+                            record_gen_type->link -= 1;
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)field->key->value;
                             sy_error_type_by_node(field->key, "'%s' mismatch: '%s' and '%s'", 
                             basic1->value, sy_record_type_as_string(record_field), sy_record_type_as_string(record_gen_type));
                             goto region_error;
                         }
 
-                        if (record_gen_type->link == 0)
-                        {
-                            if (sy_record_destroy(record_gen_type) < 0)
-                            {
-                                goto region_error;
-                            }
-                        }
+                        record_gen_type->link -= 1;
                     }
 
                     sy_entry_t *entry = sy_strip_variable_push(new_strip, base_type->type, item3, generic->key, record_field);
                     if (entry == ERROR)
                     {
-                        if (record_field->link == 0)
-                        {
-                            if (sy_record_destroy(record_field) < 0)
-                            {
-                                goto region_error;
-                            }
-                        }
+                        record_field->link -= 1;
                         goto region_error;
                     }
                     else
@@ -305,13 +619,7 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)generic->key->value;
                         sy_error_type_by_node(field->key, "'%s' already set", basic1->value);
 
-                        if (record_field->link == 0)
-                        {
-                            if (sy_record_destroy(record_field) < 0)
-                            {
-                                goto region_error;
-                            }
-                        }
+                        record_field->link -= 1;
                         goto region_error;
                     }
                     break;
@@ -368,90 +676,34 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                 sy_record_t *record_gen_type = sy_execute_expression(generic->type, new_strip, applicant, NULL);
                 if (record_gen_type == ERROR)
                 {
-                    if (record_field->link == 0)
-                    {
-                        if (sy_record_destroy(record_field) < 0)
-                        {
-                            goto region_error;
-                        }
-                    }
+                    record_field->link -= 1;
                     goto region_error;
                 }
-
-                int32_t r1 = sy_execute_type_check_by_type(record_field, record_gen_type, new_strip, applicant);
+                
+                int32_t r1 = sy_execute_type_extends_of_type(record_field, record_gen_type, new_strip, applicant);
                 if (r1 < 0)
                 {
-                    if (record_field->link == 0)
-                    {
-                        if (sy_record_destroy(record_field) < 0)
-                        {
-                            if (record_gen_type->link == 0)
-                            {
-                                if (sy_record_destroy(record_gen_type) < 0)
-                                {
-                                    goto region_error;
-                                }
-                            }
-                            goto region_error;
-                        }
-                    }
-                    if (record_gen_type->link == 0)
-                    {
-                        if (sy_record_destroy(record_gen_type) < 0)
-                        {
-                            goto region_error;
-                        }
-                    }
+                    record_field->link -= 1;
+                    record_gen_type->link -= 1;
                     goto region_error;
                 }
                 else
                 if (r1 == 0)
                 {
-                    if (record_field->link == 0)
-                    {
-                        if (sy_record_destroy(record_field) < 0)
-                        {
-                            if (record_gen_type->link == 0)
-                            {
-                                if (sy_record_destroy(record_gen_type) < 0)
-                                {
-                                    goto region_error;
-                                }
-                            }
-                            goto region_error;
-                        }
-                    }
-                    if (record_gen_type->link == 0)
-                    {
-                        if (sy_record_destroy(record_gen_type) < 0)
-                        {
-                            goto region_error;
-                        }
-                    }
+                    record_field->link -= 1;
+                    record_gen_type->link -= 1;
                     sy_error_type_by_node(field->key, "'%s' mismatch: '%s' and '%s'", 
                     "field", sy_record_type_as_string(record_field), sy_record_type_as_string(record_gen_type));
                     goto region_error;
                 }
 
-                if (record_gen_type->link == 0)
-                {
-                    if (sy_record_destroy(record_gen_type) < 0)
-                    {
-                        goto region_error;
-                    }
-                }
+                record_gen_type->link -= 1;
             }
 
             sy_entry_t *entry = sy_strip_variable_push(new_strip, base_type->type, item1, generic->key, record_field);
             if (entry == ERROR)
             {
-                if (record_field->link == 0)
-                {
-                    if (sy_record_destroy(record_field) < 0)
-                    {
-                        goto region_error;
-                    }
-                }
+                record_field->link -= 1;
                 goto region_error;
             }
             else
@@ -460,13 +712,7 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                 sy_node_basic_t *basic1 = (sy_node_basic_t *)generic->key->value;
                 sy_error_type_by_node(field->key, "'%s' already set", basic1->value);
 
-                if (record_field->link == 0)
-                {
-                    if (sy_record_destroy(record_field) < 0)
-                    {
-                        goto region_error;
-                    }
-                }
+                record_field->link -= 1;
                 goto region_error;
             }
 
@@ -499,13 +745,7 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                 sy_entry_t *entry = sy_strip_variable_push(new_strip, base_type->type, item1, generic->key, record_field);
                 if (entry == ERROR)
                 {
-                    if (record_field->link == 0)
-                    {
-                        if (sy_record_destroy(record_field) < 0)
-                        {
-                            goto region_error;
-                        }
-                    }
+                    record_field->link -= 1;
                     goto region_error;
                 }
                 else
@@ -514,13 +754,7 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)generic->key->value;
                     sy_error_type_by_node(generic->key, "'%s' already set", basic1->value);
 
-                    if (record_field->link == 0)
-                    {
-                        if (sy_record_destroy(record_field) < 0)
-                        {
-                            goto region_error;
-                        }
-                    }
+                    record_field->link -= 1;
                     goto region_error;
                 }
             }
@@ -553,27 +787,15 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
             }
         }
     }
-
+    
     return base;
 
     region_error:
-    if (base->link == 0)
-    {
-        if (sy_record_destroy(base) < 0)
-        {
-            return ERROR;
-        }
-    }
+    base->link -= 1;
     return ERROR;
 
     region_error_nogen:
-    if (base->link == 0)
-    {
-        if (sy_record_destroy(base) < 0)
-        {
-            return ERROR;
-        }
-    }
+    base->link -= 1;
     sy_error_type_by_node(node, "it has no generic type");
     return ERROR;
 }
