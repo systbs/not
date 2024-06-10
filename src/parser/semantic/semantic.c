@@ -96,87 +96,24 @@ sy_semantic_string(sy_node_t *node)
     return 0; 
 }
 
+
 static int32_t
 sy_semantic_null(sy_node_t *node)
 {
     return 0; 
 }
 
-
 static int32_t
-sy_semantic_kint8(sy_node_t *node)
+sy_semantic_kint(sy_node_t *node)
 {
     return 0;
 }
 
 static int32_t
-sy_semantic_kint16(sy_node_t *node)
+sy_semantic_kfloat(sy_node_t *node)
 {
     return 0;
 }
-
-static int32_t
-sy_semantic_kint32(sy_node_t *node)
-{
-    return 0;
-}
-
-static int32_t
-sy_semantic_kint64(sy_node_t *node)
-{
-    return 0;
-}
-
-
-static int32_t
-sy_semantic_kuint8(sy_node_t *node)
-{
-    return 0;
-}
-
-static int32_t
-sy_semantic_kuint16(sy_node_t *node)
-{
-    return 0;
-}
-
-static int32_t
-sy_semantic_kuint32(sy_node_t *node)
-{
-    return 0;
-}
-
-static int32_t
-sy_semantic_kuint64(sy_node_t *node)
-{
-    return 0;
-}
-
-static int32_t
-sy_semantic_kbigint(sy_node_t *node)
-{
-    return 0;
-}
-
-
-static int32_t
-sy_semantic_kfloat32(sy_node_t *node)
-{
-    return 0;
-}
-
-static int32_t
-sy_semantic_kfloat64(sy_node_t *node)
-{
-    return 0;
-}
-
-static int32_t
-sy_semantic_kbigfloat(sy_node_t *node)
-{
-    return 0;
-}
-
 
 static int32_t
 sy_semantic_kchar(sy_node_t *node)
@@ -283,66 +220,15 @@ sy_semantic_primary(sy_node_t *node)
     }
     else
 
-    if (node->kind == NODE_KIND_KINT8)
+    if (node->kind == NODE_KIND_KINT)
     {
-        return sy_semantic_kint8(node);
-    }
-    else
-    if (node->kind == NODE_KIND_KINT16)
-    {
-        return sy_semantic_kint16(node);
-    }
-    else
-    if (node->kind == NODE_KIND_KINT32)
-    {
-        return sy_semantic_kint32(node);
-    }
-    else
-    if (node->kind == NODE_KIND_KINT64)
-    {
-        return sy_semantic_kint64(node);
+        return sy_semantic_kint(node);
     }
     else
 
-    if (node->kind == NODE_KIND_KUINT8)
+    if (node->kind == NODE_KIND_KFLOAT)
     {
-        return sy_semantic_kuint8(node);
-    }
-    else
-    if (node->kind == NODE_KIND_KUINT16)
-    {
-        return sy_semantic_kuint16(node);
-    }
-    else
-    if (node->kind == NODE_KIND_KUINT32)
-    {
-        return sy_semantic_kuint32(node);
-    }
-    else
-    if (node->kind == NODE_KIND_KUINT64)
-    {
-        return sy_semantic_kuint64(node);
-    }
-    else
-    if (node->kind == NODE_KIND_KBIGINT)
-    {
-        return sy_semantic_kbigint(node);
-    }
-    else
-
-    if (node->kind == NODE_KIND_KFLOAT32)
-    {
-        return sy_semantic_kfloat32(node);
-    }
-    else
-    if (node->kind == NODE_KIND_KFLOAT64)
-    {
-        return sy_semantic_kfloat64(node);
-    }
-    else
-    if (node->kind == NODE_KIND_KBIGFLOAT)
-    {
-        return sy_semantic_kbigfloat(node);
+        return sy_semantic_kfloat(node);
     }
     else
 

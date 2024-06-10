@@ -6,21 +6,22 @@
 #include <assert.h>
 #include <gmp.h>
 #include <stdint.h>
-#include <float.h>
+#include <math.h>
 
 #include "../../types/types.h"
 #include "../../container/queue.h"
 #include "../../token/position.h"
 #include "../../token/token.h"
-#include "../../scanner/scanner.h"
 #include "../../ast/node.h"
 #include "../../utils/utils.h"
 #include "../../utils/path.h"
-#include "../../parser/syntax/syntax.h"
 #include "../../error.h"
 #include "../../mutex.h"
 #include "../../config.h"
 #include "../../module.h"
+#include "../../memory.h"
+#include "../../scanner/scanner.h"
+#include "../../parser/syntax/syntax.h"
 #include "../record.h"
 #include "../entry.h"
 #include "../garbage.h"
@@ -741,20 +742,7 @@ sy_execute_number(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         mpf_t result;
         mpf_init(result);
         mpf_set_str(result, str, base);
-
-        // float
-        if (mpf_cmp_d(result, FLT_MIN) >= 0 && mpf_cmp_d(result, FLT_MAX) <= 0) {
-            record = sy_record_make_float32((float)mpf_get_d(result));
-        } 
-        // double
-        else if (mpf_cmp_d(result, DBL_MIN) >= 0 && mpf_cmp_d(result, DBL_MAX) <= 0) {
-            record = sy_record_make_float64(mpf_get_d(result));
-        } 
-        // mpf_t
-        else {
-            record = sy_record_make_bigfloat_from_f(result);
-        }
-
+        record = sy_record_make_float_from_f(result);
         mpf_clear(result);
     }
     else
@@ -762,51 +750,7 @@ sy_execute_number(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         mpz_t result_mpz;
         mpz_init(result_mpz);
         mpz_set_str(result_mpz, str, base);
-
-        // int8_t
-        if (mpz_cmp_si(result_mpz, INT8_MIN) >= 0 && mpz_cmp_si(result_mpz, INT8_MAX) <= 0) {
-            record = sy_record_make_int8((int8_t)mpz_get_si(result_mpz));
-        }
-        else
-        // uint8_t
-        if (mpz_cmp_ui(result_mpz, 0) >= 0 && mpz_cmp_ui(result_mpz, UINT8_MAX) <= 0) {
-            record = sy_record_make_uint8((uint8_t)mpz_get_ui(result_mpz));
-        }
-        else
-        // int16_t
-        if (mpz_cmp_si(result_mpz, INT16_MIN) >= 0 && mpz_cmp_si(result_mpz, INT16_MAX) <= 0) {
-            record = sy_record_make_int16((int16_t)mpz_get_si(result_mpz));
-        }
-        else
-        // uint16_t
-        if (mpz_cmp_ui(result_mpz, 0) >= 0 && mpz_cmp_ui(result_mpz, UINT16_MAX) <= 0) {
-            record = sy_record_make_uint16((uint16_t)mpz_get_ui(result_mpz));
-        }
-        else
-        // int32_t
-        if (mpz_cmp_si(result_mpz, INT32_MIN) >= 0 && mpz_cmp_si(result_mpz, INT32_MAX) <= 0) {
-            record = sy_record_make_int32((int32_t)mpz_get_si(result_mpz));
-        }
-        else
-        // uint32_t
-        if (mpz_cmp_ui(result_mpz, 0) >= 0 && mpz_cmp_ui(result_mpz, UINT32_MAX) <= 0) {
-            record = sy_record_make_uint32((uint32_t)mpz_get_ui(result_mpz));
-        }
-        else
-        // int64_t
-        if (mpz_cmp_si(result_mpz, INT64_MIN) >= 0 && mpz_cmp_si(result_mpz, INT64_MAX) <= 0) {
-            record = sy_record_make_int64(mpz_get_si(result_mpz));
-        }
-        else
-        // uint64_t
-        if (mpz_cmp_ui(result_mpz, 0) >= 0 && mpz_cmp_ui(result_mpz, UINT64_MAX) <= 0) {
-            record = sy_record_make_uint64(mpz_get_ui(result_mpz));
-        }
-        // mpz_t
-        else {
-            record = sy_record_make_bigint_from_z(result_mpz);
-        }
-
+        record = sy_record_make_int_from_z(result_mpz);
         mpz_clear(result_mpz);
     }
     
@@ -825,8 +769,8 @@ sy_execute_char(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_nod
 sy_record_t *
 sy_execute_string(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
 {
-    sy_node_basic_t *basic1 = (sy_node_basic_t *)node->value;
-    return sy_record_make_string(basic1->value);
+    sy_node_basic_t *basic = (sy_node_basic_t *)node->value;
+    return sy_record_make_string(basic->value);
 }
 
 sy_record_t *
@@ -835,75 +779,14 @@ sy_execute_null(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_nod
     return sy_record_make_null();
 }
 
-
 sy_record_t *
-sy_execute_kint8(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+sy_execute_kint(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
 {
     return sy_record_make_type(node, NULL);
 }
 
 sy_record_t *
-sy_execute_kint16(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
-{
-    return sy_record_make_type(node, NULL);
-}
-
-sy_record_t *
-sy_execute_kint32(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
-{
-    return sy_record_make_type(node, NULL);
-}
-
-sy_record_t *
-sy_execute_kint64(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
-{
-    return sy_record_make_type(node, NULL);
-}
-
-sy_record_t *
-sy_execute_kuint8(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
-{
-    return sy_record_make_type(node, NULL);
-}
-
-sy_record_t *
-sy_execute_kuint16(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
-{
-    return sy_record_make_type(node, NULL);
-}
-
-sy_record_t *
-sy_execute_kuint32(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
-{
-    return sy_record_make_type(node, NULL);
-}
-
-sy_record_t *
-sy_execute_kuint64(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
-{
-    return sy_record_make_type(node, NULL);
-}
-
-sy_record_t *
-sy_execute_kbigint(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
-{
-    return sy_record_make_type(node, NULL);
-}
-
-sy_record_t *
-sy_execute_kfloat32(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
-{
-    return sy_record_make_type(node, NULL);
-}
-
-sy_record_t *
-sy_execute_kfloat64(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
-{
-    return sy_record_make_type(node, NULL);
-}
-
-sy_record_t *
-sy_execute_kbigfloat(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+sy_execute_kfloat(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
 {
     return sy_record_make_type(node, NULL);
 }
@@ -1173,66 +1056,14 @@ sy_execute_primary(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_
     }
     else
 
-    if (node->kind == NODE_KIND_KINT8)
+    if (node->kind == NODE_KIND_KINT)
     {
-        return sy_execute_kint8(node, strip, applicant, origin);
+        return sy_execute_kint(node, strip, applicant, origin);
     }
     else
-    if (node->kind == NODE_KIND_KINT16)
+    if (node->kind == NODE_KIND_KFLOAT)
     {
-        return sy_execute_kint16(node, strip, applicant, origin);
-    }
-    else
-    if (node->kind == NODE_KIND_KINT32)
-    {
-        return sy_execute_kint32(node, strip, applicant, origin);
-    }
-    else
-    if (node->kind == NODE_KIND_KINT64)
-    {
-        return sy_execute_kint64(node, strip, applicant, origin);
-    }
-    else
-
-    if (node->kind == NODE_KIND_KUINT8)
-    {
-        return sy_execute_kuint8(node, strip, applicant, origin);
-    }
-    else
-    if (node->kind == NODE_KIND_KUINT16)
-    {
-        return sy_execute_kuint16(node, strip, applicant, origin);
-    }
-    else
-    if (node->kind == NODE_KIND_KUINT32)
-    {
-        return sy_execute_kuint32(node, strip, applicant, origin);
-    }
-    else
-    if (node->kind == NODE_KIND_KUINT64)
-    {
-        return sy_execute_kuint64(node, strip, applicant, origin);
-    }
-    else
-    if (node->kind == NODE_KIND_KBIGINT)
-    {
-        return sy_execute_kbigint(node, strip, applicant, origin);
-    }
-    else
-
-    if (node->kind == NODE_KIND_KFLOAT32)
-    {
-        return sy_execute_kfloat32(node, strip, applicant, origin);
-    }
-    else
-    if (node->kind == NODE_KIND_KFLOAT64)
-    {
-        return sy_execute_kfloat64(node, strip, applicant, origin);
-    }
-    else
-    if (node->kind == NODE_KIND_KBIGFLOAT)
-    {
-        return sy_execute_kbigfloat(node, strip, applicant, origin);
+        return sy_execute_kfloat(node, strip, applicant, origin);
     }
     else
 

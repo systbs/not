@@ -22,7 +22,7 @@ typedef enum sy_node_kind {
 	NODE_KIND_CHAR,
 	NODE_KIND_STRING,
 
-	NODE_KIND_NULL,
+	
 
 	NODE_KIND_TUPLE,
 	NODE_KIND_OBJECT,
@@ -31,22 +31,9 @@ typedef enum sy_node_kind {
 	NODE_KIND_THIS,
 	NODE_KIND_SELF,
 	
-	NODE_KIND_KINT8,
-	NODE_KIND_KINT16,
-	NODE_KIND_KINT32,
-	NODE_KIND_KINT64,
-
-	NODE_KIND_KUINT8,
-	NODE_KIND_KUINT16,
-	NODE_KIND_KUINT32,
-	NODE_KIND_KUINT64,
-
-	NODE_KIND_KBIGINT,
-
-	NODE_KIND_KFLOAT32,
-	NODE_KIND_KFLOAT64,
-	NODE_KIND_KBIGFLOAT,
-
+	NODE_KIND_NULL,
+	NODE_KIND_KINT,
+	NODE_KIND_KFLOAT,
 	NODE_KIND_KCHAR,
 	NODE_KIND_KSTRING,
 
@@ -336,43 +323,10 @@ sy_node_t *
 sy_node_make_null(sy_node_t *node);
 
 sy_node_t *
-sy_node_make_kint8(sy_node_t *node);
+sy_node_make_kint(sy_node_t *node);
 
 sy_node_t *
-sy_node_make_kint16(sy_node_t *node);
-
-sy_node_t *
-sy_node_make_kint32(sy_node_t *node);
-
-sy_node_t *
-sy_node_make_kint64(sy_node_t *node);
-
-
-sy_node_t *
-sy_node_make_kuint8(sy_node_t *node);
-
-sy_node_t *
-sy_node_make_kuint16(sy_node_t *node);
-
-sy_node_t *
-sy_node_make_kuint32(sy_node_t *node);
-
-sy_node_t *
-sy_node_make_kuint64(sy_node_t *node);
-
-sy_node_t *
-sy_node_make_kbigint(sy_node_t *node);
-
-
-sy_node_t *
-sy_node_make_kfloat32(sy_node_t *node);
-
-sy_node_t *
-sy_node_make_kfloat64(sy_node_t *node);
-
-sy_node_t *
-sy_node_make_kbigfloat(sy_node_t *node);
-
+sy_node_make_kfloat(sy_node_t *node);
 
 sy_node_t *
 sy_node_make_kchar(sy_node_t *node);

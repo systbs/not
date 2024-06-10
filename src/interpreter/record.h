@@ -16,18 +16,8 @@ typedef struct sy_record {
 } sy_record_t;
 
 typedef enum sy_record_kind {
-    RECORD_KIND_INT8,
-    RECORD_KIND_INT16,
-    RECORD_KIND_INT32,
-    RECORD_KIND_INT64,
-    RECORD_KIND_UINT8,
-    RECORD_KIND_UINT16,
-    RECORD_KIND_UINT32,
-    RECORD_KIND_UINT64,
-    RECORD_KIND_BIGINT,
-    RECORD_KIND_FLOAT32,
-    RECORD_KIND_FLOAT64,
-    RECORD_KIND_BIGFLOAT,
+    RECORD_KIND_INT,
+    RECORD_KIND_FLOAT,
     RECORD_KIND_CHAR,
     RECORD_KIND_STRING,
     RECORD_KIND_OBJECT,
@@ -99,22 +89,22 @@ sy_record_t *
 sy_record_make_char(char value);
 
 sy_record_t *
-sy_record_make_bigfloat_from_ui(uint64_t value);
+sy_record_make_float_from_ui(uint64_t value);
 
 sy_record_t *
-sy_record_make_bigfloat_from_si(int64_t value);
+sy_record_make_float_from_si(int64_t value);
 
 sy_record_t *
-sy_record_make_bigfloat_from_f(mpf_t value);
+sy_record_make_float_from_f(mpf_t value);
 
 sy_record_t *
-sy_record_make_bigfloat_from_z(mpz_t value);
+sy_record_make_float_from_z(mpz_t value);
 
 sy_record_t *
-sy_record_make_bigfloat_from_d(double value);
+sy_record_make_float_from_d(double value);
 
 sy_record_t *
-sy_record_make_bigfloat(const char *value);
+sy_record_make_float(const char *value);
 
 sy_record_t *
 sy_record_make_float64(double value);
@@ -123,19 +113,19 @@ sy_record_t *
 sy_record_make_float32(float value);
 
 sy_record_t *
-sy_record_make_bigint_from_ui(uint64_t value);
+sy_record_make_int_from_ui(uint64_t value);
 
 sy_record_t *
-sy_record_make_bigint_from_si(int64_t value);
+sy_record_make_int_from_si(int64_t value);
 
 sy_record_t *
-sy_record_make_bigint_from_z(mpz_t value);
+sy_record_make_int_from_z(mpz_t value);
 
 sy_record_t *
-sy_record_make_bigint_from_f(mpf_t value);
+sy_record_make_int_from_f(mpf_t value);
 
 sy_record_t *
-sy_record_make_bigint(const char *value);
+sy_record_make_int(const char *value);
 
 sy_record_t *
 sy_record_make_uint64(uint64_t value);

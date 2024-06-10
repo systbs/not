@@ -19,8 +19,6 @@ static const char * const symbols[] = {
 	[NODE_KIND_CHAR]		= "char",
 	[NODE_KIND_STRING]		= "string",
 
-	[NODE_KIND_NULL]		= "null",
-
 	[NODE_KIND_TUPLE]		= "tuple",
 	[NODE_KIND_OBJECT]		= "object",
 
@@ -28,22 +26,9 @@ static const char * const symbols[] = {
 	[NODE_KIND_THIS]		= "this",
 	[NODE_KIND_SELF]		= "self",
 	
-	[NODE_KIND_KINT8]		= "int8",
-	[NODE_KIND_KINT16]		= "int16",
-	[NODE_KIND_KINT32]		= "int32",
-	[NODE_KIND_KINT64]		= "int64",
-
-	[NODE_KIND_KUINT8]		= "uint8",
-	[NODE_KIND_KUINT16]		= "uint16",
-	[NODE_KIND_KUINT32]		= "uint32",
-	[NODE_KIND_KUINT64]		= "uint64",
-
-	[NODE_KIND_KBIGINT]		= "bigint",
-
-	[NODE_KIND_KFLOAT32]	= "float32",
-	[NODE_KIND_KFLOAT64]	= "float64",
-	[NODE_KIND_KBIGFLOAT]	= "bigfloat",
-
+	[NODE_KIND_NULL]		= "null",
+	[NODE_KIND_KINT]		= "int",
+	[NODE_KIND_KFLOAT]		= "float",
 	[NODE_KIND_KCHAR]		= "char",
 	[NODE_KIND_KSTRING]		= "string",
 
@@ -265,7 +250,7 @@ sy_node_make_null(sy_node_t *node)
 }
 
 sy_node_t *
-sy_node_make_kint8(sy_node_t *node)
+sy_node_make_kint(sy_node_t *node)
 {
 	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
 	if(!basic)
@@ -276,12 +261,12 @@ sy_node_make_kint8(sy_node_t *node)
 
 	basic->value = NULL;
 	
-	sy_node_Update(node, NODE_KIND_KINT8, basic);
+	sy_node_Update(node, NODE_KIND_KINT, basic);
 	return node;
 }
 
 sy_node_t *
-sy_node_make_kint16(sy_node_t *node)
+sy_node_make_kfloat(sy_node_t *node)
 {
 	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
 	if(!basic)
@@ -292,172 +277,9 @@ sy_node_make_kint16(sy_node_t *node)
 
 	basic->value = NULL;
 	
-	sy_node_Update(node, NODE_KIND_KINT16, basic);
+	sy_node_Update(node, NODE_KIND_KFLOAT, basic);
 	return node;
 }
-
-sy_node_t *
-sy_node_make_kint32(sy_node_t *node)
-{
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
-	if(!basic)
-	{
-		sy_error_no_memory();
-		return NULL;
-	}
-
-	basic->value = NULL;
-	
-	sy_node_Update(node, NODE_KIND_KINT32, basic);
-	return node;
-}
-
-sy_node_t *
-sy_node_make_kint64(sy_node_t *node)
-{
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
-	if(!basic)
-	{
-		sy_error_no_memory();
-		return NULL;
-	}
-
-	basic->value = NULL;
-	
-	sy_node_Update(node, NODE_KIND_KINT64, basic);
-	return node;
-}
-
-
-sy_node_t *
-sy_node_make_kuint8(sy_node_t *node)
-{
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
-	if(!basic)
-	{
-		sy_error_no_memory();
-		return NULL;
-	}
-
-	basic->value = NULL;
-	
-	sy_node_Update(node, NODE_KIND_KUINT8, basic);
-	return node;
-}
-
-sy_node_t *
-sy_node_make_kuint16(sy_node_t *node)
-{
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
-	if(!basic)
-	{
-		sy_error_no_memory();
-		return NULL;
-	}
-
-	basic->value = NULL;
-	
-	sy_node_Update(node, NODE_KIND_KUINT16, basic);
-	return node;
-}
-
-sy_node_t *
-sy_node_make_kuint32(sy_node_t *node)
-{
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
-	if(!basic)
-	{
-		sy_error_no_memory();
-		return NULL;
-	}
-
-	basic->value = NULL;
-	
-	sy_node_Update(node, NODE_KIND_KUINT32, basic);
-	return node;
-}
-
-sy_node_t *
-sy_node_make_kuint64(sy_node_t *node)
-{
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
-	if(!basic)
-	{
-		sy_error_no_memory();
-		return NULL;
-	}
-
-	basic->value = NULL;
-	
-	sy_node_Update(node, NODE_KIND_KUINT64, basic);
-	return node;
-}
-
-sy_node_t *
-sy_node_make_kbigint(sy_node_t *node)
-{
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
-	if(!basic)
-	{
-		sy_error_no_memory();
-		return NULL;
-	}
-
-	basic->value = NULL;
-	
-	sy_node_Update(node, NODE_KIND_KBIGINT, basic);
-	return node;
-}
-
-
-sy_node_t *
-sy_node_make_kfloat32(sy_node_t *node)
-{
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
-	if(!basic)
-	{
-		sy_error_no_memory();
-		return NULL;
-	}
-
-	basic->value = NULL;
-	
-	sy_node_Update(node, NODE_KIND_KFLOAT32, basic);
-	return node;
-}
-
-sy_node_t *
-sy_node_make_kfloat64(sy_node_t *node)
-{
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
-	if(!basic)
-	{
-		sy_error_no_memory();
-		return NULL;
-	}
-
-	basic->value = NULL;
-	
-	sy_node_Update(node, NODE_KIND_KFLOAT64, basic);
-	return node;
-}
-
-sy_node_t *
-sy_node_make_kbigfloat(sy_node_t *node)
-{
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
-	if(!basic)
-	{
-		sy_error_no_memory();
-		return NULL;
-	}
-
-	basic->value = NULL;
-	
-	sy_node_Update(node, NODE_KIND_KBIGFLOAT, basic);
-	return node;
-}
-
 
 sy_node_t *
 sy_node_make_kchar(sy_node_t *node)
@@ -490,6 +312,7 @@ sy_node_make_kstring(sy_node_t *node)
 	sy_node_Update(node, NODE_KIND_KSTRING, basic);
 	return node;
 }
+
 
 sy_node_t *
 sy_node_make_this(sy_node_t *node)

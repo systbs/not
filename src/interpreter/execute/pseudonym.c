@@ -32,9 +32,9 @@ sy_execute_type_extends_of_type(sy_record_t *record_type1, sy_record_t *record_t
     sy_record_type_t *type1 = (sy_record_type_t *)record_type1->value;
 	sy_record_type_t *type2 = (sy_record_type_t *)record_type2->value;
 
-	if (type1->type->kind == NODE_KIND_KINT8)
+	if (type1->type->kind == NODE_KIND_KINT)
 	{
-		if (type2->type->kind == NODE_KIND_KINT8)
+		if (type2->type->kind == NODE_KIND_KINT)
 		{
 			return 1;
 		}
@@ -44,129 +44,9 @@ sy_execute_type_extends_of_type(sy_record_t *record_type1, sy_record_t *record_t
 		}
 	}
 	else
-	if (type1->type->kind == NODE_KIND_KINT16)
+	if (type1->type->kind == NODE_KIND_KFLOAT)
 	{
-		if (type2->type->kind == NODE_KIND_KINT16)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	else
-	if (type1->type->kind == NODE_KIND_KINT32)
-	{
-		if (type2->type->kind == NODE_KIND_KINT32)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	else
-	if (type1->type->kind == NODE_KIND_KINT64)
-	{
-		if (type2->type->kind == NODE_KIND_KINT64)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	else
-	if (type1->type->kind == NODE_KIND_KUINT8)
-	{
-		if (type2->type->kind == NODE_KIND_KUINT8)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	else
-	if (type1->type->kind == NODE_KIND_KUINT16)
-	{
-		if (type2->type->kind == NODE_KIND_KUINT16)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	else
-	if (type1->type->kind == NODE_KIND_KUINT32)
-	{
-		if (type2->type->kind == NODE_KIND_KUINT32)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	else
-	if (type1->type->kind == NODE_KIND_KUINT64)
-	{
-		if (type2->type->kind == NODE_KIND_KUINT64)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	else
-	if (type1->type->kind == NODE_KIND_KBIGINT)
-	{
-		if (type2->type->kind == NODE_KIND_KBIGINT)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	else
-	if (type1->type->kind == NODE_KIND_KFLOAT32)
-	{
-		if (type2->type->kind == NODE_KIND_KFLOAT32)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	else
-	if (type1->type->kind == NODE_KIND_KFLOAT64)
-	{
-		if (type2->type->kind == NODE_KIND_KFLOAT64)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	else
-	if (type1->type->kind == NODE_KIND_KBIGFLOAT)
-	{
-		if (type2->type->kind == NODE_KIND_KBIGFLOAT)
+		if (type2->type->kind == NODE_KIND_KFLOAT)
 		{
 			return 1;
 		}

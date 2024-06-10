@@ -888,7 +888,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return (((uint8_t)(*(int8_t *)(left->value))) == (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_si((*(mpz_t *)(right->value)), (*(int8_t *)(left->value))) == 0);
         }
@@ -903,7 +903,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return ((*(int8_t *)(left->value)) == (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_si((*(mpf_t *)(right->value)), (*(int8_t *)(left->value))) == 0);
         }
@@ -1014,7 +1014,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return (((uint16_t)(*(int16_t *)(left->value))) == (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_si((*(mpz_t *)(right->value)), (*(int16_t *)(left->value))) == 0);
         }
@@ -1029,7 +1029,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return ((*(int16_t *)(left->value)) == (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_si((*(mpf_t *)(right->value)), (*(int16_t *)(left->value))) == 0);
         }
@@ -1140,7 +1140,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return (((uint32_t)(*(int32_t *)(left->value))) == (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_si((*(mpz_t *)(right->value)), (*(int32_t *)(left->value))) == 0);
         }
@@ -1155,7 +1155,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return ((*(int32_t *)(left->value)) == (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_si((*(mpf_t *)(right->value)), (*(int32_t *)(left->value))) == 0);
         }
@@ -1266,7 +1266,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return (((uint64_t)(*(int64_t *)(left->value))) == (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_si((*(mpz_t *)(right->value)), (*(int64_t *)(left->value))) == 0);
         }
@@ -1281,7 +1281,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return ((*(int64_t *)(left->value)) == (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_si((*(mpf_t *)(right->value)), (*(int64_t *)(left->value))) == 0);
         }
@@ -1395,7 +1395,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return ((*(uint8_t *)(left->value)) == (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_ui((*(mpz_t *)(right->value)), (*(uint8_t *)(left->value))) == 0);
         }
@@ -1410,7 +1410,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return ((*(uint8_t *)(left->value)) == (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_ui((*(mpf_t *)(right->value)), (*(uint8_t *)(left->value))) == 0);
         }
@@ -1529,7 +1529,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
 
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_ui((*(mpz_t *)(right->value)), (*(uint16_t *)(left->value))) == 0);
 
@@ -1547,7 +1547,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
 
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_ui((*(mpf_t *)(right->value)), (*(uint16_t *)(left->value))) == 0);
 
@@ -1660,7 +1660,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return ((*(uint32_t *)(left->value)) == (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_ui((*(mpz_t *)(right->value)), (*(uint32_t *)(left->value))) == 0);
         }
@@ -1675,7 +1675,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return ((*(uint32_t *)(left->value)) == (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_ui((*(mpf_t *)(right->value)), (*(uint32_t *)(left->value))) == 0);
         }
@@ -1790,7 +1790,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return ((*(uint64_t *)(left->value)) == (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_ui((*(mpz_t *)(right->value)), (*(uint64_t *)(left->value))) == 0);
         }
@@ -1805,7 +1805,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return ((*(uint64_t *)(left->value)) == (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_ui((*(mpf_t *)(right->value)), (*(uint64_t *)(left->value))) == 0);
         }
@@ -1852,7 +1852,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
         return 0;
     }
     else
-    if (left->kind == RECORD_KIND_BIGINT)
+    if (left->kind == RECORD_KIND_INT)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
@@ -1904,7 +1904,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return (mpz_cmp_ui((*(mpz_t *)(left->value)), (*(uint64_t *)(right->value))) == 0);
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp((*(mpz_t *)(left->value)), (*(mpz_t *)(right->value))) == 0);
         }
@@ -1919,7 +1919,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return (mpz_cmp_d((*(mpz_t *)(left->value)), (*(double *)(right->value))) == 0);
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             mpf_t mpf_from_mpz;
             mpf_init(mpf_from_mpz);
@@ -2019,7 +2019,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return ((*(float *)(left->value)) == (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_d((*(mpz_t *)(right->value)), (*(float *)(left->value))) == 0);
         }
@@ -2034,7 +2034,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return ((*(float *)(left->value)) == (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_d((*(mpf_t *)(right->value)), (*(float *)(left->value))) == 0);
         }
@@ -2129,7 +2129,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return ((*(double *)(left->value)) == (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_d((*(mpz_t *)(right->value)), (*(double *)(left->value))) == 0);
 
@@ -2145,7 +2145,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return ((*(double *)(left->value)) == (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_d((*(mpf_t *)(right->value)), (*(double *)(left->value))) == 0);
         }
@@ -2188,7 +2188,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
         return 0;
     }
     else
-    if (left->kind == RECORD_KIND_BIGFLOAT)
+    if (left->kind == RECORD_KIND_FLOAT)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
@@ -2240,7 +2240,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return (mpf_cmp_ui((*(mpf_t *)(left->value)), (*(uint64_t *)(right->value))) == 0);
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             mpf_t mpf_from_mpz;
             mpf_init(mpf_from_mpz);
@@ -2260,7 +2260,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return (mpf_cmp_ui((*(mpf_t *)(left->value)), (*(double *)(right->value))) == 0);
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp((*(mpf_t *)(left->value)), (*(mpf_t *)(right->value))) == 0);
         }
@@ -2374,7 +2374,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return (((unsigned char)(*(char *)(left->value))) == (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_si((*(mpz_t *)(right->value)), (*(char *)(left->value))) == 0);
         }
@@ -2389,7 +2389,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return ((*(char *)(left->value)) == (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_si((*(mpf_t *)(right->value)), (*(char *)(left->value))) == 0);
         }
@@ -2479,7 +2479,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -2494,7 +2494,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -2506,7 +2506,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
         else
         if (right->kind == RECORD_KIND_STRING)
         {
-            return (strcmp((*(char **)(left->value)), (*(char **)(right->value))) == 0);
+            return (strcmp(((char *)(left->value)), ((char *)(right->value))) == 0);
 
         }
         else
@@ -2585,7 +2585,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -2600,7 +2600,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -2691,7 +2691,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -2706,7 +2706,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -2796,7 +2796,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -2811,7 +2811,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -2901,7 +2901,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -2916,7 +2916,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -3006,7 +3006,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -3021,7 +3021,7 @@ sy_execute_truthy_eq(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -3172,7 +3172,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return (((uint8_t)(*(int8_t *)(left->value))) < (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_si((*(mpz_t *)(right->value)), (*(int8_t *)(left->value))) >= 0);
         }
@@ -3187,7 +3187,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return ((*(int8_t *)(left->value)) < (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_si((*(mpf_t *)(right->value)), (*(int8_t *)(left->value))) >= 0);
         }
@@ -3298,7 +3298,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return (((uint16_t)(*(int16_t *)(left->value))) < (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_si((*(mpz_t *)(right->value)), (*(int16_t *)(left->value))) >= 0);
         }
@@ -3313,7 +3313,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return ((*(int16_t *)(left->value)) < (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_si((*(mpf_t *)(right->value)), (*(int16_t *)(left->value))) >= 0);
         }
@@ -3424,7 +3424,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return (((uint32_t)(*(int32_t *)(left->value))) < (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_si((*(mpz_t *)(right->value)), (*(int32_t *)(left->value))) >= 0);
         }
@@ -3439,7 +3439,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return ((*(int32_t *)(left->value)) < (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_si((*(mpf_t *)(right->value)), (*(int32_t *)(left->value))) >= 0);
         }
@@ -3550,7 +3550,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return (((uint64_t)(*(int64_t *)(left->value))) < (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_si((*(mpz_t *)(right->value)), (*(int64_t *)(left->value))) >= 0);
         }
@@ -3565,7 +3565,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return ((*(int64_t *)(left->value)) < (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_si((*(mpf_t *)(right->value)), (*(int64_t *)(left->value))) >= 0);
         }
@@ -3681,7 +3681,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return ((*(uint8_t *)(left->value)) < (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_ui((*(mpz_t *)(right->value)), (*(uint8_t *)(left->value))) >= 0);
         }
@@ -3696,7 +3696,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return ((*(uint8_t *)(left->value)) < (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_ui((*(mpf_t *)(right->value)), (*(uint8_t *)(left->value))) >= 0);
         }
@@ -3821,7 +3821,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
 
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_ui((*(mpz_t *)(right->value)), (*(uint16_t *)(left->value))) >= 0);
 
@@ -3839,7 +3839,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
 
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_ui((*(mpf_t *)(right->value)), (*(uint16_t *)(left->value))) >= 0);
 
@@ -3956,7 +3956,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return ((*(uint32_t *)(left->value)) < (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_ui((*(mpz_t *)(right->value)), (*(uint32_t *)(left->value))) >= 0);
         }
@@ -3971,7 +3971,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return ((*(uint32_t *)(left->value)) < (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_ui((*(mpf_t *)(right->value)), (*(uint32_t *)(left->value))) >= 0);
         }
@@ -4086,7 +4086,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return ((*(uint64_t *)(left->value)) < (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_ui((*(mpz_t *)(right->value)), (*(uint64_t *)(left->value))) >= 0);
         }
@@ -4101,7 +4101,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return ((*(uint64_t *)(left->value)) < (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_ui((*(mpf_t *)(right->value)), (*(uint64_t *)(left->value))) >= 0);
         }
@@ -4148,7 +4148,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
         return 0;
     }
     else
-    if (left->kind == RECORD_KIND_BIGINT)
+    if (left->kind == RECORD_KIND_INT)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
@@ -4200,7 +4200,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return (mpz_cmp_ui((*(mpz_t *)(left->value)), (*(uint64_t *)(right->value))) < 0);
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp((*(mpz_t *)(left->value)), (*(mpz_t *)(right->value))) < 0);
         }
@@ -4215,7 +4215,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return (mpz_cmp_d((*(mpz_t *)(left->value)), (*(double *)(right->value))) < 0);
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             mpf_t mpf_from_mpz;
             mpf_init(mpf_from_mpz);
@@ -4315,7 +4315,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return ((*(float *)(left->value)) < (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_d((*(mpz_t *)(right->value)), (*(float *)(left->value))) >= 0);
         }
@@ -4330,7 +4330,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return ((*(float *)(left->value)) < (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_d((*(mpf_t *)(right->value)), (*(float *)(left->value))) >= 0);
         }
@@ -4425,7 +4425,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return ((*(double *)(left->value)) < (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_d((*(mpz_t *)(right->value)), (*(double *)(left->value))) >= 0);
 
@@ -4441,7 +4441,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return ((*(double *)(left->value)) < (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_d((*(mpf_t *)(right->value)), (*(double *)(left->value))) >= 0);
         }
@@ -4484,7 +4484,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
         return 0;
     }
     else
-    if (left->kind == RECORD_KIND_BIGFLOAT)
+    if (left->kind == RECORD_KIND_FLOAT)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
@@ -4538,7 +4538,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return (mpf_cmp_ui((*(mpf_t *)(left->value)), (*(uint64_t *)(right->value))) < 0);
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             mpf_t mpf_from_mpz;
             mpf_init(mpf_from_mpz);
@@ -4558,7 +4558,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return (mpf_cmp_ui((*(mpf_t *)(left->value)), (*(double *)(right->value))) < 0);
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp((*(mpf_t *)(left->value)), (*(mpf_t *)(right->value))) < 0);
         }
@@ -4672,7 +4672,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return (((unsigned char)(*(char *)(left->value))) < (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_si((*(mpz_t *)(right->value)), (*(char *)(left->value))) >= 0);
         }
@@ -4687,7 +4687,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return ((*(char *)(left->value)) < (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_si((*(mpf_t *)(right->value)), (*(char *)(left->value))) >= 0);
         }
@@ -4777,7 +4777,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -4792,7 +4792,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -4804,7 +4804,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
         else
         if (right->kind == RECORD_KIND_STRING)
         {
-            return (strcmp((*(char **)(left->value)), (*(char **)(right->value))) >= 0);
+            return (strcmp(((char *)(left->value)), ((char *)(right->value))) >= 0);
 
         }
         else
@@ -4883,7 +4883,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -4898,7 +4898,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -4989,7 +4989,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -5004,7 +5004,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -5094,7 +5094,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -5109,7 +5109,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -5199,7 +5199,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -5214,7 +5214,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -5304,7 +5304,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -5319,7 +5319,7 @@ sy_execute_truthy_lt(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -5469,7 +5469,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return (((uint8_t)(*(int8_t *)(left->value))) <= (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_si((*(mpz_t *)(right->value)), (*(int8_t *)(left->value))) > 0);
         }
@@ -5484,7 +5484,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return ((*(int8_t *)(left->value)) <= (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_si((*(mpf_t *)(right->value)), (*(int8_t *)(left->value))) > 0);
         }
@@ -5595,7 +5595,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return (((uint16_t)(*(int16_t *)(left->value))) <= (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_si((*(mpz_t *)(right->value)), (*(int16_t *)(left->value))) > 0);
         }
@@ -5610,7 +5610,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return ((*(int16_t *)(left->value)) <= (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_si((*(mpf_t *)(right->value)), (*(int16_t *)(left->value))) > 0);
         }
@@ -5721,7 +5721,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return (((uint32_t)(*(int32_t *)(left->value))) <= (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_si((*(mpz_t *)(right->value)), (*(int32_t *)(left->value))) > 0);
         }
@@ -5736,7 +5736,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return ((*(int32_t *)(left->value)) <= (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_si((*(mpf_t *)(right->value)), (*(int32_t *)(left->value))) > 0);
         }
@@ -5847,7 +5847,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return (((uint64_t)(*(int64_t *)(left->value))) <= (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_si((*(mpz_t *)(right->value)), (*(int64_t *)(left->value))) > 0);
         }
@@ -5862,7 +5862,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return ((*(int64_t *)(left->value)) <= (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_si((*(mpf_t *)(right->value)), (*(int64_t *)(left->value))) > 0);
         }
@@ -5978,7 +5978,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return ((*(uint8_t *)(left->value)) <= (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_ui((*(mpz_t *)(right->value)), (*(uint8_t *)(left->value))) > 0);
         }
@@ -5993,7 +5993,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return ((*(uint8_t *)(left->value)) <= (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_ui((*(mpf_t *)(right->value)), (*(uint8_t *)(left->value))) > 0);
         }
@@ -6118,7 +6118,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
 
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_ui((*(mpz_t *)(right->value)), (*(uint16_t *)(left->value))) > 0);
 
@@ -6136,7 +6136,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
 
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_ui((*(mpf_t *)(right->value)), (*(uint16_t *)(left->value))) > 0);
 
@@ -6253,7 +6253,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return ((*(uint32_t *)(left->value)) <= (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_ui((*(mpz_t *)(right->value)), (*(uint32_t *)(left->value))) > 0);
         }
@@ -6268,7 +6268,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return ((*(uint32_t *)(left->value)) <= (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_ui((*(mpf_t *)(right->value)), (*(uint32_t *)(left->value))) > 0);
         }
@@ -6383,7 +6383,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return ((*(uint64_t *)(left->value)) <= (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_ui((*(mpz_t *)(right->value)), (*(uint64_t *)(left->value))) > 0);
         }
@@ -6398,7 +6398,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return ((*(uint64_t *)(left->value)) <= (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_ui((*(mpf_t *)(right->value)), (*(uint64_t *)(left->value))) > 0);
         }
@@ -6445,7 +6445,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
         return 0;
     }
     else
-    if (left->kind == RECORD_KIND_BIGINT)
+    if (left->kind == RECORD_KIND_INT)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
@@ -6497,7 +6497,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return (mpz_cmp_ui((*(mpz_t *)(left->value)), (*(uint64_t *)(right->value))) <= 0);
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp((*(mpz_t *)(left->value)), (*(mpz_t *)(right->value))) <= 0);
         }
@@ -6512,7 +6512,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return (mpz_cmp_d((*(mpz_t *)(left->value)), (*(double *)(right->value))) <= 0);
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             mpf_t mpf_from_mpz;
             mpf_init(mpf_from_mpz);
@@ -6612,7 +6612,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return ((*(float *)(left->value)) <= (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_d((*(mpz_t *)(right->value)), (*(float *)(left->value))) > 0);
         }
@@ -6627,7 +6627,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return ((*(float *)(left->value)) <= (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_d((*(mpf_t *)(right->value)), (*(float *)(left->value))) > 0);
         }
@@ -6722,7 +6722,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return ((*(double *)(left->value)) <= (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_d((*(mpz_t *)(right->value)), (*(double *)(left->value))) > 0);
 
@@ -6738,7 +6738,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return ((*(double *)(left->value)) <= (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_d((*(mpf_t *)(right->value)), (*(double *)(left->value))) > 0);
         }
@@ -6781,7 +6781,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
         return 0;
     }
     else
-    if (left->kind == RECORD_KIND_BIGFLOAT)
+    if (left->kind == RECORD_KIND_FLOAT)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
@@ -6835,7 +6835,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return (mpf_cmp_ui((*(mpf_t *)(left->value)), (*(uint64_t *)(right->value))) <= 0);
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             mpf_t mpf_from_mpz;
             mpf_init(mpf_from_mpz);
@@ -6855,7 +6855,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return (mpf_cmp_ui((*(mpf_t *)(left->value)), (*(double *)(right->value))) <= 0);
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp((*(mpf_t *)(left->value)), (*(mpf_t *)(right->value))) <= 0);
         }
@@ -6969,7 +6969,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return (((unsigned char)(*(char *)(left->value))) <= (*(uint64_t *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return (mpz_cmp_si((*(mpz_t *)(right->value)), (*(char *)(left->value))) > 0);
         }
@@ -6984,7 +6984,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return ((*(char *)(left->value)) <= (*(double *)(right->value)));
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return (mpf_cmp_si((*(mpf_t *)(right->value)), (*(char *)(left->value))) > 0);
         }
@@ -7074,7 +7074,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -7089,7 +7089,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -7101,7 +7101,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
         else
         if (right->kind == RECORD_KIND_STRING)
         {
-            return (strcmp((*(char **)(left->value)), (*(char **)(right->value))) <= 0);
+            return (strcmp(((char *)(left->value)), ((char *)(right->value))) <= 0);
 
         }
         else
@@ -7180,7 +7180,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -7195,7 +7195,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -7286,7 +7286,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -7301,7 +7301,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -7391,7 +7391,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -7406,7 +7406,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -7496,7 +7496,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -7511,7 +7511,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }
@@ -7601,7 +7601,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGINT)
+        if (right->kind == RECORD_KIND_INT)
         {
             return 0;
         }
@@ -7616,7 +7616,7 @@ sy_execute_truthy_le(sy_record_t *left, sy_record_t *right)
             return 0;
         }
         else
-        if (right->kind == RECORD_KIND_BIGFLOAT)
+        if (right->kind == RECORD_KIND_FLOAT)
         {
             return 0;
         }

@@ -10,31 +10,22 @@
 #include "../container/queue.h"
 #include "../token/position.h"
 #include "../token/token.h"
-#include "../scanner/scanner.h"
 #include "../ast/node.h"
 #include "../utils/utils.h"
 #include "../utils/path.h"
-#include "../parser/syntax/syntax.h"
 #include "../error.h"
 #include "../memory.h"
 #include "../mutex.h"
+#include "../config.h"
+#include "../scanner/scanner.h"
+#include "../parser/syntax/syntax.h"
 #include "record.h"
 #include "strip.h"
 #include "garbage.h"
 
 static const char * const symbols[] = {
-  [RECORD_KIND_INT8]        = "instance int8",
-  [RECORD_KIND_INT16]       = "instance int16",
-  [RECORD_KIND_INT32]       = "instance int32",
-  [RECORD_KIND_INT64]       = "instance int64",
-  [RECORD_KIND_UINT8]       = "instance uint8",
-  [RECORD_KIND_UINT16]      = "instance uint16",
-  [RECORD_KIND_UINT32]      = "instance uint32",
-  [RECORD_KIND_UINT64]      = "instance uint64",
-  [RECORD_KIND_BIGINT]      = "instance bigint",
-  [RECORD_KIND_FLOAT32]     = "instance float32",
-  [RECORD_KIND_FLOAT64]     = "instance float64",
-  [RECORD_KIND_BIGFLOAT]    = "instance bigfloat",
+  [RECORD_KIND_INT]         = "instance int",
+  [RECORD_KIND_FLOAT]       = "instance float",
   [RECORD_KIND_CHAR]        = "instance char",
   [RECORD_KIND_STRING]      = "instance string",
   [RECORD_KIND_OBJECT]      = "instance object",
@@ -77,176 +68,7 @@ sy_record_create(uint64_t kind, void *value)
 }
 
 sy_record_t *
-sy_record_make_int8(int8_t value)
-{
-    int8_t *basic = (int8_t *)sy_memory_calloc(1, sizeof(int8_t));
-    if (basic == NULL)
-    {
-        sy_error_no_memory();
-        return ERROR;
-    }
-
-    *basic = value;
-
-    sy_record_t *record = sy_record_create(RECORD_KIND_INT8, basic);
-    if (record == ERROR)
-    {
-        sy_memory_free(basic);
-        return ERROR;
-    }
-    return record;
-}
-
-sy_record_t *
-sy_record_make_int16(int16_t value)
-{
-    int16_t *basic = (int16_t *)sy_memory_calloc(1, sizeof(int16_t));
-    if (basic == NULL)
-    {
-        sy_error_no_memory();
-        return ERROR;
-    }
-
-    *basic = value;
-
-    sy_record_t *record = sy_record_create(RECORD_KIND_INT16, basic);
-    if (record == ERROR)
-    {
-        sy_memory_free(basic);
-        return ERROR;
-    }
-    return record;
-}
-
-sy_record_t *
-sy_record_make_int32(int32_t value)
-{
-    int32_t *basic = (int32_t *)sy_memory_calloc(1, sizeof(int32_t));
-    if (basic == NULL)
-    {
-        sy_error_no_memory();
-        return ERROR;
-    }
-
-    *basic = value;
-
-    sy_record_t *record = sy_record_create(RECORD_KIND_INT32, basic);
-    if (record == ERROR)
-    {
-        sy_memory_free(basic);
-        return ERROR;
-    }
-    return record;
-}
-
-sy_record_t *
-sy_record_make_int64(int64_t value)
-{
-    int64_t *basic = (int64_t *)sy_memory_calloc(1, sizeof(int64_t));
-    if (basic == NULL)
-    {
-        sy_error_no_memory();
-        return ERROR;
-    }
-
-    *basic = value;
-
-    sy_record_t *record = sy_record_create(RECORD_KIND_INT64, basic);
-    if (record == ERROR)
-    {
-        sy_error_system("'%s' could not make '%s'", "sy_record", "RECORD_KIND_INT64");
-        sy_memory_free(basic);
-        return ERROR;
-    }
-    return record;
-}
-
-sy_record_t *
-sy_record_make_uint8(uint8_t value)
-{
-    uint8_t *basic = (uint8_t *)sy_memory_calloc(1, sizeof(uint8_t));
-    if (basic == NULL)
-    {
-        sy_error_no_memory();
-        return ERROR;
-    }
-
-    *basic = value;
-
-    sy_record_t *record = sy_record_create(RECORD_KIND_UINT8, basic);
-    if (record == ERROR)
-    {
-        sy_memory_free(basic);
-        return ERROR;
-    }
-    return record;
-}
-
-sy_record_t *
-sy_record_make_uint16(uint16_t value)
-{
-    uint16_t *basic = (uint16_t *)sy_memory_calloc(1, sizeof(uint16_t));
-    if (basic == NULL)
-    {
-        sy_error_no_memory();
-        return ERROR;
-    }
-
-    *basic = value;
-
-    sy_record_t *record = sy_record_create(RECORD_KIND_UINT16, basic);
-    if (record == ERROR)
-    {
-        sy_memory_free(basic);
-        return ERROR;
-    }
-    return record;
-}
-
-sy_record_t *
-sy_record_make_uint32(uint32_t value)
-{
-    uint32_t *basic = (uint32_t *)sy_memory_calloc(1, sizeof(uint32_t));
-    if (basic == NULL)
-    {
-        sy_error_no_memory();
-        return ERROR;
-    }
-
-    *basic = value;
-
-    sy_record_t *record = sy_record_create(RECORD_KIND_UINT32, basic);
-    if (record == ERROR)
-    {
-        sy_memory_free(basic);
-        return ERROR;
-    }
-    return record;
-}
-
-sy_record_t *
-sy_record_make_uint64(uint64_t value)
-{
-    uint64_t *basic = (uint64_t *)sy_memory_calloc(1, sizeof(uint64_t));
-    if (basic == NULL)
-    {
-        sy_error_no_memory();
-        return ERROR;
-    }
-
-    *basic = value;
-
-    sy_record_t *record = sy_record_create(RECORD_KIND_UINT64, basic);
-    if (record == ERROR)
-    {
-        sy_memory_free(basic);
-        return ERROR;
-    }
-    return record;
-}
-
-sy_record_t *
-sy_record_make_bigint(const char *value)
+sy_record_make_int(const char *value)
 {
     mpz_t *basic = (mpz_t *)sy_memory_calloc(1, sizeof(mpz_t));
     if (basic == NULL)
@@ -259,7 +81,7 @@ sy_record_make_bigint(const char *value)
 
     mpz_set_str(*basic, value, 10);
 
-    sy_record_t *record = sy_record_create(RECORD_KIND_BIGINT, basic);
+    sy_record_t *record = sy_record_create(RECORD_KIND_INT, basic);
     if (record == ERROR)
     {
         sy_memory_free(basic);
@@ -269,7 +91,7 @@ sy_record_make_bigint(const char *value)
 }
 
 sy_record_t *
-sy_record_make_bigint_from_ui(uint64_t value)
+sy_record_make_int_from_ui(uint64_t value)
 {
     mpz_t *basic = (mpz_t *)sy_memory_calloc(1, sizeof(mpz_t));
     if (basic == NULL)
@@ -282,7 +104,7 @@ sy_record_make_bigint_from_ui(uint64_t value)
 
     mpz_set_ui(*basic, value);
 
-    sy_record_t *record = sy_record_create(RECORD_KIND_BIGINT, basic);
+    sy_record_t *record = sy_record_create(RECORD_KIND_INT, basic);
     if (record == ERROR)
     {
         sy_memory_free(basic);
@@ -292,7 +114,7 @@ sy_record_make_bigint_from_ui(uint64_t value)
 }
 
 sy_record_t *
-sy_record_make_bigint_from_si(int64_t value)
+sy_record_make_int_from_si(int64_t value)
 {
     mpz_t *basic = (mpz_t *)sy_memory_calloc(1, sizeof(mpz_t));
     if (basic == NULL)
@@ -304,7 +126,7 @@ sy_record_make_bigint_from_si(int64_t value)
     mpz_init(*basic);
     mpz_set_si(*basic, value);
 
-    sy_record_t *record = sy_record_create(RECORD_KIND_BIGINT, basic);
+    sy_record_t *record = sy_record_create(RECORD_KIND_INT, basic);
     if (record == ERROR)
     {
         sy_memory_free(basic);
@@ -314,7 +136,7 @@ sy_record_make_bigint_from_si(int64_t value)
 }
 
 sy_record_t *
-sy_record_make_bigint_from_z(mpz_t value)
+sy_record_make_int_from_z(mpz_t value)
 {
     mpz_t *basic = (mpz_t *)sy_memory_calloc(1, sizeof(mpz_t));
     if (basic == NULL)
@@ -325,7 +147,7 @@ sy_record_make_bigint_from_z(mpz_t value)
 
     mpz_init_set(*basic, value);
 
-    sy_record_t *record = sy_record_create(RECORD_KIND_BIGINT, basic);
+    sy_record_t *record = sy_record_create(RECORD_KIND_INT, basic);
     if (record == ERROR)
     {
         sy_memory_free(basic);
@@ -335,7 +157,7 @@ sy_record_make_bigint_from_z(mpz_t value)
 }
 
 sy_record_t *
-sy_record_make_bigint_from_f(mpf_t value)
+sy_record_make_int_from_f(mpf_t value)
 {
     mpz_t *basic = (mpz_t *)sy_memory_calloc(1, sizeof(mpz_t));
     if (basic == NULL)
@@ -347,29 +169,7 @@ sy_record_make_bigint_from_f(mpf_t value)
     mpz_init(*basic);
     mpz_set_f(*basic, value);
 
-    sy_record_t *record = sy_record_create(RECORD_KIND_BIGINT, basic);
-    if (record == ERROR)
-    {
-        sy_memory_free(basic);
-        return ERROR;
-    }
-    return record;
-}
-
-
-sy_record_t *
-sy_record_make_float32(float value)
-{
-    float *basic = (float *)sy_memory_calloc(1, sizeof(float));
-    if (basic == NULL)
-    {
-        sy_error_no_memory();
-        return ERROR;
-    }
-
-    *basic = value;
-
-    sy_record_t *record = sy_record_create(RECORD_KIND_FLOAT32, basic);
+    sy_record_t *record = sy_record_create(RECORD_KIND_INT, basic);
     if (record == ERROR)
     {
         sy_memory_free(basic);
@@ -379,28 +179,7 @@ sy_record_make_float32(float value)
 }
 
 sy_record_t *
-sy_record_make_float64(double value)
-{
-    double *basic = (double *)sy_memory_calloc(1, sizeof(double));
-    if (basic == NULL)
-    {
-        sy_error_no_memory();
-        return ERROR;
-    }
-
-    *basic = value;
-
-    sy_record_t *record = sy_record_create(RECORD_KIND_FLOAT64, basic);
-    if (record == ERROR)
-    {
-        sy_memory_free(basic);
-        return ERROR;
-    }
-    return record;
-}
-
-sy_record_t *
-sy_record_make_bigfloat(const char *value)
+sy_record_make_float(const char *value)
 {
     mpf_t *basic = (mpf_t *)sy_memory_calloc(1, sizeof(mpf_t));
     if (basic == NULL)
@@ -412,7 +191,7 @@ sy_record_make_bigfloat(const char *value)
     mpf_init(*basic);
     mpf_set_str(*basic, value, 10);
 
-    sy_record_t *record = sy_record_create(RECORD_KIND_BIGFLOAT, basic);
+    sy_record_t *record = sy_record_create(RECORD_KIND_FLOAT, basic);
     if (record == ERROR)
     {
         sy_memory_free(basic);
@@ -422,7 +201,7 @@ sy_record_make_bigfloat(const char *value)
 }
 
 sy_record_t *
-sy_record_make_bigfloat_from_d(double value)
+sy_record_make_float_from_d(double value)
 {
     mpf_t *basic = (mpf_t *)sy_memory_calloc(1, sizeof(mpf_t));
     if (basic == NULL)
@@ -434,7 +213,7 @@ sy_record_make_bigfloat_from_d(double value)
     mpf_init(*basic);
     mpf_set_d(*basic, value);
 
-    sy_record_t *record = sy_record_create(RECORD_KIND_BIGFLOAT, basic);
+    sy_record_t *record = sy_record_create(RECORD_KIND_FLOAT, basic);
     if (record == ERROR)
     {
         sy_memory_free(basic);
@@ -444,7 +223,7 @@ sy_record_make_bigfloat_from_d(double value)
 }
 
 sy_record_t *
-sy_record_make_bigfloat_from_si(int64_t value)
+sy_record_make_float_from_si(int64_t value)
 {
     mpf_t *basic = (mpf_t *)sy_memory_calloc(1, sizeof(mpf_t));
     if (basic == NULL)
@@ -456,7 +235,7 @@ sy_record_make_bigfloat_from_si(int64_t value)
     mpf_init(*basic);
     mpf_set_si(*basic, value);
 
-    sy_record_t *record = sy_record_create(RECORD_KIND_BIGFLOAT, basic);
+    sy_record_t *record = sy_record_create(RECORD_KIND_FLOAT, basic);
     if (record == ERROR)
     {
         sy_memory_free(basic);
@@ -466,7 +245,7 @@ sy_record_make_bigfloat_from_si(int64_t value)
 }
 
 sy_record_t *
-sy_record_make_bigfloat_from_ui(uint64_t value)
+sy_record_make_float_from_ui(uint64_t value)
 {
     mpf_t *basic = (mpf_t *)sy_memory_calloc(1, sizeof(mpf_t));
     if (basic == NULL)
@@ -478,7 +257,7 @@ sy_record_make_bigfloat_from_ui(uint64_t value)
     mpf_init(*basic);
     mpf_set_ui(*basic, value);
 
-    sy_record_t *record = sy_record_create(RECORD_KIND_BIGFLOAT, basic);
+    sy_record_t *record = sy_record_create(RECORD_KIND_FLOAT, basic);
     if (record == ERROR)
     {
         sy_memory_free(basic);
@@ -488,7 +267,7 @@ sy_record_make_bigfloat_from_ui(uint64_t value)
 }
 
 sy_record_t *
-sy_record_make_bigfloat_from_f(mpf_t value)
+sy_record_make_float_from_f(mpf_t value)
 {
     mpf_t *basic = (mpf_t *)sy_memory_calloc(1, sizeof(mpf_t));
     if (basic == NULL)
@@ -499,7 +278,7 @@ sy_record_make_bigfloat_from_f(mpf_t value)
 
     mpf_init_set(*basic, value);
 
-    sy_record_t *record = sy_record_create(RECORD_KIND_BIGFLOAT, basic);
+    sy_record_t *record = sy_record_create(RECORD_KIND_FLOAT, basic);
     if (record == ERROR)
     {
         sy_memory_free(basic);
@@ -509,7 +288,7 @@ sy_record_make_bigfloat_from_f(mpf_t value)
 }
 
 sy_record_t *
-sy_record_make_bigfloat_from_z(mpz_t value)
+sy_record_make_float_from_z(mpz_t value)
 {
     mpf_t *basic = (mpf_t *)sy_memory_calloc(1, sizeof(mpf_t));
     if (basic == NULL)
@@ -521,7 +300,7 @@ sy_record_make_bigfloat_from_z(mpz_t value)
     mpf_init(*basic);
     mpf_set_z(*basic, value);
 
-    sy_record_t *record = sy_record_create(RECORD_KIND_BIGFLOAT, basic);
+    sy_record_t *record = sy_record_create(RECORD_KIND_FLOAT, basic);
     if (record == ERROR)
     {
         sy_memory_free(basic);
@@ -881,13 +660,11 @@ sy_record_struct_copy(sy_record_struct_t *struct1)
 
     if (struct1->value)
     {
-        printf("pass 7\n");
         value = sy_strip_copy(struct1->value);
         if (value == ERROR)
         {
             return ERROR;
         }
-        printf("pass 97\n");
     }
 
     sy_record_struct_t *basic = (sy_record_struct_t *)sy_memory_calloc(1, sizeof(sy_record_struct_t));
@@ -1036,64 +813,14 @@ sy_record_type_copy(sy_record_type_t *type)
 sy_record_t *
 sy_record_copy(sy_record_t *record)
 {
-    if (record->kind == RECORD_KIND_INT8)
+    if (record->kind == RECORD_KIND_INT)
     {
-        return sy_record_make_int8(*(int8_t *)(record->value));
+        return sy_record_make_int_from_z(*(mpz_t *)(record->value));
     }
     else
-    if (record->kind == RECORD_KIND_INT16)
+    if (record->kind == RECORD_KIND_FLOAT)
     {
-        return sy_record_make_int16(*(int16_t *)(record->value));
-    }
-    else
-    if (record->kind == RECORD_KIND_INT32)
-    {
-        return sy_record_make_int32(*(int32_t *)(record->value));
-    }
-    else
-    if (record->kind == RECORD_KIND_INT64)
-    {
-        return sy_record_make_int64(*(int64_t *)(record->value));
-    }
-    else
-    if (record->kind == RECORD_KIND_UINT8)
-    {
-        return sy_record_make_uint8(*(uint8_t *)(record->value));
-    }
-    else
-    if (record->kind == RECORD_KIND_UINT16)
-    {
-        return sy_record_make_uint16(*(uint16_t *)(record->value));
-    }
-    else
-    if (record->kind == RECORD_KIND_UINT32)
-    {
-        return sy_record_make_uint32(*(uint32_t *)(record->value));
-    }
-    else
-    if (record->kind == RECORD_KIND_UINT64)
-    {
-        return sy_record_make_uint64(*(uint64_t *)(record->value));
-    }
-    else
-    if (record->kind == RECORD_KIND_BIGINT)
-    {
-        return sy_record_make_bigint_from_z(*(mpz_t *)(record->value));
-    }
-    else
-    if (record->kind == RECORD_KIND_FLOAT32)
-    {
-        return sy_record_make_float32(*(float *)(record->value));
-    }
-    else
-    if (record->kind == RECORD_KIND_FLOAT64)
-    {
-        return sy_record_make_float64(*(double *)(record->value));
-    }
-    else
-    if (record->kind == RECORD_KIND_BIGFLOAT)
-    {
-        return sy_record_make_bigfloat_from_f(*(mpf_t *)(record->value));
+        return sy_record_make_float_from_f(*(mpf_t *)(record->value));
     }
     else
     if (record->kind == RECORD_KIND_CHAR)
@@ -1103,7 +830,7 @@ sy_record_copy(sy_record_t *record)
     else
     if (record->kind == RECORD_KIND_STRING)
     {
-        return sy_record_make_string(*(char **)(record->value));
+        return sy_record_make_string((char *)(record->value));
     }
     else
     if (record->kind == RECORD_KIND_OBJECT)
@@ -1153,7 +880,6 @@ sy_record_copy(sy_record_t *record)
         {
             return ERROR;
         }
-        printf("pass 98\n");
 
         sy_record_t *record_copy = sy_record_create(RECORD_KIND_STRUCT, basic);
         if (record_copy == ERROR)
@@ -1256,12 +982,12 @@ sy_record_destroy(sy_record_t *record)
     }
     else
     {
-        if (record->kind == RECORD_KIND_BIGINT)
+        if (record->kind == RECORD_KIND_INT)
         {
             mpz_clear(*(mpz_t *)(record->value));
         }
         else
-        if (record->kind == RECORD_KIND_BIGFLOAT)
+        if (record->kind == RECORD_KIND_FLOAT)
         {
             mpf_clear(*(mpf_t *)(record->value));
         }
@@ -1278,6 +1004,7 @@ sy_record_destroy(sy_record_t *record)
         {
         }
         else
+        if (record->reference != 1)
         {
             sy_memory_free(record->value);
         }

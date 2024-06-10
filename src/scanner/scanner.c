@@ -13,6 +13,8 @@
 #include "../token/token.h"
 #include "../error.h"
 #include "../memory.h"
+#include "../mutex.h"
+#include "../config.h"
 #include "scanner.h"
 #include "utf8.h"
 
@@ -37,16 +39,16 @@ sy_scanner_digit_value(int32_t ch)
 }
 
 void 
-sy_scanner_set_token(SyScanner_t *scanner, sy_token_t token)
+sy_scanner_set_token(sy_scanner_t *scanner, sy_token_t token)
 {
 	//printf("%s-%lld:%lld  %s\n", token.position.path, token.position.line, token.position.column, sy_token_get_name(token.type));
 	scanner->token = token;
 }
 
-SyScanner_t *
+sy_scanner_t *
 sy_scanner_create(char *path)
 {
-	SyScanner_t *scanner = (SyScanner_t *)sy_memory_calloc(1, sizeof(SyScanner_t));
+	sy_scanner_t *scanner = (sy_scanner_t *)sy_memory_calloc(1, sizeof(sy_scanner_t));
 	if (scanner == NULL)
 	{
 		sy_error_no_memory();
@@ -97,14 +99,38 @@ sy_scanner_create(char *path)
 	return scanner;
 }
 
+sy_scanner_t *
+sy_scanner_create_from_buffer(char *buf, char *path)
+{
+	sy_scanner_t *scanner = (sy_scanner_t *)sy_memory_calloc(1, sizeof(sy_scanner_t));
+	if (scanner == NULL)
+	{
+		sy_error_no_memory();
+		return NULL;
+	}
+
+	strcpy(scanner->path, path);
+
+	scanner->source = buf;
+	scanner->offset = 0;
+	scanner->reading_offset = 0;
+	scanner->line = 1;
+	scanner->column = 1;
+	scanner->ch = ' ';
+
+	sy_scanner_advance(scanner);
+
+	return scanner;
+}
+
 void 
-sy_scanner_destroy(SyScanner_t *scanner)
+sy_scanner_destroy(sy_scanner_t *scanner)
 {
 	free(scanner);
 }
 
 static int32_t
-sy_scanner_next(SyScanner_t *scanner)
+sy_scanner_next(sy_scanner_t *scanner)
 {
 	if (scanner->reading_offset < strlen(scanner->source))
 	{
@@ -162,7 +188,7 @@ sy_scanner_next(SyScanner_t *scanner)
 }
 
 static char
-sy_scanner_peek(SyScanner_t *scanner)
+sy_scanner_peek(sy_scanner_t *scanner)
 {
 	if (scanner->reading_offset < strlen(scanner->source))
 	{
@@ -172,7 +198,7 @@ sy_scanner_peek(SyScanner_t *scanner)
 }
 
 static int32_t
-sy_scanner_skip_trivial(SyScanner_t *scanner)
+sy_scanner_skip_trivial(sy_scanner_t *scanner)
 {
 	while (scanner->ch != eof)
 	{
@@ -210,7 +236,7 @@ sy_scanner_skip_trivial(SyScanner_t *scanner)
 }
 
 int32_t
-sy_scanner_advance(SyScanner_t *scanner)
+sy_scanner_advance(sy_scanner_t *scanner)
 {
 	while (scanner->ch != eof)
 	{
@@ -2015,10 +2041,10 @@ sy_scanner_advance(SyScanner_t *scanner)
 				return 1;
 			}
 			else
-			if (strncmp(scanner->source + start_offset, "int8", max(length, 4)) == 0)
+			if (strncmp(scanner->source + start_offset, "int", max(length, 3)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_INT8_KEYWORD,
+					.type = TOKEN_INT_KEYWORD,
 					.value = NULL,
 					.position = {
 							.path = scanner->path,
@@ -2032,180 +2058,10 @@ sy_scanner_advance(SyScanner_t *scanner)
 				return 1;
 			}
 			else
-			if (strncmp(scanner->source + start_offset, "int16", max(length, 5)) == 0)
+			if (strncmp(scanner->source + start_offset, "float", max(length, 5)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_INT16_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
-
-				return 1;
-			}
-			else
-			if (strncmp(scanner->source + start_offset, "int32", max(length, 5)) == 0)
-			{
-				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_INT32_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
-
-				return 1;
-			}
-			else
-			if (strncmp(scanner->source + start_offset, "int64", max(length, 5)) == 0)
-			{
-				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_INT64_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
-
-				return 1;
-			}
-			else
-			if (strncmp(scanner->source + start_offset, "uint8", max(length, 5)) == 0)
-			{
-				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_UINT8_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
-
-				return 1;
-			}
-			else
-			if (strncmp(scanner->source + start_offset, "uint16", max(length, 6)) == 0)
-			{
-				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_UINT16_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
-
-				return 1;
-			}
-			else
-			if (strncmp(scanner->source + start_offset, "uint32", max(length, 6)) == 0)
-			{
-				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_UINT32_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
-
-				return 1;
-			}
-			else
-			if (strncmp(scanner->source + start_offset, "uint64", max(length, 6)) == 0)
-			{
-				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_UINT64_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
-
-				return 1;
-			}
-			else
-			if (strncmp(scanner->source + start_offset, "bigint", max(length, 6)) == 0)
-			{
-				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_BIGINT_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
-
-				return 1;
-			}
-			else
-			if (strncmp(scanner->source + start_offset, "float32", max(length, 7)) == 0)
-			{
-				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_FLOAT32_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
-
-				return 1;
-			}
-			else
-			if (strncmp(scanner->source + start_offset, "float64", max(length, 7)) == 0)
-			{
-				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_FLOAT64_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
-
-				return 1;
-			}
-			else
-			if (strncmp(scanner->source + start_offset, "bigfloat", max(length, 8)) == 0)
-			{
-				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_BIGFLOAT_KEYWORD,
+					.type = TOKEN_FLOAT_KEYWORD,
 					.value = NULL,
 					.position = {
 							.path = scanner->path,
@@ -2656,7 +2512,7 @@ sy_scanner_advance(SyScanner_t *scanner)
 }
 
 int32_t
-sy_scanner_gt(SyScanner_t *scanner)
+sy_scanner_gt(sy_scanner_t *scanner)
 {
 	if ((scanner->token.type == TOKEN_GT_EQ) || (scanner->token.type == TOKEN_GT_GT_EQ) || (scanner->token.type == TOKEN_GT_GT))
 	{

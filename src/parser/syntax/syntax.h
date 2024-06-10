@@ -15,7 +15,7 @@ typedef enum sy_syntax_modifier
 
 typedef struct sy_syntax 
 {
-	SyScanner_t *scanner;
+	sy_scanner_t *scanner;
 	sy_queue_t *states;
 	sy_token_t *token;
 	int32_t loop_depth;
@@ -37,6 +37,9 @@ typedef struct sy_syntax_state
 
 sy_syntax_t *
 sy_syntax_create(char *path);
+
+void
+sy_syntax_destroy(sy_syntax_t *syntax);
 
 sy_node_t *
 sy_syntax_module(sy_syntax_t *syntax);

@@ -75,21 +75,8 @@ const char * const symbols[] = {
   [TOKEN_STRING]	          = "string",
 
   [TOKEN_NULL_KEYWORD]      = "null keyword",
-
-  [TOKEN_INT8_KEYWORD]      = "int8 keyword",
-  [TOKEN_INT16_KEYWORD]     = "int16 keyword",
-  [TOKEN_INT32_KEYWORD]     = "int32 keyword",
-  [TOKEN_INT64_KEYWORD]     = "int64 keyword",
-  [TOKEN_UINT8_KEYWORD]     = "uint8 keyword",
-  [TOKEN_UINT16_KEYWORD]    = "uint16 keyword",
-  [TOKEN_UINT32_KEYWORD]    = "uint32 keyword",
-  [TOKEN_UINT64_KEYWORD]    = "uint64 keyword",
-  [TOKEN_BIGINT_KEYWORD]    = "bigint keyword",
-
-  [TOKEN_FLOAT32_KEYWORD]   = "float32 keyword",
-  [TOKEN_FLOAT64_KEYWORD]   = "float64 keyword",
-  [TOKEN_BIGFLOAT_KEYWORD]  = "bigfloat keyword",
-
+  [TOKEN_INT_KEYWORD]       = "int keyword",
+  [TOKEN_FLOAT_KEYWORD]     = "float keyword",
   [TOKEN_CHAR_KEYWORD]      = "char keyword",
   [TOKEN_STRING_KEYWORD]    = "string keyword",
 

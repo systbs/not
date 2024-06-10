@@ -32,7 +32,7 @@ sy_execute_prefix(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     {
         sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
 
-        sy_record_t *left = sy_record_make_int8(-1);
+        sy_record_t *left = sy_record_make_int_from_si(-1);
         if (left == ERROR)
         {
             return ERROR;
@@ -57,7 +57,7 @@ sy_execute_prefix(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     {
         sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
 
-        sy_record_t *left = sy_record_make_int8(0);
+        sy_record_t *left = sy_record_make_int_from_si(0);
         if (left == ERROR)
         {
             return ERROR;
@@ -82,7 +82,7 @@ sy_execute_prefix(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     {
         sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
 
-        sy_record_t *left = sy_record_make_int8(0);
+        sy_record_t *left = sy_record_make_int_from_si(0);
         if (left == ERROR)
         {
             return ERROR;
@@ -107,7 +107,7 @@ sy_execute_prefix(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     {
         sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
 
-        sy_record_t *left = sy_record_make_int8(0);
+        sy_record_t *left = sy_record_make_int_from_si(0);
         if (left == ERROR)
         {
             return ERROR;

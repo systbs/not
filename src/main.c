@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <gmp.h>
+#include <math.h>
+#include <float.h>
 
 #include "types/types.h"
 #include "utils/utils.h"
@@ -30,6 +32,8 @@
 int
 main(int argc, char **argv)
 {
+	mpf_set_default_prec(256);
+
 	if (sy_config_init() < 0)
 	{
 		return -1;
@@ -82,7 +86,7 @@ main(int argc, char **argv)
 	{
 		return -1;
 	}
-
+	/*
 	sy_grabage_thread_data_t data;
 	data.ret = 0;
 	sy_thread_t *thread = sy_thread_create(sy_garbage_clean_by_thread, &data);
@@ -91,6 +95,7 @@ main(int argc, char **argv)
 		sy_error_system("garbage thread not created\n");
 		return -1;
 	}
+	*/
 
 	sy_module_entry_t *module_entry = sy_module_load(sy_config_get_input_file());
     if (module_entry == ERROR)

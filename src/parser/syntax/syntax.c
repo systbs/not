@@ -7,13 +7,13 @@
 #include "../../container/queue.h"
 #include "../../token/position.h"
 #include "../../token/token.h"
-#include "../../scanner/scanner.h"
 #include "../../ast/node.h"
 #include "../../utils/utils.h"
 #include "../../error.h"
 #include "../../memory.h"
 #include "../../mutex.h"
 #include "../../config.h"
+#include "../../scanner/scanner.h"
 #include "syntax.h"
 
 
@@ -66,7 +66,7 @@ sy_syntax_notes(sy_syntax_t *syntax, sy_node_t *parent);
 int32_t
 sy_syntax_save(sy_syntax_t *syntax)
 {
-	SyScanner_t *scanner = syntax->scanner;
+	sy_scanner_t *scanner = syntax->scanner;
 
 	sy_syntax_state_t *state = (sy_syntax_state_t *)sy_memory_calloc(1, sizeof(sy_syntax_state_t));
 	if (state == NULL)
@@ -95,7 +95,7 @@ sy_syntax_save(sy_syntax_t *syntax)
 int32_t
 sy_syntax_restore(sy_syntax_t *syntax)
 {
-	SyScanner_t *scanner = syntax->scanner;
+	sy_scanner_t *scanner = syntax->scanner;
 
 	sy_queue_entry_t *queue_entry = sy_queue_right_pop(syntax->states);
 	if (queue_entry == NULL)
@@ -333,9 +333,8 @@ sy_syntax_null(sy_syntax_t *syntax, sy_node_t *parent)
 	return node2;
 }
 
-
 static sy_node_t *
-sy_syntax_kint8(sy_syntax_t *syntax, sy_node_t *parent)
+sy_syntax_kint(sy_syntax_t *syntax, sy_node_t *parent)
 {
 	sy_node_t *node = sy_node_create(parent, syntax->token->position);
 	if (node == NULL)
@@ -343,13 +342,13 @@ sy_syntax_kint8(sy_syntax_t *syntax, sy_node_t *parent)
 		return NULL;
 	}
 
-	sy_node_t *node2 = sy_node_make_kint8(node);
+	sy_node_t *node2 = sy_node_make_kint(node);
 	if (node2 == NULL)
 	{
 		return NULL;
 	}
 
-	if (sy_syntax_match(syntax, TOKEN_INT8_KEYWORD) == -1)
+	if (sy_syntax_match(syntax, TOKEN_INT_KEYWORD) == -1)
 	{
 		return NULL;
 	}
@@ -358,7 +357,7 @@ sy_syntax_kint8(sy_syntax_t *syntax, sy_node_t *parent)
 }
 
 static sy_node_t *
-sy_syntax_kint16(sy_syntax_t *syntax, sy_node_t *parent)
+sy_syntax_kfloat(sy_syntax_t *syntax, sy_node_t *parent)
 {
 	sy_node_t *node = sy_node_create(parent, syntax->token->position);
 	if (node == NULL)
@@ -366,252 +365,19 @@ sy_syntax_kint16(sy_syntax_t *syntax, sy_node_t *parent)
 		return NULL;
 	}
 
-	sy_node_t *node2 = sy_node_make_kint16(node);
+	sy_node_t *node2 = sy_node_make_kfloat(node);
 	if (node2 == NULL)
 	{
 		return NULL;
 	}
 
-	if (sy_syntax_match(syntax, TOKEN_INT16_KEYWORD) == -1)
+	if (sy_syntax_match(syntax, TOKEN_FLOAT_KEYWORD) == -1)
 	{
 		return NULL;
 	}
 
 	return node2;
 }
-
-static sy_node_t *
-sy_syntax_kint32(sy_syntax_t *syntax, sy_node_t *parent)
-{
-	sy_node_t *node = sy_node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	sy_node_t *node2 = sy_node_make_kint32(node);
-	if (node2 == NULL)
-	{
-		return NULL;
-	}
-
-	if (sy_syntax_match(syntax, TOKEN_INT32_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
-
-static sy_node_t *
-sy_syntax_kint64(sy_syntax_t *syntax, sy_node_t *parent)
-{
-	sy_node_t *node = sy_node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	sy_node_t *node2 = sy_node_make_kint64(node);
-	if (node2 == NULL)
-	{
-		return NULL;
-	}
-
-	if (sy_syntax_match(syntax, TOKEN_INT64_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
-
-
-static sy_node_t *
-sy_syntax_kuint8(sy_syntax_t *syntax, sy_node_t *parent)
-{
-	sy_node_t *node = sy_node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	sy_node_t *node2 = sy_node_make_kuint8(node);
-	if (node2 == NULL)
-	{
-		return NULL;
-	}
-
-	if (sy_syntax_match(syntax, TOKEN_UINT8_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
-
-static sy_node_t *
-sy_syntax_kuint16(sy_syntax_t *syntax, sy_node_t *parent)
-{
-	sy_node_t *node = sy_node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	sy_node_t *node2 = sy_node_make_kuint16(node);
-	if (node2 == NULL)
-	{
-		return NULL;
-	}
-
-	if (sy_syntax_match(syntax, TOKEN_UINT16_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
-
-static sy_node_t *
-sy_syntax_kuint32(sy_syntax_t *syntax, sy_node_t *parent)
-{
-	sy_node_t *node = sy_node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	sy_node_t *node2 = sy_node_make_kuint32(node);
-	if (node2 == NULL)
-	{
-		return NULL;
-	}
-
-	if (sy_syntax_match(syntax, TOKEN_UINT32_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
-
-static sy_node_t *
-sy_syntax_kuint64(sy_syntax_t *syntax, sy_node_t *parent)
-{
-	sy_node_t *node = sy_node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	sy_node_t *node2 = sy_node_make_kuint64(node);
-	if (node2 == NULL)
-	{
-		return NULL;
-	}
-
-	if (sy_syntax_match(syntax, TOKEN_UINT64_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
-
-static sy_node_t *
-sy_syntax_kbigint(sy_syntax_t *syntax, sy_node_t *parent)
-{
-	sy_node_t *node = sy_node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	sy_node_t *node2 = sy_node_make_kbigint(node);
-	if (node2 == NULL)
-	{
-		return NULL;
-	}
-
-	if (sy_syntax_match(syntax, TOKEN_BIGINT_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
-
-
-static sy_node_t *
-sy_syntax_kfloat32(sy_syntax_t *syntax, sy_node_t *parent)
-{
-	sy_node_t *node = sy_node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	sy_node_t *node2 = sy_node_make_kfloat32(node);
-	if (node2 == NULL)
-	{
-		return NULL;
-	}
-
-	if (sy_syntax_match(syntax, TOKEN_FLOAT32_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
-
-static sy_node_t *
-sy_syntax_kfloat64(sy_syntax_t *syntax, sy_node_t *parent)
-{
-	sy_node_t *node = sy_node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	sy_node_t *node2 = sy_node_make_kfloat64(node);
-	if (node2 == NULL)
-	{
-		return NULL;
-	}
-
-	if (sy_syntax_match(syntax, TOKEN_FLOAT64_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
-
-static sy_node_t *
-sy_syntax_kbigfloat(sy_syntax_t *syntax, sy_node_t *parent)
-{
-	sy_node_t *node = sy_node_create(parent, syntax->token->position);
-	if (node == NULL)
-	{
-		return NULL;
-	}
-
-	sy_node_t *node2 = sy_node_make_kbigfloat(node);
-	if (node2 == NULL)
-	{
-		return NULL;
-	}
-
-	if (sy_syntax_match(syntax, TOKEN_BIGFLOAT_KEYWORD) == -1)
-	{
-		return NULL;
-	}
-
-	return node2;
-}
-
 
 static sy_node_t *
 sy_syntax_kchar(sy_syntax_t *syntax, sy_node_t *parent)
@@ -1171,70 +937,16 @@ sy_syntax_primary(sy_syntax_t *syntax, sy_node_t *parent)
 		return sy_syntax_null(syntax, parent);
 	}
 	else 
-
-	if (syntax->token->type == TOKEN_INT8_KEYWORD)
+	if (syntax->token->type == TOKEN_INT_KEYWORD)
 	{
-		return sy_syntax_kint8(syntax, parent);
-	}
-	else 
-	if (syntax->token->type == TOKEN_INT16_KEYWORD)
-	{
-		return sy_syntax_kint16(syntax, parent);
-	}
-	else 
-	if (syntax->token->type == TOKEN_INT32_KEYWORD)
-	{
-		return sy_syntax_kint32(syntax, parent);
-	}
-	else 
-	if (syntax->token->type == TOKEN_INT64_KEYWORD)
-	{
-		return sy_syntax_kint64(syntax, parent);
+		return sy_syntax_kint(syntax, parent);
 	}
 	else
-
-	if (syntax->token->type == TOKEN_UINT8_KEYWORD)
+	if (syntax->token->type == TOKEN_FLOAT_KEYWORD)
 	{
-		return sy_syntax_kuint8(syntax, parent);
-	}
-	else 
-	if (syntax->token->type == TOKEN_UINT16_KEYWORD)
-	{
-		return sy_syntax_kuint16(syntax, parent);
-	}
-	else 
-	if (syntax->token->type == TOKEN_UINT32_KEYWORD)
-	{
-		return sy_syntax_kuint32(syntax, parent);
-	}
-	else 
-	if (syntax->token->type == TOKEN_UINT64_KEYWORD)
-	{
-		return sy_syntax_kuint64(syntax, parent);
-	}
-	else 
-	if (syntax->token->type == TOKEN_BIGINT_KEYWORD)
-	{
-		return sy_syntax_kbigint(syntax, parent);
+		return sy_syntax_kfloat(syntax, parent);
 	}
 	else
-
-	if (syntax->token->type == TOKEN_FLOAT32_KEYWORD)
-	{
-		return sy_syntax_kfloat32(syntax, parent);
-	}
-	else
-	if (syntax->token->type == TOKEN_FLOAT64_KEYWORD)
-	{
-		return sy_syntax_kfloat64(syntax, parent);
-	}
-	else
-	if (syntax->token->type == TOKEN_BIGFLOAT_KEYWORD)
-	{
-		return sy_syntax_kbigfloat(syntax, parent);
-	}
-	else
-
 	if (syntax->token->type == TOKEN_CHAR_KEYWORD)
 	{
 		return sy_syntax_kchar(syntax, parent);
@@ -1245,6 +957,7 @@ sy_syntax_primary(sy_syntax_t *syntax, sy_node_t *parent)
 		return sy_syntax_kstring(syntax, parent);
 	}
 	else
+
 	if (syntax->token->type == TOKEN_LBRACKET)
 	{
 		return sy_syntax_tuple(syntax, parent);
@@ -3885,18 +3598,9 @@ sy_syntax_class_reference(sy_syntax_t *syntax, sy_node_t *parent, sy_node_t *not
 
 	flag |= SYNTAX_MODIFIER_REFERENCE;
 
-	sy_node_t *node = NULL;
-	if (syntax->token->type == TOKEN_ID)
+	sy_node_t *node = sy_syntax_class_property(syntax, parent, note, flag);
+	if (node == NULL)
 	{
-		node = sy_syntax_class_property(syntax, parent, note, flag);
-		if (node == NULL)
-		{
-			return NULL;
-		}
-	}
-	else
-	{
-		sy_error_syntax_by_position(syntax->token->position, "incorrect use of modifier 'reference'\n\tMajor:%s-%u", __FILE__, __LINE__);
 		return NULL;
 	}
 
@@ -3915,27 +3619,9 @@ sy_syntax_class_readonly(sy_syntax_t *syntax, sy_node_t *parent, sy_node_t *note
 
 	flag |= SYNTAX_MODIFIER_READONLY;
 
-	sy_node_t *node = NULL;
-	if (syntax->token->type == TOKEN_ID)
+	sy_node_t *node = sy_syntax_class_property(syntax, parent, note, flag);
+	if (node == NULL)
 	{
-		node = sy_syntax_class_property(syntax, parent, note, flag);
-		if (node == NULL)
-		{
-			return NULL;
-		}
-	}
-	else
-	if (syntax->token->type == TOKEN_REFERENCE_KEYWORD)
-	{
-		node = sy_syntax_class_reference(syntax, parent, note, flag);
-		if (node == NULL)
-		{
-			return NULL;
-		}
-	}
-	else
-	{
-		sy_error_syntax_by_position(syntax->token->position, "incorrect use of modifier 'readonly'\n\tMajor:%s-%u", __FILE__, __LINE__);
 		return NULL;
 	}
 
@@ -4017,12 +3703,20 @@ sy_syntax_class_export(sy_syntax_t *syntax, sy_node_t *parent, sy_node_t *note)
 		{
 			return NULL;
 		}
+		if (sy_syntax_match(syntax, TOKEN_SEMICOLON) == -1)
+		{
+			return NULL;
+		}
 	}
 	else
 	if (syntax->token->type == TOKEN_READONLY_KEYWORD)
 	{
 		node = sy_syntax_class_readonly(syntax, parent, note, flag);
 		if (node == NULL)
+		{
+			return NULL;
+		}
+		if (sy_syntax_match(syntax, TOKEN_SEMICOLON) == -1)
 		{
 			return NULL;
 		}
@@ -4847,7 +4541,7 @@ sy_syntax_create(char *path)
 		return NULL;
 	}
 
-	SyScanner_t *scanner = sy_scanner_create(path);
+	sy_scanner_t *scanner = sy_scanner_create(path);
 	if (!scanner)
 	{
 		return NULL;
@@ -4864,4 +4558,11 @@ sy_syntax_create(char *path)
 	}
 
 	return syntax;
+}
+
+void
+sy_syntax_destroy(sy_syntax_t *syntax)
+{
+	sy_queue_destroy(syntax->states);
+	sy_memory_free(syntax);
 }

@@ -48,6 +48,14 @@ typedef int bool_t;
 #endif
 
 #define ERROR ((void *)(int *)-1)
-#define NAN ((void *)(int *)(-2))
+
+
+#define MAX_PATH (_MAX_PATH + _MAX_DIR + _MAX_FNAME + _MAX_EXT)
+
+#define FLT32_MIN 0.001
+#define FLT32_MAX 4095
+
+#define FLT64_MIN 0.000001
+#define FLT64_MAX 4294967295
 
 #endif /* __TYPES_H__ */

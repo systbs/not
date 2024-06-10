@@ -124,13 +124,13 @@ sy_execute_kuint32(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_
 sy_record_t *
 sy_execute_kuint64(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin);
 sy_record_t *
-sy_execute_kbigint(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin);
+sy_execute_kint(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin);
 sy_record_t *
 sy_execute_kfloat32(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin);
 sy_record_t *
 sy_execute_kfloat64(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin);
 sy_record_t *
-sy_execute_kbigfloat(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin);
+sy_execute_kfloat(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin);
 sy_record_t *
 sy_execute_kchar(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin);
 sy_record_t *
@@ -203,5 +203,8 @@ sy_execute_attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *le
 
 sy_record_t *
 sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant);
+
+char *
+record_to_string(sy_record_t *record, char *previous_buf);
 
 #endif
