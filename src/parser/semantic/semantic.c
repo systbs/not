@@ -468,6 +468,18 @@ sy_semantic_pow(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_POW)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_pow(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_prefix(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
@@ -481,21 +493,69 @@ sy_semantic_multipicative(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_MUL)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_multipicative(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_pow(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
     if (node->kind == NODE_KIND_DIV)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_multipicative(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_pow(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
     if (node->kind == NODE_KIND_MOD)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_multipicative(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_pow(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
     if (node->kind == NODE_KIND_EPI)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_multipicative(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_pow(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
@@ -509,11 +569,35 @@ sy_semantic_addative(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_PLUS)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_addative(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_multipicative(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
     if (node->kind == NODE_KIND_MINUS)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_addative(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_multipicative(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
@@ -527,11 +611,35 @@ sy_semantic_shifting(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_SHR)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_addative(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_addative(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
     if (node->kind == NODE_KIND_SHL)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_addative(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_addative(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
@@ -545,21 +653,69 @@ sy_semantic_relational(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_LT)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_shifting(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_shifting(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
     if (node->kind == NODE_KIND_LE)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_shifting(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_shifting(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
     if (node->kind == NODE_KIND_GT)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_shifting(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_shifting(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
     if (node->kind == NODE_KIND_GE)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_shifting(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_shifting(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
@@ -573,11 +729,35 @@ sy_semantic_equality(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_EQ)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_relational(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_relational(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
     if (node->kind == NODE_KIND_NEQ)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_relational(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_relational(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
@@ -591,6 +771,18 @@ sy_semantic_bitwise_and(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_AND)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_bitwise_and(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_equality(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
@@ -604,6 +796,18 @@ sy_semantic_bitwise_xor(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_XOR)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_bitwise_xor(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_bitwise_and(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
@@ -617,6 +821,18 @@ sy_semantic_bitwise_or(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_OR)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_bitwise_or(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_bitwise_xor(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
@@ -630,6 +846,18 @@ sy_semantic_logical_and(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_LAND)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+
+        if (sy_semantic_logical_and(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_bitwise_or(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
@@ -643,6 +871,18 @@ sy_semantic_logical_or(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_LOR)
     {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+        
+        if (sy_semantic_logical_or(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_logical_and(binary->right) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
@@ -652,9 +892,64 @@ sy_semantic_logical_or(sy_node_t *node)
 }
 
 static int32_t
+sy_semantic_instanceof(sy_node_t *node)
+{
+    if (node->kind == NODE_KIND_INSTANCEOF)
+    {
+        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
+        
+        if (sy_semantic_logical_or(binary->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_logical_or(binary->right) < 0)
+        {
+            return -1;
+        }
+
+        return 0;
+    }
+    else
+    {
+        return sy_semantic_logical_or(node);
+    }
+}
+
+static int32_t
+sy_semantic_conditional(sy_node_t *node)
+{
+    if (node->kind == NODE_KIND_CONDITIONAL)
+    {
+        sy_node_triple_t *triple = (sy_node_triple_t *)node->value;
+
+        if (sy_semantic_instanceof(triple->base) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_conditional(triple->left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_semantic_conditional(triple->right) < 0)
+        {
+            return -1;
+        }
+
+        return 0;
+    }
+    else
+    {
+        return sy_semantic_instanceof(node);
+    }
+}
+
+static int32_t
 sy_semantic_expression(sy_node_t *node)
 {
-	return sy_semantic_logical_or(node);
+	return sy_semantic_conditional(node);
 }
 
 static int32_t

@@ -291,6 +291,74 @@ sy_execute_prefix(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         return record;
     }
     else
+    if (node->kind == NODE_KIND_TYPEOF)
+    {
+        sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
+
+        sy_record_t *right = sy_execute_prefix(unary->right, strip, applicant, origin);
+        if (right == ERROR)
+        {
+            return ERROR;
+        }
+
+        char *type_string = "null";
+        if (right->kind == RECORD_KIND_INT)
+        {
+            type_string = "int";
+        }
+        else
+        if (right->kind == RECORD_KIND_FLOAT)
+        {
+            type_string = "float";
+        }
+        else
+        if (right->kind == RECORD_KIND_CHAR)
+        {
+            type_string = "char";
+        }
+        else
+        if (right->kind == RECORD_KIND_STRING)
+        {
+            type_string = "string";
+        }
+        else
+        if (right->kind == RECORD_KIND_OBJECT)
+        {
+            type_string = "object";
+        }
+        else
+        if (right->kind == RECORD_KIND_TUPLE)
+        {
+            type_string = "tuple";
+        }
+        else
+        if (right->kind == RECORD_KIND_STRUCT)
+        {
+            type_string = "struct";
+        }
+        else
+        if (right->kind == RECORD_KIND_TYPE)
+        {
+            type_string = "type";
+        }
+        else
+        if (right->kind == RECORD_KIND_UNDEFINED)
+        {
+            type_string = "undefined";
+        }
+        else
+        if (right->kind == RECORD_KIND_NAN)
+        {
+            type_string = "nan";
+        }
+
+        sy_record_t *record = sy_record_make_string(type_string);
+
+        right->link -= 1;
+
+        return record;
+    }
+    else
     {
         return sy_execute_postfix(node, strip, applicant, origin);
     }

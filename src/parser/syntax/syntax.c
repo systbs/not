@@ -1409,7 +1409,7 @@ sy_syntax_prefix(sy_syntax_t *syntax, sy_node_t *parent)
 
 		return sy_node_make_pos(node, right);
 	}
-	else 
+	else
 	if (syntax->token->type == TOKEN_SIZEOF_KEYWORD)
 	{
 		sy_node_t *node = sy_node_create(parent, syntax->token->position);
@@ -1462,17 +1462,17 @@ sy_syntax_prefix(sy_syntax_t *syntax, sy_node_t *parent)
 static sy_node_t *
 sy_syntax_pow(sy_syntax_t *syntax, sy_node_t *parent)
 {
-	sy_node_t *node2 = sy_syntax_prefix(syntax, parent);
-	if (node2 == NULL)
+	sy_node_t *left = sy_syntax_prefix(syntax, parent);
+	if (left == NULL)
 	{
 		return NULL;
 	}
 	
-	while (node2 != NULL)
+	while (left != NULL)
 	{
 		if (syntax->token->type == TOKEN_POWER)
 		{
-			sy_node_t *node = sy_node_create(node2, syntax->token->position);
+			sy_node_t *node = sy_node_create(left, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1489,7 +1489,7 @@ sy_syntax_pow(sy_syntax_t *syntax, sy_node_t *parent)
 				return NULL;
 			}
 
-			node2 = sy_node_make_pow(node, node2, right);
+			left = sy_node_make_pow(node, left, right);
 			continue;
 		}
 		else
@@ -1498,23 +1498,23 @@ sy_syntax_pow(sy_syntax_t *syntax, sy_node_t *parent)
 		}
 	}
 
-	return node2;
+	return left;
 }
 
 static sy_node_t *
 sy_syntax_multiplicative(sy_syntax_t *syntax, sy_node_t *parent)
 {
-	sy_node_t *node2 = sy_syntax_pow(syntax, parent);
-	if (node2 == NULL)
+	sy_node_t *left = sy_syntax_pow(syntax, parent);
+	if (left == NULL)
 	{
 		return NULL;
 	}
 	
-	while (node2 != NULL)
+	while (left != NULL)
 	{
 		if (syntax->token->type == TOKEN_STAR)
 		{
-			sy_node_t *node = sy_node_create(node2, syntax->token->position);
+			sy_node_t *node = sy_node_create(left, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1531,13 +1531,13 @@ sy_syntax_multiplicative(sy_syntax_t *syntax, sy_node_t *parent)
 				return NULL;
 			}
 
-			node2 = sy_node_make_mul(node, node2, right);
+			left = sy_node_make_mul(node, left, right);
 			continue;
 		}
 		else
 		if (syntax->token->type == TOKEN_SLASH)
 		{
-			sy_node_t *node = sy_node_create(node2, syntax->token->position);
+			sy_node_t *node = sy_node_create(left, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1554,13 +1554,13 @@ sy_syntax_multiplicative(sy_syntax_t *syntax, sy_node_t *parent)
 				return NULL;
 			}
 
-			node2 = sy_node_make_div(node, node2, right);
+			left = sy_node_make_div(node, left, right);
 			continue;
 		}
 		else
 		if (syntax->token->type == TOKEN_PERCENT)
 		{
-			sy_node_t *node = sy_node_create(node2, syntax->token->position);
+			sy_node_t *node = sy_node_create(left, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1577,13 +1577,13 @@ sy_syntax_multiplicative(sy_syntax_t *syntax, sy_node_t *parent)
 				return NULL;
 			}
 
-			node2 = sy_node_make_mod(node, node2, right);
+			left = sy_node_make_mod(node, left, right);
 			continue;
 		}
 		else
 		if (syntax->token->type == TOKEN_BACKSLASH)
 		{
-			sy_node_t *node = sy_node_create(node2, syntax->token->position);
+			sy_node_t *node = sy_node_create(left, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1600,7 +1600,7 @@ sy_syntax_multiplicative(sy_syntax_t *syntax, sy_node_t *parent)
 				return NULL;
 			}
 
-			node2 = sy_node_make_epi(node, node2, right);
+			left = sy_node_make_epi(node, left, right);
 			continue;
 		}
 		else
@@ -1609,23 +1609,23 @@ sy_syntax_multiplicative(sy_syntax_t *syntax, sy_node_t *parent)
 		}
 	}
 
-	return node2;
+	return left;
 }
 
 static sy_node_t *
 sy_syntax_addative(sy_syntax_t *syntax, sy_node_t *parent)
 {
-	sy_node_t *node2 = sy_syntax_multiplicative(syntax, parent);
-	if (node2 == NULL)
+	sy_node_t *left = sy_syntax_multiplicative(syntax, parent);
+	if (left == NULL)
 	{
 		return NULL;
 	}	
 	
-	while (node2 != NULL)
+	while (left != NULL)
 	{
 		if (syntax->token->type == TOKEN_PLUS)
 		{
-			sy_node_t *node = sy_node_create(node2, syntax->token->position);
+			sy_node_t *node = sy_node_create(left, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1642,13 +1642,13 @@ sy_syntax_addative(sy_syntax_t *syntax, sy_node_t *parent)
 				return NULL;
 			}
 
-			node2 = sy_node_make_plus(node, node2, right);
+			left = sy_node_make_plus(node, left, right);
 			continue;
 		}
 		else
 		if (syntax->token->type == TOKEN_MINUS)
 		{
-			sy_node_t *node = sy_node_create(node2, syntax->token->position);
+			sy_node_t *node = sy_node_create(left, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1665,7 +1665,7 @@ sy_syntax_addative(sy_syntax_t *syntax, sy_node_t *parent)
 				return NULL;
 			}
 
-			node2 = sy_node_make_minus(node, node2, right);
+			left = sy_node_make_minus(node, left, right);
 			continue;
 		}
 		else
@@ -1674,21 +1674,21 @@ sy_syntax_addative(sy_syntax_t *syntax, sy_node_t *parent)
 		}
 	}
 
-	return node2;
+	return left;
 }
 
 static sy_node_t *
 sy_syntax_shifting(sy_syntax_t *syntax, sy_node_t *parent)
 {
-	sy_node_t *node2 = sy_syntax_addative(syntax, parent);
-	if (node2 == NULL)
+	sy_node_t *left = sy_syntax_addative(syntax, parent);
+	if (left == NULL)
 	{
 		return NULL;
 	}
 	
 	if (syntax->token->type == TOKEN_LT_LT)
 	{
-		sy_node_t *node = sy_node_create(node2, syntax->token->position);
+		sy_node_t *node = sy_node_create(left, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -1705,12 +1705,12 @@ sy_syntax_shifting(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_shl(node, node2, right);
+		return sy_node_make_shl(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_GT_GT)
 	{
-		sy_node_t *node = sy_node_create(node2, syntax->token->position);
+		sy_node_t *node = sy_node_create(left, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -1727,24 +1727,24 @@ sy_syntax_shifting(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_shr(node, node2, right);
+		return sy_node_make_shr(node, left, right);
 	}
 
-	return node2;
+	return left;
 }
 
 static sy_node_t *
 sy_syntax_relational(sy_syntax_t *syntax, sy_node_t *parent)
 {
-	sy_node_t *node2 = sy_syntax_shifting(syntax, parent);
-	if (node2 == NULL)
+	sy_node_t *left = sy_syntax_shifting(syntax, parent);
+	if (left == NULL)
 	{
 		return NULL;
 	}
 	
 	if (syntax->token->type == TOKEN_LT)
 	{
-		sy_node_t *node = sy_node_create(node2, syntax->token->position);
+		sy_node_t *node = sy_node_create(left, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -1761,12 +1761,12 @@ sy_syntax_relational(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_lt(node, node2, right);
+		return sy_node_make_lt(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_LT_EQ)
 	{
-		sy_node_t *node = sy_node_create(node2, syntax->token->position);
+		sy_node_t *node = sy_node_create(left, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -1783,12 +1783,12 @@ sy_syntax_relational(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_le(node, node2, right);
+		return sy_node_make_le(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_GT)
 	{
-		sy_node_t *node = sy_node_create(node2, syntax->token->position);
+		sy_node_t *node = sy_node_create(left, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -1805,12 +1805,12 @@ sy_syntax_relational(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_gt(node, node2, right);
+		return sy_node_make_gt(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_GT_EQ)
 	{
-		sy_node_t *node = sy_node_create(node2, syntax->token->position);
+		sy_node_t *node = sy_node_create(left, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -1827,24 +1827,24 @@ sy_syntax_relational(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_ge(node, node2, right);
+		return sy_node_make_ge(node, left, right);
 	}
 
-	return node2;
+	return left;
 }
 
 static sy_node_t *
 sy_syntax_equality(sy_syntax_t *syntax, sy_node_t *parent)
 {
-	sy_node_t *node2 = sy_syntax_relational(syntax, parent);
-	if (node2 == NULL)
+	sy_node_t *left = sy_syntax_relational(syntax, parent);
+	if (left == NULL)
 	{
 		return NULL;
 	}
 	
 	if (syntax->token->type == TOKEN_EQ_EQ)
 	{
-		sy_node_t *node = sy_node_create(node2, syntax->token->position);
+		sy_node_t *node = sy_node_create(left, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -1861,12 +1861,12 @@ sy_syntax_equality(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_eq(node, node2, right);
+		return sy_node_make_eq(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_NOT_EQ)
 	{
-		sy_node_t *node = sy_node_create(node2, syntax->token->position);
+		sy_node_t *node = sy_node_create(left, syntax->token->position);
 		if (node == NULL)
 		{
 			return NULL;
@@ -1883,26 +1883,26 @@ sy_syntax_equality(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_neq(node, node2, right);
+		return sy_node_make_neq(node, left, right);
 	}
 
-	return node2;
+	return left;
 }
 
 static sy_node_t *
 sy_syntax_bitwise_and(sy_syntax_t *syntax, sy_node_t *parent)
 {
-	sy_node_t *node2 = sy_syntax_equality(syntax, parent);
-	if (node2 == NULL)
+	sy_node_t *left = sy_syntax_equality(syntax, parent);
+	if (left == NULL)
 	{
 		return NULL;
 	}
 	
-	while (node2 != NULL)
+	while (left != NULL)
 	{
 		if (syntax->token->type == TOKEN_AND)
 		{
-			sy_node_t *node = sy_node_create(node2, syntax->token->position);
+			sy_node_t *node = sy_node_create(left, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1919,7 +1919,7 @@ sy_syntax_bitwise_and(sy_syntax_t *syntax, sy_node_t *parent)
 				return NULL;
 			}
 
-			node2 = sy_node_make_and(node, node2, right);
+			left = sy_node_make_and(node, left, right);
 			continue;
 		}
 		else
@@ -1928,23 +1928,23 @@ sy_syntax_bitwise_and(sy_syntax_t *syntax, sy_node_t *parent)
 		}
 	}
 
-	return node2;
+	return left;
 }
 
 static sy_node_t *
 sy_syntax_bitwise_xor(sy_syntax_t *syntax, sy_node_t *parent)
 {
-	sy_node_t *node2 = sy_syntax_bitwise_and(syntax, parent);
-	if (node2 == NULL)
+	sy_node_t *left = sy_syntax_bitwise_and(syntax, parent);
+	if (left == NULL)
 	{
 		return NULL;
 	}
 	
-	while (node2 != NULL)
+	while (left != NULL)
 	{
 		if (syntax->token->type == TOKEN_CARET)
 		{
-			sy_node_t *node = sy_node_create(node2, syntax->token->position);
+			sy_node_t *node = sy_node_create(left, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -1961,7 +1961,7 @@ sy_syntax_bitwise_xor(sy_syntax_t *syntax, sy_node_t *parent)
 				return NULL;
 			}
 
-			node2 = sy_node_make_xor(node, node2, right);
+			left = sy_node_make_xor(node, left, right);
 			continue;
 		}
 		else
@@ -1970,23 +1970,23 @@ sy_syntax_bitwise_xor(sy_syntax_t *syntax, sy_node_t *parent)
 		}
 	}
 
-	return node2;
+	return left;
 }
 
 static sy_node_t *
 sy_syntax_bitwise_or(sy_syntax_t *syntax, sy_node_t *parent)
 {
-	sy_node_t *node2 = sy_syntax_bitwise_xor(syntax, parent);
-	if (node2 == NULL)
+	sy_node_t *left = sy_syntax_bitwise_xor(syntax, parent);
+	if (left == NULL)
 	{
 		return NULL;
 	}
 	
-	while (node2 != NULL)
+	while (left != NULL)
 	{
 		if (syntax->token->type == TOKEN_OR)
 		{
-			sy_node_t *node = sy_node_create(node2, syntax->token->position);
+			sy_node_t *node = sy_node_create(left, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -2003,7 +2003,7 @@ sy_syntax_bitwise_or(sy_syntax_t *syntax, sy_node_t *parent)
 				return NULL;
 			}
 
-			node2 = sy_node_make_or(node, node2, right);
+			left = sy_node_make_or(node, left, right);
 			continue;
 		}
 		else
@@ -2012,23 +2012,23 @@ sy_syntax_bitwise_or(sy_syntax_t *syntax, sy_node_t *parent)
 		}
 	}
 
-	return node2;
+	return left;
 }
 
 static sy_node_t *
 sy_syntax_logical_and(sy_syntax_t *syntax, sy_node_t *parent)
 {
-	sy_node_t *node2 = sy_syntax_bitwise_or(syntax, parent);
-	if (node2 == NULL)
+	sy_node_t *left = sy_syntax_bitwise_or(syntax, parent);
+	if (left == NULL)
 	{
 		return NULL;
 	}
 	
-	while (node2 != NULL)
+	while (left != NULL)
 	{
 		if (syntax->token->type == TOKEN_AND_AND)
 		{
-			sy_node_t *node = sy_node_create(node2, syntax->token->position);
+			sy_node_t *node = sy_node_create(left, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -2045,7 +2045,7 @@ sy_syntax_logical_and(sy_syntax_t *syntax, sy_node_t *parent)
 				return NULL;
 			}
 
-			node2 = sy_node_make_land(node, node2, right);
+			left = sy_node_make_land(node, left, right);
 			continue;
 		}
 		else
@@ -2054,23 +2054,23 @@ sy_syntax_logical_and(sy_syntax_t *syntax, sy_node_t *parent)
 		}
 	}
 
-	return node2;
+	return left;
 }
 
 static sy_node_t *
 sy_syntax_logical_or(sy_syntax_t *syntax, sy_node_t *parent)
 {
-	sy_node_t *node2 = sy_syntax_logical_and(syntax, parent);
-	if (node2 == NULL)
+	sy_node_t *left = sy_syntax_logical_and(syntax, parent);
+	if (left == NULL)
 	{
 		return NULL;
 	}
 	
-	while (node2 != NULL)
+	while (left != NULL)
 	{
 		if (syntax->token->type == TOKEN_OR_OR)
 		{
-			sy_node_t *node = sy_node_create(node2, syntax->token->position);
+			sy_node_t *node = sy_node_create(left, syntax->token->position);
 			if (node == NULL)
 			{
 				return NULL;
@@ -2087,7 +2087,7 @@ sy_syntax_logical_or(sy_syntax_t *syntax, sy_node_t *parent)
 				return NULL;
 			}
 
-			node2 = sy_node_make_lor(node, node2, right);
+			left = sy_node_make_lor(node, left, right);
 			continue;
 		}
 		else
@@ -2096,20 +2096,99 @@ sy_syntax_logical_or(sy_syntax_t *syntax, sy_node_t *parent)
 		}
 	}
 
-	return node2;
+	return left;
+}
+
+static sy_node_t *
+sy_syntax_instanceof(sy_syntax_t *syntax, sy_node_t *parent)
+{
+	sy_node_t *left = sy_syntax_logical_or(syntax, parent);
+	if (left == NULL)
+	{
+		return NULL;
+	}
+	
+	if (syntax->token->type == TOKEN_INSTANCEOF_KEYWORD)
+	{
+		sy_node_t *node = sy_node_create(left, syntax->token->position);
+		if (node == NULL)
+		{
+			return NULL;
+		}
+
+		if (sy_syntax_next(syntax) == -1)
+		{
+			return NULL;
+		}
+
+		sy_node_t *right = sy_syntax_logical_or(syntax, node);
+		if (right == NULL)
+		{
+			return NULL;
+		}
+
+		return sy_node_make_instanceof(node, left, right);
+	}
+
+	return left;
+}
+
+static sy_node_t *
+sy_syntax_conditional(sy_syntax_t *syntax, sy_node_t *parent)
+{
+	sy_node_t *condition = sy_syntax_instanceof(syntax, parent);
+	if (condition == NULL)
+	{
+		return NULL;
+	}
+	
+	if (syntax->token->type == TOKEN_QUESTION)
+	{
+		sy_node_t *node = sy_node_create(condition, syntax->token->position);
+		if (node == NULL)
+		{
+			return NULL;
+		}
+
+		if (sy_syntax_next(syntax) == -1)
+		{
+			return NULL;
+		}
+
+		sy_node_t *left = sy_syntax_conditional(syntax, node);
+		if (left == NULL)
+		{
+			return NULL;
+		}
+
+		if (sy_syntax_match(syntax, TOKEN_COLON) == -1)
+		{
+			return NULL;
+		}
+		
+		sy_node_t *right = sy_syntax_conditional(syntax, node);
+		if (right == NULL)
+		{
+			return NULL;
+		}
+
+		return sy_node_make_conditional(node, condition, left, right);
+	}
+
+	return condition;
 }
 
 static sy_node_t *
 sy_syntax_expression(sy_syntax_t *syntax, sy_node_t *parent)
 {
-	return sy_syntax_logical_or(syntax, parent);
+	return sy_syntax_conditional(syntax, parent);
 }
 
 static sy_node_t *
 sy_syntax_assign(sy_syntax_t *syntax, sy_node_t *parent)
 {
-	sy_node_t *node2 = sy_syntax_expression(syntax, parent);
-	if (node2 == NULL)
+	sy_node_t *left = sy_syntax_expression(syntax, parent);
+	if (left == NULL)
 	{
 		return NULL;
 	}
@@ -2129,7 +2208,7 @@ sy_syntax_assign(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_assign(node, node2, right);
+		return sy_node_make_assign(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_PLUS_EQ)
@@ -2147,7 +2226,7 @@ sy_syntax_assign(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_add_assign(node, node2, right);
+		return sy_node_make_add_assign(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_MINUS_EQ)
@@ -2165,7 +2244,7 @@ sy_syntax_assign(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_sub_assign(node, node2, right);
+		return sy_node_make_sub_assign(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_STAR_EQ)
@@ -2183,7 +2262,7 @@ sy_syntax_assign(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_mul_assign(node, node2, right);
+		return sy_node_make_mul_assign(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_SLASH_EQ)
@@ -2201,7 +2280,7 @@ sy_syntax_assign(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_div_assign(node, node2, right);
+		return sy_node_make_div_assign(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_BACKSLASH_EQ)
@@ -2219,7 +2298,7 @@ sy_syntax_assign(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_epi_assign(node, node2, right);
+		return sy_node_make_epi_assign(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_PERCENT_EQ)
@@ -2237,7 +2316,7 @@ sy_syntax_assign(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_mod_assign(node, node2, right);
+		return sy_node_make_mod_assign(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_POWER_EQ)
@@ -2255,7 +2334,7 @@ sy_syntax_assign(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_pow_assign(node, node2, right);
+		return sy_node_make_pow_assign(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_AND_EQ)
@@ -2273,7 +2352,7 @@ sy_syntax_assign(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_and_assign(node, node2, right);
+		return sy_node_make_and_assign(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_OR_EQ)
@@ -2291,7 +2370,7 @@ sy_syntax_assign(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_or_assign(node, node2, right);
+		return sy_node_make_or_assign(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_LT_LT_EQ)
@@ -2309,7 +2388,7 @@ sy_syntax_assign(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_shl_assign(node, node2, right);
+		return sy_node_make_shl_assign(node, left, right);
 	}
 	else
 	if (syntax->token->type == TOKEN_GT_GT_EQ)
@@ -2327,10 +2406,10 @@ sy_syntax_assign(sy_syntax_t *syntax, sy_node_t *parent)
 			return NULL;
 		}
 
-		return sy_node_make_shr_assign(node, node2, right);
+		return sy_node_make_shr_assign(node, left, right);
 	}
 
-	return node2;
+	return left;
 }
 
 static sy_node_t *

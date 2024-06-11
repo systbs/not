@@ -35,7 +35,7 @@ static sy_record_t *
 sy_execute_provide_class(sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant);
 
 int32_t 
-sy_execute_parameters_check_by_one_argument(sy_strip_t *strip, sy_node_t *parameters, sy_record_t *arg, sy_node_t *applicant)
+sy_execute_parameters_check_by_one_argument(sy_node_t *node, sy_strip_t *strip, sy_node_t *parameters, sy_record_t *arg, sy_node_t *applicant)
 {
     if (parameters)
     {
@@ -77,7 +77,7 @@ sy_execute_parameters_check_by_one_argument(sy_strip_t *strip, sy_node_t *parame
                         return -1;
                     }
 
-                    int32_t r1 = sy_execute_value_check_by_type(record_arg, record_param_type, strip, applicant);
+                    int32_t r1 = sy_execute_value_check_by_type(node, record_arg, record_param_type, strip, applicant);
                     if (r1 < 0)
                     {
                         record_param_type->link -= 1;
@@ -108,7 +108,7 @@ sy_execute_parameters_check_by_one_argument(sy_strip_t *strip, sy_node_t *parame
                                 record_arg = record_copy;
                             }
 
-                            sy_record_t *record_arg2 = sy_execute_value_casting_by_type(record_arg, record_param_type, strip, applicant);
+                            sy_record_t *record_arg2 = sy_execute_value_casting_by_type(node, record_arg, record_param_type, strip, applicant);
                             if (record_arg2 == ERROR)
                             {
                                 record_param_type->link -= 1;
@@ -229,7 +229,7 @@ sy_execute_parameters_check_by_one_argument(sy_strip_t *strip, sy_node_t *parame
                     return -1;
                 }
 
-                int32_t r1 = sy_execute_value_check_by_type(record_arg, record_param_type, strip, applicant);
+                int32_t r1 = sy_execute_value_check_by_type(node, record_arg, record_param_type, strip, applicant);
                 if (r1 < 0)
                 {
                     record_param_type->link -= 1;
@@ -256,7 +256,7 @@ sy_execute_parameters_check_by_one_argument(sy_strip_t *strip, sy_node_t *parame
                             record_arg = record_copy;
                         }
 
-                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(record_arg, record_param_type, strip, applicant);
+                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(node, record_arg, record_param_type, strip, applicant);
                         if (record_arg2 == ERROR)
                         {
                             record_param_type->link -= 1;
@@ -366,7 +366,7 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                         return -1;
                     }
 
-                    int32_t r1 = sy_execute_value_check_by_type(record_arg, record_param_type, strip, applicant);
+                    int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
                     if (r1 < 0)
                     {
                         record_param_type->link -= 1;
@@ -401,7 +401,7 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                                 record_arg = record_copy;
                             }
 
-                            sy_record_t *record_arg2 = sy_execute_value_casting_by_type(record_arg, record_param_type, strip, applicant);
+                            sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
                             if (record_arg2 == ERROR)
                             {
                                 record_param_type->link -= 1;
@@ -534,7 +534,7 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                     return -1;
                 }
 
-                int32_t r1 = sy_execute_value_check_by_type(record_arg, record_param_type, strip, applicant);
+                int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
                 if (r1 < 0)
                 {
                     record_param_type->link -= 1;
@@ -566,7 +566,7 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                             record_arg = record_copy;
                         }
 
-                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(record_arg, record_param_type, strip, applicant);
+                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
                         if (record_arg2 == ERROR)
                         {
                             record_param_type->link -= 1;
@@ -662,7 +662,7 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                             return -1;
                         }
 
-                        int32_t r1 = sy_execute_value_check_by_type(record_arg, record_param_type, strip, applicant);
+                        int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
                         if (r1 < 0)
                         {
                             record_param_type->link -= 1;
@@ -695,7 +695,7 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                                     record_arg = record_copy;
                                 }
 
-                                sy_record_t *record_arg2 = sy_execute_value_casting_by_type(record_arg, record_param_type, strip, applicant);
+                                sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
                                 if (record_arg2 == ERROR)
                                 {
                                     record_param_type->link -= 1;
@@ -924,7 +924,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                     return -1;
                                 }
 
-                                int32_t r1 = sy_execute_value_check_by_type(record_arg, record_param_type, strip, applicant);
+                                int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
                                 if (r1 < 0)
                                 {
                                     record_param_type->link -= 1;
@@ -964,7 +964,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                             record_arg = record_copy;
                                         }
 
-                                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(record_arg, record_param_type, strip, applicant);
+                                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
                                         if (record_arg2 == ERROR)
                                         {
                                             record_param_type->link -= 1;
@@ -1108,7 +1108,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                         return -1;
                                     }
 
-                                    int32_t r1 = sy_execute_value_check_by_type(record_arg, record_param_type, strip, applicant);
+                                    int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
                                     if (r1 < 0)
                                     {
                                         record_param_type->link -= 1;
@@ -1141,7 +1141,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                                 record_arg = record_copy;
                                             }
 
-                                            sy_record_t *record_arg2 = sy_execute_value_casting_by_type(record_arg, record_param_type, strip, applicant);
+                                            sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
                                             if (record_arg2 == ERROR)
                                             {
                                                 record_param_type->link -= 1;
@@ -1260,7 +1260,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                     return -1;
                                 }
 
-                                int32_t r1 = sy_execute_value_check_by_type(record_arg, record_param_type, strip, applicant);
+                                int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
                                 if (r1 < 0)
                                 {
                                     record_param_type->link -= 1;
@@ -1300,7 +1300,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                             record_arg = record_copy;
                                         }
 
-                                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(record_arg, record_param_type, strip, applicant);
+                                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
                                         if (record_arg2 == ERROR)
                                         {
                                             record_param_type->link -= 1;
@@ -1451,7 +1451,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                 return -1;
                             }
 
-                            int32_t r1 = sy_execute_value_check_by_type(record_arg, record_param_type, strip, applicant);
+                            int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
                             if (r1 < 0)
                             {
                                 record_param_type->link -= 1;
@@ -1483,7 +1483,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                         record_arg = record_copy;
                                     }
 
-                                    sy_record_t *record_arg2 = sy_execute_value_casting_by_type(record_arg, record_param_type, strip, applicant);
+                                    sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
                                     if (record_arg2 == ERROR)
                                     {
                                         record_param_type->link -= 1;
@@ -1584,7 +1584,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                             return -1;
                         }
 
-                        int32_t r1 = sy_execute_value_check_by_type(record_arg, record_param_type, strip, applicant);
+                        int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
                         if (r1 < 0)
                         {
                             record_param_type->link -= 1;
@@ -1617,7 +1617,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                     record_arg = record_copy;
                                 }
 
-                                sy_record_t *record_arg2 = sy_execute_value_casting_by_type(record_arg, record_param_type, strip, applicant);
+                                sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
                                 if (record_arg2 == ERROR)
                                 {
                                     record_param_type->link -= 1;
@@ -1807,7 +1807,7 @@ sy_execute_property_substitute(sy_node_t *scope, sy_strip_t *strip, sy_node_t *n
                 return -1;
             }
 
-            int32_t r1 = sy_execute_value_check_by_type(record_value, record_param_type, strip, applicant);
+            int32_t r1 = sy_execute_value_check_by_type(property->key, record_value, record_param_type, strip, applicant);
             if (r1 < 0)
             {
                 record_param_type->link -= 1;
@@ -1824,7 +1824,7 @@ sy_execute_property_substitute(sy_node_t *scope, sy_strip_t *strip, sy_node_t *n
                     record_value = sy_record_copy(record_value);
                 }
 
-                sy_record_t *record_arg2 = sy_execute_value_casting_by_type(record_value, record_param_type, strip, applicant);
+                sy_record_t *record_arg2 = sy_execute_value_casting_by_type(property->key, record_value, record_param_type, strip, applicant);
                 if (record_arg2 == ERROR)
                 {
                     record_param_type->link -= 1;

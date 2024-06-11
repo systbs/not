@@ -152,7 +152,7 @@ sy_node_create(sy_node_t *parent, sy_position_t position)
 }
 
 static void
-sy_node_Update(sy_node_t *node, int32_t kind, void *value)
+sy_node_update(sy_node_t *node, int32_t kind, void *value)
 {
 	node->value = value;
 	node->kind = kind;
@@ -178,7 +178,7 @@ sy_node_make_id(sy_node_t *node, char *value)
 
 	basic->value = value;
 
-	sy_node_Update(node, NODE_KIND_ID, basic);
+	sy_node_update(node, NODE_KIND_ID, basic);
 	return node;
 }
 
@@ -194,7 +194,7 @@ sy_node_make_number(sy_node_t *node, char *value)
 
 	basic->value = value;
 
-	sy_node_Update(node, NODE_KIND_NUMBER, basic);
+	sy_node_update(node, NODE_KIND_NUMBER, basic);
 	return node;
 }
 
@@ -210,7 +210,7 @@ sy_node_make_char(sy_node_t *node, char *value)
 
 	basic->value = value;
 	
-	sy_node_Update(node, NODE_KIND_CHAR, basic);
+	sy_node_update(node, NODE_KIND_CHAR, basic);
 	return node;
 }
 
@@ -226,7 +226,7 @@ sy_node_make_string(sy_node_t *node, char *value)
 
 	basic->value = value;
 	
-	sy_node_Update(node, NODE_KIND_STRING, basic);
+	sy_node_update(node, NODE_KIND_STRING, basic);
 	return node;
 }
 
@@ -243,7 +243,7 @@ sy_node_make_null(sy_node_t *node)
 
 	basic->value = NULL;
 	
-	sy_node_Update(node, NODE_KIND_NULL, basic);
+	sy_node_update(node, NODE_KIND_NULL, basic);
 	return node;
 }
 
@@ -259,7 +259,7 @@ sy_node_make_kint(sy_node_t *node)
 
 	basic->value = NULL;
 	
-	sy_node_Update(node, NODE_KIND_KINT, basic);
+	sy_node_update(node, NODE_KIND_KINT, basic);
 
 	return node;
 }
@@ -276,7 +276,7 @@ sy_node_make_kfloat(sy_node_t *node)
 
 	basic->value = NULL;
 	
-	sy_node_Update(node, NODE_KIND_KFLOAT, basic);
+	sy_node_update(node, NODE_KIND_KFLOAT, basic);
 
 	return node;
 }
@@ -293,7 +293,7 @@ sy_node_make_kchar(sy_node_t *node)
 
 	basic->value = NULL;
 	
-	sy_node_Update(node, NODE_KIND_KCHAR, basic);
+	sy_node_update(node, NODE_KIND_KCHAR, basic);
 
 	return node;
 }
@@ -310,7 +310,7 @@ sy_node_make_kstring(sy_node_t *node)
 
 	basic->value = NULL;
 	
-	sy_node_Update(node, NODE_KIND_KSTRING, basic);
+	sy_node_update(node, NODE_KIND_KSTRING, basic);
 
 	return node;
 }
@@ -328,7 +328,7 @@ sy_node_make_tuple(sy_node_t *node, sy_node_t *items)
 
 	basic->items = items;
 	
-	sy_node_Update(node, NODE_KIND_TUPLE, basic);
+	sy_node_update(node, NODE_KIND_TUPLE, basic);
 	return node;
 }
 
@@ -343,7 +343,7 @@ sy_node_make_object(sy_node_t *node, sy_node_t *items)
 
 	basic->items = items;
 	
-	sy_node_Update(node, NODE_KIND_OBJECT, basic);
+	sy_node_update(node, NODE_KIND_OBJECT, basic);
 	return node;
 }
 
@@ -360,7 +360,7 @@ sy_node_make_pseudonym(sy_node_t *node, sy_node_t *base, sy_node_t *concepts)
 	basic->base = base;
 	basic->data = concepts;
 	
-	sy_node_Update(node, NODE_KIND_PSEUDONYM, basic);
+	sy_node_update(node, NODE_KIND_PSEUDONYM, basic);
 	return node;
 }
 
@@ -377,7 +377,7 @@ sy_node_make_typeof(sy_node_t *node, sy_node_t *right)
 
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_TYPEOF, basic);
+	sy_node_update(node, NODE_KIND_TYPEOF, basic);
 	return node;
 }
 
@@ -393,7 +393,7 @@ sy_node_make_sizeof(sy_node_t *node, sy_node_t *right)
 	
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_SIZEOF, basic);
+	sy_node_update(node, NODE_KIND_SIZEOF, basic);
 	return node;
 }
 
@@ -409,7 +409,7 @@ sy_node_make_parenthesis(sy_node_t *node, sy_node_t *value)
 	
 	basic->right = value;
 	
-	sy_node_Update(node, NODE_KIND_PARENTHESIS, basic);
+	sy_node_update(node, NODE_KIND_PARENTHESIS, basic);
 	return node;
 }
 
@@ -426,7 +426,7 @@ sy_node_make_call(sy_node_t *node, sy_node_t *base, sy_node_t *arguments)
 	basic->base = base;
 	basic->data = arguments;
 	
-	sy_node_Update(node, NODE_KIND_CALL, basic);
+	sy_node_update(node, NODE_KIND_CALL, basic);
 	return node;
 }
 
@@ -443,7 +443,7 @@ sy_node_make_array(sy_node_t *node, sy_node_t *base, sy_node_t *arguments)
 	basic->base = base;
 	basic->data = arguments;
 	
-	sy_node_Update(node, NODE_KIND_ARRAY, basic);
+	sy_node_update(node, NODE_KIND_ARRAY, basic);
 	return node;
 }
 
@@ -460,7 +460,7 @@ sy_node_make_attribute(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_ATTRIBUTE, basic);
+	sy_node_update(node, NODE_KIND_ATTRIBUTE, basic);
 	return node;
 }
 
@@ -476,7 +476,7 @@ sy_node_make_tilde(sy_node_t *node, sy_node_t *right)
 	
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_TILDE, basic);
+	sy_node_update(node, NODE_KIND_TILDE, basic);
 	return node;
 }
 
@@ -492,7 +492,7 @@ sy_node_make_not(sy_node_t *node, sy_node_t *right)
 	
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_NOT, basic);
+	sy_node_update(node, NODE_KIND_NOT, basic);
 	return node;
 }
 
@@ -508,7 +508,7 @@ sy_node_make_neg(sy_node_t *node, sy_node_t *right)
 	
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_NEG, basic);
+	sy_node_update(node, NODE_KIND_NEG, basic);
 	return node;
 }
 
@@ -524,7 +524,7 @@ sy_node_make_pos(sy_node_t *node, sy_node_t *right)
 	
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_POS, basic);
+	sy_node_update(node, NODE_KIND_POS, basic);
 	return node;
 }
 
@@ -541,7 +541,7 @@ sy_node_make_pow(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_POW, basic);
+	sy_node_update(node, NODE_KIND_POW, basic);
 	return node;
 }
 
@@ -558,7 +558,7 @@ sy_node_make_epi(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_EPI, basic);
+	sy_node_update(node, NODE_KIND_EPI, basic);
 	return node;
 }
 
@@ -575,7 +575,7 @@ sy_node_make_mul(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_MUL, basic);
+	sy_node_update(node, NODE_KIND_MUL, basic);
 	return node;
 }
 
@@ -592,7 +592,7 @@ sy_node_make_div(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_DIV, basic);
+	sy_node_update(node, NODE_KIND_DIV, basic);
 	return node;
 }
 
@@ -609,7 +609,7 @@ sy_node_make_mod(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_MOD, basic);
+	sy_node_update(node, NODE_KIND_MOD, basic);
 	return node;
 }
 
@@ -626,7 +626,7 @@ sy_node_make_plus(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_PLUS, basic);
+	sy_node_update(node, NODE_KIND_PLUS, basic);
 	return node;
 }
 
@@ -643,7 +643,7 @@ sy_node_make_minus(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_MINUS, basic);
+	sy_node_update(node, NODE_KIND_MINUS, basic);
 	return node;
 }
 
@@ -660,7 +660,7 @@ sy_node_make_shl(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_SHL, basic);
+	sy_node_update(node, NODE_KIND_SHL, basic);
 	return node;
 }
 
@@ -677,7 +677,7 @@ sy_node_make_shr(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_SHR, basic);
+	sy_node_update(node, NODE_KIND_SHR, basic);
 	return node;
 }
 
@@ -694,7 +694,7 @@ sy_node_make_lt(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_LT, basic);
+	sy_node_update(node, NODE_KIND_LT, basic);
 	return node;
 }
 
@@ -711,7 +711,7 @@ sy_node_make_le(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_LE, basic);
+	sy_node_update(node, NODE_KIND_LE, basic);
 	return node;
 }
 
@@ -728,7 +728,7 @@ sy_node_make_gt(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_GT, basic);
+	sy_node_update(node, NODE_KIND_GT, basic);
 	return node;
 }
 
@@ -745,7 +745,7 @@ sy_node_make_ge(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_GE, basic);
+	sy_node_update(node, NODE_KIND_GE, basic);
 	return node;
 }
 
@@ -762,7 +762,7 @@ sy_node_make_eq(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_EQ, basic);
+	sy_node_update(node, NODE_KIND_EQ, basic);
 	return node;
 }
 
@@ -779,7 +779,7 @@ sy_node_make_neq(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_NEQ, basic);
+	sy_node_update(node, NODE_KIND_NEQ, basic);
 	return node;
 }
 
@@ -796,7 +796,7 @@ sy_node_make_and(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_AND, basic);
+	sy_node_update(node, NODE_KIND_AND, basic);
 	return node;
 }
 
@@ -813,7 +813,7 @@ sy_node_make_xor(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_XOR, basic);
+	sy_node_update(node, NODE_KIND_XOR, basic);
 	return node;
 }
 
@@ -830,7 +830,7 @@ sy_node_make_or(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_OR, basic);
+	sy_node_update(node, NODE_KIND_OR, basic);
 	return node;
 }
 
@@ -847,7 +847,7 @@ sy_node_make_land(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_LAND, basic);
+	sy_node_update(node, NODE_KIND_LAND, basic);
 	return node;
 }
 
@@ -864,7 +864,42 @@ sy_node_make_lor(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_LOR, basic);
+	sy_node_update(node, NODE_KIND_LOR, basic);
+	return node;
+}
+
+sy_node_t *
+sy_node_make_instanceof(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+{
+	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	if(!basic)
+	{
+		sy_error_no_memory();
+		return NULL;
+	}
+	
+	basic->left = left;
+	basic->right = right;
+	
+	sy_node_update(node, NODE_KIND_INSTANCEOF, basic);
+	return node;
+}
+
+sy_node_t *
+sy_node_make_conditional(sy_node_t *node, sy_node_t *base, sy_node_t *left, sy_node_t *right)
+{
+	sy_node_triple_t *basic = (sy_node_triple_t *)sy_memory_calloc(1, sizeof(sy_node_triple_t));
+	if(!basic)
+	{
+		sy_error_no_memory();
+		return NULL;
+	}
+	
+	basic->base = base;
+	basic->left = left;
+	basic->right = right;
+	
+	sy_node_update(node, NODE_KIND_CONDITIONAL, basic);
 	return node;
 }
 
@@ -881,7 +916,7 @@ sy_node_make_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_ASSIGN, basic);
+	sy_node_update(node, NODE_KIND_ASSIGN, basic);
 	return node;
 }
 
@@ -898,7 +933,7 @@ sy_node_make_add_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_ADD_ASSIGN, basic);
+	sy_node_update(node, NODE_KIND_ADD_ASSIGN, basic);
 	return node;
 }
 
@@ -915,7 +950,7 @@ sy_node_make_sub_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_SUB_ASSIGN, basic);
+	sy_node_update(node, NODE_KIND_SUB_ASSIGN, basic);
 	return node;
 }
 
@@ -932,7 +967,7 @@ sy_node_make_div_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_DIV_ASSIGN, basic);
+	sy_node_update(node, NODE_KIND_DIV_ASSIGN, basic);
 	return node;
 }
 
@@ -949,7 +984,7 @@ sy_node_make_epi_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_EPI_ASSIGN, basic);
+	sy_node_update(node, NODE_KIND_EPI_ASSIGN, basic);
 	return node;
 }
 
@@ -966,7 +1001,7 @@ sy_node_make_mul_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_MUL_ASSIGN, basic);
+	sy_node_update(node, NODE_KIND_MUL_ASSIGN, basic);
 	return node;
 }
 
@@ -983,7 +1018,7 @@ sy_node_make_mod_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_MOD_ASSIGN, basic);
+	sy_node_update(node, NODE_KIND_MOD_ASSIGN, basic);
 	return node;
 }
 
@@ -1000,7 +1035,7 @@ sy_node_make_pow_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_POW_ASSIGN, basic);
+	sy_node_update(node, NODE_KIND_POW_ASSIGN, basic);
 	return node;
 }
 
@@ -1017,7 +1052,7 @@ sy_node_make_and_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_AND_ASSIGN, basic);
+	sy_node_update(node, NODE_KIND_AND_ASSIGN, basic);
 	return node;
 }
 
@@ -1034,7 +1069,7 @@ sy_node_make_or_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_OR_ASSIGN, basic);
+	sy_node_update(node, NODE_KIND_OR_ASSIGN, basic);
 	return node;
 }
 
@@ -1051,7 +1086,7 @@ sy_node_make_shl_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_SHL_ASSIGN, basic);
+	sy_node_update(node, NODE_KIND_SHL_ASSIGN, basic);
 	return node;
 }
 
@@ -1068,7 +1103,7 @@ sy_node_make_shr_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
 	basic->left = left;
 	basic->right = right;
 	
-	sy_node_Update(node, NODE_KIND_SHR_ASSIGN, basic);
+	sy_node_update(node, NODE_KIND_SHR_ASSIGN, basic);
 	return node;
 }
 
@@ -1084,7 +1119,7 @@ sy_node_make_throw(sy_node_t *node, sy_node_t *value)
 	
 	basic->right = value;
 	
-	sy_node_Update(node, NODE_KIND_THROW, basic);
+	sy_node_update(node, NODE_KIND_THROW, basic);
 	return node;
 }
 
@@ -1100,7 +1135,7 @@ sy_node_make_break(sy_node_t *node, sy_node_t *expression)
 	
 	basic->right = expression;
 
-	sy_node_Update(node, NODE_KIND_BREAK, basic);
+	sy_node_update(node, NODE_KIND_BREAK, basic);
 	return node;
 }
 
@@ -1116,7 +1151,7 @@ sy_node_make_continue(sy_node_t *node, sy_node_t *expression)
 	
 	basic->right = expression;
 
-	sy_node_Update(node, NODE_KIND_CONTINUE, basic);
+	sy_node_update(node, NODE_KIND_CONTINUE, basic);
 	return node;
 }
 
@@ -1132,7 +1167,7 @@ sy_node_make_return(sy_node_t *node, sy_node_t *expression)
 	
 	basic->right = expression;
 	
-	sy_node_Update(node, NODE_KIND_RETURN, basic);
+	sy_node_update(node, NODE_KIND_RETURN, basic);
 	return node;
 }
 
@@ -1150,7 +1185,7 @@ sy_node_make_if(sy_node_t *node, sy_node_t *condition, sy_node_t *then_body, sy_
 	basic->then_body = then_body;
 	basic->else_body = else_body;
 	
-	sy_node_Update(node, NODE_KIND_IF, basic);
+	sy_node_update(node, NODE_KIND_IF, basic);
 	return node;
 }
 
@@ -1169,7 +1204,7 @@ sy_node_make_for(sy_node_t *node, sy_node_t *key, sy_node_t *initializer, sy_nod
 	basic->incrementor = incrementor;
 	basic->body = body;
 	
-	sy_node_Update(node, NODE_KIND_FOR, basic);
+	sy_node_update(node, NODE_KIND_FOR, basic);
 	return node;
 }
 
@@ -1186,7 +1221,7 @@ sy_node_make_catch(sy_node_t *node, sy_node_t *parameters, sy_node_t *body)
 	basic->parameters = parameters;
 	basic->body = body;
 	
-	sy_node_Update(node, NODE_KIND_CATCH, basic);
+	sy_node_update(node, NODE_KIND_CATCH, basic);
 	return node;
 }
 
@@ -1203,7 +1238,7 @@ sy_node_make_try(sy_node_t *node, sy_node_t *body, sy_node_t *catchs)
 	basic->body = body;
 	basic->catchs = catchs;
 	
-	sy_node_Update(node, NODE_KIND_TRY, basic);
+	sy_node_update(node, NODE_KIND_TRY, basic);
 	return node;
 }
 
@@ -1221,7 +1256,7 @@ sy_node_make_var(sy_node_t *node, uint64_t flag, sy_node_t *key, sy_node_t *type
 	basic->type = type;
 	basic->value = value;
 	
-	sy_node_Update(node, NODE_KIND_VAR, basic);
+	sy_node_update(node, NODE_KIND_VAR, basic);
 	return node;
 }
 
@@ -1237,7 +1272,7 @@ sy_node_make_argument(sy_node_t *node, sy_node_t *key, sy_node_t *value)
 	basic->key = key;
 	basic->value = value;
 	
-	sy_node_Update(node, NODE_KIND_ARGUMENT, basic);
+	sy_node_update(node, NODE_KIND_ARGUMENT, basic);
 	return node;
 }
 
@@ -1253,7 +1288,7 @@ sy_node_make_arguments(sy_node_t *node, sy_node_t *items)
 
 	basic->items = items;
 	
-	sy_node_Update(node, NODE_KIND_ARGUMENTS, basic);
+	sy_node_update(node, NODE_KIND_ARGUMENTS, basic);
 	return node;
 }
 
@@ -1271,7 +1306,7 @@ sy_node_make_parameter(sy_node_t *node, uint64_t flag, sy_node_t *key, sy_node_t
 	basic->type = type;
 	basic->value = value;
 	
-	sy_node_Update(node, NODE_KIND_PARAMETER, basic);
+	sy_node_update(node, NODE_KIND_PARAMETER, basic);
 	return node;
 }
 
@@ -1287,7 +1322,7 @@ sy_node_make_parameters(sy_node_t *node, sy_node_t *items)
 
 	basic->items = items;
 	
-	sy_node_Update(node, NODE_KIND_PARAMETERS, basic);
+	sy_node_update(node, NODE_KIND_PARAMETERS, basic);
 	return node;
 }
 
@@ -1304,7 +1339,7 @@ sy_node_make_field(sy_node_t *node, sy_node_t *key, sy_node_t *value)
 	basic->key = key;
 	basic->value = value;
 	
-	sy_node_Update(node, NODE_KIND_FIELD, basic);
+	sy_node_update(node, NODE_KIND_FIELD, basic);
 	return node;
 }
 
@@ -1320,7 +1355,7 @@ sy_node_make_fields(sy_node_t *node, sy_node_t *items)
 
 	basic->items = items;
 	
-	sy_node_Update(node, NODE_KIND_PARAMETERS, basic);
+	sy_node_update(node, NODE_KIND_PARAMETERS, basic);
 	return node;
 }
 
@@ -1338,7 +1373,7 @@ sy_node_make_generic(sy_node_t *node, sy_node_t *key, sy_node_t *type, sy_node_t
 	basic->type = type;
 	basic->value = value;
 	
-	sy_node_Update(node, NODE_KIND_GENERIC, basic);
+	sy_node_update(node, NODE_KIND_GENERIC, basic);
 	return node;
 }
 
@@ -1354,7 +1389,7 @@ sy_node_make_generics(sy_node_t *node, sy_node_t *items)
 
 	basic->items = items;
 	
-	sy_node_Update(node, NODE_KIND_PARAMETERS, basic);
+	sy_node_update(node, NODE_KIND_PARAMETERS, basic);
 	return node;
 }
 
@@ -1376,7 +1411,7 @@ sy_node_make_func(sy_node_t *node, sy_node_t *notes, uint64_t flag, sy_node_t *k
 	basic->result = result;
 	basic->body = body;
 	
-	sy_node_Update(node, NODE_KIND_FUN, basic);
+	sy_node_update(node, NODE_KIND_FUN, basic);
 	return node;
 }
 
@@ -1395,7 +1430,7 @@ sy_node_make_lambda(sy_node_t *node, sy_node_t *generics, sy_node_t *parameters,
 	basic->body = body;
 	basic->result= result;
 	
-	sy_node_Update(node, NODE_KIND_LAMBDA, basic);
+	sy_node_update(node, NODE_KIND_LAMBDA, basic);
 	return node;
 }
 
@@ -1415,7 +1450,7 @@ sy_node_make_property(sy_node_t *node, sy_node_t *notes, uint64_t flag, sy_node_
 	basic->type = type;
 	basic->value = value;
 	
-	sy_node_Update(node, NODE_KIND_PROPERTY, basic);
+	sy_node_update(node, NODE_KIND_PROPERTY, basic);
 	return node;
 }
 
@@ -1434,7 +1469,7 @@ sy_node_make_entity(sy_node_t *node, uint64_t flag, sy_node_t *key, sy_node_t *t
 	basic->type = type;
 	basic->value = value;
 	
-	sy_node_Update(node, NODE_KIND_ENTITY, basic);
+	sy_node_update(node, NODE_KIND_ENTITY, basic);
 	return node;
 }
 
@@ -1450,7 +1485,7 @@ sy_node_make_set(sy_node_t *node, sy_node_t *items)
 
 	basic->items = items;
 	
-	sy_node_Update(node, NODE_KIND_SET, basic);
+	sy_node_update(node, NODE_KIND_SET, basic);
 	return node;
 }
 
@@ -1467,7 +1502,7 @@ sy_node_make_pair(sy_node_t *node, sy_node_t *key, sy_node_t *value)
 	basic->key = key;
 	basic->value = value;
 	
-	sy_node_Update(node, NODE_KIND_PAIR, basic);
+	sy_node_update(node, NODE_KIND_PAIR, basic);
 	return node;
 }
 
@@ -1484,7 +1519,7 @@ sy_node_make_heritage(sy_node_t *node, sy_node_t *key, sy_node_t *type)
 	basic->key = key;
 	basic->type = type;
 	
-	sy_node_Update(node, NODE_KIND_HERITAGE, basic);
+	sy_node_update(node, NODE_KIND_HERITAGE, basic);
 	return node;
 }
 
@@ -1500,7 +1535,7 @@ sy_node_make_heritages(sy_node_t *node, sy_node_t *items)
 
 	basic->items = items;
 	
-	sy_node_Update(node, NODE_KIND_HERITAGES, basic);
+	sy_node_update(node, NODE_KIND_HERITAGES, basic);
 	return node;
 }
 
@@ -1521,7 +1556,7 @@ sy_node_make_class(sy_node_t *node, sy_node_t *notes, uint64_t flag, sy_node_t *
 	basic->heritages = heritages;
 	basic->block = block;
 	
-	sy_node_Update(node, NODE_KIND_CLASS, basic);
+	sy_node_update(node, NODE_KIND_CLASS, basic);
 	return node;
 }
 
@@ -1538,7 +1573,7 @@ sy_node_make_note(sy_node_t *node, sy_node_t *key, sy_node_t *arguments)
 	basic->base = key;
 	basic->data = arguments;
 	
-	sy_node_Update(node, NODE_KIND_NOTE, basic);
+	sy_node_update(node, NODE_KIND_NOTE, basic);
 	return node;
 }
 
@@ -1554,7 +1589,7 @@ sy_node_make_notes(sy_node_t *node, sy_node_t *items)
 
 	basic->items = items;
 	
-	sy_node_Update(node, NODE_KIND_NOTES, basic);
+	sy_node_update(node, NODE_KIND_NOTES, basic);
 	return node;
 }
 
@@ -1571,7 +1606,7 @@ sy_node_make_package(sy_node_t *node, sy_node_t *key, sy_node_t *value)
 	basic->key = key;
 	basic->value = value;
 	
-	sy_node_Update(node, NODE_KIND_PACKAGE, basic);
+	sy_node_update(node, NODE_KIND_PACKAGE, basic);
 	return node;
 }
 
@@ -1587,7 +1622,7 @@ sy_node_make_packages(sy_node_t *node, sy_node_t *items)
 
 	basic->items = items;
 	
-	sy_node_Update(node, NODE_KIND_PACKAGES, basic);
+	sy_node_update(node, NODE_KIND_PACKAGES, basic);
 	return node;
 }
 
@@ -1604,7 +1639,7 @@ sy_node_make_using(sy_node_t *node, sy_node_t *path, sy_node_t *packages)
 	basic->path = path;
 	basic->packages = packages;
 	
-	sy_node_Update(node, NODE_KIND_USING, basic);
+	sy_node_update(node, NODE_KIND_USING, basic);
 	return node;
 }
 
@@ -1620,7 +1655,7 @@ sy_node_make_body(sy_node_t *node, sy_node_t *declaration)
 
 	basic->declaration = declaration;
 	
-	sy_node_Update(node, NODE_KIND_BODY, basic);
+	sy_node_update(node, NODE_KIND_BODY, basic);
 	return node;
 }
 
@@ -1636,6 +1671,6 @@ sy_node_make_module(sy_node_t *node, sy_node_t *items)
 
 	basic->items = items;
 	
-	sy_node_Update(node, NODE_KIND_MODULE, basic);
+	sy_node_update(node, NODE_KIND_MODULE, basic);
 	return node;
 }

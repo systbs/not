@@ -72,7 +72,8 @@ typedef enum sy_node_kind {
 	NODE_KIND_OR,
 	NODE_KIND_LAND,
 	NODE_KIND_LOR,
-	
+
+	NODE_KIND_INSTANCEOF,
 	NODE_KIND_CONDITIONAL,
 	
 	NODE_KIND_ASSIGN,
@@ -452,6 +453,12 @@ sy_node_make_land(sy_node_t *node, sy_node_t *left, sy_node_t *right);
 
 sy_node_t *
 sy_node_make_lor(sy_node_t *node, sy_node_t *left, sy_node_t *right);
+
+sy_node_t *
+sy_node_make_instanceof(sy_node_t *node, sy_node_t *left, sy_node_t *right);
+
+sy_node_t *
+sy_node_make_conditional(sy_node_t *node, sy_node_t *base, sy_node_t *left, sy_node_t *right);
 
 
 sy_node_t *

@@ -49,7 +49,7 @@ var fun1 = fun (p1:int) {
 
 var f2 = A<int>(100000);
 var f3 = f2 * 1;
-var f4 = string(f2);
+var f4 = string(typeof f2);
 var f5 = f4[2];
 var f6 = "hello world" + f2.b;
 
@@ -61,7 +61,7 @@ try {
 
 		if (a > 500000)
 		{
-			throw f6;
+			throw f2;
 			continue loop1;
 		}
 	}
@@ -70,4 +70,3 @@ catch(ex)
 {
 	string(ex);
 }
-

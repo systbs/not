@@ -27,7 +27,7 @@
 #include "execute.h"
 
 int32_t
-sy_execute_type_extends_of_type(sy_record_t *record_type1, sy_record_t *record_type2, sy_strip_t *strip, sy_node_t *applicant)
+sy_execute_type_extends_of_type(sy_node_t *node, sy_record_t *record_type1, sy_record_t *record_type2, sy_strip_t *strip, sy_node_t *applicant)
 {
     sy_record_type_t *type1 = (sy_record_type_t *)record_type1->value;
 	sy_record_type_t *type2 = (sy_record_type_t *)record_type2->value;
@@ -69,7 +69,7 @@ sy_execute_type_extends_of_type(sy_record_t *record_type1, sy_record_t *record_t
                 {
                     if (sy_execute_id_cmp(object1->key, object2->key) == 1)
 					{
-                        int32_t r1 = sy_execute_type_check_by_type(object1->value, object2->value, strip, applicant);
+                        int32_t r1 = sy_execute_type_check_by_type(node, object1->value, object2->value, strip, applicant);
                         if (r1 == -1)
                         {
                             return -1;
@@ -108,7 +108,7 @@ sy_execute_type_extends_of_type(sy_record_t *record_type1, sy_record_t *record_t
 	{
         if (type2->type->kind == NODE_KIND_ARRAY)
 	    {
-            int32_t r1 = sy_execute_type_check_by_type(type1->value, type2->value, strip, applicant);
+            int32_t r1 = sy_execute_type_check_by_type(node, type1->value, type2->value, strip, applicant);
             if (r1 == -1)
             {
                 return -1;
@@ -140,7 +140,7 @@ sy_execute_type_extends_of_type(sy_record_t *record_type1, sy_record_t *record_t
                     return 0;
                 }
 
-                int32_t r1 = sy_execute_type_check_by_type(tuple2->value, tuple1->value, strip, applicant);
+                int32_t r1 = sy_execute_type_check_by_type(node, tuple2->value, tuple1->value, strip, applicant);
                 if (r1 == -1)
                 {
                     return -1;
@@ -201,7 +201,7 @@ sy_execute_type_extends_of_type(sy_record_t *record_type1, sy_record_t *record_t
                             return -1;
                         }
 
-                        int32_t r1 = sy_execute_type_extends_of_type(record_heritage, record_type2, strip, applicant);
+                        int32_t r1 = sy_execute_type_extends_of_type(node, record_heritage, record_type2, strip, applicant);
                         if (r1 == -1)
                         {
                             record_heritage->link -= 1;
@@ -235,8 +235,8 @@ sy_execute_type_extends_of_type(sy_record_t *record_type1, sy_record_t *record_t
                     }
                     if (strip_entry1 == NULL)
                     {
-                        sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key;
-                        sy_error_runtime_by_node(generic1->key, "'%s' is not initialized", basic1->value);
+                        sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key->value;
+                        sy_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
                         return -1;
                     }
                     
@@ -248,13 +248,13 @@ sy_execute_type_extends_of_type(sy_record_t *record_type1, sy_record_t *record_t
                     }
                     if (strip_entry2 == NULL)
                     {
-                        sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key;
-                        sy_error_runtime_by_node(generic1->key, "'%s' is not initialized", basic1->value);
+                        sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key->value;
+                        sy_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
                         strip_entry1->value->link -= 1;
                         return -1;
                     }
 
-                    int32_t r1 = sy_execute_type_extends_of_type(strip_entry1->value, strip_entry2->value, strip, applicant);
+                    int32_t r1 = sy_execute_type_extends_of_type(node, strip_entry1->value, strip_entry2->value, strip, applicant);
                     if (r1 == -1)
                     {
                         strip_entry1->value->link -= 1;
@@ -466,7 +466,7 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                             goto region_error;
                         }
 
-                        int32_t r1 = sy_execute_type_extends_of_type(record_field, record_gen_type, new_strip, applicant);
+                        int32_t r1 = sy_execute_type_extends_of_type(field->key, record_field, record_gen_type, new_strip, applicant);
                         if (r1 < 0)
                         {
                             record_field->link -= 1;
@@ -560,7 +560,7 @@ sy_execute_pseudonym(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
                     goto region_error;
                 }
                 
-                int32_t r1 = sy_execute_type_extends_of_type(record_field, record_gen_type, new_strip, applicant);
+                int32_t r1 = sy_execute_type_extends_of_type(field->key, record_field, record_gen_type, new_strip, applicant);
                 if (r1 < 0)
                 {
                     record_field->link -= 1;

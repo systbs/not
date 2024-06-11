@@ -87,7 +87,7 @@ sy_execute_attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *le
                             return ERROR;
                         }
 
-                        int32_t r1 = sy_execute_value_check_by_type(record_value, record_type, strip, applicant);
+                        int32_t r1 = sy_execute_value_check_by_type(node, record_value, record_type, strip, applicant);
                         if (r1 < 0)
                         {
                             record_type->link -= 1;
@@ -112,7 +112,7 @@ sy_execute_attribute_from_type(sy_node_t *node, sy_strip_t *strip, sy_node_t *le
                             {
                                 record_value = sy_record_copy(record_value);
 
-                                sy_record_t *record_value2 = sy_execute_value_casting_by_type(record_value, record_type, strip, applicant);
+                                sy_record_t *record_value2 = sy_execute_value_casting_by_type(node, record_value, record_type, strip, applicant);
                                 if (record_value2 == ERROR)
                                 {
                                     record_type->link -= 1;

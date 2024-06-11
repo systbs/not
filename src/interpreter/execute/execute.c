@@ -108,7 +108,7 @@ sy_execute_truthy(sy_record_t *left)
 }
 
 int32_t
-sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_type2, sy_strip_t *strip, sy_node_t *applicant)
+sy_execute_type_check_by_type(sy_node_t *node, sy_record_t *record_type1, sy_record_t *record_type2, sy_strip_t *strip, sy_node_t *applicant)
 {
     sy_record_type_t *type1 = (sy_record_type_t *)record_type1->value;
 	sy_record_type_t *type2 = (sy_record_type_t *)record_type2->value;
@@ -150,7 +150,7 @@ sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_typ
                 {
                     if (sy_execute_id_cmp(object1->key, object2->key) == 1)
 					{
-                        int32_t r1 = sy_execute_type_check_by_type(object1->value, object2->value, strip, applicant);
+                        int32_t r1 = sy_execute_type_check_by_type(node, object1->value, object2->value, strip, applicant);
                         if (r1 == -1)
                         {
                             return -1;
@@ -189,7 +189,7 @@ sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_typ
 	{
         if (type2->type->kind == NODE_KIND_ARRAY)
 	    {
-            int32_t r1 = sy_execute_type_check_by_type(type1->value, type2->value, strip, applicant);
+            int32_t r1 = sy_execute_type_check_by_type(node, type1->value, type2->value, strip, applicant);
             if (r1 == -1)
             {
                 return -1;
@@ -221,7 +221,7 @@ sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_typ
                     return 0;
                 }
 
-                int32_t r1 = sy_execute_type_check_by_type(tuple2->value, tuple1->value, strip, applicant);
+                int32_t r1 = sy_execute_type_check_by_type(node, tuple2->value, tuple1->value, strip, applicant);
                 if (r1 == -1)
                 {
                     return -1;
@@ -274,8 +274,8 @@ sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_typ
                     }
                     if (strip_entry1 == NULL)
                     {
-                        sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key;
-                        sy_error_runtime_by_node(generic1->key, "'%s' is not initialized", basic1->value);
+                        sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key->value;
+                        sy_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
                         return -1;
                     }
 
@@ -287,13 +287,13 @@ sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_typ
                     }
                     if (strip_entry2 == NULL)
                     {
-                        sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key;
-                        sy_error_runtime_by_node(generic1->key, "'%s' is not initialized", basic1->value);
+                        sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key->value;
+                        sy_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
                         strip_entry1->value->link -= 1;
                         return -1;
                     }
 
-                    int32_t r1 = sy_execute_type_check_by_type(strip_entry1->value, strip_entry2->value, strip, applicant);
+                    int32_t r1 = sy_execute_type_check_by_type(node, strip_entry1->value, strip_entry2->value, strip, applicant);
                     if (r1 == -1)
                     {
                         strip_entry1->value->link -= 1;
@@ -322,7 +322,7 @@ sy_execute_type_check_by_type(sy_record_t *record_type1, sy_record_t *record_typ
 }
 
 int32_t
-sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_type, sy_strip_t *strip, sy_node_t *applicant)
+sy_execute_value_check_by_type(sy_node_t *node, sy_record_t *record_value, sy_record_t *record_type, sy_strip_t *strip, sy_node_t *applicant)
 {
     sy_record_type_t *type1 = (sy_record_type_t *)record_type->value;
 
@@ -363,7 +363,7 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
                 {
                     if (sy_execute_id_cmp(object1->key, object2->key) == 1)
 					{
-                        int32_t r1 = sy_execute_value_check_by_type(object1->value, object2->value, strip, applicant);
+                        int32_t r1 = sy_execute_value_check_by_type(node, object1->value, object2->value, strip, applicant);
                         if (r1 == -1)
                         {
                             return -1;
@@ -404,7 +404,7 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
 		{
             for (sy_record_tuple_t *tuple = (sy_record_tuple_t *)record_value->value;tuple != NULL;tuple = tuple->next)
             {
-                int32_t r1 = sy_execute_value_check_by_type(tuple->value, (sy_record_t *)type1->value, strip, applicant);
+                int32_t r1 = sy_execute_value_check_by_type(node, tuple->value, (sy_record_t *)type1->value, strip, applicant);
                 if (r1 == -1)
 				{
 					return -1;
@@ -439,7 +439,7 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
                     return 0;
                 }
 
-                int32_t r1 = sy_execute_value_check_by_type(tuple2->value, tuple1->value, strip, applicant);
+                int32_t r1 = sy_execute_value_check_by_type(node, tuple2->value, tuple1->value, strip, applicant);
                 if (r1 == -1)
                 {
                     return -1;
@@ -495,8 +495,8 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
                         }
                         if (strip_entry1 == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key;
-                            sy_error_runtime_by_node(generic1->key, "'%s' is not initialized", basic1->value);
+                            sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key->value;
+                            sy_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
                             return -1;
                         }
 
@@ -508,13 +508,13 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
                         }
                         if (strip_entry2 == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key;
-                            sy_error_runtime_by_node(generic1->key, "'%s' is not initialized", basic1->value);
+                            sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key->value;
+                            sy_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
                             strip_entry1->value->link -= 1;
                             return -1;
                         }
 
-                        int32_t r1 = sy_execute_type_check_by_type(strip_entry1->value, strip_entry2->value, strip, applicant);
+                        int32_t r1 = sy_execute_type_check_by_type(node, strip_entry1->value, strip_entry2->value, strip, applicant);
                         if (r1 == -1)
                         {
                             strip_entry1->value->link -= 1;
@@ -539,7 +539,7 @@ sy_execute_value_check_by_type(sy_record_t *record_value, sy_record_t *record_ty
 }
 
 sy_record_t *
-sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_type, sy_strip_t *strip, sy_node_t *applicant)
+sy_execute_value_casting_by_type(sy_node_t *node, sy_record_t *record_value, sy_record_t *record_type, sy_strip_t *strip, sy_node_t *applicant)
 {
     sy_record_type_t *type1 = (sy_record_type_t *)record_type->value;
 
@@ -604,7 +604,7 @@ sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_
                 {
                     if (sy_execute_id_cmp(object1->key, object2->key) == 1)
 					{
-                        sy_record_t *r1 = sy_execute_value_casting_by_type(object2->value, object1->value, strip, applicant);
+                        sy_record_t *r1 = sy_execute_value_casting_by_type(node, object2->value, object1->value, strip, applicant);
                         if (r1 == ERROR)
                         {
                             if (sy_record_object_destroy(object_copy) < 0)
@@ -678,7 +678,7 @@ sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_
 
             for (sy_record_tuple_t *tuple = tuple_copy;tuple != NULL;tuple = tuple->next)
             {
-                sy_record_t *r1 = sy_execute_value_casting_by_type(tuple->value, array_type, strip, applicant);
+                sy_record_t *r1 = sy_execute_value_casting_by_type(node, tuple->value, array_type, strip, applicant);
                 if (r1 == ERROR)
 				{
                     if (sy_record_tuple_destroy(tuple_copy) < 0)
@@ -733,7 +733,7 @@ sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_
                     return NULL;
                 }
 
-                sy_record_t *r1 = sy_execute_value_casting_by_type(tuple2->value, tuple1->value, strip, applicant);
+                sy_record_t *r1 = sy_execute_value_casting_by_type(node, tuple2->value, tuple1->value, strip, applicant);
                 if (r1 == ERROR)
 				{
                     if (sy_record_tuple_destroy(tuple_copy) < 0)
@@ -810,8 +810,8 @@ sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_
                         }
                         if (strip_entry1 == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key;
-                            sy_error_runtime_by_node(generic1->key, "'%s' is not initialized", basic1->value);
+                            sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key->value;
+                            sy_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
                             strip_entry1->value->link -= 1;
                             return ERROR;
                         }
@@ -824,13 +824,13 @@ sy_execute_value_casting_by_type(sy_record_t *record_value, sy_record_t *record_
                         }
                         if (strip_entry2 == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key;
-                            sy_error_runtime_by_node(generic1->key, "'%s' is not initialized", basic1->value);
+                            sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key->value;
+                            sy_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
                             strip_entry1->value->link -= 1;
                             return ERROR;
                         }
 
-                        int32_t r1 = sy_execute_type_check_by_type(strip_entry1->value, strip_entry2->value, strip, applicant);
+                        int32_t r1 = sy_execute_type_check_by_type(node, strip_entry1->value, strip_entry2->value, strip, applicant);
                         if (r1 == -1)
                         {
                             strip_entry2->value->link -= 1;
@@ -1082,7 +1082,7 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_node_t *
                     return -1;
                 }
 
-                int32_t r1 = sy_execute_value_check_by_type(record_value, record_type, strip, applicant);
+                int32_t r1 = sy_execute_value_check_by_type(var1->key, record_value, record_type, strip, applicant);
                 if (r1 < 0)
                 {
                     record_type->link -= 1;
@@ -1111,7 +1111,7 @@ sy_execute_var(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_node_t *
                             record_value = record_copy;
                         }
 
-                        sy_record_t *record_value2 = sy_execute_value_casting_by_type(record_value, record_type, strip, applicant);
+                        sy_record_t *record_value2 = sy_execute_value_casting_by_type(var1->key, record_value, record_type, strip, applicant);
                         if (record_value2 == ERROR)
                         {
                             record_type->link -= 1;
@@ -1394,7 +1394,7 @@ sy_execute_try(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
         if (try1->catchs)
         {
             sy_node_catch_t *catch1 = (sy_node_catch_t *)try1->catchs->value;
-            int32_t r1 = sy_execute_parameters_check_by_one_argument(strip, catch1->parameters, rax, applicant);
+            int32_t r1 = sy_execute_parameters_check_by_one_argument(try1->catchs, strip, catch1->parameters, rax, applicant);
             if (r1 == -1)
             {
                 return -1;

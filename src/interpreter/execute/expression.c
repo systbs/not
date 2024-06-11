@@ -29,5 +29,5 @@
 sy_record_t *
 sy_execute_expression(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
 {
-    return sy_execute_logical_or(node, strip, applicant, origin);
+    return sy_execute_conditional(node, strip, applicant, origin);
 }
