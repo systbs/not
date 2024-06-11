@@ -1345,7 +1345,7 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
             if (r2 < 0)
             {
                 ret_code = r2;
-                goto region_continue_loop;
+                goto region_end_loop;
             }
         }
 
@@ -1446,6 +1446,10 @@ sy_execute_try(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
             {
                 return -1;
             }
+        }
+        else
+        {
+            return r2;
         }
     }
     else

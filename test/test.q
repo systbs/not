@@ -51,7 +51,7 @@ var f2 = A<int>(100000);
 var f3 = f2 * 1;
 var f4 = string(f2);
 var f5 = f4[2];
-var f6 = "hello {f5.f6.f7(str, ptr)} world";
+var f6 = "hello world" + f2.b;
 
 export var sum = 0;
 try {
@@ -61,13 +61,13 @@ try {
 
 		if (a > 500000)
 		{
-			throw "the new expection";
+			throw f6;
 			continue loop1;
 		}
 	}
 }
-catch (ex)
+catch(ex)
 {
-	string (ex);
+	string(ex);
 }
 
