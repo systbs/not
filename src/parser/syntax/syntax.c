@@ -2851,17 +2851,7 @@ sy_syntax_catch_stmt(sy_syntax_t *syntax, sy_node_t *parent)
 		return NULL;
 	}
 
-	sy_node_t *next = NULL;
-	if (syntax->token->type == TOKEN_CATCH_KEYWORD)
-	{
-		next = sy_syntax_catch_stmt(syntax, node);
-		if (next == NULL)
-		{
-			return NULL;
-		}
-	}
-
-	return sy_node_make_catch(node, parameters, body, next);
+	return sy_node_make_catch(node, parameters, body);
 }
 
 static sy_node_t *
@@ -2911,18 +2901,8 @@ sy_syntax_throw_stmt(sy_syntax_t *syntax, sy_node_t *parent)
 		return NULL;
 	}
 
-	if (sy_syntax_match(syntax, TOKEN_LPAREN) == -1)
-	{
-		return NULL;
-	}
-
 	sy_node_t *value = sy_syntax_expression(syntax, node);
 	if (value == NULL)
-	{
-		return NULL;
-	}
-
-	if (sy_syntax_match(syntax, TOKEN_RPAREN) == -1)
 	{
 		return NULL;
 	}
@@ -4434,7 +4414,15 @@ sy_syntax_annotation(sy_syntax_t *syntax, sy_node_t *parent)
 sy_node_t *
 sy_syntax_module(sy_syntax_t *syntax)
 {
-	sy_node_t *node = sy_node_create(NULL, syntax->token->position);
+	sy_position_t pos = (sy_position_t) {
+		.line = 0,
+		.column = 0,
+		.offset = 0,
+		.length = 0,
+		.path = syntax->token->position.path
+	};
+
+	sy_node_t *node = sy_node_create(NULL, pos);
 	if (node == NULL)
 	{
 		return NULL;

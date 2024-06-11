@@ -22,14 +22,10 @@ typedef enum sy_node_kind {
 	NODE_KIND_CHAR,
 	NODE_KIND_STRING,
 
-	
-
 	NODE_KIND_TUPLE,
 	NODE_KIND_OBJECT,
 
 	NODE_KIND_PSEUDONYM,
-	NODE_KIND_THIS,
-	NODE_KIND_SELF,
 	
 	NODE_KIND_NULL,
 	NODE_KIND_KINT,
@@ -508,7 +504,7 @@ sy_node_t *
 sy_node_make_continue(sy_node_t *node, sy_node_t *expression);
 
 sy_node_t *
-sy_node_make_catch(sy_node_t *node, sy_node_t *parameters, sy_node_t *body, sy_node_t *next);
+sy_node_make_catch(sy_node_t *node, sy_node_t *parameters, sy_node_t *body);
 
 sy_node_t *
 sy_node_make_try(sy_node_t *node, sy_node_t *body, sy_node_t *catchs);

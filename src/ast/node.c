@@ -23,8 +23,6 @@ static const char * const symbols[] = {
 	[NODE_KIND_OBJECT]		= "object",
 
 	[NODE_KIND_PSEUDONYM]	= "pseudonym",
-	[NODE_KIND_THIS]		= "this",
-	[NODE_KIND_SELF]		= "self",
 	
 	[NODE_KIND_NULL]		= "null",
 	[NODE_KIND_KINT]		= "int",
@@ -262,6 +260,7 @@ sy_node_make_kint(sy_node_t *node)
 	basic->value = NULL;
 	
 	sy_node_Update(node, NODE_KIND_KINT, basic);
+
 	return node;
 }
 
@@ -278,6 +277,7 @@ sy_node_make_kfloat(sy_node_t *node)
 	basic->value = NULL;
 	
 	sy_node_Update(node, NODE_KIND_KFLOAT, basic);
+
 	return node;
 }
 
@@ -294,6 +294,7 @@ sy_node_make_kchar(sy_node_t *node)
 	basic->value = NULL;
 	
 	sy_node_Update(node, NODE_KIND_KCHAR, basic);
+
 	return node;
 }
 
@@ -310,41 +311,10 @@ sy_node_make_kstring(sy_node_t *node)
 	basic->value = NULL;
 	
 	sy_node_Update(node, NODE_KIND_KSTRING, basic);
+
 	return node;
 }
 
-
-sy_node_t *
-sy_node_make_this(sy_node_t *node)
-{
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
-	if(!basic)
-	{
-		sy_error_no_memory();
-		return NULL;
-	}
-
-	basic->value = NULL;
-	
-	sy_node_Update(node, NODE_KIND_THIS, basic);
-	return node;
-}
-
-sy_node_t *
-sy_node_make_self(sy_node_t *node)
-{
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
-	if(!basic)
-	{
-		sy_error_no_memory();
-		return NULL;
-	}
-
-	basic->value = NULL;
-	
-	sy_node_Update(node, NODE_KIND_SELF, basic);
-	return node;
-}
 
 sy_node_t *
 sy_node_make_tuple(sy_node_t *node, sy_node_t *items)
@@ -1204,7 +1174,7 @@ sy_node_make_for(sy_node_t *node, sy_node_t *key, sy_node_t *initializer, sy_nod
 }
 
 sy_node_t *
-sy_node_make_catch(sy_node_t *node, sy_node_t *parameters, sy_node_t *body, sy_node_t *next)
+sy_node_make_catch(sy_node_t *node, sy_node_t *parameters, sy_node_t *body)
 {
 	sy_node_catch_t *basic = (sy_node_catch_t *)sy_memory_calloc(1, sizeof(sy_node_catch_t));
 	if(!basic)
@@ -1215,7 +1185,6 @@ sy_node_make_catch(sy_node_t *node, sy_node_t *parameters, sy_node_t *body, sy_n
 
 	basic->parameters = parameters;
 	basic->body = body;
-	basic->next = next;
 	
 	sy_node_Update(node, NODE_KIND_CATCH, basic);
 	return node;

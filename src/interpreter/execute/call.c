@@ -35,6 +35,295 @@ static sy_record_t *
 sy_execute_provide_class(sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant);
 
 int32_t 
+sy_execute_parameters_check_by_one_argument(sy_strip_t *strip, sy_node_t *parameters, sy_record_t *arg, sy_node_t *applicant)
+{
+    if (parameters)
+    {
+        sy_node_block_t *block1 = (sy_node_block_t *)parameters->value;
+        sy_node_t *item1 = block1->items;
+        
+        sy_node_parameter_t *parameter = (sy_node_parameter_t *)item1->value;
+        if ((parameter->flag & SYNTAX_MODIFIER_KARG) == SYNTAX_MODIFIER_KARG)
+        {
+            sy_record_tuple_t *tuple = NULL;
+
+            if (arg)
+            {
+                sy_record_t *record_arg = sy_record_copy(arg);
+                if (record_arg == ERROR)
+                {
+                    return -1;
+                }
+
+                if (parameter->type)
+                {
+                    sy_record_t *record_param_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
+                    if (record_param_type == ERROR)
+                    {
+                        record_arg->link -= 1;
+                        return -1;
+                    }
+
+                    if (record_param_type->kind != RECORD_KIND_TYPE)
+                    {
+                        sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
+                        sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'", 
+                            basic1->value, sy_record_type_as_string(record_param_type));
+                        
+                        record_param_type->link -= 1;
+
+                        record_arg->link -= 1;
+
+                        return -1;
+                    }
+
+                    int32_t r1 = sy_execute_value_check_by_type(record_arg, record_param_type, strip, applicant);
+                    if (r1 < 0)
+                    {
+                        record_param_type->link -= 1;
+
+                        record_arg->link -= 1;
+                        
+                        return -1;
+                    }
+                    else
+                    if (r1 == 0)
+                    {
+                        if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
+                        {
+                            if (tuple == NULL)
+                            {
+                                record_param_type->link -= 1;
+                                record_arg->link -= 1;
+
+                                return 0;
+                            }
+                        }
+                        else
+                        {
+                            if (record_arg->link > 1)
+                            {
+                                sy_record_t *record_copy = sy_record_copy(record_arg);
+                                record_arg->link -= 1;
+                                record_arg = record_copy;
+                            }
+
+                            sy_record_t *record_arg2 = sy_execute_value_casting_by_type(record_arg, record_param_type, strip, applicant);
+                            if (record_arg2 == ERROR)
+                            {
+                                record_param_type->link -= 1;
+
+                                record_arg->link -= 1;
+                                
+                                return -1;
+                            }
+                            else
+                            if (record_arg2 == NULL)
+                            {
+                                if (tuple == NULL)
+                                {
+                                    record_param_type->link -= 1;
+                                    record_arg->link -= 1;
+                                    
+                                    return 0;
+                                }
+                            }
+
+                            record_arg = record_arg2;
+                        }
+                    }
+
+                    record_param_type->link -= 1;
+                }
+
+                if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
+                {
+                    if (record_arg->link > 1)
+                    {
+                        sy_record_t *record_copy = sy_record_copy(record_arg);
+                        record_arg->link -= 1;
+                        record_arg = record_copy;
+                    }
+                }
+
+                sy_record_tuple_t *tuple2 = sy_record_make_tuple(record_arg, tuple);
+                if (tuple2 == ERROR)
+                {
+                    record_arg->link -= 1;
+
+                    if (tuple)
+                    {
+                        if (sy_record_tuple_destroy(tuple) < 0)
+                        {
+                            record_arg->link -= 1;
+                            return -1;
+                        }
+                    }
+
+                    record_arg->link -= 1;
+                    return -1;
+                }
+
+                tuple = tuple2;
+            }
+
+            sy_record_t *record_arg = sy_record_create(RECORD_KIND_TUPLE, tuple);
+            if (record_arg == ERROR)
+            {
+                if (tuple)
+                {
+                    if (sy_record_tuple_destroy(tuple) < 0)
+                    {
+                        return -1;
+                    }
+                }
+                return -1;
+            }
+
+            if ((parameter->flag & SYNTAX_MODIFIER_READONLY) == SYNTAX_MODIFIER_READONLY)
+            {
+                record_arg->readonly = 1;
+            }
+
+            if (parameter->type)
+            {
+                record_arg->typed = 1;
+            }
+
+            record_arg->link -= 1;
+
+            item1 = item1->next;
+        }
+        else
+        if ((parameter->flag & SYNTAX_MODIFIER_KWARG) == SYNTAX_MODIFIER_KWARG)
+        {
+            return 0;
+        }
+        else
+        {
+            sy_record_t *record_arg = sy_record_copy(arg);
+            if (record_arg == ERROR)
+            {
+                return -1;
+            }
+
+            if (parameter->type)
+            {
+                sy_record_t *record_param_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
+                if (record_param_type == ERROR)
+                {
+                    record_arg->link -= 1;
+                    return -1;
+                }
+
+                if (record_param_type->kind != RECORD_KIND_TYPE)
+                {
+                    sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
+                    sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'", 
+                        basic1->value, sy_record_type_as_string(record_param_type));
+                    
+                    record_param_type->link -= 1;
+
+                    record_arg->link -= 1;
+
+                    return -1;
+                }
+
+                int32_t r1 = sy_execute_value_check_by_type(record_arg, record_param_type, strip, applicant);
+                if (r1 < 0)
+                {
+                    record_param_type->link -= 1;
+                    record_arg->link -= 1;
+                    
+                    return -1;
+                }
+                else
+                if (r1 == 0)
+                {
+                    if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
+                    {
+                        record_param_type->link -= 1;
+                        record_arg->link -= 1;
+                        
+                        return 0;
+                    }
+                    else
+                    {
+                        if (record_arg->link > 1)
+                        {
+                            sy_record_t *record_copy = sy_record_copy(record_arg);
+                            record_arg->link -= 1;
+                            record_arg = record_copy;
+                        }
+
+                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(record_arg, record_param_type, strip, applicant);
+                        if (record_arg2 == ERROR)
+                        {
+                            record_param_type->link -= 1;
+
+                            record_arg->link -= 1;
+                            
+                            return -1;
+                        }
+                        else
+                        if (record_arg2 == NULL)
+                        {
+                            record_param_type->link -= 1;
+                            record_arg->link -= 1;
+                            
+                            return 0;
+                        }
+
+                        record_arg = record_arg2;
+                    }
+                }
+
+                record_param_type->link -= 1;
+            }
+            
+            if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
+            {
+                if (record_arg->link > 1)
+                {
+                    sy_record_t *record_copy = sy_record_copy(record_arg);
+                    record_arg->link -= 1;
+                    record_arg = record_copy;
+                }
+            }
+
+            if ((parameter->flag & SYNTAX_MODIFIER_READONLY) == SYNTAX_MODIFIER_READONLY)
+            {
+                record_arg->readonly = 1;
+            }
+
+            if (parameter->type)
+            {
+                record_arg->typed = 1;
+            }
+
+            record_arg->link -= 1;
+
+            item1 = item1->next;
+        }
+        
+        for (;item1 != NULL;item1 = item1->next)
+        {
+            sy_node_parameter_t *parameter = (sy_node_parameter_t *)item1->value;
+            if (!parameter->value)
+            {
+                return 0;
+            }
+        }
+    }
+    else
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
+int32_t 
 sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy_node_t *parameters, sy_record_t *arg, sy_node_t *applicant)
 {
     if (parameters)
@@ -330,6 +619,7 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
             sy_entry_t *entry = sy_strip_input_push(strip, scope, item1, parameter->key, record_arg);
             if (entry == ERROR)
             {
+                record_arg->link -= 1;
                 return -1;
             }
 
@@ -2220,6 +2510,11 @@ record_to_string(sy_record_t *record, char *previous_buf)
                     continue;
                 }
 
+                if ((property->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                {
+                    continue;
+                }
+
                 if (i > 0)
                 {
                     length = strlen(str) + 1;
@@ -2274,6 +2569,67 @@ record_to_string(sy_record_t *record, char *previous_buf)
                 i += 1;
             }
         }
+        
+        if (class1->heritages)
+        {
+            sy_node_block_t *block = (sy_node_block_t *)class1->heritages->value;
+            for (sy_node_t *item = block->items; item != NULL; item = item->next)
+            {
+                sy_node_heritage_t *heritage = (sy_node_heritage_t *)item->value;
+                if (i > 0)
+                {
+                    length = strlen(str) + 1;
+                    char *result = sy_memory_calloc(length + 1, sizeof(char));
+                    if (result == NULL)
+                    {
+                        sy_error_no_memory();
+                        return ERROR;
+                    }
+                    snprintf(result, length + 1, "%s,", str);
+                    sy_memory_free(str);
+                    str = result;
+                }
+
+                sy_node_basic_t *basic = (sy_node_basic_t *)heritage->key->value;
+                length = strlen(str) + strlen(basic->value) + 1;
+                char *result = sy_memory_calloc(length + 1, sizeof(char));
+                if (result == NULL)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                snprintf(result, length + 1, "%s%s:", str, basic->value);
+                sy_memory_free(str);
+                str = result;
+
+                sy_entry_t *entry = sy_strip_variable_find(strip_class, type, heritage->key);
+                if (entry == ERROR)
+                {
+                    sy_memory_free(str);
+                    return ERROR;
+                }
+                if (entry == NULL)
+                {
+                    sy_error_runtime_by_node(item, "'%s' is not initialized", basic->value);
+                    sy_memory_free(str);
+                    return ERROR;
+                }
+
+                result = record_to_string(entry->value, str);
+
+                entry->value->link -= 1;
+
+                if (result == ERROR)
+                {
+                    sy_memory_free(str);
+                    return ERROR;
+                }
+                sy_memory_free(str);
+                str = result;
+                i += 1;
+            }
+        }
+
         length = strlen(str) + 1;
         char *result = sy_memory_calloc(length + 1, sizeof(char));
         if (result == NULL)
@@ -2695,7 +3051,7 @@ sy_execute_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_nod
             }
 
             char *str = record_to_string(record_value, "");
-            //printf("%s\n", str);
+            printf("%s\n", str);
             sy_record_t *result = sy_record_make_string(str);
             sy_memory_free(str);
             if (result == ERROR)

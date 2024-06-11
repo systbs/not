@@ -29,6 +29,8 @@
 #include "interpreter/strip.h"
 #include "interpreter/execute/execute.h"
 
+sy_grabage_thread_data_t garbage_thread_data;
+
 int
 main(int argc, char **argv)
 {
@@ -86,16 +88,14 @@ main(int argc, char **argv)
 	{
 		return -1;
 	}
-	/*
-	sy_grabage_thread_data_t data;
-	data.ret = 0;
-	sy_thread_t *thread = sy_thread_create(sy_garbage_clean_by_thread, &data);
+	
+	garbage_thread_data.ret = 0;
+	sy_thread_t *thread = sy_thread_create(sy_garbage_clean_by_thread, &garbage_thread_data);
 	if (thread == ERROR)
 	{
 		sy_error_system("garbage thread not created\n");
 		return -1;
 	}
-	*/
 
 	sy_module_entry_t *module_entry = sy_module_load(sy_config_get_input_file());
     if (module_entry == ERROR)

@@ -26,6 +26,12 @@ sy_execute_run_lambda(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant);
 int32_t
 sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy_node_t *parameters, sy_node_t *arguments, sy_node_t *applicant);
 
+int32_t 
+sy_execute_parameters_check_by_one_argument(sy_strip_t *strip, sy_node_t *parameters, sy_record_t *arg, sy_node_t *applicant);
+
+int32_t 
+sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy_node_t *parameters, sy_record_t *arg, sy_node_t *applicant);
+
 sy_record_t *
 sy_execute_call_for_operator_by_one_argument(sy_node_t *base, sy_record_t *content, sy_record_t *arg, const char *operator, sy_node_t *applicant);
 

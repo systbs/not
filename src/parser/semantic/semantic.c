@@ -188,7 +188,6 @@ sy_semantic_parenthesis(sy_node_t *node)
     return 0;
 }
 
-
 static int32_t
 sy_semantic_primary(sy_node_t *node)
 {
@@ -395,21 +394,67 @@ sy_semantic_prefix(sy_node_t *node)
 {
     if (node->kind == NODE_KIND_TILDE)
     {
+        sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
+        int32_t r1 = sy_semantic_expression(unary->right);
+        if (r1 == -1)
+        {
+            return -1;
+        }
         return 0;
     }
     else
     if (node->kind == NODE_KIND_POS)
     {
+        sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
+        int32_t r1 = sy_semantic_expression(unary->right);
+        if (r1 == -1)
+        {
+            return -1;
+        }
         return 0;
     }
     else
     if (node->kind == NODE_KIND_NEG)
     {
+        sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
+        int32_t r1 = sy_semantic_expression(unary->right);
+        if (r1 == -1)
+        {
+            return -1;
+        }
         return 0;
     }
     else
     if (node->kind == NODE_KIND_NOT)
     {
+        sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
+        int32_t r1 = sy_semantic_expression(unary->right);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        return 0;
+    }
+    else
+    if (node->kind == NODE_KIND_SIZEOF)
+    {
+        sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
+        int32_t r1 = sy_semantic_expression(unary->right);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        return 0;
+    }
+    else
+    if (node->kind == NODE_KIND_TYPEOF)
+    {
+        sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
+        int32_t r1 = sy_semantic_expression(unary->right);
+        if (r1 == -1)
+        {
+            return -1;
+        }
         return 0;
     }
     else
@@ -1932,15 +1977,6 @@ sy_semantic_catch(sy_node_t *node)
     if (catch1->body != NULL)
     {
         int32_t r1 = sy_semantic_body(catch1->body);
-        if (r1 == -1)
-        {
-            return -1;
-        }
-    }
-
-    if (catch1->next != NULL)
-    {
-        int32_t r1 = sy_semantic_catch(catch1->next);
         if (r1 == -1)
         {
             return -1;

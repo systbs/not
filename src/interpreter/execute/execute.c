@@ -1341,6 +1341,12 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
                     goto region_continue_loop;
                 }
             }
+            else
+            if (r2 < 0)
+            {
+                ret_code = r2;
+                goto region_continue_loop;
+            }
         }
 
         region_continue_loop:
@@ -1369,6 +1375,86 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
 
     region_error:
     return -1;
+}
+
+static int32_t 
+sy_execute_try(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
+{
+    sy_node_try_t *try1 = (sy_node_try_t *)node->value;
+
+    int32_t r2 = sy_execute_body(try1->body, strip, applicant);
+    if (r2 == -4)
+    {
+        sy_record_t *rax = sy_thread_get_rax();
+        if (rax == ERROR)
+        {
+            return -1;
+        }
+
+        if (try1->catchs)
+        {
+            sy_node_catch_t *catch1 = (sy_node_catch_t *)try1->catchs->value;
+            int32_t r1 = sy_execute_parameters_check_by_one_argument(strip, catch1->parameters, rax, applicant);
+            if (r1 == -1)
+            {
+                return -1;
+            }
+            else
+            if (r1 == 0)
+            {
+                return r2;
+            }
+
+            if (sy_execute_parameters_substitute_by_one_argument(try1->catchs, try1->catchs, strip, catch1->parameters, rax, applicant) < 0)
+            {
+                return -1;
+            }
+
+            rax->link -= 1;
+            if (sy_thread_set_rax(NULL) < 0)
+            {
+                return -1;
+            }
+
+            if (catch1->parameters)
+            {
+                sy_node_block_t *parameters = (sy_node_block_t *)catch1->parameters->value;
+                for (sy_node_t *item = parameters->items;item != NULL;item = item->next)
+                {
+                    sy_node_parameter_t *parameter = (sy_node_parameter_t *)item->value;
+                    sy_entry_t *entry = sy_strip_input_find(strip, try1->catchs, parameter->key);
+                    if (entry == ERROR)
+                    {
+                        return -1;
+                    }
+                    
+                    sy_entry_t *entry2 = sy_strip_variable_push(strip, try1->catchs, item, parameter->key, entry->value);
+                    if (entry2 == ERROR)
+                    {
+                        return -1;
+                    }
+                }
+            }
+
+            int32_t r3 = sy_execute_body(catch1->body, strip, applicant);
+            if (r3 < 0)
+            {
+                return r3;
+            }
+
+            if (sy_strip_variable_remove_by_scope(strip, try1->catchs) < 0)
+            {
+                return -1;
+            }
+        }
+    }
+    else
+    if (r2 < 0)
+    {
+        return r2;
+    }
+
+    return 0;
 }
 
 static int32_t 
@@ -1427,6 +1513,28 @@ sy_execute_if(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
     }
 
     return 0;
+}
+
+static int32_t 
+sy_execute_throw(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
+{
+    sy_node_unary_t *unary = (sy_node_unary_t *)node->value;
+
+    if (unary->right)
+    {
+        sy_record_t *value = sy_execute_expression(unary->right, strip, applicant, NULL);
+        if (value == ERROR)
+        {            
+            return -1;
+        }
+
+        if (sy_thread_set_rax(value) < 0)
+        {
+            return -1;
+        }
+    }
+
+    return -4;
 }
 
 static int32_t 
@@ -1559,6 +1667,15 @@ sy_execute_statement(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_no
         }
     }
     else
+    if (node->kind == NODE_KIND_TRY)
+    {
+        int32_t r1 = sy_execute_try(node, strip, applicant);
+        if (r1 < 0)
+        {
+            return r1;
+        }
+    }
+    else
     if (node->kind == NODE_KIND_BREAK)
     {
         int32_t r1 = sy_execute_break(node, strip, applicant);
@@ -1580,6 +1697,15 @@ sy_execute_statement(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_no
     if (node->kind == NODE_KIND_RETURN)
     {
         int32_t r1 = sy_execute_return(node, strip, applicant);
+        if (r1 < 0)
+        {
+            return r1;
+        }
+    }
+    else
+    if (node->kind == NODE_KIND_THROW)
+    {
+        int32_t r1 = sy_execute_throw(node, strip, applicant);
         if (r1 < 0)
         {
             return r1;
@@ -1672,6 +1798,10 @@ sy_execute_run_fun(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
     else
     if (r1 < 0)
     {
+        if (r1 == -4)
+        {
+            return r1;
+        }
         sy_error_runtime_by_node(node, "there is no loop");
         return -1;
     }
@@ -1718,6 +1848,10 @@ sy_execute_run_lambda(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
     else
     if (r1 < 0)
     {
+        if (r1 == -4)
+        {
+            return r1;
+        }
         sy_error_runtime_by_node(node, "there is no loop");
         return -1;
     }
@@ -1749,8 +1883,13 @@ sy_execute_module(sy_node_t *node)
         }
         else
         {
-            if (sy_execute_statement(node, item, strip, node) < 0)
+            int32_t r = sy_execute_statement(node, item, strip, node);
+            if (r < 0)
             {
+                if (r == -4)
+                {
+                    sy_error_runtime_by_node(node, "expection is not handled");
+                }
                 return -1;
             }
         }

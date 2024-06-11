@@ -49,18 +49,25 @@ var fun1 = fun (p1:int) {
 
 var f2 = A<int>(100000);
 var f3 = f2 * 1;
-var f4 = string("hello" + f2 + 15.999999);
+var f4 = string(f2);
 var f5 = f4[2];
-var f6 = 2 * "hello {f5.f6.f7(str, ptr)} world";
+var f6 = "hello {f5.f6.f7(str, ptr)} world";
 
 export var sum = 0;
-for loop1 (var a = 0;a < f3;a += 1)
-{
-	sum += a;
-
-	if (a > 500000)
+try {
+	for loop1 (var a = 0;a < 1000000;a += 1)
 	{
-		continue loop1;
+		sum += a;
+
+		if (a > 500000)
+		{
+			throw "the new expection";
+			continue loop1;
+		}
 	}
+}
+catch (ex)
+{
+	string (ex);
 }
 
