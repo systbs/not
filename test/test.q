@@ -70,3 +70,8 @@ catch(ex)
 {
 	string(ex);
 }
+
+for (var key, value in ["hello", "world", 123])
+{
+	string(value);
+}

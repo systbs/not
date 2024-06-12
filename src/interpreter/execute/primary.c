@@ -130,6 +130,51 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
         }
     }
     else
+    if (base->kind == NODE_KIND_FORIN)
+    {
+        sy_node_forin_t *for1 = (sy_node_forin_t *)base->value;
+
+        if (for1->field)
+        {
+            if (sy_execute_id_cmp(for1->field, name) == 1)
+            {
+                sy_entry_t *entry = sy_strip_variable_find(strip, base, for1->field);
+                if (entry == ERROR)
+                {
+                    return ERROR;
+                }
+                else
+                if (entry == NULL)
+                {
+                    sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->field->value;
+                    sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                    return ERROR;
+                }
+                return entry->value;
+            }
+        }
+
+        if (for1->value)
+        {
+            if (sy_execute_id_cmp(for1->value, name) == 1)
+            {
+                sy_entry_t *entry = sy_strip_variable_find(strip, base, for1->value);
+                if (entry == ERROR)
+                {
+                    return ERROR;
+                }
+                else
+                if (entry == NULL)
+                {
+                    sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->value->value;
+                    sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                    return ERROR;
+                }
+                return entry->value;
+            }
+        }
+    }
+    else
     if (base->kind == NODE_KIND_BODY)
     {
         sy_node_block_t *block1 = (sy_node_block_t *)base->value;
@@ -139,6 +184,18 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
             if (item1->kind == NODE_KIND_FOR)
             {
                 sy_node_for_t *for1 = (sy_node_for_t *)item1->value;
+                if (for1->key != NULL)
+                {
+                    if (sy_execute_id_cmp(for1->key, name) == 1)
+                    {
+                        return sy_record_make_type(item1, NULL);
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_FORIN)
+            {
+                sy_node_forin_t *for1 = (sy_node_forin_t *)item1->value;
                 if (for1->key != NULL)
                 {
                     if (sy_execute_id_cmp(for1->key, name) == 1)
@@ -605,6 +662,23 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                 }
 
                 sy_node_for_t *for1 = (sy_node_for_t *)item1->value;
+                if (for1->key != NULL)
+                {
+                    if (sy_execute_id_cmp(for1->key, name) == 1)
+                    {
+                        return sy_record_make_type(item1, NULL);
+                    }
+                }
+            }
+            else
+            if (item1->kind == NODE_KIND_FORIN)
+            {
+                if (applicant->id != base->id)
+                {
+                    continue;
+                }
+
+                sy_node_forin_t *for1 = (sy_node_forin_t *)item1->value;
                 if (for1->key != NULL)
                 {
                     if (sy_execute_id_cmp(for1->key, name) == 1)

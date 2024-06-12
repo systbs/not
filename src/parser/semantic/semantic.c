@@ -1022,8 +1022,6 @@ sy_semantic_for(sy_node_t *node)
 
                 for (sy_node_t *item1 = catch1->parameters;item1 != NULL;item1 = item1->next)
                 {
-                    assert (item1->kind == NODE_KIND_PARAMETER);
-
                     sy_node_parameter_t *parameter1 = (sy_node_parameter_t *)item1->value;
                     if (sy_semantic_idcmp(for1->key, parameter1->key) == 1)
                     {
@@ -1079,6 +1077,35 @@ sy_semantic_for(sy_node_t *node)
                 break;
             }
             else
+            if (node1->kind == NODE_KIND_FORIN)
+            {
+                sy_node_forin_t *for2 = (sy_node_forin_t *)node1->value;
+
+                if (for2->field)
+                {
+                    if (sy_semantic_idcmp(for1->key, for2->field) == 1)
+                    {
+                        sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                        sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, for2->field->position.line, for2->field->position.column);
+                        return -1;
+                    }
+                }
+                
+                if (for2->value)
+                {
+                    if (sy_semantic_idcmp(for1->key, for2->value) == 1)
+                    {
+                        sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                        sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, for2->value->position.line, for2->value->position.column);
+                        return -1;
+                    }
+                }
+            }
+            else
             if (node1->kind == NODE_KIND_BODY)
             {
                 sy_node_body_t *body1 = (sy_node_body_t *)node1->value;
@@ -1093,6 +1120,22 @@ sy_semantic_for(sy_node_t *node)
                     if (item1->kind == NODE_KIND_FOR)
                     {
                         sy_node_for_t *for2 = (sy_node_for_t *)item1->value;
+                        if (for2->key != NULL)
+                        {
+                            if (sy_semantic_idcmp(for1->key, for2->key) == 1)
+                            {
+                                sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, for2->key->position.line, for2->key->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_FORIN)
+                    {
+                        sy_node_forin_t *for2 = (sy_node_forin_t *)item1->value;
                         if (for2->key != NULL)
                         {
                             if (sy_semantic_idcmp(for1->key, for2->key) == 1)
@@ -1246,6 +1289,22 @@ sy_semantic_for(sy_node_t *node)
                         }
                     }
                     else
+                    if (item1->kind == NODE_KIND_FORIN)
+                    {
+                        sy_node_forin_t *for2 = (sy_node_forin_t *)item1->value;
+                        if (for2->key != NULL)
+                        {
+                            if (sy_semantic_idcmp(for1->key, for2->key) == 1)
+                            {
+                                sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, for2->key->position.line, for2->key->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
                     if (item1->kind == NODE_KIND_VAR)
                     {
                         sy_node_var_t *var2 = (sy_node_var_t *)item1->value;
@@ -1340,6 +1399,356 @@ sy_semantic_for(sy_node_t *node)
 
 	return 0;
 }
+
+static int32_t
+sy_semantic_forin(sy_node_t *node)
+{
+    sy_node_forin_t *for1 = (sy_node_forin_t *)node->value;
+
+    if (for1->key != NULL)
+    {
+        for (sy_node_t *node1 = node->parent, *subnode = node; node1 != NULL;subnode = node1, node1 = node1->parent)
+        {
+            if (node1->kind == NODE_KIND_CATCH)
+            {
+                sy_node_catch_t *catch1 = (sy_node_catch_t *)node1->value;
+
+                for (sy_node_t *item1 = catch1->parameters;item1 != NULL;item1 = item1->next)
+                {
+                    sy_node_parameter_t *parameter1 = (sy_node_parameter_t *)item1->value;
+                    if (sy_semantic_idcmp(for1->key, parameter1->key) == 1)
+                    {
+                        sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+                        sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, parameter1->key->position.line, parameter1->key->position.column);
+                        return -1;
+                    }
+                }
+                break;
+            }
+            else
+            if (node1->kind == NODE_KIND_FOR)
+            {
+                sy_node_for_t *for2 = (sy_node_for_t *)node1->value;
+
+                for (sy_node_t *item1 = for2->initializer;item1 != NULL;item1 = item1->next)
+                {
+                    if (item1->kind == NODE_KIND_VAR)
+                    {
+                        sy_node_var_t *var2 = (sy_node_var_t *)item1->value;
+                        
+                        if (var2->key->kind == NODE_KIND_ID)
+                        {
+                            if (sy_semantic_idcmp(for1->key, var2->key) == 1)
+                            {
+                                sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, var2->key->position.line, var2->key->position.column);
+                                return -1;
+                            }
+                        }
+                        else
+                        {
+                            for (sy_node_t *item2 = var2->key;item2 != NULL;item2 = item2->next)
+                            {
+                                assert (item2->kind == NODE_KIND_ENTITY);
+
+                                sy_node_entity_t *entity1 = (sy_node_entity_t *)item2->value;
+                                if (sy_semantic_idcmp(for1->key, entity1->key) == 1)
+                                {
+                                    sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                                    sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                        basic1->value, entity1->key->position.line, entity1->key->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+            else
+            if (node1->kind == NODE_KIND_FORIN)
+            {
+                sy_node_forin_t *for2 = (sy_node_forin_t *)node1->value;
+
+                if (for2->field)
+                {
+                    if (sy_semantic_idcmp(for1->key, for2->field) == 1)
+                    {
+                        sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                        sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, for2->field->position.line, for2->field->position.column);
+                        return -1;
+                    }
+                }
+                
+                if (for2->value)
+                {
+                    if (sy_semantic_idcmp(for1->key, for2->value) == 1)
+                    {
+                        sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                        sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                            basic1->value, for2->value->position.line, for2->value->position.column);
+                        return -1;
+                    }
+                }
+            }
+            else
+            if (node1->kind == NODE_KIND_BODY)
+            {
+                sy_node_body_t *body1 = (sy_node_body_t *)node1->value;
+
+                for (sy_node_t *item1 = body1->declaration;item1 != NULL;item1 = item1->next)
+                {
+                    if (item1->id == subnode->id)
+                    {
+                        break;
+                    }
+
+                    if (item1->kind == NODE_KIND_FOR)
+                    {
+                        sy_node_for_t *for2 = (sy_node_for_t *)item1->value;
+                        if (for2->key != NULL)
+                        {
+                            if (sy_semantic_idcmp(for1->key, for2->key) == 1)
+                            {
+                                sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, for2->key->position.line, for2->key->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_FORIN)
+                    {
+                        sy_node_forin_t *for2 = (sy_node_forin_t *)item1->value;
+                        if (for2->key != NULL)
+                        {
+                            if (sy_semantic_idcmp(for1->key, for2->key) == 1)
+                            {
+                                sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, for2->key->position.line, for2->key->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_VAR)
+                    {
+                        sy_node_var_t *var2 = (sy_node_var_t *)item1->value;
+                        if (var2->key->kind == NODE_KIND_ID)
+                        {
+                            if (sy_semantic_idcmp(for1->key, var2->key) == 1)
+                            {
+                                sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, var2->key->position.line, var2->key->position.column);
+                                return -1;
+                            }
+                        }
+                        else
+                        {
+                            sy_node_block_t *block = (sy_node_block_t *)var2->key->value;
+                            for (sy_node_t *item2 = block->items;item2 != NULL;item2 = item2->next)
+                            {
+                                assert (item2->kind == NODE_KIND_ENTITY);
+                                sy_node_entity_t *entity1 = (sy_node_entity_t *)item2->value;
+                                if (sy_semantic_idcmp(for1->key, entity1->key) == 1)
+                                {
+                                    sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                                    sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                        basic1->value, entity1->key->position.line, entity1->key->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                continue;
+            }
+            else
+            if (node1->kind == NODE_KIND_FUN)
+            {
+                sy_node_fun_t *fun2 = (sy_node_fun_t *)node1->value;
+
+                if (fun2->generics != NULL)
+                {
+                    for (sy_node_t *item1 = fun2->generics;item1 != NULL;item1 = item1->next)
+                    {
+                        assert (item1->kind == NODE_KIND_GENERIC);
+
+                        sy_node_generic_t *generic1 = (sy_node_generic_t *)item1->value;
+                        if (sy_semantic_idcmp(for1->key, generic1->key) == 1)
+                        {
+                            sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                            sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, generic1->key->position.line, generic1->key->position.column);
+                            return -1;
+                        }
+                    }
+                }
+
+                if (fun2->parameters != NULL)
+                {
+                    for (sy_node_t *item2 = fun2->parameters;item2 != NULL;item2 = item2->next)
+                    {
+                        assert (item2->kind == NODE_KIND_PARAMETER);
+
+                        sy_node_parameter_t *parameter1 = (sy_node_parameter_t *)item2->value;
+                        if (sy_semantic_idcmp(for1->key, parameter1->key) == 1)
+                        {
+                            sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                            sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, parameter1->key->position.line, parameter1->key->position.column);
+                            return -1;
+                        }
+                    }
+                }
+                break;
+            }
+            else
+            if (node1->kind == NODE_KIND_MODULE)
+            {
+                sy_node_block_t *module1 = (sy_node_block_t *)node1->value;
+
+                for (sy_node_t *item1 = module1->items;item1 != NULL;item1 = item1->next)
+                {
+                    if (item1->id == subnode->id)
+                    {
+                        break;
+                    }
+
+                    if (item1->kind == NODE_KIND_USING)
+                    {
+                        sy_node_using_t *using1 = (sy_node_using_t *)item1->value;
+                        sy_node_block_t *packages1 = (sy_node_block_t *)using1->packages->value;
+                        for (sy_node_t *item2 = packages1->items;item2 != NULL;item2 = item2->next)
+                        {
+                            assert (item2->kind == NODE_KIND_PACKAGE);
+
+                            sy_node_package_t *package2 = (sy_node_package_t *)item2->value;
+                            if (sy_semantic_idcmp(for1->key, package2->key) == 1)
+                            {
+                                sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, package2->key->position.line, package2->key->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_CLASS)
+                    {
+                        sy_node_class_t *class1 = (sy_node_class_t *)item1->value;
+
+                        if (sy_semantic_idcmp(for1->key, class1->key) == 1)
+                        {
+                            sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                            sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, class1->key->position.line, class1->key->position.column);
+                            return -1;
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_FOR)
+                    {
+                        sy_node_for_t *for2 = (sy_node_for_t *)item1->value;
+                        if (for2->key != NULL)
+                        {
+                            if (sy_semantic_idcmp(for1->key, for2->key) == 1)
+                            {
+                                sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, for2->key->position.line, for2->key->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_FORIN)
+                    {
+                        sy_node_forin_t *for2 = (sy_node_forin_t *)item1->value;
+                        if (for2->key != NULL)
+                        {
+                            if (sy_semantic_idcmp(for1->key, for2->key) == 1)
+                            {
+                                sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, for2->key->position.line, for2->key->position.column);
+                                return -1;
+                            }
+                        }
+                    }
+                    else
+                    if (item1->kind == NODE_KIND_VAR)
+                    {
+                        sy_node_var_t *var2 = (sy_node_var_t *)item1->value;
+                        if (var2->key->kind == NODE_KIND_ID)
+                        {
+                            if (sy_semantic_idcmp(for1->key, var2->key) == 1)
+                            {
+                                sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                                sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                    basic1->value, var2->key->position.line, var2->key->position.column);
+                                return -1;
+                            }
+                        }
+                        else
+                        {
+                            sy_node_block_t *block = (sy_node_block_t *)var2->key->value;
+                            for (sy_node_t *item2 = block->items;item2 != NULL;item2 = item2->next)
+                            {
+                                assert (item2->kind == NODE_KIND_ENTITY);
+                                sy_node_entity_t *entity1 = (sy_node_entity_t *)item2->value;
+                                if (sy_semantic_idcmp(for1->key, entity1->key) == 1)
+                                {
+                                    sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->key->value;
+
+                                    sy_error_semantic_by_node(for1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                        basic1->value, entity1->key->position.line, entity1->key->position.column);
+                                    return -1;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                break;
+            }
+        }
+    }
+
+    if (for1->body != NULL)
+    {
+        int32_t r2 = sy_semantic_body(for1->body);
+        if (r2 == -1)
+        {
+            return -1;
+        }
+    }
+
+	return 0;
+}
+
 
 static int32_t
 sy_semantic_entity(sy_node_t *node)
@@ -2352,6 +2761,15 @@ sy_semantic_statement(sy_node_t *node)
         }
     }
     else
+    if (node->kind == NODE_KIND_FORIN)
+    {
+        int32_t result = sy_semantic_forin(node);
+        if (result == -1)
+        {
+            return -1;
+        }
+    }
+    else
     if (node->kind == NODE_KIND_TRY)
     {
         int32_t result = sy_semantic_try(node);
@@ -3161,8 +3579,6 @@ sy_semantic_package(sy_node_t *node)
 
     for (sy_node_t *item1 = node->previous; item1 != NULL; item1 = item1->previous)
     {
-        assert(item1->kind == NODE_KIND_PACKAGE);
-
         sy_node_package_t *package2 = (sy_node_package_t *)item1->value;
         if (sy_semantic_idcmp(package1->key, package2->key) == 1)
         {
@@ -3224,6 +3640,22 @@ sy_semantic_package(sy_node_t *node)
                 if (item1->kind == NODE_KIND_FOR)
                 {
                     sy_node_for_t *for1 = (sy_node_for_t *)item1->value;
+                    if (for1->key != NULL)
+                    {
+                        if (sy_semantic_idcmp(package1->key, for1->key) == 1)
+                        {
+                            sy_node_basic_t *basic1 = (sy_node_basic_t *)package1->key->value;
+
+                            sy_error_semantic_by_node(package1->key, "'%s' already defined, previous in (%lld:%lld)",
+                                basic1->value, for1->key->position.line, for1->key->position.column);
+                            return -1;
+                        }
+                    }
+                }
+                else
+                if (item1->kind == NODE_KIND_FORIN)
+                {
+                    sy_node_forin_t *for1 = (sy_node_forin_t *)item1->value;
                     if (for1->key != NULL)
                     {
                         if (sy_semantic_idcmp(package1->key, for1->key) == 1)
@@ -3369,6 +3801,15 @@ sy_semantic_module(sy_node_t *node)
         if (item->kind == NODE_KIND_FOR)
         {
             int32_t r1 = sy_semantic_for(item);
+            if (r1 == -1)
+            {
+                return -1;
+            }
+        }
+        else
+        if (item->kind == NODE_KIND_FORIN)
+        {
+            int32_t r1 = sy_semantic_forin(item);
             if (r1 == -1)
             {
                 return -1;

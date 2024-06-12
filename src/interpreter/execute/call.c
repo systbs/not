@@ -2643,6 +2643,48 @@ record_to_string(sy_record_t *record, char *previous_buf)
         return result;
     }
     else
+    if (record->kind == RECORD_KIND_UNDEFINED)
+    {
+        char *str = "undefined";
+        size_t length = strlen(previous_buf) + strlen(str);
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%s", previous_buf, str);
+        return result;
+    }
+    else
+    if (record->kind == RECORD_KIND_NAN)
+    {
+        char *str = "nan";
+        size_t length = strlen(previous_buf) + strlen(str);
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%s", previous_buf, str);
+        return result;
+    }
+    else
+    if (record->kind == RECORD_KIND_NULL)
+    {
+        char *str = "null";
+        size_t length = strlen(previous_buf) + strlen(str);
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%s", previous_buf, str);
+        return result;
+    }
+    else
     {
         char *str = "";
         size_t length = strlen(previous_buf) + strlen(str);

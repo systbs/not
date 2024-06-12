@@ -2701,6 +2701,98 @@ sy_syntax_for_stmt(sy_syntax_t *syntax, sy_node_t *parent)
 		goto region_condition;
 	}
 
+	if (sy_syntax_save(syntax) < 0)
+	{
+		return NULL;
+	}
+
+	int32_t use_readonly = 0;
+	if (syntax->token->type == TOKEN_READONLY_KEYWORD)
+	{
+		if (sy_syntax_next(syntax) == -1)
+		{
+			return NULL;
+		}
+		use_readonly = 1;
+	}
+
+	if (use_readonly || (syntax->token->type == TOKEN_VAR_KEYWORD))
+	{
+		if (sy_syntax_match(syntax, TOKEN_VAR_KEYWORD) == -1)
+		{
+			return NULL;
+		}
+
+		sy_node_t *field = sy_syntax_id(syntax, node);
+		if (field == NULL)
+		{
+			return NULL;
+		}
+
+		sy_node_t *value = NULL;
+		if (syntax->token->type == TOKEN_COMMA)
+		{
+			if (sy_syntax_next(syntax) == -1)
+			{
+				return NULL;
+			}
+
+			value = sy_syntax_id(syntax, node);
+			if (value == NULL)
+			{
+				return NULL;
+			}
+		}
+
+		if (syntax->token->type != TOKEN_IN_KEYWORD)
+		{
+			if (sy_syntax_restore(syntax) < 0)
+			{
+				return NULL;
+			}
+			goto region_for_loop;
+		}
+
+		if (sy_syntax_release(syntax) < 0)
+		{
+			return NULL;
+		}
+
+		if (sy_syntax_match(syntax, TOKEN_IN_KEYWORD) == -1)
+		{
+			return NULL;
+		}
+
+		sy_node_t *iterator = sy_syntax_expression(syntax, node);
+		if (iterator == NULL)
+		{
+			return NULL;
+		}
+
+		if (sy_syntax_match(syntax, TOKEN_RPAREN) == -1)
+		{
+			return NULL;
+		}
+
+		syntax->loop_depth += 1;
+
+		sy_node_t *body = sy_syntax_body(syntax, node);
+		if (body == NULL)
+		{
+			return NULL;
+		}
+
+		syntax->loop_depth -= 1;
+
+		return sy_node_make_forin(node, key, field, value, iterator, body);
+	}
+
+	if (sy_syntax_release(syntax) < 0)
+	{
+		return NULL;
+	}
+
+	region_for_loop:
 	sy_node_t *top = NULL;
 
 	while (true)

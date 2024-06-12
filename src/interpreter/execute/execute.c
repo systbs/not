@@ -1283,15 +1283,18 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
                     if (for1->key)
                     {
                         sy_record_type_t *type = (sy_record_type_t *)rax->value;
-                        sy_node_for_t *for2 = (sy_node_for_t *)type->type->value;
-                        if (sy_execute_id_cmp(for1->key, for2->key) == 1)
+                        if (type->type->kind == NODE_KIND_FOR)
                         {
-                            rax->link -= 1;
-                            if (sy_thread_set_rax(NULL) < 0)
+                            sy_node_for_t *for2 = (sy_node_for_t *)type->type->value;
+                            if (sy_execute_id_cmp(for1->key, for2->key) == 1)
                             {
-                                goto region_error;
+                                rax->link -= 1;
+                                if (sy_thread_set_rax(NULL) < 0)
+                                {
+                                    goto region_error;
+                                }
+                                ret_code = 0;
                             }
-                            ret_code = 0;
                         }
                     }
 
@@ -1319,17 +1322,20 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
                     if (for1->key)
                     {
                         sy_record_type_t *type = (sy_record_type_t *)rax->value;
-                        sy_node_for_t *for2 = (sy_node_for_t *)type->type->value;
-                        if (sy_execute_id_cmp(for1->key, for2->key) == 1)
+                        if (type->type->kind == NODE_KIND_FOR)
                         {
-                            rax->link -= 1;
-                            if (sy_thread_set_rax(NULL) < 0)
+                            sy_node_for_t *for2 = (sy_node_for_t *)type->type->value;
+                            if (sy_execute_id_cmp(for1->key, for2->key) == 1)
                             {
-                                goto region_error;
-                            }
-                            ret_code = 0;
+                                rax->link -= 1;
+                                if (sy_thread_set_rax(NULL) < 0)
+                                {
+                                    goto region_error;
+                                }
+                                ret_code = 0;
 
-                            goto region_continue_loop;
+                                goto region_continue_loop;
+                            }
                         }
                     }
 
@@ -1366,6 +1372,304 @@ sy_execute_for(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
     }
 
     region_end_loop:
+    if (sy_strip_variable_remove_by_scope(strip, node) < 0)
+    {
+        return -1;
+    }
+
+    return ret_code;
+
+    region_error:
+    return -1;
+}
+
+static int32_t 
+sy_execute_forin(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
+{
+    sy_node_forin_t *for1 = (sy_node_forin_t *)node->value;
+    int32_t ret_code = 0;
+
+    sy_record_t *iterator = sy_execute_expression(for1->iterator, strip, applicant, NULL);
+    if (iterator == ERROR)
+    {
+        return -1;
+    }
+
+    sy_record_object_t *object = NULL;
+    sy_record_tuple_t *tuple = NULL;
+    region_start_loop:
+    if (iterator->kind == RECORD_KIND_OBJECT)
+    {
+        if (object)
+        {
+            object = object->next;
+        }
+        else
+        {
+            object = (sy_record_object_t *)iterator->value;
+        }
+
+        if (object)
+        {
+            if (for1->value)
+            {
+                sy_node_basic_t *basic = (sy_node_basic_t *)object->key->value;
+
+                sy_record_t *record_key = sy_record_make_string(basic->value);
+                if (record_key == ERROR)
+                {
+                    iterator->link -= 1;
+                    return -1;
+                }
+                
+                sy_entry_t *entry = sy_strip_variable_push(strip, node, node, for1->field, record_key);
+                if (entry == ERROR)
+                {
+                    iterator->link -= 1;
+                    return -1;
+                }
+                else
+                if (entry == NULL)
+                {
+                    sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->field->value;
+                    sy_error_type_by_node(for1->field, "'%s' already defined", 
+                        basic1->value);
+
+                    iterator->link -= 1;
+                    return -1;
+                }
+
+                entry = sy_strip_variable_push(strip, node, node, for1->value, object->value);
+                if (entry == ERROR)
+                {
+                    iterator->link -= 1;
+                    return -1;
+                }
+                else
+                if (entry == NULL)
+                {
+                    sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->value->value;
+                    sy_error_type_by_node(for1->value, "'%s' already defined", 
+                        basic1->value);
+
+                    iterator->link -= 1;
+                    return -1;
+                }
+                object->value->link += 1;
+            }
+            else
+            {
+                sy_entry_t *entry = sy_strip_variable_push(strip, node, node, for1->field, object->value);
+                if (entry == ERROR)
+                {
+                    iterator->link -= 1;
+                    return -1;
+                }
+                else
+                if (entry == NULL)
+                {
+                    sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->field->value;
+                    sy_error_type_by_node(for1->field, "'%s' already defined", 
+                        basic1->value);
+
+                    iterator->link -= 1;
+                    return -1;
+                }
+                object->value->link += 1;
+            }
+        }
+        else
+        {
+            goto region_end_loop;
+        }
+    }
+    else
+    if (iterator->kind == RECORD_KIND_TUPLE)
+    {
+        if (tuple)
+        {
+            tuple = tuple->next;
+        }
+        else
+        {
+            tuple = (sy_record_tuple_t *)iterator->value;
+        }
+
+        if (tuple)
+        {
+            if (for1->value)
+            {
+                sy_record_t *record_key = sy_record_make_undefined();
+                if (record_key == ERROR)
+                {
+                    iterator->link -= 1;
+                    return -1;
+                }
+                
+                sy_entry_t *entry = sy_strip_variable_push(strip, node, node, for1->field, record_key);
+                if (entry == ERROR)
+                {
+                    iterator->link -= 1;
+                    return -1;
+                }
+                else
+                if (entry == NULL)
+                {
+                    sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->field->value;
+                    sy_error_type_by_node(for1->field, "'%s' already defined", 
+                        basic1->value);
+
+                    iterator->link -= 1;
+                    return -1;
+                }
+
+                entry = sy_strip_variable_push(strip, node, node, for1->value, tuple->value);
+                if (entry == ERROR)
+                {
+                    iterator->link -= 1;
+                    return -1;
+                }
+                else
+                if (entry == NULL)
+                {
+                    sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->value->value;
+                    sy_error_type_by_node(for1->value, "'%s' already defined", 
+                        basic1->value);
+
+                    iterator->link -= 1;
+                    return -1;
+                }
+                tuple->value->link += 1;
+            }
+            else
+            {
+                sy_entry_t *entry = sy_strip_variable_push(strip, node, node, for1->field, tuple->value);
+                if (entry == ERROR)
+                {
+                    iterator->link -= 1;
+                    return -1;
+                }
+                else
+                if (entry == NULL)
+                {
+                    sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->field->value;
+                    sy_error_type_by_node(for1->field, "'%s' already defined", 
+                        basic1->value);
+
+                    iterator->link -= 1;
+                    return -1;
+                }
+                tuple->value->link += 1;
+            }
+        }
+        else
+        {
+            goto region_end_loop;
+        }
+    }
+
+    int32_t r2 = sy_execute_body(for1->body, strip, applicant);
+    if (r2 == -1)
+    {
+        goto region_error;
+    }
+    else
+    if (r2 == -2)
+    {
+        ret_code = -2;
+        sy_record_t *rax = sy_thread_get_rax();
+        if (rax == ERROR)
+        {
+            goto region_error;
+        }
+
+        if (rax)
+        {
+            if (for1->key)
+            {
+                sy_record_type_t *type = (sy_record_type_t *)rax->value;
+                if (type->type->kind == NODE_KIND_FORIN)
+                {
+                    sy_node_forin_t *for2 = (sy_node_forin_t *)type->type->value;
+                    if (sy_execute_id_cmp(for1->key, for2->key) == 1)
+                    {
+                        rax->link -= 1;
+                        if (sy_thread_set_rax(NULL) < 0)
+                        {
+                            goto region_error;
+                        }
+                        ret_code = 0;
+                    }
+                }
+            }
+
+            goto region_end_loop;
+        }
+        else
+        {
+            ret_code = 0;
+            goto region_end_loop;
+        }
+    }
+    else
+    if (r2 == -3)
+    {
+        ret_code = -3;
+
+        sy_record_t *rax = sy_thread_get_rax();
+        if (rax == ERROR)
+        {
+            goto region_error;
+        }
+
+        if (rax)
+        {
+            if (for1->key)
+            {
+                sy_record_type_t *type = (sy_record_type_t *)rax->value;
+                if (type->type->kind == NODE_KIND_FORIN)
+                {
+                    sy_node_forin_t *for2 = (sy_node_forin_t *)type->type->value;
+                    if (sy_execute_id_cmp(for1->key, for2->key) == 1)
+                    {
+                        rax->link -= 1;
+                        if (sy_thread_set_rax(NULL) < 0)
+                        {
+                            goto region_error;
+                        }
+                        ret_code = 0;
+
+                        goto region_continue_loop;
+                    }
+                }
+            }
+
+            goto region_end_loop;
+        }
+        else
+        {
+            ret_code = 0;
+            goto region_continue_loop;
+        }
+    }
+    else
+    if (r2 < 0)
+    {
+        ret_code = r2;
+        goto region_end_loop;
+    }
+
+    region_continue_loop:
+    if (sy_strip_variable_remove_by_scope(strip, node) < 0)
+    {
+        return -1;
+    }
+    goto region_start_loop;
+
+    region_end_loop:
+
+    iterator->link -= 1;
+
     if (sy_strip_variable_remove_by_scope(strip, node) < 0)
     {
         return -1;
@@ -1561,7 +1865,7 @@ sy_execute_break(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
         }
 
         sy_record_type_t *type = (sy_record_type_t *)value->value;
-        if (type->type->kind != NODE_KIND_FOR)
+        if ((type->type->kind != NODE_KIND_FOR) && (type->type->kind != NODE_KIND_FORIN))
         {
             value->link -= 1;
             goto region_error;
@@ -1600,7 +1904,7 @@ sy_execute_continue(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
         }
 
         sy_record_type_t *type = (sy_record_type_t *)value->value;
-        if (type->type->kind != NODE_KIND_FOR)
+        if ((type->type->kind != NODE_KIND_FOR) && (type->type->kind != NODE_KIND_FORIN))
         {
             value->link -= 1;
             goto region_error;
@@ -1656,6 +1960,15 @@ sy_execute_statement(sy_node_t *scope, sy_node_t *node, sy_strip_t *strip, sy_no
     if (node->kind == NODE_KIND_FOR)
     {
         int32_t r1 = sy_execute_for(node, strip, applicant);
+        if (r1 < 0)
+        {
+            return r1;
+        }
+    }
+    else
+    if (node->kind == NODE_KIND_FORIN)
+    {
+        int32_t r1 = sy_execute_forin(node, strip, applicant);
         if (r1 < 0)
         {
             return r1;

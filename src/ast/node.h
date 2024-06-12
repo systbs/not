@@ -91,6 +91,7 @@ typedef enum sy_node_kind {
 
 	NODE_KIND_IF,
 	NODE_KIND_FOR,
+	NODE_KIND_FORIN,
 	NODE_KIND_BREAK,
 	NODE_KIND_CONTINUE,
 	NODE_KIND_CATCH,
@@ -170,8 +171,9 @@ typedef struct sy_node_for {
 
 typedef struct sy_node_forin {
 	sy_node_t *key;
-	sy_node_t *initializer;
-	sy_node_t *expression;
+	sy_node_t *field;
+	sy_node_t *value;
+	sy_node_t *iterator;
 	sy_node_t *body;
 } sy_node_forin_t;
 
@@ -503,6 +505,9 @@ sy_node_make_if(sy_node_t *node, sy_node_t *condition, sy_node_t *then_body, sy_
 
 sy_node_t *
 sy_node_make_for(sy_node_t *node, sy_node_t *name, sy_node_t *initializer, sy_node_t *condition, sy_node_t *incrementor, sy_node_t *body);
+
+sy_node_t *
+sy_node_make_forin(sy_node_t *node, sy_node_t *key, sy_node_t *field, sy_node_t *value, sy_node_t *iterator, sy_node_t *body);
 
 sy_node_t *
 sy_node_make_break(sy_node_t *node, sy_node_t *expression);

@@ -2398,6 +2398,23 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				return 1;
 			}
 			else
+			if (strncmp(scanner->source + start_offset, "in", max(length, 2)) == 0)
+			{
+				sy_scanner_set_token(scanner, (sy_token_t){
+					.type = TOKEN_IN_KEYWORD,
+					.value = NULL,
+					.position = {
+							.path = scanner->path,
+							.offset = scanner->offset - length,
+							.column = scanner->column - length,
+							.line = scanner->line,
+							.length = length
+						}
+					});
+
+				return 1;
+			}
+			else
 			if (strncmp(scanner->source + start_offset, "fun", max(length, 3)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){

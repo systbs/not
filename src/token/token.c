@@ -92,6 +92,7 @@ const char * const symbols[] = {
   [TOKEN_SIZEOF_KEYWORD]    = "sizeof keyword",
   [TOKEN_TYPEOF_KEYWORD]    = "typeof keyword",
   [TOKEN_INSTANCEOF_KEYWORD]= "instanceof keyword",
+  [TOKEN_IN_KEYWORD]        = "in keyword",
   [TOKEN_FUN_KEYWORD]       = "fun keyword",
   [TOKEN_CLASS_KEYWORD]     = "class keyword",
   [TOKEN_EXTENDS_KEYWORD]   = "extends keyword",

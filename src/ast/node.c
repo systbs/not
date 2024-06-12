@@ -1209,6 +1209,25 @@ sy_node_make_for(sy_node_t *node, sy_node_t *key, sy_node_t *initializer, sy_nod
 }
 
 sy_node_t *
+sy_node_make_forin(sy_node_t *node, sy_node_t *key, sy_node_t *field, sy_node_t *value, sy_node_t *iterator, sy_node_t *body)
+{
+	sy_node_forin_t *basic = (sy_node_forin_t *)sy_memory_calloc(1, sizeof(sy_node_forin_t));
+	if(!basic){
+		sy_error_no_memory();
+		return NULL;
+	}
+
+	basic->key = key;
+	basic->field = field;
+	basic->value = value;
+	basic->iterator = iterator;
+	basic->body = body;
+	
+	sy_node_update(node, NODE_KIND_FORIN, basic);
+	return node;
+}
+
+sy_node_t *
 sy_node_make_catch(sy_node_t *node, sy_node_t *parameters, sy_node_t *body)
 {
 	sy_node_catch_t *basic = (sy_node_catch_t *)sy_memory_calloc(1, sizeof(sy_node_catch_t));
