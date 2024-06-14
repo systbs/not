@@ -2878,6 +2878,10 @@ json_to_ffi(json_t *type)
         {
             return &ffi_type_double;
         }
+        else if (strcmp(str, "string") == 0)
+        {
+            return &ffi_type_pointer;
+        }
     }
     else if (json_is_object(type))
     {
@@ -2889,7 +2893,7 @@ json_to_ffi(json_t *type)
     {
     }
 
-    return &ffi_type_void;
+    return NULL;
 }
 
 static void *
@@ -3432,6 +3436,33 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 return NULL;
             }
         }
+        else if (strcmp(str, "string") == 0)
+        {
+            if (arg->kind == RECORD_KIND_STRING)
+            {
+                size_t length = strlen((char *)arg->value);
+                void **ptr = sy_memory_calloc(1, sizeof(char *));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+
+                *ptr = sy_memory_calloc(1, length);
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                memcpy(*ptr, arg->value, length);
+                *size = length;
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
         else
         {
             return NULL;
@@ -3445,6 +3476,55 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
     }
     else
     {
+        if (arg->kind == RECORD_KIND_CHAR)
+        {
+            void *ptr = sy_memory_calloc(1, sizeof(char));
+            if (!ptr)
+            {
+                sy_error_no_memory();
+                return ERROR;
+            }
+            *(char *)ptr = *(char *)arg->value;
+            *size = sizeof(char);
+            return ptr;
+        }
+        else if (arg->kind == RECORD_KIND_INT)
+        {
+            void *ptr = sy_memory_calloc(1, sizeof(int64_t));
+            if (!ptr)
+            {
+                sy_error_no_memory();
+                return ERROR;
+            }
+            *(int64_t *)ptr = (int64_t)mpz_get_si(*(mpz_t *)arg->value);
+            *size = sizeof(int64_t);
+            return ptr;
+        }
+        else if (arg->kind == RECORD_KIND_FLOAT)
+        {
+            void *ptr = sy_memory_calloc(1, sizeof(double));
+            if (!ptr)
+            {
+                sy_error_no_memory();
+                return ERROR;
+            }
+            *(double *)ptr = (double)mpf_get_d(*(mpf_t *)arg->value);
+            *size = sizeof(double);
+            return ptr;
+        }
+        else if (arg->kind == RECORD_KIND_STRING)
+        {
+            size_t length = strlen((char *)arg->value);
+            void *ptr = sy_memory_calloc(1, length);
+            if (!ptr)
+            {
+                sy_error_no_memory();
+                return ERROR;
+            }
+            strcpy(ptr, (char *)arg->value);
+            *size = length;
+            return ptr;
+        }
     }
 
     return NULL;
@@ -3469,6 +3549,29 @@ record_cvt_ffi(sy_record_t *arg, json_t *type, cvt_ffi_t *ret)
     {
         sy_memory_free(ptr);
         return -1;
+    }
+    else if (ffi == NULL)
+    {
+        if (arg->kind == RECORD_KIND_CHAR)
+        {
+            ffi = &ffi_type_schar;
+        }
+        else if (arg->kind == RECORD_KIND_INT)
+        {
+            ffi = &ffi_type_slong;
+        }
+        else if (arg->kind == RECORD_KIND_FLOAT)
+        {
+            ffi = &ffi_type_double;
+        }
+        else if (arg->kind == RECORD_KIND_STRING)
+        {
+            ffi = &ffi_type_pointer;
+        }
+        else
+        {
+            ffi = &ffi_type_pointer;
+        }
     }
 
     ret->type = ffi;
@@ -3552,6 +3655,10 @@ union_cvt_record_by_json(union_type *value, json_t *type)
         else if (strcmp(str, "double") == 0)
         {
             return sy_record_make_float_from_d(value->d);
+        }
+        else if (strcmp(str, "string") == 0)
+        {
+            return sy_record_make_string((char *)value->ptr);
         }
     }
     else if (json_is_object(type))
@@ -4253,6 +4360,7 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
                 goto region_cleanup;
             }
 
+            item = item->next;
             continue;
         }
     }
@@ -4321,7 +4429,6 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
     }
 
     union_type result;
-
     if (var_index > 0)
     {
         ffi_cif cif;
@@ -4946,7 +5053,7 @@ sy_record_t *sy_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
             }
 
             char *str = sy_record_to_string(record_value, "");
-            printf("%s\n", str);
+            // printf("%s\n", str);
             sy_record_t *result = sy_record_make_string(str);
             sy_memory_free(str);
             if (result == ERROR)

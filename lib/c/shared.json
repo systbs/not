@@ -17,6 +17,17 @@
             ],
             "arg": false,
             "return_type": "sint"
+        },
+        {
+            "name": "print",
+            "parameters": [
+                {
+                    "name": "format",
+                    "type": "string"
+                }
+            ],
+            "arg": true,
+            "return_type": "sint"
         }
     ]
 }
