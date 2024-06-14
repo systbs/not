@@ -65,7 +65,7 @@
         "gmp.h": "c",
         "config.h": "c",
         "pthread.h": "c",
-        "module.h": "c",
+        "repository.h": "c",
         "memory.h": "c",
         "mutex.h": "c",
         "execute.h": "c",
@@ -78,7 +78,11 @@
         "entry.h": "c",
         "inttypes.h": "c",
         "cmath": "c",
-        "interpreter.h": "c"
+        "interpreter.h": "c",
+        "dlfcn.h": "c",
+        "typeinfo": "c",
+        "jansson.h": "c",
+        "ffi.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

@@ -41,13 +41,14 @@ sy_thread_destroy();
 sy_thread_t *
 sy_thread_get();
 
+sy_thread_t *
+sy_thread_create(
 #ifdef _WIN32
-sy_thread_t *
-sy_thread_create(DWORD (*start_routine)(LPVOID), LPVOID arg);
+DWORD (*start_routine)(LPVOID), LPVOID arg
 #else
-sy_thread_t *
-sy_thread_create(void *(*start_routine)(void *), void *arg);
+void *(*start_routine)(void *), void *arg
 #endif
+);
 
 sy_thread_t *
 sy_thread_get_current();

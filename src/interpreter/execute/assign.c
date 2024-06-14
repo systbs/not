@@ -7,6 +7,7 @@
 #include <gmp.h>
 #include <stdint.h>
 #include <float.h>
+#include <jansson.h>
 
 #include "../../types/types.h"
 #include "../../container/queue.h"
@@ -50,11 +51,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             if (left->typed == 1)
             {
@@ -72,11 +71,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             mpz_clear(*(mpz_t *)(left->value));
             void *ptr = sy_memory_realloc(left->value, sizeof(mpz_t));
@@ -90,11 +87,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             if (left->typed == 1)
             {
@@ -112,11 +107,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             if (left->typed == 1)
             {
@@ -133,11 +126,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             if (left->typed == 1)
             {
@@ -154,11 +145,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             if (left->typed == 1)
             {
@@ -175,11 +164,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             if (left->typed == 1)
             {
@@ -196,11 +183,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             if (left->typed == 1)
             {
@@ -212,11 +197,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        else if (right->kind == RECORD_KIND_UNDEFINED)
         {
             if (left->typed == 1)
             {
@@ -228,11 +211,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             if (left->typed == 1)
             {
@@ -244,14 +225,12 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-
             return 0;
         }
 
         return 0;
     }
-    else
-    if (left->kind == RECORD_KIND_FLOAT)
+    else if (left->kind == RECORD_KIND_FLOAT)
     {
         if (right->kind == RECORD_KIND_INT)
         {
@@ -267,11 +246,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             mpf_clear(*(mpf_t *)left->value);
             void *ptr = sy_memory_realloc(left->value, sizeof(mpf_t));
@@ -284,11 +261,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             mpf_clear(*(mpf_t *)left->value);
             void *ptr = sy_memory_realloc(left->value, sizeof(mpf_t));
@@ -302,11 +277,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             if (left->typed == 1)
             {
@@ -324,11 +297,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             if (left->typed == 1)
             {
@@ -345,11 +316,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             if (left->typed == 1)
             {
@@ -366,11 +335,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             if (left->typed == 1)
             {
@@ -387,11 +354,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             if (left->typed == 1)
             {
@@ -408,11 +373,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             if (left->typed == 1)
             {
@@ -424,11 +387,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        else if (right->kind == RECORD_KIND_UNDEFINED)
         {
             if (left->typed == 1)
             {
@@ -440,11 +401,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             if (left->typed == 1)
             {
@@ -456,14 +415,12 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-
             return 0;
         }
 
         return 0;
     }
-    else
-    if (left->kind == RECORD_KIND_CHAR)
+    else if (left->kind == RECORD_KIND_CHAR)
     {
         if (right->kind == RECORD_KIND_INT)
         {
@@ -472,7 +429,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "int");
                 return -1;
             }
-            
+
             void *ptr = sy_memory_realloc(left->value, sizeof(mpz_t));
             if (ptr == NULL)
             {
@@ -483,11 +440,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             if (left->typed == 1)
             {
@@ -505,11 +460,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             void *ptr = sy_memory_realloc(left->value, sizeof(char));
             if (ptr == NULL)
@@ -521,11 +474,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             if (left->typed == 1)
             {
@@ -542,11 +493,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             if (left->typed == 1)
             {
@@ -562,11 +511,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             if (left->typed == 1)
             {
@@ -582,11 +529,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             if (left->typed == 1)
             {
@@ -602,11 +547,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             if (left->typed == 1)
             {
@@ -622,11 +565,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             if (left->typed == 1)
             {
@@ -637,11 +578,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        else if (right->kind == RECORD_KIND_UNDEFINED)
         {
             if (left->typed == 1)
             {
@@ -652,11 +591,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             if (left->typed == 1)
             {
@@ -667,14 +604,12 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-
             return 0;
         }
 
         return 0;
     }
-    else
-    if (left->kind == RECORD_KIND_STRING)
+    else if (left->kind == RECORD_KIND_STRING)
     {
         if (right->kind == RECORD_KIND_INT)
         {
@@ -694,11 +629,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             if (left->typed == 1)
             {
@@ -716,11 +649,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             void *ptr = sy_memory_realloc(left->value, sizeof(char));
             if (ptr == NULL)
@@ -733,8 +664,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->kind = RECORD_KIND_CHAR;
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             void *ptr = sy_memory_realloc(left->value, strlen((char *)(right->value)));
             if (ptr == NULL)
@@ -746,11 +676,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             if (left->typed == 1)
             {
@@ -766,11 +694,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             if (left->typed == 1)
             {
@@ -786,11 +712,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             if (left->typed == 1)
             {
@@ -806,11 +730,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             if (left->typed == 1)
             {
@@ -826,11 +748,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             if (left->typed == 1)
             {
@@ -841,11 +761,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        else if (right->kind == RECORD_KIND_UNDEFINED)
         {
             if (left->typed == 1)
             {
@@ -856,11 +774,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             if (left->typed == 1)
             {
@@ -871,14 +787,12 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-
             return 0;
         }
 
         return 0;
     }
-    else
-    if (left->kind == RECORD_KIND_OBJECT)
+    else if (left->kind == RECORD_KIND_OBJECT)
     {
         if (right->kind == RECORD_KIND_INT)
         {
@@ -887,7 +801,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "int");
                 return -1;
             }
-            
+
             if (sy_record_object_destroy((sy_record_object_t *)left->value) < 0)
             {
                 return -1;
@@ -903,11 +817,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             if (left->typed == 1)
             {
@@ -930,11 +842,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             if (left->typed == 1)
             {
@@ -959,8 +869,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
 
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             if (left->typed == 1)
             {
@@ -983,11 +892,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             if (left->typed == 1)
             {
@@ -1009,11 +916,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             if (left->typed == 1)
             {
@@ -1035,11 +940,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             if (left->typed == 1)
             {
@@ -1061,11 +964,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             if (left->typed == 1)
             {
@@ -1087,11 +988,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             if (left->typed == 1)
             {
@@ -1108,11 +1007,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        else if (right->kind == RECORD_KIND_UNDEFINED)
         {
             if (left->typed == 1)
             {
@@ -1129,11 +1026,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             if (left->typed == 1)
             {
@@ -1150,14 +1045,12 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-
             return 0;
         }
 
         return 0;
     }
-    else
-    if (left->kind == RECORD_KIND_TUPLE)
+    else if (left->kind == RECORD_KIND_TUPLE)
     {
         if (right->kind == RECORD_KIND_INT)
         {
@@ -1166,7 +1059,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "int");
                 return -1;
             }
-            
+
             if (sy_record_tuple_destroy((sy_record_tuple_t *)left->value) < 0)
             {
                 return -1;
@@ -1182,11 +1075,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             if (left->typed == 1)
             {
@@ -1209,11 +1100,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             if (left->typed == 1)
             {
@@ -1237,8 +1126,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->kind = RECORD_KIND_CHAR;
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             if (left->typed == 1)
             {
@@ -1261,11 +1149,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             if (left->typed == 1)
             {
@@ -1287,11 +1173,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             if (left->typed == 1)
             {
@@ -1313,11 +1197,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             if (left->typed == 1)
             {
@@ -1339,11 +1221,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             if (left->typed == 1)
             {
@@ -1365,11 +1245,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             if (left->typed == 1)
             {
@@ -1386,11 +1264,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        else if (right->kind == RECORD_KIND_UNDEFINED)
         {
             if (left->typed == 1)
             {
@@ -1407,11 +1283,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             if (left->typed == 1)
             {
@@ -1428,14 +1302,12 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-
             return 0;
         }
 
         return 0;
     }
-    else
-    if (left->kind == RECORD_KIND_TYPE)
+    else if (left->kind == RECORD_KIND_TYPE)
     {
         if (right->kind == RECORD_KIND_INT)
         {
@@ -1444,7 +1316,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "int");
                 return -1;
             }
-            
+
             if (sy_record_type_destroy((sy_record_type_t *)left->value) < 0)
             {
                 return -1;
@@ -1460,11 +1332,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             if (left->typed == 1)
             {
@@ -1487,11 +1357,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             if (left->typed == 1)
             {
@@ -1515,8 +1383,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->kind = RECORD_KIND_CHAR;
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             if (left->typed == 1)
             {
@@ -1539,11 +1406,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             if (left->typed == 1)
             {
@@ -1565,11 +1430,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             if (left->typed == 1)
             {
@@ -1591,11 +1454,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             if (left->typed == 1)
             {
@@ -1617,11 +1478,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             if (left->typed == 1)
             {
@@ -1643,11 +1502,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             if (left->typed == 1)
             {
@@ -1664,11 +1521,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        else if (right->kind == RECORD_KIND_UNDEFINED)
         {
             if (left->typed == 1)
             {
@@ -1685,11 +1540,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             if (left->typed == 1)
             {
@@ -1706,14 +1559,12 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-
             return 0;
         }
 
         return 0;
     }
-    else
-    if (left->kind == RECORD_KIND_STRUCT)
+    else if (left->kind == RECORD_KIND_STRUCT)
     {
         if (right->kind == RECORD_KIND_INT)
         {
@@ -1722,7 +1573,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "int");
                 return -1;
             }
-            
+
             if (sy_record_struct_destroy((sy_record_struct_t *)left->value) < 0)
             {
                 return -1;
@@ -1738,11 +1589,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             if (left->typed == 1)
             {
@@ -1765,11 +1614,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             if (left->typed == 1)
             {
@@ -1793,8 +1640,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->kind = RECORD_KIND_CHAR;
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             if (left->typed == 1)
             {
@@ -1817,11 +1663,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             if (left->typed == 1)
             {
@@ -1843,11 +1687,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             if (left->typed == 1)
             {
@@ -1869,11 +1711,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             if (left->typed == 1)
             {
@@ -1895,11 +1735,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             if (left->typed == 1)
             {
@@ -1921,11 +1759,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             if (left->typed == 1)
             {
@@ -1942,11 +1778,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        else if (right->kind == RECORD_KIND_UNDEFINED)
         {
             if (left->typed == 1)
             {
@@ -1963,11 +1797,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             if (left->typed == 1)
             {
@@ -1984,14 +1816,12 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-
             return 0;
         }
 
         return 0;
     }
-    else
-    if (left->kind == RECORD_KIND_NULL)
+    else if (left->kind == RECORD_KIND_NULL)
     {
         if (right->kind == RECORD_KIND_INT)
         {
@@ -2000,7 +1830,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "int");
                 return -1;
             }
-            
+
             void *ptr = sy_memory_realloc(left->value, sizeof(mpz_t));
             if (ptr == NULL)
             {
@@ -2011,18 +1841,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             if (left->typed == 1)
             {
                 sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "float");
                 return -1;
             }
-            
+
             void *ptr = sy_memory_realloc(left->value, sizeof(mpf_t));
             if (ptr == NULL)
             {
@@ -2033,11 +1861,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             if (left->typed == 1)
             {
@@ -2056,8 +1882,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->kind = RECORD_KIND_CHAR;
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             if (left->typed == 1)
             {
@@ -2074,11 +1899,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             if (left->typed == 1)
             {
@@ -2094,11 +1917,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             if (left->typed == 1)
             {
@@ -2114,11 +1935,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             if (left->typed == 1)
             {
@@ -2134,11 +1953,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             if (left->typed == 1)
             {
@@ -2154,11 +1971,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             if (left->typed == 1)
             {
@@ -2169,11 +1984,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        else if (right->kind == RECORD_KIND_UNDEFINED)
         {
             if (left->typed == 1)
             {
@@ -2184,11 +1997,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             if (left->typed == 1)
             {
@@ -2199,14 +2010,12 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-
             return 0;
         }
 
         return 0;
     }
-    else
-    if (left->kind == RECORD_KIND_UNDEFINED)
+    else if (left->kind == RECORD_KIND_UNDEFINED)
     {
         if (right->kind == RECORD_KIND_INT)
         {
@@ -2215,7 +2024,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "int");
                 return -1;
             }
-            
+
             void *ptr = sy_memory_realloc(left->value, sizeof(mpz_t));
             if (ptr == NULL)
             {
@@ -2226,18 +2035,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             if (left->typed == 1)
             {
                 sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "float");
                 return -1;
             }
-            
+
             void *ptr = sy_memory_realloc(left->value, sizeof(mpf_t));
             if (ptr == NULL)
             {
@@ -2248,11 +2055,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             if (left->typed == 1)
             {
@@ -2271,8 +2076,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->kind = RECORD_KIND_CHAR;
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             if (left->typed == 1)
             {
@@ -2289,11 +2093,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             if (left->typed == 1)
             {
@@ -2309,11 +2111,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             if (left->typed == 1)
             {
@@ -2329,11 +2129,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             if (left->typed == 1)
             {
@@ -2349,11 +2147,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             if (left->typed == 1)
             {
@@ -2369,11 +2165,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             if (left->typed == 1)
             {
@@ -2384,11 +2178,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        else if (right->kind == RECORD_KIND_UNDEFINED)
         {
             if (left->typed == 1)
             {
@@ -2399,11 +2191,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             if (left->typed == 1)
             {
@@ -2414,14 +2204,12 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
-
             return 0;
         }
 
         return 0;
     }
-    else
-    if (left->kind == RECORD_KIND_NAN)
+    else if (left->kind == RECORD_KIND_NAN)
     {
         if (right->kind == RECORD_KIND_INT)
         {
@@ -2430,7 +2218,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
                 sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "int");
                 return -1;
             }
-            
+
             void *ptr = sy_memory_realloc(left->value, sizeof(mpz_t));
             if (ptr == NULL)
             {
@@ -2441,18 +2229,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             if (left->typed == 1)
             {
                 sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "float");
                 return -1;
             }
-            
+
             void *ptr = sy_memory_realloc(left->value, sizeof(mpf_t));
             if (ptr == NULL)
             {
@@ -2463,11 +2249,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             if (left->typed == 1)
             {
@@ -2486,8 +2270,7 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->kind = RECORD_KIND_CHAR;
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             if (left->typed == 1)
             {
@@ -2504,11 +2287,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             if (left->typed == 1)
             {
@@ -2524,11 +2305,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             if (left->typed == 1)
             {
@@ -2544,11 +2323,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             if (left->typed == 1)
             {
@@ -2564,11 +2341,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             if (left->typed == 1)
             {
@@ -2584,11 +2359,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             if (left->typed == 1)
             {
@@ -2599,11 +2372,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        else if (right->kind == RECORD_KIND_UNDEFINED)
         {
             if (left->typed == 1)
             {
@@ -2614,11 +2385,9 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
-
             return 0;
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             if (left->typed == 1)
             {
@@ -2628,7 +2397,6 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
             sy_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
-
 
             return 0;
         }
@@ -2654,24 +2422,41 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
         if (sy_execute_set_value(node, left, right) < 0)
         {
-            left->link -= 1;
-            right->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
+
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return -1;
+            }
+
             return -1;
         }
-        
-        left->link -= 1;
-        right->link -= 1;
+
+        if (sy_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
+
+        if (sy_record_link_decrease(right) < 0)
+        {
+            return -1;
+        }
 
         return 0;
     }
-    else
-    if (node->kind == NODE_KIND_ADD_ASSIGN)
+    else if (node->kind == NODE_KIND_ADD_ASSIGN)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
         sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
@@ -2683,35 +2468,51 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
         sy_record_t *result = sy_execute_plus(node, left, right, applicant);
         if (result == ERROR)
         {
-            right->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
 
-            left->link -= 1;
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return -1;
+            }
 
             return -1;
         }
 
-        right->link -= 1;
+        if (sy_record_link_decrease(right) < 0)
+        {
+            return -1;
+        }
 
         if (sy_execute_set_value(node, left, result) < 0)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
-        left->link -= 1;
-        result->link -= 1;
+        if (sy_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
 
         return 0;
     }
-    else
-    if (node->kind == NODE_KIND_SUB_ASSIGN)
+    else if (node->kind == NODE_KIND_SUB_ASSIGN)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
         sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
@@ -2723,33 +2524,51 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
         sy_record_t *result = sy_execute_minus(node, left, right, applicant);
         if (result == ERROR)
         {
-            right->link -= 1;
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
+
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return -1;
+            }
+
             return -1;
         }
 
-        right->link -= 1;
+        if (sy_record_link_decrease(right) < 0)
+        {
+            return -1;
+        }
 
         if (sy_execute_set_value(node, left, result) < 0)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
-        left->link -= 1;
-        result->link -= 1;
+        if (sy_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
 
         return 0;
     }
-    else
-    if (node->kind == NODE_KIND_MUL_ASSIGN)
+    else if (node->kind == NODE_KIND_MUL_ASSIGN)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
         sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
@@ -2761,33 +2580,51 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
         sy_record_t *result = sy_execute_mul(node, left, right, applicant);
         if (result == ERROR)
         {
-            right->link -= 1;
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
+
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return -1;
+            }
+
             return -1;
         }
 
-        right->link -= 1;
+        if (sy_record_link_decrease(right) < 0)
+        {
+            return -1;
+        }
 
         if (sy_execute_set_value(node, left, result) < 0)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
-        left->link -= 1;
-        result->link -= 1;
+        if (sy_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
 
         return 0;
     }
-    else
-    if (node->kind == NODE_KIND_DIV_ASSIGN)
+    else if (node->kind == NODE_KIND_DIV_ASSIGN)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
         sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
@@ -2799,33 +2636,51 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
         sy_record_t *result = sy_execute_plus(node, left, right, applicant);
         if (result == ERROR)
         {
-            right->link -= 1;
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
+
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return -1;
+            }
+
             return -1;
         }
 
-        right->link -= 1;
+        if (sy_record_link_decrease(right) < 0)
+        {
+            return -1;
+        }
 
         if (sy_execute_set_value(node, left, result) < 0)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
-        left->link -= 1;
-        result->link -= 1;
+        if (sy_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
 
         return 0;
     }
-    else
-    if (node->kind == NODE_KIND_EPI_ASSIGN)
+    else if (node->kind == NODE_KIND_EPI_ASSIGN)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
         sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
@@ -2837,33 +2692,51 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
         sy_record_t *result = sy_execute_epi(node, left, right, applicant);
         if (result == ERROR)
         {
-            right->link -= 1;
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
+
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return -1;
+            }
+
             return -1;
         }
 
-        right->link -= 1;
+        if (sy_record_link_decrease(right) < 0)
+        {
+            return -1;
+        }
 
         if (sy_execute_set_value(node, left, result) < 0)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
-        left->link -= 1;
-        result->link -= 1;
+        if (sy_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
 
         return 0;
     }
-    else
-    if (node->kind == NODE_KIND_MOD_ASSIGN)
+    else if (node->kind == NODE_KIND_MOD_ASSIGN)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
         sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
@@ -2875,32 +2748,51 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
         sy_record_t *result = sy_execute_mod(node, left, right, applicant);
         if (result == ERROR)
         {
-            right->link -= 1;
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
+
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return -1;
+            }
+
             return -1;
         }
 
-        right->link -= 1;
+        if (sy_record_link_decrease(right) < 0)
+        {
+            return -1;
+        }
 
         if (sy_execute_set_value(node, left, result) < 0)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
-        left->link -= 1;
-        result->link -= 1;
+        if (sy_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
-    else
-    if (node->kind == NODE_KIND_POW_ASSIGN)
+    else if (node->kind == NODE_KIND_POW_ASSIGN)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
         sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
@@ -2912,33 +2804,51 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
         sy_record_t *result = sy_execute_pow(node, left, right, applicant);
         if (result == ERROR)
         {
-            right->link -= 1;
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
+
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return -1;
+            }
+
             return -1;
         }
 
-        right->link -= 1;
+        if (sy_record_link_decrease(right) < 0)
+        {
+            return -1;
+        }
 
         if (sy_execute_set_value(node, left, result) < 0)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
-        left->link -= 1;
-        result->link -= 1;
+        if (sy_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
 
         return 0;
     }
-    else
-    if (node->kind == NODE_KIND_SHL_ASSIGN)
+    else if (node->kind == NODE_KIND_SHL_ASSIGN)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
         sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
@@ -2950,33 +2860,51 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
         sy_record_t *result = sy_execute_shl(node, left, right, applicant);
         if (result == ERROR)
         {
-            right->link -= 1;
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
+
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return -1;
+            }
+
             return -1;
         }
 
-        right->link -= 1;
+        if (sy_record_link_decrease(right) < 0)
+        {
+            return -1;
+        }
 
         if (sy_execute_set_value(node, left, result) < 0)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
-        left->link -= 1;
-        result->link -= 1;
+        if (sy_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
 
         return 0;
     }
-    else
-    if (node->kind == NODE_KIND_SHR_ASSIGN)
+    else if (node->kind == NODE_KIND_SHR_ASSIGN)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
         sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
@@ -2988,33 +2916,51 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
         sy_record_t *result = sy_execute_shr(node, left, right, applicant);
         if (result == ERROR)
         {
-            right->link -= 1;
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
+
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return -1;
+            }
+
             return -1;
         }
 
-        right->link -= 1;
+        if (sy_record_link_decrease(right) < 0)
+        {
+            return -1;
+        }
 
         if (sy_execute_set_value(node, left, result) < 0)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
-        left->link -= 1;
-        result->link -= 1;
+        if (sy_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
 
         return 0;
     }
-    else
-    if (node->kind == NODE_KIND_AND_ASSIGN)
+    else if (node->kind == NODE_KIND_AND_ASSIGN)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
         sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
@@ -3026,34 +2972,51 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
         sy_record_t *result = sy_execute_and(node, left, right, applicant);
         if (result == ERROR)
         {
-            right->link -= 1;
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
+
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return -1;
+            }
 
             return -1;
         }
 
-        right->link -= 1;
+        if (sy_record_link_decrease(right) < 0)
+        {
+            return -1;
+        }
 
         if (sy_execute_set_value(node, left, result) < 0)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
-        left->link -= 1;
-        result->link -= 1;
+        if (sy_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
 
         return 0;
     }
-    else
-    if (node->kind == NODE_KIND_OR_ASSIGN)
+    else if (node->kind == NODE_KIND_OR_ASSIGN)
     {
         sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
         sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
@@ -3065,28 +3028,48 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
         sy_record_t *result = sy_execute_or(node, left, right, applicant);
         if (result == ERROR)
         {
-            right->link -= 1;
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
+
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return -1;
+            }
+
             return -1;
         }
 
-        right->link -= 1;
+        if (sy_record_link_decrease(right) < 0)
+        {
+            return -1;
+        }
 
         if (sy_execute_set_value(node, left, result) < 0)
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
-        left->link -= 1;
-        result->link -= 1;
+        if (sy_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
+
         return 0;
     }
     else
@@ -3097,7 +3080,10 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             return -1;
         }
 
-        value->link -= 1;
+        if (sy_record_link_decrease(value) < 0)
+        {
+            return -1;
+        }
 
         return 0;
     }

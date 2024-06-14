@@ -2,7 +2,7 @@ VERSION := 0.0
 
 CC      :=  gcc
 CFLAGS  := -Wall -Wextra -Wno-unused-parameter
-LDFLAGS := -lm -lgmp -lmpfr
+LDFLAGS := -lm -lgmp -lmpfr -lffi -ljansson
 
 BUILDDIR := build
 SOURCEDIR := src

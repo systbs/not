@@ -1,0 +1,22 @@
+{
+    "name": "shared",
+    "version": 1,
+    "path": "shared.so",
+    "functions": [
+        {
+            "name": "add",
+            "parameters": [
+                {
+                    "name": "a",
+                    "type": "sint"
+                },
+                {
+                    "name": "b",
+                    "type": "sint"
+                }
+            ],
+            "arg": false,
+            "return_type": "sint"
+        }
+    ]
+}

@@ -7,6 +7,7 @@
 #include <gmp.h>
 #include <stdint.h>
 #include <float.h>
+#include <jansson.h>
 
 #include "../../types/types.h"
 #include "../../container/queue.h"
@@ -30,20 +31,17 @@ sy_execute_postfix(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_
 {
     if (node->kind == NODE_KIND_CALL)
     {
-        return sy_execute_call(node, strip, applicant, origin);
+        return sy_call(node, strip, applicant, origin);
     }
-    else
-    if (node->kind == NODE_KIND_ARRAY)
+    else if (node->kind == NODE_KIND_ARRAY)
     {
         return sy_execute_array(node, strip, applicant, origin);
     }
-    else
-    if (node->kind == NODE_KIND_ATTRIBUTE)
+    else if (node->kind == NODE_KIND_ATTRIBUTE)
     {
         return sy_execute_attribute(node, strip, applicant, origin);
     }
-    else
-    if (node->kind == NODE_KIND_PSEUDONYM)
+    else if (node->kind == NODE_KIND_PSEUDONYM)
     {
         return sy_execute_pseudonym(node, strip, applicant, origin);
     }

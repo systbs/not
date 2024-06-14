@@ -1,10 +1,14 @@
-//using param2: param from "~/lib/types/primary.q";
+using param2: param from "~/lib/types/primary.q";
+using add from "~/lib/c/shared.json";
+
+var f1 = add(5, 2);
+string(f1);
 
 class B
 {
 	export static b = 1000000;
 	export c = 0;
-	export fun Constructor(p1:int)
+	export fun constructor(p1:int)
 	{
 		c = p1;
 	}
@@ -12,7 +16,7 @@ class B
 
 class C extends (b1:B)
 {
-	export fun Constructor(p1:int)
+	export fun constructor(p1:int)
 	{
 
 	}
@@ -22,9 +26,9 @@ class A<T> extends (b1:B)
 {
 	export static a = 1000000;
 	export b:T = 10;
-	export fun Constructor(p1:int)
+	export fun constructor(p1:int)
 	{
-		b1.Constructor(1000000);
+		b1.constructor(1000000);
 		b = b * p1;
 	}
 
@@ -71,7 +75,7 @@ catch(ex)
 	string(ex);
 }
 
-for (var key, value in ["hello", "world", 123])
+for loop1 (var key, value in ["hello", "world", 123])
 {
 	string(value);
 }

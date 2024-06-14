@@ -5,17 +5,19 @@
 typedef struct sy_strip sy_strip_t;
 typedef struct sy_entry sy_entry_t;
 
-typedef struct sy_record {
-    uint8_t reference:1;
-    uint8_t readonly:1;
-    uint8_t typed:1;
-    uint8_t reserved:5;
+typedef struct sy_record
+{
+    uint8_t reference : 1;
+    uint8_t readonly : 1;
+    uint8_t typed : 1;
+    uint8_t reserved : 5;
     int64_t link;
     uint8_t kind;
     void *value;
 } sy_record_t;
 
-typedef enum sy_record_kind {
+typedef enum sy_record_kind
+{
     RECORD_KIND_INT,
     RECORD_KIND_FLOAT,
     RECORD_KIND_CHAR,
@@ -26,31 +28,47 @@ typedef enum sy_record_kind {
     RECORD_KIND_STRUCT,
     RECORD_KIND_NULL,
     RECORD_KIND_UNDEFINED,
-    RECORD_KIND_NAN
+    RECORD_KIND_NAN,
+    RECORD_KIND_PROC
 } sy_record_kind_t;
 
-typedef struct sy_record_struct {
+typedef struct sy_record_struct
+{
     sy_node_t *type;
     sy_strip_t *value;
 } sy_record_struct_t;
 
-typedef struct sy_record_type {
+typedef struct sy_record_type
+{
     sy_node_t *type;
     void *value;
 } sy_record_type_t;
 
-typedef struct sy_record_object {
+typedef struct sy_record_object
+{
     sy_node_t *key;
     sy_record_t *value;
 
     struct sy_record_object *next;
 } sy_record_object_t;
 
-typedef struct sy_record_tuple {
+typedef struct sy_record_tuple
+{
     sy_record_t *value;
 
     struct sy_record_tuple *next;
 } sy_record_tuple_t;
+
+typedef struct sy_record_proc
+{
+    void *handle;
+    json_t *map;
+} sy_record_proc_t;
+
+void sy_record_link_increase(sy_record_t *record);
+
+int32_t
+sy_record_link_decrease(sy_record_t *record);
 
 const char *
 sy_record_type_as_string(sy_record_t *record);
@@ -107,12 +125,6 @@ sy_record_t *
 sy_record_make_float(const char *value);
 
 sy_record_t *
-sy_record_make_float64(double value);
-
-sy_record_t *
-sy_record_make_float32(float value);
-
-sy_record_t *
 sy_record_make_int_from_ui(uint64_t value);
 
 sy_record_t *
@@ -126,36 +138,6 @@ sy_record_make_int_from_f(mpf_t value);
 
 sy_record_t *
 sy_record_make_int(const char *value);
-
-sy_record_t *
-sy_record_make_uint64(uint64_t value);
-
-sy_record_t *
-sy_record_make_uint32(uint32_t value);
-
-sy_record_t *
-sy_record_make_uint16(uint16_t value);
-
-sy_record_t *
-sy_record_make_uint8(uint8_t value);
-
-sy_record_t *
-sy_record_make_int64(int64_t value);
-
-sy_record_t *
-sy_record_make_int32(int32_t value);
-
-sy_record_t *
-sy_record_make_int16(int16_t value);
-
-sy_record_t *
-sy_record_make_int8(int8_t value);
-
-void
-sy_record_link_inc(sy_record_t *record);
-
-void
-sy_record_link_dec(sy_record_t *record);
 
 int32_t
 sy_record_destroy(sy_record_t *record);
@@ -183,5 +165,11 @@ sy_record_type_destroy(sy_record_type_t *type);
 
 int32_t
 sy_record_struct_destroy(sy_record_struct_t *struct1);
+
+sy_record_t *
+sy_record_make_proc(void *handle, json_t *map);
+
+char *
+sy_record_to_string(sy_record_t *record, char *previous_buf);
 
 #endif

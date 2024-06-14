@@ -8,6 +8,7 @@
 #include <mpfr.h>
 #include <stdint.h>
 #include <float.h>
+#include <jansson.h>
 
 #include "../../types/types.h"
 #include "../../container/queue.h"
@@ -40,7 +41,10 @@ sy_execute_conditional(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant,
         }
 
         int32_t truthy = sy_execute_truthy(condition);
-        condition->link -= 1;
+        if (sy_record_link_decrease(condition) < 0)
+        {
+            return ERROR;
+        }
 
         if (truthy)
         {

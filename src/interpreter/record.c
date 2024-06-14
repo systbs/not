@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <gmp.h>
 #include <assert.h>
+#include <jansson.h>
 
 #include "../types/types.h"
 #include "../container/queue.h"
@@ -22,20 +23,21 @@
 #include "record.h"
 #include "strip.h"
 #include "garbage.h"
+#include "entry.h"
 
-static const char * const symbols[] = {
-  [RECORD_KIND_INT]         = "instance int",
-  [RECORD_KIND_FLOAT]       = "instance float",
-  [RECORD_KIND_CHAR]        = "instance char",
-  [RECORD_KIND_STRING]      = "instance string",
-  [RECORD_KIND_OBJECT]      = "instance object",
-  [RECORD_KIND_TUPLE]       = "instance tuple",
-  [RECORD_KIND_TYPE]        = "type",
-  [RECORD_KIND_STRUCT]      = "struct",
-  [RECORD_KIND_NULL]        = "null",
-  [RECORD_KIND_UNDEFINED]   = "undefined",
-  [RECORD_KIND_NAN]         = "nan"
-};
+static const char *const symbols[] = {
+    [RECORD_KIND_INT] = "instance int",
+    [RECORD_KIND_FLOAT] = "instance float",
+    [RECORD_KIND_CHAR] = "instance char",
+    [RECORD_KIND_STRING] = "instance string",
+    [RECORD_KIND_OBJECT] = "instance object",
+    [RECORD_KIND_TUPLE] = "instance tuple",
+    [RECORD_KIND_TYPE] = "type",
+    [RECORD_KIND_STRUCT] = "struct",
+    [RECORD_KIND_NULL] = "null",
+    [RECORD_KIND_UNDEFINED] = "undefined",
+    [RECORD_KIND_NAN] = "nan",
+    [RECORD_KIND_PROC] = "proc"};
 
 const char *
 sy_record_type_as_string(sy_record_t *record)
@@ -57,13 +59,496 @@ sy_record_create(uint64_t kind, void *value)
     record->value = value;
     record->link = 1;
 
-    if (sy_garbage_push(record) < 0)
+    return record;
+}
+
+void sy_record_link_increase(sy_record_t *record)
+{
+    record->link += 1;
+}
+
+int32_t
+sy_record_link_decrease(sy_record_t *record)
+{
+    record->link -= 1;
+    if (record->link <= 0)
     {
-        record->link = 0;
-        sy_record_destroy(record);
+        if (sy_record_destroy(record) < 0)
+        {
+            return -1;
+        }
+    }
+    return 0;
+}
+
+char *
+sy_record_to_string(sy_record_t *record, char *previous_buf)
+{
+    if (record->kind == RECORD_KIND_CHAR)
+    {
+        char str[50];
+        snprintf(str, sizeof(str), "%c", (char)(*(int8_t *)record->value));
+        size_t length = strlen(previous_buf) + strlen(str);
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%s", previous_buf, str);
+        return result;
+    }
+    else if (record->kind == RECORD_KIND_STRING)
+    {
+        char *str = (char *)record->value;
+        size_t length = strlen(previous_buf) + strlen(str);
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%s", previous_buf, str);
+        return result;
+    }
+    else if (record->kind == RECORD_KIND_INT)
+    {
+        char *str = mpz_get_str(NULL, 10, *(mpz_t *)record->value);
+        size_t length = strlen(previous_buf) + strlen(str);
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%s", previous_buf, str);
+        free(str);
+        return result;
+    }
+    else if (record->kind == RECORD_KIND_FLOAT)
+    {
+        size_t buf_size = 64;
+        char *str = (char *)sy_memory_calloc(buf_size, sizeof(char));
+
+        if (!str)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+
+        size_t required_size = gmp_snprintf(str, buf_size, "%s%.Ff", previous_buf, (*(mpf_t *)record->value));
+        if (required_size >= buf_size)
+        {
+            buf_size = required_size + 1;
+            str = (char *)sy_memory_realloc(str, buf_size);
+
+            if (!str)
+            {
+                sy_error_no_memory();
+                return ERROR;
+            }
+            gmp_snprintf(str, buf_size, "%s%.Ff", previous_buf, (*(mpf_t *)record->value));
+        }
+
+        return str;
+    }
+    else if (record->kind == RECORD_KIND_OBJECT)
+    {
+        size_t length = strlen(previous_buf) + 1;
+        char *str = sy_memory_calloc(length + 1, sizeof(char));
+        if (str == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(str, length + 1, "%s%c", previous_buf, '{');
+        for (sy_record_object_t *item = (sy_record_object_t *)record->value; item != NULL; item = item->next)
+        {
+            sy_node_basic_t *basic = (sy_node_basic_t *)item->key->value;
+            length = strlen(str) + strlen(basic->value) + 1;
+            char *result = sy_memory_calloc(length + 1, sizeof(char));
+            if (result == NULL)
+            {
+                sy_error_no_memory();
+                return ERROR;
+            }
+            snprintf(result, length + 1, "%s%s:", str, basic->value);
+            sy_memory_free(str);
+            str = result;
+
+            result = sy_record_to_string(item->value, str);
+            if (result == ERROR)
+            {
+                sy_memory_free(str);
+                return ERROR;
+            }
+            sy_memory_free(str);
+            str = result;
+
+            if (item->next)
+            {
+                length = strlen(str) + 1;
+                char *result = sy_memory_calloc(length + 1, sizeof(char));
+                if (result == NULL)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                snprintf(result, length + 1, "%s,", str);
+                sy_memory_free(str);
+                str = result;
+            }
+        }
+        length = strlen(str) + 1;
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            sy_memory_free(str);
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%c", str, '}');
+        sy_memory_free(str);
+        return result;
+    }
+    else if (record->kind == RECORD_KIND_TUPLE)
+    {
+        size_t length = strlen(previous_buf) + 1;
+        char *str = sy_memory_calloc(length + 1, sizeof(char));
+        if (str == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(str, length + 1, "%s%c", previous_buf, '[');
+
+        for (sy_record_tuple_t *item = (sy_record_tuple_t *)record->value; item != NULL; item = item->next)
+        {
+            char *result = sy_record_to_string(item->value, str);
+            if (result == ERROR)
+            {
+                sy_memory_free(str);
+                return ERROR;
+            }
+            sy_memory_free(str);
+            str = result;
+
+            if (item->next)
+            {
+                length = strlen(str) + 1;
+                char *result = sy_memory_calloc(length + 1, sizeof(char));
+                if (result == NULL)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                snprintf(result, length + 1, "%s,", str);
+                sy_memory_free(str);
+                str = result;
+            }
+        }
+
+        length = strlen(str) + 1;
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            sy_memory_free(str);
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%c", str, ']');
+        sy_memory_free(str);
+        return result;
+    }
+    else if (record->kind == RECORD_KIND_UNDEFINED)
+    {
+        char *str = "undefined";
+        size_t length = strlen(previous_buf) + strlen(str);
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%s", previous_buf, str);
+        return result;
+    }
+    else if (record->kind == RECORD_KIND_NAN)
+    {
+        char *str = "nan";
+        size_t length = strlen(previous_buf) + strlen(str);
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%s", previous_buf, str);
+        return result;
+    }
+    else if (record->kind == RECORD_KIND_NULL)
+    {
+        char *str = "null";
+        size_t length = strlen(previous_buf) + strlen(str);
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%s", previous_buf, str);
+        return result;
+    }
+    else if (record->kind == RECORD_KIND_TYPE)
+    {
+        char *str = "<type>";
+        size_t length = strlen(previous_buf) + strlen(str);
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%s", previous_buf, str);
+        return result;
+    }
+    else if (record->kind == RECORD_KIND_STRUCT)
+    {
+        sy_record_struct_t *struct1 = (sy_record_struct_t *)record->value;
+        sy_node_t *type = struct1->type;
+        sy_strip_t *strip_class = struct1->value;
+
+        sy_node_class_t *class1 = (sy_node_class_t *)type->value;
+
+        size_t length = strlen(previous_buf) + 1;
+        char *str = sy_memory_calloc(length + 1, sizeof(char));
+        if (str == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(str, length + 1, "%s%c", previous_buf, '{');
+        uint64_t i = 0;
+        for (sy_node_t *item = class1->block; item != NULL; item = item->next)
+        {
+            if (item->kind == NODE_KIND_PROPERTY)
+            {
+                sy_node_property_t *property = (sy_node_property_t *)item->value;
+                if ((property->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
+                {
+                    continue;
+                }
+
+                if ((property->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                {
+                    continue;
+                }
+
+                if (i > 0)
+                {
+                    length = strlen(str) + 1;
+                    char *result = sy_memory_calloc(length + 1, sizeof(char));
+                    if (result == NULL)
+                    {
+                        sy_error_no_memory();
+                        return ERROR;
+                    }
+                    snprintf(result, length + 1, "%s,", str);
+                    sy_memory_free(str);
+                    str = result;
+                }
+
+                sy_node_basic_t *basic = (sy_node_basic_t *)property->key->value;
+                length = strlen(str) + strlen(basic->value) + 1;
+                char *result = sy_memory_calloc(length + 1, sizeof(char));
+                if (result == NULL)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                snprintf(result, length + 1, "%s%s:", str, basic->value);
+                sy_memory_free(str);
+                str = result;
+
+                sy_entry_t *entry = sy_strip_variable_find(strip_class, type, property->key);
+                if (entry == ERROR)
+                {
+                    sy_memory_free(str);
+                    return ERROR;
+                }
+                if (entry == NULL)
+                {
+                    sy_error_runtime_by_node(item, "'%s' is not initialized", basic->value);
+                    sy_memory_free(str);
+                    return ERROR;
+                }
+
+                result = sy_record_to_string(entry->value, str);
+
+                if (sy_record_link_decrease(entry->value) < 0)
+                {
+                    return ERROR;
+                }
+
+                if (result == ERROR)
+                {
+                    sy_memory_free(str);
+                    return ERROR;
+                }
+                sy_memory_free(str);
+                str = result;
+                i += 1;
+            }
+        }
+
+        if (class1->heritages)
+        {
+            sy_node_block_t *block = (sy_node_block_t *)class1->heritages->value;
+            for (sy_node_t *item = block->items; item != NULL; item = item->next)
+            {
+                sy_node_heritage_t *heritage = (sy_node_heritage_t *)item->value;
+                if (i > 0)
+                {
+                    length = strlen(str) + 1;
+                    char *result = sy_memory_calloc(length + 1, sizeof(char));
+                    if (result == NULL)
+                    {
+                        sy_error_no_memory();
+                        return ERROR;
+                    }
+                    snprintf(result, length + 1, "%s,", str);
+                    sy_memory_free(str);
+                    str = result;
+                }
+
+                sy_node_basic_t *basic = (sy_node_basic_t *)heritage->key->value;
+                length = strlen(str) + strlen(basic->value) + 1;
+                char *result = sy_memory_calloc(length + 1, sizeof(char));
+                if (result == NULL)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                snprintf(result, length + 1, "%s%s:", str, basic->value);
+                sy_memory_free(str);
+                str = result;
+
+                sy_entry_t *entry = sy_strip_variable_find(strip_class, type, heritage->key);
+                if (entry == ERROR)
+                {
+                    sy_memory_free(str);
+                    return ERROR;
+                }
+                if (entry == NULL)
+                {
+                    sy_error_runtime_by_node(item, "'%s' is not initialized", basic->value);
+                    sy_memory_free(str);
+                    return ERROR;
+                }
+
+                result = sy_record_to_string(entry->value, str);
+
+                if (sy_record_link_decrease(entry->value) < 0)
+                {
+                    return ERROR;
+                }
+
+                if (result == ERROR)
+                {
+                    sy_memory_free(str);
+                    return ERROR;
+                }
+                sy_memory_free(str);
+                str = result;
+                i += 1;
+            }
+        }
+
+        length = strlen(str) + 1;
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            sy_memory_free(str);
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%c", str, '}');
+        sy_memory_free(str);
+        return result;
+    }
+    else if (record->kind == RECORD_KIND_UNDEFINED)
+    {
+        char *str = "undefined";
+        size_t length = strlen(previous_buf) + strlen(str);
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%s", previous_buf, str);
+        return result;
+    }
+    else if (record->kind == RECORD_KIND_NAN)
+    {
+        char *str = "nan";
+        size_t length = strlen(previous_buf) + strlen(str);
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%s", previous_buf, str);
+        return result;
+    }
+    else if (record->kind == RECORD_KIND_NULL)
+    {
+        char *str = "null";
+        size_t length = strlen(previous_buf) + strlen(str);
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%s", previous_buf, str);
+        return result;
+    }
+    else
+    {
+        char *str = "";
+        size_t length = strlen(previous_buf) + strlen(str);
+        char *result = sy_memory_calloc(length + 1, sizeof(char));
+        if (result == NULL)
+        {
+            sy_error_no_memory();
+            return ERROR;
+        }
+        snprintf(result, length + 1, "%s%s", previous_buf, str);
+        return result;
+    }
+}
+
+sy_record_t *
+sy_record_make_proc(void *handle, json_t *map)
+{
+    sy_record_proc_t *basic = (sy_record_proc_t *)sy_memory_calloc(1, sizeof(sy_record_proc_t));
+    if (basic == NULL)
+    {
+        sy_error_no_memory();
         return ERROR;
     }
 
+    basic->handle = handle;
+    basic->map = map;
+
+    sy_record_t *record = sy_record_create(RECORD_KIND_PROC, basic);
+    if (record == ERROR)
+    {
+        sy_memory_free(basic);
+        return ERROR;
+    }
     return record;
 }
 
@@ -309,7 +794,6 @@ sy_record_make_float_from_z(mpz_t value)
     return record;
 }
 
-
 sy_record_t *
 sy_record_make_char(char value)
 {
@@ -345,7 +829,8 @@ sy_record_make_string(char *value)
     sy_record_t *record = sy_record_create(RECORD_KIND_STRING, basic);
     if (record == ERROR)
     {
-        sy_memory_free(basic);sy_memory_free(basic);
+        sy_memory_free(basic);
+        sy_memory_free(basic);
         return ERROR;
     }
     return record;
@@ -446,8 +931,6 @@ sy_record_make_nan()
     return sy_record_create(RECORD_KIND_NAN, NULL);
 }
 
-
-
 int32_t
 sy_record_object_destroy(sy_record_object_t *object)
 {
@@ -460,7 +943,10 @@ sy_record_object_destroy(sy_record_object_t *object)
         object->next = NULL;
     }
 
-    object->value->link -= 1;
+    if (sy_record_link_decrease(object->value) < 0)
+    {
+        return -1;
+    }
 
     sy_memory_free(object);
 
@@ -479,7 +965,10 @@ sy_record_tuple_destroy(sy_record_tuple_t *tuple)
         tuple->next = NULL;
     }
 
-    tuple->value->link -= 1;
+    if (sy_record_link_decrease(tuple->value) < 0)
+    {
+        return -1;
+    }
 
     sy_memory_free(tuple);
 
@@ -512,38 +1001,36 @@ sy_record_type_destroy(sy_record_type_t *type)
             return -1;
         }
     }
-    else
-    if (type->type->kind == NODE_KIND_ARRAY)
+    else if (type->type->kind == NODE_KIND_ARRAY)
     {
         sy_record_t *value = (sy_record_t *)type->value;
-        value->link -= 1;
+        if (sy_record_link_decrease(value) < 0)
+        {
+            return -1;
+        }
     }
-    else
-    if (type->type->kind == NODE_KIND_TUPLE)
+    else if (type->type->kind == NODE_KIND_TUPLE)
     {
         if (sy_record_tuple_destroy((sy_record_tuple_t *)type->value) < 0)
         {
             return -1;
         }
     }
-    else
-    if (type->type->kind == NODE_KIND_CLASS)
+    else if (type->type->kind == NODE_KIND_CLASS)
     {
         if (sy_strip_destroy((sy_strip_t *)type->value) < 0)
         {
             return -1;
         }
     }
-    else
-    if (type->type->kind == NODE_KIND_FUN)
+    else if (type->type->kind == NODE_KIND_FUN)
     {
         if (sy_strip_destroy((sy_strip_t *)type->value) < 0)
         {
             return -1;
         }
     }
-    else
-    if (type->type->kind == NODE_KIND_LAMBDA)
+    else if (type->type->kind == NODE_KIND_LAMBDA)
     {
         if (sy_strip_destroy((sy_strip_t *)type->value) < 0)
         {
@@ -555,8 +1042,6 @@ sy_record_type_destroy(sy_record_type_t *type)
 
     return 0;
 }
-
-
 
 sy_record_object_t *
 sy_record_object_copy(sy_record_object_t *object)
@@ -704,8 +1189,7 @@ sy_record_type_copy(sy_record_type_t *type)
             }
         }
     }
-    else
-    if (type->type->kind == NODE_KIND_ARRAY)
+    else if (type->type->kind == NODE_KIND_ARRAY)
     {
         if (type->value)
         {
@@ -716,8 +1200,7 @@ sy_record_type_copy(sy_record_type_t *type)
             }
         }
     }
-    else
-    if (type->type->kind == NODE_KIND_TUPLE)
+    else if (type->type->kind == NODE_KIND_TUPLE)
     {
         if (type->value)
         {
@@ -728,8 +1211,7 @@ sy_record_type_copy(sy_record_type_t *type)
             }
         }
     }
-    else
-    if (type->type->kind == NODE_KIND_CLASS)
+    else if (type->type->kind == NODE_KIND_CLASS)
     {
         if (type->value)
         {
@@ -740,8 +1222,7 @@ sy_record_type_copy(sy_record_type_t *type)
             }
         }
     }
-    else
-    if (type->type->kind == NODE_KIND_FUN)
+    else if (type->type->kind == NODE_KIND_FUN)
     {
         if (type->value)
         {
@@ -752,8 +1233,7 @@ sy_record_type_copy(sy_record_type_t *type)
             }
         }
     }
-    else
-    if (type->type->kind == NODE_KIND_LAMBDA)
+    else if (type->type->kind == NODE_KIND_LAMBDA)
     {
         if (type->value)
         {
@@ -776,22 +1256,22 @@ sy_record_type_copy(sy_record_type_t *type)
                 return ERROR;
             }
         }
-        else
-        if (type->type->kind == NODE_KIND_ARRAY)
+        else if (type->type->kind == NODE_KIND_ARRAY)
         {
             sy_record_t *rec = (sy_record_t *)value;
-            rec->link -= 1;
+            if (sy_record_link_decrease(rec) < 0)
+            {
+                return ERROR;
+            }
         }
-        else
-        if (type->type->kind == NODE_KIND_TUPLE)
+        else if (type->type->kind == NODE_KIND_TUPLE)
         {
             if (sy_record_tuple_destroy((sy_record_tuple_t *)value) < 0)
             {
                 return ERROR;
             }
         }
-        else
-        if (type->type->kind == NODE_KIND_CLASS)
+        else if (type->type->kind == NODE_KIND_CLASS)
         {
             if (sy_strip_destroy((sy_strip_t *)value) < 0)
             {
@@ -808,8 +1288,6 @@ sy_record_type_copy(sy_record_type_t *type)
     return basic;
 }
 
-
-
 sy_record_t *
 sy_record_copy(sy_record_t *record)
 {
@@ -817,23 +1295,19 @@ sy_record_copy(sy_record_t *record)
     {
         return sy_record_make_int_from_z(*(mpz_t *)(record->value));
     }
-    else
-    if (record->kind == RECORD_KIND_FLOAT)
+    else if (record->kind == RECORD_KIND_FLOAT)
     {
         return sy_record_make_float_from_f(*(mpf_t *)(record->value));
     }
-    else
-    if (record->kind == RECORD_KIND_CHAR)
+    else if (record->kind == RECORD_KIND_CHAR)
     {
         return sy_record_make_char(*(char *)(record->value));
     }
-    else
-    if (record->kind == RECORD_KIND_STRING)
+    else if (record->kind == RECORD_KIND_STRING)
     {
         return sy_record_make_string((char *)(record->value));
     }
-    else
-    if (record->kind == RECORD_KIND_OBJECT)
+    else if (record->kind == RECORD_KIND_OBJECT)
     {
         sy_record_object_t *basic = sy_record_object_copy((sy_record_object_t *)record->value);
         if (basic == ERROR)
@@ -852,8 +1326,7 @@ sy_record_copy(sy_record_t *record)
         }
         return record_copy;
     }
-    else
-    if (record->kind == RECORD_KIND_TUPLE)
+    else if (record->kind == RECORD_KIND_TUPLE)
     {
         sy_record_tuple_t *basic = sy_record_tuple_copy((sy_record_tuple_t *)record->value);
         if (basic == ERROR)
@@ -872,10 +1345,10 @@ sy_record_copy(sy_record_t *record)
         }
         return record_copy;
     }
-    else
-    if (record->kind == RECORD_KIND_STRUCT)
+    else if (record->kind == RECORD_KIND_STRUCT)
     {
-        sy_record_struct_t *basic = sy_record_struct_copy((sy_record_struct_t *)record->value);;
+        sy_record_struct_t *basic = sy_record_struct_copy((sy_record_struct_t *)record->value);
+        ;
         if (basic == ERROR)
         {
             return ERROR;
@@ -893,8 +1366,7 @@ sy_record_copy(sy_record_t *record)
 
         return record_copy;
     }
-    else
-    if (record->kind == RECORD_KIND_TYPE)
+    else if (record->kind == RECORD_KIND_TYPE)
     {
         sy_record_type_t *basic = sy_record_type_copy((sy_record_type_t *)record->value);
         if (basic == ERROR)
@@ -914,18 +1386,15 @@ sy_record_copy(sy_record_t *record)
 
         return record_copy;
     }
-    else
-    if (record->kind == RECORD_KIND_NULL)
+    else if (record->kind == RECORD_KIND_NULL)
     {
         return sy_record_make_null();
     }
-    else
-    if (record->kind == RECORD_KIND_UNDEFINED)
+    else if (record->kind == RECORD_KIND_UNDEFINED)
     {
         return sy_record_make_undefined();
     }
-    else
-    if (record->kind == RECORD_KIND_NAN)
+    else if (record->kind == RECORD_KIND_NAN)
     {
         return sy_record_make_nan();
     }
@@ -950,8 +1419,7 @@ sy_record_destroy(sy_record_t *record)
         }
         sy_memory_free(record);
     }
-    else
-    if (record->kind == RECORD_KIND_TUPLE)
+    else if (record->kind == RECORD_KIND_TUPLE)
     {
         sy_record_tuple_t *tuple = (sy_record_tuple_t *)record->value;
         if (sy_record_tuple_destroy(tuple) < 0)
@@ -960,8 +1428,7 @@ sy_record_destroy(sy_record_t *record)
         }
         sy_memory_free(record);
     }
-    else
-    if (record->kind == RECORD_KIND_TYPE)
+    else if (record->kind == RECORD_KIND_TYPE)
     {
         sy_record_type_t *type = (sy_record_type_t *)record->value;
         if (sy_record_type_destroy(type) < 0)
@@ -970,8 +1437,7 @@ sy_record_destroy(sy_record_t *record)
         }
         sy_memory_free(record);
     }
-    else
-    if (record->kind == RECORD_KIND_STRUCT)
+    else if (record->kind == RECORD_KIND_STRUCT)
     {
         sy_record_struct_t *struct1 = (sy_record_struct_t *)record->value;
         if (sy_record_struct_destroy(struct1) < 0)
@@ -986,25 +1452,20 @@ sy_record_destroy(sy_record_t *record)
         {
             mpz_clear(*(mpz_t *)(record->value));
         }
-        else
-        if (record->kind == RECORD_KIND_FLOAT)
+        else if (record->kind == RECORD_KIND_FLOAT)
         {
             mpf_clear(*(mpf_t *)(record->value));
         }
-        else
-        if (record->kind == RECORD_KIND_NULL)
+        else if (record->kind == RECORD_KIND_NULL)
         {
         }
-        else
-        if (record->kind == RECORD_KIND_UNDEFINED)
+        else if (record->kind == RECORD_KIND_UNDEFINED)
         {
         }
-        else
-        if (record->kind == RECORD_KIND_NAN)
+        else if (record->kind == RECORD_KIND_NAN)
         {
         }
-        else
-        if (record->reference != 1)
+        else if (record->reference != 1)
         {
             sy_memory_free(record->value);
         }
@@ -1013,5 +1474,3 @@ sy_record_destroy(sy_record_t *record)
 
     return 0;
 }
-
-

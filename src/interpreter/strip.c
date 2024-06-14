@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <gmp.h>
+#include <jansson.h>
 
 #include "../types/types.h"
 #include "../container/queue.h"
@@ -25,10 +26,10 @@
 static int32_t
 sy_strip_id_cmp(sy_node_t *n1, sy_node_t *n2)
 {
-	sy_node_basic_t *nb1 = (sy_node_basic_t *)n1->value;
-	sy_node_basic_t *nb2 = (sy_node_basic_t *)n2->value;
+    sy_node_basic_t *nb1 = (sy_node_basic_t *)n1->value;
+    sy_node_basic_t *nb2 = (sy_node_basic_t *)n2->value;
 
-	return (strcmp(nb1->value, nb2->value) == 0);
+    return (strcmp(nb1->value, nb2->value) == 0);
 }
 
 sy_strip_t *
@@ -64,19 +65,19 @@ static void
 sy_strip_variable_unlink(sy_strip_t *strip, sy_entry_t *entry)
 {
     if (entry == strip->variables)
-	{
-		strip->variables = entry->next;
-	}
+    {
+        strip->variables = entry->next;
+    }
 
-	if (entry->next)
-	{
-		entry->next->previous = entry->previous;
-	}
+    if (entry->next)
+    {
+        entry->next->previous = entry->previous;
+    }
 
-	if (entry->previous)
-	{
-		entry->previous->next = entry->next;
-	}
+    if (entry->previous)
+    {
+        entry->previous->next = entry->next;
+    }
 }
 
 static void
@@ -95,25 +96,25 @@ static void
 sy_strip_input_unlink(sy_strip_t *strip, sy_entry_t *entry)
 {
     if (entry == strip->inputs)
-	{
-		strip->inputs = entry->next;
-	}
+    {
+        strip->inputs = entry->next;
+    }
 
-	if (entry->next)
-	{
-		entry->next->previous = entry->previous;
-	}
+    if (entry->next)
+    {
+        entry->next->previous = entry->previous;
+    }
 
-	if (entry->previous)
-	{
-		entry->previous->next = entry->next;
-	}
+    if (entry->previous)
+    {
+        entry->previous->next = entry->next;
+    }
 }
 
 sy_entry_t *
 sy_strip_variable_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_record_t *value)
 {
-    for (sy_entry_t *item = strip->variables;item != NULL;item = item->next)
+    for (sy_entry_t *item = strip->variables; item != NULL; item = item->next)
     {
         if (sy_strip_id_cmp(item->key, key) == 1)
         {
@@ -122,12 +123,12 @@ sy_strip_variable_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy
     }
 
     sy_entry_t *entry = (sy_entry_t *)sy_memory_calloc(1, sizeof(sy_entry_t));
-    if(entry == NULL)
+    if (entry == NULL)
     {
         sy_error_no_memory();
         return ERROR;
     }
-    
+
     entry->scope = scope;
     entry->key = key;
     entry->value = value;
@@ -141,13 +142,13 @@ sy_strip_variable_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy
 sy_entry_t *
 sy_strip_variable_find(sy_strip_t *strip, sy_node_t *scope, sy_node_t *key)
 {
-    for (sy_entry_t *entry = strip->variables;entry != NULL;entry = entry->next)
+    for (sy_entry_t *entry = strip->variables; entry != NULL; entry = entry->next)
     {
         if ((entry->scope->id == scope->id) && sy_strip_id_cmp(entry->key, key) == 1)
         {
             if (entry->value)
             {
-                entry->value->link += 1;
+                sy_record_link_increase(entry->value);
             }
             return entry;
         }
@@ -160,8 +161,7 @@ sy_strip_variable_find(sy_strip_t *strip, sy_node_t *scope, sy_node_t *key)
         {
             return ERROR;
         }
-        else
-        if (entry != NULL)
+        else if (entry != NULL)
         {
             return entry;
         }
@@ -173,13 +173,13 @@ sy_strip_variable_find(sy_strip_t *strip, sy_node_t *scope, sy_node_t *key)
 sy_entry_t *
 sy_strip_input_find(sy_strip_t *strip, sy_node_t *scope, sy_node_t *key)
 {
-    for (sy_entry_t *entry = strip->inputs;entry != NULL;entry = entry->next)
+    for (sy_entry_t *entry = strip->inputs; entry != NULL; entry = entry->next)
     {
         if ((entry->scope->id == scope->id) && sy_strip_id_cmp(entry->key, key) == 1)
         {
             if (entry->value)
             {
-                entry->value->link += 1;
+                sy_record_link_increase(entry->value);
             }
             return entry;
         }
@@ -191,7 +191,7 @@ sy_strip_input_find(sy_strip_t *strip, sy_node_t *scope, sy_node_t *key)
 sy_entry_t *
 sy_strip_input_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_record_t *value)
 {
-    for (sy_entry_t *item = strip->inputs;item != NULL;item = item->next)
+    for (sy_entry_t *item = strip->inputs; item != NULL; item = item->next)
     {
         if (sy_strip_id_cmp(item->key, key) == 1)
         {
@@ -200,7 +200,7 @@ sy_strip_input_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_no
     }
 
     sy_entry_t *entry = (sy_entry_t *)sy_memory_calloc(1, sizeof(sy_entry_t));
-    if(entry == NULL)
+    if (entry == NULL)
     {
         sy_error_no_memory();
         return ERROR;
@@ -219,7 +219,7 @@ sy_strip_input_push(sy_strip_t *strip, sy_node_t *scope, sy_node_t *block, sy_no
 int32_t
 sy_strip_variable_remove_by_scope(sy_strip_t *strip, sy_node_t *scope)
 {
-    for (sy_entry_t *entry = strip->variables, *b = NULL;entry != NULL;entry = b)
+    for (sy_entry_t *entry = strip->variables, *b = NULL; entry != NULL; entry = b)
     {
         b = entry->next;
         if (entry->scope->id == scope->id)
@@ -250,11 +250,11 @@ sy_strip_destroy(sy_strip_t *strip)
         {
             return 0;
         }
-        
+
         strip->previous = NULL;
     }
 
-    for (sy_entry_t *item = strip->variables, *next = NULL;item != NULL;item = next)
+    for (sy_entry_t *item = strip->variables, *next = NULL; item != NULL; item = next)
     {
         next = item->next;
 
@@ -265,39 +265,51 @@ sy_strip_destroy(sy_strip_t *strip)
                 sy_node_var_t *var1 = (sy_node_var_t *)item->block->value;
                 if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->link -= 1;
+                    if (sy_record_link_decrease(item->value) < 0)
+                    {
+                        return -1;
+                    }
                 }
             }
-            else
-            if (item->block->kind == NODE_KIND_ENTITY)
+            else if (item->block->kind == NODE_KIND_ENTITY)
             {
                 sy_node_entity_t *entity1 = (sy_node_entity_t *)item->block->value;
                 if ((entity1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->link -= 1;
+                    if (sy_record_link_decrease(item->value) < 0)
+                    {
+                        return -1;
+                    }
                 }
             }
-            else
-            if (item->block->kind == NODE_KIND_PROPERTY)
+            else if (item->block->kind == NODE_KIND_PROPERTY)
             {
                 sy_node_property_t *property1 = (sy_node_property_t *)item->block->value;
                 if ((property1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->link -= 1;
+                    if (sy_record_link_decrease(item->value) < 0)
+                    {
+                        return -1;
+                    }
                 }
             }
-            else
-            if (item->block->kind == NODE_KIND_PARAMETER)
+            else if (item->block->kind == NODE_KIND_PARAMETER)
             {
                 sy_node_parameter_t *parameter1 = (sy_node_parameter_t *)item->block->value;
                 if ((parameter1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->link -= 1;
+                    if (sy_record_link_decrease(item->value) < 0)
+                    {
+                        return -1;
+                    }
                 }
             }
             else
             {
-                item->value->link -= 1;
+                if (sy_record_link_decrease(item->value) < 0)
+                {
+                    return -1;
+                }
             }
         }
 
@@ -305,7 +317,7 @@ sy_strip_destroy(sy_strip_t *strip)
         sy_memory_free(item);
     }
 
-    for (sy_entry_t *item = strip->inputs, *next = NULL;item != NULL;item = next)
+    for (sy_entry_t *item = strip->inputs, *next = NULL; item != NULL; item = next)
     {
         next = item->next;
 
@@ -316,39 +328,51 @@ sy_strip_destroy(sy_strip_t *strip)
                 sy_node_var_t *var1 = (sy_node_var_t *)item->block->value;
                 if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->link -= 1;
+                    if (sy_record_link_decrease(item->value) < 0)
+                    {
+                        return -1;
+                    }
                 }
             }
-            else
-            if (item->block->kind == NODE_KIND_ENTITY)
+            else if (item->block->kind == NODE_KIND_ENTITY)
             {
                 sy_node_entity_t *entity1 = (sy_node_entity_t *)item->block->value;
                 if ((entity1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->link -= 1;
+                    if (sy_record_link_decrease(item->value) < 0)
+                    {
+                        return -1;
+                    }
                 }
             }
-            else
-            if (item->block->kind == NODE_KIND_PROPERTY)
+            else if (item->block->kind == NODE_KIND_PROPERTY)
             {
                 sy_node_property_t *property1 = (sy_node_property_t *)item->block->value;
                 if ((property1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->link -= 1;
+                    if (sy_record_link_decrease(item->value) < 0)
+                    {
+                        return -1;
+                    }
                 }
             }
-            else
-            if (item->block->kind == NODE_KIND_PARAMETER)
+            else if (item->block->kind == NODE_KIND_PARAMETER)
             {
                 sy_node_parameter_t *parameter1 = (sy_node_parameter_t *)item->block->value;
                 if ((parameter1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    item->value->link -= 1;
+                    if (sy_record_link_decrease(item->value) < 0)
+                    {
+                        return -1;
+                    }
                 }
             }
             else
             {
-                item->value->link -= 1;
+                if (sy_record_link_decrease(item->value) < 0)
+                {
+                    return -1;
+                }
             }
         }
 
@@ -373,7 +397,7 @@ sy_strip_copy(sy_strip_t *strip)
             return ERROR;
         }
     }
-    
+
     sy_strip_t *strip_copy = sy_strip_create(strip_previous);
     if (strip_copy == ERROR)
     {
@@ -388,10 +412,10 @@ sy_strip_copy(sy_strip_t *strip)
         return ERROR;
     }
 
-    for (sy_entry_t *item = strip->variables;item != NULL;item = item->next)
+    for (sy_entry_t *item = strip->variables; item != NULL; item = item->next)
     {
         sy_entry_t *entry = (sy_entry_t *)sy_memory_calloc(1, sizeof(sy_entry_t));
-        if(entry == NULL)
+        if (entry == NULL)
         {
             sy_error_no_memory();
             if (sy_strip_destroy(strip_copy) < 0)
@@ -401,7 +425,7 @@ sy_strip_copy(sy_strip_t *strip)
             return ERROR;
         }
 
-        item->value->link += 1;
+        sy_record_link_increase(item->value);
 
         entry->scope = item->scope;
         entry->key = item->key;
@@ -411,10 +435,10 @@ sy_strip_copy(sy_strip_t *strip)
         sy_strip_variable_link(strip_copy, entry);
     }
 
-    for (sy_entry_t *item = strip->inputs;item != NULL;item = item->next)
+    for (sy_entry_t *item = strip->inputs; item != NULL; item = item->next)
     {
         sy_entry_t *entry = (sy_entry_t *)sy_memory_calloc(1, sizeof(sy_entry_t));
-        if(entry == NULL)
+        if (entry == NULL)
         {
             sy_error_no_memory();
             if (sy_strip_destroy(strip_copy) < 0)
@@ -424,7 +448,7 @@ sy_strip_copy(sy_strip_t *strip)
             return ERROR;
         }
 
-        item->value->link += 1;
+        sy_record_link_increase(item->value);
 
         entry->scope = item->scope;
         entry->key = item->key;

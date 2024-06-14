@@ -33,7 +33,7 @@ sy_thread_init()
     bt->id = pthread_self();
 #endif
 
-    bt->begin  = NULL;
+    bt->begin = NULL;
     bt->parent = NULL;
 
     sy_interpreter_t *interpreter = sy_interpreter_create();
@@ -83,8 +83,8 @@ sy_thread_unsafe_link(sy_thread_t *parent, sy_thread_t *current, sy_thread_t *it
             current->previous->next = it;
         }
     }
-    
-    if(parent->begin == current)
+
+    if (parent->begin == current)
     {
         parent->begin = it;
     }
@@ -95,29 +95,30 @@ sy_thread_unsafe_link(sy_thread_t *parent, sy_thread_t *current, sy_thread_t *it
 static void
 sy_thread_unsafe_unlink(sy_thread_t *parent, sy_thread_t *it)
 {
-	if (it == parent->begin)
-	{
-		parent->begin = it->next;
-	}
+    if (it == parent->begin)
+    {
+        parent->begin = it->next;
+    }
 
-	if (it->next)
-	{
-		it->next->previous = it->previous;
-	}
+    if (it->next)
+    {
+        it->next->previous = it->previous;
+    }
 
-	if (it->previous)
-	{
-		it->previous->next = it->next;
-	}
+    if (it->previous)
+    {
+        it->previous->next = it->next;
+    }
 }
 
+sy_thread_t *
+sy_thread_create(
 #ifdef _WIN32
-sy_thread_t *
-sy_thread_create(DWORD (*start_routine)(LPVOID), LPVOID arg)
+    DWORD (*start_routine)(LPVOID), LPVOID arg
 #else
-sy_thread_t *
-sy_thread_create(void *(*start_routine)(void *), void *arg)
+    void *(*start_routine)(void *), void *arg
 #endif
+)
 {
     sy_thread_t *t = (sy_thread_t *)sy_memory_calloc(1, sizeof(sy_thread_t));
     if (!t)
@@ -153,7 +154,7 @@ sy_thread_create(void *(*start_routine)(void *), void *arg)
         return ERROR;
     }
 
-    assert (parent != NULL);
+    assert(parent != NULL);
 
     if (sy_mutex_lock(&parent->lock) < 0)
     {
@@ -181,7 +182,7 @@ sy_thread_create(void *(*start_routine)(void *), void *arg)
 
 #ifdef _WIN32
     DWORD threadId;
-    HANDLE thread = CreateThread(NULL, 0, sy_module_load_by_thread, &data, 0, &threadId);
+    HANDLE thread = CreateThread(NULL, 0, sy_repository_load_by_thread, &data, 0, &threadId);
     if (!thread)
     {
         if (sy_interpreter_destroy(interpreter) < 0)
@@ -216,7 +217,7 @@ sy_thread_create(void *(*start_routine)(void *), void *arg)
 static sy_thread_t *
 sy_thread_unsafe_find_by_id(sy_thread_t *parent, sy_thread_id_t id)
 {
-    for (sy_thread_t *t = parent->begin;t != NULL;t = t->next)
+    for (sy_thread_t *t = parent->begin; t != NULL; t = t->next)
     {
         if (t->id == id)
         {
@@ -310,8 +311,8 @@ sy_thread_join(sy_thread_t *thread)
     else
     {
         DWORD request = GetCurrentThreadId();
-        sy_error_system("'%s-%lu' could not join '%lu', %d", "sy_thread", 
-                request, thread->id, GetLastError());
+        sy_error_system("'%s-%lu' could not join '%lu', %d", "sy_thread",
+                        request, thread->id, GetLastError());
         return -1;
     }
 #else
@@ -323,8 +324,8 @@ sy_thread_join(sy_thread_t *thread)
     else
     {
         pthread_t request = pthread_self();
-        sy_error_system("'%s-%lu' could not join '%lu', %s", "sy_thread", 
-                request, thread->id, strerror(r1));
+        sy_error_system("'%s-%lu' could not join '%lu', %s", "sy_thread",
+                        request, thread->id, strerror(r1));
         return -1;
     }
 #endif
@@ -338,8 +339,7 @@ sy_thread_join_all_childrens()
     {
         return -1;
     }
-    else
-    if (thread == NULL)
+    else if (thread == NULL)
     {
         return 0;
     }
@@ -350,7 +350,7 @@ sy_thread_join_all_childrens()
         return -1;
     }
 
-    for (sy_thread_t *t = thread->begin;t != NULL;t = t->next)
+    for (sy_thread_t *t = thread->begin; t != NULL; t = t->next)
     {
         if (sy_thread_join(t) < 0)
         {
@@ -381,7 +381,7 @@ sy_thread_exit()
         return -1;
     }
 
-    assert (thread->parent != NULL);
+    assert(thread->parent != NULL);
 
     sy_thread_t *parent = thread->parent;
 
@@ -409,8 +409,7 @@ sy_thread_exit()
     return 0;
 }
 
-void 
-sy_thread_sleep(uint64_t ms)
+void sy_thread_sleep(uint64_t ms)
 {
 #if _WIN32
     sleep(ms);

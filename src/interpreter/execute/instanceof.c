@@ -8,6 +8,7 @@
 #include <mpfr.h>
 #include <stdint.h>
 #include <float.h>
+#include <jansson.h>
 
 #include "../../types/types.h"
 #include "../../container/queue.h"
@@ -50,16 +51,30 @@ sy_execute_instanceof(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, 
             r = sy_execute_value_check_by_type(node, left, right, strip, applicant);
             if (r < 0)
             {
-                left->link -= 1;
-                right->link -= 1;
+                if (sy_record_link_decrease(left) < 0)
+                {
+                    return ERROR;
+                }
+
+                if (sy_record_link_decrease(right) < 0)
+                {
+                    return ERROR;
+                }
                 return ERROR;
             }
         }
 
         sy_record_t *record = sy_record_make_int_from_si(r);
-        
-        left->link -= 1;
-        right->link -= 1;
+
+        if (sy_record_link_decrease(left) < 0)
+        {
+            return ERROR;
+        }
+
+        if (sy_record_link_decrease(right) < 0)
+        {
+            return ERROR;
+        }
 
         return record;
     }

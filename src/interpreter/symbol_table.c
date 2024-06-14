@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <gmp.h>
+#include <jansson.h>
 
 #include "../types/types.h"
 #include "../container/queue.h"
@@ -33,15 +34,15 @@ int32_t
 sy_symbol_table_init()
 {
     sy_symbol_table_t *st = sy_symbol_table_get();
-	if (sy_mutex_init(&st->lock) < 0)
-	{
-		sy_error_system("'%s' could not initialize the lock", "sy_symbol_table.lock");
-		return -1;
-	}
+    if (sy_mutex_init(&st->lock) < 0)
+    {
+        sy_error_system("'%s' could not initialize the lock", "sy_symbol_table.lock");
+        return -1;
+    }
 
     st->begin = NULL;
 
-	return 0;
+    return 0;
 }
 
 int32_t
@@ -59,10 +60,10 @@ sy_symbol_table_destroy()
 static int32_t
 sy_symbol_table_id_cmp(sy_node_t *n1, sy_node_t *n2)
 {
-	sy_node_basic_t *nb1 = (sy_node_basic_t *)n1->value;
-	sy_node_basic_t *nb2 = (sy_node_basic_t *)n2->value;
+    sy_node_basic_t *nb1 = (sy_node_basic_t *)n1->value;
+    sy_node_basic_t *nb2 = (sy_node_basic_t *)n2->value;
 
-	return (strcmp(nb1->value, nb2->value) == 0);
+    return (strcmp(nb1->value, nb2->value) == 0);
 }
 
 static void
@@ -85,19 +86,19 @@ sy_symbol_table_unlink(sy_entry_t *entry)
     sy_symbol_table_t *st = sy_symbol_table_get();
 
     if (st->begin == entry)
-	{
-		st->begin = entry->next;
-	}
+    {
+        st->begin = entry->next;
+    }
 
-	if (entry->next)
-	{
-		entry->next->previous = entry->previous;
-	}
+    if (entry->next)
+    {
+        entry->next->previous = entry->previous;
+    }
 
-	if (entry->previous)
-	{
-		entry->previous->next = entry->next;
-	}
+    if (entry->previous)
+    {
+        entry->previous->next = entry->next;
+    }
 
     entry->previous = entry->next = NULL;
 }
@@ -106,7 +107,7 @@ sy_entry_t *
 sy_symbol_table_push(sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_record_t *value)
 {
     sy_entry_t *entry = (sy_entry_t *)sy_memory_calloc(1, sizeof(sy_entry_t));
-    if(!entry)
+    if (!entry)
     {
         sy_error_no_memory();
         return ERROR;
@@ -122,7 +123,6 @@ sy_symbol_table_push(sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_reco
 
     if (sy_mutex_lock(&st->lock) < 0)
     {
-        value->link -= 1;
         sy_memory_free(entry);
         sy_error_system("'%s' could not lock", "sy_tymbol_table.lock");
         return ERROR;
@@ -132,7 +132,6 @@ sy_symbol_table_push(sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_reco
 
     if (sy_mutex_unlock(&st->lock) < 0)
     {
-        value->link -= 1;
         sy_memory_free(entry);
         sy_error_system("'%s' could not unlock", "sy_tymbol_table.lock");
         return ERROR;
@@ -153,7 +152,7 @@ sy_symbol_table_find(sy_node_t *scope, sy_node_t *key)
     }
 
     sy_entry_t *a1;
-    for (a1 = st->begin;a1 != NULL;a1 = a1->next)
+    for (a1 = st->begin; a1 != NULL; a1 = a1->next)
     {
         if ((a1->scope->id == scope->id) && (sy_symbol_table_id_cmp(a1->key, key) == 1))
         {
@@ -164,7 +163,7 @@ sy_symbol_table_find(sy_node_t *scope, sy_node_t *key)
             }
             if (a1->value)
             {
-                a1->value->link += 1;
+                sy_record_link_increase(a1->value);
             }
             return a1;
         }

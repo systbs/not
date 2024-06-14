@@ -8,6 +8,7 @@
 #include <mpfr.h>
 #include <stdint.h>
 #include <float.h>
+#include <jansson.h>
 
 #include "../../types/types.h"
 #include "../../container/queue.h"

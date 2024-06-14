@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include <float.h>
 #include <inttypes.h>
+#include <ffi.h>
+#include <jansson.h>
 
 #include "../../types/types.h"
 #include "../../container/queue.h"
@@ -32,16 +34,16 @@
 #include "execute.h"
 
 static sy_record_t *
-sy_execute_provide_class(sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant);
+sy_call_provide_class(sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant);
 
-int32_t 
-sy_execute_parameters_check_by_one_argument(sy_node_t *node, sy_strip_t *strip, sy_node_t *parameters, sy_record_t *arg, sy_node_t *applicant)
+int32_t
+sy_call_parameters_check_by_one_arg(sy_node_t *base, sy_strip_t *strip, sy_node_t *parameters, sy_record_t *arg, sy_node_t *applicant)
 {
     if (parameters)
     {
         sy_node_block_t *block1 = (sy_node_block_t *)parameters->value;
         sy_node_t *item1 = block1->items;
-        
+
         sy_node_parameter_t *parameter = (sy_node_parameter_t *)item1->value;
         if ((parameter->flag & SYNTAX_MODIFIER_KARG) == SYNTAX_MODIFIER_KARG)
         {
@@ -57,44 +59,64 @@ sy_execute_parameters_check_by_one_argument(sy_node_t *node, sy_strip_t *strip, 
 
                 if (parameter->type)
                 {
-                    sy_record_t *record_param_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
-                    if (record_param_type == ERROR)
+                    sy_record_t *record_parameter_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
+                    if (record_parameter_type == ERROR)
                     {
-                        record_arg->link -= 1;
+                        if (sy_record_link_decrease(record_arg) < 0)
+                        {
+                            return -1;
+                        }
                         return -1;
                     }
 
-                    if (record_param_type->kind != RECORD_KIND_TYPE)
+                    if (record_parameter_type->kind != RECORD_KIND_TYPE)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                        sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'", 
-                            basic1->value, sy_record_type_as_string(record_param_type));
-                        
-                        record_param_type->link -= 1;
+                        sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'",
+                                              basic1->value, sy_record_type_as_string(record_parameter_type));
 
-                        record_arg->link -= 1;
+                        if (sy_record_link_decrease(record_parameter_type) < 0)
+                        {
+                            return -1;
+                        }
+
+                        if (sy_record_link_decrease(record_arg) < 0)
+                        {
+                            return -1;
+                        }
 
                         return -1;
                     }
 
-                    int32_t r1 = sy_execute_value_check_by_type(node, record_arg, record_param_type, strip, applicant);
+                    int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
                     if (r1 < 0)
                     {
-                        record_param_type->link -= 1;
+                        if (sy_record_link_decrease(record_parameter_type) < 0)
+                        {
+                            return -1;
+                        }
 
-                        record_arg->link -= 1;
-                        
+                        if (sy_record_link_decrease(record_arg) < 0)
+                        {
+                            return -1;
+                        }
+
                         return -1;
                     }
-                    else
-                    if (r1 == 0)
+                    else if (r1 == 0)
                     {
                         if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                         {
                             if (tuple == NULL)
                             {
-                                record_param_type->link -= 1;
-                                record_arg->link -= 1;
+                                if (sy_record_link_decrease(record_parameter_type) < 0)
+                                {
+                                    return -1;
+                                }
+                                if (sy_record_link_decrease(record_arg) < 0)
+                                {
+                                    return -1;
+                                }
 
                                 return 0;
                             }
@@ -104,27 +126,41 @@ sy_execute_parameters_check_by_one_argument(sy_node_t *node, sy_strip_t *strip, 
                             if (record_arg->link > 1)
                             {
                                 sy_record_t *record_copy = sy_record_copy(record_arg);
-                                record_arg->link -= 1;
+                                if (sy_record_link_decrease(record_arg) < 0)
+                                {
+                                    return -1;
+                                }
                                 record_arg = record_copy;
                             }
 
-                            sy_record_t *record_arg2 = sy_execute_value_casting_by_type(node, record_arg, record_param_type, strip, applicant);
+                            sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
                             if (record_arg2 == ERROR)
                             {
-                                record_param_type->link -= 1;
+                                if (sy_record_link_decrease(record_parameter_type) < 0)
+                                {
+                                    return -1;
+                                }
 
-                                record_arg->link -= 1;
-                                
+                                if (sy_record_link_decrease(record_arg) < 0)
+                                {
+                                    return -1;
+                                }
+
                                 return -1;
                             }
-                            else
-                            if (record_arg2 == NULL)
+                            else if (record_arg2 == NULL)
                             {
                                 if (tuple == NULL)
                                 {
-                                    record_param_type->link -= 1;
-                                    record_arg->link -= 1;
-                                    
+                                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                                    {
+                                        return -1;
+                                    }
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
+
                                     return 0;
                                 }
                             }
@@ -133,7 +169,10 @@ sy_execute_parameters_check_by_one_argument(sy_node_t *node, sy_strip_t *strip, 
                         }
                     }
 
-                    record_param_type->link -= 1;
+                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                    {
+                        return -1;
+                    }
                 }
 
                 if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
@@ -141,7 +180,10 @@ sy_execute_parameters_check_by_one_argument(sy_node_t *node, sy_strip_t *strip, 
                     if (record_arg->link > 1)
                     {
                         sy_record_t *record_copy = sy_record_copy(record_arg);
-                        record_arg->link -= 1;
+                        if (sy_record_link_decrease(record_arg) < 0)
+                        {
+                            return -1;
+                        }
                         record_arg = record_copy;
                     }
                 }
@@ -149,18 +191,27 @@ sy_execute_parameters_check_by_one_argument(sy_node_t *node, sy_strip_t *strip, 
                 sy_record_tuple_t *tuple2 = sy_record_make_tuple(record_arg, tuple);
                 if (tuple2 == ERROR)
                 {
-                    record_arg->link -= 1;
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        return -1;
+                    }
 
                     if (tuple)
                     {
                         if (sy_record_tuple_destroy(tuple) < 0)
                         {
-                            record_arg->link -= 1;
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
                             return -1;
                         }
                     }
 
-                    record_arg->link -= 1;
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        return -1;
+                    }
                     return -1;
                 }
 
@@ -190,12 +241,14 @@ sy_execute_parameters_check_by_one_argument(sy_node_t *node, sy_strip_t *strip, 
                 record_arg->typed = 1;
             }
 
-            record_arg->link -= 1;
+            if (sy_record_link_decrease(record_arg) < 0)
+            {
+                return -1;
+            }
 
             item1 = item1->next;
         }
-        else
-        if ((parameter->flag & SYNTAX_MODIFIER_KWARG) == SYNTAX_MODIFIER_KWARG)
+        else if ((parameter->flag & SYNTAX_MODIFIER_KWARG) == SYNTAX_MODIFIER_KWARG)
         {
             return 0;
         }
@@ -209,42 +262,62 @@ sy_execute_parameters_check_by_one_argument(sy_node_t *node, sy_strip_t *strip, 
 
             if (parameter->type)
             {
-                sy_record_t *record_param_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
-                if (record_param_type == ERROR)
+                sy_record_t *record_parameter_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
+                if (record_parameter_type == ERROR)
                 {
-                    record_arg->link -= 1;
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        return -1;
+                    }
                     return -1;
                 }
 
-                if (record_param_type->kind != RECORD_KIND_TYPE)
+                if (record_parameter_type->kind != RECORD_KIND_TYPE)
                 {
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                    sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'", 
-                        basic1->value, sy_record_type_as_string(record_param_type));
-                    
-                    record_param_type->link -= 1;
+                    sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'",
+                                          basic1->value, sy_record_type_as_string(record_parameter_type));
 
-                    record_arg->link -= 1;
+                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                    {
+                        return -1;
+                    }
+
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        return -1;
+                    }
 
                     return -1;
                 }
 
-                int32_t r1 = sy_execute_value_check_by_type(node, record_arg, record_param_type, strip, applicant);
+                int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
                 if (r1 < 0)
                 {
-                    record_param_type->link -= 1;
-                    record_arg->link -= 1;
-                    
+                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                    {
+                        return -1;
+                    }
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        return -1;
+                    }
+
                     return -1;
                 }
-                else
-                if (r1 == 0)
+                else if (r1 == 0)
                 {
                     if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                     {
-                        record_param_type->link -= 1;
-                        record_arg->link -= 1;
-                        
+                        if (sy_record_link_decrease(record_parameter_type) < 0)
+                        {
+                            return -1;
+                        }
+                        if (sy_record_link_decrease(record_arg) < 0)
+                        {
+                            return -1;
+                        }
+
                         return 0;
                     }
                     else
@@ -252,25 +325,39 @@ sy_execute_parameters_check_by_one_argument(sy_node_t *node, sy_strip_t *strip, 
                         if (record_arg->link > 1)
                         {
                             sy_record_t *record_copy = sy_record_copy(record_arg);
-                            record_arg->link -= 1;
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
                             record_arg = record_copy;
                         }
 
-                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(node, record_arg, record_param_type, strip, applicant);
+                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
                         if (record_arg2 == ERROR)
                         {
-                            record_param_type->link -= 1;
+                            if (sy_record_link_decrease(record_parameter_type) < 0)
+                            {
+                                return -1;
+                            }
 
-                            record_arg->link -= 1;
-                            
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
+
                             return -1;
                         }
-                        else
-                        if (record_arg2 == NULL)
+                        else if (record_arg2 == NULL)
                         {
-                            record_param_type->link -= 1;
-                            record_arg->link -= 1;
-                            
+                            if (sy_record_link_decrease(record_parameter_type) < 0)
+                            {
+                                return -1;
+                            }
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
+
                             return 0;
                         }
 
@@ -278,15 +365,21 @@ sy_execute_parameters_check_by_one_argument(sy_node_t *node, sy_strip_t *strip, 
                     }
                 }
 
-                record_param_type->link -= 1;
+                if (sy_record_link_decrease(record_parameter_type) < 0)
+                {
+                    return -1;
+                }
             }
-            
+
             if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
             {
                 if (record_arg->link > 1)
                 {
                     sy_record_t *record_copy = sy_record_copy(record_arg);
-                    record_arg->link -= 1;
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        return -1;
+                    }
                     record_arg = record_copy;
                 }
             }
@@ -301,12 +394,15 @@ sy_execute_parameters_check_by_one_argument(sy_node_t *node, sy_strip_t *strip, 
                 record_arg->typed = 1;
             }
 
-            record_arg->link -= 1;
+            if (sy_record_link_decrease(record_arg) < 0)
+            {
+                return -1;
+            }
 
             item1 = item1->next;
         }
-        
-        for (;item1 != NULL;item1 = item1->next)
+
+        for (; item1 != NULL; item1 = item1->next)
         {
             sy_node_parameter_t *parameter = (sy_node_parameter_t *)item1->value;
             if (!parameter->value)
@@ -323,14 +419,14 @@ sy_execute_parameters_check_by_one_argument(sy_node_t *node, sy_strip_t *strip, 
     return 1;
 }
 
-int32_t 
-sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy_node_t *parameters, sy_record_t *arg, sy_node_t *applicant)
+int32_t
+sy_call_parameters_subs_by_one_arg(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy_node_t *parameters, sy_record_t *arg, sy_node_t *applicant)
 {
     if (parameters)
     {
         sy_node_block_t *block1 = (sy_node_block_t *)parameters->value;
         sy_node_t *item1 = block1->items;
-        
+
         sy_node_parameter_t *parameter = (sy_node_parameter_t *)item1->value;
         if ((parameter->flag & SYNTAX_MODIFIER_KARG) == SYNTAX_MODIFIER_KARG)
         {
@@ -346,48 +442,68 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
 
                 if (parameter->type)
                 {
-                    sy_record_t *record_param_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
-                    if (record_param_type == ERROR)
+                    sy_record_t *record_parameter_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
+                    if (record_parameter_type == ERROR)
                     {
-                        record_arg->link -= 1;
+                        if (sy_record_link_decrease(record_arg) < 0)
+                        {
+                            return -1;
+                        }
                         return -1;
                     }
 
-                    if (record_param_type->kind != RECORD_KIND_TYPE)
+                    if (record_parameter_type->kind != RECORD_KIND_TYPE)
                     {
                         sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                        sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'", 
-                            basic1->value, sy_record_type_as_string(record_param_type));
-                        
-                        record_param_type->link -= 1;
+                        sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'",
+                                              basic1->value, sy_record_type_as_string(record_parameter_type));
 
-                        record_arg->link -= 1;
+                        if (sy_record_link_decrease(record_parameter_type) < 0)
+                        {
+                            return -1;
+                        }
+
+                        if (sy_record_link_decrease(record_arg) < 0)
+                        {
+                            return -1;
+                        }
 
                         return -1;
                     }
 
-                    int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
+                    int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
                     if (r1 < 0)
                     {
-                        record_param_type->link -= 1;
+                        if (sy_record_link_decrease(record_parameter_type) < 0)
+                        {
+                            return -1;
+                        }
 
-                        record_arg->link -= 1;
-                        
+                        if (sy_record_link_decrease(record_arg) < 0)
+                        {
+                            return -1;
+                        }
+
                         return -1;
                     }
-                    else
-                    if (r1 == 0)
+                    else if (r1 == 0)
                     {
                         if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                         {
                             if (tuple == NULL)
                             {
-                                sy_error_type_by_node(base, "'%s' mismatch: '%s' and '%s'", 
-                                    "argument", sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
-                                
-                                record_param_type->link -= 1;
+                                sy_error_type_by_node(base, "'%s' mismatch: '%s' and '%s'",
+                                                      "argument", sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                                record_arg->link -= 1;
+                                if (sy_record_link_decrease(record_parameter_type) < 0)
+                                {
+                                    return -1;
+                                }
+
+                                if (sy_record_link_decrease(record_arg) < 0)
+                                {
+                                    return -1;
+                                }
 
                                 return -1;
                             }
@@ -397,32 +513,46 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                             if (record_arg->link > 1)
                             {
                                 sy_record_t *record_copy = sy_record_copy(record_arg);
-                                record_arg->link -= 1;
+                                if (sy_record_link_decrease(record_arg) < 0)
+                                {
+                                    return -1;
+                                }
                                 record_arg = record_copy;
                             }
 
-                            sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
+                            sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
                             if (record_arg2 == ERROR)
                             {
-                                record_param_type->link -= 1;
+                                if (sy_record_link_decrease(record_parameter_type) < 0)
+                                {
+                                    return -1;
+                                }
 
-                                record_arg->link -= 1;
-                                
+                                if (sy_record_link_decrease(record_arg) < 0)
+                                {
+                                    return -1;
+                                }
+
                                 return -1;
                             }
-                            else
-                            if (record_arg2 == NULL)
+                            else if (record_arg2 == NULL)
                             {
                                 if (tuple == NULL)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                                    sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'", 
-                                        basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
+                                    sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
+                                                          basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                                    record_param_type->link -= 1;
+                                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                                    {
+                                        return -1;
+                                    }
 
-                                    record_arg->link -= 1;
-                                    
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
+
                                     return -1;
                                 }
                             }
@@ -431,7 +561,10 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                         }
                     }
 
-                    record_param_type->link -= 1;
+                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                    {
+                        return -1;
+                    }
                 }
 
                 if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
@@ -439,7 +572,10 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                     if (record_arg->link > 1)
                     {
                         sy_record_t *record_copy = sy_record_copy(record_arg);
-                        record_arg->link -= 1;
+                        if (sy_record_link_decrease(record_arg) < 0)
+                        {
+                            return -1;
+                        }
                         record_arg = record_copy;
                     }
                 }
@@ -447,18 +583,27 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                 sy_record_tuple_t *tuple2 = sy_record_make_tuple(record_arg, tuple);
                 if (tuple2 == ERROR)
                 {
-                    record_arg->link -= 1;
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        return -1;
+                    }
 
                     if (tuple)
                     {
                         if (sy_record_tuple_destroy(tuple) < 0)
                         {
-                            record_arg->link -= 1;
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
                             return -1;
                         }
                     }
 
-                    record_arg->link -= 1;
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        return -1;
+                    }
                     return -1;
                 }
 
@@ -491,17 +636,19 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
             sy_entry_t *entry = sy_strip_input_push(strip, scope, item1, parameter->key, record_arg);
             if (entry == ERROR)
             {
-                record_arg->link -= 1;
+                if (sy_record_link_decrease(record_arg) < 0)
+                {
+                    return -1;
+                }
                 return -1;
             }
 
             item1 = item1->next;
         }
-        else
-        if ((parameter->flag & SYNTAX_MODIFIER_KWARG) == SYNTAX_MODIFIER_KWARG)
+        else if ((parameter->flag & SYNTAX_MODIFIER_KWARG) == SYNTAX_MODIFIER_KWARG)
         {
-            sy_error_type_by_node(base, "'%s' mismatch: '%s' and '%s'", 
-                "argument", sy_record_type_as_string(arg), "kwarg");
+            sy_error_type_by_node(base, "'%s' mismatch: '%s' and '%s'",
+                                  "argument", sy_record_type_as_string(arg), "kwarg");
             return -1;
         }
         else
@@ -514,47 +661,67 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
 
             if (parameter->type)
             {
-                sy_record_t *record_param_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
-                if (record_param_type == ERROR)
+                sy_record_t *record_parameter_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
+                if (record_parameter_type == ERROR)
                 {
-                    record_arg->link -= 1;
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        return -1;
+                    }
                     return -1;
                 }
 
-                if (record_param_type->kind != RECORD_KIND_TYPE)
+                if (record_parameter_type->kind != RECORD_KIND_TYPE)
                 {
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                    sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'", 
-                        basic1->value, sy_record_type_as_string(record_param_type));
-                    
-                    record_param_type->link -= 1;
+                    sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'",
+                                          basic1->value, sy_record_type_as_string(record_parameter_type));
 
-                    record_arg->link -= 1;
+                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                    {
+                        return -1;
+                    }
+
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        return -1;
+                    }
 
                     return -1;
                 }
 
-                int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
+                int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
                 if (r1 < 0)
                 {
-                    record_param_type->link -= 1;
+                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                    {
+                        return -1;
+                    }
 
-                    record_arg->link -= 1;
-                    
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        return -1;
+                    }
+
                     return -1;
                 }
-                else
-                if (r1 == 0)
+                else if (r1 == 0)
                 {
                     if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                     {
-                        sy_error_type_by_node(base, "'%s' mismatch: '%s' and '%s'", 
-                            "argument", sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
-                        
-                        record_param_type->link -= 1;
+                        sy_error_type_by_node(base, "'%s' mismatch: '%s' and '%s'",
+                                              "argument", sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                        record_arg->link -= 1;
-                        
+                        if (sy_record_link_decrease(record_parameter_type) < 0)
+                        {
+                            return -1;
+                        }
+
+                        if (sy_record_link_decrease(record_arg) < 0)
+                        {
+                            return -1;
+                        }
+
                         return -1;
                     }
                     else
@@ -562,30 +729,44 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                         if (record_arg->link > 1)
                         {
                             sy_record_t *record_copy = sy_record_copy(record_arg);
-                            record_arg->link -= 1;
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
                             record_arg = record_copy;
                         }
 
-                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
+                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
                         if (record_arg2 == ERROR)
                         {
-                            record_param_type->link -= 1;
+                            if (sy_record_link_decrease(record_parameter_type) < 0)
+                            {
+                                return -1;
+                            }
 
-                            record_arg->link -= 1;
-                            
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
+
                             return -1;
                         }
-                        else
-                        if (record_arg2 == NULL)
+                        else if (record_arg2 == NULL)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                            sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'", 
-                                basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
+                            sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
+                                                  basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                            record_param_type->link -= 1;
+                            if (sy_record_link_decrease(record_parameter_type) < 0)
+                            {
+                                return -1;
+                            }
 
-                            record_arg->link -= 1;
-                            
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
+
                             return -1;
                         }
 
@@ -593,15 +774,21 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                     }
                 }
 
-                record_param_type->link -= 1;
+                if (sy_record_link_decrease(record_parameter_type) < 0)
+                {
+                    return -1;
+                }
             }
-            
+
             if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
             {
                 if (record_arg->link > 1)
                 {
                     sy_record_t *record_copy = sy_record_copy(record_arg);
-                    record_arg->link -= 1;
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        return -1;
+                    }
                     record_arg = record_copy;
                 }
             }
@@ -619,14 +806,17 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
             sy_entry_t *entry = sy_strip_input_push(strip, scope, item1, parameter->key, record_arg);
             if (entry == ERROR)
             {
-                record_arg->link -= 1;
+                if (sy_record_link_decrease(record_arg) < 0)
+                {
+                    return -1;
+                }
                 return -1;
             }
 
             item1 = item1->next;
         }
-        
-        for (;item1 != NULL;item1 = item1->next)
+
+        for (; item1 != NULL; item1 = item1->next)
         {
             sy_node_parameter_t *parameter = (sy_node_parameter_t *)item1->value;
             sy_entry_t *entry = sy_strip_input_find(strip, scope, parameter->key);
@@ -642,48 +832,68 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
 
                     if (parameter->type)
                     {
-                        sy_record_t *record_param_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
-                        if (record_param_type == ERROR)
+                        sy_record_t *record_parameter_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
+                        if (record_parameter_type == ERROR)
                         {
-                            record_arg->link -= 1;
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
                             return -1;
                         }
 
-                        if (record_param_type->kind != RECORD_KIND_TYPE)
+                        if (record_parameter_type->kind != RECORD_KIND_TYPE)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                            sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'", 
-                                basic1->value, sy_record_type_as_string(record_param_type));
-                            
-                            record_param_type->link -= 1;
+                            sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'",
+                                                  basic1->value, sy_record_type_as_string(record_parameter_type));
 
-                            record_arg->link -= 1;
+                            if (sy_record_link_decrease(record_parameter_type) < 0)
+                            {
+                                return -1;
+                            }
+
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
 
                             return -1;
                         }
 
-                        int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
+                        int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
                         if (r1 < 0)
                         {
-                            record_param_type->link -= 1;
+                            if (sy_record_link_decrease(record_parameter_type) < 0)
+                            {
+                                return -1;
+                            }
 
-                            record_arg->link -= 1;
-                            
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
+
                             return -1;
                         }
-                        else
-                        if (r1 == 0)
+                        else if (r1 == 0)
                         {
                             if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                                sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'", 
-                                    basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
-                                
-                                record_param_type->link -= 1;
+                                sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
+                                                      basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                                record_arg->link -= 1;
-                                
+                                if (sy_record_link_decrease(record_parameter_type) < 0)
+                                {
+                                    return -1;
+                                }
+
+                                if (sy_record_link_decrease(record_arg) < 0)
+                                {
+                                    return -1;
+                                }
+
                                 return -1;
                             }
                             else
@@ -691,30 +901,44 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                                 if (record_arg->link > 1)
                                 {
                                     sy_record_t *record_copy = sy_record_copy(record_arg);
-                                    record_arg->link -= 1;
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
                                     record_arg = record_copy;
                                 }
 
-                                sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
+                                sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
                                 if (record_arg2 == ERROR)
                                 {
-                                    record_param_type->link -= 1;
+                                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                                    {
+                                        return -1;
+                                    }
 
-                                    record_arg->link -= 1;
-                                    
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
+
                                     return -1;
                                 }
-                                else
-                                if (record_arg2 == NULL)
+                                else if (record_arg2 == NULL)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                                    sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'", 
-                                        basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
+                                    sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
+                                                          basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                                    record_param_type->link -= 1;
+                                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                                    {
+                                        return -1;
+                                    }
 
-                                    record_arg->link -= 1;
-                                    
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
+
                                     return -1;
                                 }
 
@@ -722,7 +946,10 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                             }
                         }
 
-                        record_param_type->link -= 1;
+                        if (sy_record_link_decrease(record_parameter_type) < 0)
+                        {
+                            return -1;
+                        }
                     }
 
                     if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
@@ -730,7 +957,10 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                         if (record_arg->link > 1)
                         {
                             sy_record_t *record_copy = sy_record_copy(record_arg);
-                            record_arg->link -= 1;
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
                             record_arg = record_copy;
                         }
                     }
@@ -748,7 +978,10 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
                     sy_entry_t *entry2 = sy_strip_input_push(strip, scope, item1, parameter->key, record_arg);
                     if (entry2 == ERROR)
                     {
-                        record_arg->link -= 1;
+                        if (sy_record_link_decrease(record_arg) < 0)
+                        {
+                            return -1;
+                        }
                         return -1;
                     }
                 }
@@ -791,7 +1024,7 @@ sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *sco
 }
 
 int32_t
-sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy_node_t *parameters, sy_node_t *arguments, sy_node_t *applicant)
+sy_call_parameters_subs(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy_node_t *parameters, sy_node_t *arguments, sy_node_t *applicant)
 {
     if (arguments)
     {
@@ -800,7 +1033,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
         if (!parameters)
         {
             uint64_t cnt1 = 0;
-            for (sy_node_t *item1 = block1->items;item1 != NULL;item1 = item1->next)
+            for (sy_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
             {
                 cnt1 += 1;
             }
@@ -819,7 +1052,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
             }
         }
     }
-    
+
     if (parameters)
     {
         sy_node_block_t *block1 = (sy_node_block_t *)parameters->value;
@@ -827,7 +1060,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
         if (arguments)
         {
             sy_node_block_t *block2 = (sy_node_block_t *)arguments->value;
-            for (sy_node_t *item2 = block2->items;item2 != NULL;)
+            for (sy_node_t *item2 = block2->items; item2 != NULL;)
             {
                 sy_node_argument_t *argument = (sy_node_argument_t *)item2->value;
 
@@ -853,13 +1086,13 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                     else
                     {
                         uint64_t cnt1 = 0;
-                        for (sy_node_t *item1 = block1->items;item1 != NULL;item1 = item1->next)
+                        for (sy_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
                         {
                             cnt1 += 1;
                         }
 
                         uint64_t cnt2 = 0;
-                        for (sy_node_t *item1 = block2->items;item1 != NULL;item1 = item1->next)
+                        for (sy_node_t *item1 = block2->items; item1 != NULL; item1 = item1->next)
                         {
                             cnt2 += 1;
                         }
@@ -888,7 +1121,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                     {
                         sy_record_object_t *object = NULL, *top = NULL;
 
-                        for (;item2 != NULL;item2 = item2->next)
+                        for (; item2 != NULL; item2 = item2->next)
                         {
                             argument = (sy_node_argument_t *)item2->value;
                             if (!argument->value)
@@ -904,50 +1137,70 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
 
                             if (parameter->type)
                             {
-                                sy_record_t *record_param_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
-                                if (record_param_type == ERROR)
+                                sy_record_t *record_parameter_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
+                                if (record_parameter_type == ERROR)
                                 {
-                                    record_arg->link -= 1;
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
                                     return -1;
                                 }
 
-                                if (record_param_type->kind != RECORD_KIND_TYPE)
+                                if (record_parameter_type->kind != RECORD_KIND_TYPE)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                                    sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'", 
-                                        basic1->value, sy_record_type_as_string(record_param_type));
-                                    
-                                    record_param_type->link -= 1;
+                                    sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'",
+                                                          basic1->value, sy_record_type_as_string(record_parameter_type));
 
-                                    record_arg->link -= 1;
+                                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                                    {
+                                        return -1;
+                                    }
+
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
 
                                     return -1;
                                 }
 
-                                int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
+                                int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
                                 if (r1 < 0)
                                 {
-                                    record_param_type->link -= 1;
+                                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                                    {
+                                        return -1;
+                                    }
 
-                                    record_arg->link -= 1;
-                                    
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
+
                                     return -1;
                                 }
-                                else
-                                if (r1 == 0)
+                                else if (r1 == 0)
                                 {
                                     if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                                     {
                                         if (object == NULL)
                                         {
                                             sy_node_basic_t *basic1 = (sy_node_basic_t *)argument->key->value;
-                                            sy_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'", 
-                                                basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
-                                            
-                                            record_param_type->link -= 1;
+                                            sy_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
+                                                                  basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                                            record_arg->link -= 1;
-                                            
+                                            if (sy_record_link_decrease(record_parameter_type) < 0)
+                                            {
+                                                return -1;
+                                            }
+
+                                            if (sy_record_link_decrease(record_arg) < 0)
+                                            {
+                                                return -1;
+                                            }
+
                                             return -1;
                                         }
                                         else
@@ -960,32 +1213,46 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                         if (record_arg->link > 1)
                                         {
                                             sy_record_t *record_copy = sy_record_copy(record_arg);
-                                            record_arg->link -= 1;
+                                            if (sy_record_link_decrease(record_arg) < 0)
+                                            {
+                                                return -1;
+                                            }
                                             record_arg = record_copy;
                                         }
 
-                                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
+                                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
                                         if (record_arg2 == ERROR)
                                         {
-                                            record_param_type->link -= 1;
+                                            if (sy_record_link_decrease(record_parameter_type) < 0)
+                                            {
+                                                return -1;
+                                            }
 
-                                            record_arg->link -= 1;
-                                            
+                                            if (sy_record_link_decrease(record_arg) < 0)
+                                            {
+                                                return -1;
+                                            }
+
                                             return -1;
                                         }
-                                        else
-                                        if (record_arg2 == NULL)
+                                        else if (record_arg2 == NULL)
                                         {
                                             if (object == NULL)
                                             {
                                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                                                sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'", 
-                                                    basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
+                                                sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
+                                                                      basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                                                record_param_type->link -= 1;
+                                                if (sy_record_link_decrease(record_parameter_type) < 0)
+                                                {
+                                                    return -1;
+                                                }
 
-                                                record_arg->link -= 1;
-                                                
+                                                if (sy_record_link_decrease(record_arg) < 0)
+                                                {
+                                                    return -1;
+                                                }
+
                                                 return -1;
                                             }
                                             else
@@ -998,7 +1265,10 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                     }
                                 }
 
-                                record_param_type->link -= 1;
+                                if (sy_record_link_decrease(record_parameter_type) < 0)
+                                {
+                                    return -1;
+                                }
                             }
 
                             if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
@@ -1006,7 +1276,10 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                 if (record_arg->link > 1)
                                 {
                                     sy_record_t *record_copy = sy_record_copy(record_arg);
-                                    record_arg->link -= 1;
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
                                     record_arg = record_copy;
                                 }
                             }
@@ -1014,7 +1287,10 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                             sy_record_object_t *object2 = sy_record_make_object(argument->key, record_arg, NULL);
                             if (object2 == ERROR)
                             {
-                                record_arg->link -= 1;
+                                if (sy_record_link_decrease(record_arg) < 0)
+                                {
+                                    return -1;
+                                }
 
                                 if (object)
                                 {
@@ -1063,7 +1339,10 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                         sy_entry_t *entry = sy_strip_input_push(strip, scope, item1, parameter->key, record_arg);
                         if (entry == ERROR)
                         {
-                            record_arg->link -= 1;
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
                             return -1;
                         }
 
@@ -1073,7 +1352,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                     else
                     {
                         int8_t found = 0;
-                        for (sy_node_t *item3 = item1;item3 != NULL;item3 = item3->next)
+                        for (sy_node_t *item3 = item1; item3 != NULL; item3 = item3->next)
                         {
                             parameter = (sy_node_parameter_t *)item3->value;
                             if (sy_execute_id_cmp(argument->key, parameter->key) == 1)
@@ -1088,48 +1367,68 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
 
                                 if (parameter->type)
                                 {
-                                    sy_record_t *record_param_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
-                                    if (record_param_type == ERROR)
+                                    sy_record_t *record_parameter_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
+                                    if (record_parameter_type == ERROR)
                                     {
-                                        record_arg->link -= 1;
+                                        if (sy_record_link_decrease(record_arg) < 0)
+                                        {
+                                            return -1;
+                                        }
                                         return -1;
                                     }
 
-                                    if (record_param_type->kind != RECORD_KIND_TYPE)
+                                    if (record_parameter_type->kind != RECORD_KIND_TYPE)
                                     {
                                         sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                                        sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'", 
-                                            basic1->value, sy_record_type_as_string(record_param_type));
-                                        
-                                        record_param_type->link -= 1;
+                                        sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'",
+                                                              basic1->value, sy_record_type_as_string(record_parameter_type));
 
-                                        record_arg->link -= 1;
+                                        if (sy_record_link_decrease(record_parameter_type) < 0)
+                                        {
+                                            return -1;
+                                        }
+
+                                        if (sy_record_link_decrease(record_arg) < 0)
+                                        {
+                                            return -1;
+                                        }
 
                                         return -1;
                                     }
 
-                                    int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
+                                    int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
                                     if (r1 < 0)
                                     {
-                                        record_param_type->link -= 1;
+                                        if (sy_record_link_decrease(record_parameter_type) < 0)
+                                        {
+                                            return -1;
+                                        }
 
-                                        record_arg->link -= 1;
-                                        
+                                        if (sy_record_link_decrease(record_arg) < 0)
+                                        {
+                                            return -1;
+                                        }
+
                                         return -1;
                                     }
-                                    else
-                                    if (r1 == 0)
+                                    else if (r1 == 0)
                                     {
                                         if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                                         {
                                             sy_node_basic_t *basic1 = (sy_node_basic_t *)argument->key->value;
-                                            sy_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'", 
-                                                basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
-                                            
-                                            record_param_type->link -= 1;
+                                            sy_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
+                                                                  basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                                            record_arg->link -= 1;
-                                            
+                                            if (sy_record_link_decrease(record_parameter_type) < 0)
+                                            {
+                                                return -1;
+                                            }
+
+                                            if (sy_record_link_decrease(record_arg) < 0)
+                                            {
+                                                return -1;
+                                            }
+
                                             return -1;
                                         }
                                         else
@@ -1137,30 +1436,44 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                             if (record_arg->link > 1)
                                             {
                                                 sy_record_t *record_copy = sy_record_copy(record_arg);
-                                                record_arg->link -= 1;
+                                                if (sy_record_link_decrease(record_arg) < 0)
+                                                {
+                                                    return -1;
+                                                }
                                                 record_arg = record_copy;
                                             }
 
-                                            sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
+                                            sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
                                             if (record_arg2 == ERROR)
                                             {
-                                                record_param_type->link -= 1;
+                                                if (sy_record_link_decrease(record_parameter_type) < 0)
+                                                {
+                                                    return -1;
+                                                }
 
-                                                record_arg->link -= 1;
-                                                
+                                                if (sy_record_link_decrease(record_arg) < 0)
+                                                {
+                                                    return -1;
+                                                }
+
                                                 return -1;
                                             }
-                                            else
-                                            if (record_arg2 == NULL)
+                                            else if (record_arg2 == NULL)
                                             {
                                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                                                sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'", 
-                                                    basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
+                                                sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
+                                                                      basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                                                record_param_type->link -= 1;
+                                                if (sy_record_link_decrease(record_parameter_type) < 0)
+                                                {
+                                                    return -1;
+                                                }
 
-                                                record_arg->link -= 1;
-                                                
+                                                if (sy_record_link_decrease(record_arg) < 0)
+                                                {
+                                                    return -1;
+                                                }
+
                                                 return -1;
                                             }
 
@@ -1168,7 +1481,10 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                         }
                                     }
 
-                                    record_param_type->link -= 1;
+                                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                                    {
+                                        return -1;
+                                    }
                                 }
 
                                 if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
@@ -1176,7 +1492,10 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                     if (record_arg->link > 1)
                                     {
                                         sy_record_t *record_copy = sy_record_copy(record_arg);
-                                        record_arg->link -= 1;
+                                        if (sy_record_link_decrease(record_arg) < 0)
+                                        {
+                                            return -1;
+                                        }
                                         record_arg = record_copy;
                                     }
                                 }
@@ -1194,7 +1513,10 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                 sy_entry_t *entry = sy_strip_input_push(strip, scope, item3, parameter->key, record_arg);
                                 if (entry == ERROR)
                                 {
-                                    record_arg->link -= 1;
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
                                     return -1;
                                 }
 
@@ -1209,13 +1531,13 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                 sy_node_fun_t *fun1 = (sy_node_fun_t *)scope->value;
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)fun1->key->value;
                                 sy_node_basic_t *basic2 = (sy_node_basic_t *)argument->key->value;
-                                sy_error_type_by_node(argument->key, "'%s' got an unexpected keyword argument '%s'", basic1->value ,basic2->value);
+                                sy_error_type_by_node(argument->key, "'%s' got an unexpected keyword argument '%s'", basic1->value, basic2->value);
                                 return -1;
                             }
                             else
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)argument->key->value;
-                                sy_error_type_by_node(argument->key, "'%s' got an unexpected keyword argument '%s'", "lambda" ,basic1->value);
+                                sy_error_type_by_node(argument->key, "'%s' got an unexpected keyword argument '%s'", "lambda", basic1->value);
                                 return -1;
                             }
                         }
@@ -1228,7 +1550,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                     {
                         sy_record_tuple_t *tuple = NULL, *top = NULL;
 
-                        for (;item2 != NULL;item2 = item2->next)
+                        for (; item2 != NULL; item2 = item2->next)
                         {
                             argument = (sy_node_argument_t *)item2->value;
 
@@ -1240,50 +1562,70 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
 
                             if (parameter->type)
                             {
-                                sy_record_t *record_param_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
-                                if (record_param_type == ERROR)
+                                sy_record_t *record_parameter_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
+                                if (record_parameter_type == ERROR)
                                 {
-                                    record_arg->link -= 1;
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
                                     return -1;
                                 }
 
-                                if (record_param_type->kind != RECORD_KIND_TYPE)
+                                if (record_parameter_type->kind != RECORD_KIND_TYPE)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                                    sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'", 
-                                        basic1->value, sy_record_type_as_string(record_param_type));
-                                    
-                                    record_param_type->link -= 1;
+                                    sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'",
+                                                          basic1->value, sy_record_type_as_string(record_parameter_type));
 
-                                    record_arg->link -= 1;
+                                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                                    {
+                                        return -1;
+                                    }
+
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
 
                                     return -1;
                                 }
 
-                                int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
+                                int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
                                 if (r1 < 0)
                                 {
-                                    record_param_type->link -= 1;
+                                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                                    {
+                                        return -1;
+                                    }
 
-                                    record_arg->link -= 1;
-                                    
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
+
                                     return -1;
                                 }
-                                else
-                                if (r1 == 0)
+                                else if (r1 == 0)
                                 {
                                     if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                                     {
                                         if (tuple == NULL)
                                         {
                                             sy_node_basic_t *basic1 = (sy_node_basic_t *)argument->key->value;
-                                            sy_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'", 
-                                                basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
-                                            
-                                            record_param_type->link -= 1;
+                                            sy_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
+                                                                  basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                                            record_arg->link -= 1;
-                                            
+                                            if (sy_record_link_decrease(record_parameter_type) < 0)
+                                            {
+                                                return -1;
+                                            }
+
+                                            if (sy_record_link_decrease(record_arg) < 0)
+                                            {
+                                                return -1;
+                                            }
+
                                             return -1;
                                         }
                                         else
@@ -1296,32 +1638,46 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                         if (record_arg->link > 1)
                                         {
                                             sy_record_t *record_copy = sy_record_copy(record_arg);
-                                            record_arg->link -= 1;
+                                            if (sy_record_link_decrease(record_arg) < 0)
+                                            {
+                                                return -1;
+                                            }
                                             record_arg = record_copy;
                                         }
 
-                                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
+                                        sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
                                         if (record_arg2 == ERROR)
                                         {
-                                            record_param_type->link -= 1;
+                                            if (sy_record_link_decrease(record_parameter_type) < 0)
+                                            {
+                                                return -1;
+                                            }
 
-                                            record_arg->link -= 1;
-                                            
+                                            if (sy_record_link_decrease(record_arg) < 0)
+                                            {
+                                                return -1;
+                                            }
+
                                             return -1;
                                         }
-                                        else
-                                        if (record_arg2 == NULL)
+                                        else if (record_arg2 == NULL)
                                         {
                                             if (tuple == NULL)
                                             {
                                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                                                sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'", 
-                                                    basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
+                                                sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
+                                                                      basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                                                record_param_type->link -= 1;
+                                                if (sy_record_link_decrease(record_parameter_type) < 0)
+                                                {
+                                                    return -1;
+                                                }
 
-                                                record_arg->link -= 1;
-                                                
+                                                if (sy_record_link_decrease(record_arg) < 0)
+                                                {
+                                                    return -1;
+                                                }
+
                                                 return -1;
                                             }
                                             else
@@ -1334,7 +1690,10 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                     }
                                 }
 
-                                record_param_type->link -= 1;
+                                if (sy_record_link_decrease(record_parameter_type) < 0)
+                                {
+                                    return -1;
+                                }
                             }
 
                             if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
@@ -1342,7 +1701,10 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                 if (record_arg->link > 1)
                                 {
                                     sy_record_t *record_copy = sy_record_copy(record_arg);
-                                    record_arg->link -= 1;
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
                                     record_arg = record_copy;
                                 }
                             }
@@ -1350,7 +1712,10 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                             sy_record_tuple_t *tuple2 = sy_record_make_tuple(record_arg, NULL);
                             if (tuple2 == ERROR)
                             {
-                                record_arg->link -= 1;
+                                if (sy_record_link_decrease(record_arg) < 0)
+                                {
+                                    return -1;
+                                }
 
                                 if (tuple)
                                 {
@@ -1399,15 +1764,17 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                         sy_entry_t *entry = sy_strip_input_push(strip, scope, item1, parameter->key, record_arg);
                         if (entry == ERROR)
                         {
-                            record_arg->link -= 1;
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
                             return -1;
                         }
 
                         item1 = item1->next;
                         continue;
                     }
-                    else
-                    if ((parameter->flag & SYNTAX_MODIFIER_KWARG) == SYNTAX_MODIFIER_KWARG)
+                    else if ((parameter->flag & SYNTAX_MODIFIER_KWARG) == SYNTAX_MODIFIER_KWARG)
                     {
                         sy_record_t *record_arg = sy_execute_expression(argument->key, strip, applicant, NULL);
                         if (record_arg == ERROR)
@@ -1415,10 +1782,13 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                             return -1;
                         }
 
-                        sy_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'", 
-                            "argument", sy_record_type_as_string(record_arg), "kwarg");
+                        sy_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
+                                              "argument", sy_record_type_as_string(record_arg), "kwarg");
 
-                        record_arg->link -= 1;
+                        if (sy_record_link_decrease(record_arg) < 0)
+                        {
+                            return -1;
+                        }
                         return -1;
                     }
                     else
@@ -1428,50 +1798,70 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                         {
                             return -1;
                         }
-                        
+
                         if (parameter->type)
                         {
-                            sy_record_t *record_param_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
-                            if (record_param_type == ERROR)
+                            sy_record_t *record_parameter_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
+                            if (record_parameter_type == ERROR)
                             {
-                                record_arg->link -= 1;
+                                if (sy_record_link_decrease(record_arg) < 0)
+                                {
+                                    return -1;
+                                }
                                 return -1;
                             }
 
-                            if (record_param_type->kind != RECORD_KIND_TYPE)
+                            if (record_parameter_type->kind != RECORD_KIND_TYPE)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                                sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'", 
-                                    basic1->value, sy_record_type_as_string(record_param_type));
-                                
-                                record_param_type->link -= 1;
+                                sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'",
+                                                      basic1->value, sy_record_type_as_string(record_parameter_type));
 
-                                record_arg->link -= 1;
+                                if (sy_record_link_decrease(record_parameter_type) < 0)
+                                {
+                                    return -1;
+                                }
+
+                                if (sy_record_link_decrease(record_arg) < 0)
+                                {
+                                    return -1;
+                                }
 
                                 return -1;
                             }
 
-                            int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
+                            int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
                             if (r1 < 0)
                             {
-                                record_param_type->link -= 1;
+                                if (sy_record_link_decrease(record_parameter_type) < 0)
+                                {
+                                    return -1;
+                                }
 
-                                record_arg->link -= 1;
-                                
+                                if (sy_record_link_decrease(record_arg) < 0)
+                                {
+                                    return -1;
+                                }
+
                                 return -1;
                             }
-                            else
-                            if (r1 == 0)
+                            else if (r1 == 0)
                             {
                                 if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                                 {
-                                    sy_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'", 
-                                        "argument", sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
-                                    
-                                    record_param_type->link -= 1;
+                                    sy_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
+                                                          "argument", sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                                    record_arg->link -= 1;
-                                    
+                                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                                    {
+                                        return -1;
+                                    }
+
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
+
                                     return -1;
                                 }
                                 else
@@ -1479,30 +1869,44 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                     if (record_arg->link > 1)
                                     {
                                         sy_record_t *record_copy = sy_record_copy(record_arg);
-                                        record_arg->link -= 1;
+                                        if (sy_record_link_decrease(record_arg) < 0)
+                                        {
+                                            return -1;
+                                        }
                                         record_arg = record_copy;
                                     }
 
-                                    sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
+                                    sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
                                     if (record_arg2 == ERROR)
                                     {
-                                        record_param_type->link -= 1;
+                                        if (sy_record_link_decrease(record_parameter_type) < 0)
+                                        {
+                                            return -1;
+                                        }
 
-                                        record_arg->link -= 1;
-                                        
+                                        if (sy_record_link_decrease(record_arg) < 0)
+                                        {
+                                            return -1;
+                                        }
+
                                         return -1;
                                     }
-                                    else
-                                    if (record_arg2 == NULL)
+                                    else if (record_arg2 == NULL)
                                     {
                                         sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                                        sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'", 
-                                            basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
+                                        sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
+                                                              basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                                        record_param_type->link -= 1;
+                                        if (sy_record_link_decrease(record_parameter_type) < 0)
+                                        {
+                                            return -1;
+                                        }
 
-                                        record_arg->link -= 1;
-                                        
+                                        if (sy_record_link_decrease(record_arg) < 0)
+                                        {
+                                            return -1;
+                                        }
+
                                         return -1;
                                     }
 
@@ -1510,15 +1914,21 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                 }
                             }
 
-                            record_param_type->link -= 1;
+                            if (sy_record_link_decrease(record_parameter_type) < 0)
+                            {
+                                return -1;
+                            }
                         }
-                        
+
                         if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                         {
                             if (record_arg->link > 1)
                             {
                                 sy_record_t *record_copy = sy_record_copy(record_arg);
-                                record_arg->link -= 1;
+                                if (sy_record_link_decrease(record_arg) < 0)
+                                {
+                                    return -1;
+                                }
                                 record_arg = record_copy;
                             }
                         }
@@ -1536,7 +1946,10 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                         sy_entry_t *entry = sy_strip_input_push(strip, scope, item1, parameter->key, record_arg);
                         if (entry == ERROR)
                         {
-                            record_arg->link -= 1;
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
                             return -1;
                         }
 
@@ -1547,8 +1960,8 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                 item2 = item2->next;
             }
         }
-        
-        for (;item1 != NULL;item1 = item1->next)
+
+        for (; item1 != NULL; item1 = item1->next)
         {
             sy_node_parameter_t *parameter = (sy_node_parameter_t *)item1->value;
             sy_entry_t *entry = sy_strip_input_find(strip, scope, parameter->key);
@@ -1564,48 +1977,68 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
 
                     if (parameter->type)
                     {
-                        sy_record_t *record_param_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
-                        if (record_param_type == ERROR)
+                        sy_record_t *record_parameter_type = sy_execute_expression(parameter->type, strip, applicant, NULL);
+                        if (record_parameter_type == ERROR)
                         {
-                            record_arg->link -= 1;
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
                             return -1;
                         }
 
-                        if (record_param_type->kind != RECORD_KIND_TYPE)
+                        if (record_parameter_type->kind != RECORD_KIND_TYPE)
                         {
                             sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                            sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'", 
-                                basic1->value, sy_record_type_as_string(record_param_type));
-                            
-                            record_param_type->link -= 1;
+                            sy_error_type_by_node(parameter->type, "'%s' unsupported type: '%s'",
+                                                  basic1->value, sy_record_type_as_string(record_parameter_type));
 
-                            record_arg->link -= 1;
+                            if (sy_record_link_decrease(record_parameter_type) < 0)
+                            {
+                                return -1;
+                            }
+
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
 
                             return -1;
                         }
 
-                        int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_param_type, strip, applicant);
+                        int32_t r1 = sy_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
                         if (r1 < 0)
                         {
-                            record_param_type->link -= 1;
+                            if (sy_record_link_decrease(record_parameter_type) < 0)
+                            {
+                                return -1;
+                            }
 
-                            record_arg->link -= 1;
-                            
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
+
                             return -1;
                         }
-                        else
-                        if (r1 == 0)
+                        else if (r1 == 0)
                         {
                             if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                             {
                                 sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                                sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'", 
-                                    basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
-                                
-                                record_param_type->link -= 1;
+                                sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
+                                                      basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                                record_arg->link -= 1;
-                                
+                                if (sy_record_link_decrease(record_parameter_type) < 0)
+                                {
+                                    return -1;
+                                }
+
+                                if (sy_record_link_decrease(record_arg) < 0)
+                                {
+                                    return -1;
+                                }
+
                                 return -1;
                             }
                             else
@@ -1613,30 +2046,44 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                                 if (record_arg->link > 1)
                                 {
                                     sy_record_t *record_copy = sy_record_copy(record_arg);
-                                    record_arg->link -= 1;
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
                                     record_arg = record_copy;
                                 }
 
-                                sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_param_type, strip, applicant);
+                                sy_record_t *record_arg2 = sy_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
                                 if (record_arg2 == ERROR)
                                 {
-                                    record_param_type->link -= 1;
+                                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                                    {
+                                        return -1;
+                                    }
 
-                                    record_arg->link -= 1;
-                                    
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
+
                                     return -1;
                                 }
-                                else
-                                if (record_arg2 == NULL)
+                                else if (record_arg2 == NULL)
                                 {
                                     sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter->key->value;
-                                    sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'", 
-                                        basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_param_type));
+                                    sy_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
+                                                          basic1->value, sy_record_type_as_string(record_arg), sy_record_type_as_string(record_parameter_type));
 
-                                    record_param_type->link -= 1;
+                                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                                    {
+                                        return -1;
+                                    }
 
-                                    record_arg->link -= 1;
-                                    
+                                    if (sy_record_link_decrease(record_arg) < 0)
+                                    {
+                                        return -1;
+                                    }
+
                                     return -1;
                                 }
 
@@ -1644,7 +2091,10 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                             }
                         }
 
-                        record_param_type->link -= 1;
+                        if (sy_record_link_decrease(record_parameter_type) < 0)
+                        {
+                            return -1;
+                        }
                     }
 
                     if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
@@ -1652,7 +2102,10 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                         if (record_arg->link > 1)
                         {
                             sy_record_t *record_copy = sy_record_copy(record_arg);
-                            record_arg->link -= 1;
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                return -1;
+                            }
                             record_arg = record_copy;
                         }
                     }
@@ -1670,7 +2123,10 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
                     sy_entry_t *entry2 = sy_strip_input_push(strip, scope, item1, parameter->key, record_arg);
                     if (entry2 == ERROR)
                     {
-                        record_arg->link -= 1;
+                        if (sy_record_link_decrease(record_arg) < 0)
+                        {
+                            return -1;
+                        }
                         return -1;
                     }
                 }
@@ -1699,7 +2155,7 @@ sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *
 }
 
 static int32_t
-sy_execute_heritage_substitute(sy_node_t *scope, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
+sy_call_heritage_subs(sy_node_t *scope, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
 {
     sy_node_heritage_t *heritage = (sy_node_heritage_t *)node->value;
 
@@ -1715,10 +2171,13 @@ sy_execute_heritage_substitute(sy_node_t *scope, sy_strip_t *strip, sy_node_t *n
     {
         sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage->key->value;
         sy_node_basic_t *basic2 = (sy_node_basic_t *)class1->key->value;
-        sy_error_type_by_node(heritage->key, "'%s' unexpected type as heritage '%s'", 
-            basic2->value, basic1->value);
+        sy_error_type_by_node(heritage->key, "'%s' unexpected type as heritage '%s'",
+                              basic2->value, basic1->value);
 
-        record_heritage->link -= 1;
+        if (sy_record_link_decrease(record_heritage) < 0)
+        {
+            return -1;
+        }
         return -1;
     }
 
@@ -1729,14 +2188,20 @@ sy_execute_heritage_substitute(sy_node_t *scope, sy_strip_t *strip, sy_node_t *n
     {
         sy_strip_t *strip_new = (sy_strip_t *)record_type->value;
 
-        sy_record_t *content = sy_execute_provide_class(strip_new, type, applicant);
+        sy_record_t *content = sy_call_provide_class(strip_new, type, applicant);
         if (content == ERROR)
         {
-            record_heritage->link -= 1;
+            if (sy_record_link_decrease(record_heritage) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
 
-        record_heritage->link -= 1;
+        if (sy_record_link_decrease(record_heritage) < 0)
+        {
+            return -1;
+        }
 
         content->readonly = 1;
         content->typed = 1;
@@ -1744,15 +2209,20 @@ sy_execute_heritage_substitute(sy_node_t *scope, sy_strip_t *strip, sy_node_t *n
         sy_entry_t *entry = sy_strip_variable_push(strip, scope, node, heritage->key, content);
         if (entry == ERROR)
         {
-            content->link -= 1;
+            if (sy_record_link_decrease(content) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
-        else
-        if (entry == NULL)
+        else if (entry == NULL)
         {
             sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage->key->value;
             sy_error_type_by_node(heritage->key, "'%s' already set", basic1->value);
-            content->link -= 1;
+            if (sy_record_link_decrease(content) < 0)
+            {
+                return -1;
+            }
             return -1;
         }
     }
@@ -1760,10 +2230,13 @@ sy_execute_heritage_substitute(sy_node_t *scope, sy_strip_t *strip, sy_node_t *n
     {
         sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage->key->value;
         sy_node_basic_t *basic2 = (sy_node_basic_t *)class1->key->value;
-        sy_error_type_by_node(heritage->key, "'%s' unexpected type as heritage '%s'", 
-            basic2->value, basic1->value);
+        sy_error_type_by_node(heritage->key, "'%s' unexpected type as heritage '%s'",
+                              basic2->value, basic1->value);
 
-        record_heritage->link -= 1;
+        if (sy_record_link_decrease(record_heritage) < 0)
+        {
+            return -1;
+        }
         return -1;
     }
 
@@ -1771,86 +2244,114 @@ sy_execute_heritage_substitute(sy_node_t *scope, sy_strip_t *strip, sy_node_t *n
 }
 
 static int32_t
-sy_execute_property_substitute(sy_node_t *scope, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
+sy_call_property_subs(sy_node_t *scope, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
 {
     sy_node_property_t *property = (sy_node_property_t *)node->value;
     sy_record_t *record_value = NULL;
-    
+
     if (property->value)
     {
-        
+
         record_value = sy_execute_expression(property->value, strip, applicant, NULL);
         if (record_value == ERROR)
         {
             return -1;
         }
-        
+
         if (property->type)
         {
-            sy_record_t *record_param_type = sy_execute_expression(property->type, strip, applicant, NULL);
-            if (record_param_type == ERROR)
+            sy_record_t *record_parameter_type = sy_execute_expression(property->type, strip, applicant, NULL);
+            if (record_parameter_type == ERROR)
             {
-                record_value->link -= 1;
+                if (sy_record_link_decrease(record_value) < 0)
+                {
+                    return -1;
+                }
                 return -1;
             }
 
-            if (record_param_type->kind != RECORD_KIND_TYPE)
+            if (record_parameter_type->kind != RECORD_KIND_TYPE)
             {
                 sy_node_basic_t *basic1 = (sy_node_basic_t *)property->key->value;
-                sy_error_type_by_node(property->type, "'%s' unsupported type: '%s'", 
-                    basic1->value, sy_record_type_as_string(record_param_type));
-                
-                record_param_type->link -= 1;
+                sy_error_type_by_node(property->type, "'%s' unsupported type: '%s'",
+                                      basic1->value, sy_record_type_as_string(record_parameter_type));
 
-                record_value->link -= 1;
+                if (sy_record_link_decrease(record_parameter_type) < 0)
+                {
+                    return -1;
+                }
+
+                if (sy_record_link_decrease(record_value) < 0)
+                {
+                    return -1;
+                }
 
                 return -1;
             }
 
-            int32_t r1 = sy_execute_value_check_by_type(property->key, record_value, record_param_type, strip, applicant);
+            int32_t r1 = sy_execute_value_check_by_type(property->key, record_value, record_parameter_type, strip, applicant);
             if (r1 < 0)
             {
-                record_param_type->link -= 1;
+                if (sy_record_link_decrease(record_parameter_type) < 0)
+                {
+                    return -1;
+                }
 
-                record_value->link -= 1;
-                
+                if (sy_record_link_decrease(record_value) < 0)
+                {
+                    return -1;
+                }
+
                 return -1;
             }
-            else
-            if (r1 == 0)
+            else if (r1 == 0)
             {
                 if (record_value->link > 0)
                 {
                     record_value = sy_record_copy(record_value);
                 }
 
-                sy_record_t *record_arg2 = sy_execute_value_casting_by_type(property->key, record_value, record_param_type, strip, applicant);
+                sy_record_t *record_arg2 = sy_execute_value_casting_by_type(property->key, record_value, record_parameter_type, strip, applicant);
                 if (record_arg2 == ERROR)
                 {
-                    record_param_type->link -= 1;
+                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                    {
+                        return -1;
+                    }
 
-                    record_value->link -= 1;
-                    
+                    if (sy_record_link_decrease(record_value) < 0)
+                    {
+                        return -1;
+                    }
+
                     return -1;
                 }
-                else
-                if (record_arg2 == NULL)
+                else if (record_arg2 == NULL)
                 {
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)property->key->value;
-                    sy_error_type_by_node(property->key, "'%s' mismatch: '%s' and '%s'", 
-                        basic1->value, sy_record_type_as_string(record_value), sy_record_type_as_string(record_param_type));
+                    sy_error_type_by_node(property->key, "'%s' mismatch: '%s' and '%s'",
+                                          basic1->value, sy_record_type_as_string(record_value), sy_record_type_as_string(record_parameter_type));
 
-                    record_param_type->link -= 1;
+                    if (sy_record_link_decrease(record_parameter_type) < 0)
+                    {
+                        return -1;
+                    }
 
-                    record_value->link -= 1;
-                    
+                    if (sy_record_link_decrease(record_value) < 0)
+                    {
+                        return -1;
+                    }
+
                     return -1;
                 }
 
                 record_value = record_arg2;
             }
 
-            record_param_type->link -= 1;
+            if (sy_record_link_decrease(record_parameter_type) < 0)
+            {
+                return -1;
+            }
         }
     }
     else
@@ -1861,11 +2362,14 @@ sy_execute_property_substitute(sy_node_t *scope, sy_strip_t *strip, sy_node_t *n
             return -1;
         }
     }
-    
+
     if (record_value->link > 0)
     {
         sy_record_t *record_copy = sy_record_copy(record_value);
-        record_value->link -= 1;
+        if (sy_record_link_decrease(record_value) < 0)
+        {
+            return -1;
+        }
         record_value = record_copy;
     }
 
@@ -1878,11 +2382,14 @@ sy_execute_property_substitute(sy_node_t *scope, sy_strip_t *strip, sy_node_t *n
     {
         record_value->typed = 1;
     }
-    
+
     sy_entry_t *entry = sy_strip_variable_push(strip, scope, node, property->key, record_value);
     if (entry == ERROR)
     {
-        record_value->link -= 1;
+        if (sy_record_link_decrease(record_value) < 0)
+        {
+            return -1;
+        }
         return -1;
     }
 
@@ -1890,22 +2397,22 @@ sy_execute_property_substitute(sy_node_t *scope, sy_strip_t *strip, sy_node_t *n
 }
 
 static sy_record_t *
-sy_execute_provide_class(sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
+sy_call_provide_class(sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
 {
     sy_node_class_t *class1 = (sy_node_class_t *)node->value;
-    
+
     sy_strip_t *strip_class = sy_strip_copy(strip);
     if (strip_class == ERROR)
     {
         return ERROR;
     }
-    
+
     if (class1->heritages)
     {
         sy_node_block_t *block = (sy_node_block_t *)class1->heritages->value;
-        for (sy_node_t *item = block->items;item != NULL;item = item->next)
+        for (sy_node_t *item = block->items; item != NULL; item = item->next)
         {
-            if (sy_execute_heritage_substitute(node, strip_class, item, applicant) < 0)
+            if (sy_call_heritage_subs(node, strip_class, item, applicant) < 0)
             {
                 if (sy_strip_destroy(strip_class) < 0)
                 {
@@ -1914,15 +2421,15 @@ sy_execute_provide_class(sy_strip_t *strip, sy_node_t *node, sy_node_t *applican
             }
         }
     }
-    
+
     for (sy_node_t *item = class1->block; item != NULL; item = item->next)
     {
         if (item->kind == NODE_KIND_PROPERTY)
         {
             sy_node_property_t *property = (sy_node_property_t *)item->value;
-            if ((property->flag & SYNTAX_MODIFIER_STATIC ) != SYNTAX_MODIFIER_STATIC)
+            if ((property->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
             {
-                if (sy_execute_property_substitute(node, strip_class, item, applicant) < 0)
+                if (sy_call_property_subs(node, strip_class, item, applicant) < 0)
                 {
                     if (sy_strip_destroy(strip_class) < 0)
                     {
@@ -1932,7 +2439,7 @@ sy_execute_provide_class(sy_strip_t *strip, sy_node_t *node, sy_node_t *applican
             }
         }
     }
-    
+
     sy_record_t *result = sy_record_make_struct(node, strip_class);
     if (result == ERROR)
     {
@@ -1941,13 +2448,13 @@ sy_execute_provide_class(sy_strip_t *strip, sy_node_t *node, sy_node_t *applican
             return ERROR;
         }
     }
-    
+
     return result;
 }
 
 sy_record_t *
-sy_execute_call_for_operator_by_one_argument(sy_node_t *base, sy_record_t *content, sy_record_t *arg, const char *operator, sy_node_t *applicant)
-{    
+sy_call_operator_by_one_arg(sy_node_t *base, sy_record_t *content, sy_record_t *arg, const char *operator, sy_node_t * applicant)
+{
     sy_record_struct_t *struct1 = (sy_record_struct_t *)content->value;
     sy_node_t *type = struct1->type;
     sy_strip_t *strip_class = struct1->value;
@@ -1977,7 +2484,7 @@ sy_execute_call_for_operator_by_one_argument(sy_node_t *base, sy_record_t *conte
                     return ERROR;
                 }
 
-                if (sy_execute_parameters_substitute_by_one_argument(base, item, strip_fun, fun1->parameters, arg, applicant) < 0)
+                if (sy_call_parameters_subs_by_one_arg(base, item, strip_fun, fun1->parameters, arg, applicant) < 0)
                 {
                     if (sy_strip_destroy(strip_fun) < 0)
                     {
@@ -2007,27 +2514,26 @@ sy_execute_call_for_operator_by_one_argument(sy_node_t *base, sy_record_t *conte
                 {
                     return ERROR;
                 }
-                else
-                if (!rax)
+                else if (!rax)
                 {
                     rax = sy_record_make_undefined();
                 }
- 
+
                 return rax;
             }
         }
     }
-    
+
     sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
     sy_error_type_by_node(base, "'%s' no operator %s was found", basic1->value, operator);
-    
+
     return ERROR;
 }
 
 static sy_record_t *
-sy_execute_call_for_class(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
-{    
-    sy_record_t *content = sy_execute_provide_class(strip, node, applicant);
+sy_call_class(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
+{
+    sy_record_t *content = sy_call_provide_class(strip, node, applicant);
     if (content == ERROR)
     {
         return ERROR;
@@ -2055,7 +2561,10 @@ sy_execute_call_for_class(sy_node_t *base, sy_node_t *arguments, sy_strip_t *str
                 sy_strip_t *strip_fun = sy_strip_create(strip_copy);
                 if (strip_fun == ERROR)
                 {
-                    content->link -= 1;
+                    if (sy_record_link_decrease(content) < 0)
+                    {
+                        return ERROR;
+                    }
                     if (sy_strip_destroy(strip_copy) < 0)
                     {
                         return ERROR;
@@ -2063,14 +2572,20 @@ sy_execute_call_for_class(sy_node_t *base, sy_node_t *arguments, sy_strip_t *str
                     return ERROR;
                 }
 
-                if (sy_execute_parameters_substitute(base, item, strip_fun, fun1->parameters, arguments, applicant) < 0)
+                if (sy_call_parameters_subs(base, item, strip_fun, fun1->parameters, arguments, applicant) < 0)
                 {
                     if (sy_strip_destroy(strip_fun) < 0)
                     {
-                        content->link -= 1;
+                        if (sy_record_link_decrease(content) < 0)
+                        {
+                            return ERROR;
+                        }
                         return ERROR;
                     }
-                    content->link -= 1;
+                    if (sy_record_link_decrease(content) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
                 int32_t r1 = sy_execute_run_fun(item, strip_fun, applicant);
@@ -2078,18 +2593,27 @@ sy_execute_call_for_class(sy_node_t *base, sy_node_t *arguments, sy_strip_t *str
                 {
                     if (sy_strip_destroy(strip_fun) < 0)
                     {
-                        content->link -= 1;
+                        if (sy_record_link_decrease(content) < 0)
+                        {
+                            return ERROR;
+                        }
                         return ERROR;
                     }
 
-                    content->link -= 1;
+                    if (sy_record_link_decrease(content) < 0)
+                    {
+                        return ERROR;
+                    }
 
                     return ERROR;
                 }
 
                 if (sy_strip_destroy(strip_fun) < 0)
                 {
-                    content->link -= 1;
+                    if (sy_record_link_decrease(content) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
@@ -2098,14 +2622,16 @@ sy_execute_call_for_class(sy_node_t *base, sy_node_t *arguments, sy_strip_t *str
                 {
                     return ERROR;
                 }
-                else
-                if (!rax)
+                else if (!rax)
                 {
                     rax = content;
                 }
                 else
                 {
-                    content->link -= 1;
+                    if (sy_record_link_decrease(content) < 0)
+                    {
+                        return ERROR;
+                    }
                 }
 
                 return rax;
@@ -2115,21 +2641,24 @@ sy_execute_call_for_class(sy_node_t *base, sy_node_t *arguments, sy_strip_t *str
 
     sy_node_basic_t *basic1 = (sy_node_basic_t *)class1->key->value;
     sy_error_type_by_node(base, "'%s' no constructor was found", basic1->value);
-    content->link -= 1;
+    if (sy_record_link_decrease(content) < 0)
+    {
+        return ERROR;
+    }
     return ERROR;
 }
 
 static sy_record_t *
-sy_execute_call_for_fun(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
+sy_call_fun(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
 {
     sy_node_fun_t *fun1 = (sy_node_fun_t *)node->value;
-    
+
     sy_strip_t *strip_copy = sy_strip_copy(strip);
     if (strip_copy == ERROR)
     {
         return ERROR;
     }
-    
+
     sy_strip_t *strip_lambda = sy_strip_create(strip_copy);
     if (strip_lambda == ERROR)
     {
@@ -2140,7 +2669,7 @@ sy_execute_call_for_fun(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip
         return ERROR;
     }
 
-    if (sy_execute_parameters_substitute(base, node, strip_lambda, fun1->parameters, arguments, applicant) < 0)
+    if (sy_call_parameters_subs(base, node, strip_lambda, fun1->parameters, arguments, applicant) < 0)
     {
         if (sy_strip_destroy(strip_lambda) < 0)
         {
@@ -2148,7 +2677,7 @@ sy_execute_call_for_fun(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip
         }
         return ERROR;
     }
-    
+
     int32_t r1 = sy_execute_run_fun(node, strip_lambda, applicant);
     if (r1 == -1)
     {
@@ -2158,19 +2687,18 @@ sy_execute_call_for_fun(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip
         }
         return ERROR;
     }
-    
+
     if (sy_strip_destroy(strip_lambda) < 0)
     {
         return ERROR;
     }
-    
+
     sy_record_t *rax = sy_thread_get_and_set_rax(NULL);
     if (rax == ERROR)
     {
         return ERROR;
     }
-    else
-    if (!rax)
+    else if (!rax)
     {
         rax = sy_record_make_undefined();
         if (rax == ERROR)
@@ -2183,7 +2711,7 @@ sy_execute_call_for_fun(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip
 }
 
 static sy_record_t *
-sy_execute_call_for_lambda(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
+sy_call_lambda(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
 {
     sy_node_lambda_t *fun1 = (sy_node_lambda_t *)node->value;
 
@@ -2203,7 +2731,7 @@ sy_execute_call_for_lambda(sy_node_t *base, sy_node_t *arguments, sy_strip_t *st
         return ERROR;
     }
 
-    if (sy_execute_parameters_substitute(base, node, strip_lambda, fun1->parameters, arguments, applicant) < 0)
+    if (sy_call_parameters_subs(base, node, strip_lambda, fun1->parameters, arguments, applicant) < 0)
     {
         if (sy_strip_destroy(strip_lambda) < 0)
         {
@@ -2232,8 +2760,7 @@ sy_execute_call_for_lambda(sy_node_t *base, sy_node_t *arguments, sy_strip_t *st
     {
         return ERROR;
     }
-    else
-    if (!rax)
+    else if (!rax)
     {
         rax = sy_record_make_undefined();
         if (rax == ERROR)
@@ -2245,481 +2772,1637 @@ sy_execute_call_for_lambda(sy_node_t *base, sy_node_t *arguments, sy_strip_t *st
     return rax;
 }
 
-char *
-record_to_string(sy_record_t *record, char *previous_buf)
+typedef union
 {
-    if (record->kind == RECORD_KIND_CHAR)
-    {
-        char str[50];
-        snprintf(str, sizeof(str), "%c", (char)(*(int8_t *)record->value));
-        size_t length = strlen(previous_buf) + strlen(str);
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%s", previous_buf, str);
-        return result;
-    }
-    else
-    if (record->kind == RECORD_KIND_STRING)
-    {
-        char *str = (char *)record->value;
-        size_t length = strlen(previous_buf) + strlen(str);
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%s", previous_buf, str);
-        return result;
-    }
-    else
-    if (record->kind == RECORD_KIND_INT)
-    {
-        char *str = mpz_get_str(NULL, 10, *(mpz_t *)record->value);
-        size_t length = strlen(previous_buf) + strlen(str);
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%s", previous_buf, str);
-        free(str);
-        return result;
-    }
-    else
-    if (record->kind == RECORD_KIND_FLOAT)
-    {
-        size_t buf_size = 64;
-        char *str = (char *)sy_memory_calloc(buf_size, sizeof(char));
+    char c;
+    short s;
+    int i;
+    long l;
+    unsigned char uc;
+    unsigned short us;
+    unsigned int ui;
+    unsigned long ul;
+    void *ptr;
+    float f;
+    double d;
+    long double ld;
+} union_type;
 
-        if (!str) {
-            sy_error_no_memory();
-            return ERROR;
-        }
+typedef struct record_cvt_ffi
+{
+    void *ptr;
+    ffi_type *type;
+    size_t size;
+} cvt_ffi_t;
 
-        size_t required_size = gmp_snprintf(str, buf_size, "%s%.Ff", previous_buf, (*(mpf_t *)record->value));
-        if (required_size >= buf_size) {
-            buf_size = required_size + 1;
-            str = (char *)sy_memory_realloc(str, buf_size);
-
-            if (!str) {
-                sy_error_no_memory();
-                return ERROR;
-            }
-            gmp_snprintf(str, buf_size, "%s%.Ff", previous_buf, (*(mpf_t *)record->value));
-        }
-
-        return str;
-    }
-    else
-    if (record->kind == RECORD_KIND_OBJECT)
-    {
-        size_t length = strlen(previous_buf) + 1;
-        char *str = sy_memory_calloc(length + 1, sizeof(char));
-        if (str == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(str, length + 1, "%s%c", previous_buf, '{');
-        for (sy_record_object_t *item = (sy_record_object_t *)record->value;item != NULL;item = item->next)
-        {
-            sy_node_basic_t *basic = (sy_node_basic_t *)item->key->value;
-            length = strlen(str) + strlen(basic->value) + 1;
-            char *result = sy_memory_calloc(length + 1, sizeof(char));
-            if (result == NULL)
-            {
-                sy_error_no_memory();
-                return ERROR;
-            }
-            snprintf(result, length + 1, "%s%s:", str, basic->value);
-            sy_memory_free(str);
-            str = result;
-
-            result = record_to_string(item->value, str);
-            if (result == ERROR)
-            {
-                sy_memory_free(str);
-                return ERROR;
-            }
-            sy_memory_free(str);
-            str = result;
-
-            if (item->next)
-            {
-                length = strlen(str) + 1;
-                char *result = sy_memory_calloc(length + 1, sizeof(char));
-                if (result == NULL)
-                {
-                    sy_error_no_memory();
-                    return ERROR;
-                }
-                snprintf(result, length + 1, "%s,", str);
-                sy_memory_free(str);
-                str = result;
-            }
-        }
-        length = strlen(str) + 1;
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            sy_memory_free(str);
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%c", str, '}');
-        sy_memory_free(str);
-        return result;
-    }
-    else
-    if (record->kind == RECORD_KIND_TUPLE)
-    {
-        size_t length = strlen(previous_buf) + 1;
-        char *str = sy_memory_calloc(length + 1, sizeof(char));
-        if (str == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(str, length + 1, "%s%c", previous_buf, '[');
-
-        for (sy_record_tuple_t *item = (sy_record_tuple_t *)record->value;item != NULL;item = item->next)
-        {
-            char *result = record_to_string(item->value, str);
-            if (result == ERROR)
-            {
-                sy_memory_free(str);
-                return ERROR;
-            }
-            sy_memory_free(str);
-            str = result;
-
-            if (item->next)
-            {
-                length = strlen(str) + 1;
-                char *result = sy_memory_calloc(length + 1, sizeof(char));
-                if (result == NULL)
-                {
-                    sy_error_no_memory();
-                    return ERROR;
-                }
-                snprintf(result, length + 1, "%s,", str);
-                sy_memory_free(str);
-                str = result;
-            }
-        }
-
-        length = strlen(str) + 1;
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            sy_memory_free(str);
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%c", str, ']');
-        sy_memory_free(str);
-        return result;
-    }
-    else
-    if (record->kind == RECORD_KIND_UNDEFINED)
-    {
-        char *str = "undefined";
-        size_t length = strlen(previous_buf) + strlen(str);
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%s", previous_buf, str);
-        return result;
-    }
-    else
-    if (record->kind == RECORD_KIND_NAN)
-    {
-        char *str = "nan";
-        size_t length = strlen(previous_buf) + strlen(str);
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%s", previous_buf, str);
-        return result;
-    }
-    else
-    if (record->kind == RECORD_KIND_NULL)
-    {
-        char *str = "null";
-        size_t length = strlen(previous_buf) + strlen(str);
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%s", previous_buf, str);
-        return result;
-    }
-    else
-    if (record->kind == RECORD_KIND_TYPE)
-    {
-        char *str = "<type>";
-        size_t length = strlen(previous_buf) + strlen(str);
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%s", previous_buf, str);
-        return result;
-    }
-    else
-    if (record->kind == RECORD_KIND_STRUCT)
-    {
-        sy_record_struct_t *struct1 = (sy_record_struct_t *)record->value;
-        sy_node_t *type = struct1->type;
-        sy_strip_t *strip_class = struct1->value;
-
-        sy_node_class_t *class1 = (sy_node_class_t *)type->value;
-
-        size_t length = strlen(previous_buf) + 1;
-        char *str = sy_memory_calloc(length + 1, sizeof(char));
-        if (str == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(str, length + 1, "%s%c", previous_buf, '{');
-        uint64_t i = 0;
-        for (sy_node_t *item = class1->block;item != NULL;item = item->next)
-        {
-            if (item->kind == NODE_KIND_PROPERTY)
-            {
-                sy_node_property_t *property = (sy_node_property_t *)item->value;
-                if ((property->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
-                {
-                    continue;
-                }
-
-                if ((property->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
-                {
-                    continue;
-                }
-
-                if (i > 0)
-                {
-                    length = strlen(str) + 1;
-                    char *result = sy_memory_calloc(length + 1, sizeof(char));
-                    if (result == NULL)
-                    {
-                        sy_error_no_memory();
-                        return ERROR;
-                    }
-                    snprintf(result, length + 1, "%s,", str);
-                    sy_memory_free(str);
-                    str = result;
-                }
-
-                sy_node_basic_t *basic = (sy_node_basic_t *)property->key->value;
-                length = strlen(str) + strlen(basic->value) + 1;
-                char *result = sy_memory_calloc(length + 1, sizeof(char));
-                if (result == NULL)
-                {
-                    sy_error_no_memory();
-                    return ERROR;
-                }
-                snprintf(result, length + 1, "%s%s:", str, basic->value);
-                sy_memory_free(str);
-                str = result;
-
-
-                sy_entry_t *entry = sy_strip_variable_find(strip_class, type, property->key);
-                if (entry == ERROR)
-                {
-                    sy_memory_free(str);
-                    return ERROR;
-                }
-                if (entry == NULL)
-                {
-                    sy_error_runtime_by_node(item, "'%s' is not initialized", basic->value);
-                    sy_memory_free(str);
-                    return ERROR;
-                }
-
-                result = record_to_string(entry->value, str);
-
-                entry->value->link -= 1;
-
-                if (result == ERROR)
-                {
-                    sy_memory_free(str);
-                    return ERROR;
-                }
-                sy_memory_free(str);
-                str = result;
-                i += 1;
-            }
-        }
-        
-        if (class1->heritages)
-        {
-            sy_node_block_t *block = (sy_node_block_t *)class1->heritages->value;
-            for (sy_node_t *item = block->items; item != NULL; item = item->next)
-            {
-                sy_node_heritage_t *heritage = (sy_node_heritage_t *)item->value;
-                if (i > 0)
-                {
-                    length = strlen(str) + 1;
-                    char *result = sy_memory_calloc(length + 1, sizeof(char));
-                    if (result == NULL)
-                    {
-                        sy_error_no_memory();
-                        return ERROR;
-                    }
-                    snprintf(result, length + 1, "%s,", str);
-                    sy_memory_free(str);
-                    str = result;
-                }
-
-                sy_node_basic_t *basic = (sy_node_basic_t *)heritage->key->value;
-                length = strlen(str) + strlen(basic->value) + 1;
-                char *result = sy_memory_calloc(length + 1, sizeof(char));
-                if (result == NULL)
-                {
-                    sy_error_no_memory();
-                    return ERROR;
-                }
-                snprintf(result, length + 1, "%s%s:", str, basic->value);
-                sy_memory_free(str);
-                str = result;
-
-                sy_entry_t *entry = sy_strip_variable_find(strip_class, type, heritage->key);
-                if (entry == ERROR)
-                {
-                    sy_memory_free(str);
-                    return ERROR;
-                }
-                if (entry == NULL)
-                {
-                    sy_error_runtime_by_node(item, "'%s' is not initialized", basic->value);
-                    sy_memory_free(str);
-                    return ERROR;
-                }
-
-                result = record_to_string(entry->value, str);
-
-                entry->value->link -= 1;
-
-                if (result == ERROR)
-                {
-                    sy_memory_free(str);
-                    return ERROR;
-                }
-                sy_memory_free(str);
-                str = result;
-                i += 1;
-            }
-        }
-
-        length = strlen(str) + 1;
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            sy_memory_free(str);
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%c", str, '}');
-        sy_memory_free(str);
-        return result;
-    }
-    else
-    if (record->kind == RECORD_KIND_UNDEFINED)
-    {
-        char *str = "undefined";
-        size_t length = strlen(previous_buf) + strlen(str);
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%s", previous_buf, str);
-        return result;
-    }
-    else
-    if (record->kind == RECORD_KIND_NAN)
-    {
-        char *str = "nan";
-        size_t length = strlen(previous_buf) + strlen(str);
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%s", previous_buf, str);
-        return result;
-    }
-    else
-    if (record->kind == RECORD_KIND_NULL)
-    {
-        char *str = "null";
-        size_t length = strlen(previous_buf) + strlen(str);
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%s", previous_buf, str);
-        return result;
-    }
-    else
-    {
-        char *str = "";
-        size_t length = strlen(previous_buf) + strlen(str);
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%s", previous_buf, str);
-        return result;
-    }
+static void
+ffi_type_destroy(ffi_type *type)
+{
 }
 
-sy_record_t *
-sy_execute_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+static ffi_type *
+json_to_ffi(json_t *type)
 {
-    sy_node_carrier_t *carrier = (sy_node_carrier_t *)node->value;
+    if (json_is_string(type))
+    {
+        const char *str = json_string_value(type);
+        if (strcmp(str, "schar") == 0)
+        {
+            return &ffi_type_schar;
+        }
+        else if (strcmp(str, "uchar") == 0)
+        {
+            return &ffi_type_uchar;
+        }
+        else if (strcmp(str, "sshort") == 0)
+        {
+            return &ffi_type_sshort;
+        }
+        else if (strcmp(str, "ushort") == 0)
+        {
+            return &ffi_type_ushort;
+        }
+        else if (strcmp(str, "sint") == 0)
+        {
+            return &ffi_type_sint;
+        }
+        else if (strcmp(str, "uint") == 0)
+        {
+            return &ffi_type_uint;
+        }
+        else if (strcmp(str, "slong") == 0)
+        {
+            return &ffi_type_slong;
+        }
+        else if (strcmp(str, "ulong") == 0)
+        {
+            return &ffi_type_ulong;
+        }
+        else if (strcmp(str, "sint8") == 0)
+        {
+            return &ffi_type_sint8;
+        }
+        else if (strcmp(str, "uint8") == 0)
+        {
+            return &ffi_type_uint8;
+        }
+        else if (strcmp(str, "sint16") == 0)
+        {
+            return &ffi_type_sint16;
+        }
+        else if (strcmp(str, "uint16") == 0)
+        {
+            return &ffi_type_uint16;
+        }
+        else if (strcmp(str, "sint32") == 0)
+        {
+            return &ffi_type_sint32;
+        }
+        else if (strcmp(str, "uint32") == 0)
+        {
+            return &ffi_type_uint32;
+        }
+        else if (strcmp(str, "sint64") == 0)
+        {
+            return &ffi_type_sint64;
+        }
+        else if (strcmp(str, "uint64") == 0)
+        {
+            return &ffi_type_uint64;
+        }
+        else if (strcmp(str, "float") == 0)
+        {
+            return &ffi_type_float;
+        }
+        else if (strcmp(str, "double") == 0)
+        {
+            return &ffi_type_double;
+        }
+    }
+    else if (json_is_object(type))
+    {
+    }
+    else if (json_is_array(type))
+    {
+    }
+    else
+    {
+    }
 
-    sy_record_t *base = sy_execute_expression(carrier->base, strip, applicant, origin);
-    if (base == ERROR)
+    return &ffi_type_void;
+}
+
+static void *
+record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
+{
+    if (json_is_string(type))
+    {
+        const char *str = json_string_value(type);
+        if (strcmp(str, "schar") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(char));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(char *)ptr = *(char *)arg->value;
+                *size = sizeof(char);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(char));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(char *)ptr = (char)mpz_get_si(*(mpz_t *)arg->value);
+                *size = sizeof(char);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "uchar") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(unsigned char));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(unsigned char *)ptr = (unsigned char)(*(char *)arg->value);
+                *size = sizeof(unsigned char);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(unsigned char));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(unsigned char *)ptr = (unsigned char)mpz_get_ui(*(mpz_t *)arg->value);
+                *size = sizeof(unsigned char);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "sshort") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(short));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(short *)ptr = (short)(*(char *)arg->value);
+                *size = sizeof(short);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(short));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(short *)ptr = (short)mpz_get_si(*(mpz_t *)arg->value);
+                *size = sizeof(short);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "ushort") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(unsigned short));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(unsigned short *)ptr = (unsigned short)(*(char *)arg->value);
+                *size = sizeof(unsigned short);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(unsigned short));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(unsigned short *)ptr = (unsigned short)mpz_get_ui(*(mpz_t *)arg->value);
+                *size = sizeof(unsigned short);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "sint") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(int));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(int *)ptr = (int)(*(char *)arg->value);
+                *size = sizeof(int);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(int));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(int *)ptr = (int)mpz_get_si(*(mpz_t *)arg->value);
+                *size = sizeof(int);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "uint") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(unsigned int));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(unsigned int *)ptr = (unsigned int)(*(char *)arg->value);
+                *size = sizeof(unsigned int);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(unsigned int));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(unsigned int *)ptr = (unsigned int)mpz_get_ui(*(mpz_t *)arg->value);
+                *size = sizeof(unsigned int);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "slong") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(long));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(long *)ptr = (long)(*(char *)arg->value);
+                *size = sizeof(long);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(long));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(long *)ptr = (long)mpz_get_si(*(mpz_t *)arg->value);
+                *size = sizeof(long);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "ulong") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(unsigned long));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(unsigned long *)ptr = (unsigned long)(*(char *)arg->value);
+                *size = sizeof(unsigned long);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(unsigned long));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(unsigned long *)ptr = (unsigned long)mpz_get_ui(*(mpz_t *)arg->value);
+                *size = sizeof(unsigned long);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "sint8") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(int8_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(int8_t *)ptr = (int8_t)(*(char *)arg->value);
+                *size = sizeof(int8_t);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(int8_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(int8_t *)ptr = (int8_t)mpz_get_si(*(mpz_t *)arg->value);
+                *size = sizeof(int8_t);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "uint8") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(uint8_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(uint8_t *)ptr = (uint8_t)(*(char *)arg->value);
+                *size = sizeof(uint8_t);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(uint8_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(uint8_t *)ptr = (uint8_t)mpz_get_ui(*(mpz_t *)arg->value);
+                *size = sizeof(uint8_t);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "sint16") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(int16_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(int16_t *)ptr = (int16_t)(*(char *)arg->value);
+                *size = sizeof(int16_t);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(int16_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(int16_t *)ptr = (int16_t)mpz_get_si(*(mpz_t *)arg->value);
+                *size = sizeof(int16_t);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "uint16") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(uint16_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(uint16_t *)ptr = (uint16_t)(*(char *)arg->value);
+                *size = sizeof(uint16_t);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(uint16_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(uint16_t *)ptr = (uint16_t)mpz_get_ui(*(mpz_t *)arg->value);
+                *size = sizeof(uint16_t);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "sint32") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(int32_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(int32_t *)ptr = (int32_t)(*(char *)arg->value);
+                *size = sizeof(int32_t);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(int32_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(int32_t *)ptr = (int32_t)mpz_get_si(*(mpz_t *)arg->value);
+                *size = sizeof(int32_t);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "uint32") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(uint32_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(uint32_t *)ptr = (uint32_t)(*(char *)arg->value);
+                *size = sizeof(uint32_t);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(uint32_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(uint32_t *)ptr = (uint32_t)mpz_get_ui(*(mpz_t *)arg->value);
+                *size = sizeof(uint32_t);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "sint64") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(int64_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(int64_t *)ptr = (int64_t)(*(char *)arg->value);
+                *size = sizeof(int64_t);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(int64_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(int64_t *)ptr = (int64_t)mpz_get_si(*(mpz_t *)arg->value);
+                *size = sizeof(int64_t);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "uint64") == 0)
+        {
+            if (arg->kind == RECORD_KIND_CHAR)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(uint64_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(uint64_t *)ptr = (uint64_t)(*(char *)arg->value);
+                *size = sizeof(uint64_t);
+                return ptr;
+            }
+            else if (arg->kind == RECORD_KIND_INT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(uint64_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(uint64_t *)ptr = (uint64_t)mpz_get_ui(*(mpz_t *)arg->value);
+                *size = sizeof(uint64_t);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "float") == 0)
+        {
+            if (arg->kind == RECORD_KIND_FLOAT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(float));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(float *)ptr = (float)mpf_get_d(*(mpf_t *)arg->value);
+                *size = sizeof(float);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else if (strcmp(str, "double") == 0)
+        {
+            if (arg->kind == RECORD_KIND_FLOAT)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(double));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return ERROR;
+                }
+                *(double *)ptr = (double)mpf_get_d(*(mpf_t *)arg->value);
+                *size = sizeof(double);
+                return ptr;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+    else if (json_is_object(type))
+    {
+    }
+    else if (json_is_array(type))
+    {
+    }
+    else
+    {
+    }
+
+    return NULL;
+}
+
+static int32_t
+record_cvt_ffi(sy_record_t *arg, json_t *type, cvt_ffi_t *ret)
+{
+    void *ptr = record_cvt_by_json(arg, type, &ret->size);
+    if (ptr == ERROR)
+    {
+        return -1;
+    }
+    else if (ptr == NULL)
+    {
+        return 0;
+    }
+    ret->ptr = ptr;
+
+    ffi_type *ffi = json_to_ffi(type);
+    if (ffi == ERROR)
+    {
+        sy_memory_free(ptr);
+        return -1;
+    }
+
+    ret->type = ffi;
+    return 1;
+}
+
+static sy_record_t *
+union_cvt_record_by_json(union_type *value, json_t *type)
+{
+    if (json_is_string(type))
+    {
+        const char *str = json_string_value(type);
+        if (strcmp(str, "schar") == 0)
+        {
+            return sy_record_make_char(value->c);
+        }
+        else if (strcmp(str, "uchar") == 0)
+        {
+            return sy_record_make_int_from_ui(value->uc);
+        }
+        else if (strcmp(str, "sshort") == 0)
+        {
+            return sy_record_make_int_from_si(value->s);
+        }
+        else if (strcmp(str, "ushort") == 0)
+        {
+            return sy_record_make_int_from_ui(value->us);
+        }
+        else if (strcmp(str, "sint") == 0)
+        {
+            return sy_record_make_int_from_si(value->i);
+        }
+        else if (strcmp(str, "uint") == 0)
+        {
+            return sy_record_make_int_from_ui(value->ui);
+        }
+        else if (strcmp(str, "slong") == 0)
+        {
+            return sy_record_make_int_from_si(value->l);
+        }
+        else if (strcmp(str, "ulong") == 0)
+        {
+            return sy_record_make_int_from_ui(value->ul);
+        }
+        else if (strcmp(str, "sint8") == 0)
+        {
+            return sy_record_make_int_from_si(value->c);
+        }
+        else if (strcmp(str, "uint8") == 0)
+        {
+            return sy_record_make_int_from_ui(value->uc);
+        }
+        else if (strcmp(str, "sint16") == 0)
+        {
+            return sy_record_make_int_from_si(value->s);
+        }
+        else if (strcmp(str, "uint16") == 0)
+        {
+            return sy_record_make_int_from_ui(value->us);
+        }
+        else if (strcmp(str, "sint32") == 0)
+        {
+            return sy_record_make_int_from_si(value->i);
+        }
+        else if (strcmp(str, "uint32") == 0)
+        {
+            return sy_record_make_int_from_ui(value->ui);
+        }
+        else if (strcmp(str, "sint64") == 0)
+        {
+            return sy_record_make_int_from_si(value->l);
+        }
+        else if (strcmp(str, "uint64") == 0)
+        {
+            return sy_record_make_int_from_ui(value->ul);
+        }
+        else if (strcmp(str, "float") == 0)
+        {
+            return sy_record_make_float_from_d(value->f);
+        }
+        else if (strcmp(str, "double") == 0)
+        {
+            return sy_record_make_float_from_d(value->d);
+        }
+    }
+    else if (json_is_object(type))
+    {
+    }
+    else if (json_is_array(type))
+    {
+    }
+    else
+    {
+    }
+
+    return sy_record_make_undefined();
+}
+
+static sy_record_t *
+sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *handle, json_t *map, sy_node_t *applicant)
+{
+    size_t arg_count = 0;
+    if (arguments)
+    {
+        sy_node_block_t *block = (sy_node_block_t *)arguments->value;
+        for (sy_node_t *item = block->items; item != NULL; item = item->next)
+        {
+            arg_count += 1;
+        }
+    }
+
+    json_t *parameters = json_object_get(map, "parameters");
+
+    if (arguments)
+    {
+        if (!parameters || !json_is_array(parameters))
+        {
+            sy_error_type_by_node(base, "'%s' takes %lu positional arguments but %lu were given", "proc", 0, arg_count);
+            return ERROR;
+        }
+    }
+
+    sy_record_t *retvalue = ERROR;
+
+    sy_queue_t *repo = sy_queue_create();
+    if (repo == ERROR)
     {
         return ERROR;
     }
-    
-    if (base->kind == RECORD_KIND_TYPE)
+
+    typedef struct
     {
-        sy_record_type_t *record_type = (sy_record_type_t *)base->value;
+        const char *key;
+        void *ptr;
+        ffi_type *type;
+    } ffi_repository_entry_t;
+
+    size_t param_count = json_array_size(parameters);
+    size_t param_index = 0;
+    if (arguments)
+    {
+        sy_node_block_t *block = (sy_node_block_t *)arguments->value;
+        for (sy_node_t *item = block->items; item != NULL;)
+        {
+            sy_node_argument_t *argument = (sy_node_argument_t *)item->value;
+
+            if (param_index >= param_count)
+            {
+                json_t *var_arg = json_object_get(map, "arg");
+                if (json_is_boolean(var_arg) && json_boolean_value(var_arg))
+                {
+                    goto region_enable_vararg;
+                }
+
+                if (argument->value)
+                {
+                    sy_node_basic_t *basic2 = (sy_node_basic_t *)argument->key->value;
+                    sy_error_type_by_node(argument->key, "'%s' got an unexpected keyword argument '%s'", "proc", basic2->value);
+                    goto region_cleanup;
+                }
+                else
+                {
+                    sy_error_type_by_node(argument->key, "'%s' takes %lld positional arguments but %lld were given", "proc", param_count, arg_count);
+                    goto region_cleanup;
+                }
+            }
+
+            json_t *parameter = json_array_get(parameters, param_index);
+            json_t *prefix = json_object_get(parameter, "prefix");
+            json_t *name = json_object_get(parameter, "name");
+            json_t *type = json_object_get(parameter, "type");
+
+            if (argument->value)
+            {
+                if (json_is_string(prefix) && (strcmp(json_string_value(prefix), "**") == 0))
+                {
+                    void *ptr = NULL;
+                    size_t ptr_size = 0;
+
+                    ffi_type **elements = NULL;
+                    size_t index = 0;
+
+                    ffi_type *struct_type = sy_memory_calloc(1, sizeof(ffi_type));
+                    if (!struct_type)
+                    {
+                        sy_error_no_memory();
+                        goto region_cleanup;
+                    }
+
+                    for (; item != NULL; item = item->next)
+                    {
+                        argument = (sy_node_argument_t *)item->value;
+                        if (!argument->value)
+                        {
+                            break;
+                        }
+
+                        sy_record_t *record_arg = sy_execute_expression(argument->value, strip, applicant, NULL);
+                        if (record_arg == ERROR)
+                        {
+                            sy_error_no_memory();
+                            goto region_cleanup_kwarg;
+                        }
+
+                        cvt_ffi_t cvt_ffi;
+                        int32_t r = record_cvt_ffi(record_arg, type, &cvt_ffi);
+                        if (r < 0)
+                        {
+                            sy_record_link_decrease(record_arg);
+                            goto region_cleanup_kwarg;
+                        }
+                        else if (r == 0)
+                        {
+                            sy_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
+                                                  "argument", sy_record_type_as_string(record_arg),
+                                                  json_is_string(type) ? json_string_value(type) : "struct");
+                            sy_record_link_decrease(record_arg);
+                            goto region_cleanup_kwarg;
+                        }
+
+                        if (sy_record_link_decrease(record_arg) < 0)
+                        {
+                            if (cvt_ffi.type)
+                                ffi_type_destroy(cvt_ffi.type);
+
+                            if (cvt_ffi.ptr)
+                                sy_memory_free(cvt_ffi.ptr);
+
+                            goto region_cleanup_kwarg;
+                        }
+
+                        ffi_type **elements_struct = sy_memory_calloc(3, sizeof(ffi_type *));
+                        if (!elements_struct)
+                        {
+                            sy_error_no_memory();
+
+                            if (cvt_ffi.type)
+                                ffi_type_destroy(cvt_ffi.type);
+
+                            if (cvt_ffi.ptr)
+                                sy_memory_free(cvt_ffi.ptr);
+
+                            goto region_cleanup_kwarg;
+                        }
+                        elements_struct[0] = &ffi_type_pointer;
+                        elements_struct[1] = cvt_ffi.type;
+                        elements_struct[2] = NULL;
+
+                        ffi_type *struct_type = sy_memory_calloc(1, sizeof(ffi_type));
+                        if (!struct_type)
+                        {
+                            sy_error_no_memory();
+
+                            if (cvt_ffi.type)
+                                ffi_type_destroy(cvt_ffi.type);
+
+                            if (cvt_ffi.ptr)
+                                sy_memory_free(cvt_ffi.ptr);
+
+                            if (elements_struct)
+                                sy_memory_free(elements_struct);
+
+                            goto region_cleanup_kwarg;
+                        }
+
+                        struct_type->size = 0;
+                        struct_type->alignment = 0;
+                        struct_type->type = FFI_TYPE_STRUCT;
+                        struct_type->elements = elements_struct;
+
+                        if (index == 0)
+                        {
+                            ffi_type **elements_ptr = sy_memory_calloc(1, sizeof(ffi_type *));
+                            if (!elements_ptr)
+                            {
+                                sy_error_no_memory();
+
+                                if (cvt_ffi.type)
+                                    ffi_type_destroy(cvt_ffi.type);
+
+                                if (cvt_ffi.ptr)
+                                    sy_memory_free(cvt_ffi.ptr);
+
+                                if (elements_struct)
+                                    sy_memory_free(elements_struct);
+
+                                goto region_cleanup_kwarg;
+                            }
+
+                            elements_ptr[index] = struct_type;
+                            elements = elements_ptr;
+                            index += 1;
+
+                            void *ptr_copy = sy_memory_calloc(1, sizeof(char *) + cvt_ffi.size);
+                            if (!ptr_copy)
+                            {
+                                sy_error_no_memory();
+
+                                if (cvt_ffi.ptr)
+                                    sy_memory_free(cvt_ffi.ptr);
+
+                                goto region_cleanup_kwarg;
+                            }
+
+                            sy_node_basic_t *basic1 = (sy_node_basic_t *)argument->key->value;
+                            *(char **)ptr_copy = basic1->value;
+                            void *content_ptr = (char *)ptr_copy + sizeof(char *);
+                            memcpy(content_ptr, cvt_ffi.ptr, cvt_ffi.size);
+
+                            sy_memory_free(cvt_ffi.ptr);
+                            ptr = ptr_copy;
+
+                            ptr_size += cvt_ffi.size;
+                        }
+                        else
+                        {
+                            ffi_type **elements_ptr = sy_memory_realloc(elements, sizeof(ffi_type *) * (index + 1));
+                            if (!elements_ptr)
+                            {
+                                sy_error_no_memory();
+
+                                if (cvt_ffi.type)
+                                    ffi_type_destroy(cvt_ffi.type);
+
+                                if (cvt_ffi.ptr)
+                                    sy_memory_free(cvt_ffi.ptr);
+
+                                if (elements_struct)
+                                    sy_memory_free(elements_struct);
+
+                                goto region_cleanup_kwarg;
+                            }
+
+                            elements_ptr[index] = struct_type;
+                            elements = elements_ptr;
+                            index += 1;
+
+                            void *ptr_copy = sy_memory_realloc(ptr, ptr_size + sizeof(char *) + cvt_ffi.size);
+                            if (!ptr_copy)
+                            {
+                                sy_error_no_memory();
+
+                                if (cvt_ffi.ptr)
+                                    sy_memory_free(cvt_ffi.ptr);
+
+                                goto region_cleanup_kwarg;
+                            }
+
+                            sy_node_basic_t *basic1 = (sy_node_basic_t *)argument->key->value;
+                            *(char **)(ptr_copy + ptr_size) = basic1->value;
+                            void *content_ptr = (char *)(ptr_copy + ptr_size) + sizeof(char *);
+                            memcpy(content_ptr, cvt_ffi.ptr, cvt_ffi.size);
+
+                            sy_memory_free(cvt_ffi.ptr);
+                            ptr = ptr_copy;
+
+                            ptr_size += cvt_ffi.size;
+                        }
+
+                        continue;
+                    }
+
+                    struct_type->size = 0;
+                    struct_type->alignment = 0;
+                    struct_type->type = FFI_TYPE_STRUCT;
+                    struct_type->elements = elements;
+
+                    ffi_repository_entry_t *entry = sy_memory_calloc(1, sizeof(ffi_repository_entry_t));
+                    if (!entry)
+                    {
+                        sy_error_no_memory();
+                        goto region_cleanup_kwarg;
+                    }
+
+                    entry->key = json_string_value(name);
+                    entry->type = struct_type;
+                    entry->ptr = ptr;
+
+                    if (ERROR == sy_queue_right_push(repo, entry))
+                    {
+                        sy_memory_free(entry);
+                        goto region_cleanup_kwarg;
+                    }
+
+                    param_index += 1;
+                    continue;
+
+                region_cleanup_kwarg:
+                    if (ptr)
+                        sy_memory_free(ptr);
+
+                    for (size_t i = 0; i < index; i++)
+                    {
+                        ffi_type_destroy(elements[i]);
+                    }
+
+                    if (struct_type)
+                        sy_memory_free(struct_type);
+
+                    goto region_cleanup;
+                }
+                else
+                {
+                    int8_t found = 0;
+                    for (size_t param_index2 = param_index; param_index2 < param_count; param_index2 += 1)
+                    {
+                        parameter = json_array_get(parameters, param_index2);
+                        name = json_object_get(parameter, "name");
+                        type = json_object_get(parameter, "type");
+
+                        if (sy_execute_id_strcmp(argument->key, json_string_value(name)) == 1)
+                        {
+                            found = 1;
+
+                            sy_record_t *record_arg = sy_execute_expression(argument->value, strip, applicant, NULL);
+                            if (record_arg == ERROR)
+                            {
+                                sy_error_no_memory();
+                                goto region_cleanup;
+                            }
+
+                            cvt_ffi_t cvt_ffi;
+                            int32_t r = record_cvt_ffi(record_arg, type, &cvt_ffi);
+                            if (r < 0)
+                            {
+                                sy_record_link_decrease(record_arg);
+                                goto region_cleanup;
+                            }
+                            else if (r == 0)
+                            {
+                                sy_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
+                                                      "argument", sy_record_type_as_string(record_arg),
+                                                      json_is_string(type) ? json_string_value(type) : "struct");
+                                sy_record_link_decrease(record_arg);
+                                goto region_cleanup;
+                            }
+
+                            if (sy_record_link_decrease(record_arg) < 0)
+                            {
+                                if (cvt_ffi.type)
+                                    ffi_type_destroy(cvt_ffi.type);
+
+                                if (cvt_ffi.ptr)
+                                    sy_memory_free(cvt_ffi.ptr);
+
+                                goto region_cleanup;
+                            }
+
+                            ffi_repository_entry_t *entry = sy_memory_calloc(1, sizeof(ffi_repository_entry_t));
+                            if (!entry)
+                            {
+                                sy_error_no_memory();
+
+                                if (cvt_ffi.type)
+                                    ffi_type_destroy(cvt_ffi.type);
+
+                                if (cvt_ffi.ptr)
+                                    sy_memory_free(cvt_ffi.ptr);
+
+                                goto region_cleanup;
+                            }
+
+                            entry->key = json_string_value(name);
+                            entry->type = cvt_ffi.type;
+                            entry->ptr = cvt_ffi.ptr;
+
+                            if (ERROR == sy_queue_right_push(repo, entry))
+                            {
+                                if (cvt_ffi.type)
+                                    ffi_type_destroy(cvt_ffi.type);
+
+                                if (cvt_ffi.ptr)
+                                    sy_memory_free(cvt_ffi.ptr);
+
+                                sy_memory_free(entry);
+                                goto region_cleanup;
+                            }
+
+                            break;
+                        }
+                    }
+
+                    if (found == 0)
+                    {
+                        sy_node_basic_t *basic1 = (sy_node_basic_t *)argument->key->value;
+                        sy_error_type_by_node(argument->key, "'%s' got an unexpected keyword argument '%s'", "proc", basic1->value);
+                        goto region_cleanup;
+                    }
+
+                    continue;
+                }
+            }
+            else
+            {
+                if (json_is_string(prefix) && (strcmp(json_string_value(prefix), "*") == 0))
+                {
+                    void *ptr = NULL;
+                    size_t ptr_size = 0;
+
+                    ffi_type **elements = NULL;
+                    size_t index = 0;
+
+                    ffi_type *struct_type = sy_memory_calloc(1, sizeof(ffi_type));
+                    if (!struct_type)
+                    {
+                        sy_error_no_memory();
+                        goto region_cleanup;
+                    }
+
+                    for (; item != NULL; item = item->next)
+                    {
+                        argument = (sy_node_argument_t *)item->value;
+                        if (argument->value)
+                        {
+                            break;
+                        }
+
+                        sy_record_t *record_arg = sy_execute_expression(argument->key, strip, applicant, NULL);
+                        if (record_arg == ERROR)
+                        {
+                            sy_error_no_memory();
+                            goto region_cleanup_karg;
+                        }
+
+                        cvt_ffi_t cvt_ffi;
+                        int32_t r = record_cvt_ffi(record_arg, type, &cvt_ffi);
+                        if (r < 0)
+                        {
+                            sy_record_link_decrease(record_arg);
+                            goto region_cleanup_karg;
+                        }
+                        else if (r == 0)
+                        {
+                            sy_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
+                                                  "argument", sy_record_type_as_string(record_arg),
+                                                  json_is_string(type) ? json_string_value(type) : "struct");
+                            sy_record_link_decrease(record_arg);
+                            goto region_cleanup_karg;
+                        }
+
+                        if (sy_record_link_decrease(record_arg) < 0)
+                        {
+                            if (cvt_ffi.type)
+                                ffi_type_destroy(cvt_ffi.type);
+
+                            if (cvt_ffi.ptr)
+                                sy_memory_free(cvt_ffi.ptr);
+
+                            goto region_cleanup_karg;
+                        }
+
+                        if (index == 0)
+                        {
+                            ffi_type **elements_ptr = sy_memory_calloc(1, sizeof(ffi_type *));
+                            if (!elements_ptr)
+                            {
+                                sy_error_no_memory();
+                                goto region_cleanup_karg;
+                            }
+
+                            elements_ptr[index] = cvt_ffi.type;
+                            elements = elements_ptr;
+                            index += 1;
+
+                            ptr = cvt_ffi.ptr;
+
+                            ptr_size += cvt_ffi.size;
+                        }
+                        else
+                        {
+                            ffi_type **elements_ptr = sy_memory_realloc(elements, sizeof(ffi_type *) * (index + 1));
+                            if (!elements_ptr)
+                            {
+                                sy_error_no_memory();
+                                goto region_cleanup_karg;
+                            }
+
+                            elements_ptr[index] = cvt_ffi.type;
+                            elements = elements_ptr;
+                            index += 1;
+
+                            void *ptr_copy = sy_memory_realloc(ptr, ptr_size + sizeof(char *) + cvt_ffi.size);
+                            if (!ptr_copy)
+                            {
+                                sy_error_no_memory();
+                                goto region_cleanup_karg;
+                            }
+
+                            memcpy(ptr_copy + ptr_size, cvt_ffi.ptr, cvt_ffi.size);
+                            ptr = ptr_copy;
+
+                            ptr_size += cvt_ffi.size;
+                        }
+
+                        continue;
+                    }
+
+                    struct_type->size = 0;
+                    struct_type->alignment = 0;
+                    struct_type->type = FFI_TYPE_STRUCT;
+                    struct_type->elements = elements;
+
+                    ffi_repository_entry_t *entry = sy_memory_calloc(1, sizeof(ffi_repository_entry_t));
+                    if (!entry)
+                    {
+                        sy_error_no_memory();
+                        goto region_cleanup_karg;
+                    }
+
+                    entry->key = json_string_value(name);
+                    entry->type = struct_type;
+                    entry->ptr = ptr;
+
+                    if (ERROR == sy_queue_right_push(repo, entry))
+                    {
+                        sy_memory_free(entry);
+                        goto region_cleanup_karg;
+                    }
+
+                    param_index += 1;
+                    continue;
+
+                region_cleanup_karg:
+                    if (ptr)
+                        sy_memory_free(ptr);
+
+                    for (size_t i = 0; i < index; i++)
+                    {
+                        ffi_type_destroy(elements[i]);
+                    }
+
+                    if (struct_type)
+                        sy_memory_free(struct_type);
+
+                    goto region_cleanup;
+                }
+                else if (json_is_string(prefix) && (strcmp(json_string_value(prefix), "**") == 0))
+                {
+                    sy_error_type_by_node(argument->key, "'%s' required '%s'", "json", "kwarg");
+                    goto region_cleanup;
+                }
+                else
+                {
+                    sy_record_t *record_arg = sy_execute_expression(argument->key, strip, applicant, NULL);
+                    if (record_arg == ERROR)
+                    {
+                        sy_error_no_memory();
+                        goto region_cleanup;
+                    }
+
+                    cvt_ffi_t cvt_ffi;
+                    int32_t r = record_cvt_ffi(record_arg, type, &cvt_ffi);
+                    if (r < 0)
+                    {
+                        sy_record_link_decrease(record_arg);
+                        goto region_cleanup;
+                    }
+                    else if (r == 0)
+                    {
+                        sy_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
+                                              "argument", sy_record_type_as_string(record_arg),
+                                              json_is_string(type) ? json_string_value(type) : "struct|tuple");
+                        sy_record_link_decrease(record_arg);
+                        goto region_cleanup;
+                    }
+
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        if (cvt_ffi.type)
+                            ffi_type_destroy(cvt_ffi.type);
+
+                        if (cvt_ffi.ptr)
+                            sy_memory_free(cvt_ffi.ptr);
+
+                        goto region_cleanup;
+                    }
+
+                    ffi_repository_entry_t *entry = sy_memory_calloc(1, sizeof(ffi_repository_entry_t));
+                    if (!entry)
+                    {
+                        sy_error_no_memory();
+
+                        if (cvt_ffi.type)
+                            ffi_type_destroy(cvt_ffi.type);
+
+                        if (cvt_ffi.ptr)
+                            sy_memory_free(cvt_ffi.ptr);
+
+                        goto region_cleanup;
+                    }
+
+                    entry->key = json_string_value(name);
+                    entry->type = cvt_ffi.type;
+                    entry->ptr = cvt_ffi.ptr;
+
+                    if (ERROR == sy_queue_right_push(repo, entry))
+                    {
+                        if (cvt_ffi.type)
+                            ffi_type_destroy(cvt_ffi.type);
+
+                        if (cvt_ffi.ptr)
+                            sy_memory_free(cvt_ffi.ptr);
+
+                        sy_memory_free(entry);
+                        goto region_cleanup;
+                    }
+
+                    param_index += 1;
+
+                    item = item->next;
+                    continue;
+                }
+            }
+
+            item = item->next;
+            continue;
+
+        region_enable_vararg:
+            sy_record_t *record_arg = sy_execute_expression(argument->key, strip, applicant, NULL);
+            if (record_arg == ERROR)
+            {
+                sy_error_no_memory();
+                goto region_cleanup;
+            }
+
+            json_t *type2 = json_object_get(map, "arg");
+
+            cvt_ffi_t cvt_ffi;
+            int32_t r = record_cvt_ffi(record_arg, type2, &cvt_ffi);
+            if (r < 0)
+            {
+                sy_record_link_decrease(record_arg);
+                goto region_cleanup;
+            }
+            else if (r == 0)
+            {
+                sy_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
+                                      "argument", sy_record_type_as_string(record_arg),
+                                      json_is_string(type2) ? json_string_value(type2) : "struct");
+                sy_record_link_decrease(record_arg);
+                goto region_cleanup;
+            }
+
+            if (sy_record_link_decrease(record_arg) < 0)
+            {
+                if (cvt_ffi.type)
+                    ffi_type_destroy(cvt_ffi.type);
+
+                if (cvt_ffi.ptr)
+                    sy_memory_free(cvt_ffi.ptr);
+
+                goto region_cleanup;
+            }
+
+            ffi_repository_entry_t *entry = sy_memory_calloc(1, sizeof(ffi_repository_entry_t));
+            if (!entry)
+            {
+                sy_error_no_memory();
+
+                if (cvt_ffi.type)
+                    ffi_type_destroy(cvt_ffi.type);
+
+                if (cvt_ffi.ptr)
+                    sy_memory_free(cvt_ffi.ptr);
+
+                goto region_cleanup;
+            }
+
+            entry->key = "";
+            entry->type = cvt_ffi.type;
+            entry->ptr = cvt_ffi.ptr;
+
+            if (ERROR == sy_queue_right_push(repo, entry))
+            {
+                if (cvt_ffi.type)
+                    ffi_type_destroy(cvt_ffi.type);
+
+                if (cvt_ffi.ptr)
+                    sy_memory_free(cvt_ffi.ptr);
+
+                sy_memory_free(entry);
+                goto region_cleanup;
+            }
+
+            continue;
+        }
+    }
+
+    if (param_index < param_count)
+    {
+        sy_error_type_by_node(base, "'%s' missing '%lld' required positional argument", "proc", (param_count - 1) - param_index);
+        goto region_cleanup;
+    }
+
+    size_t index = 0, var_index = 0, total = (size_t)sy_queue_count(repo);
+
+    ffi_type **args = sy_memory_calloc(total, sizeof(ffi_type *));
+    if (!args)
+    {
+        goto region_cleanup;
+    }
+    void **values = sy_memory_calloc(total, sizeof(void *));
+    if (!values)
+    {
+        sy_memory_free(args);
+        goto region_cleanup;
+    }
+
+    for (size_t i = 0; i < param_count; i++)
+    {
+        json_t *parameter = json_array_get(parameters, i);
+        json_t *name = json_object_get(parameter, "name");
+
+        for (sy_queue_entry_t *item = repo->begin; item != repo->end; item = item->next)
+        {
+            ffi_repository_entry_t *entry = (ffi_repository_entry_t *)item->value;
+
+            if (strcmp(entry->key, json_string_value(name)) == 0)
+            {
+                args[index] = entry->type;
+                values[index] = entry->ptr;
+                index += 1;
+                break;
+            }
+        }
+    }
+
+    for (sy_queue_entry_t *item = repo->begin; item != repo->end; item = item->next)
+    {
+        ffi_repository_entry_t *entry = (ffi_repository_entry_t *)item->value;
+
+        if (strcmp(entry->key, "") == 0)
+        {
+            args[index] = entry->type;
+            values[index] = entry->ptr;
+            index += 1;
+            var_index += 1;
+            break;
+        }
+    }
+
+    json_t *return_type = json_object_get(map, "return_type");
+
+    ffi_type *ret_arg = json_to_ffi(return_type);
+    if (ret_arg == ERROR)
+    {
+        sy_memory_free(args);
+        sy_memory_free(values);
+        goto region_cleanup;
+    }
+
+    union_type result;
+
+    if (var_index > 0)
+    {
+        ffi_cif cif;
+        if (ffi_prep_cif_var(&cif, FFI_DEFAULT_ABI, index - var_index, index, ret_arg, args) == FFI_OK)
+        {
+            ffi_call(&cif, FFI_FN(handle), &result, values);
+            goto region_result;
+        }
+        else
+        {
+            sy_error_system("ffi_prep_cif failed");
+            goto region_cleanup;
+        }
+    }
+    else
+    {
+        ffi_cif cif;
+        if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, index, ret_arg, args) == FFI_OK)
+        {
+            ffi_call(&cif, FFI_FN(handle), &result, values);
+            goto region_result;
+        }
+        else
+        {
+            sy_error_system("ffi_prep_cif failed");
+            goto region_cleanup;
+        }
+    }
+
+region_result:
+    for (sy_queue_entry_t *item = repo->begin; item != repo->end; item = item->next)
+    {
+        ffi_repository_entry_t *entry = (ffi_repository_entry_t *)item->value;
+        if (entry->ptr)
+            sy_memory_free(entry->ptr);
+
+        if (entry->type)
+            ffi_type_destroy(entry->type);
+    }
+
+    return union_cvt_record_by_json(&result, return_type);
+
+region_cleanup:
+    for (sy_queue_entry_t *item = repo->begin; item != repo->end; item = item->next)
+    {
+        ffi_repository_entry_t *entry = (ffi_repository_entry_t *)item->value;
+        if (entry->ptr)
+            sy_memory_free(entry->ptr);
+
+        if (entry->type)
+            ffi_type_destroy(entry->type);
+    }
+
+    sy_queue_destroy(repo);
+
+    return retvalue;
+}
+
+sy_record_t *sy_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+{
+    sy_node_carrier_t *carrier = (sy_node_carrier_t *)node->value;
+
+    sy_record_t *record_base = sy_execute_expression(carrier->base, strip, applicant, origin);
+    if (record_base == ERROR)
+    {
+        return ERROR;
+    }
+
+    if (record_base->kind == RECORD_KIND_TYPE)
+    {
+        sy_record_type_t *record_type = (sy_record_type_t *)record_base->value;
         sy_node_t *type = record_type->type;
 
         if (type->kind == NODE_KIND_CLASS)
         {
             sy_strip_t *strip_new = (sy_strip_t *)record_type->value;
-            sy_record_t *result = sy_execute_call_for_class(node, carrier->data, strip_new, type, applicant);
-            base->link -= 1;
+            sy_record_t *result = sy_call_class(node, carrier->data, strip_new, type, applicant);
+            if (sy_record_link_decrease(record_base) < 0)
+            {
+                return ERROR;
+            }
 
             if (result == ERROR)
             {
@@ -2727,49 +4410,58 @@ sy_execute_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_nod
             }
             return result;
         }
-        else
-        if (type->kind == NODE_KIND_FUN)
+        else if (type->kind == NODE_KIND_FUN)
         {
             sy_strip_t *strip_new = (sy_strip_t *)record_type->value;
-            sy_record_t *result = sy_execute_call_for_fun(node, carrier->data, strip_new, type, applicant);
- 
-            base->link -= 1;
+            sy_record_t *result = sy_call_fun(node, carrier->data, strip_new, type, applicant);
+
+            if (sy_record_link_decrease(record_base) < 0)
+            {
+                return ERROR;
+            }
 
             if (result == ERROR)
             {
                 return ERROR;
             }
-            
+
             return result;
         }
-        else
-        if (type->kind == NODE_KIND_LAMBDA)
+        else if (type->kind == NODE_KIND_LAMBDA)
         {
             sy_strip_t *strip_new = (sy_strip_t *)record_type->value;
-            sy_record_t *result = sy_execute_call_for_lambda(node, carrier->data, strip_new, type, applicant);
-            
-            base->link -= 1;
+            sy_record_t *result = sy_call_lambda(node, carrier->data, strip_new, type, applicant);
+
+            if (sy_record_link_decrease(record_base) < 0)
+            {
+                return ERROR;
+            }
 
             if (result == ERROR)
             {
                 return ERROR;
             }
-            
+
             return result;
         }
-        else
-        if (type->kind == NODE_KIND_KCHAR)
+        else if (type->kind == NODE_KIND_KCHAR)
         {
             if (!carrier->data)
             {
                 sy_record_t *result = sy_record_make_char(0);
                 if (result == ERROR)
                 {
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
@@ -2779,13 +4471,19 @@ sy_execute_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_nod
             if (argument->value)
             {
                 sy_error_type_by_node(argument->key, "'%s' not support", "pair");
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
                 return ERROR;
             }
             sy_record_t *record_value = sy_execute_expression(argument->key, strip, applicant, NULL);
             if (record_value == ERROR)
             {
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
                 return ERROR;
             }
 
@@ -2794,77 +4492,119 @@ sy_execute_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_nod
                 sy_record_t *result = sy_record_make_char((char)(*(char *)record_value->value));
                 if (result == ERROR)
                 {
-                    record_value->link -= 1;
+                    if (sy_record_link_decrease(record_value) < 0)
+                    {
+                        return ERROR;
+                    }
 
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                record_value->link -= 1;
+                if (sy_record_link_decrease(record_value) < 0)
+                {
+                    return ERROR;
+                }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
-            else
-            if (record_value->kind == RECORD_KIND_INT)
+            else if (record_value->kind == RECORD_KIND_INT)
             {
                 sy_record_t *result = sy_record_make_char((char)mpz_get_si(*(mpz_t *)record_value->value));
                 if (result == ERROR)
                 {
-                    record_value->link -= 1;
+                    if (sy_record_link_decrease(record_value) < 0)
+                    {
+                        return ERROR;
+                    }
 
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                record_value->link -= 1;
+                if (sy_record_link_decrease(record_value) < 0)
+                {
+                    return ERROR;
+                }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
-            else
-            if (record_value->kind == RECORD_KIND_FLOAT)
+            else if (record_value->kind == RECORD_KIND_FLOAT)
             {
                 sy_record_t *result = sy_record_make_char((char)mpf_get_si(*(mpf_t *)record_value->value));
                 if (result == ERROR)
                 {
-                    record_value->link -= 1;
+                    if (sy_record_link_decrease(record_value) < 0)
+                    {
+                        return ERROR;
+                    }
 
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                record_value->link -= 1;
+                if (sy_record_link_decrease(record_value) < 0)
+                {
+                    return ERROR;
+                }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
             else
             {
-                sy_error_type_by_node(carrier->base, "'%s' object is not castable", 
-                    sy_record_type_as_string(base));
+                sy_error_type_by_node(carrier->base, "'%s' object is not castable",
+                                      sy_record_type_as_string(record_base));
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return ERROR;
             }
         }
-        else
-        if (type->kind == NODE_KIND_KINT)
+        else if (type->kind == NODE_KIND_KINT)
         {
             if (!carrier->data)
             {
                 sy_record_t *result = sy_record_make_int_from_si(0);
                 if (result == ERROR)
                 {
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
@@ -2874,13 +4614,19 @@ sy_execute_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_nod
             if (argument->value)
             {
                 sy_error_type_by_node(argument->key, "'%s' not support", "pair");
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
                 return ERROR;
             }
             sy_record_t *record_value = sy_execute_expression(argument->key, strip, applicant, NULL);
             if (record_value == ERROR)
             {
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
                 return ERROR;
             }
 
@@ -2889,77 +4635,119 @@ sy_execute_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_nod
                 sy_record_t *result = sy_record_make_int_from_si((int64_t)(*(char *)record_value->value));
                 if (result == ERROR)
                 {
-                    record_value->link -= 1;
+                    if (sy_record_link_decrease(record_value) < 0)
+                    {
+                        return ERROR;
+                    }
 
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                record_value->link -= 1;
+                if (sy_record_link_decrease(record_value) < 0)
+                {
+                    return ERROR;
+                }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
-            else
-            if (record_value->kind == RECORD_KIND_INT)
+            else if (record_value->kind == RECORD_KIND_INT)
             {
                 sy_record_t *result = sy_record_make_int_from_z(*(mpz_t *)record_value->value);
                 if (result == ERROR)
                 {
-                    record_value->link -= 1;
+                    if (sy_record_link_decrease(record_value) < 0)
+                    {
+                        return ERROR;
+                    }
 
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                record_value->link -= 1;
+                if (sy_record_link_decrease(record_value) < 0)
+                {
+                    return ERROR;
+                }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
-            else
-            if (record_value->kind == RECORD_KIND_FLOAT)
+            else if (record_value->kind == RECORD_KIND_FLOAT)
             {
                 sy_record_t *result = sy_record_make_int_from_f(*(mpf_t *)record_value->value);
                 if (result == ERROR)
                 {
-                    record_value->link -= 1;
+                    if (sy_record_link_decrease(record_value) < 0)
+                    {
+                        return ERROR;
+                    }
 
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                record_value->link -= 1;
+                if (sy_record_link_decrease(record_value) < 0)
+                {
+                    return ERROR;
+                }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
             else
             {
-                sy_error_type_by_node(carrier->base, "'%s' object is not castable", 
-                    sy_record_type_as_string(base));
+                sy_error_type_by_node(carrier->base, "'%s' object is not castable",
+                                      sy_record_type_as_string(record_base));
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return ERROR;
             }
         }
-        else
-        if (type->kind == NODE_KIND_KFLOAT)
+        else if (type->kind == NODE_KIND_KFLOAT)
         {
             if (!carrier->data)
             {
                 sy_record_t *result = sy_record_make_float_from_d(0.0);
                 if (result == ERROR)
                 {
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
@@ -2969,110 +4757,169 @@ sy_execute_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_nod
             if (argument->value)
             {
                 sy_error_type_by_node(argument->key, "'%s' not support", "pair");
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
                 return ERROR;
             }
             sy_record_t *record_value = sy_execute_expression(argument->key, strip, applicant, NULL);
             if (record_value == ERROR)
             {
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
                 return ERROR;
             }
-            
+
             if (record_value->kind == RECORD_KIND_INT)
             {
                 sy_record_t *result = sy_record_make_float_from_si((int64_t)(*(int8_t *)record_value->value));
                 if (result == ERROR)
                 {
-                    record_value->link -= 1;
+                    if (sy_record_link_decrease(record_value) < 0)
+                    {
+                        return ERROR;
+                    }
 
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                record_value->link -= 1;
+                if (sy_record_link_decrease(record_value) < 0)
+                {
+                    return ERROR;
+                }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
-            else
-            if (record_value->kind == RECORD_KIND_CHAR)
+            else if (record_value->kind == RECORD_KIND_CHAR)
             {
                 sy_record_t *result = sy_record_make_float_from_si((int64_t)(*(char *)record_value->value));
                 if (result == ERROR)
                 {
-                    record_value->link -= 1;
+                    if (sy_record_link_decrease(record_value) < 0)
+                    {
+                        return ERROR;
+                    }
 
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                record_value->link -= 1;
+                if (sy_record_link_decrease(record_value) < 0)
+                {
+                    return ERROR;
+                }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
-            else
-            if (record_value->kind == RECORD_KIND_INT)
+            else if (record_value->kind == RECORD_KIND_INT)
             {
                 sy_record_t *result = sy_record_make_int_from_z(*(mpz_t *)record_value->value);
                 if (result == ERROR)
                 {
-                    record_value->link -= 1;
+                    if (sy_record_link_decrease(record_value) < 0)
+                    {
+                        return ERROR;
+                    }
 
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                record_value->link -= 1;
+                if (sy_record_link_decrease(record_value) < 0)
+                {
+                    return ERROR;
+                }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
-            else
-            if (record_value->kind == RECORD_KIND_FLOAT)
+            else if (record_value->kind == RECORD_KIND_FLOAT)
             {
                 sy_record_t *result = sy_record_make_float_from_f(*(mpf_t *)record_value->value);
                 if (result == ERROR)
                 {
-                    record_value->link -= 1;
+                    if (sy_record_link_decrease(record_value) < 0)
+                    {
+                        return ERROR;
+                    }
 
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                record_value->link -= 1;
+                if (sy_record_link_decrease(record_value) < 0)
+                {
+                    return ERROR;
+                }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
             else
             {
-                sy_error_type_by_node(carrier->base, "'%s' object is not castable", 
-                    sy_record_type_as_string(base));
+                sy_error_type_by_node(carrier->base, "'%s' object is not castable",
+                                      sy_record_type_as_string(record_base));
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return ERROR;
             }
         }
-        else
-        if (type->kind == NODE_KIND_KSTRING)
+        else if (type->kind == NODE_KIND_KSTRING)
         {
             if (!carrier->data)
             {
                 sy_record_t *result = sy_record_make_string("");
                 if (result == ERROR)
                 {
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
@@ -3082,50 +4929,90 @@ sy_execute_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_nod
             if (argument->value)
             {
                 sy_error_type_by_node(argument->key, "'%s' not support", "pair");
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
                 return ERROR;
             }
             sy_record_t *record_value = sy_execute_expression(argument->key, strip, applicant, NULL);
             if (record_value == ERROR)
             {
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
                 return ERROR;
             }
 
-            char *str = record_to_string(record_value, "");
+            char *str = sy_record_to_string(record_value, "");
             printf("%s\n", str);
             sy_record_t *result = sy_record_make_string(str);
             sy_memory_free(str);
             if (result == ERROR)
             {
-                record_value->link -= 1;
+                if (sy_record_link_decrease(record_value) < 0)
+                {
+                    return ERROR;
+                }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
                 return ERROR;
             }
 
-            record_value->link -= 1;
+            if (sy_record_link_decrease(record_value) < 0)
+            {
+                return ERROR;
+            }
 
-            base->link -= 1;
+            if (sy_record_link_decrease(record_base) < 0)
+            {
+                return ERROR;
+            }
 
             return result;
         }
         else
         {
-            sy_error_type_by_node(carrier->base, "'%s' object is not callable", 
-                sy_record_type_as_string(base));
+            sy_error_type_by_node(carrier->base, "'%s' object is not callable",
+                                  sy_record_type_as_string(record_base));
 
-            base->link -= 1;
+            if (sy_record_link_decrease(record_base) < 0)
+            {
+                return ERROR;
+            }
 
             return ERROR;
         }
-        
     }
-    
-    sy_error_type_by_node(carrier->base, "'%s' object is not callable", 
-        sy_record_type_as_string(base));
+    else if (record_base->kind == RECORD_KIND_PROC)
+    {
+        sy_record_proc_t *record_proc = (sy_record_proc_t *)record_base->value;
 
-    base->link -= 1;
+        sy_record_t *result = sy_call_ffi(node, carrier->data, strip, record_proc->handle, record_proc->map, applicant);
+        if (sy_record_link_decrease(record_base) < 0)
+        {
+            return ERROR;
+        }
+
+        if (result == ERROR)
+        {
+            return ERROR;
+        }
+
+        return result;
+    }
+
+    sy_error_type_by_node(carrier->base, "'%s' object is not callable",
+                          sy_record_type_as_string(record_base));
+
+    if (sy_record_link_decrease(record_base) < 0)
+    {
+        return ERROR;
+    }
 
     return ERROR;
 }

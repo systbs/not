@@ -38,10 +38,9 @@ sy_scanner_digit_value(int32_t ch)
 	return 16;
 }
 
-void 
-sy_scanner_set_token(sy_scanner_t *scanner, sy_token_t token)
+void sy_scanner_set_token(sy_scanner_t *scanner, sy_token_t token)
 {
-	//printf("%s-%lld:%lld  %s\n", token.position.path, token.position.line, token.position.column, sy_token_get_name(token.type));
+	// printf("%s-%lld:%lld  %s\n", token.position.path, token.position.line, token.position.column, sy_token_get_name(token.type));
 	scanner->token = token;
 }
 
@@ -52,40 +51,40 @@ sy_scanner_create(char *path)
 	if (scanner == NULL)
 	{
 		sy_error_no_memory();
-		return NULL;
+		return ERROR;
 	}
 
 	strcpy(scanner->path, path);
 
 	FILE *fd = fopen(scanner->path, "rb");
-    if (fd == NULL)
+	if (fd == NULL)
 	{
-        sy_error_system("could not open(%s)\n", scanner->path);
-        return NULL;
-    }
-    
-    int64_t pos = ftell(fd);
-    fseek(fd, 0, SEEK_END);
-    int64_t chunk = ftell(fd);
-    fseek(fd, pos, SEEK_SET);
+		sy_error_system("could not open(%s)\n", scanner->path);
+		return ERROR;
+	}
 
-    char *buf = sy_memory_calloc(1, chunk + 1);
-    if (buf == NULL)
+	int64_t pos = ftell(fd);
+	fseek(fd, 0, SEEK_END);
+	int64_t chunk = ftell(fd);
+	fseek(fd, pos, SEEK_SET);
+
+	char *buf = sy_memory_calloc(1, chunk + 1);
+	if (buf == NULL)
 	{
-    	sy_error_no_memory();
-        return NULL;
-    }
+		sy_error_no_memory();
+		return ERROR;
+	}
 
 	int64_t i;
-    if ((i = fread(buf, 1, chunk, fd)) < chunk)
+	if ((i = fread(buf, 1, chunk, fd)) < chunk)
 	{
-        sy_error_system("read returned %ld\n", i);
-        return NULL;
-    }
+		sy_error_system("read returned %ld\n", i);
+		return ERROR;
+	}
 
-    buf[i] = '\0';
+	buf[i] = '\0';
 
-    fclose(fd);
+	fclose(fd);
 
 	scanner->source = buf;
 	scanner->offset = 0;
@@ -123,8 +122,7 @@ sy_scanner_create_from_buffer(char *buf, char *path)
 	return scanner;
 }
 
-void 
-sy_scanner_destroy(sy_scanner_t *scanner)
+void sy_scanner_destroy(sy_scanner_t *scanner)
 {
 	free(scanner);
 }
@@ -144,11 +142,12 @@ sy_scanner_next(sy_scanner_t *scanner)
 		if (r == 0)
 		{
 			sy_error_lexer_by_position((sy_position_t){
-				.path = scanner->path, 
-				.offset = scanner->offset, 
-				.column = scanner->column, 
-				.line = scanner->line,
-				.length = 1}, "illegal character NUL");
+										   .path = scanner->path,
+										   .offset = scanner->offset,
+										   .column = scanner->column,
+										   .line = scanner->line,
+										   .length = 1},
+									   "illegal character NUL");
 			return -1;
 		}
 		if (r >= 0x80)
@@ -157,21 +156,23 @@ sy_scanner_next(sy_scanner_t *scanner)
 			if (r == utf8_error && w == 1)
 			{
 				sy_error_lexer_by_position((sy_position_t){
-					.path = scanner->path, 
-					.offset = scanner->offset, 
-					.column = scanner->column, 
-					.line = scanner->line,
-					.length = 1}, "illegal UTF-8 encoding");
+											   .path = scanner->path,
+											   .offset = scanner->offset,
+											   .column = scanner->column,
+											   .line = scanner->line,
+											   .length = 1},
+										   "illegal UTF-8 encoding");
 				return -1;
 			}
 			else if (r == bom && scanner->offset > 0)
 			{
 				sy_error_lexer_by_position((sy_position_t){
-					.path = scanner->path, 
-					.offset = scanner->offset, 
-					.column = scanner->column, 
-					.line = scanner->line,
-					.length = 1}, "illegal byte order mark");
+											   .path = scanner->path,
+											   .offset = scanner->offset,
+											   .column = scanner->column,
+											   .line = scanner->line,
+											   .length = 1},
+										   "illegal byte order mark");
 				return -1;
 			}
 		}
@@ -240,7 +241,7 @@ sy_scanner_advance(sy_scanner_t *scanner)
 {
 	while (scanner->ch != eof)
 	{
-		if(sy_scanner_skip_trivial(scanner) == -1)
+		if (sy_scanner_skip_trivial(scanner) == -1)
 		{
 			return -1;
 		}
@@ -401,14 +402,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				data[scanner->offset - start_offset] = '\0';
 
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_CHAR,
-																			 .value = data,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = start_offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = scanner->offset - start_offset}});
+												  .type = TOKEN_CHAR,
+												  .value = data,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = start_offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = scanner->offset - start_offset}});
 
 				return 1;
 			}
@@ -444,14 +445,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				data[scanner->offset - start_offset] = '\0';
 
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_STRING,
-																			 .value = data,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = start_offset - 1,
-																					 .column = scanner->column - (scanner->offset - start_offset) - 1,
-																					 .line = scanner->line,
-																					 .length = scanner->offset - start_offset}});
+												  .type = TOKEN_STRING,
+												  .value = data,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = start_offset - 1,
+													  .column = scanner->column - (scanner->offset - start_offset) - 1,
+													  .line = scanner->line,
+													  .length = scanner->offset - start_offset}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -491,16 +492,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				data[scanner->offset - start_offset] = '\0';
 
 				sy_scanner_set_token(scanner, (sy_token_t){
-						.type = TOKEN_STRING,
-						.value = data,
-						.position = {
-								.path = scanner->path,
-								.offset = start_offset - 1,
-								.column = scanner->column - (scanner->offset - start_offset) - 1,
-								.line = scanner->line,
-								.length = scanner->offset - start_offset
-								}
-						});
+												  .type = TOKEN_STRING,
+												  .value = data,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = start_offset - 1,
+													  .column = scanner->column - (scanner->offset - start_offset) - 1,
+													  .line = scanner->line,
+													  .length = scanner->offset - start_offset}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -511,14 +510,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == '#')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_HASH,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_HASH,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -529,14 +528,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == '$')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_DOLLER,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_DOLLER,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -547,14 +546,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == '(')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_LPAREN,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_LPAREN,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -565,14 +564,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == ')')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_RPAREN,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_RPAREN,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -583,14 +582,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == '[')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_LBRACKET,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_LBRACKET,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -601,14 +600,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == ']')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_RBRACKET,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_RBRACKET,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -619,14 +618,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == '{')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_LBRACE,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_LBRACE,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -637,14 +636,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == '}')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_RBRACE,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_RBRACE,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -655,14 +654,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == ',')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_COMMA,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_COMMA,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -673,21 +672,21 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == '.')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_DOT,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_DOT,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
 					return -1;
 				}
 
-				if(sy_scanner_skip_trivial(scanner) == -1)
+				if (sy_scanner_skip_trivial(scanner) == -1)
 				{
 					return -1;
 				}
@@ -701,21 +700,21 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == ':')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_COLON,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_COLON,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
 					return -1;
 				}
 
-				if(sy_scanner_skip_trivial(scanner) == -1)
+				if (sy_scanner_skip_trivial(scanner) == -1)
 				{
 					return -1;
 				}
@@ -729,14 +728,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == ';')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_SEMICOLON,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_SEMICOLON,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -747,14 +746,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == '?')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_QUESTION,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_QUESTION,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -765,14 +764,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == '@')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_AT,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_AT,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -787,21 +786,21 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				uint64_t line = scanner->line;
 
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_BACKSLASH,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_BACKSLASH,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
 					return -1;
 				}
 
-				if(sy_scanner_skip_trivial(scanner) == -1)
+				if (sy_scanner_skip_trivial(scanner) == -1)
 				{
 					return -1;
 				}
@@ -813,14 +812,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '=')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_BACKSLASH_EQ,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line,
-																						 .length = 2}});
+													  .type = TOKEN_BACKSLASH_EQ,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -834,14 +833,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == '_')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_UNDERLINE,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_UNDERLINE,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -856,21 +855,21 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				uint64_t line = scanner->line;
 
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_PLUS,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_PLUS,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
 					return -1;
 				}
 
-				if(sy_scanner_skip_trivial(scanner) == -1)
+				if (sy_scanner_skip_trivial(scanner) == -1)
 				{
 					return -1;
 				}
@@ -882,14 +881,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '=')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_PLUS_EQ,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line,
-																						 .length = 2}});
+													  .type = TOKEN_PLUS_EQ,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -907,21 +906,21 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				uint64_t line = scanner->line;
 
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_MINUS,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_MINUS,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
 					return -1;
 				}
 
-				if(sy_scanner_skip_trivial(scanner) == -1)
+				if (sy_scanner_skip_trivial(scanner) == -1)
 				{
 					return -1;
 				}
@@ -933,14 +932,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '=')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_MINUS_EQ,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line,
-																						 .length = 2}});
+													  .type = TOKEN_MINUS_EQ,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -952,14 +951,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '>')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_MINUS_GT,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line,
-																						 .length = 2}});
+													  .type = TOKEN_MINUS_GT,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -977,25 +976,25 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				uint64_t line = scanner->line;
 
 				sy_scanner_set_token(scanner, (sy_token_t){
-						.type = TOKEN_STAR,
-						.value = NULL,
-						.position = {
-								.path = scanner->path,
-								.offset = scanner->offset,
-								.column = scanner->column,
-								.line = scanner->line,
-								.length = 1}});
+												  .type = TOKEN_STAR,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
 					return -1;
 				}
 
-				if(sy_scanner_skip_trivial(scanner) == -1)
+				if (sy_scanner_skip_trivial(scanner) == -1)
 				{
 					return -1;
 				}
-				
+
 				if (scanner->ch == eof)
 				{
 					break;
@@ -1004,14 +1003,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '=')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-							.type = TOKEN_STAR_EQ,
-							.value = NULL,
-							.position = {
-									.path = scanner->path,
-									.offset = offset,
-									.column = column,
-									.line = line,
-									.length = 2}});
+													  .type = TOKEN_STAR_EQ,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -1023,25 +1022,25 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '*')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-							.type = TOKEN_POWER,
-							.value = NULL,
-							.position = {
-									.path = scanner->path,
-									.offset = offset,
-									.column = column,
-									.line = line,
-									.length = 2}});
+													  .type = TOKEN_POWER,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
 						return -1;
 					}
 
-					if(sy_scanner_skip_trivial(scanner) == -1)
+					if (sy_scanner_skip_trivial(scanner) == -1)
 					{
 						return -1;
 					}
-					
+
 					if (scanner->ch == eof)
 					{
 						break;
@@ -1051,14 +1050,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '=')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-							.type = TOKEN_POWER_EQ,
-							.value = NULL,
-							.position = {
-									.path = scanner->path,
-									.offset = offset,
-									.column = column,
-									.line = line,
-									.length = 2}});
+													  .type = TOKEN_POWER_EQ,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -1077,9 +1076,9 @@ sy_scanner_advance(sy_scanner_t *scanner)
 					while (scanner->ch != '\n')
 					{
 						if (sy_scanner_next(scanner) == -1)
-				{
-					return -1;
-				}
+						{
+							return -1;
+						}
 					}
 					continue;
 				}
@@ -1158,21 +1157,21 @@ sy_scanner_advance(sy_scanner_t *scanner)
 					uint64_t line = scanner->line;
 
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_SLASH,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = scanner->offset,
-																						 .column = scanner->column,
-																						 .line = scanner->line,
-																					 .length = 1}});
+													  .type = TOKEN_SLASH,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = scanner->offset,
+														  .column = scanner->column,
+														  .line = scanner->line,
+														  .length = 1}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
 						return -1;
 					}
 
-					if(sy_scanner_skip_trivial(scanner) == -1)
+					if (sy_scanner_skip_trivial(scanner) == -1)
 					{
 						return -1;
 					}
@@ -1184,14 +1183,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 					if (scanner->ch == '=')
 					{
 						sy_scanner_set_token(scanner, (sy_token_t){
-																					 .type = TOKEN_SLASH_EQ,
-																					 .value = NULL,
-																					 .position = {
-																							 .path = scanner->path,
-																							 .offset = offset,
-																							 .column = column,
-																							 .line = line,
-																						 	.length = 2}});
+														  .type = TOKEN_SLASH_EQ,
+														  .value = NULL,
+														  .position = {
+															  .path = scanner->path,
+															  .offset = offset,
+															  .column = column,
+															  .line = line,
+															  .length = 2}});
 
 						if (sy_scanner_next(scanner) == -1)
 						{
@@ -1210,21 +1209,21 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				uint64_t line = scanner->line;
 
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_PERCENT,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_PERCENT,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
 					return -1;
 				}
 
-				if(sy_scanner_skip_trivial(scanner) == -1)
+				if (sy_scanner_skip_trivial(scanner) == -1)
 				{
 					return -1;
 				}
@@ -1236,14 +1235,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '=')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_PERCENT_EQ,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line,
-																						 .length = 2}});
+													  .type = TOKEN_PERCENT_EQ,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -1260,21 +1259,21 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				uint64_t line = scanner->line;
 
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_AND,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_AND,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
 					return -1;
 				}
 
-				if(sy_scanner_skip_trivial(scanner) == -1)
+				if (sy_scanner_skip_trivial(scanner) == -1)
 				{
 					return -1;
 				}
@@ -1286,14 +1285,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '&')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_AND_AND,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line,
-																						 .length = 2}});
+													  .type = TOKEN_AND_AND,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -1305,19 +1304,19 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '=')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_AND_EQ,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line,
-																						 .length = 2}});
+													  .type = TOKEN_AND_EQ,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
-				{
-					return -1;
-				}
+					{
+						return -1;
+					}
 					return 1;
 				}
 
@@ -1330,21 +1329,21 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				uint64_t line = scanner->line;
 
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_OR,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_OR,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
 					return -1;
 				}
 
-				if(sy_scanner_skip_trivial(scanner) == -1)
+				if (sy_scanner_skip_trivial(scanner) == -1)
 				{
 					return -1;
 				}
@@ -1356,14 +1355,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '|')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_OR_OR,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line,
-																						 .length = 2}});
+													  .type = TOKEN_OR_OR,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -1375,14 +1374,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '=')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_OR_EQ,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line,
-																						 .length = 2}});
+													  .type = TOKEN_OR_EQ,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -1395,14 +1394,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == '^')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_CARET,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_CARET,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -1413,14 +1412,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else if (scanner->ch == '~')
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_TILDE,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_TILDE,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
@@ -1435,21 +1434,21 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				uint64_t line = scanner->line;
 
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_LT,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_LT,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
 					return -1;
 				}
 
-				if(sy_scanner_skip_trivial(scanner) == -1)
+				if (sy_scanner_skip_trivial(scanner) == -1)
 				{
 					return -1;
 				}
@@ -1461,21 +1460,21 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '<')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_LT_LT,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line,
-																						 .length = 2}});
+													  .type = TOKEN_LT_LT,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
 						return -1;
 					}
 
-					if(sy_scanner_skip_trivial(scanner) == -1)
+					if (sy_scanner_skip_trivial(scanner) == -1)
 					{
 						return -1;
 					}
@@ -1487,14 +1486,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 					if (scanner->ch == '=')
 					{
 						sy_scanner_set_token(scanner, (sy_token_t){
-																					 .type = TOKEN_LT_LT_EQ,
-																					 .value = NULL,
-																					 .position = {
-																							 .path = scanner->path,
-																							 .offset = offset,
-																							 .column = column,
-																							 .line = line,
-																						 .length = 3}});
+														  .type = TOKEN_LT_LT_EQ,
+														  .value = NULL,
+														  .position = {
+															  .path = scanner->path,
+															  .offset = offset,
+															  .column = column,
+															  .line = line,
+															  .length = 3}});
 
 						if (sy_scanner_next(scanner) == -1)
 						{
@@ -1508,14 +1507,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '=')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_LT_EQ,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line,
-																						 .length = 2}});
+													  .type = TOKEN_LT_EQ,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -1531,21 +1530,21 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				uint64_t line = scanner->line;
 
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_GT,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_GT,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
 					return -1;
 				}
 
-				if(sy_scanner_skip_trivial(scanner) == -1)
+				if (sy_scanner_skip_trivial(scanner) == -1)
 				{
 					return -1;
 				}
@@ -1557,21 +1556,21 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '>')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_GT_GT,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line,
-																						 .length = 2}});
+													  .type = TOKEN_GT_GT,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
 						return -1;
 					}
 
-					if(sy_scanner_skip_trivial(scanner) == -1)
+					if (sy_scanner_skip_trivial(scanner) == -1)
 					{
 						return -1;
 					}
@@ -1583,14 +1582,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 					if (scanner->ch == '=')
 					{
 						sy_scanner_set_token(scanner, (sy_token_t){
-																					 .type = TOKEN_GT_GT_EQ,
-																					 .value = NULL,
-																					 .position = {
-																							 .path = scanner->path,
-																							 .offset = offset,
-																							 .column = column,
-																							 .line = line,
-																						 .length = 2}});
+														  .type = TOKEN_GT_GT_EQ,
+														  .value = NULL,
+														  .position = {
+															  .path = scanner->path,
+															  .offset = offset,
+															  .column = column,
+															  .line = line,
+															  .length = 2}});
 
 						if (sy_scanner_next(scanner) == -1)
 						{
@@ -1604,14 +1603,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '=')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_GT_EQ,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line,
-																						 .length = 2}});
+													  .type = TOKEN_GT_EQ,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -1628,21 +1627,21 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				uint64_t line = scanner->line;
 
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_NOT,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_NOT,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
 					return -1;
 				}
 
-				if(sy_scanner_skip_trivial(scanner) == -1)
+				if (sy_scanner_skip_trivial(scanner) == -1)
 				{
 					return -1;
 				}
@@ -1654,14 +1653,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '=')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_NOT_EQ,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line,
-																						 .length = 2}});
+													  .type = TOKEN_NOT_EQ,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -1677,21 +1676,21 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				uint64_t line = scanner->line;
 
 				sy_scanner_set_token(scanner, (sy_token_t){
-																			 .type = TOKEN_EQ,
-																			 .value = NULL,
-																			 .position = {
-																					 .path = scanner->path,
-																					 .offset = scanner->offset,
-																					 .column = scanner->column,
-																					 .line = scanner->line,
-																					 .length = 1}});
+												  .type = TOKEN_EQ,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset,
+													  .column = scanner->column,
+													  .line = scanner->line,
+													  .length = 1}});
 
 				if (sy_scanner_next(scanner) == -1)
 				{
 					return -1;
 				}
 
-				if(sy_scanner_skip_trivial(scanner) == -1)
+				if (sy_scanner_skip_trivial(scanner) == -1)
 				{
 					return -1;
 				}
@@ -1703,14 +1702,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 				if (scanner->ch == '=')
 				{
 					sy_scanner_set_token(scanner, (sy_token_t){
-																				 .type = TOKEN_EQ_EQ,
-																				 .value = NULL,
-																				 .position = {
-																						 .path = scanner->path,
-																						 .offset = offset,
-																						 .column = column,
-																						 .line = line,
-																						 .length = 2}});
+													  .type = TOKEN_EQ_EQ,
+													  .value = NULL,
+													  .position = {
+														  .path = scanner->path,
+														  .offset = offset,
+														  .column = column,
+														  .line = line,
+														  .length = 2}});
 
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -1722,19 +1721,19 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			else
 			{
 				sy_error_lexer_by_position((sy_position_t){
-					.path = scanner->path, 
-					.offset = scanner->offset, 
-					.column = scanner->column, 
-					.line = scanner->line, 
-					.length = 1}, "unknown token");
+											   .path = scanner->path,
+											   .offset = scanner->offset,
+											   .column = scanner->column,
+											   .line = scanner->line,
+											   .length = 1},
+										   "unknown token");
 				return -1;
 			}
 		}
-		else 
-		if (isdigit(scanner->ch))
+		else if (isdigit(scanner->ch))
 		{
 			uint64_t start_offset = scanner->offset;
-			
+
 			if (scanner->ch == '0')
 			{
 				if (sy_scanner_next(scanner) == -1)
@@ -1764,8 +1763,7 @@ sy_scanner_advance(sy_scanner_t *scanner)
 						}
 					}
 				}
-				else
-				if (tolower(scanner->ch) == 'b')
+				else if (tolower(scanner->ch) == 'b')
 				{
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -1787,8 +1785,7 @@ sy_scanner_advance(sy_scanner_t *scanner)
 						}
 					}
 				}
-				else
-				if (tolower(scanner->ch) == 'o')
+				else if (tolower(scanner->ch) == 'o')
 				{
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -1810,8 +1807,7 @@ sy_scanner_advance(sy_scanner_t *scanner)
 						}
 					}
 				}
-				else
-				if (tolower(scanner->ch) == '.')
+				else if (tolower(scanner->ch) == '.')
 				{
 					if (sy_scanner_next(scanner) == -1)
 					{
@@ -1834,8 +1830,7 @@ sy_scanner_advance(sy_scanner_t *scanner)
 									return -1;
 								}
 							}
-							else
-							if (tolower(scanner->ch) == '-')
+							else if (tolower(scanner->ch) == '-')
 							{
 								if (sy_scanner_next(scanner) == -1)
 								{
@@ -1845,11 +1840,12 @@ sy_scanner_advance(sy_scanner_t *scanner)
 							else
 							{
 								sy_error_lexer_by_position((sy_position_t){
-									.path = scanner->path, 
-									.offset = scanner->offset, 
-									.column = scanner->column - (scanner->offset - start_offset), 
-									.line = scanner->line,
-									.length = scanner->offset - start_offset}, "wrong number format");
+															   .path = scanner->path,
+															   .offset = scanner->offset,
+															   .column = scanner->column - (scanner->offset - start_offset),
+															   .line = scanner->line,
+															   .length = scanner->offset - start_offset},
+														   "wrong number format");
 								return -1;
 							}
 
@@ -1870,8 +1866,7 @@ sy_scanner_advance(sy_scanner_t *scanner)
 
 							break;
 						}
-						else
-						if (scanner->ch == '.')
+						else if (scanner->ch == '.')
 						{
 							break;
 						}
@@ -1926,8 +1921,7 @@ sy_scanner_advance(sy_scanner_t *scanner)
 								return -1;
 							}
 						}
-						else
-						if (tolower(scanner->ch) == '-')
+						else if (tolower(scanner->ch) == '-')
 						{
 							if (sy_scanner_next(scanner) == -1)
 							{
@@ -1956,8 +1950,7 @@ sy_scanner_advance(sy_scanner_t *scanner)
 
 						break;
 					}
-					else
-					if (scanner->ch == '.')
+					else if (scanner->ch == '.')
 					{
 						if (is_float > 0)
 						{
@@ -1969,10 +1962,10 @@ sy_scanner_advance(sy_scanner_t *scanner)
 						{
 							return -1;
 						}
-						continue;;
+						continue;
+						;
 					}
-					else
-					if (isdigit(scanner->ch))
+					else if (isdigit(scanner->ch))
 					{
 						if (sy_scanner_next(scanner) == -1)
 						{
@@ -1986,7 +1979,7 @@ sy_scanner_advance(sy_scanner_t *scanner)
 					}
 				}
 			}
-			
+
 			char *data = sy_memory_calloc(1, (scanner->offset - start_offset) + 1);
 			if (data == NULL)
 			{
@@ -1998,16 +1991,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			data[scanner->offset - start_offset] = '\0';
 
 			sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_NUMBER,
-					.value = data,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset,
-							.column = scanner->column - (scanner->offset - start_offset),
-							.line = scanner->line,
-							.length = scanner->offset - start_offset
-						}
-					});
+											  .type = TOKEN_NUMBER,
+											  .value = data,
+											  .position = {
+												  .path = scanner->path,
+												  .offset = scanner->offset,
+												  .column = scanner->column - (scanner->offset - start_offset),
+												  .line = scanner->line,
+												  .length = scanner->offset - start_offset}});
 
 			return 1;
 		}
@@ -2027,475 +2018,392 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			if (strncmp(scanner->source + start_offset, "null", max(length, 4)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_NULL_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_NULL_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "int", max(length, 3)) == 0)
+			else if (strncmp(scanner->source + start_offset, "int", max(length, 3)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_INT_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_INT_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "float", max(length, 5)) == 0)
+			else if (strncmp(scanner->source + start_offset, "float", max(length, 5)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_FLOAT_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_FLOAT_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "char", max(length, 4)) == 0)
+			else if (strncmp(scanner->source + start_offset, "char", max(length, 4)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_CHAR_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_CHAR_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "string", max(length, 6)) == 0)
+			else if (strncmp(scanner->source + start_offset, "string", max(length, 6)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_STRING_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_STRING_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "for", max(length, 3)) == 0)
+			else if (strncmp(scanner->source + start_offset, "for", max(length, 3)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_FOR_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_FOR_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "class", max(length, 5)) == 0)
+			else if (strncmp(scanner->source + start_offset, "class", max(length, 5)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_CLASS_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-							}
-					});
+												  .type = TOKEN_CLASS_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "extends", max(length, 7)) == 0)
+			else if (strncmp(scanner->source + start_offset, "extends", max(length, 7)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_EXTENDS_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_EXTENDS_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "static", max(length, 6)) == 0)
+			else if (strncmp(scanner->source + start_offset, "static", max(length, 6)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_STATIC_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_STATIC_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "readonly", max(length, 8)) == 0)
+			else if (strncmp(scanner->source + start_offset, "readonly", max(length, 8)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_READONLY_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-							}
-					});
+												  .type = TOKEN_READONLY_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "reference", max(length, 9)) == 0)
+			else if (strncmp(scanner->source + start_offset, "reference", max(length, 9)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_REFERENCE_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-							}
-					});
+												  .type = TOKEN_REFERENCE_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "if", max(length, 2)) == 0)
+			else if (strncmp(scanner->source + start_offset, "if", max(length, 2)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_IF_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-							}
-					});
+												  .type = TOKEN_IF_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "else", max(length, 4)) == 0)
+			else if (strncmp(scanner->source + start_offset, "else", max(length, 4)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_ELSE_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-							}
-					});
+												  .type = TOKEN_ELSE_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "try", max(length, 3)) == 0)
+			else if (strncmp(scanner->source + start_offset, "try", max(length, 3)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_TRY_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_TRY_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else 
-			if (strncmp(scanner->source + start_offset, "catch", max(length, 5)) == 0)
+			else if (strncmp(scanner->source + start_offset, "catch", max(length, 5)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_CATCH_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_CATCH_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "throw", max(length, 5)) == 0)
+			else if (strncmp(scanner->source + start_offset, "throw", max(length, 5)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_THROW_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_THROW_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "break", max(length, 5)) == 0)
+			else if (strncmp(scanner->source + start_offset, "break", max(length, 5)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_BREAK_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_BREAK_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "continue", max(length, 8)) == 0)
+			else if (strncmp(scanner->source + start_offset, "continue", max(length, 8)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_CONTINUE_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_CONTINUE_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "return", max(length, 6)) == 0)
+			else if (strncmp(scanner->source + start_offset, "return", max(length, 6)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_RETURN_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_RETURN_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else 
-			if (strncmp(scanner->source + start_offset, "sizeof", max(length, 6)) == 0)
+			else if (strncmp(scanner->source + start_offset, "sizeof", max(length, 6)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_SIZEOF_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_SIZEOF_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "typeof", max(length, 6)) == 0)
+			else if (strncmp(scanner->source + start_offset, "typeof", max(length, 6)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_TYPEOF_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_TYPEOF_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "instanceof", max(length, 10)) == 0)
+			else if (strncmp(scanner->source + start_offset, "instanceof", max(length, 10)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_INSTANCEOF_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_INSTANCEOF_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "in", max(length, 2)) == 0)
+			else if (strncmp(scanner->source + start_offset, "in", max(length, 2)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_IN_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_IN_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "fun", max(length, 3)) == 0)
+			else if (strncmp(scanner->source + start_offset, "fun", max(length, 3)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_FUN_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_FUN_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "var", max(length, 3)) == 0)
+			else if (strncmp(scanner->source + start_offset, "var", max(length, 3)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_VAR_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_VAR_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "export", max(length, 6)) == 0)
+			else if (strncmp(scanner->source + start_offset, "export", max(length, 6)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_EXPORT_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_EXPORT_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "using", max(length, 5)) == 0)
+			else if (strncmp(scanner->source + start_offset, "using", max(length, 5)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_USING_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_USING_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
-			else
-			if (strncmp(scanner->source + start_offset, "from", max(length, 4)) == 0)
+			else if (strncmp(scanner->source + start_offset, "from", max(length, 4)) == 0)
 			{
 				sy_scanner_set_token(scanner, (sy_token_t){
-					.type = TOKEN_FROM_KEYWORD,
-					.value = NULL,
-					.position = {
-							.path = scanner->path,
-							.offset = scanner->offset - length,
-							.column = scanner->column - length,
-							.line = scanner->line,
-							.length = length
-						}
-					});
+												  .type = TOKEN_FROM_KEYWORD,
+												  .value = NULL,
+												  .position = {
+													  .path = scanner->path,
+													  .offset = scanner->offset - length,
+													  .column = scanner->column - length,
+													  .line = scanner->line,
+													  .length = length}});
 
 				return 1;
 			}
@@ -2510,16 +2418,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 			data[length] = '\0';
 
 			sy_scanner_set_token(scanner, (sy_token_t){
-				.type = TOKEN_ID,
-				.value = data,
-				.position = {
-						.path = scanner->path,
-						.offset = scanner->offset - length,
-						.column = scanner->column - length,
-						.line = scanner->line,
-						.length = length
-					}
-				});
+											  .type = TOKEN_ID,
+											  .value = data,
+											  .position = {
+												  .path = scanner->path,
+												  .offset = scanner->offset - length,
+												  .column = scanner->column - length,
+												  .line = scanner->line,
+												  .length = length}});
 
 			return 1;
 		}
@@ -2531,16 +2437,14 @@ sy_scanner_advance(sy_scanner_t *scanner)
 	}
 
 	sy_scanner_set_token(scanner, (sy_token_t){
-		.type = TOKEN_EOF,
-		.value = NULL,
-		.position = {
-				.path = scanner->path,
-				.offset = scanner->offset,
-				.column = scanner->column,
-				.line = scanner->line,
-				.length = 1
-			}
-		});
+									  .type = TOKEN_EOF,
+									  .value = NULL,
+									  .position = {
+										  .path = scanner->path,
+										  .offset = scanner->offset,
+										  .column = scanner->column,
+										  .line = scanner->line,
+										  .length = 1}});
 
 	return 1;
 }
@@ -2562,7 +2466,7 @@ sy_scanner_gt(sy_scanner_t *scanner)
 			return -1;
 		}
 
-		if(sy_scanner_skip_trivial(scanner) == -1)
+		if (sy_scanner_skip_trivial(scanner) == -1)
 		{
 			return -1;
 		}

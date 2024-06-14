@@ -7,6 +7,7 @@
 #include <gmp.h>
 #include <stdint.h>
 #include <float.h>
+#include <jansson.h>
 
 #include "../../types/types.h"
 #include "../../container/queue.h"
@@ -29,8 +30,8 @@
 #include "execute.h"
 
 static sy_record_t *
-sy_execute_call_for_bracket(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
-{    
+sy_call_for_bracket(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, sy_node_t *node, sy_node_t *applicant)
+{
     sy_node_class_t *class1 = (sy_node_class_t *)node->value;
 
     for (sy_node_t *item = class1->block; item != NULL; item = item->next)
@@ -52,7 +53,7 @@ sy_execute_call_for_bracket(sy_node_t *base, sy_node_t *arguments, sy_strip_t *s
                     return ERROR;
                 }
 
-                if (sy_execute_parameters_substitute(base, item, strip_fun, fun1->parameters, arguments, applicant) < 0)
+                if (sy_call_parameters_subs(base, item, strip_fun, fun1->parameters, arguments, applicant) < 0)
                 {
                     if (sy_strip_destroy(strip_fun) < 0)
                     {
@@ -82,8 +83,7 @@ sy_execute_call_for_bracket(sy_node_t *base, sy_node_t *arguments, sy_strip_t *s
                 {
                     return ERROR;
                 }
-                else
-                if (!rax)
+                else if (!rax)
                 {
                     rax = sy_record_make_undefined();
                     if (rax == ERROR)
@@ -131,9 +131,12 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
             sy_node_t *type = record_struct->type;
 
             sy_strip_t *strip_new = (sy_strip_t *)record_struct->value;
-            sy_record_t *result = sy_execute_call_for_bracket(node, carrier->data, strip_new, type, applicant);
+            sy_record_t *result = sy_call_for_bracket(node, carrier->data, strip_new, type, applicant);
 
-            base->link -= 1;
+            if (sy_record_link_decrease(base) < 0)
+            {
+                return ERROR;
+            }
 
             if (result == ERROR)
             {
@@ -142,8 +145,7 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
 
             return result;
         }
-        else
-        if (base->kind == RECORD_KIND_OBJECT)
+        else if (base->kind == RECORD_KIND_OBJECT)
         {
             sy_node_block_t *block = (sy_node_block_t *)carrier->data->value;
 
@@ -155,10 +157,13 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
 
             if ((arg_cnt > 1) || (arg_cnt == 0))
             {
-                sy_error_type_by_node(node, "'%s' takes %lld positional arguments but %lld were given", 
-                    sy_record_type_as_string(base), 1, arg_cnt);
+                sy_error_type_by_node(node, "'%s' takes %lld positional arguments but %lld were given",
+                                      sy_record_type_as_string(base), 1, arg_cnt);
 
-                base->link -= 1;
+                if (sy_record_link_decrease(base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return ERROR;
             }
@@ -169,14 +174,20 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
             if (argument->value)
             {
                 sy_error_type_by_node(item1, "'%s' not support", "pair");
-                base->link -= 1;
+                if (sy_record_link_decrease(base) < 0)
+                {
+                    return ERROR;
+                }
                 return ERROR;
             }
 
             sy_record_t *record_arg = sy_execute_expression(argument->key, strip, applicant, origin);
             if (record_arg == ERROR)
             {
-                base->link -= 1;
+                if (sy_record_link_decrease(base) < 0)
+                {
+                    return ERROR;
+                }
                 return ERROR;
             }
 
@@ -184,32 +195,50 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
             {
                 sy_error_type_by_node(item1, "'%s' must be of '%s' type", "key", "string");
 
-                record_arg->link -= 1;
-                base->link -= 1;
+                if (sy_record_link_decrease(record_arg) < 0)
+                {
+                    return ERROR;
+                }
+
+                if (sy_record_link_decrease(base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return ERROR;
             }
 
-            for (sy_record_object_t *item = (sy_record_object_t *)base->value;item != NULL;item = item->next)
+            for (sy_record_object_t *item = (sy_record_object_t *)base->value; item != NULL; item = item->next)
             {
                 if (sy_execute_id_strcmp(item->key, (char *)record_arg->value) == 1)
                 {
-                    record_arg->link -= 1;
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        return ERROR;
+                    }
+                    if (sy_record_link_decrease(base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return item->value;
                 }
             }
 
-            sy_error_type_by_node(node, "'%s' has no contain key '%s'", 
-                sy_record_type_as_string(base), (char *)record_arg->value);
+            sy_error_type_by_node(node, "'%s' has no contain key '%s'",
+                                  sy_record_type_as_string(base), (char *)record_arg->value);
 
-            record_arg->link -= 1;
-            base->link -= 1;
+            if (sy_record_link_decrease(record_arg) < 0)
+            {
+                return ERROR;
+            }
+            if (sy_record_link_decrease(base) < 0)
+            {
+                return ERROR;
+            }
 
             return ERROR;
         }
-        else
-        if (base->kind == RECORD_KIND_TUPLE)
+        else if (base->kind == RECORD_KIND_TUPLE)
         {
             sy_node_block_t *block = (sy_node_block_t *)carrier->data->value;
 
@@ -221,14 +250,17 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
 
             if ((arg_cnt > 3) || (arg_cnt == 0))
             {
-                sy_error_type_by_node(node, "'%s' takes %lld positional arguments but %lld were given", 
-                    sy_record_type_as_string(base), 3, arg_cnt);
+                sy_error_type_by_node(node, "'%s' takes %lld positional arguments but %lld were given",
+                                      sy_record_type_as_string(base), 3, arg_cnt);
 
-                base->link -= 1;
+                if (sy_record_link_decrease(base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return ERROR;
             }
-    
+
             mpz_t start, stop, step;
             mpz_init(start);
             mpz_init(stop);
@@ -239,7 +271,7 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
             mpz_set_si(step, 1);
 
             arg_cnt = 0;
-            for (sy_node_t *item = block->items;item != NULL;item = item->next)
+            for (sy_node_t *item = block->items; item != NULL; item = item->next)
             {
                 arg_cnt += 1;
 
@@ -249,7 +281,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 {
                     mpz_clears(start, stop, step);
                     sy_error_type_by_node(item, "'%s' not support", "pair");
-                    base->link -= 1;
+                    if (sy_record_link_decrease(base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
@@ -257,7 +292,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 if (record_arg == ERROR)
                 {
                     mpz_clears(start, stop, step);
-                    base->link -= 1;
+                    if (sy_record_link_decrease(base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
@@ -266,8 +304,14 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                     mpz_clears(start, stop, step);
                     sy_error_type_by_node(item, "'%s' must be of '%s' type", "key", "int");
 
-                    record_arg->link -= 1;
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        return ERROR;
+                    }
+                    if (sy_record_link_decrease(base) < 0)
+                    {
+                        return ERROR;
+                    }
 
                     return ERROR;
                 }
@@ -276,18 +320,16 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 {
                     record_to_mpz(record_arg, start);
                 }
-                else
-                if (arg_cnt == 2)
+                else if (arg_cnt == 2)
                 {
                     record_to_mpz(record_arg, stop);
                 }
-                else
-                if (arg_cnt == 3)
+                else if (arg_cnt == 3)
                 {
                     record_to_mpz(record_arg, step);
                 }
             }
-            
+
             mpz_t length, cnt, term;
             mpz_init(length);
             mpz_init(cnt);
@@ -297,7 +339,7 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
             mpz_set_si(term, 0);
             mpz_set_si(cnt, 0);
 
-            for (sy_record_tuple_t *item = (sy_record_tuple_t *)base->value;item != NULL;item = item->next)
+            for (sy_record_tuple_t *item = (sy_record_tuple_t *)base->value; item != NULL; item = item->next)
             {
                 mpz_add_ui(length, length, 1);
             }
@@ -313,7 +355,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                     mpz_clear(term);
                     mpz_clear(cnt);
                     mpz_clear(length);
-                    base->link -= 1;
+                    if (sy_record_link_decrease(base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
@@ -326,7 +371,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                     mpz_clear(term);
                     mpz_clear(cnt);
                     mpz_clear(length);
-                    base->link -= 1;
+                    if (sy_record_link_decrease(base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
@@ -345,19 +393,28 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 sy_record_tuple_t *top = NULL, *declaration = NULL;
                 if (mpz_cmp(start, stop) <= 0)
                 {
-                    while ((mpz_cmp(term ,start) >= 0) && (mpz_cmp(term ,stop) <= 0))
+                    while ((mpz_cmp(term, start) >= 0) && (mpz_cmp(term, stop) <= 0))
                     {
                         mpz_set_si(cnt, 0);
-                        for (sy_record_tuple_t *item = (sy_record_tuple_t *)base->value;item != NULL;item = item->next)
+                        for (sy_record_tuple_t *item = (sy_record_tuple_t *)base->value; item != NULL; item = item->next)
                         {
                             if (mpz_cmp(term, cnt) == 0)
                             {
-                                item->value->link += 1;
+                                sy_record_link_increase(item->value);
 
                                 sy_record_tuple_t *tuple = sy_record_make_tuple(item->value, NULL);
                                 if (tuple == ERROR)
                                 {
-                                    item->value->link -= 1;
+                                    if (sy_record_link_decrease(item->value) < 0)
+                                    {
+                                        mpz_clear(start);
+                                        mpz_clear(stop);
+                                        mpz_clear(step);
+                                        mpz_clear(term);
+                                        mpz_clear(cnt);
+                                        mpz_clear(length);
+                                        return ERROR;
+                                    }
                                     mpz_clear(start);
                                     mpz_clear(stop);
                                     mpz_clear(step);
@@ -369,12 +426,18 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                                     {
                                         if (sy_record_tuple_destroy(top) < 0)
                                         {
-                                            base->link -= 1;
+                                            if (sy_record_link_decrease(base) < 0)
+                                            {
+                                                return ERROR;
+                                            }
                                             return ERROR;
                                         }
                                     }
 
-                                    base->link -= 1;
+                                    if (sy_record_link_decrease(base) < 0)
+                                    {
+                                        return ERROR;
+                                    }
                                     return ERROR;
                                 }
 
@@ -398,19 +461,28 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 }
                 else
                 {
-                    while ((mpz_cmp(term ,stop) >= 0) && (mpz_cmp(term ,start) <= 0))
+                    while ((mpz_cmp(term, stop) >= 0) && (mpz_cmp(term, start) <= 0))
                     {
                         mpz_set_si(cnt, 0);
-                        for (sy_record_tuple_t *item = (sy_record_tuple_t *)base->value;item != NULL;item = item->next)
+                        for (sy_record_tuple_t *item = (sy_record_tuple_t *)base->value; item != NULL; item = item->next)
                         {
                             if (mpz_cmp(term, cnt) == 0)
                             {
-                                item->value->link += 1;
+                                sy_record_link_increase(item->value);
 
                                 sy_record_tuple_t *tuple = sy_record_make_tuple(item->value, NULL);
                                 if (tuple == ERROR)
                                 {
-                                    item->value->link -= 1;
+                                    if (sy_record_link_decrease(item->value) < 0)
+                                    {
+                                        mpz_clear(start);
+                                        mpz_clear(stop);
+                                        mpz_clear(step);
+                                        mpz_clear(term);
+                                        mpz_clear(cnt);
+                                        mpz_clear(length);
+                                        return ERROR;
+                                    }
                                     mpz_clear(start);
                                     mpz_clear(stop);
                                     mpz_clear(step);
@@ -422,12 +494,18 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                                     {
                                         if (sy_record_tuple_destroy(top) < 0)
                                         {
-                                            base->link -= 1;
+                                            if (sy_record_link_decrease(base) < 0)
+                                            {
+                                                return ERROR;
+                                            }
                                             return ERROR;
                                         }
                                     }
 
-                                    base->link -= 1;
+                                    if (sy_record_link_decrease(base) < 0)
+                                    {
+                                        return ERROR;
+                                    }
                                     return ERROR;
                                 }
 
@@ -460,11 +538,17 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 sy_record_t *result = sy_record_create(NODE_KIND_TUPLE, top);
                 if (result == ERROR)
                 {
-                    base->link -= 1;
+                    if (sy_record_link_decrease(base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
@@ -479,7 +563,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                     mpz_clear(term);
                     mpz_clear(cnt);
                     mpz_clear(length);
-                    base->link -= 1;
+                    if (sy_record_link_decrease(base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
@@ -489,7 +576,7 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 }
 
                 mpz_set(term, start);
-                for (sy_record_tuple_t *item = (sy_record_tuple_t *)base->value;item != NULL;item = item->next)
+                for (sy_record_tuple_t *item = (sy_record_tuple_t *)base->value; item != NULL; item = item->next)
                 {
                     if (mpz_cmp(cnt, term) == 0)
                     {
@@ -499,15 +586,17 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                         mpz_clear(term);
                         mpz_clear(cnt);
                         mpz_clear(length);
-                        base->link -= 1;
+                        if (sy_record_link_decrease(base) < 0)
+                        {
+                            return ERROR;
+                        }
                         return item->value;
                     }
                     mpz_add_ui(cnt, cnt, 1);
                 }
             }
         }
-        else
-        if (base->kind == RECORD_KIND_STRING)
+        else if (base->kind == RECORD_KIND_STRING)
         {
             sy_node_block_t *block = (sy_node_block_t *)carrier->data->value;
 
@@ -519,14 +608,17 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
 
             if ((arg_cnt > 3) || (arg_cnt == 0))
             {
-                sy_error_type_by_node(node, "'%s' takes %lld positional arguments but %lld were given", 
-                    sy_record_type_as_string(base), 3, arg_cnt);
+                sy_error_type_by_node(node, "'%s' takes %lld positional arguments but %lld were given",
+                                      sy_record_type_as_string(base), 3, arg_cnt);
 
-                base->link -= 1;
+                if (sy_record_link_decrease(base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return ERROR;
             }
-    
+
             mpz_t start, stop, step;
             mpz_init(start);
             mpz_init(stop);
@@ -537,7 +629,7 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
             mpz_set_si(step, 1);
 
             arg_cnt = 0;
-            for (sy_node_t *item = block->items;item != NULL;item = item->next)
+            for (sy_node_t *item = block->items; item != NULL; item = item->next)
             {
                 arg_cnt += 1;
 
@@ -547,7 +639,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 {
                     mpz_clears(start, stop, step);
                     sy_error_type_by_node(item, "'%s' not support", "pair");
-                    base->link -= 1;
+                    if (sy_record_link_decrease(base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
@@ -555,7 +650,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 if (record_arg == ERROR)
                 {
                     mpz_clears(start, stop, step);
-                    base->link -= 1;
+                    if (sy_record_link_decrease(base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
@@ -564,8 +662,14 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                     mpz_clears(start, stop, step);
                     sy_error_type_by_node(item, "'%s' must be of '%s' type", "key", "int");
 
-                    record_arg->link -= 1;
-                    base->link -= 1;
+                    if (sy_record_link_decrease(record_arg) < 0)
+                    {
+                        return ERROR;
+                    }
+                    if (sy_record_link_decrease(base) < 0)
+                    {
+                        return ERROR;
+                    }
 
                     return ERROR;
                 }
@@ -574,18 +678,16 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 {
                     record_to_mpz(record_arg, start);
                 }
-                else
-                if (arg_cnt == 2)
+                else if (arg_cnt == 2)
                 {
                     record_to_mpz(record_arg, stop);
                 }
-                else
-                if (arg_cnt == 3)
+                else if (arg_cnt == 3)
                 {
                     record_to_mpz(record_arg, step);
                 }
             }
-            
+
             mpz_t length, cnt, term;
             mpz_init(length);
             mpz_init(cnt);
@@ -606,7 +708,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                     mpz_clear(term);
                     mpz_clear(cnt);
                     mpz_clear(length);
-                    base->link -= 1;
+                    if (sy_record_link_decrease(base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
@@ -619,7 +724,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                     mpz_clear(term);
                     mpz_clear(cnt);
                     mpz_clear(length);
-                    base->link -= 1;
+                    if (sy_record_link_decrease(base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
@@ -638,10 +746,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 sy_record_tuple_t *top = NULL, *declaration = NULL;
                 if (mpz_cmp(start, stop) <= 0)
                 {
-                    while ((mpz_cmp(term ,start) >= 0) && (mpz_cmp(term ,stop) <= 0))
+                    while ((mpz_cmp(term, start) >= 0) && (mpz_cmp(term, stop) <= 0))
                     {
                         mpz_set_si(cnt, 0);
-                        for (char *str = (char *)base->value;str != NULL;str++)
+                        for (char *str = (char *)base->value; str != NULL; str++)
                         {
                             if (mpz_cmp(term, cnt) == 0)
                             {
@@ -654,7 +762,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                                     mpz_clear(term);
                                     mpz_clear(cnt);
                                     mpz_clear(length);
-                                    base->link -= 1;
+                                    if (sy_record_link_decrease(base) < 0)
+                                    {
+                                        return ERROR;
+                                    }
 
                                     if (top)
                                     {
@@ -670,7 +781,16 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                                 sy_record_tuple_t *tuple = sy_record_make_tuple(item, NULL);
                                 if (tuple == ERROR)
                                 {
-                                    item->link -= 1;
+                                    if (sy_record_link_decrease(item) < 0)
+                                    {
+                                        mpz_clear(start);
+                                        mpz_clear(stop);
+                                        mpz_clear(step);
+                                        mpz_clear(term);
+                                        mpz_clear(cnt);
+                                        mpz_clear(length);
+                                        return ERROR;
+                                    }
                                     mpz_clear(start);
                                     mpz_clear(stop);
                                     mpz_clear(step);
@@ -682,12 +802,18 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                                     {
                                         if (sy_record_tuple_destroy(top) < 0)
                                         {
-                                            base->link -= 1;
+                                            if (sy_record_link_decrease(base) < 0)
+                                            {
+                                                return ERROR;
+                                            }
                                             return ERROR;
                                         }
                                     }
 
-                                    base->link -= 1;
+                                    if (sy_record_link_decrease(base) < 0)
+                                    {
+                                        return ERROR;
+                                    }
                                     return ERROR;
                                 }
 
@@ -711,10 +837,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 }
                 else
                 {
-                    while ((mpz_cmp(term ,stop) >= 0) && (mpz_cmp(term ,start) <= 0))
+                    while ((mpz_cmp(term, stop) >= 0) && (mpz_cmp(term, start) <= 0))
                     {
                         mpz_set_si(cnt, 0);
-                        for (char *str = (char *)base->value;str != NULL;str++)
+                        for (char *str = (char *)base->value; str != NULL; str++)
                         {
                             if (mpz_cmp(term, cnt) == 0)
                             {
@@ -727,7 +853,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                                     mpz_clear(term);
                                     mpz_clear(cnt);
                                     mpz_clear(length);
-                                    base->link -= 1;
+                                    if (sy_record_link_decrease(base) < 0)
+                                    {
+                                        return ERROR;
+                                    }
 
                                     if (top)
                                     {
@@ -744,7 +873,16 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                                 sy_record_tuple_t *tuple = sy_record_make_tuple(item, NULL);
                                 if (tuple == ERROR)
                                 {
-                                    item->link -= 1;
+                                    if (sy_record_link_decrease(item) < 0)
+                                    {
+                                        mpz_clear(start);
+                                        mpz_clear(stop);
+                                        mpz_clear(step);
+                                        mpz_clear(term);
+                                        mpz_clear(cnt);
+                                        mpz_clear(length);
+                                        return ERROR;
+                                    }
                                     mpz_clear(start);
                                     mpz_clear(stop);
                                     mpz_clear(step);
@@ -756,12 +894,18 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                                     {
                                         if (sy_record_tuple_destroy(top) < 0)
                                         {
-                                            base->link -= 1;
+                                            if (sy_record_link_decrease(base) < 0)
+                                            {
+                                                return ERROR;
+                                            }
                                             return ERROR;
                                         }
                                     }
 
-                                    base->link -= 1;
+                                    if (sy_record_link_decrease(base) < 0)
+                                    {
+                                        return ERROR;
+                                    }
                                     return ERROR;
                                 }
 
@@ -794,11 +938,17 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 sy_record_t *result = sy_record_create(NODE_KIND_TUPLE, top);
                 if (result == ERROR)
                 {
-                    base->link -= 1;
+                    if (sy_record_link_decrease(base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
-                base->link -= 1;
+                if (sy_record_link_decrease(base) < 0)
+                {
+                    return ERROR;
+                }
 
                 return result;
             }
@@ -813,7 +963,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                     mpz_clear(term);
                     mpz_clear(cnt);
                     mpz_clear(length);
-                    base->link -= 1;
+                    if (sy_record_link_decrease(base) < 0)
+                    {
+                        return ERROR;
+                    }
                     return ERROR;
                 }
 
@@ -823,8 +976,8 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 }
 
                 mpz_set(term, start);
-                
-                for (char *str = (char *)base->value;str != NULL;str++)
+
+                for (char *str = (char *)base->value; str != NULL; str++)
                 {
                     if (mpz_cmp(cnt, term) == 0)
                     {
@@ -837,7 +990,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                             mpz_clear(term);
                             mpz_clear(cnt);
                             mpz_clear(length);
-                            base->link -= 1;
+                            if (sy_record_link_decrease(base) < 0)
+                            {
+                                return ERROR;
+                            }
                             return ERROR;
                         }
                         item->reference = 1;
@@ -848,7 +1004,10 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                         mpz_clear(term);
                         mpz_clear(cnt);
                         mpz_clear(length);
-                        base->link -= 1;
+                        if (sy_record_link_decrease(base) < 0)
+                        {
+                            return ERROR;
+                        }
 
                         return item;
                     }

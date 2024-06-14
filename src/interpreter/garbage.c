@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <gmp.h>
+#include <jansson.h>
 
 #include "../types/types.h"
 #include "../container/queue.h"
@@ -24,28 +25,27 @@
 #include "../interpreter.h"
 #include "../thread.h"
 
-
 sy_garbage_t base_garbage;
 
 static sy_garbage_t *
 sy_garbage_get()
 {
-  return &base_garbage;
+    return &base_garbage;
 }
 
 int32_t
 sy_garbage_init()
 {
-	sy_garbage_t *garbage = sy_garbage_get();
-	if (sy_mutex_init(&garbage->lock) < 0)
-	{
-		sy_error_system("'%s' could not initialize the lock", "sy_garbage.lock");
-		return -1;
-	}
+    sy_garbage_t *garbage = sy_garbage_get();
+    if (sy_mutex_init(&garbage->lock) < 0)
+    {
+        sy_error_system("'%s' could not initialize the lock", "sy_garbage.lock");
+        return -1;
+    }
 
     garbage->begin = NULL;
 
-	return 0;
+    return 0;
 }
 
 int32_t
@@ -63,7 +63,7 @@ sy_garbage_destroy()
 static void
 sy_garbage_unsafe_link(sy_garbage_entry_t *entry)
 {
-	sy_garbage_t *garbage = sy_garbage_get();
+    sy_garbage_t *garbage = sy_garbage_get();
     entry->next = garbage->begin;
     if (garbage->begin)
     {
@@ -76,47 +76,47 @@ sy_garbage_unsafe_link(sy_garbage_entry_t *entry)
 static void
 sy_garbage_unsafe_unlink(sy_garbage_entry_t *entry)
 {
-	sy_garbage_t *garbage = sy_garbage_get();
-	if (entry == garbage->begin)
-	{
-		garbage->begin = entry->next;
-	}
+    sy_garbage_t *garbage = sy_garbage_get();
+    if (entry == garbage->begin)
+    {
+        garbage->begin = entry->next;
+    }
 
-	if (entry->next)
-	{
-		entry->next->previous = entry->previous;
-	}
+    if (entry->next)
+    {
+        entry->next->previous = entry->previous;
+    }
 
-	if (entry->previous)
-	{
-		entry->previous->next = entry->next;
-	}
+    if (entry->previous)
+    {
+        entry->previous->next = entry->next;
+    }
 }
 
 int32_t
 sy_garbage_push(sy_record_t *value)
 {
     sy_garbage_entry_t *entry = (sy_garbage_entry_t *)sy_memory_calloc(1, sizeof(sy_garbage_entry_t));
-    if(!entry)
+    if (!entry)
     {
-		sy_error_no_memory();
+        sy_error_no_memory();
         return -1;
     }
 
-	entry->value = value;
+    entry->value = value;
 
-	sy_garbage_t *garbage = sy_garbage_get();
-    
-	if (sy_mutex_lock(&garbage->lock) < 0)
+    sy_garbage_t *garbage = sy_garbage_get();
+
+    if (sy_mutex_lock(&garbage->lock) < 0)
     {
         sy_error_system("'%s' could not lock", "sy_garbage.lock");
         sy_memory_free(entry);
         return -1;
     }
 
-	sy_garbage_unsafe_link(entry);
+    sy_garbage_unsafe_link(entry);
 
-	if (sy_mutex_unlock(&garbage->lock) < 0)
+    if (sy_mutex_unlock(&garbage->lock) < 0)
     {
         sy_error_system("'%s' could not unlock", "sy_garbage.lock");
         sy_memory_free(entry);
@@ -130,14 +130,14 @@ int32_t
 sy_garbage_clean()
 {
     sy_garbage_t *garbage = sy_garbage_get();
-    
-	if (sy_mutex_lock(&garbage->lock) < 0)
+
+    if (sy_mutex_lock(&garbage->lock) < 0)
     {
         sy_error_system("'%s' could not lock", "sy_garbage.lock");
         return -1;
     }
 
-    for (sy_garbage_entry_t *item = garbage->begin, *next = NULL;item != NULL; item = next)
+    for (sy_garbage_entry_t *item = garbage->begin, *next = NULL; item != NULL; item = next)
     {
         next = item->next;
 
@@ -176,14 +176,14 @@ sy_garbage_clean()
 }
 
 #if _WIN32
-DWORD WINAPI 
+DWORD WINAPI
 sy_garbage_clean_by_thread(LPVOID arg)
 #else
-void * 
+void *
 sy_garbage_clean_by_thread(void *arg)
 #endif
 {
-    sy_grabage_thread_data_t *data = (sy_grabage_thread_data_t*)arg;
+    sy_grabage_thread_data_t *data = (sy_grabage_thread_data_t *)arg;
     data->ret = -1;
 
     while (1)
@@ -203,7 +203,7 @@ sy_garbage_clean_by_thread(void *arg)
     }
     return data;
 
-    region_error:
+region_error:
     data->ret = -1;
     if (sy_thread_exit() < 0)
     {
@@ -211,4 +211,3 @@ sy_garbage_clean_by_thread(void *arg)
     }
     return data;
 }
-

@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include <assert.h>
 #include <gmp.h>
+#include <jansson.h>
 
 #include "../../types/types.h"
 #include "../../container/queue.h"
@@ -31,134 +32,166 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
     {
         return right;
     }
-    else
-    if (left->kind == RECORD_KIND_NAN)
+    else if (left->kind == RECORD_KIND_NAN)
     {
         return right;
     }
-    else
-    if (left->kind == RECORD_KIND_INT)
+    else if (left->kind == RECORD_KIND_INT)
     {
         int32_t a_is_nonzero = mpz_cmp_ui(*(mpz_t *)(left->value), 0) != 0;
         if (a_is_nonzero)
         {
             if (right)
             {
-                right->link -= 1;
+                if (sy_record_link_decrease(right) < 0)
+                {
+                    return ERROR;
+                }
             }
             return left;
         }
         else
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return ERROR;
+            }
             return right;
         }
     }
-    else
-    if (left->kind == RECORD_KIND_FLOAT)
+    else if (left->kind == RECORD_KIND_FLOAT)
     {
         int a_is_nonzero = mpf_cmp_ui(*(mpf_t *)(left->value), 0) != 0;
         if (a_is_nonzero)
         {
             if (right)
             {
-                right->link -= 1;
+                if (sy_record_link_decrease(right) < 0)
+                {
+                    return ERROR;
+                }
             }
             return left;
         }
         else
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return ERROR;
+            }
             return right;
         }
     }
-    else
-    if (left->kind == RECORD_KIND_CHAR)
+    else if (left->kind == RECORD_KIND_CHAR)
     {
         int a_is_nonzero = (*(char *)(left->value)) != 0;
         if (a_is_nonzero)
         {
             if (right)
             {
-                right->link -= 1;
+                if (sy_record_link_decrease(right) < 0)
+                {
+                    return ERROR;
+                }
             }
             return left;
         }
         else
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return ERROR;
+            }
             return right;
         }
     }
-    else
-    if (left->kind == RECORD_KIND_STRING)
+    else if (left->kind == RECORD_KIND_STRING)
     {
         int a_is_nonzero = strcmp((char *)(left->value), "") != 0;
         if (a_is_nonzero)
         {
             if (right)
             {
-                right->link -= 1;
+                if (sy_record_link_decrease(right) < 0)
+                {
+                    return ERROR;
+                }
             }
             return left;
         }
         else
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return ERROR;
+            }
             return right;
         }
     }
-    else
-    if (left->kind == RECORD_KIND_OBJECT)
+    else if (left->kind == RECORD_KIND_OBJECT)
     {
         if (right)
         {
-            right->link -= 1;
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return ERROR;
+            }
         }
         return left;
     }
-    else
-    if (left->kind == RECORD_KIND_TUPLE)
+    else if (left->kind == RECORD_KIND_TUPLE)
     {
         if (right)
         {
-            right->link -= 1;
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return ERROR;
+            }
         }
         return left;
     }
-    else
-    if (left->kind == RECORD_KIND_TYPE)
+    else if (left->kind == RECORD_KIND_TYPE)
     {
         if (right)
         {
-            right->link -= 1;
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return ERROR;
+            }
         }
         return left;
     }
-    else
-    if (left->kind == RECORD_KIND_STRUCT)
+    else if (left->kind == RECORD_KIND_STRUCT)
     {
         if (right)
         {
-            right->link -= 1;
+            if (sy_record_link_decrease(right) < 0)
+            {
+                return ERROR;
+            }
         }
         return left;
     }
-    else
-    if (left->kind == RECORD_KIND_NULL)
+    else if (left->kind == RECORD_KIND_NULL)
     {
         int a_is_nonzero = (*(int64_t *)(left->value)) != 0;
         if (a_is_nonzero)
         {
             if (right)
             {
-                right->link -= 1;
+                if (sy_record_link_decrease(right) < 0)
+                {
+                    return ERROR;
+                }
             }
             return left;
         }
         else
         {
-            left->link -= 1;
+            if (sy_record_link_decrease(left) < 0)
+            {
+                return ERROR;
+            }
             return right;
         }
     }
@@ -181,7 +214,7 @@ sy_execute_logical_or(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, 
         sy_record_t *right = sy_execute_logical_and(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            left->link -= 1;
+            sy_record_link_decrease(left);
             return ERROR;
         }
 

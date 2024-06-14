@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <assert.h>
 #include <gmp.h>
+#include <jansson.h>
 
 #include "../../types/types.h"
 #include "../../container/queue.h"
@@ -32,19 +33,16 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_INT)
+        else if (right->kind == RECORD_KIND_INT)
         {
             sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(right->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             mpz_t result;
             mpz_init(result);
@@ -54,65 +52,54 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             sy_record_t *record = sy_record_make_char((*(char *)(right->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             return sy_record_make_nan();
         }
 
         return sy_record_make_undefined();
     }
-    else
-    if (left->kind == RECORD_KIND_NAN)
+    else if (left->kind == RECORD_KIND_NAN)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_INT)
+        else if (right->kind == RECORD_KIND_INT)
         {
             sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(right->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             mpz_t result;
             mpz_init(result);
@@ -122,61 +109,51 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             sy_record_t *record = sy_record_make_char((*(char *)(right->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             return sy_record_make_nan();
         }
 
         return sy_record_make_undefined();
     }
-    else
-    if (left->kind == RECORD_KIND_INT)
+    else if (left->kind == RECORD_KIND_INT)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));            
+            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));            
+            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_INT)
+        else if (right->kind == RECORD_KIND_INT)
         {
             mpz_t result;
             mpz_init(result);
@@ -186,8 +163,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             mpz_t result;
             mpz_init(result);
@@ -196,11 +172,10 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_xor(result, (*(mpz_t *)(left->value)), result);
 
             sy_record_t *record = sy_record_make_int_from_z(result);
-            mpz_clear(result);            
+            mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             mpz_t result;
             mpz_init(result);
@@ -211,50 +186,43 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(op_mpz);
 
             sy_record_t *record = sy_record_make_int_from_z(result);
-            mpz_clear(result);            
+            mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
-        
+
         return sy_record_make_undefined();
     }
-    else
-    if (left->kind == RECORD_KIND_FLOAT)
+    else if (left->kind == RECORD_KIND_FLOAT)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
@@ -263,22 +231,20 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
             sy_record_t *record = sy_record_make_int_from_z(result);
-            mpz_clear(result);            
+            mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             mpz_t result;
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
             sy_record_t *record = sy_record_make_int_from_z(result);
-            mpz_clear(result);            
+            mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_INT)
+        else if (right->kind == RECORD_KIND_INT)
         {
             mpz_t op1_mpz;
             mpz_init(op1_mpz);
@@ -290,11 +256,10 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(op1_mpz);
 
             sy_record_t *record = sy_record_make_int_from_z(result);
-            mpz_clear(result);            
+            mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             mpz_t op1_mpz;
             mpz_init(op1_mpz);
@@ -311,11 +276,10 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(op2_mpz);
 
             sy_record_t *record = sy_record_make_int_from_z(result);
-            mpz_clear(result);            
+            mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             mpz_t op1_mpz;
             mpz_init(op1_mpz);
@@ -331,11 +295,10 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(op2_mpz);
 
             sy_record_t *record = sy_record_make_int_from_z(result);
-            mpz_clear(result);            
+            mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             mpz_t result;
             mpz_init(result);
@@ -345,8 +308,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             mpz_t result;
             mpz_init(result);
@@ -356,8 +318,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             mpz_t result;
             mpz_init(result);
@@ -367,8 +328,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             mpz_t result;
             mpz_init(result);
@@ -378,8 +338,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             mpz_t result;
             mpz_init(result);
@@ -389,8 +348,7 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             mpz_t result;
             mpz_init(result);
@@ -400,25 +358,22 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(result);
             return record;
         }
-        
+
         return sy_record_make_undefined();
     }
-    else
-    if (left->kind == RECORD_KIND_CHAR)
+    else if (left->kind == RECORD_KIND_CHAR)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(left->value)));            
+            sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(left->value)));            
+            sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_INT)
+        else if (right->kind == RECORD_KIND_INT)
         {
             mpz_t op_mpz, result;
             mpz_init(result);
@@ -427,11 +382,10 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(op_mpz);
 
             sy_record_t *record = sy_record_make_int_from_z(result);
-            mpz_clear(result);            
+            mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             mpz_t result;
             mpz_init(result);
@@ -443,47 +397,40 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(op2_mpz);
 
             sy_record_t *record = sy_record_make_int_from_z(result);
-            mpz_clear(result);            
+            mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(left->value)) ^ (*(char *)(right->value)));            
+            sy_record_t *record = sy_record_make_char((*(char *)(left->value)) ^ (*(char *)(right->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
             return record;
@@ -491,26 +438,22 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
 
         return sy_record_make_undefined();
     }
-    else
-    if (left->kind == RECORD_KIND_STRING)
+    else if (left->kind == RECORD_KIND_STRING)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_INT)
+        else if (right->kind == RECORD_KIND_INT)
         {
             sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(right->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             mpz_t result;
             mpz_init(result);
@@ -520,65 +463,54 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             sy_record_t *record = sy_record_make_char((*(char *)(right->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             return sy_record_make_nan();
         }
 
         return sy_record_make_undefined();
     }
-    else
-    if (left->kind == RECORD_KIND_OBJECT)
+    else if (left->kind == RECORD_KIND_OBJECT)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_INT)
+        else if (right->kind == RECORD_KIND_INT)
         {
             sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(right->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             mpz_t result;
             mpz_init(result);
@@ -588,65 +520,54 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             sy_record_t *record = sy_record_make_char((*(char *)(right->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             return sy_record_make_nan();
         }
 
         return sy_record_make_undefined();
     }
-    else
-    if (left->kind == RECORD_KIND_TUPLE)
+    else if (left->kind == RECORD_KIND_TUPLE)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_INT)
+        else if (right->kind == RECORD_KIND_INT)
         {
             sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(right->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             mpz_t result;
             mpz_init(result);
@@ -656,65 +577,54 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             sy_record_t *record = sy_record_make_char((*(char *)(right->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             return sy_record_make_nan();
         }
 
         return sy_record_make_undefined();
     }
-    else
-    if (left->kind == RECORD_KIND_TYPE)
+    else if (left->kind == RECORD_KIND_TYPE)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_INT)
+        else if (right->kind == RECORD_KIND_INT)
         {
             sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(right->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             mpz_t result;
             mpz_init(result);
@@ -724,70 +634,58 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             sy_record_t *record = sy_record_make_char((*(char *)(right->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             return sy_record_make_nan();
         }
 
         return sy_record_make_undefined();
     }
-    else
-    if (left->kind == RECORD_KIND_STRUCT)
+    else if (left->kind == RECORD_KIND_STRUCT)
     {
-        return sy_execute_call_for_operator_by_one_argument(node, left, right, "^", applicant);
+        return sy_call_operator_by_one_arg(node, left, right, "^", applicant);
     }
-    else
-    if (left->kind == RECORD_KIND_NULL)
+    else if (left->kind == RECORD_KIND_NULL)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NAN)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_INT)
+        else if (right->kind == RECORD_KIND_INT)
         {
             sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(right->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_FLOAT)
+        else if (right->kind == RECORD_KIND_FLOAT)
         {
             mpz_t result;
             mpz_init(result);
@@ -797,39 +695,32 @@ sy_execute_xor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(result);
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_CHAR)
+        else if (right->kind == RECORD_KIND_CHAR)
         {
             sy_record_t *record = sy_record_make_char((*(char *)(right->value)));
             return record;
         }
-        else
-        if (right->kind == RECORD_KIND_STRING)
+        else if (right->kind == RECORD_KIND_STRING)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_OBJECT)
+        else if (right->kind == RECORD_KIND_OBJECT)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_TUPLE)
+        else if (right->kind == RECORD_KIND_TUPLE)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_TYPE)
+        else if (right->kind == RECORD_KIND_TYPE)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_STRUCT)
+        else if (right->kind == RECORD_KIND_STRUCT)
         {
             return sy_record_make_nan();
         }
-        else
-        if (right->kind == RECORD_KIND_NULL)
+        else if (right->kind == RECORD_KIND_NULL)
         {
             return sy_record_make_nan();
         }
@@ -860,8 +751,15 @@ sy_execute_bitwise_xor(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant,
 
         sy_record_t *record = sy_execute_xor(node, left, right, applicant);
 
-        left->link -= 1;
-        right->link -= 1;
+        if (sy_record_link_decrease(left) < 0)
+        {
+            return ERROR;
+        }
+
+        if (sy_record_link_decrease(right) < 0)
+        {
+            return ERROR;
+        }
 
         return record;
     }

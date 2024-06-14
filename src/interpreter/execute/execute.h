@@ -17,25 +17,25 @@ sy_execute_value_check_by_type(sy_node_t *node, sy_record_t *record_value, sy_re
 sy_record_t *
 sy_execute_value_casting_by_type(sy_node_t *node, sy_record_t *record_value, sy_record_t *record_type, sy_strip_t *strip, sy_node_t *applicant);
 
-int32_t 
+int32_t
 sy_execute_run_fun(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant);
 
-int32_t 
+int32_t
 sy_execute_run_lambda(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant);
 
 int32_t
-sy_execute_parameters_substitute(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy_node_t *parameters, sy_node_t *arguments, sy_node_t *applicant);
+sy_call_parameters_subs(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy_node_t *parameters, sy_node_t *arguments, sy_node_t *applicant);
 
-int32_t 
-sy_execute_parameters_check_by_one_argument(sy_node_t *node, sy_strip_t *strip, sy_node_t *parameters, sy_record_t *arg, sy_node_t *applicant);
+int32_t
+sy_call_parameters_check_by_one_arg(sy_node_t *node, sy_strip_t *strip, sy_node_t *parameters, sy_record_t *arg, sy_node_t *applicant);
 
-int32_t 
-sy_execute_parameters_substitute_by_one_argument(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy_node_t *parameters, sy_record_t *arg, sy_node_t *applicant);
+int32_t
+sy_call_parameters_subs_by_one_arg(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy_node_t *parameters, sy_record_t *arg, sy_node_t *applicant);
 
 sy_record_t *
-sy_execute_call_for_operator_by_one_argument(sy_node_t *base, sy_record_t *content, sy_record_t *arg, const char *operator, sy_node_t *applicant);
+sy_call_operator_by_one_arg(sy_node_t *base, sy_record_t *content, sy_record_t *arg, const char *operator, sy_node_t * applicant);
 
-int32_t 
+int32_t
 sy_execute_run(sy_node_t *root);
 
 sy_record_t *
@@ -75,7 +75,7 @@ sy_record_t *
 sy_execute_prefix(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin);
 
 sy_record_t *
-sy_execute_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin);
+sy_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin);
 
 sy_record_t *
 sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin);
@@ -194,8 +194,5 @@ sy_execute_eq(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t 
 
 int32_t
 sy_execute_truthy(sy_record_t *left);
-
-char *
-record_to_string(sy_record_t *record, char *previous_buf);
 
 #endif
