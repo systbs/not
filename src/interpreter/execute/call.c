@@ -2786,14 +2786,22 @@ typedef union
     float f;
     double d;
     long double ld;
-} union_type;
+    int8_t i8;
+    int16_t i16;
+    int32_t i32;
+    int64_t i64;
+    uint8_t ui8;
+    uint16_t ui16;
+    uint32_t ui32;
+    uint64_t ui64;
+} ffi_ret_type;
 
-typedef struct record_cvt_ffi
+typedef struct ffi_sized
 {
     void *ptr;
     ffi_type *type;
     size_t size;
-} cvt_ffi_t;
+} ffi_sized_t;
 
 static void
 ffi_type_destroy(ffi_type *type)
@@ -2882,6 +2890,10 @@ json_to_ffi(json_t *type)
         {
             return &ffi_type_pointer;
         }
+        else if (strcmp(str, "void") == 0)
+        {
+            return &ffi_type_void;
+        }
     }
     else if (json_is_object(type))
     {
@@ -2893,11 +2905,11 @@ json_to_ffi(json_t *type)
     {
     }
 
-    return NULL;
+    return &ffi_type_void;
 }
 
-static void *
-record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
+static int32_t
+record_cvt_by_json(sy_record_t *arg, json_t *type, ffi_sized_t *ret)
 {
     if (json_is_string(type))
     {
@@ -2910,11 +2922,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(char *)ptr = *(char *)arg->value;
-                *size = sizeof(char);
-                return ptr;
+                ret->size = sizeof(char);
+                ret->type = &ffi_type_schar;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -2922,15 +2936,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(char *)ptr = (char)mpz_get_si(*(mpz_t *)arg->value);
-                *size = sizeof(char);
-                return ptr;
+                ret->size = sizeof(char);
+                ret->type = &ffi_type_schar;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "uchar") == 0)
@@ -2941,11 +2957,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(unsigned char *)ptr = (unsigned char)(*(char *)arg->value);
-                *size = sizeof(unsigned char);
-                return ptr;
+                ret->size = sizeof(unsigned char);
+                ret->type = &ffi_type_uchar;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -2953,15 +2971,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(unsigned char *)ptr = (unsigned char)mpz_get_ui(*(mpz_t *)arg->value);
-                *size = sizeof(unsigned char);
-                return ptr;
+                ret->size = sizeof(unsigned char);
+                ret->type = &ffi_type_uchar;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "sshort") == 0)
@@ -2972,11 +2992,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(short *)ptr = (short)(*(char *)arg->value);
-                *size = sizeof(short);
-                return ptr;
+                ret->size = sizeof(short);
+                ret->type = &ffi_type_sshort;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -2984,15 +3006,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(short *)ptr = (short)mpz_get_si(*(mpz_t *)arg->value);
-                *size = sizeof(short);
-                return ptr;
+                ret->size = sizeof(short);
+                ret->type = &ffi_type_sshort;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "ushort") == 0)
@@ -3003,11 +3027,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(unsigned short *)ptr = (unsigned short)(*(char *)arg->value);
-                *size = sizeof(unsigned short);
-                return ptr;
+                ret->size = sizeof(unsigned short);
+                ret->type = &ffi_type_ushort;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -3015,15 +3041,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(unsigned short *)ptr = (unsigned short)mpz_get_ui(*(mpz_t *)arg->value);
-                *size = sizeof(unsigned short);
-                return ptr;
+                ret->size = sizeof(unsigned short);
+                ret->type = &ffi_type_ushort;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "sint") == 0)
@@ -3034,11 +3062,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(int *)ptr = (int)(*(char *)arg->value);
-                *size = sizeof(int);
-                return ptr;
+                ret->size = sizeof(int);
+                ret->type = &ffi_type_sint;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -3046,15 +3076,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(int *)ptr = (int)mpz_get_si(*(mpz_t *)arg->value);
-                *size = sizeof(int);
-                return ptr;
+                ret->size = sizeof(int);
+                ret->type = &ffi_type_sint;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "uint") == 0)
@@ -3065,11 +3097,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(unsigned int *)ptr = (unsigned int)(*(char *)arg->value);
-                *size = sizeof(unsigned int);
-                return ptr;
+                ret->size = sizeof(unsigned int);
+                ret->type = &ffi_type_uint;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -3077,15 +3111,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(unsigned int *)ptr = (unsigned int)mpz_get_ui(*(mpz_t *)arg->value);
-                *size = sizeof(unsigned int);
-                return ptr;
+                ret->size = sizeof(unsigned int);
+                ret->type = &ffi_type_uint;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "slong") == 0)
@@ -3096,11 +3132,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(long *)ptr = (long)(*(char *)arg->value);
-                *size = sizeof(long);
-                return ptr;
+                ret->size = sizeof(long);
+                ret->type = &ffi_type_slong;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -3108,15 +3146,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(long *)ptr = (long)mpz_get_si(*(mpz_t *)arg->value);
-                *size = sizeof(long);
-                return ptr;
+                ret->size = sizeof(long);
+                ret->type = &ffi_type_slong;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "ulong") == 0)
@@ -3127,11 +3167,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(unsigned long *)ptr = (unsigned long)(*(char *)arg->value);
-                *size = sizeof(unsigned long);
-                return ptr;
+                ret->size = sizeof(unsigned long);
+                ret->type = &ffi_type_ulong;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -3139,15 +3181,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(unsigned long *)ptr = (unsigned long)mpz_get_ui(*(mpz_t *)arg->value);
-                *size = sizeof(unsigned long);
-                return ptr;
+                ret->size = sizeof(unsigned long);
+                ret->type = &ffi_type_ulong;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "sint8") == 0)
@@ -3158,11 +3202,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(int8_t *)ptr = (int8_t)(*(char *)arg->value);
-                *size = sizeof(int8_t);
-                return ptr;
+                ret->size = sizeof(int8_t);
+                ret->type = &ffi_type_sint8;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -3170,15 +3216,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(int8_t *)ptr = (int8_t)mpz_get_si(*(mpz_t *)arg->value);
-                *size = sizeof(int8_t);
-                return ptr;
+                ret->size = sizeof(int8_t);
+                ret->type = &ffi_type_sint8;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "uint8") == 0)
@@ -3189,11 +3237,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(uint8_t *)ptr = (uint8_t)(*(char *)arg->value);
-                *size = sizeof(uint8_t);
-                return ptr;
+                ret->size = sizeof(uint8_t);
+                ret->type = &ffi_type_uint8;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -3201,15 +3251,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(uint8_t *)ptr = (uint8_t)mpz_get_ui(*(mpz_t *)arg->value);
-                *size = sizeof(uint8_t);
-                return ptr;
+                ret->size = sizeof(uint8_t);
+                ret->type = &ffi_type_uint8;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "sint16") == 0)
@@ -3220,11 +3272,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(int16_t *)ptr = (int16_t)(*(char *)arg->value);
-                *size = sizeof(int16_t);
-                return ptr;
+                ret->size = sizeof(int16_t);
+                ret->type = &ffi_type_sint16;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -3232,15 +3286,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(int16_t *)ptr = (int16_t)mpz_get_si(*(mpz_t *)arg->value);
-                *size = sizeof(int16_t);
-                return ptr;
+                ret->size = sizeof(int16_t);
+                ret->type = &ffi_type_sint16;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "uint16") == 0)
@@ -3251,11 +3307,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(uint16_t *)ptr = (uint16_t)(*(char *)arg->value);
-                *size = sizeof(uint16_t);
-                return ptr;
+                ret->size = sizeof(uint16_t);
+                ret->type = &ffi_type_uint16;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -3263,15 +3321,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(uint16_t *)ptr = (uint16_t)mpz_get_ui(*(mpz_t *)arg->value);
-                *size = sizeof(uint16_t);
-                return ptr;
+                ret->size = sizeof(uint16_t);
+                ret->type = &ffi_type_uint16;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "sint32") == 0)
@@ -3282,11 +3342,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(int32_t *)ptr = (int32_t)(*(char *)arg->value);
-                *size = sizeof(int32_t);
-                return ptr;
+                ret->size = sizeof(int32_t);
+                ret->type = &ffi_type_sint32;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -3294,15 +3356,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(int32_t *)ptr = (int32_t)mpz_get_si(*(mpz_t *)arg->value);
-                *size = sizeof(int32_t);
-                return ptr;
+                ret->size = sizeof(int32_t);
+                ret->type = &ffi_type_sint32;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "uint32") == 0)
@@ -3313,11 +3377,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(uint32_t *)ptr = (uint32_t)(*(char *)arg->value);
-                *size = sizeof(uint32_t);
-                return ptr;
+                ret->size = sizeof(uint32_t);
+                ret->type = &ffi_type_uint32;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -3325,15 +3391,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(uint32_t *)ptr = (uint32_t)mpz_get_ui(*(mpz_t *)arg->value);
-                *size = sizeof(uint32_t);
-                return ptr;
+                ret->size = sizeof(uint32_t);
+                ret->type = &ffi_type_uint32;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "sint64") == 0)
@@ -3344,11 +3412,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(int64_t *)ptr = (int64_t)(*(char *)arg->value);
-                *size = sizeof(int64_t);
-                return ptr;
+                ret->size = sizeof(int64_t);
+                ret->type = &ffi_type_sint64;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -3356,15 +3426,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(int64_t *)ptr = (int64_t)mpz_get_si(*(mpz_t *)arg->value);
-                *size = sizeof(int64_t);
-                return ptr;
+                ret->size = sizeof(int64_t);
+                ret->type = &ffi_type_sint64;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "uint64") == 0)
@@ -3375,11 +3447,13 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(uint64_t *)ptr = (uint64_t)(*(char *)arg->value);
-                *size = sizeof(uint64_t);
-                return ptr;
+                ret->size = sizeof(uint64_t);
+                ret->type = &ffi_type_uint64;
+                ret->ptr = ptr;
+                return 1;
             }
             else if (arg->kind == RECORD_KIND_INT)
             {
@@ -3387,15 +3461,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(uint64_t *)ptr = (uint64_t)mpz_get_ui(*(mpz_t *)arg->value);
-                *size = sizeof(uint64_t);
-                return ptr;
+                ret->size = sizeof(uint64_t);
+                ret->type = &ffi_type_uint64;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "float") == 0)
@@ -3406,15 +3482,17 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(float *)ptr = (float)mpf_get_d(*(mpf_t *)arg->value);
-                *size = sizeof(float);
-                return ptr;
+                ret->size = sizeof(float);
+                ret->type = &ffi_type_float;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "double") == 0)
@@ -3425,47 +3503,116 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
                 *(double *)ptr = (double)mpf_get_d(*(mpf_t *)arg->value);
-                *size = sizeof(double);
-                return ptr;
+                ret->size = sizeof(double);
+                ret->type = &ffi_type_double;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
             }
         }
         else if (strcmp(str, "string") == 0)
         {
             if (arg->kind == RECORD_KIND_STRING)
             {
-                size_t length = strlen((char *)arg->value);
-                void **ptr = sy_memory_calloc(1, sizeof(char *));
+                char **ptr = sy_memory_calloc(1, sizeof(char *));
                 if (!ptr)
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    return -1;
                 }
 
-                *ptr = sy_memory_calloc(1, length);
-                if (!ptr)
+                size_t length = strlen((char *)arg->value);
+                ptr[0] = sy_memory_calloc(1, length);
+                if (!ptr[0])
                 {
                     sy_error_no_memory();
-                    return ERROR;
+                    sy_memory_free(ptr);
+                    return -1;
                 }
-                memcpy(*ptr, arg->value, length);
-                *size = length;
-                return ptr;
+                memcpy(ptr[0], arg->value, length);
+                ret->size = sizeof(char *);
+                ret->type = &ffi_type_pointer;
+                ret->ptr = ptr;
+                return 1;
             }
             else
             {
-                return NULL;
+                return 0;
+            }
+        }
+        else if (strcmp(str, "mpz") == 0)
+        {
+            if (arg->kind == RECORD_KIND_INT)
+            {
+                mpz_t **ptr = sy_memory_calloc(1, sizeof(mpz_t *));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return -1;
+                }
+
+                mpz_t *num = sy_memory_calloc(1, sizeof(mpz_t));
+                if (!num)
+                {
+                    sy_error_no_memory();
+                    sy_memory_free(ptr);
+                    return -1;
+                }
+                mpz_init_set(*num, *(mpz_t *)arg->value);
+                ptr[0] = num;
+
+                ret->size = sizeof(mpz_t *);
+                ret->type = &ffi_type_pointer;
+                ret->ptr = ptr;
+
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        else if (strcmp(str, "mpf") == 0)
+        {
+            if (arg->kind == RECORD_KIND_FLOAT)
+            {
+                mpf_t **ptr = sy_memory_calloc(1, sizeof(mpf_t *));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return -1;
+                }
+
+                mpf_t *num = sy_memory_calloc(1, sizeof(mpf_t));
+                if (!num)
+                {
+                    sy_error_no_memory();
+                    sy_memory_free(ptr);
+                    return -1;
+                }
+                mpf_init_set(*num, *(mpf_t *)arg->value);
+                ptr[0] = num;
+
+                ret->size = sizeof(mpf_t *);
+                ret->type = &ffi_type_pointer;
+                ret->ptr = ptr;
+
+                return 1;
+            }
+            else
+            {
+                return 0;
             }
         }
         else
         {
-            return NULL;
+            return 0;
         }
     }
     else if (json_is_object(type))
@@ -3482,104 +3629,248 @@ record_cvt_by_json(sy_record_t *arg, json_t *type, size_t *size)
             if (!ptr)
             {
                 sy_error_no_memory();
-                return ERROR;
+                return -1;
             }
             *(char *)ptr = *(char *)arg->value;
-            *size = sizeof(char);
-            return ptr;
+            ret->size = sizeof(char);
+            ret->type = &ffi_type_schar;
+            ret->ptr = ptr;
+            return 1;
         }
         else if (arg->kind == RECORD_KIND_INT)
         {
-            void *ptr = sy_memory_calloc(1, sizeof(int64_t));
-            if (!ptr)
+            if (mpz_cmp_si(*(mpz_t *)arg->value, INT32_MIN) >= 0 && mpz_cmp_si(*(mpz_t *)arg->value, INT32_MAX) <= 0)
             {
-                sy_error_no_memory();
-                return ERROR;
+                void *ptr = sy_memory_calloc(1, sizeof(int32_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return -1;
+                }
+                *(int32_t *)ptr = (int32_t)mpz_get_si(*(mpz_t *)arg->value);
+                ret->size = sizeof(int32_t);
+                ret->type = &ffi_type_sint32;
+                ret->ptr = ptr;
+                return 1;
             }
-            *(int64_t *)ptr = (int64_t)mpz_get_si(*(mpz_t *)arg->value);
-            *size = sizeof(int64_t);
-            return ptr;
+
+            // Check uint32_t range
+            else if (mpz_cmp_ui(*(mpz_t *)arg->value, 0) >= 0 && mpz_cmp_ui(*(mpz_t *)arg->value, UINT32_MAX) <= 0)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(uint32_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return -1;
+                }
+                *(uint32_t *)ptr = (uint32_t)mpz_get_ui(*(mpz_t *)arg->value);
+                ret->size = sizeof(uint32_t);
+                ret->type = &ffi_type_uint32;
+                ret->ptr = ptr;
+                return 1;
+            }
+
+            // Check int64_t range
+            else if (mpz_cmp_si(*(mpz_t *)arg->value, INT64_MIN) >= 0 && mpz_cmp_si(*(mpz_t *)arg->value, INT64_MAX) <= 0)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(int64_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return -1;
+                }
+                *(int64_t *)ptr = (int64_t)mpz_get_si(*(mpz_t *)arg->value);
+                ret->size = sizeof(int64_t);
+                ret->type = &ffi_type_sint64;
+                ret->ptr = ptr;
+                return 1;
+            }
+
+            // Check uint64_t range
+            else if (mpz_cmp_ui(*(mpz_t *)arg->value, 0) >= 0 && mpz_cmp_ui(*(mpz_t *)arg->value, UINT64_MAX) <= 0)
+            {
+                void *ptr = sy_memory_calloc(1, sizeof(uint64_t));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return -1;
+                }
+                *(uint64_t *)ptr = (uint64_t)mpz_get_ui(*(mpz_t *)arg->value);
+                ret->size = sizeof(uint64_t);
+                ret->type = &ffi_type_uint64;
+                ret->ptr = ptr;
+                return 1;
+            }
+
+            else
+            {
+                mpz_t **ptr = sy_memory_calloc(1, sizeof(mpz_t *));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return -1;
+                }
+
+                mpz_t *num = sy_memory_calloc(1, sizeof(mpz_t));
+                if (!num)
+                {
+                    sy_error_no_memory();
+                    sy_memory_free(ptr);
+                    return -1;
+                }
+                mpz_init_set(*num, *(mpz_t *)arg->value);
+                ptr[0] = num;
+
+                ret->size = sizeof(mpz_t *);
+                ret->type = &ffi_type_pointer;
+                ret->ptr = ptr;
+
+                return 1;
+            }
         }
         else if (arg->kind == RECORD_KIND_FLOAT)
         {
-            void *ptr = sy_memory_calloc(1, sizeof(double));
-            if (!ptr)
+            double d_val = mpf_get_d(*(mpf_t *)arg->value);
+
+            // Check float range
+            if (d_val >= FLT_MIN && d_val <= FLT_MAX)
             {
-                sy_error_no_memory();
-                return ERROR;
+                float f_val = (float)d_val;
+                mpf_t temp;
+                mpf_init_set_d(temp, f_val);
+                if (mpf_cmp(*(mpf_t *)arg->value, temp) == 0)
+                {
+                    void *ptr = sy_memory_calloc(1, sizeof(float));
+                    if (!ptr)
+                    {
+                        sy_error_no_memory();
+                        return -1;
+                    }
+                    *(float *)ptr = f_val;
+                    ret->size = sizeof(float);
+                    ret->type = &ffi_type_float;
+                    ret->ptr = ptr;
+                    return 1;
+                }
+                else
+                {
+                    void *ptr = sy_memory_calloc(1, sizeof(double));
+                    if (!ptr)
+                    {
+                        sy_error_no_memory();
+                        return -1;
+                    }
+                    *(double *)ptr = d_val;
+                    ret->size = sizeof(double);
+                    ret->type = &ffi_type_double;
+                    ret->ptr = ptr;
+                    return 1;
+                }
+                mpf_clear(temp);
             }
-            *(double *)ptr = (double)mpf_get_d(*(mpf_t *)arg->value);
-            *size = sizeof(double);
-            return ptr;
+
+            // Check double range
+            else if (d_val >= DBL_MIN && d_val <= DBL_MAX)
+            {
+                mpf_t temp;
+                mpf_init_set_d(temp, d_val);
+                if (mpf_cmp(*(mpf_t *)arg->value, temp) == 0)
+                {
+                    void *ptr = sy_memory_calloc(1, sizeof(double));
+                    if (!ptr)
+                    {
+                        sy_error_no_memory();
+                        return -1;
+                    }
+                    *(double *)ptr = d_val;
+                    ret->size = sizeof(double);
+                    ret->type = &ffi_type_double;
+                    ret->ptr = ptr;
+                    return 1;
+                }
+                else
+                {
+                    mpf_t **ptr = sy_memory_calloc(1, sizeof(mpf_t *));
+                    if (!ptr)
+                    {
+                        sy_error_no_memory();
+                        return -1;
+                    }
+
+                    mpf_t *num = sy_memory_calloc(1, sizeof(mpf_t));
+                    if (!num)
+                    {
+                        sy_error_no_memory();
+                        sy_memory_free(ptr);
+                        return -1;
+                    }
+                    mpf_init_set(*num, *(mpf_t *)arg->value);
+                    ptr[0] = num;
+
+                    ret->size = sizeof(mpf_t *);
+                    ret->type = &ffi_type_pointer;
+                    ret->ptr = ptr;
+
+                    return 1;
+                }
+                mpf_clear(temp);
+            }
+            else
+            {
+                mpf_t **ptr = sy_memory_calloc(1, sizeof(mpf_t *));
+                if (!ptr)
+                {
+                    sy_error_no_memory();
+                    return -1;
+                }
+
+                mpf_t *num = sy_memory_calloc(1, sizeof(mpf_t));
+                if (!num)
+                {
+                    sy_error_no_memory();
+                    sy_memory_free(ptr);
+                    return -1;
+                }
+                mpf_init_set(*num, *(mpf_t *)arg->value);
+                ptr[0] = num;
+
+                ret->size = sizeof(mpf_t *);
+                ret->type = &ffi_type_pointer;
+                ret->ptr = ptr;
+
+                return 1;
+            }
         }
         else if (arg->kind == RECORD_KIND_STRING)
         {
+            char **ptr = sy_memory_calloc(1, sizeof(char *));
+            if (!ptr)
+            {
+                sy_error_no_memory();
+                return -1;
+            }
+
             size_t length = strlen((char *)arg->value);
-            void *ptr = sy_memory_calloc(1, length);
-            if (!ptr)
+            ptr[0] = sy_memory_calloc(1, length);
+            if (!ptr[0])
             {
                 sy_error_no_memory();
-                return ERROR;
+                sy_memory_free(ptr);
+                return -1;
             }
-            strcpy(ptr, (char *)arg->value);
-            *size = length;
-            return ptr;
+            memcpy(ptr[0], arg->value, length);
+            ret->size = sizeof(char *);
+            ret->type = &ffi_type_pointer;
+            ret->ptr = ptr;
+            return 1;
         }
     }
 
-    return NULL;
-}
-
-static int32_t
-record_cvt_ffi(sy_record_t *arg, json_t *type, cvt_ffi_t *ret)
-{
-    void *ptr = record_cvt_by_json(arg, type, &ret->size);
-    if (ptr == ERROR)
-    {
-        return -1;
-    }
-    else if (ptr == NULL)
-    {
-        return 0;
-    }
-    ret->ptr = ptr;
-
-    ffi_type *ffi = json_to_ffi(type);
-    if (ffi == ERROR)
-    {
-        sy_memory_free(ptr);
-        return -1;
-    }
-    else if (ffi == NULL)
-    {
-        if (arg->kind == RECORD_KIND_CHAR)
-        {
-            ffi = &ffi_type_schar;
-        }
-        else if (arg->kind == RECORD_KIND_INT)
-        {
-            ffi = &ffi_type_slong;
-        }
-        else if (arg->kind == RECORD_KIND_FLOAT)
-        {
-            ffi = &ffi_type_double;
-        }
-        else if (arg->kind == RECORD_KIND_STRING)
-        {
-            ffi = &ffi_type_pointer;
-        }
-        else
-        {
-            ffi = &ffi_type_pointer;
-        }
-    }
-
-    ret->type = ffi;
-    return 1;
+    return 0;
 }
 
 static sy_record_t *
-union_cvt_record_by_json(union_type *value, json_t *type)
+union_cvt_record_by_json(ffi_ret_type *value, json_t *type)
 {
     if (json_is_string(type))
     {
@@ -3618,35 +3909,35 @@ union_cvt_record_by_json(union_type *value, json_t *type)
         }
         else if (strcmp(str, "sint8") == 0)
         {
-            return sy_record_make_int_from_si(value->c);
+            return sy_record_make_int_from_si(value->i8);
         }
         else if (strcmp(str, "uint8") == 0)
         {
-            return sy_record_make_int_from_ui(value->uc);
+            return sy_record_make_int_from_ui(value->ui8);
         }
         else if (strcmp(str, "sint16") == 0)
         {
-            return sy_record_make_int_from_si(value->s);
+            return sy_record_make_int_from_si(value->i16);
         }
         else if (strcmp(str, "uint16") == 0)
         {
-            return sy_record_make_int_from_ui(value->us);
+            return sy_record_make_int_from_ui(value->ui16);
         }
         else if (strcmp(str, "sint32") == 0)
         {
-            return sy_record_make_int_from_si(value->i);
+            return sy_record_make_int_from_si(value->i32);
         }
         else if (strcmp(str, "uint32") == 0)
         {
-            return sy_record_make_int_from_ui(value->ui);
+            return sy_record_make_int_from_ui(value->ui32);
         }
         else if (strcmp(str, "sint64") == 0)
         {
-            return sy_record_make_int_from_si(value->l);
+            return sy_record_make_int_from_si(value->i64);
         }
         else if (strcmp(str, "uint64") == 0)
         {
-            return sy_record_make_int_from_ui(value->ul);
+            return sy_record_make_int_from_ui(value->ui64);
         }
         else if (strcmp(str, "float") == 0)
         {
@@ -3697,8 +3988,6 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
             return ERROR;
         }
     }
-
-    sy_record_t *retvalue = ERROR;
 
     sy_queue_t *repo = sy_queue_create();
     if (repo == ERROR)
@@ -3752,8 +4041,7 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
             {
                 if (json_is_string(prefix) && (strcmp(json_string_value(prefix), "**") == 0))
                 {
-                    void *ptr = NULL;
-                    size_t ptr_size = 0;
+                    void **ptr = NULL;
 
                     ffi_type **elements = NULL;
                     size_t index = 0;
@@ -3780,8 +4068,8 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
                             goto region_cleanup_kwarg;
                         }
 
-                        cvt_ffi_t cvt_ffi;
-                        int32_t r = record_cvt_ffi(record_arg, type, &cvt_ffi);
+                        ffi_sized_t cvt_ffi;
+                        int32_t r = record_cvt_by_json(record_arg, type, &cvt_ffi);
                         if (r < 0)
                         {
                             sy_record_link_decrease(record_arg);
@@ -3846,9 +4134,39 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
                         struct_type->type = FFI_TYPE_STRUCT;
                         struct_type->elements = elements_struct;
 
+                        typedef struct pair
+                        {
+                            char *key;
+                            void *value;
+                        } pair_t;
+
+                        pair_t *ptr_struct = sy_memory_calloc(1, sizeof(pair_t));
+                        if (!ptr_struct)
+                        {
+                            sy_error_no_memory();
+
+                            if (cvt_ffi.type)
+                                ffi_type_destroy(cvt_ffi.type);
+
+                            if (cvt_ffi.ptr)
+                                sy_memory_free(cvt_ffi.ptr);
+
+                            if (elements_struct)
+                                sy_memory_free(elements_struct);
+
+                            if (struct_type)
+                                sy_memory_free(struct_type);
+
+                            goto region_cleanup_kwarg;
+                        }
+
+                        sy_node_basic_t *basic1 = (sy_node_basic_t *)argument->key->value;
+                        ptr_struct->key = basic1->value;
+                        ptr_struct->value = cvt_ffi.ptr;
+
                         if (index == 0)
                         {
-                            ffi_type **elements_ptr = sy_memory_calloc(1, sizeof(ffi_type *));
+                            ffi_type **elements_ptr = sy_memory_calloc(1, sizeof(ffi_type *) * (index + 2));
                             if (!elements_ptr)
                             {
                                 sy_error_no_memory();
@@ -3859,6 +4177,9 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
                                 if (cvt_ffi.ptr)
                                     sy_memory_free(cvt_ffi.ptr);
 
+                                if (ptr_struct)
+                                    sy_memory_free(ptr_struct);
+
                                 if (elements_struct)
                                     sy_memory_free(elements_struct);
 
@@ -3867,9 +4188,8 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
 
                             elements_ptr[index] = struct_type;
                             elements = elements_ptr;
-                            index += 1;
 
-                            void *ptr_copy = sy_memory_calloc(1, sizeof(char *) + cvt_ffi.size);
+                            void **ptr_copy = sy_memory_calloc(1, sizeof(void *) * (index + 2));
                             if (!ptr_copy)
                             {
                                 sy_error_no_memory();
@@ -3877,22 +4197,20 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
                                 if (cvt_ffi.ptr)
                                     sy_memory_free(cvt_ffi.ptr);
 
+                                if (ptr_struct)
+                                    sy_memory_free(ptr_struct);
+
                                 goto region_cleanup_kwarg;
                             }
 
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)argument->key->value;
-                            *(char **)ptr_copy = basic1->value;
-                            void *content_ptr = (char *)ptr_copy + sizeof(char *);
-                            memcpy(content_ptr, cvt_ffi.ptr, cvt_ffi.size);
-
-                            sy_memory_free(cvt_ffi.ptr);
+                            ptr_copy[index] = ptr_struct;
                             ptr = ptr_copy;
 
-                            ptr_size += cvt_ffi.size;
+                            index += 1;
                         }
                         else
                         {
-                            ffi_type **elements_ptr = sy_memory_realloc(elements, sizeof(ffi_type *) * (index + 1));
+                            ffi_type **elements_ptr = sy_memory_realloc(elements, sizeof(ffi_type *) * (index + 2));
                             if (!elements_ptr)
                             {
                                 sy_error_no_memory();
@@ -3911,9 +4229,8 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
 
                             elements_ptr[index] = struct_type;
                             elements = elements_ptr;
-                            index += 1;
 
-                            void *ptr_copy = sy_memory_realloc(ptr, ptr_size + sizeof(char *) + cvt_ffi.size);
+                            void **ptr_copy = sy_memory_realloc(ptr, sizeof(void *) * (index + 2));
                             if (!ptr_copy)
                             {
                                 sy_error_no_memory();
@@ -3924,19 +4241,16 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
                                 goto region_cleanup_kwarg;
                             }
 
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)argument->key->value;
-                            *(char **)(ptr_copy + ptr_size) = basic1->value;
-                            void *content_ptr = (char *)(ptr_copy + ptr_size) + sizeof(char *);
-                            memcpy(content_ptr, cvt_ffi.ptr, cvt_ffi.size);
-
-                            sy_memory_free(cvt_ffi.ptr);
+                            ptr_copy[index] = ptr_struct;
                             ptr = ptr_copy;
 
-                            ptr_size += cvt_ffi.size;
+                            index += 1;
                         }
 
                         continue;
                     }
+
+                    elements[index] = NULL;
 
                     struct_type->size = 0;
                     struct_type->alignment = 0;
@@ -3997,8 +4311,8 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
                                 goto region_cleanup;
                             }
 
-                            cvt_ffi_t cvt_ffi;
-                            int32_t r = record_cvt_ffi(record_arg, type, &cvt_ffi);
+                            ffi_sized_t cvt_ffi;
+                            int32_t r = record_cvt_by_json(record_arg, type, &cvt_ffi);
                             if (r < 0)
                             {
                                 sy_record_link_decrease(record_arg);
@@ -4072,8 +4386,7 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
             {
                 if (json_is_string(prefix) && (strcmp(json_string_value(prefix), "*") == 0))
                 {
-                    void *ptr = NULL;
-                    size_t ptr_size = 0;
+                    void **ptr = NULL;
 
                     ffi_type **elements = NULL;
                     size_t index = 0;
@@ -4100,8 +4413,8 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
                             goto region_cleanup_karg;
                         }
 
-                        cvt_ffi_t cvt_ffi;
-                        int32_t r = record_cvt_ffi(record_arg, type, &cvt_ffi);
+                        ffi_sized_t cvt_ffi;
+                        int32_t r = record_cvt_by_json(record_arg, type, &cvt_ffi);
                         if (r < 0)
                         {
                             sy_record_link_decrease(record_arg);
@@ -4129,7 +4442,7 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
 
                         if (index == 0)
                         {
-                            ffi_type **elements_ptr = sy_memory_calloc(1, sizeof(ffi_type *));
+                            ffi_type **elements_ptr = sy_memory_calloc(1, sizeof(ffi_type *) * (index + 2));
                             if (!elements_ptr)
                             {
                                 sy_error_no_memory();
@@ -4138,40 +4451,49 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
 
                             elements_ptr[index] = cvt_ffi.type;
                             elements = elements_ptr;
-                            index += 1;
 
-                            ptr = cvt_ffi.ptr;
-
-                            ptr_size += cvt_ffi.size;
-                        }
-                        else
-                        {
-                            ffi_type **elements_ptr = sy_memory_realloc(elements, sizeof(ffi_type *) * (index + 1));
-                            if (!elements_ptr)
-                            {
-                                sy_error_no_memory();
-                                goto region_cleanup_karg;
-                            }
-
-                            elements_ptr[index] = cvt_ffi.type;
-                            elements = elements_ptr;
-                            index += 1;
-
-                            void *ptr_copy = sy_memory_realloc(ptr, ptr_size + sizeof(char *) + cvt_ffi.size);
+                            void **ptr_copy = sy_memory_calloc(1, sizeof(void *) * (index + 2));
                             if (!ptr_copy)
                             {
                                 sy_error_no_memory();
                                 goto region_cleanup_karg;
                             }
 
-                            memcpy(ptr_copy + ptr_size, cvt_ffi.ptr, cvt_ffi.size);
+                            ptr_copy[index] = cvt_ffi.ptr;
                             ptr = ptr_copy;
 
-                            ptr_size += cvt_ffi.size;
+                            index += 1;
+                        }
+                        else
+                        {
+                            ffi_type **elements_ptr = sy_memory_realloc(elements, sizeof(ffi_type *) * (index + 2));
+                            if (!elements_ptr)
+                            {
+                                sy_error_no_memory();
+                                goto region_cleanup_karg;
+                            }
+
+                            elements_ptr[index] = cvt_ffi.type;
+                            elements = elements_ptr;
+
+                            void **ptr_copy = sy_memory_realloc(ptr, sizeof(void *) * (index + 2));
+                            if (!ptr_copy)
+                            {
+                                sy_error_no_memory();
+                                goto region_cleanup_karg;
+                            }
+
+                            ptr_copy[index] = cvt_ffi.ptr;
+                            ptr = ptr_copy;
+
+                            index += 1;
                         }
 
                         continue;
                     }
+
+                    elements[index] = NULL;
+                    ptr[index] = NULL;
 
                     struct_type->size = 0;
                     struct_type->alignment = 0;
@@ -4226,8 +4548,8 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
                         goto region_cleanup;
                     }
 
-                    cvt_ffi_t cvt_ffi;
-                    int32_t r = record_cvt_ffi(record_arg, type, &cvt_ffi);
+                    ffi_sized_t cvt_ffi;
+                    int32_t r = record_cvt_by_json(record_arg, type, &cvt_ffi);
                     if (r < 0)
                     {
                         sy_record_link_decrease(record_arg);
@@ -4303,8 +4625,8 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
 
             json_t *type2 = json_object_get(map, "arg");
 
-            cvt_ffi_t cvt_ffi;
-            int32_t r = record_cvt_ffi(record_arg, type2, &cvt_ffi);
+            ffi_sized_t cvt_ffi;
+            int32_t r = record_cvt_by_json(record_arg, type2, &cvt_ffi);
             if (r < 0)
             {
                 sy_record_link_decrease(record_arg);
@@ -4412,9 +4734,9 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
         {
             args[index] = entry->type;
             values[index] = entry->ptr;
+
             index += 1;
             var_index += 1;
-            break;
         }
     }
 
@@ -4428,34 +4750,18 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
         goto region_cleanup;
     }
 
-    union_type result;
-    if (var_index > 0)
+    ffi_ret_type result;
+
+    ffi_cif cif;
+    if (ffi_prep_cif_var(&cif, FFI_DEFAULT_ABI, index - var_index, index, ret_arg, args) == FFI_OK)
     {
-        ffi_cif cif;
-        if (ffi_prep_cif_var(&cif, FFI_DEFAULT_ABI, index - var_index, index, ret_arg, args) == FFI_OK)
-        {
-            ffi_call(&cif, FFI_FN(handle), &result, values);
-            goto region_result;
-        }
-        else
-        {
-            sy_error_system("ffi_prep_cif failed");
-            goto region_cleanup;
-        }
+        ffi_call(&cif, FFI_FN(handle), &result, values);
+        goto region_result;
     }
     else
     {
-        ffi_cif cif;
-        if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, index, ret_arg, args) == FFI_OK)
-        {
-            ffi_call(&cif, FFI_FN(handle), &result, values);
-            goto region_result;
-        }
-        else
-        {
-            sy_error_system("ffi_prep_cif failed");
-            goto region_cleanup;
-        }
+        sy_error_system("ffi_prep_cif failed");
+        goto region_cleanup;
     }
 
 region_result:
@@ -4468,6 +4774,8 @@ region_result:
         if (entry->type)
             ffi_type_destroy(entry->type);
     }
+
+    sy_queue_destroy(repo);
 
     return union_cvt_record_by_json(&result, return_type);
 
@@ -4484,10 +4792,11 @@ region_cleanup:
 
     sy_queue_destroy(repo);
 
-    return retvalue;
+    return ERROR;
 }
 
-sy_record_t *sy_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+sy_record_t *
+sy_call(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
 {
     sy_node_carrier_t *carrier = (sy_node_carrier_t *)node->value;
 

@@ -1,8 +1,10 @@
 using param2: param from "~/lib/types/primary.q";
-using add, print from "~/lib/c/shared.json";
+using add, println, add2 from "~/lib/c/shared.json";
 
 var f1 = add(5, 2);
-print("hello world %ld\n", f1);
+println("hello world %d %d", f1, 33);
+
+var f0 = add2(6, 3, 8);
 
 class B
 {
@@ -72,10 +74,10 @@ try {
 }
 catch(ex)
 {
-	print(string(ex));
+	println(string(ex));
 }
 
 for loop1 (var key, value in ["hello", "world", 123])
 {
-	print(string(value));
+	println(string(value));
 }

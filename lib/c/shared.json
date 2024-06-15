@@ -28,6 +28,33 @@
             ],
             "arg": true,
             "return_type": "sint"
+        },
+        {
+            "name": "println",
+            "parameters": [
+                {
+                    "name": "format",
+                    "type": "string"
+                }
+            ],
+            "arg": true,
+            "return_type": "sint"
+        },
+        {
+            "name": "add2",
+            "parameters": [
+                {
+                    "name": "a",
+                    "type": "mpz"
+                },
+                {
+                    "name": "b",
+                    "type": "mpz",
+                    "prefix": "*"
+                }
+            ],
+            "arg": false,
+            "return_type": "void"
         }
     ]
 }
