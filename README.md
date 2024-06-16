@@ -10,6 +10,11 @@ make
 make test
 ```
 
+## 'Not' Needs You
+Open source software is made better when users can easily contribute code and documentation to fix bugs and add features. 'Not' strongly encourages community involvement in improving the software.
+
+
+
 ## Simple Code
 ```not
 using param2: param from "~/lib/types/primary.not";
