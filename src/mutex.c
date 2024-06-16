@@ -7,8 +7,8 @@
 #include "types/types.h"
 #include "mutex.h"
 
-int32_t 
-sy_mutex_init(sy_mutex_t *mutex)
+int32_t
+not_mutex_init(not_mutex_t *mutex)
 {
 #ifdef _WIN32
     mutex->handle = CreateMutex(NULL, FALSE, NULL);
@@ -18,8 +18,8 @@ sy_mutex_init(sy_mutex_t *mutex)
 #endif
 }
 
-int32_t 
-sy_mutex_lock(sy_mutex_t *mutex)
+int32_t
+not_mutex_lock(not_mutex_t *mutex)
 {
 #ifdef _WIN32
     return (WaitForSingleObject(mutex->handle, INFINITE) == WAIT_OBJECT_0) ? 0 : -1;
@@ -28,8 +28,8 @@ sy_mutex_lock(sy_mutex_t *mutex)
 #endif
 }
 
-int32_t 
-sy_mutex_unlock(sy_mutex_t *mutex)
+int32_t
+not_mutex_unlock(not_mutex_t *mutex)
 {
 #ifdef _WIN32
     return (ReleaseMutex(mutex->handle) != 0) ? 0 : -1;
@@ -38,8 +38,8 @@ sy_mutex_unlock(sy_mutex_t *mutex)
 #endif
 }
 
-int32_t 
-sy_mutex_destroy(sy_mutex_t *mutex)
+int32_t
+not_mutex_destroy(not_mutex_t *mutex)
 {
 #ifdef _WIN32
     return (CloseHandle(mutex->handle) != 0) ? 0 : -1;

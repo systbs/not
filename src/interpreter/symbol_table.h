@@ -2,23 +2,24 @@
 #ifndef __SYMBOL_TABLE_H__
 #define __SYMBOL_TABLE_H__ 1
 
-typedef struct sy_entry sy_entry_t;
+typedef struct not_entry not_entry_t;
 
-typedef struct sy_symbol_table {
-    sy_entry_t *begin;
-    sy_mutex_t lock;
-} sy_symbol_table_t;
-
-int32_t
-sy_symbol_table_init();
+typedef struct not_symbol_table
+{
+    not_entry_t *begin;
+    not_mutex_t lock;
+} not_symbol_table_t;
 
 int32_t
-sy_symbol_table_destroy();
+not_symbol_table_init();
 
-sy_entry_t *
-sy_symbol_table_push(sy_node_t *scope, sy_node_t *block, sy_node_t *key, sy_record_t *value);
+int32_t
+not_symbol_table_destroy();
 
-sy_entry_t *
-sy_symbol_table_find(sy_node_t *scope, sy_node_t *key);
+not_entry_t *
+not_symbol_table_push(not_node_t *scope, not_node_t *block, not_node_t *key, not_record_t *value);
+
+not_entry_t *
+not_symbol_table_find(not_node_t *scope, not_node_t *key);
 
 #endif

@@ -8,10 +8,10 @@
 #include <dlfcn.h>
 #endif
 
-typedef struct sy_module
+typedef struct not_module
 {
-    struct sy_module *previous;
-    struct sy_module *next;
+    struct not_module *previous;
+    struct not_module *next;
 
     char path[MAX_PATH];
 
@@ -21,23 +21,23 @@ typedef struct sy_module
     void *handle;
 #endif
 
-    sy_node_t *root;
+    not_node_t *root;
     json_t *json;
-} sy_module_t;
+} not_module_t;
 
-typedef struct sy_repository
+typedef struct not_repository
 {
-    sy_module_t *begin;
-    sy_mutex_t lock;
-} sy_repository_t;
+    not_module_t *begin;
+    not_mutex_t lock;
+} not_repository_t;
 
 int32_t
-sy_repository_init();
+not_repository_init();
 
-sy_repository_t *
-sy_repository_get();
+not_repository_t *
+not_repository_get();
 
-sy_module_t *
-sy_repository_load(char *path);
+not_module_t *
+not_repository_load(char *path);
 
 #endif

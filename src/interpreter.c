@@ -13,17 +13,17 @@
 #include "memory.h"
 #include "interpreter.h"
 
-sy_interpreter_t *
-sy_interpreter_create()
+not_interpreter_t *
+not_interpreter_create()
 {
-    sy_interpreter_t *it = (sy_interpreter_t *)sy_memory_calloc(1, sizeof(sy_interpreter_t));
+    not_interpreter_t *it = (not_interpreter_t *)not_memory_calloc(1, sizeof(not_interpreter_t));
     if (!it)
     {
-        sy_error_no_memory();
+        not_error_no_memory();
         return ERROR;
     }
 
-    it->expections = sy_queue_create();
+    it->expections = not_queue_create();
     if (it->expections == ERROR)
     {
         return ERROR;
@@ -32,8 +32,8 @@ sy_interpreter_create()
     return it;
 }
 
-void sy_interpreter_destroy(sy_interpreter_t *it)
+void not_interpreter_destroy(not_interpreter_t *it)
 {
-    sy_queue_destroy(it->expections);
-    sy_memory_free(it);
+    not_queue_destroy(it->expections);
+    not_memory_free(it);
 }

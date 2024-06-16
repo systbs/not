@@ -10,7 +10,7 @@
 #include "../types/types.h"
 #include "path.h"
 
-enum path_style_type 
+enum path_style_type
 {
     PATH_STYLE_WINDOWS,
     PATH_STYLE_UNIX
@@ -31,30 +31,31 @@ enum path_style_type path_style = PATH_STYLE_UNIX;
 #define windows_separator '\\'
 #define unix_separator '/'
 
-typedef struct sy_path_segment {
+typedef struct not_path_segment
+{
     const char *path;
     const char *segments;
     const char *begin;
     const char *end;
     size_t size;
-} sy_path_segment_t;
+} not_path_segment_t;
 
-typedef enum sy_path_segment_type
+typedef enum not_path_segment_type
 {
     PATH_NORMAL,
     PATH_CURRENT,
     PATH_BACK
-} sy_path_segment_type_t;
+} not_path_segment_type_t;
 
-typedef struct sy_path_segment_joined
+typedef struct not_path_segment_joined
 {
-    sy_path_segment_t segment;
+    not_path_segment_t segment;
     const char **paths;
     size_t path_index;
-} sy_path_segment_joined_t;
+} not_path_segment_joined_t;
 
-int32_t 
-sy_path_is_directory(const char *path)
+int32_t
+not_path_is_directory(const char *path)
 {
     struct stat st;
 
@@ -65,9 +66,9 @@ sy_path_is_directory(const char *path)
 }
 
 static int32_t
-sy_path_is_separator(const char *path)
+not_path_is_separator(const char *path)
 {
-    if((*path == windows_separator) || (*path == unix_separator))
+    if ((*path == windows_separator) || (*path == unix_separator))
     {
         return 1;
     }
@@ -75,9 +76,10 @@ sy_path_is_separator(const char *path)
 }
 
 static const char *
-sy_path_find_next_stop(const char *path)
+not_path_find_next_stop(const char *path)
 {
-    while (*path != '\0' && !sy_path_is_separator(path)) {
+    while (*path != '\0' && !not_path_is_separator(path))
+    {
         ++path;
     }
 
@@ -85,14 +87,14 @@ sy_path_find_next_stop(const char *path)
 }
 
 static const char *
-sy_path_find_previous_stop(const char *begin, const char *c)
+not_path_find_previous_stop(const char *begin, const char *c)
 {
-    while (c > begin && !sy_path_is_separator(c))
+    while (c > begin && !not_path_is_separator(c))
     {
         --c;
     }
 
-    if (sy_path_is_separator(c))
+    if (not_path_is_separator(c))
     {
         return c + 1;
     }
@@ -103,21 +105,21 @@ sy_path_find_previous_stop(const char *begin, const char *c)
 }
 
 static void
-sy_path_get_root(const char *path, size_t *length)
+not_path_get_root(const char *path, size_t *length)
 {
     const char *c;
     c = path;
     *length = 0;
-    if(!c)
+    if (!c)
     {
         return;
     }
 
     // We have to verify whether this is a network path
-    if(sy_path_is_separator(c))
+    if (not_path_is_separator(c))
     {
         ++c;
-        if(!sy_path_is_separator(c))
+        if (!not_path_is_separator(c))
         {
             // Okey, this is not a network path
             *length = 1;
@@ -126,18 +128,18 @@ sy_path_get_root(const char *path, size_t *length)
 
         // A device path is a path which starts with "\\." or "\\?"
         ++c;
-        if((*c == '.' || *c == '?') && sy_path_is_separator(++c))
+        if ((*c == '.' || *c == '?') && not_path_is_separator(++c))
         {
             *length = 4;
             return;
         }
 
         // We will grab anything up to next stop, that will be the server name
-        c = sy_path_find_next_stop(c);
+        c = not_path_find_next_stop(c);
 
-        while(sy_path_is_separator(c))
+        while (not_path_is_separator(c))
         {
-            if(*c == '\0')
+            if (*c == '\0')
             {
                 *length = (size_t)(c - path);
                 return;
@@ -146,9 +148,9 @@ sy_path_get_root(const char *path, size_t *length)
         }
 
         // We are now skipping the shared folder name
-        c = sy_path_find_next_stop(c);
+        c = not_path_find_next_stop(c);
 
-        if(sy_path_is_separator(c))
+        if (not_path_is_separator(c))
         {
             ++c;
         }
@@ -157,51 +159,52 @@ sy_path_get_root(const char *path, size_t *length)
         return;
     }
 
-    if(*++c == ':')
+    if (*++c == ':')
     {
         *length = 2;
 
-        if(sy_path_is_separator(++c))
+        if (not_path_is_separator(++c))
         {
             *length = 3;
         }
     }
 }
 
-static int32_t 
-sy_path_is_root_absolute(const char *path, size_t length)
+static int32_t
+not_path_is_root_absolute(const char *path, size_t length)
 {
-  // This is definitely not absolute if there is no root.
-  if (length == 0) {
-    return 0;
-  }
+    // This is definitely not absolute if there is no root.
+    if (length == 0)
+    {
+        return 0;
+    }
 
-  // If there is a separator at the end of the root, we can safely consider this
-  // to be an absolute path.
-  return sy_path_is_separator(&path[length - 1]);
+    // If there is a separator at the end of the root, we can safely consider this
+    // to be an absolute path.
+    return not_path_is_separator(&path[length - 1]);
 }
 
 int32_t
-sy_path_is_absolute(const char *path)
+not_path_is_absolute(const char *path)
 {
     size_t length;
-    sy_path_get_root(path, &length);
-    return sy_path_is_root_absolute(path, length);
+    not_path_get_root(path, &length);
+    return not_path_is_root_absolute(path, length);
 }
 
 int32_t
-sy_path_is_relative(const char *path)
+not_path_is_relative(const char *path)
 {
-    return !sy_path_is_absolute(path);
+    return !not_path_is_absolute(path);
 }
 
-static sy_path_segment_type_t
-sy_path_get_segment_type(const sy_path_segment_t *segment)
+static not_path_segment_type_t
+not_path_get_segment_type(const not_path_segment_t *segment)
 {
     if (strncmp(segment->begin, ".", segment->size) == 0)
     {
         return PATH_CURRENT;
-    } 
+    }
     else if (strncmp(segment->begin, "..", segment->size) == 0)
     {
         return PATH_BACK;
@@ -210,7 +213,7 @@ sy_path_get_segment_type(const sy_path_segment_t *segment)
 }
 
 static int32_t
-sy_path_get_next_segment(sy_path_segment_t *segment)
+not_path_get_next_segment(not_path_segment_t *segment)
 {
     const char *c;
 
@@ -220,12 +223,11 @@ sy_path_get_next_segment(sy_path_segment_t *segment)
         return 0;
     }
 
-    assert(sy_path_is_separator(c));
+    assert(not_path_is_separator(c));
     do
     {
         ++c;
-    }
-    while (sy_path_is_separator(c));
+    } while (not_path_is_separator(c));
 
     if (*c == '\0')
     {
@@ -234,15 +236,15 @@ sy_path_get_next_segment(sy_path_segment_t *segment)
 
     segment->begin = c;
 
-    c = sy_path_find_next_stop(c);
+    c = not_path_find_next_stop(c);
     segment->end = c;
     segment->size = (size_t)(c - segment->begin);
 
     return 1;
 }
 
-static int32_t 
-sy_path_get_previous_segment(sy_path_segment_t *segment)
+static int32_t
+not_path_get_previous_segment(not_path_segment_t *segment)
 {
     const char *c;
 
@@ -259,18 +261,17 @@ sy_path_get_previous_segment(sy_path_segment_t *segment)
         {
             return 0;
         }
-    }
-    while (sy_path_is_separator(c));
+    } while (not_path_is_separator(c));
 
     segment->end = c + 1;
-    segment->begin = sy_path_find_previous_stop(segment->segments, c);
+    segment->begin = not_path_find_previous_stop(segment->segments, c);
     segment->size = (size_t)(segment->end - segment->begin);
 
     return 1;
 }
 
-static int32_t 
-sy_path_get_first_segment_without_root(const char *path, const char *segments, sy_path_segment_t *segment)
+static int32_t
+not_path_get_first_segment_without_root(const char *path, const char *segments, not_path_segment_t *segment)
 {
     segment->path = path;
     segment->segments = segments;
@@ -283,7 +284,7 @@ sy_path_get_first_segment_without_root(const char *path, const char *segments, s
         return 0;
     }
 
-    while (sy_path_is_separator(segments))
+    while (not_path_is_separator(segments))
     {
         ++segments;
         if (*segments == '\0')
@@ -294,7 +295,7 @@ sy_path_get_first_segment_without_root(const char *path, const char *segments, s
 
     segment->begin = segments;
 
-    segments = sy_path_find_next_stop(segments);
+    segments = not_path_find_next_stop(segments);
 
     segment->size = (size_t)(segments - segment->begin);
     segment->end = segments;
@@ -302,35 +303,35 @@ sy_path_get_first_segment_without_root(const char *path, const char *segments, s
     return 1;
 }
 
-static int32_t 
-sy_path_get_first_segment(const char *path, sy_path_segment_t *segment)
+static int32_t
+not_path_get_first_segment(const char *path, not_path_segment_t *segment)
 {
     size_t length;
     const char *segments;
 
-    sy_path_get_root(path, &length);
+    not_path_get_root(path, &length);
     segments = path + length;
 
-    return sy_path_get_first_segment_without_root(path, segments, segment);
+    return not_path_get_first_segment_without_root(path, segments, segment);
 }
 
-static int32_t 
-sy_path_get_last_segment(const char *path, sy_path_segment_t *segment)
+static int32_t
+not_path_get_last_segment(const char *path, not_path_segment_t *segment)
 {
-    if (!sy_path_get_first_segment(path, segment))
+    if (!not_path_get_first_segment(path, segment))
     {
         return 0;
     }
 
-    while (sy_path_get_next_segment(segment))
+    while (not_path_get_next_segment(segment))
     {
     }
 
     return 1;
 }
 
-static size_t 
-sy_path_output_sized(char *buffer, size_t buffer_size, size_t position, const char *str, size_t length)
+static size_t
+not_path_output_sized(char *buffer, size_t buffer_size, size_t position, const char *str, size_t length)
 {
     size_t amount_written;
 
@@ -356,9 +357,10 @@ sy_path_output_sized(char *buffer, size_t buffer_size, size_t position, const ch
 }
 
 static void
-sy_path_fix_root(char *buffer, size_t buffer_size, size_t length)
+not_path_fix_root(char *buffer, size_t buffer_size, size_t length)
 {
-    if (path_style != PATH_STYLE_WINDOWS) {
+    if (path_style != PATH_STYLE_WINDOWS)
+    {
         return;
     }
 
@@ -370,22 +372,22 @@ sy_path_fix_root(char *buffer, size_t buffer_size, size_t length)
     size_t i;
     for (i = 0; i < length; ++i)
     {
-        if (sy_path_is_separator(&buffer[i]))
+        if (not_path_is_separator(&buffer[i]))
         {
             buffer[i] = windows_separator;
         }
     }
 }
 
-static int32_t 
-sy_path_get_first_segment_joined(const char **paths, sy_path_segment_joined_t *sj)
+static int32_t
+not_path_get_first_segment_joined(const char **paths, not_path_segment_joined_t *sj)
 {
     sj->path_index = 0;
     sj->paths = paths;
 
     int32_t result;
     result = 0;
-    while (paths[sj->path_index] != NULL && (result = sy_path_get_first_segment(paths[sj->path_index], &sj->segment)) == 0)
+    while (paths[sj->path_index] != NULL && (result = not_path_get_first_segment(paths[sj->path_index], &sj->segment)) == 0)
     {
         ++sj->path_index;
     }
@@ -393,36 +395,37 @@ sy_path_get_first_segment_joined(const char **paths, sy_path_segment_joined_t *s
     return result;
 }
 
-static int32_t 
-sy_path_get_last_segment_without_root(const char *path, sy_path_segment_t *segment)
+static int32_t
+not_path_get_last_segment_without_root(const char *path, not_path_segment_t *segment)
 {
-    if (!sy_path_get_first_segment_without_root(path, path, segment))
+    if (!not_path_get_first_segment_without_root(path, path, segment))
     {
         return 0;
     }
 
-    while (sy_path_get_next_segment(segment))
+    while (not_path_get_next_segment(segment))
     {
     }
 
     return 1;
 }
 
-static int32_t 
-sy_path_get_previous_segment_joined(sy_path_segment_joined_t *sj)
+static int32_t
+not_path_get_previous_segment_joined(not_path_segment_joined_t *sj)
 {
     if (*sj->paths == NULL)
     {
         return 0;
     }
-    else if (sy_path_get_previous_segment(&sj->segment))
+    else if (not_path_get_previous_segment(&sj->segment))
     {
         return 1;
     }
 
     int32_t result = 0;
 
-    do {
+    do
+    {
         if (sj->path_index == 0)
         {
             break;
@@ -430,26 +433,25 @@ sy_path_get_previous_segment_joined(sy_path_segment_joined_t *sj)
         --sj->path_index;
         if (sj->path_index == 0)
         {
-            result = sy_path_get_last_segment(sj->paths[sj->path_index],&sj->segment);
+            result = not_path_get_last_segment(sj->paths[sj->path_index], &sj->segment);
         }
         else
         {
-            result = sy_path_get_last_segment_without_root(sj->paths[sj->path_index],&sj->segment);
+            result = not_path_get_last_segment_without_root(sj->paths[sj->path_index], &sj->segment);
         }
-    }
-    while (!result);
+    } while (!result);
 
     return result;
 }
 
-static int32_t 
-sy_path_segment_back_will_be_removed(sy_path_segment_joined_t *sj)
+static int32_t
+not_path_segment_back_will_be_removed(not_path_segment_joined_t *sj)
 {
     int counter = 0;
-    sy_path_segment_type_t type;
-    while (sy_path_get_previous_segment_joined(sj))
+    not_path_segment_type_t type;
+    while (not_path_get_previous_segment_joined(sj))
     {
-        type = sy_path_get_segment_type(&sj->segment);
+        type = not_path_get_segment_type(&sj->segment);
         if (type == PATH_NORMAL)
         {
             ++counter;
@@ -457,7 +459,7 @@ sy_path_segment_back_will_be_removed(sy_path_segment_joined_t *sj)
             {
                 return 1;
             }
-        } 
+        }
         else if (type == PATH_BACK)
         {
             --counter;
@@ -466,14 +468,14 @@ sy_path_segment_back_will_be_removed(sy_path_segment_joined_t *sj)
     return 0;
 }
 
-static int32_t 
-sy_path_get_next_segment_joined(sy_path_segment_joined_t *sj)
+static int32_t
+not_path_get_next_segment_joined(not_path_segment_joined_t *sj)
 {
     if (sj->paths[sj->path_index] == NULL)
     {
         return 0;
     }
-    else if (sy_path_get_next_segment(&sj->segment))
+    else if (not_path_get_next_segment(&sj->segment))
     {
         return 1;
     }
@@ -486,22 +488,21 @@ sy_path_get_next_segment_joined(sy_path_segment_joined_t *sj)
         {
             break;
         }
-        result = sy_path_get_first_segment_without_root(sj->paths[sj->path_index],
-        sj->paths[sj->path_index], &sj->segment);
-    }
-    while (!result);
+        result = not_path_get_first_segment_without_root(sj->paths[sj->path_index],
+                                                         sj->paths[sj->path_index], &sj->segment);
+    } while (!result);
 
     return result;
 }
 
-static int32_t 
-sy_path_segment_normal_will_be_removed(sy_path_segment_joined_t *sj)
+static int32_t
+not_path_segment_normal_will_be_removed(not_path_segment_joined_t *sj)
 {
-    sy_path_segment_type_t type;
+    not_path_segment_type_t type;
     int counter = 0;
-    while (sy_path_get_next_segment_joined(sj))
+    while (not_path_get_next_segment_joined(sj))
     {
-        type = sy_path_get_segment_type(&sj->segment);
+        type = not_path_get_segment_type(&sj->segment);
         if (type == PATH_NORMAL)
         {
             ++counter;
@@ -509,7 +510,8 @@ sy_path_segment_normal_will_be_removed(sy_path_segment_joined_t *sj)
         else if (type == PATH_BACK)
         {
             --counter;
-            if (counter < 0) {
+            if (counter < 0)
+            {
                 return 1;
             }
         }
@@ -518,46 +520,46 @@ sy_path_segment_normal_will_be_removed(sy_path_segment_joined_t *sj)
 }
 
 static int32_t
-sy_path_segment_will_be_removed(const sy_path_segment_joined_t *sj, int32_t absolute)
+not_path_segment_will_be_removed(const not_path_segment_joined_t *sj, int32_t absolute)
 {
-    sy_path_segment_type_t type;
-    sy_path_segment_joined_t sjc;
+    not_path_segment_type_t type;
+    not_path_segment_joined_t sjc;
 
     sjc = *sj;
 
-    type = sy_path_get_segment_type(&sj->segment);
+    type = not_path_get_segment_type(&sj->segment);
     if (type == PATH_CURRENT || (type == PATH_BACK && absolute))
     {
         return 1;
     }
     else if (type == PATH_BACK)
     {
-        return sy_path_segment_back_will_be_removed(&sjc);
+        return not_path_segment_back_will_be_removed(&sjc);
     }
     else
     {
-        return sy_path_segment_normal_will_be_removed(&sjc);
+        return not_path_segment_normal_will_be_removed(&sjc);
     }
 }
 
-static size_t 
-sy_path_output_separator(char *buffer, size_t buffer_size, size_t position)
+static size_t
+not_path_output_separator(char *buffer, size_t buffer_size, size_t position)
 {
-    if(path_style == PATH_STYLE_WINDOWS)
+    if (path_style == PATH_STYLE_WINDOWS)
     {
-        return sy_path_output_sized(buffer, buffer_size, position, "\\", 1);
+        return not_path_output_sized(buffer, buffer_size, position, "\\", 1);
     }
-    return sy_path_output_sized(buffer, buffer_size, position, "/", 1);
+    return not_path_output_sized(buffer, buffer_size, position, "/", 1);
 }
 
-static size_t 
-sy_path_output_current(char *buffer, size_t buffer_size, size_t position)
+static size_t
+not_path_output_current(char *buffer, size_t buffer_size, size_t position)
 {
-  return sy_path_output_sized(buffer, buffer_size, position, ".", 1);
+    return not_path_output_sized(buffer, buffer_size, position, ".", 1);
 }
 
-static void 
-sy_path_terminate_output(char *buffer, size_t buffer_size, size_t pos)
+static void
+not_path_terminate_output(char *buffer, size_t buffer_size, size_t pos)
 {
     if (buffer_size > 0)
     {
@@ -573,20 +575,20 @@ sy_path_terminate_output(char *buffer, size_t buffer_size, size_t pos)
 }
 
 static size_t
-sy_path_join_and_normalize_multiple(const char **paths, char *buffer, size_t buffer_size)
+not_path_join_and_normalize_multiple(const char **paths, char *buffer, size_t buffer_size)
 {
     size_t pos;
-    sy_path_segment_joined_t sj;
+    not_path_segment_joined_t sj;
 
-    sy_path_get_root(paths[0], &pos);
+    not_path_get_root(paths[0], &pos);
 
     int32_t absolute;
-    absolute = sy_path_is_root_absolute(paths[0], pos);
+    absolute = not_path_is_root_absolute(paths[0], pos);
 
-    sy_path_output_sized(buffer, buffer_size, 0, paths[0], pos);
-    sy_path_fix_root(buffer, buffer_size, pos);
+    not_path_output_sized(buffer, buffer_size, 0, paths[0], pos);
+    not_path_fix_root(buffer, buffer_size, pos);
 
-    if (!sy_path_get_first_segment_joined(paths, &sj))
+    if (!not_path_get_first_segment_joined(paths, &sj))
     {
         goto done;
     }
@@ -595,46 +597,45 @@ sy_path_join_and_normalize_multiple(const char **paths, char *buffer, size_t buf
 
     do
     {
-        if (sy_path_segment_will_be_removed(&sj, absolute))
+        if (not_path_segment_will_be_removed(&sj, absolute))
         {
             continue;
         }
 
         if (has_segment_output)
         {
-            pos += sy_path_output_separator(buffer, buffer_size, pos);
+            pos += not_path_output_separator(buffer, buffer_size, pos);
         }
 
         has_segment_output = true;
 
-        pos += sy_path_output_sized(buffer, buffer_size, pos, sj.segment.begin, sj.segment.size);
-    } 
-    while (sy_path_get_next_segment_joined(&sj));
+        pos += not_path_output_sized(buffer, buffer_size, pos, sj.segment.begin, sj.segment.size);
+    } while (not_path_get_next_segment_joined(&sj));
 
     if (!has_segment_output && pos == 0)
     {
         assert(absolute == false);
-        pos += sy_path_output_current(buffer, buffer_size, pos);
+        pos += not_path_output_current(buffer, buffer_size, pos);
     }
 
 done:
-    sy_path_terminate_output(buffer, buffer_size, pos);
+    not_path_terminate_output(buffer, buffer_size, pos);
     return pos;
 }
 
 size_t
-sy_path_normalize(const char *path, char *buffer, size_t buffer_size)
+not_path_normalize(const char *path, char *buffer, size_t buffer_size)
 {
     const char *paths[2];
 
     paths[0] = path;
     paths[1] = NULL;
 
-    return sy_path_join_and_normalize_multiple(paths, buffer, buffer_size);
+    return not_path_join_and_normalize_multiple(paths, buffer, buffer_size);
 }
 
 size_t
-sy_path_join(const char *path_a, const char *path_b, char *buffer, size_t buffer_size)
+not_path_join(const char *path_a, const char *path_b, char *buffer, size_t buffer_size)
 {
     const char *paths[3];
 
@@ -642,49 +643,57 @@ sy_path_join(const char *path_a, const char *path_b, char *buffer, size_t buffer
     paths[1] = path_b;
     paths[2] = NULL;
 
-    return sy_path_join_and_normalize_multiple(paths, buffer, buffer_size);
+    return not_path_join_and_normalize_multiple(paths, buffer, buffer_size);
 }
 
 size_t
-sy_path_join_multiple(const char **paths, char *buffer, size_t buffer_size)
+not_path_join_multiple(const char **paths, char *buffer, size_t buffer_size)
 {
-    return sy_path_join_and_normalize_multiple(paths, buffer, buffer_size);
+    return not_path_join_and_normalize_multiple(paths, buffer, buffer_size);
 }
 
-size_t 
-sy_path_get_absolute(const char *base, const char *path, char *buffer, size_t buffer_size)
+size_t
+not_path_get_absolute(const char *base, const char *path, char *buffer, size_t buffer_size)
 {
     size_t i;
     const char *paths[4];
 
-    if (sy_path_is_absolute(base)) {
+    if (not_path_is_absolute(base))
+    {
         i = 0;
-    } else if (path_style == PATH_STYLE_WINDOWS) {
+    }
+    else if (path_style == PATH_STYLE_WINDOWS)
+    {
         paths[0] = "\\";
         i = 1;
-    } else {
+    }
+    else
+    {
         paths[0] = "/";
         i = 1;
     }
 
-    if (sy_path_is_absolute(path)) {
+    if (not_path_is_absolute(path))
+    {
         paths[i++] = path;
         paths[i] = NULL;
-    } else {
+    }
+    else
+    {
         paths[i++] = base;
         paths[i++] = path;
         paths[i] = NULL;
     }
 
-    return sy_path_join_and_normalize_multiple(paths, buffer, buffer_size);
+    return not_path_join_and_normalize_multiple(paths, buffer, buffer_size);
 }
 
 static int32_t
-sy_path_segment_joined_skip_invisible(sy_path_segment_joined_t *sj, int32_t absolute)
+not_path_segment_joined_skip_invisible(not_path_segment_joined_t *sj, int32_t absolute)
 {
-    while (sy_path_segment_will_be_removed(sj, absolute))
+    while (not_path_segment_will_be_removed(sj, absolute))
     {
-        if (!sy_path_get_next_segment_joined(sj))
+        if (!not_path_get_next_segment_joined(sj))
         {
             return 0;
         }
@@ -693,8 +702,8 @@ sy_path_segment_joined_skip_invisible(sy_path_segment_joined_t *sj, int32_t abso
     return 1;
 }
 
-static int32_t 
-sy_path_is_string_equal(const char *first, const char *second, size_t first_size, size_t second_size)
+static int32_t
+not_path_is_string_equal(const char *first, const char *second, size_t first_size, size_t second_size)
 {
     if (first_size != second_size)
     {
@@ -709,10 +718,10 @@ sy_path_is_string_equal(const char *first, const char *second, size_t first_size
     int32_t are_both_separators;
     while (*first && *second && first_size > 0)
     {
-        if(path_style == PATH_STYLE_WINDOWS)
+        if (path_style == PATH_STYLE_WINDOWS)
         {
             are_both_separators = strchr("\\/", *first) != NULL && strchr("\\/", *second) != NULL;
-        } 
+        }
         else
         {
             are_both_separators = strchr("/", *first) != NULL && strchr("/", *second) != NULL;
@@ -732,62 +741,65 @@ sy_path_is_string_equal(const char *first, const char *second, size_t first_size
     return 1;
 }
 
-static void 
-sy_path_skip_segments_until_diverge(sy_path_segment_joined_t *bsj, sy_path_segment_joined_t *osj, int32_t absolute, int32_t *base_available, int32_t *other_available)
+static void
+not_path_skip_segments_until_diverge(not_path_segment_joined_t *bsj, not_path_segment_joined_t *osj, int32_t absolute, int32_t *base_available, int32_t *other_available)
 {
-    do {
-        *base_available = sy_path_segment_joined_skip_invisible(bsj, absolute);
-        *other_available = sy_path_segment_joined_skip_invisible(osj, absolute);
+    do
+    {
+        *base_available = not_path_segment_joined_skip_invisible(bsj, absolute);
+        *other_available = not_path_segment_joined_skip_invisible(osj, absolute);
 
-        if (!*base_available || !*other_available) {
-        break;
+        if (!*base_available || !*other_available)
+        {
+            break;
         }
 
-        if (!sy_path_is_string_equal(bsj->segment.begin, osj->segment.begin,
-            bsj->segment.size, osj->segment.size)) {
-        break;
+        if (!not_path_is_string_equal(bsj->segment.begin, osj->segment.begin,
+                                      bsj->segment.size, osj->segment.size))
+        {
+            break;
         }
 
-        *base_available = sy_path_get_next_segment_joined(bsj);
-        *other_available = sy_path_get_next_segment_joined(osj);
+        *base_available = not_path_get_next_segment_joined(bsj);
+        *other_available = not_path_get_next_segment_joined(osj);
     } while (*base_available && *other_available);
 }
 
-static size_t 
-sy_path_output_back(char *buffer, size_t buffer_size, size_t position)
+static size_t
+not_path_output_back(char *buffer, size_t buffer_size, size_t position)
 {
-    return sy_path_output_sized(buffer, buffer_size, position, "..", 2);
+    return not_path_output_sized(buffer, buffer_size, position, "..", 2);
 }
 
-size_t 
-sy_path_get_relative(const char *base_directory, const char *path, char *buffer, size_t buffer_size)
+size_t
+not_path_get_relative(const char *base_directory, const char *path, char *buffer, size_t buffer_size)
 {
     size_t pos = 0;
 
     size_t base_root_length, path_root_length;
-    sy_path_get_root(base_directory, &base_root_length);
-    sy_path_get_root(path, &path_root_length);
-    if (base_root_length != path_root_length || !sy_path_is_string_equal(base_directory, path, base_root_length, path_root_length))
+    not_path_get_root(base_directory, &base_root_length);
+    not_path_get_root(path, &path_root_length);
+    if (base_root_length != path_root_length || !not_path_is_string_equal(base_directory, path, base_root_length, path_root_length))
     {
-        sy_path_terminate_output(buffer, buffer_size, pos);
+        not_path_terminate_output(buffer, buffer_size, pos);
         return pos;
     }
 
     int32_t absolute;
-    absolute = sy_path_is_root_absolute(base_directory, base_root_length);
+    absolute = not_path_is_root_absolute(base_directory, base_root_length);
 
     const char *base_paths[2], *other_paths[2];
-    sy_path_segment_joined_t bsj, osj;
+    not_path_segment_joined_t bsj, osj;
 
     base_paths[0] = base_directory;
     base_paths[1] = NULL;
     other_paths[0] = path;
     other_paths[1] = NULL;
-    sy_path_get_first_segment_joined(base_paths, &bsj);
-    sy_path_get_first_segment_joined(other_paths, &osj);
+    not_path_get_first_segment_joined(base_paths, &bsj);
+    not_path_get_first_segment_joined(other_paths, &osj);
 
     int32_t base_available, other_available;
-    sy_path_skip_segments_until_diverge(&bsj, &osj, absolute, &base_available, &other_available);
+    not_path_skip_segments_until_diverge(&bsj, &osj, absolute, &base_available, &other_available);
 
     int32_t has_output = 0;
 
@@ -795,30 +807,28 @@ sy_path_get_relative(const char *base_directory, const char *path, char *buffer,
     {
         do
         {
-            if (!sy_path_segment_joined_skip_invisible(&bsj, absolute))
+            if (!not_path_segment_joined_skip_invisible(&bsj, absolute))
             {
                 break;
             }
             has_output = 1;
-            pos += sy_path_output_back(buffer, buffer_size, pos);
-            pos += sy_path_output_separator(buffer, buffer_size, pos);
-        }
-        while (sy_path_get_next_segment_joined(&bsj));
+            pos += not_path_output_back(buffer, buffer_size, pos);
+            pos += not_path_output_separator(buffer, buffer_size, pos);
+        } while (not_path_get_next_segment_joined(&bsj));
     }
 
     if (other_available)
     {
         do
         {
-            if (!sy_path_segment_joined_skip_invisible(&osj, absolute))
+            if (!not_path_segment_joined_skip_invisible(&osj, absolute))
             {
                 break;
             }
             has_output = 1;
-            pos += sy_path_output_sized(buffer, buffer_size, pos, osj.segment.begin, osj.segment.size);
-            pos += sy_path_output_separator(buffer, buffer_size, pos);
-        }
-        while (sy_path_get_next_segment_joined(&osj));
+            pos += not_path_output_sized(buffer, buffer_size, pos, osj.segment.begin, osj.segment.size);
+            pos += not_path_output_separator(buffer, buffer_size, pos);
+        } while (not_path_get_next_segment_joined(&osj));
     }
 
     if (has_output)
@@ -827,28 +837,28 @@ sy_path_get_relative(const char *base_directory, const char *path, char *buffer,
     }
     else
     {
-        pos += sy_path_output_current(buffer, buffer_size, pos);
+        pos += not_path_output_current(buffer, buffer_size, pos);
     }
 
-    sy_path_terminate_output(buffer, buffer_size, pos);
+    not_path_terminate_output(buffer, buffer_size, pos);
 
     return pos;
 }
 
 char *
-sy_path_get_current_directory(char *buffer, size_t buffer_size)
+not_path_get_current_directory(char *buffer, size_t buffer_size)
 {
     return getcwd(buffer, buffer_size);
 }
 
 int32_t
-sy_path_is_root(const char *path)
+not_path_is_root(const char *path)
 {
-    if(!path)
+    if (!path)
     {
         return 0;
     }
-    if(path[0] == '~' && path[1] == '/')
+    if (path[0] == '~' && path[1] == '/')
     {
         return 1;
     }
@@ -856,72 +866,72 @@ sy_path_is_root(const char *path)
 }
 
 size_t
-sy_path_get_filename(const char *path, char *buffer, size_t buffer_size)
+not_path_get_filename(const char *path, char *buffer, size_t buffer_size)
 {
     size_t length;
     const char *c, *d;
     c = strrchr(path, windows_separator);
     d = strrchr(path, unix_separator);
-    if(!!c && !!d)
+    if (!!c && !!d)
     {
-        if((size_t)c > (size_t)d)
+        if ((size_t)c > (size_t)d)
         {
             length = strlen(c + 1);
-            sy_path_output_sized(buffer, buffer_size, 0, c + 1, length);
-            sy_path_terminate_output(buffer, buffer_size, length);
+            not_path_output_sized(buffer, buffer_size, 0, c + 1, length);
+            not_path_terminate_output(buffer, buffer_size, length);
             return length;
         }
         else
         {
             length = strlen(d + 1);
-            sy_path_output_sized(buffer, buffer_size, 0, d + 1, length);
-            sy_path_terminate_output(buffer, buffer_size, length);
+            not_path_output_sized(buffer, buffer_size, 0, d + 1, length);
+            not_path_terminate_output(buffer, buffer_size, length);
             return length;
         }
     }
     else if (!!c)
     {
         length = strlen(c + 1);
-        sy_path_output_sized(buffer, buffer_size, 0, c + 1, length);
-        sy_path_terminate_output(buffer, buffer_size, length);
+        not_path_output_sized(buffer, buffer_size, 0, c + 1, length);
+        not_path_terminate_output(buffer, buffer_size, length);
         return length;
     }
     else if (!!d)
     {
         length = strlen(d + 1);
-        sy_path_output_sized(buffer, buffer_size, 0, d + 1, length);
-        sy_path_terminate_output(buffer, buffer_size, length);
+        not_path_output_sized(buffer, buffer_size, 0, d + 1, length);
+        not_path_terminate_output(buffer, buffer_size, length);
         return length;
     }
     else
     {
         length = strlen(path);
-        sy_path_output_sized(buffer, buffer_size, 0, path, length);
-        sy_path_terminate_output(buffer, buffer_size, length);
+        not_path_output_sized(buffer, buffer_size, 0, path, length);
+        not_path_terminate_output(buffer, buffer_size, length);
         return length;
     }
 }
 
 size_t
-sy_path_get_directory_path(const char *path, char *buffer, size_t buffer_size)
+not_path_get_directory_path(const char *path, char *buffer, size_t buffer_size)
 {
     size_t length = 0;
-    if(sy_path_is_directory(path))
+    if (not_path_is_directory(path))
     {
         length = strlen(path);
-        sy_path_output_sized(buffer, buffer_size, 0, path, length);
-        sy_path_terminate_output(buffer, buffer_size, length);
+        not_path_output_sized(buffer, buffer_size, 0, path, length);
+        not_path_terminate_output(buffer, buffer_size, length);
         return length;
     }
 
-    if(strchr(path, '.'))
+    if (strchr(path, '.'))
     {
         const char *c, *d;
         c = strrchr(path, windows_separator);
         d = strrchr(path, unix_separator);
-        if(!!c && !!d)
+        if (!!c && !!d)
         {
-            if((size_t)c > (size_t)d)
+            if ((size_t)c > (size_t)d)
             {
                 length = (size_t)((c + 1) - path);
             }
@@ -930,30 +940,30 @@ sy_path_get_directory_path(const char *path, char *buffer, size_t buffer_size)
                 length = (size_t)((d + 1) - path);
             }
         }
-        else if(!!c)
+        else if (!!c)
         {
             length = (size_t)((c + 1) - path);
         }
-        else if(!!d)
+        else if (!!d)
         {
             length = (size_t)((d + 1) - path);
         }
-        else 
+        else
         {
-            sy_path_terminate_output(buffer, buffer_size, 0);
+            not_path_terminate_output(buffer, buffer_size, 0);
             return 0;
         }
     }
 
-    sy_path_output_sized(buffer, buffer_size, 0, path, length);
-    sy_path_terminate_output(buffer, buffer_size, length);
+    not_path_output_sized(buffer, buffer_size, 0, path, length);
+    not_path_terminate_output(buffer, buffer_size, length);
     return length;
 }
 
 int32_t
-sy_path_exist(const char *path)
+not_path_exist(const char *path)
 {
-    if (access(path, F_OK) == 0) 
+    if (access(path, F_OK) == 0)
     {
         return 1;
     }

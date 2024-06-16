@@ -30,32 +30,32 @@
 #include "../strip.h"
 #include "execute.h"
 
-sy_record_t *
-sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_node_t *applicant)
+not_record_t *
+not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, not_node_t *applicant)
 {
     if (base->kind == NODE_KIND_CATCH)
     {
-        sy_node_catch_t *catch1 = (sy_node_catch_t *)base->value;
+        not_node_catch_t *catch1 = (not_node_catch_t *)base->value;
 
-        sy_node_t *node1 = catch1->parameters;
-        sy_node_block_t *block1 = (sy_node_block_t *)node1->value;
+        not_node_t *node1 = catch1->parameters;
+        not_node_block_t *block1 = (not_node_block_t *)node1->value;
 
-        for (sy_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
+        for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
         {
             if (item1->kind == NODE_KIND_PARAMETER)
             {
-                sy_node_parameter_t *parameter1 = (sy_node_parameter_t *)item1->value;
-                if (sy_execute_id_cmp(parameter1->key, name) == 1)
+                not_node_parameter_t *parameter1 = (not_node_parameter_t *)item1->value;
+                if (not_execute_id_cmp(parameter1->key, name) == 1)
                 {
-                    sy_entry_t *entry = sy_strip_variable_find(strip, base, parameter1->key);
+                    not_entry_t *entry = not_strip_variable_find(strip, base, parameter1->key);
                     if (entry == ERROR)
                     {
                         return ERROR;
                     }
                     else if (entry == NULL)
                     {
-                        sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter1->key->value;
-                        sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                        not_node_basic_t *basic1 = (not_node_basic_t *)parameter1->key->value;
+                        not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                         return ERROR;
                     }
 
@@ -66,27 +66,27 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
     }
     else if (base->kind == NODE_KIND_FOR)
     {
-        sy_node_for_t *for1 = (sy_node_for_t *)base->value;
+        not_node_for_t *for1 = (not_node_for_t *)base->value;
 
-        for (sy_node_t *item1 = for1->initializer; item1 != NULL; item1 = item1->next)
+        for (not_node_t *item1 = for1->initializer; item1 != NULL; item1 = item1->next)
         {
             if (item1->kind == NODE_KIND_VAR)
             {
-                sy_node_var_t *var1 = (sy_node_var_t *)item1->value;
+                not_node_var_t *var1 = (not_node_var_t *)item1->value;
                 if (var1->key->kind == NODE_KIND_ID)
                 {
-                    if (sy_execute_id_cmp(var1->key, name) == 1)
+                    if (not_execute_id_cmp(var1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, base, var1->key);
+                        not_entry_t *entry = not_strip_variable_find(strip, base, var1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
                         }
                         else if (entry == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
-                            sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                            not_node_basic_t *basic1 = (not_node_basic_t *)var1->key->value;
+                            not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
                         return entry->value;
@@ -94,26 +94,26 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                 }
                 else
                 {
-                    sy_node_t *node1 = var1->key;
-                    sy_node_block_t *block1 = (sy_node_block_t *)node1->value;
+                    not_node_t *node1 = var1->key;
+                    not_node_block_t *block1 = (not_node_block_t *)node1->value;
 
-                    for (sy_node_t *item2 = block1->items; item2 != NULL; item2 = item2->next)
+                    for (not_node_t *item2 = block1->items; item2 != NULL; item2 = item2->next)
                     {
                         if (item2->kind == NODE_KIND_ENTITY)
                         {
-                            sy_node_entity_t *entity1 = (sy_node_entity_t *)item2->value;
-                            if (sy_execute_id_cmp(entity1->key, name) == 1)
+                            not_node_entity_t *entity1 = (not_node_entity_t *)item2->value;
+                            if (not_execute_id_cmp(entity1->key, name) == 1)
                             {
                                 assert(strip != NULL);
-                                sy_entry_t *entry = sy_strip_variable_find(strip, base, entity1->key);
+                                not_entry_t *entry = not_strip_variable_find(strip, base, entity1->key);
                                 if (entry == ERROR)
                                 {
                                     return ERROR;
                                 }
                                 else if (entry == NULL)
                                 {
-                                    sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
-                                    sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                                    not_node_basic_t *basic1 = (not_node_basic_t *)entity1->key->value;
+                                    not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                                     return ERROR;
                                 }
 
@@ -127,21 +127,21 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
     }
     else if (base->kind == NODE_KIND_FORIN)
     {
-        sy_node_forin_t *for1 = (sy_node_forin_t *)base->value;
+        not_node_forin_t *for1 = (not_node_forin_t *)base->value;
 
         if (for1->field)
         {
-            if (sy_execute_id_cmp(for1->field, name) == 1)
+            if (not_execute_id_cmp(for1->field, name) == 1)
             {
-                sy_entry_t *entry = sy_strip_variable_find(strip, base, for1->field);
+                not_entry_t *entry = not_strip_variable_find(strip, base, for1->field);
                 if (entry == ERROR)
                 {
                     return ERROR;
                 }
                 else if (entry == NULL)
                 {
-                    sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->field->value;
-                    sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                    not_node_basic_t *basic1 = (not_node_basic_t *)for1->field->value;
+                    not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                     return ERROR;
                 }
                 return entry->value;
@@ -150,17 +150,17 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
 
         if (for1->value)
         {
-            if (sy_execute_id_cmp(for1->value, name) == 1)
+            if (not_execute_id_cmp(for1->value, name) == 1)
             {
-                sy_entry_t *entry = sy_strip_variable_find(strip, base, for1->value);
+                not_entry_t *entry = not_strip_variable_find(strip, base, for1->value);
                 if (entry == ERROR)
                 {
                     return ERROR;
                 }
                 else if (entry == NULL)
                 {
-                    sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->value->value;
-                    sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                    not_node_basic_t *basic1 = (not_node_basic_t *)for1->value->value;
+                    not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                     return ERROR;
                 }
                 return entry->value;
@@ -169,49 +169,49 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
     }
     else if (base->kind == NODE_KIND_BODY)
     {
-        sy_node_block_t *block1 = (sy_node_block_t *)base->value;
+        not_node_block_t *block1 = (not_node_block_t *)base->value;
 
-        for (sy_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
+        for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
         {
             if (item1->kind == NODE_KIND_FOR)
             {
-                sy_node_for_t *for1 = (sy_node_for_t *)item1->value;
+                not_node_for_t *for1 = (not_node_for_t *)item1->value;
                 if (for1->key != NULL)
                 {
-                    if (sy_execute_id_cmp(for1->key, name) == 1)
+                    if (not_execute_id_cmp(for1->key, name) == 1)
                     {
-                        return sy_record_make_type(item1, NULL);
+                        return not_record_make_type(item1, NULL);
                     }
                 }
             }
             else if (item1->kind == NODE_KIND_FORIN)
             {
-                sy_node_forin_t *for1 = (sy_node_forin_t *)item1->value;
+                not_node_forin_t *for1 = (not_node_forin_t *)item1->value;
                 if (for1->key != NULL)
                 {
-                    if (sy_execute_id_cmp(for1->key, name) == 1)
+                    if (not_execute_id_cmp(for1->key, name) == 1)
                     {
-                        return sy_record_make_type(item1, NULL);
+                        return not_record_make_type(item1, NULL);
                     }
                 }
             }
             else if (item1->kind == NODE_KIND_VAR)
             {
-                sy_node_var_t *var1 = (sy_node_var_t *)item1->value;
+                not_node_var_t *var1 = (not_node_var_t *)item1->value;
                 if (var1->key->kind == NODE_KIND_ID)
                 {
-                    if (sy_execute_id_cmp(var1->key, name) == 1)
+                    if (not_execute_id_cmp(var1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, base, var1->key);
+                        not_entry_t *entry = not_strip_variable_find(strip, base, var1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
                         }
                         else if (entry == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
-                            sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                            not_node_basic_t *basic1 = (not_node_basic_t *)var1->key->value;
+                            not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
 
@@ -220,26 +220,26 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                 }
                 else
                 {
-                    sy_node_t *node2 = var1->key;
-                    sy_node_block_t *block2 = (sy_node_block_t *)node2->value;
+                    not_node_t *node2 = var1->key;
+                    not_node_block_t *block2 = (not_node_block_t *)node2->value;
 
-                    for (sy_node_t *item2 = block2->items; item2 != NULL; item2 = item2->next)
+                    for (not_node_t *item2 = block2->items; item2 != NULL; item2 = item2->next)
                     {
                         if (item2->kind == NODE_KIND_ENTITY)
                         {
-                            sy_node_entity_t *entity1 = (sy_node_entity_t *)item2->value;
-                            if (sy_execute_id_cmp(entity1->key, name) == 1)
+                            not_node_entity_t *entity1 = (not_node_entity_t *)item2->value;
+                            if (not_execute_id_cmp(entity1->key, name) == 1)
                             {
                                 assert(strip != NULL);
-                                sy_entry_t *entry = sy_strip_variable_find(strip, base, entity1->key);
+                                not_entry_t *entry = not_strip_variable_find(strip, base, entity1->key);
                                 if (entry == ERROR)
                                 {
                                     return ERROR;
                                 }
                                 else if (entry == NULL)
                                 {
-                                    sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
-                                    sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                                    not_node_basic_t *basic1 = (not_node_basic_t *)entity1->key->value;
+                                    not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                                     return ERROR;
                                 }
 
@@ -253,30 +253,30 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
     }
     else if (base->kind == NODE_KIND_LAMBDA)
     {
-        sy_node_lambda_t *fun1 = (sy_node_lambda_t *)base->value;
+        not_node_lambda_t *fun1 = (not_node_lambda_t *)base->value;
 
         if (fun1->generics != NULL)
         {
-            sy_node_t *node1 = fun1->generics;
-            sy_node_block_t *block1 = (sy_node_block_t *)node1->value;
+            not_node_t *node1 = fun1->generics;
+            not_node_block_t *block1 = (not_node_block_t *)node1->value;
 
-            for (sy_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
+            for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
             {
                 if (item1->kind == NODE_KIND_GENERIC)
                 {
-                    sy_node_generic_t *generic1 = (sy_node_generic_t *)item1->value;
-                    if (sy_execute_id_cmp(generic1->key, name) == 1)
+                    not_node_generic_t *generic1 = (not_node_generic_t *)item1->value;
+                    if (not_execute_id_cmp(generic1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, base, generic1->key);
+                        not_entry_t *entry = not_strip_variable_find(strip, base, generic1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
                         }
                         else if (entry == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key->value;
-                            sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                            not_node_basic_t *basic1 = (not_node_basic_t *)generic1->key->value;
+                            not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
 
@@ -288,26 +288,26 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
 
         if (fun1->parameters != NULL)
         {
-            sy_node_t *node1 = fun1->parameters;
-            sy_node_block_t *block1 = (sy_node_block_t *)node1->value;
+            not_node_t *node1 = fun1->parameters;
+            not_node_block_t *block1 = (not_node_block_t *)node1->value;
 
-            for (sy_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
+            for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
             {
                 if (item1->kind == NODE_KIND_PARAMETER)
                 {
-                    sy_node_parameter_t *parameter1 = (sy_node_parameter_t *)item1->value;
-                    if (sy_execute_id_cmp(parameter1->key, name) == 1)
+                    not_node_parameter_t *parameter1 = (not_node_parameter_t *)item1->value;
+                    if (not_execute_id_cmp(parameter1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, base, parameter1->key);
+                        not_entry_t *entry = not_strip_variable_find(strip, base, parameter1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
                         }
                         else if (entry == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter1->key->value;
-                            sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                            not_node_basic_t *basic1 = (not_node_basic_t *)parameter1->key->value;
+                            not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
 
@@ -319,30 +319,30 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
     }
     else if (base->kind == NODE_KIND_FUN)
     {
-        sy_node_fun_t *fun1 = (sy_node_fun_t *)base->value;
+        not_node_fun_t *fun1 = (not_node_fun_t *)base->value;
 
         if (fun1->generics != NULL)
         {
-            sy_node_t *node1 = fun1->generics;
-            sy_node_block_t *block1 = (sy_node_block_t *)node1->value;
+            not_node_t *node1 = fun1->generics;
+            not_node_block_t *block1 = (not_node_block_t *)node1->value;
 
-            for (sy_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
+            for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
             {
                 if (item1->kind == NODE_KIND_GENERIC)
                 {
-                    sy_node_generic_t *generic1 = (sy_node_generic_t *)item1->value;
-                    if (sy_execute_id_cmp(generic1->key, name) == 1)
+                    not_node_generic_t *generic1 = (not_node_generic_t *)item1->value;
+                    if (not_execute_id_cmp(generic1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, base, generic1->key);
+                        not_entry_t *entry = not_strip_variable_find(strip, base, generic1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
                         }
                         else if (entry == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key->value;
-                            sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                            not_node_basic_t *basic1 = (not_node_basic_t *)generic1->key->value;
+                            not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
 
@@ -354,26 +354,26 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
 
         if (fun1->parameters != NULL)
         {
-            sy_node_t *node1 = fun1->parameters;
-            sy_node_block_t *block1 = (sy_node_block_t *)node1->value;
+            not_node_t *node1 = fun1->parameters;
+            not_node_block_t *block1 = (not_node_block_t *)node1->value;
 
-            for (sy_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
+            for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
             {
                 if (item1->kind == NODE_KIND_PARAMETER)
                 {
-                    sy_node_parameter_t *parameter1 = (sy_node_parameter_t *)item1->value;
-                    if (sy_execute_id_cmp(parameter1->key, name) == 1)
+                    not_node_parameter_t *parameter1 = (not_node_parameter_t *)item1->value;
+                    if (not_execute_id_cmp(parameter1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, base, parameter1->key);
+                        not_entry_t *entry = not_strip_variable_find(strip, base, parameter1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
                         }
                         else if (entry == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)parameter1->key->value;
-                            sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                            not_node_basic_t *basic1 = (not_node_basic_t *)parameter1->key->value;
+                            not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
 
@@ -385,30 +385,30 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
     }
     else if (base->kind == NODE_KIND_CLASS)
     {
-        sy_node_class_t *class1 = (sy_node_class_t *)base->value;
+        not_node_class_t *class1 = (not_node_class_t *)base->value;
 
         if (class1->generics != NULL)
         {
-            sy_node_t *node1 = class1->generics;
-            sy_node_block_t *block1 = (sy_node_block_t *)node1->value;
+            not_node_t *node1 = class1->generics;
+            not_node_block_t *block1 = (not_node_block_t *)node1->value;
 
-            for (sy_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
+            for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
             {
                 if (item1->kind == NODE_KIND_GENERIC)
                 {
-                    sy_node_generic_t *generic1 = (sy_node_generic_t *)item1->value;
-                    if (sy_execute_id_cmp(generic1->key, name) == 1)
+                    not_node_generic_t *generic1 = (not_node_generic_t *)item1->value;
+                    if (not_execute_id_cmp(generic1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, base, generic1->key);
+                        not_entry_t *entry = not_strip_variable_find(strip, base, generic1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
                         }
                         else if (entry == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)generic1->key->value;
-                            sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                            not_node_basic_t *basic1 = (not_node_basic_t *)generic1->key->value;
+                            not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
 
@@ -420,26 +420,26 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
 
         if (class1->heritages != NULL)
         {
-            sy_node_t *node1 = class1->heritages;
-            sy_node_block_t *block1 = (sy_node_block_t *)node1->value;
+            not_node_t *node1 = class1->heritages;
+            not_node_block_t *block1 = (not_node_block_t *)node1->value;
 
-            for (sy_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
+            for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
             {
                 if (item1->kind == NODE_KIND_HERITAGE)
                 {
-                    sy_node_heritage_t *heritage1 = (sy_node_heritage_t *)item1->value;
-                    if (sy_execute_id_cmp(heritage1->key, name) == 1)
+                    not_node_heritage_t *heritage1 = (not_node_heritage_t *)item1->value;
+                    if (not_execute_id_cmp(heritage1->key, name) == 1)
                     {
                         assert(strip != NULL);
-                        sy_entry_t *entry = sy_strip_variable_find(strip, base, heritage1->key);
+                        not_entry_t *entry = not_strip_variable_find(strip, base, heritage1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
                         }
                         else if (entry == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)heritage1->key->value;
-                            sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                            not_node_basic_t *basic1 = (not_node_basic_t *)heritage1->key->value;
+                            not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
 
@@ -449,64 +449,64 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
             }
         }
 
-        for (sy_node_t *item1 = class1->block; item1 != NULL; item1 = item1->next)
+        for (not_node_t *item1 = class1->block; item1 != NULL; item1 = item1->next)
         {
             if (item1->kind == NODE_KIND_CLASS)
             {
-                sy_node_class_t *class2 = (sy_node_class_t *)item1->value;
-                if (sy_execute_id_cmp(class2->key, name) == 1)
+                not_node_class_t *class2 = (not_node_class_t *)item1->value;
+                if (not_execute_id_cmp(class2->key, name) == 1)
                 {
-                    sy_strip_t *strip_copy = sy_strip_copy(strip);
+                    not_strip_t *strip_copy = not_strip_copy(strip);
                     if (strip_copy == ERROR)
                     {
                         return ERROR;
                     }
 
-                    sy_strip_t *new_strip = sy_strip_create(strip_copy);
+                    not_strip_t *new_strip = not_strip_create(strip_copy);
                     if (new_strip == ERROR)
                     {
                         return ERROR;
                     }
-                    return sy_record_make_type(item1, new_strip);
+                    return not_record_make_type(item1, new_strip);
                 }
                 continue;
             }
             else if (item1->kind == NODE_KIND_FUN)
             {
-                sy_node_fun_t *fun1 = (sy_node_fun_t *)item1->value;
-                if (sy_execute_id_cmp(fun1->key, name) == 1)
+                not_node_fun_t *fun1 = (not_node_fun_t *)item1->value;
+                if (not_execute_id_cmp(fun1->key, name) == 1)
                 {
-                    sy_strip_t *strip_copy = sy_strip_copy(strip);
+                    not_strip_t *strip_copy = not_strip_copy(strip);
                     if (strip_copy == ERROR)
                     {
                         return ERROR;
                     }
 
-                    sy_strip_t *new_strip = sy_strip_create(strip_copy);
+                    not_strip_t *new_strip = not_strip_create(strip_copy);
                     if (new_strip == ERROR)
                     {
                         return ERROR;
                     }
-                    return sy_record_make_type(item1, new_strip);
+                    return not_record_make_type(item1, new_strip);
                 }
                 continue;
             }
             else if (item1->kind == NODE_KIND_PROPERTY)
             {
-                sy_node_property_t *property1 = (sy_node_property_t *)item1->value;
-                if (sy_execute_id_cmp(property1->key, name) == 1)
+                not_node_property_t *property1 = (not_node_property_t *)item1->value;
+                if (not_execute_id_cmp(property1->key, name) == 1)
                 {
                     if ((property1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
                     {
-                        sy_entry_t *entry = sy_symbol_table_find(base, property1->key);
+                        not_entry_t *entry = not_symbol_table_find(base, property1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
                         }
                         else if (entry == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)property1->key->value;
-                            sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                            not_node_basic_t *basic1 = (not_node_basic_t *)property1->key->value;
+                            not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
 
@@ -514,15 +514,15 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                     }
                     else
                     {
-                        sy_entry_t *entry = sy_strip_variable_find(strip, base, property1->key);
+                        not_entry_t *entry = not_strip_variable_find(strip, base, property1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
                         }
                         else if (entry == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)property1->key->value;
-                            sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                            not_node_basic_t *basic1 = (not_node_basic_t *)property1->key->value;
+                            not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
 
@@ -535,9 +535,9 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
     }
     else if (base->kind == NODE_KIND_MODULE)
     {
-        sy_node_block_t *block1 = (sy_node_block_t *)base->value;
+        not_node_block_t *block1 = (not_node_block_t *)base->value;
 
-        for (sy_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
+        for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
         {
             if (item1->kind == NODE_KIND_USING)
             {
@@ -546,28 +546,28 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                     continue;
                 }
 
-                sy_node_using_t *using1 = (sy_node_using_t *)item1->value;
+                not_node_using_t *using1 = (not_node_using_t *)item1->value;
 
                 if (using1->packages != NULL)
                 {
-                    sy_node_t *node1 = using1->packages;
-                    sy_node_block_t *block2 = (sy_node_block_t *)node1->value;
+                    not_node_t *node1 = using1->packages;
+                    not_node_block_t *block2 = (not_node_block_t *)node1->value;
 
-                    for (sy_node_t *item2 = block2->items; item2 != NULL; item2 = item2->next)
+                    for (not_node_t *item2 = block2->items; item2 != NULL; item2 = item2->next)
                     {
                         if (item2->kind == NODE_KIND_PACKAGE)
                         {
-                            sy_node_package_t *package1 = (sy_node_package_t *)item2->value;
-                            if (sy_execute_id_cmp(package1->key, name) == 1)
+                            not_node_package_t *package1 = (not_node_package_t *)item2->value;
+                            if (not_execute_id_cmp(package1->key, name) == 1)
                             {
-                                sy_node_basic_t *basic1 = (sy_node_basic_t *)using1->path->value;
-                                sy_module_t *entry = sy_repository_load(basic1->value);
+                                not_node_basic_t *basic1 = (not_node_basic_t *)using1->path->value;
+                                not_module_t *entry = not_repository_load(basic1->value);
                                 if (entry == ERROR)
                                 {
                                     return ERROR;
                                 }
 
-                                sy_node_t *address = NULL;
+                                not_node_t *address = NULL;
                                 if (package1->value)
                                 {
                                     address = package1->value;
@@ -581,12 +581,12 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                                 {
                                     if (address->kind != NODE_KIND_ID)
                                     {
-                                        sy_node_basic_t *basic1 = (sy_node_basic_t *)name->value;
-                                        sy_error_type_by_node(address, "'%s' not a static proc address", basic1->value);
+                                        not_node_basic_t *basic1 = (not_node_basic_t *)name->value;
+                                        not_error_type_by_node(address, "'%s' not a static proc address", basic1->value);
                                         return ERROR;
                                     }
 
-                                    sy_node_basic_t *basic = (sy_node_basic_t *)address->value;
+                                    not_node_basic_t *basic = (not_node_basic_t *)address->value;
 
                                     json_t *json_root = NULL;
                                     json_t *json_funs = json_object_get(entry->json, "functions");
@@ -610,8 +610,8 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
 
                                     if (!json_root)
                                     {
-                                        sy_node_basic_t *basic1 = (sy_node_basic_t *)name->value;
-                                        sy_error_type_by_node(address, "'json' it does not have '%s'", basic1->value);
+                                        not_node_basic_t *basic1 = (not_node_basic_t *)name->value;
+                                        not_error_type_by_node(address, "'json' it does not have '%s'", basic1->value);
                                         return ERROR;
                                     }
 
@@ -619,7 +619,7 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                                     void *proc = GetProcAddress(entry->handle, basic->value);
                                     if (!proc)
                                     {
-                                        sy_error_type_by_node(name, "using '%s' failed to find function", basic->value);
+                                        not_error_type_by_node(name, "using '%s' failed to find function", basic->value);
                                         return ERROR;
                                     }
 #else
@@ -627,15 +627,15 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                                     char *error;
                                     if ((error = dlerror()) != NULL)
                                     {
-                                        sy_error_type_by_node(name, "%s", error);
+                                        not_error_type_by_node(name, "%s", error);
                                         return ERROR;
                                     }
 #endif
 
-                                    return sy_record_make_proc(proc, json_root);
+                                    return not_record_make_proc(proc, json_root);
                                 }
 
-                                sy_record_t *result = sy_execute_expression(address, strip, base, entry->root);
+                                not_record_t *result = not_execute_expression(address, strip, base, entry->root);
                                 if (result == ERROR)
                                 {
                                     return ERROR;
@@ -653,32 +653,32 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
             }
             else if (item1->kind == NODE_KIND_CLASS)
             {
-                sy_node_class_t *class1 = (sy_node_class_t *)item1->value;
+                not_node_class_t *class1 = (not_node_class_t *)item1->value;
 
-                if (sy_execute_id_cmp(class1->key, name) == 1)
+                if (not_execute_id_cmp(class1->key, name) == 1)
                 {
                     if (applicant->id != base->id)
                     {
                         if ((class1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                         {
-                            sy_error_type_by_node(name, "private access");
+                            not_error_type_by_node(name, "private access");
                             return ERROR;
                         }
                     }
 
-                    sy_strip_t *strip_copy = sy_strip_copy(strip);
+                    not_strip_t *strip_copy = not_strip_copy(strip);
                     if (strip_copy == ERROR)
                     {
                         return ERROR;
                     }
 
-                    sy_strip_t *new_strip = sy_strip_create(strip_copy);
+                    not_strip_t *new_strip = not_strip_create(strip_copy);
                     if (new_strip == ERROR)
                     {
                         return ERROR;
                     }
 
-                    return sy_record_make_type(item1, new_strip);
+                    return not_record_make_type(item1, new_strip);
                 }
 
                 continue;
@@ -690,12 +690,12 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                     continue;
                 }
 
-                sy_node_for_t *for1 = (sy_node_for_t *)item1->value;
+                not_node_for_t *for1 = (not_node_for_t *)item1->value;
                 if (for1->key != NULL)
                 {
-                    if (sy_execute_id_cmp(for1->key, name) == 1)
+                    if (not_execute_id_cmp(for1->key, name) == 1)
                     {
-                        return sy_record_make_type(item1, NULL);
+                        return not_record_make_type(item1, NULL);
                     }
                 }
             }
@@ -706,40 +706,40 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                     continue;
                 }
 
-                sy_node_forin_t *for1 = (sy_node_forin_t *)item1->value;
+                not_node_forin_t *for1 = (not_node_forin_t *)item1->value;
                 if (for1->key != NULL)
                 {
-                    if (sy_execute_id_cmp(for1->key, name) == 1)
+                    if (not_execute_id_cmp(for1->key, name) == 1)
                     {
-                        return sy_record_make_type(item1, NULL);
+                        return not_record_make_type(item1, NULL);
                     }
                 }
             }
             else if (item1->kind == NODE_KIND_VAR)
             {
-                sy_node_var_t *var1 = (sy_node_var_t *)item1->value;
+                not_node_var_t *var1 = (not_node_var_t *)item1->value;
                 if (var1->key->kind == NODE_KIND_ID)
                 {
-                    if (sy_execute_id_cmp(var1->key, name) == 1)
+                    if (not_execute_id_cmp(var1->key, name) == 1)
                     {
                         if (applicant->id != base->id)
                         {
                             if ((var1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                             {
-                                sy_error_type_by_node(name, "private access");
+                                not_error_type_by_node(name, "private access");
                                 return ERROR;
                             }
                         }
 
-                        sy_entry_t *entry = sy_symbol_table_find(base, var1->key);
+                        not_entry_t *entry = not_symbol_table_find(base, var1->key);
                         if (entry == ERROR)
                         {
                             return ERROR;
                         }
                         else if (entry == NULL)
                         {
-                            sy_node_basic_t *basic1 = (sy_node_basic_t *)var1->key->value;
-                            sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                            not_node_basic_t *basic1 = (not_node_basic_t *)var1->key->value;
+                            not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                             return ERROR;
                         }
 
@@ -748,34 +748,34 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
                 }
                 else
                 {
-                    sy_node_t *node2 = var1->key;
-                    sy_node_block_t *block2 = (sy_node_block_t *)node2->value;
+                    not_node_t *node2 = var1->key;
+                    not_node_block_t *block2 = (not_node_block_t *)node2->value;
 
-                    for (sy_node_t *item2 = block2->items; item2 != NULL; item2 = item2->next)
+                    for (not_node_t *item2 = block2->items; item2 != NULL; item2 = item2->next)
                     {
                         if (item2->kind == NODE_KIND_ENTITY)
                         {
-                            sy_node_entity_t *entity1 = (sy_node_entity_t *)item2->value;
-                            if (sy_execute_id_cmp(entity1->key, name) == 1)
+                            not_node_entity_t *entity1 = (not_node_entity_t *)item2->value;
+                            if (not_execute_id_cmp(entity1->key, name) == 1)
                             {
                                 if (applicant->id != base->id)
                                 {
                                     if ((entity1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                                     {
-                                        sy_error_type_by_node(name, "private access");
+                                        not_error_type_by_node(name, "private access");
                                         return ERROR;
                                     }
                                 }
 
-                                sy_entry_t *entry = sy_symbol_table_find(base, entity1->key);
+                                not_entry_t *entry = not_symbol_table_find(base, entity1->key);
                                 if (entry == ERROR)
                                 {
                                     return ERROR;
                                 }
                                 else if (entry == NULL)
                                 {
-                                    sy_node_basic_t *basic1 = (sy_node_basic_t *)entity1->key->value;
-                                    sy_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
+                                    not_node_basic_t *basic1 = (not_node_basic_t *)entity1->key->value;
+                                    not_error_runtime_by_node(name, "'%s' is not initialized", basic1->value);
                                     return ERROR;
                                 }
 
@@ -790,28 +790,28 @@ sy_execute_selection(sy_node_t *base, sy_node_t *name, sy_strip_t *strip, sy_nod
 
     if (base->parent != NULL)
     {
-        return sy_execute_selection(base->parent, name, strip, applicant);
+        return not_execute_selection(base->parent, name, strip, applicant);
     }
 
-    sy_node_basic_t *basic1 = (sy_node_basic_t *)name->value;
-    sy_error_type_by_node(name, "'%s' not defined", basic1->value);
+    not_node_basic_t *basic1 = (not_node_basic_t *)name->value;
+    not_error_type_by_node(name, "'%s' not defined", basic1->value);
     return ERROR;
 }
 
-sy_record_t *
-sy_execute_id(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_id(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (origin)
     {
-        return sy_execute_selection(origin, node, strip, applicant);
+        return not_execute_selection(origin, node, strip, applicant);
     }
-    return sy_execute_selection(node->parent, node, strip, applicant);
+    return not_execute_selection(node->parent, node, strip, applicant);
 }
 
-sy_record_t *
-sy_execute_number(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_number(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    sy_node_basic_t *basic1 = (sy_node_basic_t *)node->value;
+    not_node_basic_t *basic1 = (not_node_basic_t *)node->value;
     char *str = basic1->value;
 
     int32_t base = 10;
@@ -832,14 +832,14 @@ sy_execute_number(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         }
     }
 
-    sy_record_t *record = NULL;
+    not_record_t *record = NULL;
 
     if (strchr(str, '.'))
     {
         mpf_t result;
         mpf_init(result);
         mpf_set_str(result, str, base);
-        record = sy_record_make_float_from_f(result);
+        record = not_record_make_float_from_f(result);
         mpf_clear(result);
     }
     else
@@ -847,110 +847,110 @@ sy_execute_number(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
         mpz_t result_mpz;
         mpz_init(result_mpz);
         mpz_set_str(result_mpz, str, base);
-        record = sy_record_make_int_from_z(result_mpz);
+        record = not_record_make_int_from_z(result_mpz);
         mpz_clear(result_mpz);
     }
 
     return record;
 }
 
-sy_record_t *
-sy_execute_char(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_char(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    sy_node_basic_t *basic1 = (sy_node_basic_t *)node->value;
+    not_node_basic_t *basic1 = (not_node_basic_t *)node->value;
     char *str = basic1->value;
 
-    return sy_record_make_char((*(char *)str));
+    return not_record_make_char((*(char *)str));
 }
 
-sy_record_t *
-sy_execute_string(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_string(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    sy_node_basic_t *basic = (sy_node_basic_t *)node->value;
-    return sy_record_make_string(basic->value);
+    not_node_basic_t *basic = (not_node_basic_t *)node->value;
+    return not_record_make_string(basic->value);
 }
 
-sy_record_t *
-sy_execute_null(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_null(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    return sy_record_make_null();
+    return not_record_make_null();
 }
 
-sy_record_t *
-sy_execute_kint(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_kint(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    return sy_record_make_type(node, NULL);
+    return not_record_make_type(node, NULL);
 }
 
-sy_record_t *
-sy_execute_kfloat(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_kfloat(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    return sy_record_make_type(node, NULL);
+    return not_record_make_type(node, NULL);
 }
 
-sy_record_t *
-sy_execute_kchar(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_kchar(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    return sy_record_make_type(node, NULL);
+    return not_record_make_type(node, NULL);
 }
 
-sy_record_t *
-sy_execute_kstring(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_kstring(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    return sy_record_make_type(node, NULL);
+    return not_record_make_type(node, NULL);
 }
 
-sy_record_t *
-sy_execute_lambda(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_lambda(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    sy_node_lambda_t *fun1 = (sy_node_lambda_t *)node->value;
+    not_node_lambda_t *fun1 = (not_node_lambda_t *)node->value;
     if (fun1->body)
     {
-        sy_strip_t *strip_copy = sy_strip_copy(strip);
+        not_strip_t *strip_copy = not_strip_copy(strip);
         if (strip_copy == ERROR)
         {
             return ERROR;
         }
 
-        sy_strip_t *new_strip = sy_strip_create(strip_copy);
+        not_strip_t *new_strip = not_strip_create(strip_copy);
         if (new_strip == ERROR)
         {
             return ERROR;
         }
-        return sy_record_make_type(node, new_strip);
+        return not_record_make_type(node, new_strip);
     }
     else
     {
-        return sy_record_make_type(node, NULL);
+        return not_record_make_type(node, NULL);
     }
 }
 
-sy_record_t *
-sy_execute_parenthesis(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_parenthesis(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    sy_node_unary_t *unary1 = (sy_node_unary_t *)node->value;
+    not_node_unary_t *unary1 = (not_node_unary_t *)node->value;
 
-    return sy_execute_expression(unary1->right, strip, applicant, origin);
+    return not_execute_expression(unary1->right, strip, applicant, origin);
 }
 
-sy_record_t *
-sy_execute_tuple(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_tuple(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    sy_node_block_t *block = (sy_node_block_t *)node->value;
+    not_node_block_t *block = (not_node_block_t *)node->value;
 
     int32_t is_tuple = 0;
 
-    sy_record_tuple_t *top = NULL;
-    sy_record_tuple_t *declaration = NULL;
+    not_record_tuple_t *top = NULL;
+    not_record_tuple_t *declaration = NULL;
 
-    for (sy_node_t *item = block->items; item != NULL; item = item->next)
+    for (not_node_t *item = block->items; item != NULL; item = item->next)
     {
-        sy_record_t *record_value = sy_execute_expression(item, strip, applicant, NULL);
+        not_record_t *record_value = not_execute_expression(item, strip, applicant, NULL);
         if (record_value == ERROR)
         {
             if (top)
             {
-                if (sy_record_tuple_destroy(top) < 0)
+                if (not_record_tuple_destroy(top) < 0)
                 {
                     return ERROR;
                 }
@@ -963,14 +963,14 @@ sy_execute_tuple(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
             is_tuple = 1;
         }
 
-        sy_record_tuple_t *tuple = sy_record_make_tuple(record_value, NULL);
+        not_record_tuple_t *tuple = not_record_make_tuple(record_value, NULL);
         if (tuple == ERROR)
         {
             if (top)
             {
-                if (sy_record_tuple_destroy(top) < 0)
+                if (not_record_tuple_destroy(top) < 0)
                 {
-                    if (sy_record_link_decrease(record_value) < 0)
+                    if (not_record_link_decrease(record_value) < 0)
                     {
                         return ERROR;
                     }
@@ -978,7 +978,7 @@ sy_execute_tuple(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
                 }
             }
 
-            if (sy_record_link_decrease(record_value) < 0)
+            if (not_record_link_decrease(record_value) < 0)
             {
                 return ERROR;
             }
@@ -999,12 +999,12 @@ sy_execute_tuple(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
 
     if (is_tuple)
     {
-        sy_record_t *result = sy_record_create(RECORD_KIND_TUPLE, top);
+        not_record_t *result = not_record_create(RECORD_KIND_TUPLE, top);
         if (result == ERROR)
         {
             if (top)
             {
-                if (sy_record_tuple_destroy(top) < 0)
+                if (not_record_tuple_destroy(top) < 0)
                 {
                     return ERROR;
                 }
@@ -1016,12 +1016,12 @@ sy_execute_tuple(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
     }
     else
     {
-        sy_record_t *result = sy_record_make_type(node, top);
+        not_record_t *result = not_record_make_type(node, top);
         if (result == ERROR)
         {
             if (top)
             {
-                if (sy_record_tuple_destroy(top) < 0)
+                if (not_record_tuple_destroy(top) < 0)
                 {
                     return ERROR;
                 }
@@ -1033,24 +1033,24 @@ sy_execute_tuple(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
     }
 }
 
-sy_record_t *
-sy_execute_object(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_object(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    sy_node_block_t *block = (sy_node_block_t *)node->value;
+    not_node_block_t *block = (not_node_block_t *)node->value;
 
     int32_t is_object = 0;
-    sy_record_object_t *top = NULL;
-    sy_record_object_t *declaration = NULL;
-    for (sy_node_t *item = block->items; item != NULL; item = item->next)
+    not_record_object_t *top = NULL;
+    not_record_object_t *declaration = NULL;
+    for (not_node_t *item = block->items; item != NULL; item = item->next)
     {
-        sy_node_pair_t *pair = (sy_node_pair_t *)item->value;
+        not_node_pair_t *pair = (not_node_pair_t *)item->value;
 
-        sy_record_t *record_value = sy_execute_expression(pair->value, strip, applicant, NULL);
+        not_record_t *record_value = not_execute_expression(pair->value, strip, applicant, NULL);
         if (record_value == ERROR)
         {
             if (top)
             {
-                if (sy_record_object_destroy(top) < 0)
+                if (not_record_object_destroy(top) < 0)
                 {
                     return ERROR;
                 }
@@ -1063,19 +1063,19 @@ sy_execute_object(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             is_object = 1;
         }
 
-        sy_node_basic_t *basic = (sy_node_basic_t *)pair->key->value;
-        sy_record_object_t *object = sy_record_make_object(basic->value, record_value, NULL);
+        not_node_basic_t *basic = (not_node_basic_t *)pair->key->value;
+        not_record_object_t *object = not_record_make_object(basic->value, record_value, NULL);
         if (object == ERROR)
         {
-            if (sy_record_link_decrease(record_value) < 0)
+            if (not_record_link_decrease(record_value) < 0)
             {
                 return ERROR;
             }
             if (top)
             {
-                if (sy_record_object_destroy(top) < 0)
+                if (not_record_object_destroy(top) < 0)
                 {
-                    if (sy_record_link_decrease(record_value) < 0)
+                    if (not_record_link_decrease(record_value) < 0)
                     {
                         return ERROR;
                     }
@@ -1083,7 +1083,7 @@ sy_execute_object(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
                 }
             }
 
-            if (sy_record_link_decrease(record_value) < 0)
+            if (not_record_link_decrease(record_value) < 0)
             {
                 return ERROR;
             }
@@ -1104,12 +1104,12 @@ sy_execute_object(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
 
     if (is_object)
     {
-        sy_record_t *result = sy_record_create(RECORD_KIND_OBJECT, top);
+        not_record_t *result = not_record_create(RECORD_KIND_OBJECT, top);
         if (result == ERROR)
         {
             if (top)
             {
-                if (sy_record_object_destroy(top) < 0)
+                if (not_record_object_destroy(top) < 0)
                 {
                     return ERROR;
                 }
@@ -1121,12 +1121,12 @@ sy_execute_object(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     }
     else
     {
-        sy_record_t *result = sy_record_make_type(node, top);
+        not_record_t *result = not_record_make_type(node, top);
         if (result == ERROR)
         {
             if (top)
             {
-                if (sy_record_object_destroy(top) < 0)
+                if (not_record_object_destroy(top) < 0)
                 {
                     return ERROR;
                 }
@@ -1138,74 +1138,74 @@ sy_execute_object(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     }
 }
 
-sy_record_t *
-sy_execute_primary(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_primary(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_ID)
     {
-        return sy_execute_id(node, strip, applicant, origin);
+        return not_execute_id(node, strip, applicant, origin);
     }
     else
 
         if (node->kind == NODE_KIND_NUMBER)
     {
-        return sy_execute_number(node, strip, applicant, origin);
+        return not_execute_number(node, strip, applicant, origin);
     }
     else if (node->kind == NODE_KIND_CHAR)
     {
-        return sy_execute_char(node, strip, applicant, origin);
+        return not_execute_char(node, strip, applicant, origin);
     }
     else if (node->kind == NODE_KIND_STRING)
     {
-        return sy_execute_string(node, strip, applicant, origin);
+        return not_execute_string(node, strip, applicant, origin);
     }
     else
 
         if (node->kind == NODE_KIND_NULL)
     {
-        return sy_execute_null(node, strip, applicant, origin);
+        return not_execute_null(node, strip, applicant, origin);
     }
     else
 
         if (node->kind == NODE_KIND_KINT)
     {
-        return sy_execute_kint(node, strip, applicant, origin);
+        return not_execute_kint(node, strip, applicant, origin);
     }
     else if (node->kind == NODE_KIND_KFLOAT)
     {
-        return sy_execute_kfloat(node, strip, applicant, origin);
+        return not_execute_kfloat(node, strip, applicant, origin);
     }
     else
 
         if (node->kind == NODE_KIND_KCHAR)
     {
-        return sy_execute_kchar(node, strip, applicant, origin);
+        return not_execute_kchar(node, strip, applicant, origin);
     }
     else if (node->kind == NODE_KIND_KSTRING)
     {
-        return sy_execute_kstring(node, strip, applicant, origin);
+        return not_execute_kstring(node, strip, applicant, origin);
     }
     else
 
         if (node->kind == NODE_KIND_TUPLE)
     {
-        return sy_execute_tuple(node, strip, applicant, origin);
+        return not_execute_tuple(node, strip, applicant, origin);
     }
     else if (node->kind == NODE_KIND_OBJECT)
     {
-        return sy_execute_object(node, strip, applicant, origin);
+        return not_execute_object(node, strip, applicant, origin);
     }
     else
 
         if (node->kind == NODE_KIND_LAMBDA)
     {
-        return sy_execute_lambda(node, strip, applicant, origin);
+        return not_execute_lambda(node, strip, applicant, origin);
     }
     else if (node->kind == NODE_KIND_PARENTHESIS)
     {
-        return sy_execute_parenthesis(node, strip, applicant, origin);
+        return not_execute_parenthesis(node, strip, applicant, origin);
     }
 
-    sy_error_type_by_node(node, "primary implement not support %d", node->kind);
+    not_error_type_by_node(node, "primary implement not support %d", node->kind);
     return ERROR;
 }

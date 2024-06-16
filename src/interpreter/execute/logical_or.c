@@ -25,8 +25,8 @@
 #include "../strip.h"
 #include "execute.h"
 
-sy_record_t *
-sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant)
+not_record_t *
+not_execute_lor(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
     if (left->kind == RECORD_KIND_UNDEFINED)
     {
@@ -43,7 +43,7 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
         {
             if (right)
             {
-                if (sy_record_link_decrease(right) < 0)
+                if (not_record_link_decrease(right) < 0)
                 {
                     return ERROR;
                 }
@@ -52,7 +52,7 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
         }
         else
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return ERROR;
             }
@@ -66,7 +66,7 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
         {
             if (right)
             {
-                if (sy_record_link_decrease(right) < 0)
+                if (not_record_link_decrease(right) < 0)
                 {
                     return ERROR;
                 }
@@ -75,7 +75,7 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
         }
         else
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return ERROR;
             }
@@ -89,7 +89,7 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
         {
             if (right)
             {
-                if (sy_record_link_decrease(right) < 0)
+                if (not_record_link_decrease(right) < 0)
                 {
                     return ERROR;
                 }
@@ -98,7 +98,7 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
         }
         else
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return ERROR;
             }
@@ -112,7 +112,7 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
         {
             if (right)
             {
-                if (sy_record_link_decrease(right) < 0)
+                if (not_record_link_decrease(right) < 0)
                 {
                     return ERROR;
                 }
@@ -121,7 +121,7 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
         }
         else
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return ERROR;
             }
@@ -132,7 +132,7 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
     {
         if (right)
         {
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return ERROR;
             }
@@ -143,7 +143,7 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
     {
         if (right)
         {
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return ERROR;
             }
@@ -154,7 +154,7 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
     {
         if (right)
         {
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return ERROR;
             }
@@ -165,7 +165,7 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
     {
         if (right)
         {
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return ERROR;
             }
@@ -179,7 +179,7 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
         {
             if (right)
             {
-                if (sy_record_link_decrease(right) < 0)
+                if (not_record_link_decrease(right) < 0)
                 {
                     return ERROR;
                 }
@@ -188,7 +188,7 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
         }
         else
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return ERROR;
             }
@@ -196,32 +196,32 @@ sy_execute_lor(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
         }
     }
 
-    return sy_record_make_undefined();
+    return not_record_make_undefined();
 }
 
-sy_record_t *
-sy_execute_logical_or(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_logical_or(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_LOR)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_logical_or(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_logical_or(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        sy_record_t *right = sy_execute_logical_and(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_logical_and(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            sy_record_link_decrease(left);
+            not_record_link_decrease(left);
             return ERROR;
         }
 
-        return sy_execute_lor(node, left, right, applicant);
+        return not_execute_lor(node, left, right, applicant);
     }
     else
     {
-        return sy_execute_logical_and(node, strip, applicant, origin);
+        return not_execute_logical_and(node, strip, applicant, origin);
     }
 }

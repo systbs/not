@@ -8,70 +8,70 @@ enum
 {
   TOKEN_EOF = 0,
   TOKEN_SPACE,
-  TOKEN_QUTA,	 	    //	"
-  TOKEN_PRIME,	 	  //	'
-  TOKEN_UPRIME,		  //	`
-  TOKEN_HASH,	 	    //	#
-  TOKEN_DOLLER,		  //	$
-  TOKEN_LPAREN,		  //	(
-  TOKEN_RPAREN,		  //	)
-  TOKEN_LBRACKET, 	//	[
-  TOKEN_RBRACKET, 	//	]
-  TOKEN_LBRACE,		  //	{
-  TOKEN_RBRACE,		  //	}
-  TOKEN_COMMA,	 	  //	,
-  TOKEN_DOT,	   	  //	.
-  TOKEN_COLON,	 	  //	:
-  TOKEN_SEMICOLON,	//	;
-  TOKEN_QUESTION, 	//	?
-  TOKEN_AT,  	 	    //	@
-  TOKEN_UNDERLINE,	//	_
+  TOKEN_QUTA,      //	"
+  TOKEN_PRIME,     //	'
+  TOKEN_UPRIME,    //	`
+  TOKEN_HASH,      //	#
+  TOKEN_DOLLER,    //	$
+  TOKEN_LPAREN,    //	(
+  TOKEN_RPAREN,    //	)
+  TOKEN_LBRACKET,  //	[
+  TOKEN_RBRACKET,  //	]
+  TOKEN_LBRACE,    //	{
+  TOKEN_RBRACE,    //	}
+  TOKEN_COMMA,     //	,
+  TOKEN_DOT,       //	.
+  TOKEN_COLON,     //	:
+  TOKEN_SEMICOLON, //	;
+  TOKEN_QUESTION,  //	?
+  TOKEN_AT,        //	@
+  TOKEN_UNDERLINE, //	_
 
-  // Binary Arithmetic 
-  TOKEN_PLUS,	 	  //	+
-  TOKEN_MINUS,	 	//	-
-  TOKEN_STAR,	 	  //	*
-  TOKEN_POWER,	 	//	**
-  TOKEN_SLASH,	 	//	/
-  TOKEN_BACKSLASH, 
-  TOKEN_PERCENT,	//	%
+  // Binary Arithmetic
+  TOKEN_PLUS,  //	+
+  TOKEN_MINUS, //	-
+  TOKEN_STAR,  //	*
+  TOKEN_POWER, //	**
+  TOKEN_SLASH, //	/
+  TOKEN_BACKSLASH,
+  TOKEN_PERCENT, //	%
 
   // Bit-Wise
-  TOKEN_AND, 	 	  // &
-  TOKEN_OR,			  // |
-  TOKEN_CARET,		// ^
-  TOKEN_TILDE,		// ~
-  TOKEN_LT_LT,    // <<
-  TOKEN_GT_GT,    // >>
+  TOKEN_AND,   // &
+  TOKEN_OR,    // |
+  TOKEN_CARET, // ^
+  TOKEN_TILDE, // ~
+  TOKEN_LT_LT, // <<
+  TOKEN_GT_GT, // >>
 
   // Relational
-  TOKEN_LT,	   		//	<
-  TOKEN_GT,	   		//	>
-  TOKEN_LT_EQ,    // <=
-  TOKEN_GT_EQ,    // >=
-  TOKEN_EQ_EQ,    // ==
-  TOKEN_NOT_EQ,   // !=
+  TOKEN_LT,     //	<
+  TOKEN_GT,     //	>
+  TOKEN_LT_EQ,  // <=
+  TOKEN_GT_EQ,  // >=
+  TOKEN_EQ_EQ,  // ==
+  TOKEN_NOT_EQ, // !=
 
   // Logical
-  TOKEN_NOT,	   	//	!
-  TOKEN_AND_AND,  // &&
-  TOKEN_OR_OR,    // ||
+  TOKEN_NOT,     //	!
+  TOKEN_AND_AND, // &&
+  TOKEN_OR_OR,   // ||
 
   // Assignment
-  TOKEN_EQ,	   		    //	=
+  TOKEN_EQ,           //	=
   TOKEN_PLUS_EQ,      // +=
   TOKEN_MINUS_EQ,     // -=
   TOKEN_STAR_EQ,      // *=
   TOKEN_SLASH_EQ,     // /=
   TOKEN_BACKSLASH_EQ, // \=
   TOKEN_PERCENT_EQ,   // %=
-  TOKEN_POWER_EQ,       // **=
+  TOKEN_POWER_EQ,     // **=
   TOKEN_AND_EQ,       // &=
   TOKEN_OR_EQ,        // |=
   TOKEN_LT_LT_EQ,     // <<=
   TOKEN_GT_GT_EQ,     // >>=
 
-  TOKEN_MINUS_GT,     // ->
+  TOKEN_MINUS_GT, // ->
 
   TOKEN_ID,
 
@@ -110,14 +110,14 @@ enum
   TOKEN_FROM_KEYWORD
 };
 
-
-typedef struct sy_token {
-	sy_position_t position;
-	int32_t type;
-	char *value;
-} sy_token_t;
+typedef struct not_token
+{
+  not_position_t position;
+  int32_t type;
+  char *value;
+} not_token_t;
 
 const char *
-sy_token_get_name(int32_t tp);
+not_token_get_name(int32_t tp);
 
 #endif //__TOKEN_H__

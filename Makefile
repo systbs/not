@@ -8,8 +8,8 @@ BUILDDIR := build
 SOURCEDIR := src
 HEADERDIR := src
 
-NAME := qalam
-BINARY := qalam
+NAME := not
+BINARY := not
 
 RM := rm -rf
 MKDIR := mkdir
@@ -71,4 +71,4 @@ setup:
 
 # Builder uses this target to run your application.
 test: $(BINARY)
-	time ./$(BINARY) -f ./test/test.q -o ./test/test.
+	time ./$(BINARY) -f ./test/test.not

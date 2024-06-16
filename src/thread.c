@@ -14,12 +14,12 @@
 #include "interpreter.h"
 #include "thread.h"
 
-sy_thread_t base_thread;
+not_thread_t base_thread;
 
 int32_t
-sy_thread_init()
+not_thread_init()
 {
-    sy_thread_t *bt = sy_thread_get();
+    not_thread_t *bt = not_thread_get();
 
 #ifdef _WIN32
     bt->id = GetCurrentThreadId();
@@ -30,36 +30,36 @@ sy_thread_init()
 
     bt->parent = NULL;
 
-    bt->interpreter = sy_interpreter_create();
+    bt->interpreter = not_interpreter_create();
     if (bt->interpreter == ERROR)
     {
         return -1;
     }
 
-    bt->childrens = sy_queue_create();
+    bt->childrens = not_queue_create();
     if (bt->childrens == ERROR)
     {
-        sy_interpreter_destroy(bt->interpreter);
+        not_interpreter_destroy(bt->interpreter);
         return -1;
     }
 
     return 0;
 }
 
-void sy_thread_destroy()
+void not_thread_destroy()
 {
-    sy_thread_t *thread = sy_thread_get();
-    sy_interpreter_destroy(thread->interpreter);
+    not_thread_t *thread = not_thread_get();
+    not_interpreter_destroy(thread->interpreter);
 }
 
-sy_thread_t *
-sy_thread_get()
+not_thread_t *
+not_thread_get()
 {
     return &base_thread;
 }
 
-sy_thread_t *
-sy_thread_create(
+not_thread_t *
+not_thread_create(
 #ifdef _WIN32
     DWORD (*start_routine)(LPVOID), LPVOID arg
 #else
@@ -67,51 +67,51 @@ sy_thread_create(
 #endif
 )
 {
-    sy_thread_t *t = (sy_thread_t *)sy_memory_calloc(1, sizeof(sy_thread_t));
+    not_thread_t *t = (not_thread_t *)not_memory_calloc(1, sizeof(not_thread_t));
     if (!t)
     {
-        sy_error_no_memory();
+        not_error_no_memory();
         return ERROR;
     }
 
-    t->interpreter = sy_interpreter_create();
+    t->interpreter = not_interpreter_create();
     if (t->interpreter == ERROR)
     {
-        sy_memory_free(t);
+        not_memory_free(t);
         return ERROR;
     }
 
-    t->childrens = sy_queue_create();
+    t->childrens = not_queue_create();
     if (t->childrens == ERROR)
     {
-        sy_interpreter_destroy(t->interpreter);
-        sy_memory_free(t);
+        not_interpreter_destroy(t->interpreter);
+        not_memory_free(t);
         return ERROR;
     }
 
-    sy_thread_t *parent = sy_thread_get_current();
+    not_thread_t *parent = not_thread_get_current();
     if (parent == ERROR)
     {
-        sy_interpreter_destroy(t->interpreter);
-        sy_memory_free(t);
+        not_interpreter_destroy(t->interpreter);
+        not_memory_free(t);
         return ERROR;
     }
 
-    if (ERROR == sy_queue_right_push(parent->childrens, t))
+    if (ERROR == not_queue_right_push(parent->childrens, t))
     {
-        sy_interpreter_destroy(t->interpreter);
-        sy_memory_free(t);
+        not_interpreter_destroy(t->interpreter);
+        not_memory_free(t);
         return ERROR;
     }
 
 #ifdef _WIN32
     DWORD threadId;
-    HANDLE thread = CreateThread(NULL, 0, sy_repository_load_by_thread, &data, 0, &threadId);
+    HANDLE thread = CreateThread(NULL, 0, not_repository_load_by_thread, &data, 0, &threadId);
     if (!thread)
     {
-        sy_interpreter_destroy(t->interpreter);
-        sy_memory_free(t);
-        sy_error_system("new thread not created\n");
+        not_interpreter_destroy(t->interpreter);
+        not_memory_free(t);
+        not_error_system("new thread not created\n");
         return ERROR;
     }
 
@@ -121,9 +121,9 @@ sy_thread_create(
     pthread_t thread;
     if (pthread_create(&thread, NULL, start_routine, arg) != 0)
     {
-        sy_interpreter_destroy(t->interpreter);
-        sy_memory_free(t);
-        sy_error_system("new thread not created\n");
+        not_interpreter_destroy(t->interpreter);
+        not_memory_free(t);
+        not_error_system("new thread not created\n");
         return ERROR;
     }
     t->id = thread;
@@ -132,20 +132,20 @@ sy_thread_create(
     return t;
 }
 
-static sy_thread_t *
-sy_thread_find_by_id(sy_thread_t *parent, sy_thread_id_t id)
+static not_thread_t *
+not_thread_find_by_id(not_thread_t *parent, not_thread_id_t id)
 {
-    sy_queue_entry_t *item;
+    not_queue_entry_t *item;
     for (item = parent->childrens->begin; item != parent->childrens->end; item = item->next)
     {
-        sy_thread_t *t = (sy_thread_t *)item->value;
+        not_thread_t *t = (not_thread_t *)item->value;
 
         if (t->id == id)
         {
             return t;
         }
 
-        sy_thread_t *r1 = sy_thread_find_by_id(t, id);
+        not_thread_t *r1 = not_thread_find_by_id(t, id);
         if (r1 != NULL)
         {
             return r1;
@@ -155,8 +155,8 @@ sy_thread_find_by_id(sy_thread_t *parent, sy_thread_id_t id)
     return NULL;
 }
 
-sy_thread_t *
-sy_thread_get_current()
+not_thread_t *
+not_thread_get_current()
 {
 #ifdef _WIN32
     DWORD id = GetCurrentThreadId();
@@ -164,14 +164,14 @@ sy_thread_get_current()
     pthread_t id = pthread_self();
 #endif
 
-    sy_thread_t *bt = sy_thread_get();
+    not_thread_t *bt = not_thread_get();
 
     if (bt->id == id)
     {
         return bt;
     }
 
-    sy_thread_t *r1 = sy_thread_find_by_id(bt, id);
+    not_thread_t *r1 = not_thread_find_by_id(bt, id);
     if (r1 != NULL)
     {
         return r1;
@@ -181,7 +181,7 @@ sy_thread_get_current()
 }
 
 int32_t
-sy_thread_join(sy_thread_t *thread)
+not_thread_join(not_thread_t *thread)
 {
 #ifdef _WIN32
     int32_t r1 = WaitForSingleObject(thread->thread, INFINITE);
@@ -194,8 +194,8 @@ sy_thread_join(sy_thread_t *thread)
     else
     {
         DWORD request = GetCurrentThreadId();
-        sy_error_system("'%s-%lu' could not join '%lu', %d", "sy_thread",
-                        request, thread->id, GetLastError());
+        not_error_system("'%s-%lu' could not join '%lu', %d", "not_thread",
+                         request, thread->id, GetLastError());
         return -1;
     }
 #else
@@ -207,17 +207,17 @@ sy_thread_join(sy_thread_t *thread)
     else
     {
         pthread_t request = pthread_self();
-        sy_error_system("'%s-%lu' could not join '%lu', %s", "sy_thread",
-                        request, thread->id, strerror(r1));
+        not_error_system("'%s-%lu' could not join '%lu', %s", "not_thread",
+                         request, thread->id, strerror(r1));
         return -1;
     }
 #endif
 }
 
 int32_t
-sy_thread_join_all_childrens()
+not_thread_join_all_childrens()
 {
-    sy_thread_t *thread = sy_thread_get_current();
+    not_thread_t *thread = not_thread_get_current();
     if (thread == ERROR)
     {
         return -1;
@@ -227,10 +227,10 @@ sy_thread_join_all_childrens()
         return 0;
     }
 
-    for (sy_queue_entry_t *item = thread->childrens->begin; item != thread->childrens->end; item = item->next)
+    for (not_queue_entry_t *item = thread->childrens->begin; item != thread->childrens->end; item = item->next)
     {
-        sy_thread_t *t = (sy_thread_t *)item->value;
-        if (sy_thread_join(t) < 0)
+        not_thread_t *t = (not_thread_t *)item->value;
+        if (not_thread_join(t) < 0)
         {
             return -1;
         }
@@ -240,29 +240,29 @@ sy_thread_join_all_childrens()
 }
 
 int32_t
-sy_thread_exit()
+not_thread_exit()
 {
-    sy_thread_t *thread = sy_thread_get_current();
+    not_thread_t *thread = not_thread_get_current();
     if (thread == ERROR)
     {
         return -1;
     }
 
-    sy_thread_t *parent = thread->parent;
+    not_thread_t *parent = thread->parent;
 
-    for (sy_queue_entry_t *a = parent->childrens->begin, *b = NULL; a != parent->childrens->end; a = b)
+    for (not_queue_entry_t *a = parent->childrens->begin, *b = NULL; a != parent->childrens->end; a = b)
     {
         b = a->next;
-        sy_thread_t *t = (sy_thread_t *)a->value;
+        not_thread_t *t = (not_thread_t *)a->value;
         if (t->id == thread->id)
         {
-            sy_queue_unlink(parent->childrens, a);
+            not_queue_unlink(parent->childrens, a);
             break;
         }
     }
 
-    sy_interpreter_destroy(thread->interpreter);
-    sy_memory_free(thread);
+    not_interpreter_destroy(thread->interpreter);
+    not_memory_free(thread);
 
 #ifdef _WIN32
     ExitThread(0);
@@ -272,7 +272,7 @@ sy_thread_exit()
     return 0;
 }
 
-void sy_thread_sleep(uint64_t ms)
+void not_thread_sleep(uint64_t ms)
 {
 #if _WIN32
     sleep(ms);
@@ -281,26 +281,26 @@ void sy_thread_sleep(uint64_t ms)
 #endif
 }
 
-sy_record_t *
-sy_thread_get_rax()
+not_record_t *
+not_thread_get_rax()
 {
-    sy_thread_t *thread = sy_thread_get_current();
-    sy_record_t *value = thread->interpreter->rax;
+    not_thread_t *thread = not_thread_get_current();
+    not_record_t *value = thread->interpreter->rax;
     return value;
 }
 
-void sy_thread_set_rax(sy_record_t *value)
+void not_thread_set_rax(not_record_t *value)
 {
-    sy_thread_t *thread = sy_thread_get_current();
+    not_thread_t *thread = not_thread_get_current();
     thread->interpreter->rax = value;
 }
 
-sy_record_t *
-sy_thread_get_and_set_rax(sy_record_t *value)
+not_record_t *
+not_thread_get_and_set_rax(not_record_t *value)
 {
-    sy_thread_t *thread = sy_thread_get_current();
+    not_thread_t *thread = not_thread_get_current();
 
-    sy_record_t *result = thread->interpreter->rax;
+    not_record_t *result = thread->interpreter->rax;
     thread->interpreter->rax = value;
 
     return result;

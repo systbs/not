@@ -6,24 +6,24 @@
 #define DEFAULT_LIBRARY_PATH "/home/qalam/"
 #define CONSTRUCTOR_STR "constructor"
 
-typedef struct sy_config
+typedef struct not_config
 {
     char input_file[MAX_PATH];
     int32_t expection;
-} sy_config_t;
+} not_config_t;
 
 int32_t
-sy_config_set_input_file(const char *path);
+not_config_set_input_file(const char *path);
 
 char *
-sy_config_get_input_file();
+not_config_get_input_file();
 
 int32_t
-sy_config_init();
+not_config_init();
 
 int32_t
-sy_config_expection_is_enable();
+not_config_expection_is_enable();
 
-void sy_config_expection_set(int32_t expection);
+void not_config_expection_set(int32_t expection);
 
 #endif

@@ -27,19 +27,19 @@
 #include "../strip.h"
 #include "execute.h"
 
-sy_record_t *
-sy_execute_instanceof(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_instanceof(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_INSTANCEOF)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_logical_or(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_logical_or(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        sy_record_t *right = sy_execute_logical_or(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_logical_or(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
@@ -48,15 +48,15 @@ sy_execute_instanceof(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, 
         int32_t r = 0;
         if (right->kind == RECORD_KIND_TYPE)
         {
-            r = sy_execute_value_check_by_type(node, left, right, strip, applicant);
+            r = not_execute_value_check_by_type(node, left, right, strip, applicant);
             if (r < 0)
             {
-                if (sy_record_link_decrease(left) < 0)
+                if (not_record_link_decrease(left) < 0)
                 {
                     return ERROR;
                 }
 
-                if (sy_record_link_decrease(right) < 0)
+                if (not_record_link_decrease(right) < 0)
                 {
                     return ERROR;
                 }
@@ -64,14 +64,14 @@ sy_execute_instanceof(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, 
             }
         }
 
-        sy_record_t *record = sy_record_make_int_from_si(r);
+        not_record_t *record = not_record_make_int_from_si(r);
 
-        if (sy_record_link_decrease(left) < 0)
+        if (not_record_link_decrease(left) < 0)
         {
             return ERROR;
         }
 
-        if (sy_record_link_decrease(right) < 0)
+        if (not_record_link_decrease(right) < 0)
         {
             return ERROR;
         }
@@ -80,6 +80,6 @@ sy_execute_instanceof(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, 
     }
     else
     {
-        return sy_execute_logical_or(node, strip, applicant, origin);
+        return not_execute_logical_or(node, strip, applicant, origin);
     }
 }

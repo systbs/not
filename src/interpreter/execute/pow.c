@@ -95,159 +95,159 @@ int mpf_is_int(mpf_t num)
     return result;
 }
 
-sy_record_t *
-sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant)
+not_record_t *
+not_execute_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
     if (left->kind == RECORD_KIND_UNDEFINED)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "undefined");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "undefined");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "nan");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "nan");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_INT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "int");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "int");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "float");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "float");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "char");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "char");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "string");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "string");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "object");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "object");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "tuple");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "tuple");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "type");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "type");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "struct");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "struct");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "null");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "undefiend", "null");
             return ERROR;
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_NAN)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "undefined");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "undefined");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "nan");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "nan");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_INT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "int");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "int");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "float");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "float");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "char");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "char");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "string");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "string");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "object");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "object");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "tuple");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "tuple");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "type");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "type");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "struct");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "struct");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "null");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "nan", "null");
             return ERROR;
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_INT)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "undefined");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "undefined");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "nan");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "nan");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_INT)
@@ -265,7 +265,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(num1);
             mpz_clear(num2);
 
-            sy_record_t *record = NULL;
+            not_record_t *record = NULL;
 
             if (mpf_is_int(result))
             {
@@ -273,13 +273,13 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
                 mpz_init(result_mpz);
                 mpz_set_f(result_mpz, result);
 
-                record = sy_record_make_int_from_z(result_mpz);
+                record = not_record_make_int_from_z(result_mpz);
 
                 mpz_clear(result_mpz);
             }
             else
             {
-                record = sy_record_make_float_from_f(result);
+                record = not_record_make_float_from_f(result);
             }
 
             mpf_clear(result);
@@ -298,7 +298,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpf_pow(result, num1, (*(mpf_t *)(right->value)));
             mpf_clear(num1);
 
-            sy_record_t *record = sy_record_make_float_from_f(result);
+            not_record_t *record = not_record_make_float_from_f(result);
 
             mpf_clear(result);
 
@@ -319,7 +319,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(num1);
             mpz_clear(num2);
 
-            sy_record_t *record = NULL;
+            not_record_t *record = NULL;
 
             if (mpf_is_int(result))
             {
@@ -327,13 +327,13 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
                 mpz_init(result_mpz);
                 mpz_set_f(result_mpz, result);
 
-                record = sy_record_make_int_from_z(result_mpz);
+                record = not_record_make_int_from_z(result_mpz);
 
                 mpz_clear(result_mpz);
             }
             else
             {
-                record = sy_record_make_float_from_f(result);
+                record = not_record_make_float_from_f(result);
             }
 
             mpf_clear(result);
@@ -343,54 +343,54 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
         else if (right->kind == RECORD_KIND_STRING)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "string");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "string");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "object");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "object");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "tuple");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "tuple");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "type");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "type");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "struct");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "struct");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "null");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "int", "null");
             return ERROR;
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "undefined");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "undefined");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "nan");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "nan");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_INT)
@@ -409,7 +409,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(num1);
             mpz_clear(num2);
 
-            sy_record_t *record = NULL;
+            not_record_t *record = NULL;
 
             if (mpf_is_int(result))
             {
@@ -417,13 +417,13 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
                 mpz_init(result_mpz);
                 mpz_set_f(result_mpz, result);
 
-                record = sy_record_make_int_from_z(result_mpz);
+                record = not_record_make_int_from_z(result_mpz);
 
                 mpz_clear(result_mpz);
             }
             else
             {
-                record = sy_record_make_float_from_f(result);
+                record = not_record_make_float_from_f(result);
             }
 
             mpf_clear(result);
@@ -438,7 +438,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
 
             mpf_pow(result, (*(mpf_t *)(left->value)), (*(mpf_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_float_from_f(result);
+            not_record_t *record = not_record_make_float_from_f(result);
 
             mpf_clear(result);
 
@@ -455,7 +455,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpf_pow(result, (*(mpf_t *)(left->value)), num2);
             mpf_clear(num2);
 
-            sy_record_t *record = sy_record_make_float_from_f(result);
+            not_record_t *record = not_record_make_float_from_f(result);
 
             mpf_clear(result);
 
@@ -464,54 +464,54 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
         else if (right->kind == RECORD_KIND_STRING)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "string");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "string");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "object");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "object");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "tuple");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "tuple");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "type");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "type");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "struct");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "struct");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "null");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "float", "null");
             return ERROR;
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "undefined");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "undefined");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "nan");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "nan");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_INT)
@@ -529,7 +529,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(num1);
             mpz_clear(num2);
 
-            sy_record_t *record = NULL;
+            not_record_t *record = NULL;
 
             if (mpf_is_int(result))
             {
@@ -537,13 +537,13 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
                 mpz_init(result_mpz);
                 mpz_set_f(result_mpz, result);
 
-                record = sy_record_make_int_from_z(result_mpz);
+                record = not_record_make_int_from_z(result_mpz);
 
                 mpz_clear(result_mpz);
             }
             else
             {
-                record = sy_record_make_float_from_f(result);
+                record = not_record_make_float_from_f(result);
             }
 
             mpf_clear(result);
@@ -561,7 +561,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpf_pow(result, num1, (*(mpf_t *)(right->value)));
             mpf_clear(num1);
 
-            sy_record_t *record = sy_record_make_float_from_f(result);
+            not_record_t *record = not_record_make_float_from_f(result);
 
             mpf_clear(result);
 
@@ -582,7 +582,7 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(num1);
             mpz_clear(num2);
 
-            sy_record_t *record = NULL;
+            not_record_t *record = NULL;
 
             if (mpf_is_int(result))
             {
@@ -590,13 +590,13 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
                 mpz_init(result_mpz);
                 mpz_set_f(result_mpz, result);
 
-                record = sy_record_make_int_from_z(result_mpz);
+                record = not_record_make_int_from_z(result_mpz);
 
                 mpz_clear(result_mpz);
             }
             else
             {
-                record = sy_record_make_float_from_f(result);
+                record = not_record_make_float_from_f(result);
             }
 
             mpf_clear(result);
@@ -606,420 +606,420 @@ sy_execute_pow(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
         else if (right->kind == RECORD_KIND_STRING)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "string");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "string");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "object");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "object");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "tuple");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "tuple");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "type");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "type");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "struct");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "struct");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "null");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "char", "null");
             return ERROR;
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_STRING)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "undefined");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "undefined");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "nan");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "nan");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_INT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "int");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "int");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "float");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "float");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "char");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "char");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "string");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "string");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "object");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "object");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "tuple");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "tuple");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "type");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "type");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "struct");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "struct");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "null");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "string", "null");
             return ERROR;
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_OBJECT)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "undefined");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "undefined");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "nan");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "nan");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_INT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "int");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "int");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "float");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "float");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "char");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "char");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "object");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "object");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "object");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "object");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "tuple");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "tuple");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "type");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "type");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "struct");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "struct");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "null");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "object", "null");
             return ERROR;
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_TUPLE)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "undefined");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "undefined");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "nan");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "nan");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_INT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "int");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "int");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "float");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "float");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "char");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "char");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "tuple");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "tuple");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "object");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "object");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "tuple");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "tuple");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "type");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "type");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "struct");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "struct");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "null");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "tuple", "null");
             return ERROR;
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_TYPE)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "undefined");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "undefined");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "nan");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "nan");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_INT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "int");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "int");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "float");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "float");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "char");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "char");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "type");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "type");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "object");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "object");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "tuple");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "tuple");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "type");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "type");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "struct");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "struct");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "null");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "type", "null");
             return ERROR;
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_STRUCT)
     {
-        return sy_call_operator_by_one_arg(node, left, right, "**", applicant);
+        return not_call_operator_by_one_arg(node, left, right, "**", applicant);
     }
     else if (left->kind == RECORD_KIND_NULL)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "undefined");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "undefined");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "nan");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "nan");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_INT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "int");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "int");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "float");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "float");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "char");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "char");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "null");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "null");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "object");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "object");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "tuple");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "tuple");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
 
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "type");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "type");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "struct");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "struct");
             return ERROR;
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-            sy_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "null");
+            not_error_type_by_node(node, "unsupported operand type(s) for **: '%s' and '%s'", "null", "null");
             return ERROR;
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
 
-    return sy_record_make_undefined();
+    return not_record_make_undefined();
 }
 
-sy_record_t *
-sy_execute_power(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_power(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_POW)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_power(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_power(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        sy_record_t *right = sy_execute_prefix(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_prefix(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            sy_record_link_decrease(left);
+            not_record_link_decrease(left);
             return ERROR;
         }
 
-        sy_record_t *record = sy_execute_pow(node, left, right, applicant);
+        not_record_t *record = not_execute_pow(node, left, right, applicant);
 
-        if (sy_record_link_decrease(left) < 0)
+        if (not_record_link_decrease(left) < 0)
         {
             return ERROR;
         }
 
-        if (sy_record_link_decrease(right) < 0)
+        if (not_record_link_decrease(right) < 0)
         {
             return ERROR;
         }
@@ -1028,6 +1028,6 @@ sy_execute_power(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
     }
     else
     {
-        return sy_execute_prefix(node, strip, applicant, origin);
+        return not_execute_prefix(node, strip, applicant, origin);
     }
 }

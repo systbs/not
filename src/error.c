@@ -29,7 +29,7 @@ enum
     ERR_TYPE_TYPE
 };
 
-void sy_error_fatal_format_arg(const char *format, va_list arg)
+void not_error_fatal_format_arg(const char *format, va_list arg)
 {
     if (format)
     {
@@ -42,72 +42,72 @@ void sy_error_fatal_format_arg(const char *format, va_list arg)
     exit(-1);
 }
 
-void sy_error_fatal_format(const char *format, ...)
+void not_error_fatal_format(const char *format, ...)
 {
     va_list arg;
     if (format)
     {
         va_start(arg, format);
-        sy_error_fatal_format_arg(format, arg);
+        not_error_fatal_format_arg(format, arg);
         va_end(arg);
     }
 }
 
-void sy_error_no_memory()
+void not_error_no_memory()
 {
-    if (sy_config_expection_is_enable())
+    if (not_config_expection_is_enable())
     {
-        sy_config_expection_set(0);
+        not_config_expection_set(0);
 
-        sy_record_t *code = sy_record_make_int_from_si(ERR_LEXER_TYPE);
-        sy_record_t *message = sy_record_make_string("Out of memory");
+        not_record_t *code = not_record_make_int_from_si(ERR_LEXER_TYPE);
+        not_record_t *message = not_record_make_string("Out of memory");
         if ((code == ERROR) || (message == ERROR))
         {
             goto region_fatal;
         }
 
-        sy_record_object_t *object_code = sy_record_make_object("code", code, NULL);
+        not_record_object_t *object_code = not_record_make_object("code", code, NULL);
         if (object_code == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_message = sy_record_make_object("message", message, object_code);
+        not_record_object_t *object_message = not_record_make_object("message", message, object_code);
         if (object_message == ERROR)
         {
             goto region_fatal;
         }
 
-        sy_record_t *record_error = sy_record_create(RECORD_KIND_OBJECT, object_message);
+        not_record_t *record_error = not_record_create(RECORD_KIND_OBJECT, object_message);
         if (object_message == ERROR)
         {
-            sy_record_object_destroy(object_message);
+            not_record_object_destroy(object_message);
             goto region_fatal;
         }
 
-        sy_thread_t *t = sy_thread_get_current();
+        not_thread_t *t = not_thread_get_current();
         if (!t)
         {
             goto region_fatal;
         }
 
-        if (ERROR == sy_queue_right_push(t->interpreter->expections, record_error))
+        if (ERROR == not_queue_right_push(t->interpreter->expections, record_error))
         {
             goto region_fatal;
         }
 
-        sy_config_expection_set(1);
+        not_config_expection_set(1);
         return;
     }
 
 region_fatal:
-    sy_error_fatal_format("Out of memory");
+    not_error_fatal_format("Out of memory");
 }
 
-void sy_error_system(const char *format, ...)
+void not_error_system(const char *format, ...)
 {
-    if (sy_config_expection_is_enable())
+    if (not_config_expection_is_enable())
     {
-        sy_config_expection_set(0);
+        not_config_expection_set(0);
 
         char message_str[4096];
         memset(message_str, 0, 4096);
@@ -119,90 +119,90 @@ void sy_error_system(const char *format, ...)
             va_end(arg);
         }
 
-        sy_record_t *code = sy_record_make_int_from_si(ERR_LEXER_TYPE);
-        sy_record_t *message = sy_record_make_string(message_str);
+        not_record_t *code = not_record_make_int_from_si(ERR_LEXER_TYPE);
+        not_record_t *message = not_record_make_string(message_str);
         if ((code == ERROR) || (message == ERROR))
         {
             goto region_fatal;
         }
 
-        sy_record_object_t *object_code = sy_record_make_object("code", code, NULL);
+        not_record_object_t *object_code = not_record_make_object("code", code, NULL);
         if (object_code == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_message = sy_record_make_object("message", message, object_code);
+        not_record_object_t *object_message = not_record_make_object("message", message, object_code);
         if (object_message == ERROR)
         {
             goto region_fatal;
         }
 
-        sy_record_t *record_error = sy_record_create(RECORD_KIND_OBJECT, object_message);
+        not_record_t *record_error = not_record_create(RECORD_KIND_OBJECT, object_message);
         if (object_message == ERROR)
         {
-            sy_record_object_destroy(object_message);
+            not_record_object_destroy(object_message);
             goto region_fatal;
         }
 
-        sy_thread_t *t = sy_thread_get_current();
+        not_thread_t *t = not_thread_get_current();
         if (!t)
         {
             goto region_fatal;
         }
 
-        if (ERROR == sy_queue_right_push(t->interpreter->expections, record_error))
+        if (ERROR == not_queue_right_push(t->interpreter->expections, record_error))
         {
             goto region_fatal;
         }
 
-        sy_config_expection_set(1);
+        not_config_expection_set(1);
         return;
     }
 
 region_fatal:
     va_list arg;
     va_start(arg, format);
-    sy_error_fatal_format_arg(format, arg);
+    not_error_fatal_format_arg(format, arg);
     va_end(arg);
 }
 
-void sy_error_lexer_by_position(sy_position_t position, const char *format, ...)
+void not_error_lexer_by_position(not_position_t position, const char *format, ...)
 {
-    if (sy_config_expection_is_enable())
+    if (not_config_expection_is_enable())
     {
-        sy_config_expection_set(0);
+        not_config_expection_set(0);
 
-        sy_record_t *line = sy_record_make_int_from_ui(position.line);
-        sy_record_t *column = sy_record_make_int_from_ui(position.column);
-        sy_record_t *offset = sy_record_make_int_from_ui(position.offset);
-        sy_record_t *path = sy_record_make_string(position.path);
+        not_record_t *line = not_record_make_int_from_ui(position.line);
+        not_record_t *column = not_record_make_int_from_ui(position.column);
+        not_record_t *offset = not_record_make_int_from_ui(position.offset);
+        not_record_t *path = not_record_make_string(position.path);
         if ((line == ERROR) || (column == ERROR) || (offset == ERROR) || (path == ERROR))
         {
             goto region_fatal;
         }
 
-        sy_record_object_t *object_line = sy_record_make_object("line", line, NULL);
+        not_record_object_t *object_line = not_record_make_object("line", line, NULL);
         if (object_line == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_column = sy_record_make_object("column", column, object_line);
+        not_record_object_t *object_column = not_record_make_object("column", column, object_line);
         if (object_column == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_offset = sy_record_make_object("offset", offset, object_column);
+        not_record_object_t *object_offset = not_record_make_object("offset", offset, object_column);
         if (object_offset == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_path = sy_record_make_object("path", path, object_offset);
+        not_record_object_t *object_path = not_record_make_object("path", path, object_offset);
         if (object_path == ERROR)
         {
             goto region_fatal;
         }
 
-        sy_record_t *record_position = sy_record_create(RECORD_KIND_OBJECT, object_path);
+        not_record_t *record_position = not_record_create(RECORD_KIND_OBJECT, object_path);
         if (record_position == ERROR)
         {
             goto region_fatal;
@@ -218,48 +218,48 @@ void sy_error_lexer_by_position(sy_position_t position, const char *format, ...)
             va_end(arg);
         }
 
-        sy_record_t *code = sy_record_make_int_from_si(ERR_LEXER_TYPE);
-        sy_record_t *message = sy_record_make_string(message_str);
+        not_record_t *code = not_record_make_int_from_si(ERR_LEXER_TYPE);
+        not_record_t *message = not_record_make_string(message_str);
         if ((code == ERROR) || (message == ERROR))
         {
             goto region_fatal;
         }
 
-        sy_record_object_t *object_position = sy_record_make_object("position", record_position, NULL);
+        not_record_object_t *object_position = not_record_make_object("position", record_position, NULL);
         if (object_position == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_code = sy_record_make_object("code", code, object_position);
+        not_record_object_t *object_code = not_record_make_object("code", code, object_position);
         if (object_code == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_message = sy_record_make_object("message", message, object_code);
+        not_record_object_t *object_message = not_record_make_object("message", message, object_code);
         if (object_message == ERROR)
         {
             goto region_fatal;
         }
 
-        sy_record_t *record_error = sy_record_create(RECORD_KIND_OBJECT, object_message);
+        not_record_t *record_error = not_record_create(RECORD_KIND_OBJECT, object_message);
         if (object_message == ERROR)
         {
-            sy_record_object_destroy(object_message);
+            not_record_object_destroy(object_message);
             goto region_fatal;
         }
 
-        sy_thread_t *t = sy_thread_get_current();
+        not_thread_t *t = not_thread_get_current();
         if (!t)
         {
             goto region_fatal;
         }
 
-        if (ERROR == sy_queue_right_push(t->interpreter->expections, record_error))
+        if (ERROR == not_queue_right_push(t->interpreter->expections, record_error))
         {
             goto region_fatal;
         }
 
-        sy_config_expection_set(1);
+        not_config_expection_set(1);
         return;
     }
 
@@ -267,10 +267,10 @@ region_fatal:
     fputs("Traceback:\n", stderr);
 
     char base_path[MAX_PATH];
-    sy_path_get_current_directory(base_path, MAX_PATH);
+    not_path_get_current_directory(base_path, MAX_PATH);
 
     char relative_path[MAX_PATH];
-    sy_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
+    not_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
 
     fprintf(stderr,
             "File \"%s\", Line %lld, Column %lld\n",
@@ -383,43 +383,43 @@ region_fatal:
     exit(-1);
 }
 
-void sy_error_syntax_by_position(sy_position_t position, const char *format, ...)
+void not_error_syntax_by_position(not_position_t position, const char *format, ...)
 {
-    if (sy_config_expection_is_enable())
+    if (not_config_expection_is_enable())
     {
-        sy_config_expection_set(0);
+        not_config_expection_set(0);
 
-        sy_record_t *line = sy_record_make_int_from_ui(position.line);
-        sy_record_t *column = sy_record_make_int_from_ui(position.column);
-        sy_record_t *offset = sy_record_make_int_from_ui(position.offset);
-        sy_record_t *path = sy_record_make_string(position.path);
+        not_record_t *line = not_record_make_int_from_ui(position.line);
+        not_record_t *column = not_record_make_int_from_ui(position.column);
+        not_record_t *offset = not_record_make_int_from_ui(position.offset);
+        not_record_t *path = not_record_make_string(position.path);
         if ((line == ERROR) || (column == ERROR) || (offset == ERROR) || (path == ERROR))
         {
             goto region_fatal;
         }
 
-        sy_record_object_t *object_line = sy_record_make_object("line", line, NULL);
+        not_record_object_t *object_line = not_record_make_object("line", line, NULL);
         if (object_line == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_column = sy_record_make_object("column", column, object_line);
+        not_record_object_t *object_column = not_record_make_object("column", column, object_line);
         if (object_column == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_offset = sy_record_make_object("offset", offset, object_column);
+        not_record_object_t *object_offset = not_record_make_object("offset", offset, object_column);
         if (object_offset == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_path = sy_record_make_object("path", path, object_offset);
+        not_record_object_t *object_path = not_record_make_object("path", path, object_offset);
         if (object_path == ERROR)
         {
             goto region_fatal;
         }
 
-        sy_record_t *record_position = sy_record_create(RECORD_KIND_OBJECT, object_path);
+        not_record_t *record_position = not_record_create(RECORD_KIND_OBJECT, object_path);
         if (record_position == ERROR)
         {
             goto region_fatal;
@@ -435,48 +435,48 @@ void sy_error_syntax_by_position(sy_position_t position, const char *format, ...
             va_end(arg);
         }
 
-        sy_record_t *code = sy_record_make_int_from_si(ERR_SYNTAX_TYPE);
-        sy_record_t *message = sy_record_make_string(message_str);
+        not_record_t *code = not_record_make_int_from_si(ERR_SYNTAX_TYPE);
+        not_record_t *message = not_record_make_string(message_str);
         if ((code == ERROR) || (message == ERROR))
         {
             goto region_fatal;
         }
 
-        sy_record_object_t *object_position = sy_record_make_object("position", record_position, NULL);
+        not_record_object_t *object_position = not_record_make_object("position", record_position, NULL);
         if (object_position == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_code = sy_record_make_object("code", code, object_position);
+        not_record_object_t *object_code = not_record_make_object("code", code, object_position);
         if (object_code == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_message = sy_record_make_object("message", message, object_code);
+        not_record_object_t *object_message = not_record_make_object("message", message, object_code);
         if (object_message == ERROR)
         {
             goto region_fatal;
         }
 
-        sy_record_t *record_error = sy_record_create(RECORD_KIND_OBJECT, object_message);
+        not_record_t *record_error = not_record_create(RECORD_KIND_OBJECT, object_message);
         if (object_message == ERROR)
         {
-            sy_record_object_destroy(object_message);
+            not_record_object_destroy(object_message);
             goto region_fatal;
         }
 
-        sy_thread_t *t = sy_thread_get_current();
+        not_thread_t *t = not_thread_get_current();
         if (!t)
         {
             goto region_fatal;
         }
 
-        if (ERROR == sy_queue_right_push(t->interpreter->expections, record_error))
+        if (ERROR == not_queue_right_push(t->interpreter->expections, record_error))
         {
             goto region_fatal;
         }
 
-        sy_config_expection_set(1);
+        not_config_expection_set(1);
         return;
     }
 
@@ -484,10 +484,10 @@ region_fatal:
     fputs("Traceback:\n", stderr);
 
     char base_path[MAX_PATH];
-    sy_path_get_current_directory(base_path, MAX_PATH);
+    not_path_get_current_directory(base_path, MAX_PATH);
 
     char relative_path[MAX_PATH];
-    sy_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
+    not_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
 
     fprintf(stderr,
             "File \"%s\", Line %lld, Column %lld\n",
@@ -599,45 +599,45 @@ region_fatal:
     fflush(stderr);
 }
 
-void sy_error_semantic_by_node(sy_node_t *node, const char *format, ...)
+void not_error_semantic_by_node(not_node_t *node, const char *format, ...)
 {
-    if (sy_config_expection_is_enable())
+    if (not_config_expection_is_enable())
     {
-        sy_config_expection_set(0);
+        not_config_expection_set(0);
 
-        sy_position_t position = node->position;
+        not_position_t position = node->position;
 
-        sy_record_t *line = sy_record_make_int_from_ui(position.line);
-        sy_record_t *column = sy_record_make_int_from_ui(position.column);
-        sy_record_t *offset = sy_record_make_int_from_ui(position.offset);
-        sy_record_t *path = sy_record_make_string(position.path);
+        not_record_t *line = not_record_make_int_from_ui(position.line);
+        not_record_t *column = not_record_make_int_from_ui(position.column);
+        not_record_t *offset = not_record_make_int_from_ui(position.offset);
+        not_record_t *path = not_record_make_string(position.path);
         if ((line == ERROR) || (column == ERROR) || (offset == ERROR) || (path == ERROR))
         {
             goto region_fatal;
         }
 
-        sy_record_object_t *object_line = sy_record_make_object("line", line, NULL);
+        not_record_object_t *object_line = not_record_make_object("line", line, NULL);
         if (object_line == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_column = sy_record_make_object("column", column, object_line);
+        not_record_object_t *object_column = not_record_make_object("column", column, object_line);
         if (object_column == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_offset = sy_record_make_object("offset", offset, object_column);
+        not_record_object_t *object_offset = not_record_make_object("offset", offset, object_column);
         if (object_offset == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_path = sy_record_make_object("path", path, object_offset);
+        not_record_object_t *object_path = not_record_make_object("path", path, object_offset);
         if (object_path == ERROR)
         {
             goto region_fatal;
         }
 
-        sy_record_t *record_position = sy_record_create(RECORD_KIND_OBJECT, object_path);
+        not_record_t *record_position = not_record_create(RECORD_KIND_OBJECT, object_path);
         if (record_position == ERROR)
         {
             goto region_fatal;
@@ -653,61 +653,61 @@ void sy_error_semantic_by_node(sy_node_t *node, const char *format, ...)
             va_end(arg);
         }
 
-        sy_record_t *code = sy_record_make_int_from_si(ERR_SEMANTIC_TYPE);
-        sy_record_t *message = sy_record_make_string(message_str);
+        not_record_t *code = not_record_make_int_from_si(ERR_SEMANTIC_TYPE);
+        not_record_t *message = not_record_make_string(message_str);
         if ((code == ERROR) || (message == ERROR))
         {
             goto region_fatal;
         }
 
-        sy_record_object_t *object_position = sy_record_make_object("position", record_position, NULL);
+        not_record_object_t *object_position = not_record_make_object("position", record_position, NULL);
         if (object_position == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_code = sy_record_make_object("code", code, object_position);
+        not_record_object_t *object_code = not_record_make_object("code", code, object_position);
         if (object_code == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_message = sy_record_make_object("message", message, object_code);
+        not_record_object_t *object_message = not_record_make_object("message", message, object_code);
         if (object_message == ERROR)
         {
             goto region_fatal;
         }
 
-        sy_record_t *record_error = sy_record_create(RECORD_KIND_OBJECT, object_message);
+        not_record_t *record_error = not_record_create(RECORD_KIND_OBJECT, object_message);
         if (object_message == ERROR)
         {
-            sy_record_object_destroy(object_message);
+            not_record_object_destroy(object_message);
             goto region_fatal;
         }
 
-        sy_thread_t *t = sy_thread_get_current();
+        not_thread_t *t = not_thread_get_current();
         if (!t)
         {
             goto region_fatal;
         }
 
-        if (ERROR == sy_queue_right_push(t->interpreter->expections, record_error))
+        if (ERROR == not_queue_right_push(t->interpreter->expections, record_error))
         {
             goto region_fatal;
         }
 
-        sy_config_expection_set(1);
+        not_config_expection_set(1);
         return;
     }
 
 region_fatal:
     fputs("Traceback:\n", stderr);
 
-    sy_position_t position = node->position;
+    not_position_t position = node->position;
 
     char base_path[MAX_PATH];
-    sy_path_get_current_directory(base_path, MAX_PATH);
+    not_path_get_current_directory(base_path, MAX_PATH);
 
     char relative_path[MAX_PATH];
-    sy_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
+    not_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
 
     fprintf(stderr,
             "File \"%s\", Line %lld, Column %lld",
@@ -715,7 +715,7 @@ region_fatal:
             position.line,
             position.column);
 
-    sy_node_t *node1 = node;
+    not_node_t *node1 = node;
     while (node1 != NULL)
     {
         if (node1->kind == NODE_KIND_MODULE)
@@ -726,9 +726,9 @@ region_fatal:
         }
         else if (node1->kind == NODE_KIND_CLASS)
         {
-            sy_node_class_t *class1 = (sy_node_class_t *)node1->value;
-            sy_node_t *key1 = class1->key;
-            sy_node_basic_t *keSy_string1 = key1->value;
+            not_node_class_t *class1 = (not_node_class_t *)node1->value;
+            not_node_t *key1 = class1->key;
+            not_node_basic_t *keSy_string1 = key1->value;
 
             fprintf(stderr,
                     ", Class <%s>", keSy_string1->value);
@@ -736,9 +736,9 @@ region_fatal:
         }
         else if (node1->kind == NODE_KIND_FUN)
         {
-            sy_node_fun_t *fun1 = (sy_node_fun_t *)node1->value;
-            sy_node_t *key1 = fun1->key;
-            sy_node_basic_t *keSy_string1 = key1->value;
+            not_node_fun_t *fun1 = (not_node_fun_t *)node1->value;
+            not_node_t *key1 = fun1->key;
+            not_node_basic_t *keSy_string1 = key1->value;
 
             fprintf(stderr,
                     ", fun <%s>", keSy_string1->value);
@@ -851,45 +851,45 @@ region_fatal:
     fflush(stderr);
 }
 
-void sy_error_runtime_by_node(sy_node_t *node, const char *format, ...)
+void not_error_runtime_by_node(not_node_t *node, const char *format, ...)
 {
-    if (sy_config_expection_is_enable())
+    if (not_config_expection_is_enable())
     {
-        sy_config_expection_set(0);
+        not_config_expection_set(0);
 
-        sy_position_t position = node->position;
+        not_position_t position = node->position;
 
-        sy_record_t *line = sy_record_make_int_from_ui(position.line);
-        sy_record_t *column = sy_record_make_int_from_ui(position.column);
-        sy_record_t *offset = sy_record_make_int_from_ui(position.offset);
-        sy_record_t *path = sy_record_make_string(position.path);
+        not_record_t *line = not_record_make_int_from_ui(position.line);
+        not_record_t *column = not_record_make_int_from_ui(position.column);
+        not_record_t *offset = not_record_make_int_from_ui(position.offset);
+        not_record_t *path = not_record_make_string(position.path);
         if ((line == ERROR) || (column == ERROR) || (offset == ERROR) || (path == ERROR))
         {
             goto region_fatal;
         }
 
-        sy_record_object_t *object_line = sy_record_make_object("line", line, NULL);
+        not_record_object_t *object_line = not_record_make_object("line", line, NULL);
         if (object_line == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_column = sy_record_make_object("column", column, object_line);
+        not_record_object_t *object_column = not_record_make_object("column", column, object_line);
         if (object_column == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_offset = sy_record_make_object("offset", offset, object_column);
+        not_record_object_t *object_offset = not_record_make_object("offset", offset, object_column);
         if (object_offset == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_path = sy_record_make_object("path", path, object_offset);
+        not_record_object_t *object_path = not_record_make_object("path", path, object_offset);
         if (object_path == ERROR)
         {
             goto region_fatal;
         }
 
-        sy_record_t *record_position = sy_record_create(RECORD_KIND_OBJECT, object_path);
+        not_record_t *record_position = not_record_create(RECORD_KIND_OBJECT, object_path);
         if (record_position == ERROR)
         {
             goto region_fatal;
@@ -905,61 +905,61 @@ void sy_error_runtime_by_node(sy_node_t *node, const char *format, ...)
             va_end(arg);
         }
 
-        sy_record_t *code = sy_record_make_int_from_si(ERR_RUNTIME_TYPE);
-        sy_record_t *message = sy_record_make_string(message_str);
+        not_record_t *code = not_record_make_int_from_si(ERR_RUNTIME_TYPE);
+        not_record_t *message = not_record_make_string(message_str);
         if ((code == ERROR) || (message == ERROR))
         {
             goto region_fatal;
         }
 
-        sy_record_object_t *object_position = sy_record_make_object("position", record_position, NULL);
+        not_record_object_t *object_position = not_record_make_object("position", record_position, NULL);
         if (object_position == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_code = sy_record_make_object("code", code, object_position);
+        not_record_object_t *object_code = not_record_make_object("code", code, object_position);
         if (object_code == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_message = sy_record_make_object("message", message, object_code);
+        not_record_object_t *object_message = not_record_make_object("message", message, object_code);
         if (object_message == ERROR)
         {
             goto region_fatal;
         }
 
-        sy_record_t *record_error = sy_record_create(RECORD_KIND_OBJECT, object_message);
+        not_record_t *record_error = not_record_create(RECORD_KIND_OBJECT, object_message);
         if (object_message == ERROR)
         {
-            sy_record_object_destroy(object_message);
+            not_record_object_destroy(object_message);
             goto region_fatal;
         }
 
-        sy_thread_t *t = sy_thread_get_current();
+        not_thread_t *t = not_thread_get_current();
         if (!t)
         {
             goto region_fatal;
         }
 
-        if (ERROR == sy_queue_right_push(t->interpreter->expections, record_error))
+        if (ERROR == not_queue_right_push(t->interpreter->expections, record_error))
         {
             goto region_fatal;
         }
 
-        sy_config_expection_set(1);
+        not_config_expection_set(1);
         return;
     }
 
 region_fatal:
     fputs("Traceback:\n", stderr);
 
-    sy_position_t position = node->position;
+    not_position_t position = node->position;
 
     char base_path[MAX_PATH];
-    sy_path_get_current_directory(base_path, MAX_PATH);
+    not_path_get_current_directory(base_path, MAX_PATH);
 
     char relative_path[MAX_PATH];
-    sy_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
+    not_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
 
     fprintf(stderr,
             "File \"%s\", Line %lld, Column %lld",
@@ -967,7 +967,7 @@ region_fatal:
             position.line,
             position.column);
 
-    sy_node_t *node1 = node;
+    not_node_t *node1 = node;
     while (node1 != NULL)
     {
         if (node1->kind == NODE_KIND_MODULE)
@@ -978,9 +978,9 @@ region_fatal:
         }
         else if (node1->kind == NODE_KIND_CLASS)
         {
-            sy_node_class_t *class1 = (sy_node_class_t *)node1->value;
-            sy_node_t *key1 = class1->key;
-            sy_node_basic_t *keSy_string1 = key1->value;
+            not_node_class_t *class1 = (not_node_class_t *)node1->value;
+            not_node_t *key1 = class1->key;
+            not_node_basic_t *keSy_string1 = key1->value;
 
             fprintf(stderr,
                     ", Class <%s>", keSy_string1->value);
@@ -988,9 +988,9 @@ region_fatal:
         }
         else if (node1->kind == NODE_KIND_FUN)
         {
-            sy_node_fun_t *fun1 = (sy_node_fun_t *)node1->value;
-            sy_node_t *key1 = fun1->key;
-            sy_node_basic_t *keSy_string1 = key1->value;
+            not_node_fun_t *fun1 = (not_node_fun_t *)node1->value;
+            not_node_t *key1 = fun1->key;
+            not_node_basic_t *keSy_string1 = key1->value;
 
             fprintf(stderr,
                     ", fun <%s>", keSy_string1->value);
@@ -1103,45 +1103,45 @@ region_fatal:
     fflush(stderr);
 }
 
-void sy_error_type_by_node(sy_node_t *node, const char *format, ...)
+void not_error_type_by_node(not_node_t *node, const char *format, ...)
 {
-    if (sy_config_expection_is_enable())
+    if (not_config_expection_is_enable())
     {
-        sy_config_expection_set(0);
+        not_config_expection_set(0);
 
-        sy_position_t position = node->position;
+        not_position_t position = node->position;
 
-        sy_record_t *line = sy_record_make_int_from_ui(position.line);
-        sy_record_t *column = sy_record_make_int_from_ui(position.column);
-        sy_record_t *offset = sy_record_make_int_from_ui(position.offset);
-        sy_record_t *path = sy_record_make_string(position.path);
+        not_record_t *line = not_record_make_int_from_ui(position.line);
+        not_record_t *column = not_record_make_int_from_ui(position.column);
+        not_record_t *offset = not_record_make_int_from_ui(position.offset);
+        not_record_t *path = not_record_make_string(position.path);
         if ((line == ERROR) || (column == ERROR) || (offset == ERROR) || (path == ERROR))
         {
             goto region_fatal;
         }
 
-        sy_record_object_t *object_line = sy_record_make_object("line", line, NULL);
+        not_record_object_t *object_line = not_record_make_object("line", line, NULL);
         if (object_line == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_column = sy_record_make_object("column", column, object_line);
+        not_record_object_t *object_column = not_record_make_object("column", column, object_line);
         if (object_column == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_offset = sy_record_make_object("offset", offset, object_column);
+        not_record_object_t *object_offset = not_record_make_object("offset", offset, object_column);
         if (object_offset == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_path = sy_record_make_object("path", path, object_offset);
+        not_record_object_t *object_path = not_record_make_object("path", path, object_offset);
         if (object_path == ERROR)
         {
             goto region_fatal;
         }
 
-        sy_record_t *record_position = sy_record_create(RECORD_KIND_OBJECT, object_path);
+        not_record_t *record_position = not_record_create(RECORD_KIND_OBJECT, object_path);
         if (record_position == ERROR)
         {
             goto region_fatal;
@@ -1157,61 +1157,61 @@ void sy_error_type_by_node(sy_node_t *node, const char *format, ...)
             va_end(arg);
         }
 
-        sy_record_t *code = sy_record_make_int_from_si(ERR_TYPE_TYPE);
-        sy_record_t *message = sy_record_make_string(message_str);
+        not_record_t *code = not_record_make_int_from_si(ERR_TYPE_TYPE);
+        not_record_t *message = not_record_make_string(message_str);
         if ((code == ERROR) || (message == ERROR))
         {
             goto region_fatal;
         }
 
-        sy_record_object_t *object_position = sy_record_make_object("position", record_position, NULL);
+        not_record_object_t *object_position = not_record_make_object("position", record_position, NULL);
         if (object_position == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_code = sy_record_make_object("code", code, object_position);
+        not_record_object_t *object_code = not_record_make_object("code", code, object_position);
         if (object_code == ERROR)
         {
             goto region_fatal;
         }
-        sy_record_object_t *object_message = sy_record_make_object("message", message, object_code);
+        not_record_object_t *object_message = not_record_make_object("message", message, object_code);
         if (object_message == ERROR)
         {
             goto region_fatal;
         }
 
-        sy_record_t *record_error = sy_record_create(RECORD_KIND_OBJECT, object_message);
+        not_record_t *record_error = not_record_create(RECORD_KIND_OBJECT, object_message);
         if (object_message == ERROR)
         {
-            sy_record_object_destroy(object_message);
+            not_record_object_destroy(object_message);
             goto region_fatal;
         }
 
-        sy_thread_t *t = sy_thread_get_current();
+        not_thread_t *t = not_thread_get_current();
         if (!t)
         {
             goto region_fatal;
         }
 
-        if (ERROR == sy_queue_right_push(t->interpreter->expections, record_error))
+        if (ERROR == not_queue_right_push(t->interpreter->expections, record_error))
         {
             goto region_fatal;
         }
 
-        sy_config_expection_set(1);
+        not_config_expection_set(1);
         return;
     }
 
 region_fatal:
     fputs("Traceback:\n", stderr);
 
-    sy_position_t position = node->position;
+    not_position_t position = node->position;
 
     char base_path[MAX_PATH];
-    sy_path_get_current_directory(base_path, MAX_PATH);
+    not_path_get_current_directory(base_path, MAX_PATH);
 
     char relative_path[MAX_PATH];
-    sy_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
+    not_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
 
     fprintf(stderr,
             "File \"%s\", Line %lld, Column %lld",
@@ -1219,7 +1219,7 @@ region_fatal:
             position.line,
             position.column);
 
-    sy_node_t *node1 = node;
+    not_node_t *node1 = node;
     while (node1 != NULL)
     {
         if (node1->kind == NODE_KIND_MODULE)
@@ -1230,9 +1230,9 @@ region_fatal:
         }
         else if (node1->kind == NODE_KIND_CLASS)
         {
-            sy_node_class_t *class1 = (sy_node_class_t *)node1->value;
-            sy_node_t *key1 = class1->key;
-            sy_node_basic_t *keSy_string1 = key1->value;
+            not_node_class_t *class1 = (not_node_class_t *)node1->value;
+            not_node_t *key1 = class1->key;
+            not_node_basic_t *keSy_string1 = key1->value;
 
             fprintf(stderr,
                     ", Class <%s>", keSy_string1->value);
@@ -1240,9 +1240,9 @@ region_fatal:
         }
         else if (node1->kind == NODE_KIND_FUN)
         {
-            sy_node_fun_t *fun1 = (sy_node_fun_t *)node1->value;
-            sy_node_t *key1 = fun1->key;
-            sy_node_basic_t *keSy_string1 = key1->value;
+            not_node_fun_t *fun1 = (not_node_fun_t *)node1->value;
+            not_node_t *key1 = fun1->key;
+            not_node_basic_t *keSy_string1 = key1->value;
 
             fprintf(stderr,
                     ", fun <%s>", keSy_string1->value);

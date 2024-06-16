@@ -2,60 +2,56 @@
 #ifndef __QUEUE_H__
 #define __QUEUE_H__ 1
 
-typedef struct sy_queue_entry {
-    struct sy_queue_entry *previous;
-    struct sy_queue_entry *next;
+typedef struct not_queue_entry
+{
+    struct not_queue_entry *previous;
+    struct not_queue_entry *next;
     void *value;
-} sy_queue_entry_t;
+} not_queue_entry_t;
 
-typedef struct sy_queue {
-    sy_queue_entry_t *begin;
-    sy_queue_entry_t *end;
-} sy_queue_t;
+typedef struct not_queue
+{
+    not_queue_entry_t *begin;
+    not_queue_entry_t *end;
+} not_queue_t;
 
-sy_queue_t *
-sy_queue_apply(sy_queue_t *queue);
+not_queue_t *
+not_queue_apply(not_queue_t *queue);
 
-sy_queue_t *
-sy_queue_create();
+not_queue_t *
+not_queue_create();
 
-int
-sy_queue_is_empty(sy_queue_t *queue);
+int not_queue_is_empty(not_queue_t *queue);
 
 uint64_t
-sy_queue_count(sy_queue_t *queue);
+not_queue_count(not_queue_t *queue);
 
 int32_t
-sy_queue_query(sy_queue_t *queue, int (*f)(sy_queue_entry_t*));
+not_queue_query(not_queue_t *queue, int (*f)(not_queue_entry_t *));
 
-void
-sy_queue_destroy(sy_queue_t *queue);
+void not_queue_destroy(not_queue_t *queue);
 
-void
-sy_queue_link(sy_queue_t *queue, sy_queue_entry_t *current, sy_queue_entry_t *entry);
+void not_queue_link(not_queue_t *queue, not_queue_entry_t *current, not_queue_entry_t *entry);
 
-void
-sy_queue_unlink(sy_queue_t *queue, sy_queue_entry_t *entry);
+void not_queue_unlink(not_queue_t *queue, not_queue_entry_t *entry);
 
-void
-sy_queue_sort(sy_queue_t *queue, int (*f)(sy_queue_entry_t *, sy_queue_entry_t *));
+void not_queue_sort(not_queue_t *queue, int (*f)(not_queue_entry_t *, not_queue_entry_t *));
 
-void
-sy_queue_clear(sy_queue_t *queue);
+void not_queue_clear(not_queue_t *queue);
 
-sy_queue_entry_t*
-sy_queue_right_pop(sy_queue_t *queue);
+not_queue_entry_t *
+not_queue_right_pop(not_queue_t *queue);
 
-sy_queue_entry_t *
-sy_queue_right_push(sy_queue_t *queue, void *value);
+not_queue_entry_t *
+not_queue_right_push(not_queue_t *queue, void *value);
 
-sy_queue_entry_t*
-sy_queue_left_pop(sy_queue_t *queue);
+not_queue_entry_t *
+not_queue_left_pop(not_queue_t *queue);
 
-sy_queue_entry_t *
-sy_queue_left_push(sy_queue_t *queue, void *value);
+not_queue_entry_t *
+not_queue_left_push(not_queue_t *queue, void *value);
 
-sy_queue_entry_t *
-sy_queue_insert(sy_queue_t *queue, sy_queue_entry_t *index, void *value);
+not_queue_entry_t *
+not_queue_insert(not_queue_t *queue, not_queue_entry_t *index, void *value);
 
 #endif

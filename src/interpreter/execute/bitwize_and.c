@@ -24,22 +24,22 @@
 #include "../strip.h"
 #include "execute.h"
 
-sy_record_t *
-sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t *applicant)
+not_record_t *
+not_execute_and(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
     if (left->kind == RECORD_KIND_UNDEFINED)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_INT)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(right->value)));
+            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -48,55 +48,55 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(right->value)));
+            not_record_t *record = not_record_make_char((*(char *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_NAN)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_INT)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(right->value)));
+            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -105,52 +105,52 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(right->value)));
+            not_record_t *record = not_record_make_char((*(char *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_INT)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
+            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
+            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_INT)
@@ -159,7 +159,7 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_and(result, (*(mpz_t *)(left->value)), (*(mpz_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -171,7 +171,7 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
 
             mpz_and(result, (*(mpz_t *)(left->value)), result);
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -185,42 +185,42 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_and(result, (*(mpz_t *)(left->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
+            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
+            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
+            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
+            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
+            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(left->value)));
+            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
             return record;
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
@@ -230,7 +230,7 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -240,7 +240,7 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -255,7 +255,7 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_and(result, op1_mpz, (*(mpz_t *)(right->value)));
             mpz_clear(op1_mpz);
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -275,7 +275,7 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -294,7 +294,7 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -304,7 +304,7 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -314,7 +314,7 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -324,7 +324,7 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -334,7 +334,7 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -344,7 +344,7 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -354,23 +354,23 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
+            not_record_t *record = not_record_make_char((*(char *)(left->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
+            not_record_t *record = not_record_make_char((*(char *)(left->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_INT)
@@ -381,7 +381,7 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_and(result, (*(mpz_t *)(right->value)), op_mpz);
             mpz_clear(op_mpz);
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
@@ -396,61 +396,61 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_and(result, result, op2_mpz);
             mpz_clear(op2_mpz);
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(left->value)) & (*(char *)(right->value)));
+            not_record_t *record = not_record_make_char((*(char *)(left->value)) & (*(char *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
+            not_record_t *record = not_record_make_char((*(char *)(left->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
+            not_record_t *record = not_record_make_char((*(char *)(left->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
+            not_record_t *record = not_record_make_char((*(char *)(left->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
+            not_record_t *record = not_record_make_char((*(char *)(left->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
+            not_record_t *record = not_record_make_char((*(char *)(left->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(left->value)));
+            not_record_t *record = not_record_make_char((*(char *)(left->value)));
             return record;
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_STRING)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_INT)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(right->value)));
+            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -459,55 +459,55 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(right->value)));
+            not_record_t *record = not_record_make_char((*(char *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_OBJECT)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_INT)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(right->value)));
+            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -516,55 +516,55 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(right->value)));
+            not_record_t *record = not_record_make_char((*(char *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_TUPLE)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_INT)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(right->value)));
+            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -573,55 +573,55 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(right->value)));
+            not_record_t *record = not_record_make_char((*(char *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_TYPE)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_INT)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(right->value)));
+            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -630,59 +630,59 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(right->value)));
+            not_record_t *record = not_record_make_char((*(char *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
     else if (left->kind == RECORD_KIND_STRUCT)
     {
-        return sy_call_operator_by_one_arg(node, left, right, "&", applicant);
+        return not_call_operator_by_one_arg(node, left, right, "&", applicant);
     }
     else if (left->kind == RECORD_KIND_NULL)
     {
         if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_INT)
         {
-            sy_record_t *record = sy_record_make_int_from_z((*(mpz_t *)(right->value)));
+            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -691,72 +691,72 @@ sy_execute_and(sy_node_t *node, sy_record_t *left, sy_record_t *right, sy_node_t
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            sy_record_t *record = sy_record_make_int_from_z(result);
+            not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
             return record;
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            sy_record_t *record = sy_record_make_char((*(char *)(right->value)));
+            not_record_t *record = not_record_make_char((*(char *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-            return sy_record_make_nan();
+            return not_record_make_nan();
         }
 
-        return sy_record_make_undefined();
+        return not_record_make_undefined();
     }
 
-    return sy_record_make_undefined();
+    return not_record_make_undefined();
 }
 
-sy_record_t *
-sy_execute_bitwise_and(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_bitwise_and(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_AND)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_bitwise_and(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_bitwise_and(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return ERROR;
         }
 
-        sy_record_t *right = sy_execute_equality(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_equality(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
             return ERROR;
         }
 
-        sy_record_t *record = sy_execute_and(node, left, right, applicant);
+        not_record_t *record = not_execute_and(node, left, right, applicant);
 
-        if (sy_record_link_decrease(left) < 0)
+        if (not_record_link_decrease(left) < 0)
         {
             return ERROR;
         }
 
-        if (sy_record_link_decrease(right) < 0)
+        if (not_record_link_decrease(right) < 0)
         {
             return ERROR;
         }
@@ -765,6 +765,6 @@ sy_execute_bitwise_and(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant,
     }
     else
     {
-        return sy_execute_equality(node, strip, applicant, origin);
+        return not_execute_equality(node, strip, applicant, origin);
     }
 }

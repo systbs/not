@@ -25,21 +25,21 @@
 #include "../interpreter.h"
 #include "../thread.h"
 
-sy_garbage_t base_garbage;
+not_garbage_t base_garbage;
 
-static sy_garbage_t *
-sy_garbage_get()
+static not_garbage_t *
+not_garbage_get()
 {
     return &base_garbage;
 }
 
 int32_t
-sy_garbage_init()
+not_garbage_init()
 {
-    sy_garbage_t *garbage = sy_garbage_get();
-    if (sy_mutex_init(&garbage->lock) < 0)
+    not_garbage_t *garbage = not_garbage_get();
+    if (not_mutex_init(&garbage->lock) < 0)
     {
-        sy_error_system("'%s' could not initialize the lock", "sy_garbage.lock");
+        not_error_system("'%s' could not initialize the lock", "not_garbage.lock");
         return -1;
     }
 
@@ -49,21 +49,21 @@ sy_garbage_init()
 }
 
 int32_t
-sy_garbage_destroy()
+not_garbage_destroy()
 {
-    sy_garbage_t *garbage = sy_garbage_get();
-    if (sy_mutex_destroy(&garbage->lock) < 0)
+    not_garbage_t *garbage = not_garbage_get();
+    if (not_mutex_destroy(&garbage->lock) < 0)
     {
-        sy_error_system("'%s' could not destroy the lock", "sy_garbage.lock");
+        not_error_system("'%s' could not destroy the lock", "not_garbage.lock");
         return -1;
     }
     return 0;
 }
 
 static void
-sy_garbage_unsafe_link(sy_garbage_entry_t *entry)
+not_garbage_unsafe_link(not_garbage_entry_t *entry)
 {
-    sy_garbage_t *garbage = sy_garbage_get();
+    not_garbage_t *garbage = not_garbage_get();
     entry->next = garbage->begin;
     if (garbage->begin)
     {
@@ -74,9 +74,9 @@ sy_garbage_unsafe_link(sy_garbage_entry_t *entry)
 }
 
 static void
-sy_garbage_unsafe_unlink(sy_garbage_entry_t *entry)
+not_garbage_unsafe_unlink(not_garbage_entry_t *entry)
 {
-    sy_garbage_t *garbage = sy_garbage_get();
+    not_garbage_t *garbage = not_garbage_get();
     if (entry == garbage->begin)
     {
         garbage->begin = entry->next;
@@ -94,32 +94,32 @@ sy_garbage_unsafe_unlink(sy_garbage_entry_t *entry)
 }
 
 int32_t
-sy_garbage_push(sy_record_t *value)
+not_garbage_push(not_record_t *value)
 {
-    sy_garbage_entry_t *entry = (sy_garbage_entry_t *)sy_memory_calloc(1, sizeof(sy_garbage_entry_t));
+    not_garbage_entry_t *entry = (not_garbage_entry_t *)not_memory_calloc(1, sizeof(not_garbage_entry_t));
     if (!entry)
     {
-        sy_error_no_memory();
+        not_error_no_memory();
         return -1;
     }
 
     entry->value = value;
 
-    sy_garbage_t *garbage = sy_garbage_get();
+    not_garbage_t *garbage = not_garbage_get();
 
-    if (sy_mutex_lock(&garbage->lock) < 0)
+    if (not_mutex_lock(&garbage->lock) < 0)
     {
-        sy_error_system("'%s' could not lock", "sy_garbage.lock");
-        sy_memory_free(entry);
+        not_error_system("'%s' could not lock", "not_garbage.lock");
+        not_memory_free(entry);
         return -1;
     }
 
-    sy_garbage_unsafe_link(entry);
+    not_garbage_unsafe_link(entry);
 
-    if (sy_mutex_unlock(&garbage->lock) < 0)
+    if (not_mutex_unlock(&garbage->lock) < 0)
     {
-        sy_error_system("'%s' could not unlock", "sy_garbage.lock");
-        sy_memory_free(entry);
+        not_error_system("'%s' could not unlock", "not_garbage.lock");
+        not_memory_free(entry);
         return -1;
     }
 
@@ -127,48 +127,48 @@ sy_garbage_push(sy_record_t *value)
 }
 
 int32_t
-sy_garbage_clean()
+not_garbage_clean()
 {
-    sy_garbage_t *garbage = sy_garbage_get();
+    not_garbage_t *garbage = not_garbage_get();
 
-    if (sy_mutex_lock(&garbage->lock) < 0)
+    if (not_mutex_lock(&garbage->lock) < 0)
     {
-        sy_error_system("'%s' could not lock", "sy_garbage.lock");
+        not_error_system("'%s' could not lock", "not_garbage.lock");
         return -1;
     }
 
-    for (sy_garbage_entry_t *item = garbage->begin, *next = NULL; item != NULL; item = next)
+    for (not_garbage_entry_t *item = garbage->begin, *next = NULL; item != NULL; item = next)
     {
         next = item->next;
 
         if (item->value)
         {
-            sy_record_t *record = item->value;
+            not_record_t *record = item->value;
             if (record->link <= 0)
             {
-                if (sy_record_destroy(record) < 0)
+                if (not_record_destroy(record) < 0)
                 {
-                    if (sy_mutex_unlock(&garbage->lock) < 0)
+                    if (not_mutex_unlock(&garbage->lock) < 0)
                     {
-                        sy_error_system("'%s' could not unlock", "sy_garbage.lock");
+                        not_error_system("'%s' could not unlock", "not_garbage.lock");
                         return -1;
                     }
                     return -1;
                 }
-                sy_garbage_unsafe_unlink(item);
-                sy_memory_free(item);
+                not_garbage_unsafe_unlink(item);
+                not_memory_free(item);
             }
         }
         else
         {
-            sy_garbage_unsafe_unlink(item);
-            sy_memory_free(item);
+            not_garbage_unsafe_unlink(item);
+            not_memory_free(item);
         }
     }
 
-    if (sy_mutex_unlock(&garbage->lock) < 0)
+    if (not_mutex_unlock(&garbage->lock) < 0)
     {
-        sy_error_system("'%s' could not unlock", "sy_garbage.lock");
+        not_error_system("'%s' could not unlock", "not_garbage.lock");
         return -1;
     }
 
@@ -177,27 +177,27 @@ sy_garbage_clean()
 
 #if _WIN32
 DWORD WINAPI
-sy_garbage_clean_by_thread(LPVOID arg)
+not_garbage_clean_by_thread(LPVOID arg)
 #else
 void *
-sy_garbage_clean_by_thread(void *arg)
+not_garbage_clean_by_thread(void *arg)
 #endif
 {
-    sy_grabage_thread_data_t *data = (sy_grabage_thread_data_t *)arg;
+    not_grabage_thread_data_t *data = (not_grabage_thread_data_t *)arg;
     data->ret = -1;
 
     while (1)
     {
-        sy_thread_sleep(500);
+        not_thread_sleep(500);
 
-        if (sy_garbage_clean() < 0)
+        if (not_garbage_clean() < 0)
         {
             goto region_error;
         }
     }
 
     data->ret = 0;
-    if (sy_thread_exit() < 0)
+    if (not_thread_exit() < 0)
     {
         goto region_error;
     }
@@ -205,7 +205,7 @@ sy_garbage_clean_by_thread(void *arg)
 
 region_error:
     data->ret = -1;
-    if (sy_thread_exit() < 0)
+    if (not_thread_exit() < 0)
     {
         goto region_error;
     }

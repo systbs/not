@@ -120,23 +120,23 @@ static const char *const symbols[] = {
 	[NODE_KIND_MODULE] = "module"};
 
 const char *
-sy_node_kind_as_string(sy_node_t *node)
+not_node_kind_as_string(not_node_t *node)
 {
 	return symbols[node->kind];
 }
 
-void sy_node_destroy(sy_node_t *node)
+void not_node_destroy(not_node_t *node)
 {
-	sy_memory_free(node);
+	not_memory_free(node);
 }
 
-sy_node_t *
-sy_node_create(sy_node_t *parent, sy_position_t position)
+not_node_t *
+not_node_create(not_node_t *parent, not_position_t position)
 {
-	sy_node_t *node = (sy_node_t *)sy_memory_calloc(1, sizeof(sy_node_t));
+	not_node_t *node = (not_node_t *)not_memory_calloc(1, sizeof(not_node_t));
 	if (!node)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
@@ -150,741 +150,741 @@ sy_node_create(sy_node_t *parent, sy_position_t position)
 }
 
 static void
-sy_node_update(sy_node_t *node, int32_t kind, void *value)
+not_node_update(not_node_t *node, int32_t kind, void *value)
 {
 	node->value = value;
 	node->kind = kind;
 }
 
-void sy_node_remove(sy_node_t *node)
+void not_node_remove(not_node_t *node)
 {
 	free(node);
 }
 
-sy_node_t *
-sy_node_make_id(sy_node_t *node, char *value)
+not_node_t *
+not_node_make_id(not_node_t *node, char *value)
 {
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
+	not_node_basic_t *basic = (not_node_basic_t *)not_memory_calloc(1, sizeof(not_node_basic_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->value = value;
 
-	sy_node_update(node, NODE_KIND_ID, basic);
+	not_node_update(node, NODE_KIND_ID, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_number(sy_node_t *node, char *value)
+not_node_t *
+not_node_make_number(not_node_t *node, char *value)
 {
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
+	not_node_basic_t *basic = (not_node_basic_t *)not_memory_calloc(1, sizeof(not_node_basic_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->value = value;
 
-	sy_node_update(node, NODE_KIND_NUMBER, basic);
+	not_node_update(node, NODE_KIND_NUMBER, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_char(sy_node_t *node, char *value)
+not_node_t *
+not_node_make_char(not_node_t *node, char *value)
 {
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
+	not_node_basic_t *basic = (not_node_basic_t *)not_memory_calloc(1, sizeof(not_node_basic_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->value = value;
 
-	sy_node_update(node, NODE_KIND_CHAR, basic);
+	not_node_update(node, NODE_KIND_CHAR, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_string(sy_node_t *node, char *value)
+not_node_t *
+not_node_make_string(not_node_t *node, char *value)
 {
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
+	not_node_basic_t *basic = (not_node_basic_t *)not_memory_calloc(1, sizeof(not_node_basic_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->value = value;
 
-	sy_node_update(node, NODE_KIND_STRING, basic);
+	not_node_update(node, NODE_KIND_STRING, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_null(sy_node_t *node)
+not_node_t *
+not_node_make_null(not_node_t *node)
 {
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
+	not_node_basic_t *basic = (not_node_basic_t *)not_memory_calloc(1, sizeof(not_node_basic_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->value = NULL;
 
-	sy_node_update(node, NODE_KIND_NULL, basic);
+	not_node_update(node, NODE_KIND_NULL, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_kint(sy_node_t *node)
+not_node_t *
+not_node_make_kint(not_node_t *node)
 {
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
+	not_node_basic_t *basic = (not_node_basic_t *)not_memory_calloc(1, sizeof(not_node_basic_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->value = NULL;
 
-	sy_node_update(node, NODE_KIND_KINT, basic);
+	not_node_update(node, NODE_KIND_KINT, basic);
 
 	return node;
 }
 
-sy_node_t *
-sy_node_make_kfloat(sy_node_t *node)
+not_node_t *
+not_node_make_kfloat(not_node_t *node)
 {
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
+	not_node_basic_t *basic = (not_node_basic_t *)not_memory_calloc(1, sizeof(not_node_basic_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->value = NULL;
 
-	sy_node_update(node, NODE_KIND_KFLOAT, basic);
+	not_node_update(node, NODE_KIND_KFLOAT, basic);
 
 	return node;
 }
 
-sy_node_t *
-sy_node_make_kchar(sy_node_t *node)
+not_node_t *
+not_node_make_kchar(not_node_t *node)
 {
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
+	not_node_basic_t *basic = (not_node_basic_t *)not_memory_calloc(1, sizeof(not_node_basic_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->value = NULL;
 
-	sy_node_update(node, NODE_KIND_KCHAR, basic);
+	not_node_update(node, NODE_KIND_KCHAR, basic);
 
 	return node;
 }
 
-sy_node_t *
-sy_node_make_kstring(sy_node_t *node)
+not_node_t *
+not_node_make_kstring(not_node_t *node)
 {
-	sy_node_basic_t *basic = (sy_node_basic_t *)sy_memory_calloc(1, sizeof(sy_node_basic_t));
+	not_node_basic_t *basic = (not_node_basic_t *)not_memory_calloc(1, sizeof(not_node_basic_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->value = NULL;
 
-	sy_node_update(node, NODE_KIND_KSTRING, basic);
+	not_node_update(node, NODE_KIND_KSTRING, basic);
 
 	return node;
 }
 
-sy_node_t *
-sy_node_make_tuple(sy_node_t *node, sy_node_t *items)
+not_node_t *
+not_node_make_tuple(not_node_t *node, not_node_t *items)
 {
-	sy_node_block_t *basic = (sy_node_block_t *)sy_memory_calloc(1, sizeof(sy_node_block_t));
+	not_node_block_t *basic = (not_node_block_t *)not_memory_calloc(1, sizeof(not_node_block_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->items = items;
 
-	sy_node_update(node, NODE_KIND_TUPLE, basic);
+	not_node_update(node, NODE_KIND_TUPLE, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_object(sy_node_t *node, sy_node_t *items)
+not_node_t *
+not_node_make_object(not_node_t *node, not_node_t *items)
 {
-	sy_node_block_t *basic = (sy_node_block_t *)sy_memory_calloc(1, sizeof(sy_node_block_t));
+	not_node_block_t *basic = (not_node_block_t *)not_memory_calloc(1, sizeof(not_node_block_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->items = items;
 
-	sy_node_update(node, NODE_KIND_OBJECT, basic);
+	not_node_update(node, NODE_KIND_OBJECT, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_pseudonym(sy_node_t *node, sy_node_t *base, sy_node_t *concepts)
+not_node_t *
+not_node_make_pseudonym(not_node_t *node, not_node_t *base, not_node_t *concepts)
 {
-	sy_node_carrier_t *basic = (sy_node_carrier_t *)sy_memory_calloc(1, sizeof(sy_node_carrier_t));
+	not_node_carrier_t *basic = (not_node_carrier_t *)not_memory_calloc(1, sizeof(not_node_carrier_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->base = base;
 	basic->data = concepts;
 
-	sy_node_update(node, NODE_KIND_PSEUDONYM, basic);
+	not_node_update(node, NODE_KIND_PSEUDONYM, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_typeof(sy_node_t *node, sy_node_t *right)
+not_node_t *
+not_node_make_typeof(not_node_t *node, not_node_t *right)
 {
-	sy_node_unary_t *basic = (sy_node_unary_t *)sy_memory_calloc(1, sizeof(sy_node_unary_t));
+	not_node_unary_t *basic = (not_node_unary_t *)not_memory_calloc(1, sizeof(not_node_unary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_TYPEOF, basic);
+	not_node_update(node, NODE_KIND_TYPEOF, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_sizeof(sy_node_t *node, sy_node_t *right)
+not_node_t *
+not_node_make_sizeof(not_node_t *node, not_node_t *right)
 {
-	sy_node_unary_t *basic = (sy_node_unary_t *)sy_memory_calloc(1, sizeof(sy_node_unary_t));
+	not_node_unary_t *basic = (not_node_unary_t *)not_memory_calloc(1, sizeof(not_node_unary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_SIZEOF, basic);
+	not_node_update(node, NODE_KIND_SIZEOF, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_parenthesis(sy_node_t *node, sy_node_t *value)
+not_node_t *
+not_node_make_parenthesis(not_node_t *node, not_node_t *value)
 {
-	sy_node_unary_t *basic = (sy_node_unary_t *)sy_memory_calloc(1, sizeof(sy_node_unary_t));
+	not_node_unary_t *basic = (not_node_unary_t *)not_memory_calloc(1, sizeof(not_node_unary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->right = value;
 
-	sy_node_update(node, NODE_KIND_PARENTHESIS, basic);
+	not_node_update(node, NODE_KIND_PARENTHESIS, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_call(sy_node_t *node, sy_node_t *base, sy_node_t *arguments)
+not_node_t *
+not_node_make_call(not_node_t *node, not_node_t *base, not_node_t *arguments)
 {
-	sy_node_carrier_t *basic = (sy_node_carrier_t *)sy_memory_calloc(1, sizeof(sy_node_carrier_t));
+	not_node_carrier_t *basic = (not_node_carrier_t *)not_memory_calloc(1, sizeof(not_node_carrier_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->base = base;
 	basic->data = arguments;
 
-	sy_node_update(node, NODE_KIND_CALL, basic);
+	not_node_update(node, NODE_KIND_CALL, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_array(sy_node_t *node, sy_node_t *base, sy_node_t *arguments)
+not_node_t *
+not_node_make_array(not_node_t *node, not_node_t *base, not_node_t *arguments)
 {
-	sy_node_carrier_t *basic = (sy_node_carrier_t *)sy_memory_calloc(1, sizeof(sy_node_carrier_t));
+	not_node_carrier_t *basic = (not_node_carrier_t *)not_memory_calloc(1, sizeof(not_node_carrier_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->base = base;
 	basic->data = arguments;
 
-	sy_node_update(node, NODE_KIND_ARRAY, basic);
+	not_node_update(node, NODE_KIND_ARRAY, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_attribute(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_attribute(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_ATTRIBUTE, basic);
+	not_node_update(node, NODE_KIND_ATTRIBUTE, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_tilde(sy_node_t *node, sy_node_t *right)
+not_node_t *
+not_node_make_tilde(not_node_t *node, not_node_t *right)
 {
-	sy_node_unary_t *basic = (sy_node_unary_t *)sy_memory_calloc(1, sizeof(sy_node_unary_t));
+	not_node_unary_t *basic = (not_node_unary_t *)not_memory_calloc(1, sizeof(not_node_unary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_TILDE, basic);
+	not_node_update(node, NODE_KIND_TILDE, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_not(sy_node_t *node, sy_node_t *right)
+not_node_t *
+not_node_make_not(not_node_t *node, not_node_t *right)
 {
-	sy_node_unary_t *basic = (sy_node_unary_t *)sy_memory_calloc(1, sizeof(sy_node_unary_t));
+	not_node_unary_t *basic = (not_node_unary_t *)not_memory_calloc(1, sizeof(not_node_unary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_NOT, basic);
+	not_node_update(node, NODE_KIND_NOT, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_neg(sy_node_t *node, sy_node_t *right)
+not_node_t *
+not_node_make_neg(not_node_t *node, not_node_t *right)
 {
-	sy_node_unary_t *basic = (sy_node_unary_t *)sy_memory_calloc(1, sizeof(sy_node_unary_t));
+	not_node_unary_t *basic = (not_node_unary_t *)not_memory_calloc(1, sizeof(not_node_unary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_NEG, basic);
+	not_node_update(node, NODE_KIND_NEG, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_pos(sy_node_t *node, sy_node_t *right)
+not_node_t *
+not_node_make_pos(not_node_t *node, not_node_t *right)
 {
-	sy_node_unary_t *basic = (sy_node_unary_t *)sy_memory_calloc(1, sizeof(sy_node_unary_t));
+	not_node_unary_t *basic = (not_node_unary_t *)not_memory_calloc(1, sizeof(not_node_unary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_POS, basic);
+	not_node_update(node, NODE_KIND_POS, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_pow(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_pow(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
-		return ERROR;
-	}
-
-	basic->left = left;
-	basic->right = right;
-
-	sy_node_update(node, NODE_KIND_POW, basic);
-	return node;
-}
-
-sy_node_t *
-sy_node_make_epi(sy_node_t *node, sy_node_t *left, sy_node_t *right)
-{
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
-	if (!basic)
-	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_EPI, basic);
+	not_node_update(node, NODE_KIND_POW, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_mul(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_epi(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_MUL, basic);
+	not_node_update(node, NODE_KIND_EPI, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_div(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_mul(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_DIV, basic);
+	not_node_update(node, NODE_KIND_MUL, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_mod(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_div(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_MOD, basic);
+	not_node_update(node, NODE_KIND_DIV, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_plus(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_mod(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_PLUS, basic);
+	not_node_update(node, NODE_KIND_MOD, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_minus(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_plus(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_MINUS, basic);
+	not_node_update(node, NODE_KIND_PLUS, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_shl(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_minus(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_SHL, basic);
+	not_node_update(node, NODE_KIND_MINUS, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_shr(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_shl(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_SHR, basic);
+	not_node_update(node, NODE_KIND_SHL, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_lt(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_shr(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_LT, basic);
+	not_node_update(node, NODE_KIND_SHR, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_le(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_lt(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_LE, basic);
+	not_node_update(node, NODE_KIND_LT, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_gt(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_le(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_GT, basic);
+	not_node_update(node, NODE_KIND_LE, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_ge(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_gt(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_GE, basic);
+	not_node_update(node, NODE_KIND_GT, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_eq(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_ge(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_EQ, basic);
+	not_node_update(node, NODE_KIND_GE, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_neq(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_eq(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_NEQ, basic);
+	not_node_update(node, NODE_KIND_EQ, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_and(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_neq(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_AND, basic);
+	not_node_update(node, NODE_KIND_NEQ, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_xor(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_and(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_XOR, basic);
+	not_node_update(node, NODE_KIND_AND, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_or(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_xor(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_OR, basic);
+	not_node_update(node, NODE_KIND_XOR, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_land(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_or(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_LAND, basic);
+	not_node_update(node, NODE_KIND_OR, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_lor(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_land(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_LOR, basic);
+	not_node_update(node, NODE_KIND_LAND, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_instanceof(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_lor(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_INSTANCEOF, basic);
+	not_node_update(node, NODE_KIND_LOR, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_conditional(sy_node_t *node, sy_node_t *base, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_instanceof(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_triple_t *basic = (sy_node_triple_t *)sy_memory_calloc(1, sizeof(sy_node_triple_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
+		return ERROR;
+	}
+
+	basic->left = left;
+	basic->right = right;
+
+	not_node_update(node, NODE_KIND_INSTANCEOF, basic);
+	return node;
+}
+
+not_node_t *
+not_node_make_conditional(not_node_t *node, not_node_t *base, not_node_t *left, not_node_t *right)
+{
+	not_node_triple_t *basic = (not_node_triple_t *)not_memory_calloc(1, sizeof(not_node_triple_t));
+	if (!basic)
+	{
+		not_error_no_memory();
 		return ERROR;
 	}
 
@@ -892,285 +892,285 @@ sy_node_make_conditional(sy_node_t *node, sy_node_t *base, sy_node_t *left, sy_n
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_CONDITIONAL, basic);
+	not_node_update(node, NODE_KIND_CONDITIONAL, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_ASSIGN, basic);
+	not_node_update(node, NODE_KIND_ASSIGN, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_add_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_add_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_ADD_ASSIGN, basic);
+	not_node_update(node, NODE_KIND_ADD_ASSIGN, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_sub_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_sub_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_SUB_ASSIGN, basic);
+	not_node_update(node, NODE_KIND_SUB_ASSIGN, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_div_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_div_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_DIV_ASSIGN, basic);
+	not_node_update(node, NODE_KIND_DIV_ASSIGN, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_epi_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_epi_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_EPI_ASSIGN, basic);
+	not_node_update(node, NODE_KIND_EPI_ASSIGN, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_mul_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_mul_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_MUL_ASSIGN, basic);
+	not_node_update(node, NODE_KIND_MUL_ASSIGN, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_mod_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_mod_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_MOD_ASSIGN, basic);
+	not_node_update(node, NODE_KIND_MOD_ASSIGN, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_pow_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_pow_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_POW_ASSIGN, basic);
+	not_node_update(node, NODE_KIND_POW_ASSIGN, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_and_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_and_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_AND_ASSIGN, basic);
+	not_node_update(node, NODE_KIND_AND_ASSIGN, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_or_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_or_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_OR_ASSIGN, basic);
+	not_node_update(node, NODE_KIND_OR_ASSIGN, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_shl_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_shl_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_SHL_ASSIGN, basic);
+	not_node_update(node, NODE_KIND_SHL_ASSIGN, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_shr_assign(sy_node_t *node, sy_node_t *left, sy_node_t *right)
+not_node_t *
+not_node_make_shr_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 {
-	sy_node_binary_t *basic = (sy_node_binary_t *)sy_memory_calloc(1, sizeof(sy_node_binary_t));
+	not_node_binary_t *basic = (not_node_binary_t *)not_memory_calloc(1, sizeof(not_node_binary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->left = left;
 	basic->right = right;
 
-	sy_node_update(node, NODE_KIND_SHR_ASSIGN, basic);
+	not_node_update(node, NODE_KIND_SHR_ASSIGN, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_throw(sy_node_t *node, sy_node_t *value)
+not_node_t *
+not_node_make_throw(not_node_t *node, not_node_t *value)
 {
-	sy_node_unary_t *basic = (sy_node_unary_t *)sy_memory_calloc(1, sizeof(sy_node_unary_t));
+	not_node_unary_t *basic = (not_node_unary_t *)not_memory_calloc(1, sizeof(not_node_unary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->right = value;
 
-	sy_node_update(node, NODE_KIND_THROW, basic);
+	not_node_update(node, NODE_KIND_THROW, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_break(sy_node_t *node, sy_node_t *expression)
+not_node_t *
+not_node_make_break(not_node_t *node, not_node_t *expression)
 {
-	sy_node_unary_t *basic = (sy_node_unary_t *)sy_memory_calloc(1, sizeof(sy_node_unary_t));
+	not_node_unary_t *basic = (not_node_unary_t *)not_memory_calloc(1, sizeof(not_node_unary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->right = expression;
 
-	sy_node_update(node, NODE_KIND_BREAK, basic);
+	not_node_update(node, NODE_KIND_BREAK, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_continue(sy_node_t *node, sy_node_t *expression)
+not_node_t *
+not_node_make_continue(not_node_t *node, not_node_t *expression)
 {
-	sy_node_unary_t *basic = (sy_node_unary_t *)sy_memory_calloc(1, sizeof(sy_node_unary_t));
+	not_node_unary_t *basic = (not_node_unary_t *)not_memory_calloc(1, sizeof(not_node_unary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->right = expression;
 
-	sy_node_update(node, NODE_KIND_CONTINUE, basic);
+	not_node_update(node, NODE_KIND_CONTINUE, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_return(sy_node_t *node, sy_node_t *expression)
+not_node_t *
+not_node_make_return(not_node_t *node, not_node_t *expression)
 {
-	sy_node_unary_t *basic = (sy_node_unary_t *)sy_memory_calloc(1, sizeof(sy_node_unary_t));
+	not_node_unary_t *basic = (not_node_unary_t *)not_memory_calloc(1, sizeof(not_node_unary_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->right = expression;
 
-	sy_node_update(node, NODE_KIND_RETURN, basic);
+	not_node_update(node, NODE_KIND_RETURN, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_if(sy_node_t *node, sy_node_t *condition, sy_node_t *then_body, sy_node_t *else_body)
+not_node_t *
+not_node_make_if(not_node_t *node, not_node_t *condition, not_node_t *then_body, not_node_t *else_body)
 {
-	sy_node_if_t *basic;
-	if (!(basic = (sy_node_if_t *)sy_memory_calloc(1, sizeof(sy_node_if_t))))
+	not_node_if_t *basic;
+	if (!(basic = (not_node_if_t *)not_memory_calloc(1, sizeof(not_node_if_t))))
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
@@ -1178,17 +1178,17 @@ sy_node_make_if(sy_node_t *node, sy_node_t *condition, sy_node_t *then_body, sy_
 	basic->then_body = then_body;
 	basic->else_body = else_body;
 
-	sy_node_update(node, NODE_KIND_IF, basic);
+	not_node_update(node, NODE_KIND_IF, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_for(sy_node_t *node, sy_node_t *key, sy_node_t *initializer, sy_node_t *condition, sy_node_t *incrementor, sy_node_t *body)
+not_node_t *
+not_node_make_for(not_node_t *node, not_node_t *key, not_node_t *initializer, not_node_t *condition, not_node_t *incrementor, not_node_t *body)
 {
-	sy_node_for_t *basic = (sy_node_for_t *)sy_memory_calloc(1, sizeof(sy_node_for_t));
+	not_node_for_t *basic = (not_node_for_t *)not_memory_calloc(1, sizeof(not_node_for_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
@@ -1198,17 +1198,17 @@ sy_node_make_for(sy_node_t *node, sy_node_t *key, sy_node_t *initializer, sy_nod
 	basic->incrementor = incrementor;
 	basic->body = body;
 
-	sy_node_update(node, NODE_KIND_FOR, basic);
+	not_node_update(node, NODE_KIND_FOR, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_forin(sy_node_t *node, sy_node_t *key, sy_node_t *field, sy_node_t *value, sy_node_t *iterator, sy_node_t *body)
+not_node_t *
+not_node_make_forin(not_node_t *node, not_node_t *key, not_node_t *field, not_node_t *value, not_node_t *iterator, not_node_t *body)
 {
-	sy_node_forin_t *basic = (sy_node_forin_t *)sy_memory_calloc(1, sizeof(sy_node_forin_t));
+	not_node_forin_t *basic = (not_node_forin_t *)not_memory_calloc(1, sizeof(not_node_forin_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
@@ -1218,52 +1218,52 @@ sy_node_make_forin(sy_node_t *node, sy_node_t *key, sy_node_t *field, sy_node_t 
 	basic->iterator = iterator;
 	basic->body = body;
 
-	sy_node_update(node, NODE_KIND_FORIN, basic);
+	not_node_update(node, NODE_KIND_FORIN, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_catch(sy_node_t *node, sy_node_t *parameters, sy_node_t *body)
+not_node_t *
+not_node_make_catch(not_node_t *node, not_node_t *parameters, not_node_t *body)
 {
-	sy_node_catch_t *basic = (sy_node_catch_t *)sy_memory_calloc(1, sizeof(sy_node_catch_t));
+	not_node_catch_t *basic = (not_node_catch_t *)not_memory_calloc(1, sizeof(not_node_catch_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->parameters = parameters;
 	basic->body = body;
 
-	sy_node_update(node, NODE_KIND_CATCH, basic);
+	not_node_update(node, NODE_KIND_CATCH, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_try(sy_node_t *node, sy_node_t *body, sy_node_t *catchs)
+not_node_t *
+not_node_make_try(not_node_t *node, not_node_t *body, not_node_t *catchs)
 {
-	sy_node_try_t *basic;
-	if (!(basic = (sy_node_try_t *)sy_memory_calloc(1, sizeof(sy_node_try_t))))
+	not_node_try_t *basic;
+	if (!(basic = (not_node_try_t *)not_memory_calloc(1, sizeof(not_node_try_t))))
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->body = body;
 	basic->catchs = catchs;
 
-	sy_node_update(node, NODE_KIND_TRY, basic);
+	not_node_update(node, NODE_KIND_TRY, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_var(sy_node_t *node, uint64_t flag, sy_node_t *key, sy_node_t *type, sy_node_t *value)
+not_node_t *
+not_node_make_var(not_node_t *node, uint64_t flag, not_node_t *key, not_node_t *type, not_node_t *value)
 {
-	sy_node_var_t *basic = (sy_node_var_t *)sy_memory_calloc(1, sizeof(sy_node_var_t));
+	not_node_var_t *basic = (not_node_var_t *)not_memory_calloc(1, sizeof(not_node_var_t));
 
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
@@ -1272,50 +1272,50 @@ sy_node_make_var(sy_node_t *node, uint64_t flag, sy_node_t *key, sy_node_t *type
 	basic->type = type;
 	basic->value = value;
 
-	sy_node_update(node, NODE_KIND_VAR, basic);
+	not_node_update(node, NODE_KIND_VAR, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_argument(sy_node_t *node, sy_node_t *key, sy_node_t *value)
+not_node_t *
+not_node_make_argument(not_node_t *node, not_node_t *key, not_node_t *value)
 {
-	sy_node_argument_t *basic = (sy_node_argument_t *)sy_memory_calloc(1, sizeof(sy_node_argument_t));
+	not_node_argument_t *basic = (not_node_argument_t *)not_memory_calloc(1, sizeof(not_node_argument_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->key = key;
 	basic->value = value;
 
-	sy_node_update(node, NODE_KIND_ARGUMENT, basic);
+	not_node_update(node, NODE_KIND_ARGUMENT, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_arguments(sy_node_t *node, sy_node_t *items)
+not_node_t *
+not_node_make_arguments(not_node_t *node, not_node_t *items)
 {
-	sy_node_block_t *basic = (sy_node_block_t *)sy_memory_calloc(1, sizeof(sy_node_block_t));
+	not_node_block_t *basic = (not_node_block_t *)not_memory_calloc(1, sizeof(not_node_block_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->items = items;
 
-	sy_node_update(node, NODE_KIND_ARGUMENTS, basic);
+	not_node_update(node, NODE_KIND_ARGUMENTS, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_parameter(sy_node_t *node, uint64_t flag, sy_node_t *key, sy_node_t *type, sy_node_t *value)
+not_node_t *
+not_node_make_parameter(not_node_t *node, uint64_t flag, not_node_t *key, not_node_t *type, not_node_t *value)
 {
-	sy_node_parameter_t *basic = (sy_node_parameter_t *)sy_memory_calloc(1, sizeof(sy_node_parameter_t));
+	not_node_parameter_t *basic = (not_node_parameter_t *)not_memory_calloc(1, sizeof(not_node_parameter_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
@@ -1324,66 +1324,66 @@ sy_node_make_parameter(sy_node_t *node, uint64_t flag, sy_node_t *key, sy_node_t
 	basic->type = type;
 	basic->value = value;
 
-	sy_node_update(node, NODE_KIND_PARAMETER, basic);
+	not_node_update(node, NODE_KIND_PARAMETER, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_parameters(sy_node_t *node, sy_node_t *items)
+not_node_t *
+not_node_make_parameters(not_node_t *node, not_node_t *items)
 {
-	sy_node_block_t *basic = (sy_node_block_t *)sy_memory_calloc(1, sizeof(sy_node_block_t));
+	not_node_block_t *basic = (not_node_block_t *)not_memory_calloc(1, sizeof(not_node_block_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->items = items;
 
-	sy_node_update(node, NODE_KIND_PARAMETERS, basic);
+	not_node_update(node, NODE_KIND_PARAMETERS, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_field(sy_node_t *node, sy_node_t *key, sy_node_t *value)
+not_node_t *
+not_node_make_field(not_node_t *node, not_node_t *key, not_node_t *value)
 {
-	sy_node_field_t *basic = (sy_node_field_t *)sy_memory_calloc(1, sizeof(sy_node_field_t));
+	not_node_field_t *basic = (not_node_field_t *)not_memory_calloc(1, sizeof(not_node_field_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->key = key;
 	basic->value = value;
 
-	sy_node_update(node, NODE_KIND_FIELD, basic);
+	not_node_update(node, NODE_KIND_FIELD, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_fields(sy_node_t *node, sy_node_t *items)
+not_node_t *
+not_node_make_fields(not_node_t *node, not_node_t *items)
 {
-	sy_node_block_t *basic = (sy_node_block_t *)sy_memory_calloc(1, sizeof(sy_node_block_t));
+	not_node_block_t *basic = (not_node_block_t *)not_memory_calloc(1, sizeof(not_node_block_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->items = items;
 
-	sy_node_update(node, NODE_KIND_PARAMETERS, basic);
+	not_node_update(node, NODE_KIND_PARAMETERS, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_generic(sy_node_t *node, sy_node_t *key, sy_node_t *type, sy_node_t *value)
+not_node_t *
+not_node_make_generic(not_node_t *node, not_node_t *key, not_node_t *type, not_node_t *value)
 {
-	sy_node_generic_t *basic = (sy_node_generic_t *)sy_memory_calloc(1, sizeof(sy_node_generic_t));
+	not_node_generic_t *basic = (not_node_generic_t *)not_memory_calloc(1, sizeof(not_node_generic_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
@@ -1391,33 +1391,33 @@ sy_node_make_generic(sy_node_t *node, sy_node_t *key, sy_node_t *type, sy_node_t
 	basic->type = type;
 	basic->value = value;
 
-	sy_node_update(node, NODE_KIND_GENERIC, basic);
+	not_node_update(node, NODE_KIND_GENERIC, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_generics(sy_node_t *node, sy_node_t *items)
+not_node_t *
+not_node_make_generics(not_node_t *node, not_node_t *items)
 {
-	sy_node_block_t *basic = (sy_node_block_t *)sy_memory_calloc(1, sizeof(sy_node_block_t));
+	not_node_block_t *basic = (not_node_block_t *)not_memory_calloc(1, sizeof(not_node_block_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->items = items;
 
-	sy_node_update(node, NODE_KIND_PARAMETERS, basic);
+	not_node_update(node, NODE_KIND_PARAMETERS, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_func(sy_node_t *node, sy_node_t *notes, uint64_t flag, sy_node_t *key, sy_node_t *generics, sy_node_t *parameters, sy_node_t *result, sy_node_t *body)
+not_node_t *
+not_node_make_func(not_node_t *node, not_node_t *notes, uint64_t flag, not_node_t *key, not_node_t *generics, not_node_t *parameters, not_node_t *result, not_node_t *body)
 {
-	sy_node_fun_t *basic = (sy_node_fun_t *)sy_memory_calloc(1, sizeof(sy_node_fun_t));
+	not_node_fun_t *basic = (not_node_fun_t *)not_memory_calloc(1, sizeof(not_node_fun_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
@@ -1429,17 +1429,17 @@ sy_node_make_func(sy_node_t *node, sy_node_t *notes, uint64_t flag, sy_node_t *k
 	basic->result = result;
 	basic->body = body;
 
-	sy_node_update(node, NODE_KIND_FUN, basic);
+	not_node_update(node, NODE_KIND_FUN, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_lambda(sy_node_t *node, sy_node_t *generics, sy_node_t *parameters, sy_node_t *body, sy_node_t *result)
+not_node_t *
+not_node_make_lambda(not_node_t *node, not_node_t *generics, not_node_t *parameters, not_node_t *body, not_node_t *result)
 {
-	sy_node_lambda_t *basic = (sy_node_lambda_t *)sy_memory_calloc(1, sizeof(sy_node_lambda_t));
+	not_node_lambda_t *basic = (not_node_lambda_t *)not_memory_calloc(1, sizeof(not_node_lambda_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
@@ -1448,17 +1448,17 @@ sy_node_make_lambda(sy_node_t *node, sy_node_t *generics, sy_node_t *parameters,
 	basic->body = body;
 	basic->result = result;
 
-	sy_node_update(node, NODE_KIND_LAMBDA, basic);
+	not_node_update(node, NODE_KIND_LAMBDA, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_property(sy_node_t *node, sy_node_t *notes, uint64_t flag, sy_node_t *key, sy_node_t *type, sy_node_t *value)
+not_node_t *
+not_node_make_property(not_node_t *node, not_node_t *notes, uint64_t flag, not_node_t *key, not_node_t *type, not_node_t *value)
 {
-	sy_node_property_t *basic = (sy_node_property_t *)sy_memory_calloc(1, sizeof(sy_node_property_t));
+	not_node_property_t *basic = (not_node_property_t *)not_memory_calloc(1, sizeof(not_node_property_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
@@ -1468,17 +1468,17 @@ sy_node_make_property(sy_node_t *node, sy_node_t *notes, uint64_t flag, sy_node_
 	basic->type = type;
 	basic->value = value;
 
-	sy_node_update(node, NODE_KIND_PROPERTY, basic);
+	not_node_update(node, NODE_KIND_PROPERTY, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_entity(sy_node_t *node, uint64_t flag, sy_node_t *key, sy_node_t *type, sy_node_t *value)
+not_node_t *
+not_node_make_entity(not_node_t *node, uint64_t flag, not_node_t *key, not_node_t *type, not_node_t *value)
 {
-	sy_node_entity_t *basic = (sy_node_entity_t *)sy_memory_calloc(1, sizeof(sy_node_entity_t));
+	not_node_entity_t *basic = (not_node_entity_t *)not_memory_calloc(1, sizeof(not_node_entity_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
@@ -1487,83 +1487,83 @@ sy_node_make_entity(sy_node_t *node, uint64_t flag, sy_node_t *key, sy_node_t *t
 	basic->type = type;
 	basic->value = value;
 
-	sy_node_update(node, NODE_KIND_ENTITY, basic);
+	not_node_update(node, NODE_KIND_ENTITY, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_set(sy_node_t *node, sy_node_t *items)
+not_node_t *
+not_node_make_set(not_node_t *node, not_node_t *items)
 {
-	sy_node_block_t *basic = (sy_node_block_t *)sy_memory_calloc(1, sizeof(sy_node_block_t));
+	not_node_block_t *basic = (not_node_block_t *)not_memory_calloc(1, sizeof(not_node_block_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->items = items;
 
-	sy_node_update(node, NODE_KIND_SET, basic);
+	not_node_update(node, NODE_KIND_SET, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_pair(sy_node_t *node, sy_node_t *key, sy_node_t *value)
+not_node_t *
+not_node_make_pair(not_node_t *node, not_node_t *key, not_node_t *value)
 {
-	sy_node_pair_t *basic = (sy_node_pair_t *)sy_memory_calloc(1, sizeof(sy_node_pair_t));
+	not_node_pair_t *basic = (not_node_pair_t *)not_memory_calloc(1, sizeof(not_node_pair_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->key = key;
 	basic->value = value;
 
-	sy_node_update(node, NODE_KIND_PAIR, basic);
+	not_node_update(node, NODE_KIND_PAIR, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_heritage(sy_node_t *node, sy_node_t *key, sy_node_t *type)
+not_node_t *
+not_node_make_heritage(not_node_t *node, not_node_t *key, not_node_t *type)
 {
-	sy_node_heritage_t *basic = (sy_node_heritage_t *)sy_memory_calloc(1, sizeof(sy_node_heritage_t));
+	not_node_heritage_t *basic = (not_node_heritage_t *)not_memory_calloc(1, sizeof(not_node_heritage_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->key = key;
 	basic->type = type;
 
-	sy_node_update(node, NODE_KIND_HERITAGE, basic);
+	not_node_update(node, NODE_KIND_HERITAGE, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_heritages(sy_node_t *node, sy_node_t *items)
+not_node_t *
+not_node_make_heritages(not_node_t *node, not_node_t *items)
 {
-	sy_node_block_t *basic = (sy_node_block_t *)sy_memory_calloc(1, sizeof(sy_node_block_t));
+	not_node_block_t *basic = (not_node_block_t *)not_memory_calloc(1, sizeof(not_node_block_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->items = items;
 
-	sy_node_update(node, NODE_KIND_HERITAGES, basic);
+	not_node_update(node, NODE_KIND_HERITAGES, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_class(sy_node_t *node, sy_node_t *notes, uint64_t flag, sy_node_t *key, sy_node_t *generics, sy_node_t *heritages, sy_node_t *block)
+not_node_t *
+not_node_make_class(not_node_t *node, not_node_t *notes, uint64_t flag, not_node_t *key, not_node_t *generics, not_node_t *heritages, not_node_t *block)
 {
-	sy_node_class_t *basic = (sy_node_class_t *)sy_memory_calloc(1, sizeof(sy_node_class_t));
+	not_node_class_t *basic = (not_node_class_t *)not_memory_calloc(1, sizeof(not_node_class_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
@@ -1574,121 +1574,121 @@ sy_node_make_class(sy_node_t *node, sy_node_t *notes, uint64_t flag, sy_node_t *
 	basic->heritages = heritages;
 	basic->block = block;
 
-	sy_node_update(node, NODE_KIND_CLASS, basic);
+	not_node_update(node, NODE_KIND_CLASS, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_note(sy_node_t *node, sy_node_t *key, sy_node_t *arguments)
+not_node_t *
+not_node_make_note(not_node_t *node, not_node_t *key, not_node_t *arguments)
 {
-	sy_node_carrier_t *basic = (sy_node_carrier_t *)sy_memory_calloc(1, sizeof(sy_node_carrier_t));
+	not_node_carrier_t *basic = (not_node_carrier_t *)not_memory_calloc(1, sizeof(not_node_carrier_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->base = key;
 	basic->data = arguments;
 
-	sy_node_update(node, NODE_KIND_NOTE, basic);
+	not_node_update(node, NODE_KIND_NOTE, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_notes(sy_node_t *node, sy_node_t *items)
+not_node_t *
+not_node_make_notes(not_node_t *node, not_node_t *items)
 {
-	sy_node_block_t *basic = (sy_node_block_t *)sy_memory_calloc(1, sizeof(sy_node_block_t));
+	not_node_block_t *basic = (not_node_block_t *)not_memory_calloc(1, sizeof(not_node_block_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->items = items;
 
-	sy_node_update(node, NODE_KIND_NOTES, basic);
+	not_node_update(node, NODE_KIND_NOTES, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_package(sy_node_t *node, sy_node_t *key, sy_node_t *value)
+not_node_t *
+not_node_make_package(not_node_t *node, not_node_t *key, not_node_t *value)
 {
-	sy_node_package_t *basic = (sy_node_package_t *)sy_memory_calloc(1, sizeof(sy_node_package_t));
+	not_node_package_t *basic = (not_node_package_t *)not_memory_calloc(1, sizeof(not_node_package_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->key = key;
 	basic->value = value;
 
-	sy_node_update(node, NODE_KIND_PACKAGE, basic);
+	not_node_update(node, NODE_KIND_PACKAGE, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_packages(sy_node_t *node, sy_node_t *items)
+not_node_t *
+not_node_make_packages(not_node_t *node, not_node_t *items)
 {
-	sy_node_block_t *basic = (sy_node_block_t *)sy_memory_calloc(1, sizeof(sy_node_block_t));
+	not_node_block_t *basic = (not_node_block_t *)not_memory_calloc(1, sizeof(not_node_block_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->items = items;
 
-	sy_node_update(node, NODE_KIND_PACKAGES, basic);
+	not_node_update(node, NODE_KIND_PACKAGES, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_using(sy_node_t *node, sy_node_t *path, sy_node_t *packages)
+not_node_t *
+not_node_make_using(not_node_t *node, not_node_t *path, not_node_t *packages)
 {
-	sy_node_using_t *basic = (sy_node_using_t *)sy_memory_calloc(1, sizeof(sy_node_using_t));
+	not_node_using_t *basic = (not_node_using_t *)not_memory_calloc(1, sizeof(not_node_using_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->path = path;
 	basic->packages = packages;
 
-	sy_node_update(node, NODE_KIND_USING, basic);
+	not_node_update(node, NODE_KIND_USING, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_body(sy_node_t *node, sy_node_t *declaration)
+not_node_t *
+not_node_make_body(not_node_t *node, not_node_t *declaration)
 {
-	sy_node_body_t *basic = (sy_node_body_t *)sy_memory_calloc(1, sizeof(sy_node_body_t));
+	not_node_body_t *basic = (not_node_body_t *)not_memory_calloc(1, sizeof(not_node_body_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->declaration = declaration;
 
-	sy_node_update(node, NODE_KIND_BODY, basic);
+	not_node_update(node, NODE_KIND_BODY, basic);
 	return node;
 }
 
-sy_node_t *
-sy_node_make_module(sy_node_t *node, sy_node_t *items)
+not_node_t *
+not_node_make_module(not_node_t *node, not_node_t *items)
 {
-	sy_node_block_t *basic = (sy_node_block_t *)sy_memory_calloc(1, sizeof(sy_node_block_t));
+	not_node_block_t *basic = (not_node_block_t *)not_memory_calloc(1, sizeof(not_node_block_t));
 	if (!basic)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	basic->items = items;
 
-	sy_node_update(node, NODE_KIND_MODULE, basic);
+	not_node_update(node, NODE_KIND_MODULE, basic);
 	return node;
 }

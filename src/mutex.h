@@ -8,24 +8,25 @@
 #include <pthread.h>
 #endif
 
-typedef struct sy_mutex {
-    #ifdef _WIN32
-        HANDLE handle;
-    #else
-        pthread_mutex_t handle;
-    #endif
-} sy_mutex_t;
+typedef struct not_mutex
+{
+#ifdef _WIN32
+    HANDLE handle;
+#else
+    pthread_mutex_t handle;
+#endif
+} not_mutex_t;
 
-int32_t 
-sy_mutex_init(sy_mutex_t *mutex);
+int32_t
+not_mutex_init(not_mutex_t *mutex);
 
-int32_t 
-sy_mutex_lock(sy_mutex_t *mutex);
+int32_t
+not_mutex_lock(not_mutex_t *mutex);
 
-int32_t 
-sy_mutex_unlock(sy_mutex_t *mutex);
+int32_t
+not_mutex_unlock(not_mutex_t *mutex);
 
-int32_t 
-sy_mutex_destroy(sy_mutex_t *mutex);
+int32_t
+not_mutex_destroy(not_mutex_t *mutex);
 
 #endif

@@ -34,15 +34,15 @@
 #include "interpreter/strip.h"
 #include "interpreter/execute/execute.h"
 
-sy_repository_t base_repository;
+not_repository_t base_repository;
 
 int32_t
-sy_repository_init()
+not_repository_init()
 {
-    sy_repository_t *module = sy_repository_get();
-    if (sy_mutex_init(&module->lock) < 0)
+    not_repository_t *module = not_repository_get();
+    if (not_mutex_init(&module->lock) < 0)
     {
-        sy_error_system("'%s' could not initialize the lock", "sy_repository.lock");
+        not_error_system("'%s' could not initialize the lock", "not_repository.lock");
         return -1;
     }
 
@@ -51,16 +51,16 @@ sy_repository_init()
     return 0;
 }
 
-sy_repository_t *
-sy_repository_get()
+not_repository_t *
+not_repository_get()
 {
     return &base_repository;
 }
 
 static void
-sy_repository_link(sy_module_t *entry)
+not_repository_link(not_module_t *entry)
 {
-    sy_repository_t *repo = sy_repository_get();
+    not_repository_t *repo = not_repository_get();
     entry->next = repo->begin;
     if (repo->begin)
     {
@@ -70,98 +70,98 @@ sy_repository_link(sy_module_t *entry)
     repo->begin = entry;
 }
 
-static sy_module_t *
-sy_repository_push_normal_module(const char *path, sy_node_t *root)
+static not_module_t *
+not_repository_push_normal_module(const char *path, not_node_t *root)
 {
-    sy_repository_t *repository = sy_repository_get();
+    not_repository_t *repository = not_repository_get();
 
-    if (sy_mutex_lock(&repository->lock) < 0)
+    if (not_mutex_lock(&repository->lock) < 0)
     {
-        sy_error_system("'%s' could not lock", "sy_repository.lock");
+        not_error_system("'%s' could not lock", "not_repository.lock");
         return ERROR;
     }
 
-    for (sy_module_t *item = repository->begin; item != NULL; item = item->next)
+    for (not_module_t *item = repository->begin; item != NULL; item = item->next)
     {
         if (strcmp(item->path, path) == 0)
         {
-            if (sy_mutex_unlock(&repository->lock) < 0)
+            if (not_mutex_unlock(&repository->lock) < 0)
             {
-                sy_error_system("'%s' could not unlock", "sy_repository.lock");
+                not_error_system("'%s' could not unlock", "not_repository.lock");
                 return ERROR;
             }
             return NULL;
         }
     }
 
-    sy_module_t *entry = (sy_module_t *)sy_memory_calloc(1, sizeof(sy_module_t));
+    not_module_t *entry = (not_module_t *)not_memory_calloc(1, sizeof(not_module_t));
     if (!entry)
     {
-        if (sy_mutex_unlock(&repository->lock) < 0)
+        if (not_mutex_unlock(&repository->lock) < 0)
         {
-            sy_error_system("'%s' could not unlock", "sy_repository.lock");
+            not_error_system("'%s' could not unlock", "not_repository.lock");
             return ERROR;
         }
 
-        sy_error_no_memory();
+        not_error_no_memory();
         return ERROR;
     }
 
     strcpy(entry->path, path);
     entry->root = root;
 
-    sy_repository_link(entry);
+    not_repository_link(entry);
 
-    if (sy_mutex_unlock(&repository->lock) < 0)
+    if (not_mutex_unlock(&repository->lock) < 0)
     {
-        sy_memory_free(entry);
-        sy_error_system("'%s' could not unlock", "sy_repository.lock");
+        not_memory_free(entry);
+        not_error_system("'%s' could not unlock", "not_repository.lock");
         return ERROR;
     }
 
     return entry;
 }
 
-static sy_module_t *
-sy_repository_push_json_module(const char *path, json_t *root,
+static not_module_t *
+not_repository_push_json_module(const char *path, json_t *root,
 #ifdef _WIN32
-                               HMODULE handle
+                                HMODULE handle
 #else
-                               void *handle
+                                void *handle
 #endif
 )
 {
-    sy_repository_t *repository = sy_repository_get();
+    not_repository_t *repository = not_repository_get();
 
-    if (sy_mutex_lock(&repository->lock) < 0)
+    if (not_mutex_lock(&repository->lock) < 0)
     {
-        sy_error_system("'%s' could not lock", "sy_repository.lock");
+        not_error_system("'%s' could not lock", "not_repository.lock");
         return ERROR;
     }
 
-    for (sy_module_t *item = repository->begin; item != NULL; item = item->next)
+    for (not_module_t *item = repository->begin; item != NULL; item = item->next)
     {
         if (strcmp(item->path, path) == 0)
         {
-            if (sy_mutex_unlock(&repository->lock) < 0)
+            if (not_mutex_unlock(&repository->lock) < 0)
             {
-                sy_error_system("'%s' could not unlock", "sy_repository.lock");
+                not_error_system("'%s' could not unlock", "not_repository.lock");
                 return ERROR;
             }
             return NULL;
         }
     }
 
-    sy_module_t *entry = (sy_module_t *)sy_memory_calloc(1, sizeof(sy_module_t));
+    not_module_t *entry = (not_module_t *)not_memory_calloc(1, sizeof(not_module_t));
     if (!entry)
     {
-        if (sy_mutex_unlock(&repository->lock) < 0)
+        if (not_mutex_unlock(&repository->lock) < 0)
         {
-            sy_error_system("'%s' could not unlock", "sy_repository.lock");
+            not_error_system("'%s' could not unlock", "not_repository.lock");
             return ERROR;
         }
 
-        sy_error_no_memory();
+        not_error_no_memory();
         return ERROR;
     }
 
@@ -170,92 +170,92 @@ sy_repository_push_json_module(const char *path, json_t *root,
     entry->json = root;
     entry->handle = handle;
 
-    sy_repository_link(entry);
+    not_repository_link(entry);
 
-    if (sy_mutex_unlock(&repository->lock) < 0)
+    if (not_mutex_unlock(&repository->lock) < 0)
     {
-        sy_memory_free(entry);
-        sy_error_system("'%s' could not unlock", "sy_repository.lock");
+        not_memory_free(entry);
+        not_error_system("'%s' could not unlock", "not_repository.lock");
         return ERROR;
     }
 
     return entry;
 }
 
-sy_module_t *
-sy_repository_load(char *path)
+not_module_t *
+not_repository_load(char *path)
 {
     char base_file[MAX_PATH];
 
-    if (sy_path_is_root(path))
+    if (not_path_is_root(path))
     {
         char base_path[MAX_PATH];
-        sy_path_normalize(getenv(ENV_LIBRARY_KEY), base_path, MAX_PATH);
-        sy_path_join(base_path, path + 2, base_file, MAX_PATH);
+        not_path_normalize(getenv(ENV_LIBRARY_KEY), base_path, MAX_PATH);
+        not_path_join(base_path, path + 2, base_file, MAX_PATH);
     }
     else
     {
         char base_path[MAX_PATH];
-        sy_path_get_current_directory(base_path, MAX_PATH);
-        if (sy_path_is_relative(path))
+        not_path_get_current_directory(base_path, MAX_PATH);
+        if (not_path_is_relative(path))
         {
-            sy_path_join(base_path, path, base_file, MAX_PATH);
+            not_path_join(base_path, path, base_file, MAX_PATH);
         }
         else
         {
-            sy_path_normalize(path, base_file, MAX_PATH);
+            not_path_normalize(path, base_file, MAX_PATH);
         }
     }
 
-    sy_repository_t *repository = sy_repository_get();
+    not_repository_t *repository = not_repository_get();
 
-    if (sy_mutex_lock(&repository->lock) < 0)
+    if (not_mutex_lock(&repository->lock) < 0)
     {
-        sy_error_system("'%s' could not lock", "sy_repository.lock");
+        not_error_system("'%s' could not lock", "not_repository.lock");
         return ERROR;
     }
 
-    for (sy_module_t *item = repository->begin; item != NULL; item = item->next)
+    for (not_module_t *item = repository->begin; item != NULL; item = item->next)
     {
         if (strcmp(item->path, base_file) == 0)
         {
-            if (sy_mutex_unlock(&repository->lock) < 0)
+            if (not_mutex_unlock(&repository->lock) < 0)
             {
-                sy_error_system("'%s' could not unlock", "sy_repository.lock");
+                not_error_system("'%s' could not unlock", "not_repository.lock");
                 return ERROR;
             }
             return item;
         }
     }
 
-    if (sy_mutex_unlock(&repository->lock) < 0)
+    if (not_mutex_unlock(&repository->lock) < 0)
     {
-        sy_error_system("'%s' could not unlock", "sy_repository.lock");
+        not_error_system("'%s' could not unlock", "not_repository.lock");
         return ERROR;
     }
 
     FILE *file = fopen(base_file, "r");
     if (!file)
     {
-        sy_error_system("error opening file:%s", base_file);
+        not_error_system("error opening file:%s", base_file);
         return ERROR;
     }
 
     fseek(file, 0, SEEK_END);
     int64_t length = ftell(file);
     fseek(file, 0, SEEK_SET);
-    char *data = (char *)sy_memory_calloc(length + 1, sizeof(char));
+    char *data = (char *)not_memory_calloc(length + 1, sizeof(char));
     if (!data)
     {
         fclose(file);
-        sy_error_no_memory();
+        not_error_no_memory();
         return ERROR;
     }
 
     int64_t i;
     if ((i = fread(data, 1, length, file)) < length)
     {
-        sy_error_system("%s: read returned %ld", base_file, i);
+        not_error_system("%s: read returned %ld", base_file, i);
         return ERROR;
     }
     fclose(file);
@@ -265,69 +265,69 @@ sy_repository_load(char *path)
     json_t *root = json_loads(data, 0, &error);
     if (!root)
     {
-        sy_memory_free(data);
+        not_memory_free(data);
         goto region_normal_module;
     }
 
-    sy_memory_free(data);
+    not_memory_free(data);
 
     json_t *json_path = json_object_get(root, "path");
     if (!json_is_string(json_path))
     {
-        sy_error_system("'json' path is not of string type in: %s", base_file);
+        not_error_system("'json' path is not of string type in: %s", base_file);
         return ERROR;
     }
 
     char directory_path[MAX_PATH];
-    sy_path_get_directory_path(base_file, directory_path, MAX_PATH);
+    not_path_get_directory_path(base_file, directory_path, MAX_PATH);
 
     char module_path[MAX_PATH];
-    sy_path_join(directory_path, json_string_value(json_path), module_path, MAX_PATH);
+    not_path_join(directory_path, json_string_value(json_path), module_path, MAX_PATH);
 
 #ifdef _WIN32
     HMODULE handle = LoadLibrary(module_path);
     if (!handle)
     {
-        sy_error_system("%s", "failed to load library");
+        not_error_system("%s", "failed to load library");
         return ERROR;
     }
 #else
     void *handle = dlopen(module_path, RTLD_LAZY);
     if (!handle)
     {
-        sy_error_system("%s", dlerror());
+        not_error_system("%s", dlerror());
         return ERROR;
     }
     dlerror();
 #endif
 
-    return sy_repository_push_json_module(base_file, root, handle);
+    return not_repository_push_json_module(base_file, root, handle);
 
 region_normal_module:
-    sy_syntax_t *syntax = sy_syntax_create(base_file);
+    not_syntax_t *syntax = not_syntax_create(base_file);
     if (syntax == ERROR)
     {
         return ERROR;
     }
 
-    sy_node_t *root_node = sy_syntax_module(syntax);
+    not_node_t *root_node = not_syntax_module(syntax);
     if (root_node == ERROR)
     {
         return ERROR;
     }
 
-    sy_module_t *module = sy_repository_push_normal_module(base_file, root_node);
+    not_module_t *module = not_repository_push_normal_module(base_file, root_node);
     if (module == ERROR)
     {
         return ERROR;
     }
 
-    if (sy_semantic_module(module->root) < 0)
+    if (not_semantic_module(module->root) < 0)
     {
         return ERROR;
     }
 
-    if (sy_execute_run(module->root) < 0)
+    if (not_execute_run(module->root) < 0)
     {
         return ERROR;
     }

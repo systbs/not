@@ -3,6 +3,6 @@
 #define __SEMANTIC_H__
 
 int32_t
-sy_semantic_module(sy_node_t *node);
+not_semantic_module(not_node_t *node);
 
 #endif

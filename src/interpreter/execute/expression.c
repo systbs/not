@@ -27,8 +27,8 @@
 #include "../strip.h"
 #include "execute.h"
 
-sy_record_t *
-sy_execute_expression(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_expression(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    return sy_execute_conditional(node, strip, applicant, origin);
+    return not_execute_conditional(node, strip, applicant, origin);
 }

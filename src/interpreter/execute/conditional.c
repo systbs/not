@@ -27,36 +27,36 @@
 #include "../strip.h"
 #include "execute.h"
 
-sy_record_t *
-sy_execute_conditional(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_record_t *
+not_execute_conditional(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_CONDITIONAL)
     {
-        sy_node_triple_t *triple = (sy_node_triple_t *)node->value;
+        not_node_triple_t *triple = (not_node_triple_t *)node->value;
 
-        sy_record_t *condition = sy_execute_instanceof(triple->base, strip, applicant, origin);
+        not_record_t *condition = not_execute_instanceof(triple->base, strip, applicant, origin);
         if (condition == ERROR)
         {
             return ERROR;
         }
 
-        int32_t truthy = sy_execute_truthy(condition);
-        if (sy_record_link_decrease(condition) < 0)
+        int32_t truthy = not_execute_truthy(condition);
+        if (not_record_link_decrease(condition) < 0)
         {
             return ERROR;
         }
 
         if (truthy)
         {
-            return sy_execute_conditional(triple->left, strip, applicant, origin);
+            return not_execute_conditional(triple->left, strip, applicant, origin);
         }
         else
         {
-            return sy_execute_conditional(triple->right, strip, applicant, origin);
+            return not_execute_conditional(triple->right, strip, applicant, origin);
         }
     }
     else
     {
-        return sy_execute_instanceof(node, strip, applicant, origin);
+        return not_execute_instanceof(node, strip, applicant, origin);
     }
 }

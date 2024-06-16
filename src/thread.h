@@ -4,37 +4,37 @@
 
 #ifdef _WIN32
 #include <windows.h>
-typedef DWORD sy_thread_id_t;
+typedef DWORD not_thread_id_t;
 #else
 #include <unistd.h>
 #include <pthread.h>
 #include <errno.h>
-typedef pthread_t sy_thread_id_t;
+typedef pthread_t not_thread_id_t;
 #endif
 
-typedef struct sy_thread
+typedef struct not_thread
 {
-    struct sy_thread *parent;
-    sy_interpreter_t *interpreter;
-    sy_queue_t *childrens;
+    struct not_thread *parent;
+    not_interpreter_t *interpreter;
+    not_queue_t *childrens;
 #ifdef _WIN32
     DWORD id;
     HANDLE thread;
 #else
     pthread_t id;
 #endif
-} sy_thread_t;
+} not_thread_t;
 
 int32_t
-sy_thread_init();
+not_thread_init();
 
-void sy_thread_destroy();
+void not_thread_destroy();
 
-sy_thread_t *
-sy_thread_get();
+not_thread_t *
+not_thread_get();
 
-sy_thread_t *
-sy_thread_create(
+not_thread_t *
+not_thread_create(
 #ifdef _WIN32
     DWORD (*start_routine)(LPVOID), LPVOID arg
 #else
@@ -42,26 +42,26 @@ sy_thread_create(
 #endif
 );
 
-sy_thread_t *
-sy_thread_get_current();
+not_thread_t *
+not_thread_get_current();
 
 int32_t
-sy_thread_join(sy_thread_t *thread);
+not_thread_join(not_thread_t *thread);
 
 int32_t
-sy_thread_join_all_childrens();
+not_thread_join_all_childrens();
 
 int32_t
-sy_thread_exit();
+not_thread_exit();
 
-void sy_thread_set_rax(sy_record_t *value);
+void not_thread_set_rax(not_record_t *value);
 
-sy_record_t *
-sy_thread_get_rax();
+not_record_t *
+not_thread_get_rax();
 
-sy_record_t *
-sy_thread_get_and_set_rax(sy_record_t *value);
+not_record_t *
+not_thread_get_and_set_rax(not_record_t *value);
 
-void sy_thread_sleep(uint64_t ms);
+void not_thread_sleep(uint64_t ms);
 
 #endif

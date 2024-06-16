@@ -2,10 +2,10 @@
 #ifndef __RECORD_H__
 #define __RECORD_H__ 1
 
-typedef struct sy_strip sy_strip_t;
-typedef struct sy_entry sy_entry_t;
+typedef struct not_strip not_strip_t;
+typedef struct not_entry not_entry_t;
 
-typedef struct sy_record
+typedef struct not_record
 {
     uint8_t reference : 1;
     uint8_t readonly : 1;
@@ -14,9 +14,9 @@ typedef struct sy_record
     int64_t link;
     uint8_t kind;
     void *value;
-} sy_record_t;
+} not_record_t;
 
-typedef enum sy_record_kind
+typedef enum not_record_kind
 {
     RECORD_KIND_INT,
     RECORD_KIND_FLOAT,
@@ -30,146 +30,146 @@ typedef enum sy_record_kind
     RECORD_KIND_UNDEFINED,
     RECORD_KIND_NAN,
     RECORD_KIND_PROC
-} sy_record_kind_t;
+} not_record_kind_t;
 
-typedef struct sy_record_struct
+typedef struct not_record_struct
 {
-    sy_node_t *type;
-    sy_strip_t *value;
-} sy_record_struct_t;
+    not_node_t *type;
+    not_strip_t *value;
+} not_record_struct_t;
 
-typedef struct sy_record_type
+typedef struct not_record_type
 {
-    sy_node_t *type;
+    not_node_t *type;
     void *value;
-} sy_record_type_t;
+} not_record_type_t;
 
-typedef struct sy_record_object
+typedef struct not_record_object
 {
     char *key;
-    sy_record_t *value;
+    not_record_t *value;
 
-    struct sy_record_object *next;
-} sy_record_object_t;
+    struct not_record_object *next;
+} not_record_object_t;
 
-typedef struct sy_record_tuple
+typedef struct not_record_tuple
 {
-    sy_record_t *value;
+    not_record_t *value;
 
-    struct sy_record_tuple *next;
-} sy_record_tuple_t;
+    struct not_record_tuple *next;
+} not_record_tuple_t;
 
-typedef struct sy_record_proc
+typedef struct not_record_proc
 {
     void *handle;
     json_t *map;
-} sy_record_proc_t;
+} not_record_proc_t;
 
-void sy_record_link_increase(sy_record_t *record);
+void not_record_link_increase(not_record_t *record);
 
 int32_t
-sy_record_link_decrease(sy_record_t *record);
+not_record_link_decrease(not_record_t *record);
 
 const char *
-sy_record_type_as_string(sy_record_t *record);
+not_record_type_as_string(not_record_t *record);
 
-sy_record_t *
-sy_record_create(uint64_t kind, void *value);
+not_record_t *
+not_record_create(uint64_t kind, void *value);
 
-sy_record_t *
-sy_record_copy(sy_record_t *record);
+not_record_t *
+not_record_copy(not_record_t *record);
 
-sy_record_t *
-sy_record_make_null();
+not_record_t *
+not_record_make_null();
 
-sy_record_t *
-sy_record_make_undefined();
+not_record_t *
+not_record_make_undefined();
 
-sy_record_t *
-sy_record_make_nan();
+not_record_t *
+not_record_make_nan();
 
-sy_record_t *
-sy_record_make_type(sy_node_t *type, void *value);
+not_record_t *
+not_record_make_type(not_node_t *type, void *value);
 
-sy_record_t *
-sy_record_make_struct(sy_node_t *type, sy_strip_t *value);
+not_record_t *
+not_record_make_struct(not_node_t *type, not_strip_t *value);
 
-sy_record_tuple_t *
-sy_record_make_tuple(sy_record_t *value, sy_record_tuple_t *next);
+not_record_tuple_t *
+not_record_make_tuple(not_record_t *value, not_record_tuple_t *next);
 
-sy_record_object_t *
-sy_record_make_object(char *key, sy_record_t *value, sy_record_object_t *next);
+not_record_object_t *
+not_record_make_object(char *key, not_record_t *value, not_record_object_t *next);
 
-sy_record_t *
-sy_record_make_string(char *value);
+not_record_t *
+not_record_make_string(char *value);
 
-sy_record_t *
-sy_record_make_char(char value);
+not_record_t *
+not_record_make_char(char value);
 
-sy_record_t *
-sy_record_make_float_from_ui(uint64_t value);
+not_record_t *
+not_record_make_float_from_ui(uint64_t value);
 
-sy_record_t *
-sy_record_make_float_from_si(int64_t value);
+not_record_t *
+not_record_make_float_from_si(int64_t value);
 
-sy_record_t *
-sy_record_make_float_from_f(mpf_t value);
+not_record_t *
+not_record_make_float_from_f(mpf_t value);
 
-sy_record_t *
-sy_record_make_float_from_z(mpz_t value);
+not_record_t *
+not_record_make_float_from_z(mpz_t value);
 
-sy_record_t *
-sy_record_make_float_from_d(double value);
+not_record_t *
+not_record_make_float_from_d(double value);
 
-sy_record_t *
-sy_record_make_float(const char *value);
+not_record_t *
+not_record_make_float(const char *value);
 
-sy_record_t *
-sy_record_make_int_from_ui(uint64_t value);
+not_record_t *
+not_record_make_int_from_ui(uint64_t value);
 
-sy_record_t *
-sy_record_make_int_from_si(int64_t value);
+not_record_t *
+not_record_make_int_from_si(int64_t value);
 
-sy_record_t *
-sy_record_make_int_from_z(mpz_t value);
+not_record_t *
+not_record_make_int_from_z(mpz_t value);
 
-sy_record_t *
-sy_record_make_int_from_f(mpf_t value);
+not_record_t *
+not_record_make_int_from_f(mpf_t value);
 
-sy_record_t *
-sy_record_make_int(const char *value);
-
-int32_t
-sy_record_destroy(sy_record_t *record);
-
-sy_record_tuple_t *
-sy_record_tuple_copy(sy_record_tuple_t *tuple);
-
-sy_record_object_t *
-sy_record_object_copy(sy_record_object_t *object);
+not_record_t *
+not_record_make_int(const char *value);
 
 int32_t
-sy_record_tuple_destroy(sy_record_tuple_t *tuple);
+not_record_destroy(not_record_t *record);
+
+not_record_tuple_t *
+not_record_tuple_copy(not_record_tuple_t *tuple);
+
+not_record_object_t *
+not_record_object_copy(not_record_object_t *object);
 
 int32_t
-sy_record_object_destroy(sy_record_object_t *object);
-
-sy_record_type_t *
-sy_record_type_copy(sy_record_type_t *type);
-
-sy_record_struct_t *
-sy_record_struct_copy(sy_record_struct_t *struct1);
+not_record_tuple_destroy(not_record_tuple_t *tuple);
 
 int32_t
-sy_record_type_destroy(sy_record_type_t *type);
+not_record_object_destroy(not_record_object_t *object);
+
+not_record_type_t *
+not_record_type_copy(not_record_type_t *type);
+
+not_record_struct_t *
+not_record_struct_copy(not_record_struct_t *struct1);
 
 int32_t
-sy_record_struct_destroy(sy_record_struct_t *struct1);
+not_record_type_destroy(not_record_type_t *type);
 
-sy_record_t *
-sy_record_make_proc(void *handle, json_t *map);
+int32_t
+not_record_struct_destroy(not_record_struct_t *struct1);
+
+not_record_t *
+not_record_make_proc(void *handle, json_t *map);
 
 char *
-sy_record_to_string(sy_record_t *record, char *previous_buf);
+not_record_to_string(not_record_t *record, char *previous_buf);
 
 #endif

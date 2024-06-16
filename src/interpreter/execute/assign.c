@@ -28,11 +28,11 @@
 #include "execute.h"
 
 int32_t
-sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
+not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 {
     if (left->readonly)
     {
-        sy_error_type_by_node(node, "readonly assignment");
+        not_error_type_by_node(node, "readonly assignment");
         return -1;
     }
 
@@ -41,10 +41,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         if (right->kind == RECORD_KIND_INT)
         {
             mpz_clear(*(mpz_t *)(left->value));
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpz_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpz_init_set(*(mpz_t *)(ptr), *(mpz_t *)(right->value));
@@ -57,14 +57,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "float");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "float");
                 return -1;
             }
             mpz_clear(*(mpz_t *)(left->value));
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpf_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpf_init_set(*(mpf_t *)(ptr), *(mpf_t *)(right->value));
@@ -76,10 +76,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         else if (right->kind == RECORD_KIND_CHAR)
         {
             mpz_clear(*(mpz_t *)(left->value));
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpz_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpz_init(*(mpz_t *)(ptr));
@@ -93,14 +93,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "string");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "string");
                 return -1;
             }
             mpz_clear(*(mpz_t *)(left->value));
-            void *ptr = sy_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             strcpy((char *)(ptr), (char *)(right->value));
@@ -113,16 +113,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "object");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "object");
                 return -1;
             }
             mpz_clear(*(mpz_t *)(left->value));
-            void *ptr = sy_record_object_copy((sy_record_object_t *)(right->value));
+            void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
@@ -132,16 +132,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "tuple");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "tuple");
                 return -1;
             }
             mpz_clear(*(mpz_t *)(left->value));
-            void *ptr = sy_record_tuple_copy((sy_record_tuple_t *)(right->value));
+            void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
@@ -151,16 +151,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "type");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "type");
                 return -1;
             }
             mpz_clear(*(mpz_t *)(left->value));
-            void *ptr = sy_record_type_copy((sy_record_type_t *)(right->value));
+            void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
@@ -170,16 +170,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "struct");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "struct");
                 return -1;
             }
             mpz_clear(*(mpz_t *)(left->value));
-            void *ptr = sy_record_struct_copy((sy_record_struct_t *)(right->value));
+            void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
@@ -189,11 +189,11 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "null");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "null");
                 return -1;
             }
             mpz_clear(*(mpz_t *)(left->value));
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
@@ -203,11 +203,11 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "undefined");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "undefined");
                 return -1;
             }
             mpz_clear(*(mpz_t *)(left->value));
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
@@ -217,11 +217,11 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "nan");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "int", "nan");
                 return -1;
             }
             mpz_clear(*(mpz_t *)(left->value));
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
@@ -235,10 +235,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         if (right->kind == RECORD_KIND_INT)
         {
             mpf_clear(*(mpf_t *)left->value);
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpf_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpf_init(*(mpf_t *)(ptr));
@@ -251,10 +251,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         else if (right->kind == RECORD_KIND_FLOAT)
         {
             mpf_clear(*(mpf_t *)left->value);
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpf_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpf_init_set(*(mpf_t *)(ptr), *(mpf_t *)(right->value));
@@ -266,10 +266,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         else if (right->kind == RECORD_KIND_CHAR)
         {
             mpf_clear(*(mpf_t *)left->value);
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpf_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpf_init(*(mpf_t *)(ptr));
@@ -283,14 +283,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "string");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "string");
                 return -1;
             }
             mpf_clear(*(mpf_t *)left->value);
-            void *ptr = sy_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             strcpy((char *)(ptr), (char *)(right->value));
@@ -303,16 +303,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "object");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "object");
                 return -1;
             }
             mpf_clear(*(mpf_t *)left->value);
-            void *ptr = sy_record_object_copy((sy_record_object_t *)(right->value));
+            void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
@@ -322,16 +322,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "tuple");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "tuple");
                 return -1;
             }
             mpf_clear(*(mpf_t *)left->value);
-            void *ptr = sy_record_tuple_copy((sy_record_tuple_t *)(right->value));
+            void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
@@ -341,16 +341,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "type");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "type");
                 return -1;
             }
             mpf_clear(*(mpf_t *)left->value);
-            void *ptr = sy_record_type_copy((sy_record_type_t *)(right->value));
+            void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
@@ -360,16 +360,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "struct");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "struct");
                 return -1;
             }
             mpf_clear(*(mpf_t *)left->value);
-            void *ptr = sy_record_struct_copy((sy_record_struct_t *)(right->value));
+            void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
@@ -379,11 +379,11 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "null");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "null");
                 return -1;
             }
             mpf_clear(*(mpf_t *)left->value);
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
@@ -393,11 +393,11 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "undefined");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "undefined");
                 return -1;
             }
             mpf_clear(*(mpf_t *)left->value);
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
@@ -407,11 +407,11 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "nan");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "float", "nan");
                 return -1;
             }
             mpf_clear(*(mpf_t *)left->value);
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
@@ -426,14 +426,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "int");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "int");
                 return -1;
             }
 
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpz_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpz_init_set(*(mpz_t *)(ptr), *(mpz_t *)(right->value));
@@ -446,14 +446,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "float");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "float");
                 return -1;
             }
 
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpf_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpf_init_set(*(mpf_t *)(ptr), *(mpf_t *)(right->value));
@@ -464,10 +464,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            void *ptr = sy_memory_realloc(left->value, sizeof(char));
+            void *ptr = not_memory_realloc(left->value, sizeof(char));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             *(char *)(ptr) = (char)(*(char *)(right->value));
@@ -480,13 +480,13 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "string");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "string");
                 return -1;
             }
-            void *ptr = sy_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             strcpy((char *)(ptr), (char *)(right->value));
@@ -499,15 +499,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "object");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "object");
                 return -1;
             }
-            void *ptr = sy_record_object_copy((sy_record_object_t *)(right->value));
+            void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
@@ -517,15 +517,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "tuple");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "tuple");
                 return -1;
             }
-            void *ptr = sy_record_tuple_copy((sy_record_tuple_t *)(right->value));
+            void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
@@ -535,15 +535,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "type");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "type");
                 return -1;
             }
-            void *ptr = sy_record_type_copy((sy_record_type_t *)(right->value));
+            void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
@@ -553,15 +553,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "struct");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "struct");
                 return -1;
             }
-            void *ptr = sy_record_struct_copy((sy_record_struct_t *)(right->value));
+            void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
@@ -571,10 +571,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "null");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "null");
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
@@ -584,10 +584,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "undefined");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "undefined");
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
@@ -597,10 +597,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "nan");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "char", "nan");
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
@@ -615,14 +615,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "int");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "int");
                 return -1;
             }
 
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpz_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpz_init_set(*(mpz_t *)(ptr), *(mpz_t *)(right->value));
@@ -635,14 +635,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "float");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "float");
                 return -1;
             }
 
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpf_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpf_init_set(*(mpf_t *)(ptr), *(mpf_t *)(right->value));
@@ -653,10 +653,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            void *ptr = sy_memory_realloc(left->value, sizeof(char));
+            void *ptr = not_memory_realloc(left->value, sizeof(char));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             *(char *)(ptr) = (char)(*(char *)(right->value));
@@ -666,10 +666,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            void *ptr = sy_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             strcpy((char *)(ptr), (char *)(right->value));
@@ -682,15 +682,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "object");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "object");
                 return -1;
             }
-            void *ptr = sy_record_object_copy((sy_record_object_t *)(right->value));
+            void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
@@ -700,15 +700,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "tuple");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "tuple");
                 return -1;
             }
-            void *ptr = sy_record_tuple_copy((sy_record_tuple_t *)(right->value));
+            void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
@@ -718,15 +718,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "type");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "type");
                 return -1;
             }
-            void *ptr = sy_record_type_copy((sy_record_type_t *)(right->value));
+            void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
@@ -736,15 +736,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "struct");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "struct");
                 return -1;
             }
-            void *ptr = sy_record_struct_copy((sy_record_struct_t *)(right->value));
+            void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
@@ -754,10 +754,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "null");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "null");
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
@@ -767,10 +767,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "undefined");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "undefined");
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
@@ -780,10 +780,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "nan");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "string", "nan");
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
@@ -798,19 +798,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "int");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "int");
                 return -1;
             }
 
-            if (sy_record_object_destroy((sy_record_object_t *)left->value) < 0)
+            if (not_record_object_destroy((not_record_object_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, sizeof(mpz_t));
+            void *ptr = not_memory_calloc(1, sizeof(mpz_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpz_init_set(*(mpz_t *)(ptr), *(mpz_t *)(right->value));
@@ -823,19 +823,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "float");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "float");
                 return -1;
             }
 
-            if (sy_record_object_destroy((sy_record_object_t *)left->value) < 0)
+            if (not_record_object_destroy((not_record_object_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, sizeof(mpf_t));
+            void *ptr = not_memory_calloc(1, sizeof(mpf_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpf_init_set(*(mpf_t *)(ptr), *(mpf_t *)(right->value));
@@ -848,19 +848,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "char");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "char");
                 return -1;
             }
 
-            if (sy_record_object_destroy((sy_record_object_t *)left->value) < 0)
+            if (not_record_object_destroy((not_record_object_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, sizeof(char));
+            void *ptr = not_memory_calloc(1, sizeof(char));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             *(char *)(ptr) = (char)(*(char *)(right->value));
@@ -873,19 +873,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "string");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "string");
                 return -1;
             }
 
-            if (sy_record_object_destroy((sy_record_object_t *)left->value) < 0)
+            if (not_record_object_destroy((not_record_object_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, strlen((char *)(right->value)));
+            void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             strcpy((char *)(ptr), (char *)(right->value));
@@ -898,21 +898,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "object");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "object");
                 return -1;
             }
 
-            if (sy_record_object_destroy((sy_record_object_t *)left->value) < 0)
+            if (not_record_object_destroy((not_record_object_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_object_copy((sy_record_object_t *)(right->value));
+            void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
@@ -922,21 +922,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "tuple");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "tuple");
                 return -1;
             }
 
-            if (sy_record_object_destroy((sy_record_object_t *)left->value) < 0)
+            if (not_record_object_destroy((not_record_object_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_tuple_copy((sy_record_tuple_t *)(right->value));
+            void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
@@ -946,21 +946,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "type");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "type");
                 return -1;
             }
 
-            if (sy_record_object_destroy((sy_record_object_t *)left->value) < 0)
+            if (not_record_object_destroy((not_record_object_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_type_copy((sy_record_type_t *)(right->value));
+            void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
@@ -970,21 +970,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "struct");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "struct");
                 return -1;
             }
 
-            if (sy_record_object_destroy((sy_record_object_t *)left->value) < 0)
+            if (not_record_object_destroy((not_record_object_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_struct_copy((sy_record_struct_t *)(right->value));
+            void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
@@ -994,16 +994,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "null");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "null");
                 return -1;
             }
 
-            if (sy_record_object_destroy((sy_record_object_t *)left->value) < 0)
+            if (not_record_object_destroy((not_record_object_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
@@ -1013,16 +1013,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "undefined");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "undefined");
                 return -1;
             }
 
-            if (sy_record_object_destroy((sy_record_object_t *)left->value) < 0)
+            if (not_record_object_destroy((not_record_object_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
@@ -1032,16 +1032,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "nan");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "nan");
                 return -1;
             }
 
-            if (sy_record_object_destroy((sy_record_object_t *)left->value) < 0)
+            if (not_record_object_destroy((not_record_object_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
@@ -1056,19 +1056,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "int");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "int");
                 return -1;
             }
 
-            if (sy_record_tuple_destroy((sy_record_tuple_t *)left->value) < 0)
+            if (not_record_tuple_destroy((not_record_tuple_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, sizeof(mpz_t));
+            void *ptr = not_memory_calloc(1, sizeof(mpz_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpz_init_set(*(mpz_t *)(ptr), *(mpz_t *)(right->value));
@@ -1081,19 +1081,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "float");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "float");
                 return -1;
             }
 
-            if (sy_record_tuple_destroy((sy_record_tuple_t *)left->value) < 0)
+            if (not_record_tuple_destroy((not_record_tuple_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, sizeof(mpf_t));
+            void *ptr = not_memory_calloc(1, sizeof(mpf_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpf_init_set(*(mpf_t *)(ptr), *(mpf_t *)(right->value));
@@ -1106,19 +1106,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "char");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "char");
                 return -1;
             }
 
-            if (sy_record_tuple_destroy((sy_record_tuple_t *)left->value) < 0)
+            if (not_record_tuple_destroy((not_record_tuple_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, sizeof(char));
+            void *ptr = not_memory_calloc(1, sizeof(char));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             *(char *)(ptr) = (char)(*(char *)(right->value));
@@ -1130,19 +1130,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "string");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "string");
                 return -1;
             }
 
-            if (sy_record_tuple_destroy((sy_record_tuple_t *)left->value) < 0)
+            if (not_record_tuple_destroy((not_record_tuple_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, strlen((char *)(right->value)));
+            void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             strcpy((char *)(ptr), (char *)(right->value));
@@ -1155,21 +1155,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "object");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "object");
                 return -1;
             }
 
-            if (sy_record_tuple_destroy((sy_record_tuple_t *)left->value) < 0)
+            if (not_record_tuple_destroy((not_record_tuple_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_object_copy((sy_record_object_t *)(right->value));
+            void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
@@ -1179,21 +1179,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "tuple");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "tuple");
                 return -1;
             }
 
-            if (sy_record_tuple_destroy((sy_record_tuple_t *)left->value) < 0)
+            if (not_record_tuple_destroy((not_record_tuple_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_tuple_copy((sy_record_tuple_t *)(right->value));
+            void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
@@ -1203,21 +1203,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "type");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "type");
                 return -1;
             }
 
-            if (sy_record_tuple_destroy((sy_record_tuple_t *)left->value) < 0)
+            if (not_record_tuple_destroy((not_record_tuple_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_type_copy((sy_record_type_t *)(right->value));
+            void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
@@ -1227,21 +1227,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "struct");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "struct");
                 return -1;
             }
 
-            if (sy_record_tuple_destroy((sy_record_tuple_t *)left->value) < 0)
+            if (not_record_tuple_destroy((not_record_tuple_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_struct_copy((sy_record_struct_t *)(right->value));
+            void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
@@ -1251,16 +1251,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "null");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "null");
                 return -1;
             }
 
-            if (sy_record_tuple_destroy((sy_record_tuple_t *)left->value) < 0)
+            if (not_record_tuple_destroy((not_record_tuple_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
@@ -1270,16 +1270,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "undefined");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "undefined");
                 return -1;
             }
 
-            if (sy_record_tuple_destroy((sy_record_tuple_t *)left->value) < 0)
+            if (not_record_tuple_destroy((not_record_tuple_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
@@ -1289,16 +1289,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "nan");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "nan");
                 return -1;
             }
 
-            if (sy_record_tuple_destroy((sy_record_tuple_t *)left->value) < 0)
+            if (not_record_tuple_destroy((not_record_tuple_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
@@ -1313,19 +1313,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "int");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "int");
                 return -1;
             }
 
-            if (sy_record_type_destroy((sy_record_type_t *)left->value) < 0)
+            if (not_record_type_destroy((not_record_type_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, sizeof(mpz_t));
+            void *ptr = not_memory_calloc(1, sizeof(mpz_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpz_init_set(*(mpz_t *)(ptr), *(mpz_t *)(right->value));
@@ -1338,19 +1338,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "float");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "float");
                 return -1;
             }
 
-            if (sy_record_type_destroy((sy_record_type_t *)left->value) < 0)
+            if (not_record_type_destroy((not_record_type_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, sizeof(mpf_t));
+            void *ptr = not_memory_calloc(1, sizeof(mpf_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpf_init_set(*(mpf_t *)(ptr), *(mpf_t *)(right->value));
@@ -1363,19 +1363,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "char");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "char");
                 return -1;
             }
 
-            if (sy_record_type_destroy((sy_record_type_t *)left->value) < 0)
+            if (not_record_type_destroy((not_record_type_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, sizeof(char));
+            void *ptr = not_memory_calloc(1, sizeof(char));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             *(char *)(ptr) = (char)(*(char *)(right->value));
@@ -1387,19 +1387,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "string");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "string");
                 return -1;
             }
 
-            if (sy_record_type_destroy((sy_record_type_t *)left->value) < 0)
+            if (not_record_type_destroy((not_record_type_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, strlen((char *)(right->value)));
+            void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             strcpy((char *)(ptr), (char *)(right->value));
@@ -1412,21 +1412,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "object");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "object");
                 return -1;
             }
 
-            if (sy_record_type_destroy((sy_record_type_t *)left->value) < 0)
+            if (not_record_type_destroy((not_record_type_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_object_copy((sy_record_object_t *)(right->value));
+            void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
@@ -1436,21 +1436,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "tuple");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "tuple");
                 return -1;
             }
 
-            if (sy_record_type_destroy((sy_record_type_t *)left->value) < 0)
+            if (not_record_type_destroy((not_record_type_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_tuple_copy((sy_record_tuple_t *)(right->value));
+            void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
@@ -1460,21 +1460,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "type");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "type");
                 return -1;
             }
 
-            if (sy_record_type_destroy((sy_record_type_t *)left->value) < 0)
+            if (not_record_type_destroy((not_record_type_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_type_copy((sy_record_type_t *)(right->value));
+            void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
@@ -1484,21 +1484,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "struct");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "struct");
                 return -1;
             }
 
-            if (sy_record_type_destroy((sy_record_type_t *)left->value) < 0)
+            if (not_record_type_destroy((not_record_type_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_struct_copy((sy_record_struct_t *)(right->value));
+            void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
@@ -1508,16 +1508,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "null");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "null");
                 return -1;
             }
 
-            if (sy_record_type_destroy((sy_record_type_t *)left->value) < 0)
+            if (not_record_type_destroy((not_record_type_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
@@ -1527,16 +1527,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "undefined");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "undefined");
                 return -1;
             }
 
-            if (sy_record_type_destroy((sy_record_type_t *)left->value) < 0)
+            if (not_record_type_destroy((not_record_type_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
@@ -1546,16 +1546,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "nan");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "nan");
                 return -1;
             }
 
-            if (sy_record_type_destroy((sy_record_type_t *)left->value) < 0)
+            if (not_record_type_destroy((not_record_type_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
@@ -1570,19 +1570,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "int");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "int");
                 return -1;
             }
 
-            if (sy_record_struct_destroy((sy_record_struct_t *)left->value) < 0)
+            if (not_record_struct_destroy((not_record_struct_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, sizeof(mpz_t));
+            void *ptr = not_memory_calloc(1, sizeof(mpz_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpz_init_set(*(mpz_t *)(ptr), *(mpz_t *)(right->value));
@@ -1595,19 +1595,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "float");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "float");
                 return -1;
             }
 
-            if (sy_record_struct_destroy((sy_record_struct_t *)left->value) < 0)
+            if (not_record_struct_destroy((not_record_struct_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, sizeof(mpf_t));
+            void *ptr = not_memory_calloc(1, sizeof(mpf_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpf_init_set(*(mpf_t *)(ptr), *(mpf_t *)(right->value));
@@ -1620,19 +1620,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "char");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "char");
                 return -1;
             }
 
-            if (sy_record_struct_destroy((sy_record_struct_t *)left->value) < 0)
+            if (not_record_struct_destroy((not_record_struct_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, sizeof(char));
+            void *ptr = not_memory_calloc(1, sizeof(char));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             *(char *)(ptr) = (char)(*(char *)(right->value));
@@ -1644,19 +1644,19 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "string");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "string");
                 return -1;
             }
 
-            if (sy_record_struct_destroy((sy_record_struct_t *)left->value) < 0)
+            if (not_record_struct_destroy((not_record_struct_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_memory_calloc(1, strlen((char *)(right->value)));
+            void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             strcpy((char *)(ptr), (char *)(right->value));
@@ -1669,21 +1669,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "object");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "object");
                 return -1;
             }
 
-            if (sy_record_struct_destroy((sy_record_struct_t *)left->value) < 0)
+            if (not_record_struct_destroy((not_record_struct_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_object_copy((sy_record_object_t *)(right->value));
+            void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
@@ -1693,21 +1693,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "tuple");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "tuple");
                 return -1;
             }
 
-            if (sy_record_struct_destroy((sy_record_struct_t *)left->value) < 0)
+            if (not_record_struct_destroy((not_record_struct_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_tuple_copy((sy_record_tuple_t *)(right->value));
+            void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
@@ -1717,21 +1717,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "type");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "type");
                 return -1;
             }
 
-            if (sy_record_struct_destroy((sy_record_struct_t *)left->value) < 0)
+            if (not_record_struct_destroy((not_record_struct_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_type_copy((sy_record_type_t *)(right->value));
+            void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
@@ -1741,21 +1741,21 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "struct");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "struct");
                 return -1;
             }
 
-            if (sy_record_struct_destroy((sy_record_struct_t *)left->value) < 0)
+            if (not_record_struct_destroy((not_record_struct_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            void *ptr = sy_record_struct_copy((sy_record_struct_t *)(right->value));
+            void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
@@ -1765,16 +1765,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "null");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "null");
                 return -1;
             }
 
-            if (sy_record_struct_destroy((sy_record_struct_t *)left->value) < 0)
+            if (not_record_struct_destroy((not_record_struct_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
@@ -1784,16 +1784,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "undefined");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "undefined");
                 return -1;
             }
 
-            if (sy_record_struct_destroy((sy_record_struct_t *)left->value) < 0)
+            if (not_record_struct_destroy((not_record_struct_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
@@ -1803,16 +1803,16 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "nan");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "nan");
                 return -1;
             }
 
-            if (sy_record_struct_destroy((sy_record_struct_t *)left->value) < 0)
+            if (not_record_struct_destroy((not_record_struct_t *)left->value) < 0)
             {
                 return -1;
             }
 
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
@@ -1827,14 +1827,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "int");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "int");
                 return -1;
             }
 
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpz_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpz_init_set(*(mpz_t *)(ptr), *(mpz_t *)(right->value));
@@ -1847,14 +1847,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "float");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "float");
                 return -1;
             }
 
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpf_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpf_init_set(*(mpf_t *)(ptr), *(mpf_t *)(right->value));
@@ -1867,14 +1867,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "char");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "char");
                 return -1;
             }
 
-            void *ptr = sy_memory_realloc(left->value, sizeof(char));
+            void *ptr = not_memory_realloc(left->value, sizeof(char));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             *(char *)(ptr) = (char)(*(char *)(right->value));
@@ -1886,13 +1886,13 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "string");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "string");
                 return -1;
             }
-            void *ptr = sy_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             strcpy((char *)(ptr), (char *)(right->value));
@@ -1905,15 +1905,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "object");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "object");
                 return -1;
             }
-            void *ptr = sy_record_object_copy((sy_record_object_t *)(right->value));
+            void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
@@ -1923,15 +1923,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "tuple");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "tuple");
                 return -1;
             }
-            void *ptr = sy_record_tuple_copy((sy_record_tuple_t *)(right->value));
+            void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
@@ -1941,15 +1941,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "type");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "type");
                 return -1;
             }
-            void *ptr = sy_record_type_copy((sy_record_type_t *)(right->value));
+            void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
@@ -1959,15 +1959,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "struct");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "struct");
                 return -1;
             }
-            void *ptr = sy_record_struct_copy((sy_record_struct_t *)(right->value));
+            void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
@@ -1977,10 +1977,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "null");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "null");
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
@@ -1990,10 +1990,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "undefined");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "undefined");
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
@@ -2003,10 +2003,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "nan");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "nan");
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
@@ -2021,14 +2021,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "int");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "int");
                 return -1;
             }
 
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpz_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpz_init_set(*(mpz_t *)(ptr), *(mpz_t *)(right->value));
@@ -2041,14 +2041,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "float");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "float");
                 return -1;
             }
 
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpf_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpf_init_set(*(mpf_t *)(ptr), *(mpf_t *)(right->value));
@@ -2061,14 +2061,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "char");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "char");
                 return -1;
             }
 
-            void *ptr = sy_memory_realloc(left->value, sizeof(char));
+            void *ptr = not_memory_realloc(left->value, sizeof(char));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             *(char *)(ptr) = (char)(*(char *)(right->value));
@@ -2080,13 +2080,13 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "string");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "string");
                 return -1;
             }
-            void *ptr = sy_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             strcpy((char *)(ptr), (char *)(right->value));
@@ -2099,15 +2099,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "object");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "object");
                 return -1;
             }
-            void *ptr = sy_record_object_copy((sy_record_object_t *)(right->value));
+            void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
@@ -2117,15 +2117,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "tuple");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "tuple");
                 return -1;
             }
-            void *ptr = sy_record_tuple_copy((sy_record_tuple_t *)(right->value));
+            void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
@@ -2135,15 +2135,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "type");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "type");
                 return -1;
             }
-            void *ptr = sy_record_type_copy((sy_record_type_t *)(right->value));
+            void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
@@ -2153,15 +2153,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "struct");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "struct");
                 return -1;
             }
-            void *ptr = sy_record_struct_copy((sy_record_struct_t *)(right->value));
+            void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
@@ -2171,10 +2171,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "null");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "null");
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
@@ -2184,10 +2184,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "undefined");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "undefined");
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
@@ -2197,10 +2197,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "nan");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "nan");
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
@@ -2215,14 +2215,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "int");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "int");
                 return -1;
             }
 
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpz_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpz_init_set(*(mpz_t *)(ptr), *(mpz_t *)(right->value));
@@ -2235,14 +2235,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "float");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "float");
                 return -1;
             }
 
-            void *ptr = sy_memory_realloc(left->value, sizeof(mpf_t));
+            void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             mpf_init_set(*(mpf_t *)(ptr), *(mpf_t *)(right->value));
@@ -2255,14 +2255,14 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "char");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "char");
                 return -1;
             }
 
-            void *ptr = sy_memory_realloc(left->value, sizeof(char));
+            void *ptr = not_memory_realloc(left->value, sizeof(char));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             *(char *)(ptr) = (char)(*(char *)(right->value));
@@ -2274,13 +2274,13 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "string");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "string");
                 return -1;
             }
-            void *ptr = sy_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
             if (ptr == NULL)
             {
-                sy_error_no_memory();
+                not_error_no_memory();
                 return -1;
             }
             strcpy((char *)(ptr), (char *)(right->value));
@@ -2293,15 +2293,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "object");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "object");
                 return -1;
             }
-            void *ptr = sy_record_object_copy((sy_record_object_t *)(right->value));
+            void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
@@ -2311,15 +2311,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "tuple");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "tuple");
                 return -1;
             }
-            void *ptr = sy_record_tuple_copy((sy_record_tuple_t *)(right->value));
+            void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
@@ -2329,15 +2329,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "type");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "type");
                 return -1;
             }
-            void *ptr = sy_record_type_copy((sy_record_type_t *)(right->value));
+            void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
@@ -2347,15 +2347,15 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "struct");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "struct");
                 return -1;
             }
-            void *ptr = sy_record_struct_copy((sy_record_struct_t *)(right->value));
+            void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
             if (ptr == ERROR)
             {
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
@@ -2365,10 +2365,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "null");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "null");
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NULL;
 
@@ -2378,10 +2378,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "undefined");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "undefined");
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
@@ -2391,10 +2391,10 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
         {
             if (left->typed == 1)
             {
-                sy_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "nan");
+                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "nan");
                 return -1;
             }
-            sy_memory_free(left->value);
+            not_memory_free(left->value);
             left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
@@ -2408,35 +2408,35 @@ sy_execute_set_value(sy_node_t *node, sy_record_t *left, sy_record_t *right)
 }
 
 int32_t
-sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_node_t *origin)
+not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_ASSIGN)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return -1;
         }
 
-        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        if (sy_execute_set_value(node, left, right) < 0)
+        if (not_execute_set_value(node, left, right) < 0)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
 
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return -1;
             }
@@ -2444,12 +2444,12 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             return -1;
         }
 
-        if (sy_record_link_decrease(left) < 0)
+        if (not_record_link_decrease(left) < 0)
         {
             return -1;
         }
 
-        if (sy_record_link_decrease(right) < 0)
+        if (not_record_link_decrease(right) < 0)
         {
             return -1;
         }
@@ -2458,32 +2458,32 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     }
     else if (node->kind == NODE_KIND_ADD_ASSIGN)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return -1;
         }
 
-        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        sy_record_t *result = sy_execute_plus(node, left, right, applicant);
+        not_record_t *result = not_execute_plus(node, left, right, applicant);
         if (result == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
 
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return -1;
             }
@@ -2491,21 +2491,21 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             return -1;
         }
 
-        if (sy_record_link_decrease(right) < 0)
+        if (not_record_link_decrease(right) < 0)
         {
             return -1;
         }
 
-        if (sy_execute_set_value(node, left, result) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        if (sy_record_link_decrease(left) < 0)
+        if (not_record_link_decrease(left) < 0)
         {
             return -1;
         }
@@ -2514,32 +2514,32 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     }
     else if (node->kind == NODE_KIND_SUB_ASSIGN)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return -1;
         }
 
-        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        sy_record_t *result = sy_execute_minus(node, left, right, applicant);
+        not_record_t *result = not_execute_minus(node, left, right, applicant);
         if (result == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
 
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return -1;
             }
@@ -2547,21 +2547,21 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             return -1;
         }
 
-        if (sy_record_link_decrease(right) < 0)
+        if (not_record_link_decrease(right) < 0)
         {
             return -1;
         }
 
-        if (sy_execute_set_value(node, left, result) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        if (sy_record_link_decrease(left) < 0)
+        if (not_record_link_decrease(left) < 0)
         {
             return -1;
         }
@@ -2570,32 +2570,32 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     }
     else if (node->kind == NODE_KIND_MUL_ASSIGN)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return -1;
         }
 
-        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        sy_record_t *result = sy_execute_mul(node, left, right, applicant);
+        not_record_t *result = not_execute_mul(node, left, right, applicant);
         if (result == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
 
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return -1;
             }
@@ -2603,21 +2603,21 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             return -1;
         }
 
-        if (sy_record_link_decrease(right) < 0)
+        if (not_record_link_decrease(right) < 0)
         {
             return -1;
         }
 
-        if (sy_execute_set_value(node, left, result) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        if (sy_record_link_decrease(left) < 0)
+        if (not_record_link_decrease(left) < 0)
         {
             return -1;
         }
@@ -2626,32 +2626,32 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     }
     else if (node->kind == NODE_KIND_DIV_ASSIGN)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return -1;
         }
 
-        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        sy_record_t *result = sy_execute_plus(node, left, right, applicant);
+        not_record_t *result = not_execute_plus(node, left, right, applicant);
         if (result == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
 
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return -1;
             }
@@ -2659,21 +2659,21 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             return -1;
         }
 
-        if (sy_record_link_decrease(right) < 0)
+        if (not_record_link_decrease(right) < 0)
         {
             return -1;
         }
 
-        if (sy_execute_set_value(node, left, result) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        if (sy_record_link_decrease(left) < 0)
+        if (not_record_link_decrease(left) < 0)
         {
             return -1;
         }
@@ -2682,32 +2682,32 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     }
     else if (node->kind == NODE_KIND_EPI_ASSIGN)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return -1;
         }
 
-        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        sy_record_t *result = sy_execute_epi(node, left, right, applicant);
+        not_record_t *result = not_execute_epi(node, left, right, applicant);
         if (result == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
 
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return -1;
             }
@@ -2715,21 +2715,21 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             return -1;
         }
 
-        if (sy_record_link_decrease(right) < 0)
+        if (not_record_link_decrease(right) < 0)
         {
             return -1;
         }
 
-        if (sy_execute_set_value(node, left, result) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        if (sy_record_link_decrease(left) < 0)
+        if (not_record_link_decrease(left) < 0)
         {
             return -1;
         }
@@ -2738,32 +2738,32 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     }
     else if (node->kind == NODE_KIND_MOD_ASSIGN)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return -1;
         }
 
-        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        sy_record_t *result = sy_execute_mod(node, left, right, applicant);
+        not_record_t *result = not_execute_mod(node, left, right, applicant);
         if (result == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
 
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return -1;
             }
@@ -2771,21 +2771,21 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             return -1;
         }
 
-        if (sy_record_link_decrease(right) < 0)
+        if (not_record_link_decrease(right) < 0)
         {
             return -1;
         }
 
-        if (sy_execute_set_value(node, left, result) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        if (sy_record_link_decrease(left) < 0)
+        if (not_record_link_decrease(left) < 0)
         {
             return -1;
         }
@@ -2794,32 +2794,32 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     }
     else if (node->kind == NODE_KIND_POW_ASSIGN)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return -1;
         }
 
-        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        sy_record_t *result = sy_execute_pow(node, left, right, applicant);
+        not_record_t *result = not_execute_pow(node, left, right, applicant);
         if (result == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
 
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return -1;
             }
@@ -2827,21 +2827,21 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             return -1;
         }
 
-        if (sy_record_link_decrease(right) < 0)
+        if (not_record_link_decrease(right) < 0)
         {
             return -1;
         }
 
-        if (sy_execute_set_value(node, left, result) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        if (sy_record_link_decrease(left) < 0)
+        if (not_record_link_decrease(left) < 0)
         {
             return -1;
         }
@@ -2850,32 +2850,32 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     }
     else if (node->kind == NODE_KIND_SHL_ASSIGN)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return -1;
         }
 
-        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        sy_record_t *result = sy_execute_shl(node, left, right, applicant);
+        not_record_t *result = not_execute_shl(node, left, right, applicant);
         if (result == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
 
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return -1;
             }
@@ -2883,21 +2883,21 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             return -1;
         }
 
-        if (sy_record_link_decrease(right) < 0)
+        if (not_record_link_decrease(right) < 0)
         {
             return -1;
         }
 
-        if (sy_execute_set_value(node, left, result) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        if (sy_record_link_decrease(left) < 0)
+        if (not_record_link_decrease(left) < 0)
         {
             return -1;
         }
@@ -2906,32 +2906,32 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     }
     else if (node->kind == NODE_KIND_SHR_ASSIGN)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return -1;
         }
 
-        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        sy_record_t *result = sy_execute_shr(node, left, right, applicant);
+        not_record_t *result = not_execute_shr(node, left, right, applicant);
         if (result == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
 
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return -1;
             }
@@ -2939,21 +2939,21 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             return -1;
         }
 
-        if (sy_record_link_decrease(right) < 0)
+        if (not_record_link_decrease(right) < 0)
         {
             return -1;
         }
 
-        if (sy_execute_set_value(node, left, result) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        if (sy_record_link_decrease(left) < 0)
+        if (not_record_link_decrease(left) < 0)
         {
             return -1;
         }
@@ -2962,32 +2962,32 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     }
     else if (node->kind == NODE_KIND_AND_ASSIGN)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return -1;
         }
 
-        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        sy_record_t *result = sy_execute_and(node, left, right, applicant);
+        not_record_t *result = not_execute_and(node, left, right, applicant);
         if (result == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
 
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return -1;
             }
@@ -2995,21 +2995,21 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             return -1;
         }
 
-        if (sy_record_link_decrease(right) < 0)
+        if (not_record_link_decrease(right) < 0)
         {
             return -1;
         }
 
-        if (sy_execute_set_value(node, left, result) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        if (sy_record_link_decrease(left) < 0)
+        if (not_record_link_decrease(left) < 0)
         {
             return -1;
         }
@@ -3018,32 +3018,32 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     }
     else if (node->kind == NODE_KIND_OR_ASSIGN)
     {
-        sy_node_binary_t *binary = (sy_node_binary_t *)node->value;
-        sy_record_t *left = sy_execute_expression(binary->left, strip, applicant, origin);
+        not_node_binary_t *binary = (not_node_binary_t *)node->value;
+        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
         if (left == ERROR)
         {
             return -1;
         }
 
-        sy_record_t *right = sy_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
         if (right == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        sy_record_t *result = sy_execute_or(node, left, right, applicant);
+        not_record_t *result = not_execute_or(node, left, right, applicant);
         if (result == ERROR)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
 
-            if (sy_record_link_decrease(right) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return -1;
             }
@@ -3051,21 +3051,21 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             return -1;
         }
 
-        if (sy_record_link_decrease(right) < 0)
+        if (not_record_link_decrease(right) < 0)
         {
             return -1;
         }
 
-        if (sy_execute_set_value(node, left, result) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
-            if (sy_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(left) < 0)
             {
                 return -1;
             }
             return -1;
         }
 
-        if (sy_record_link_decrease(left) < 0)
+        if (not_record_link_decrease(left) < 0)
         {
             return -1;
         }
@@ -3074,13 +3074,13 @@ sy_execute_assign(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
     }
     else
     {
-        sy_record_t *value = sy_execute_expression(node, strip, applicant, origin);
+        not_record_t *value = not_execute_expression(node, strip, applicant, origin);
         if (value == ERROR)
         {
             return -1;
         }
 
-        if (sy_record_link_decrease(value) < 0)
+        if (not_record_link_decrease(value) < 0)
         {
             return -1;
         }

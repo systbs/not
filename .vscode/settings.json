@@ -1,6 +1,6 @@
 {
     "files.associations": {
-        "sy_record_type_traits": "cpp",
+        "not_record_type_traits": "cpp",
         "optional": "cpp",
         "istream": "cpp",
         "ostream": "cpp",

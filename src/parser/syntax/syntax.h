@@ -2,27 +2,27 @@
 #ifndef __SYNTAX_H__
 #define __SYNTAX_H__ 1
 
-typedef enum sy_syntax_modifier 
+typedef enum not_syntax_modifier
 {
-	SYNTAX_MODIFIER_NONE 			= 1 << 0,
-	SYNTAX_MODIFIER_EXPORT 			= 1 << 1,
-	SYNTAX_MODIFIER_READONLY 		= 1 << 2,
-	SYNTAX_MODIFIER_REFERENCE 		= 1 << 3,
-	SYNTAX_MODIFIER_KARG 			= 1 << 4,
-	SYNTAX_MODIFIER_KWARG 			= 1 << 5,
-	SYNTAX_MODIFIER_STATIC 			= 1 << 6
-} sy_syntax_modifier_t;
+	SYNTAX_MODIFIER_NONE = 1 << 0,
+	SYNTAX_MODIFIER_EXPORT = 1 << 1,
+	SYNTAX_MODIFIER_READONLY = 1 << 2,
+	SYNTAX_MODIFIER_REFERENCE = 1 << 3,
+	SYNTAX_MODIFIER_KARG = 1 << 4,
+	SYNTAX_MODIFIER_KWARG = 1 << 5,
+	SYNTAX_MODIFIER_STATIC = 1 << 6
+} not_syntax_modifier_t;
 
-typedef struct sy_syntax 
+typedef struct not_syntax
 {
-	sy_scanner_t *scanner;
-	sy_queue_t *states;
-	sy_token_t *token;
+	not_scanner_t *scanner;
+	not_queue_t *states;
+	not_token_t *token;
 	int32_t loop_depth;
 	int32_t fun_depth;
-} sy_syntax_t;
+} not_syntax_t;
 
-typedef struct sy_syntax_state
+typedef struct not_syntax_state
 {
 	int32_t fun_depth;
 	int32_t loop_depth;
@@ -32,16 +32,15 @@ typedef struct sy_syntax_state
 	uint64_t line;
 	uint64_t column;
 	uint64_t count_error;
-	sy_token_t token;
-} sy_syntax_state_t;
+	not_token_t token;
+} not_syntax_state_t;
 
-sy_syntax_t *
-sy_syntax_create(char *path);
+not_syntax_t *
+not_syntax_create(char *path);
 
-void
-sy_syntax_destroy(sy_syntax_t *syntax);
+void not_syntax_destroy(not_syntax_t *syntax);
 
-sy_node_t *
-sy_syntax_module(sy_syntax_t *syntax);
+not_node_t *
+not_syntax_module(not_syntax_t *syntax);
 
 #endif //__SYNTAX_H__

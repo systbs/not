@@ -7,13 +7,13 @@
 #include "../error.h"
 #include "queue.h"
 
-sy_queue_t *
-sy_queue_apply(sy_queue_t *queue)
+not_queue_t *
+not_queue_apply(not_queue_t *queue)
 {
-	sy_queue_entry_t *entry = (sy_queue_entry_t *)sy_memory_calloc(1, sizeof(sy_queue_entry_t));
+	not_queue_entry_t *entry = (not_queue_entry_t *)not_memory_calloc(1, sizeof(not_queue_entry_t));
 	if (!entry)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
@@ -23,30 +23,30 @@ sy_queue_apply(sy_queue_t *queue)
 	return queue;
 }
 
-sy_queue_t *
-sy_queue_create()
+not_queue_t *
+not_queue_create()
 {
-	sy_queue_t *queue = (sy_queue_t *)sy_memory_calloc(1, sizeof(sy_queue_t));
+	not_queue_t *queue = (not_queue_t *)not_memory_calloc(1, sizeof(not_queue_t));
 	if (!queue)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
-	return sy_queue_apply(queue);
+	return not_queue_apply(queue);
 }
 
 int32_t
-sy_queue_is_empty(sy_queue_t *queue)
+not_queue_is_empty(not_queue_t *queue)
 {
 	return (queue->begin == queue->end);
 }
 
 uint64_t
-sy_queue_count(sy_queue_t *queue)
+not_queue_count(not_queue_t *queue)
 {
 	uint64_t cnt = 0;
-	sy_queue_entry_t *b;
+	not_queue_entry_t *b;
 	for (b = queue->begin; b && (b != queue->end); b = b->next)
 	{
 		cnt++;
@@ -55,14 +55,14 @@ sy_queue_count(sy_queue_t *queue)
 }
 
 int32_t
-sy_queue_query(sy_queue_t *queue, int (*f)(sy_queue_entry_t *))
+not_queue_query(not_queue_t *queue, int (*f)(not_queue_entry_t *))
 {
-	if (sy_queue_is_empty(queue))
+	if (not_queue_is_empty(queue))
 	{
 		return 0;
 	}
 
-	sy_queue_entry_t *b, *n;
+	not_queue_entry_t *b, *n;
 	for (b = queue->begin; b && (b != queue->end); b = n)
 	{
 		n = b->next;
@@ -75,13 +75,13 @@ sy_queue_query(sy_queue_t *queue, int (*f)(sy_queue_entry_t *))
 	return 1;
 }
 
-void sy_queue_destroy(sy_queue_t *queue)
+void not_queue_destroy(not_queue_t *queue)
 {
-	sy_queue_clear(queue);
-	sy_memory_free(queue);
+	not_queue_clear(queue);
+	not_memory_free(queue);
 }
 
-void sy_queue_link(sy_queue_t *queue, sy_queue_entry_t *current, sy_queue_entry_t *entry)
+void not_queue_link(not_queue_t *queue, not_queue_entry_t *current, not_queue_entry_t *entry)
 {
 	entry->next = current;
 	entry->previous = current->previous;
@@ -99,7 +99,7 @@ void sy_queue_link(sy_queue_t *queue, sy_queue_entry_t *current, sy_queue_entry_
 	}
 }
 
-void sy_queue_unlink(sy_queue_t *queue, sy_queue_entry_t *entry)
+void not_queue_unlink(not_queue_t *queue, not_queue_entry_t *entry)
 {
 	if (entry == queue->end)
 	{
@@ -124,9 +124,9 @@ void sy_queue_unlink(sy_queue_t *queue, sy_queue_entry_t *entry)
 	entry->next = entry->previous = NULL;
 }
 
-void sy_queue_sort(sy_queue_t *queue, int (*f)(sy_queue_entry_t *, sy_queue_entry_t *))
+void not_queue_sort(not_queue_t *queue, int (*f)(not_queue_entry_t *, not_queue_entry_t *))
 {
-	sy_queue_entry_t *b, *n;
+	not_queue_entry_t *b, *n;
 	for (b = queue->begin; b != queue->end; b = n)
 	{
 		n = b->next;
@@ -134,87 +134,87 @@ void sy_queue_sort(sy_queue_t *queue, int (*f)(sy_queue_entry_t *, sy_queue_entr
 		{
 			if ((*f)(b, n))
 			{
-				sy_queue_unlink(queue, b);
-				sy_queue_link(queue, n, b);
+				not_queue_unlink(queue, b);
+				not_queue_link(queue, n, b);
 			}
 		}
 	}
 }
 
-void sy_queue_clear(sy_queue_t *queue)
+void not_queue_clear(not_queue_t *queue)
 {
-	sy_queue_entry_t *b, *n;
+	not_queue_entry_t *b, *n;
 	for (b = queue->begin; b != queue->end; b = n)
 	{
 		n = b->next;
-		sy_queue_unlink(queue, b);
-		sy_memory_free(b);
+		not_queue_unlink(queue, b);
+		not_memory_free(b);
 	}
 }
 
-sy_queue_entry_t *
-sy_queue_right_pop(sy_queue_t *queue)
+not_queue_entry_t *
+not_queue_right_pop(not_queue_t *queue)
 {
-	if (sy_queue_is_empty(queue))
+	if (not_queue_is_empty(queue))
 	{
 		return NULL;
 	}
-	sy_queue_entry_t *entry = queue->end->previous;
-	sy_queue_unlink(queue, entry);
+	not_queue_entry_t *entry = queue->end->previous;
+	not_queue_unlink(queue, entry);
 	return entry;
 }
 
-sy_queue_entry_t *
-sy_queue_right_push(sy_queue_t *queue, void *value)
+not_queue_entry_t *
+not_queue_right_push(not_queue_t *queue, void *value)
 {
-	sy_queue_entry_t *entry = (sy_queue_entry_t *)sy_memory_calloc(1, sizeof(sy_queue_entry_t));
+	not_queue_entry_t *entry = (not_queue_entry_t *)not_memory_calloc(1, sizeof(not_queue_entry_t));
 	if (!entry)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	entry->value = value;
 
-	sy_queue_link(queue, queue->end, entry);
+	not_queue_link(queue, queue->end, entry);
 	return entry;
 }
 
-sy_queue_entry_t *
-sy_queue_left_pop(sy_queue_t *queue)
+not_queue_entry_t *
+not_queue_left_pop(not_queue_t *queue)
 {
-	sy_queue_entry_t *entry = queue->begin;
-	sy_queue_unlink(queue, entry);
+	not_queue_entry_t *entry = queue->begin;
+	not_queue_unlink(queue, entry);
 	return entry;
 }
 
-sy_queue_entry_t *
-sy_queue_left_push(sy_queue_t *queue, void *value)
+not_queue_entry_t *
+not_queue_left_push(not_queue_t *queue, void *value)
 {
-	sy_queue_entry_t *entry = (sy_queue_entry_t *)sy_memory_calloc(1, sizeof(sy_queue_entry_t));
+	not_queue_entry_t *entry = (not_queue_entry_t *)not_memory_calloc(1, sizeof(not_queue_entry_t));
 	if (!entry)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 	entry->value = value;
 
-	sy_queue_link(queue, queue->begin, entry);
+	not_queue_link(queue, queue->begin, entry);
 	return entry;
 }
 
-sy_queue_entry_t *
-sy_queue_insert(sy_queue_t *queue, sy_queue_entry_t *index, void *value)
+not_queue_entry_t *
+not_queue_insert(not_queue_t *queue, not_queue_entry_t *index, void *value)
 {
-	sy_queue_entry_t *entry = (sy_queue_entry_t *)sy_memory_calloc(1, sizeof(sy_queue_entry_t));
+	not_queue_entry_t *entry = (not_queue_entry_t *)not_memory_calloc(1, sizeof(not_queue_entry_t));
 	if (!entry)
 	{
-		sy_error_no_memory();
+		not_error_no_memory();
 		return ERROR;
 	}
 
 	entry->value = value;
 
-	sy_queue_link(queue, index, entry);
+	not_queue_link(queue, index, entry);
 	return entry;
 }
