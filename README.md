@@ -1,16 +1,19 @@
 # The Not Programming Language
 
+# Build Instructions
+On Unix, Linux, BSD, macOS, and Cygwin:
+```
+make
+make test
+```
 
-# How to import?
+# Simple Code
 ```not
 using param2: param from "~/lib/types/primary.not";
 
 // import c/.. library shared
 using println from "~/lib/c/shared.json";
-```
 
-# Types
-```not
 // int type
 var a1 = 1;
 
@@ -28,10 +31,7 @@ var a5 = [1, 2, 3, 4, 5];
 
 // object
 var a6 = {a:1, b:2, c:3, d:4, e:5};
-```
 
-# Class
-```not
 class B
 {
 	// static property
@@ -77,17 +77,11 @@ class A<T> extends (b1:B)
 		return b * p1;
 	}
 }
-```
 
-# Lambda Function
-```not
 var fun1 = fun (p1:int) {
 	return p1 * 1000;
 };
-```
 
-# simple code
-```not
 var f2 = A<int>(100000);
 var f3 = f2 * 2;
 
