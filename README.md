@@ -1,13 +1,16 @@
 # The Not Programming Language
 
-# Build Instructions
+## Build Instructions
 On Unix, Linux, BSD, macOS, and Cygwin:
 ```
+sudo apt-get update
+sudo apt-get install libffi-dev libgmp-dev
+
 make
 make test
 ```
 
-# Simple Code
+## Simple Code
 ```not
 using param2: param from "~/lib/types/primary.not";
 
