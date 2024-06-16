@@ -66,7 +66,7 @@ sy_execute_type_extends_of_type(sy_node_t *node, sy_record_t *record_type1, sy_r
                 cnt1 += 1;
                 for (sy_record_object_t *object2 = (sy_record_object_t *)type2->value; object2 != NULL; object2 = object2->next)
                 {
-                    if (sy_execute_id_cmp(object1->key, object2->key) == 1)
+                    if (strcmp(object1->key, object2->key) == 0)
                     {
                         int32_t r1 = sy_execute_type_check_by_type(node, object1->value, object2->value, strip, applicant);
                         if (r1 == -1)

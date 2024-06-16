@@ -77,31 +77,41 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+	sy_config_expection_set(1);
+
 	if (sy_symbol_table_init() < 0)
 	{
-		return -1;
+		goto region_error;
 	}
 
 	sy_module_t *module = sy_repository_load(sy_config_get_input_file());
 	if (module == ERROR)
 	{
-		return -1;
+		goto region_error;
 	}
 
 	if (sy_symbol_table_destroy() < 0)
 	{
-		return -1;
+		goto region_error;
 	}
 
-	if (sy_thread_destroy() < 0)
-	{
-		return -1;
-	}
-
-	if (sy_config_destroy() < 0)
-	{
-		return -1;
-	}
+	sy_thread_destroy();
 
 	return 0;
+
+region_error:
+
+	sy_thread_t *t = sy_thread_get_current();
+
+	for (sy_queue_entry_t *a = t->interpreter->expections->begin, *b = NULL; a != t->interpreter->expections->end; a = b)
+	{
+		b = a->next;
+		sy_record_t *expection = (sy_record_t *)a->value;
+
+		printf("%s\n", sy_record_to_string(expection, ""));
+
+		sy_queue_unlink(t->interpreter->expections, a);
+	}
+
+	exit(-1);
 }

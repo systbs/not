@@ -7,6 +7,7 @@
 #include "types/types.h"
 #include "utils/path.h"
 #include "token/position.h"
+#include "container/queue.h"
 #include "error.h"
 #include "mutex.h"
 #include "memory.h"
@@ -20,12 +21,6 @@ sy_thread_init()
 {
     sy_thread_t *bt = sy_thread_get();
 
-    if (sy_mutex_init(&bt->lock) < 0)
-    {
-        sy_error_system("'%s' could not initialize the lock", "sy_thread.lock");
-        return -1;
-    }
-
 #ifdef _WIN32
     bt->id = GetCurrentThreadId();
     bt->thread = = GetCurrentThread();
@@ -33,82 +28,34 @@ sy_thread_init()
     bt->id = pthread_self();
 #endif
 
-    bt->begin = NULL;
     bt->parent = NULL;
 
-    sy_interpreter_t *interpreter = sy_interpreter_create();
-    if (!interpreter)
+    bt->interpreter = sy_interpreter_create();
+    if (bt->interpreter == ERROR)
     {
         return -1;
     }
-    bt->interpreter = interpreter;
+
+    bt->childrens = sy_queue_create();
+    if (bt->childrens == ERROR)
+    {
+        sy_interpreter_destroy(bt->interpreter);
+        return -1;
+    }
 
     return 0;
 }
 
-int32_t
-sy_thread_destroy()
+void sy_thread_destroy()
 {
     sy_thread_t *thread = sy_thread_get();
-
-    if (sy_interpreter_destroy(thread->interpreter) < 0)
-    {
-        return -1;
-    }
-
-    if (sy_mutex_destroy(&thread->lock) < 0)
-    {
-        sy_error_system("'%s' could not destroy the lock", "sy_thread.lock");
-        return -1;
-    }
-    return 0;
+    sy_interpreter_destroy(thread->interpreter);
 }
 
 sy_thread_t *
 sy_thread_get()
 {
     return &base_thread;
-}
-
-static void
-sy_thread_unsafe_link(sy_thread_t *parent, sy_thread_t *current, sy_thread_t *it)
-{
-    it->next = current;
-    if (current)
-    {
-        it->previous = current->previous;
-        current->previous = it;
-        if (current->previous)
-        {
-            current->previous->next = it;
-        }
-    }
-
-    if (parent->begin == current)
-    {
-        parent->begin = it;
-    }
-
-    it->parent = parent;
-}
-
-static void
-sy_thread_unsafe_unlink(sy_thread_t *parent, sy_thread_t *it)
-{
-    if (it == parent->begin)
-    {
-        parent->begin = it->next;
-    }
-
-    if (it->next)
-    {
-        it->next->previous = it->previous;
-    }
-
-    if (it->previous)
-    {
-        it->previous->next = it->next;
-    }
 }
 
 sy_thread_t *
@@ -127,56 +74,33 @@ sy_thread_create(
         return ERROR;
     }
 
-    if (sy_mutex_init(&t->lock) < 0)
+    t->interpreter = sy_interpreter_create();
+    if (t->interpreter == ERROR)
     {
         sy_memory_free(t);
-        sy_error_system("'%s-%lu' could not initialize the lock", "sy_thread.lock", t->id);
         return ERROR;
     }
 
-    t->begin = NULL;
-
-    sy_interpreter_t *interpreter = sy_interpreter_create();
-    if (!interpreter)
+    t->childrens = sy_queue_create();
+    if (t->childrens == ERROR)
     {
+        sy_interpreter_destroy(t->interpreter);
+        sy_memory_free(t);
         return ERROR;
     }
-    t->interpreter = interpreter;
 
     sy_thread_t *parent = sy_thread_get_current();
     if (parent == ERROR)
     {
-        if (sy_interpreter_destroy(interpreter) < 0)
-        {
-            return ERROR;
-        }
+        sy_interpreter_destroy(t->interpreter);
         sy_memory_free(t);
         return ERROR;
     }
 
-    assert(parent != NULL);
-
-    if (sy_mutex_lock(&parent->lock) < 0)
+    if (ERROR == sy_queue_right_push(parent->childrens, t))
     {
-        if (sy_interpreter_destroy(interpreter) < 0)
-        {
-            return ERROR;
-        }
+        sy_interpreter_destroy(t->interpreter);
         sy_memory_free(t);
-        sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", parent->id);
-        return ERROR;
-    }
-
-    sy_thread_unsafe_link(parent, parent->begin, t);
-
-    if (sy_mutex_unlock(&parent->lock) < 0)
-    {
-        if (sy_interpreter_destroy(interpreter) < 0)
-        {
-            return ERROR;
-        }
-        sy_memory_free(t);
-        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", parent->id);
         return ERROR;
     }
 
@@ -185,10 +109,7 @@ sy_thread_create(
     HANDLE thread = CreateThread(NULL, 0, sy_repository_load_by_thread, &data, 0, &threadId);
     if (!thread)
     {
-        if (sy_interpreter_destroy(interpreter) < 0)
-        {
-            return ERROR;
-        }
+        sy_interpreter_destroy(t->interpreter);
         sy_memory_free(t);
         sy_error_system("new thread not created\n");
         return ERROR;
@@ -200,10 +121,7 @@ sy_thread_create(
     pthread_t thread;
     if (pthread_create(&thread, NULL, start_routine, arg) != 0)
     {
-        if (sy_interpreter_destroy(interpreter) < 0)
-        {
-            return ERROR;
-        }
+        sy_interpreter_destroy(t->interpreter);
         sy_memory_free(t);
         sy_error_system("new thread not created\n");
         return ERROR;
@@ -215,36 +133,22 @@ sy_thread_create(
 }
 
 static sy_thread_t *
-sy_thread_unsafe_find_by_id(sy_thread_t *parent, sy_thread_id_t id)
+sy_thread_find_by_id(sy_thread_t *parent, sy_thread_id_t id)
 {
-    for (sy_thread_t *t = parent->begin; t != NULL; t = t->next)
+    sy_queue_entry_t *item;
+    for (item = parent->childrens->begin; item != parent->childrens->end; item = item->next)
     {
+        sy_thread_t *t = (sy_thread_t *)item->value;
+
         if (t->id == id)
         {
             return t;
         }
 
-        if (sy_mutex_lock(&t->lock) < 0)
-        {
-            sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", t->id);
-            return ERROR;
-        }
-
-        sy_thread_t *r1 = sy_thread_unsafe_find_by_id(t, id);
+        sy_thread_t *r1 = sy_thread_find_by_id(t, id);
         if (r1 != NULL)
         {
-            if (sy_mutex_unlock(&t->lock) < 0)
-            {
-                sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", t->id);
-                return ERROR;
-            }
             return r1;
-        }
-
-        if (sy_mutex_unlock(&t->lock) < 0)
-        {
-            sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", t->id);
-            return ERROR;
         }
     }
 
@@ -261,37 +165,16 @@ sy_thread_get_current()
 #endif
 
     sy_thread_t *bt = sy_thread_get();
-    if (sy_mutex_lock(&bt->lock) < 0)
-    {
-        sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", bt->id);
-        return ERROR;
-    }
 
     if (bt->id == id)
     {
-        if (sy_mutex_unlock(&bt->lock) < 0)
-        {
-            sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", bt->id);
-            return ERROR;
-        }
         return bt;
     }
 
-    sy_thread_t *r1 = sy_thread_unsafe_find_by_id(bt, id);
+    sy_thread_t *r1 = sy_thread_find_by_id(bt, id);
     if (r1 != NULL)
     {
-        if (sy_mutex_unlock(&bt->lock) < 0)
-        {
-            sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", bt->id);
-            return ERROR;
-        }
         return r1;
-    }
-
-    if (sy_mutex_unlock(&bt->lock) < 0)
-    {
-        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", bt->id);
-        return ERROR;
     }
 
     return NULL;
@@ -344,29 +227,13 @@ sy_thread_join_all_childrens()
         return 0;
     }
 
-    if (sy_mutex_lock(&thread->lock) < 0)
+    for (sy_queue_entry_t *item = thread->childrens->begin; item != thread->childrens->end; item = item->next)
     {
-        sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", thread->id);
-        return -1;
-    }
-
-    for (sy_thread_t *t = thread->begin; t != NULL; t = t->next)
-    {
+        sy_thread_t *t = (sy_thread_t *)item->value;
         if (sy_thread_join(t) < 0)
         {
-            if (sy_mutex_unlock(&thread->lock) < 0)
-            {
-                sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
-                return -1;
-            }
             return -1;
         }
-    }
-
-    if (sy_mutex_unlock(&thread->lock) < 0)
-    {
-        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
-        return -1;
     }
 
     return 0;
@@ -381,24 +248,20 @@ sy_thread_exit()
         return -1;
     }
 
-    assert(thread->parent != NULL);
-
     sy_thread_t *parent = thread->parent;
 
-    if (sy_mutex_lock(&parent->lock) < 0)
+    for (sy_queue_entry_t *a = parent->childrens->begin, *b = NULL; a != parent->childrens->end; a = b)
     {
-        sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", parent->id);
-        return -1;
+        b = a->next;
+        sy_thread_t *t = (sy_thread_t *)a->value;
+        if (t->id == thread->id)
+        {
+            sy_queue_unlink(parent->childrens, a);
+            break;
+        }
     }
 
-    sy_thread_unsafe_unlink(parent, thread);
-
-    if (sy_mutex_unlock(&parent->lock) < 0)
-    {
-        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", parent->id);
-        return -1;
-    }
-
+    sy_interpreter_destroy(thread->interpreter);
     sy_memory_free(thread);
 
 #ifdef _WIN32
@@ -422,62 +285,23 @@ sy_record_t *
 sy_thread_get_rax()
 {
     sy_thread_t *thread = sy_thread_get_current();
-    if (sy_mutex_lock(&thread->lock) < 0)
-    {
-        sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", thread->id);
-        return ERROR;
-    }
-
     sy_record_t *value = thread->interpreter->rax;
-
-    if (sy_mutex_unlock(&thread->lock) < 0)
-    {
-        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
-        return ERROR;
-    }
-
     return value;
 }
 
-int32_t
-sy_thread_set_rax(sy_record_t *value)
+void sy_thread_set_rax(sy_record_t *value)
 {
     sy_thread_t *thread = sy_thread_get_current();
-    if (sy_mutex_lock(&thread->lock) < 0)
-    {
-        sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", thread->id);
-        return -1;
-    }
-
     thread->interpreter->rax = value;
-
-    if (sy_mutex_unlock(&thread->lock) < 0)
-    {
-        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
-        return -1;
-    }
-
-    return 0;
 }
 
 sy_record_t *
 sy_thread_get_and_set_rax(sy_record_t *value)
 {
     sy_thread_t *thread = sy_thread_get_current();
-    if (sy_mutex_lock(&thread->lock) < 0)
-    {
-        sy_error_system("'%s-%lu' could not lock", "sy_thread.lock", thread->id);
-        return ERROR;
-    }
 
     sy_record_t *result = thread->interpreter->rax;
     thread->interpreter->rax = value;
-
-    if (sy_mutex_unlock(&thread->lock) < 0)
-    {
-        sy_error_system("'%s-%lu' could not unlock", "sy_thread.lock", thread->id);
-        return ERROR;
-    }
 
     return result;
 }

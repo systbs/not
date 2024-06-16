@@ -620,7 +620,7 @@ sy_execute_attribute(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, s
     {
         for (sy_record_object_t *item = (sy_record_object_t *)left->value; item != NULL; item = item->next)
         {
-            if (sy_execute_id_cmp(item->key, binary->right) == 1)
+            if (sy_execute_id_strcmp(binary->right, item->key) == 1)
             {
                 if (sy_record_link_decrease(left) < 0)
                 {

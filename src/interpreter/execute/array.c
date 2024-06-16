@@ -210,7 +210,7 @@ sy_execute_array(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_no
 
             for (sy_record_object_t *item = (sy_record_object_t *)base->value; item != NULL; item = item->next)
             {
-                if (sy_execute_id_strcmp(item->key, (char *)record_arg->value) == 1)
+                if (strcmp(item->key, (char *)record_arg->value) == 0)
                 {
                     if (sy_record_link_decrease(record_arg) < 0)
                     {

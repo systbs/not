@@ -21,6 +21,7 @@
 #include "../../memory.h"
 #include "../../interpreter.h"
 #include "../../thread.h"
+#include "../../config.h"
 #include "../record.h"
 #include "../garbage.h"
 #include "../entry.h"
@@ -137,7 +138,7 @@ sy_execute_type_check_by_type(sy_node_t *node, sy_record_t *record_type1, sy_rec
                 cnt1 += 1;
                 for (sy_record_object_t *object2 = (sy_record_object_t *)type2->value; object2 != NULL; object2 = object2->next)
                 {
-                    if (sy_execute_id_cmp(object1->key, object2->key) == 1)
+                    if (strcmp(object1->key, object2->key) == 0)
                     {
                         int32_t r1 = sy_execute_type_check_by_type(node, object1->value, object2->value, strip, applicant);
                         if (r1 == -1)
@@ -359,7 +360,7 @@ sy_execute_value_check_by_type(sy_node_t *node, sy_record_t *record_value, sy_re
                 cnt1 += 1;
                 for (sy_record_object_t *object2 = (sy_record_object_t *)type1->value; object2 != NULL; object2 = object2->next)
                 {
-                    if (sy_execute_id_cmp(object1->key, object2->key) == 1)
+                    if (strcmp(object1->key, object2->key) == 0)
                     {
                         int32_t r1 = sy_execute_value_check_by_type(node, object1->value, object2->value, strip, applicant);
                         if (r1 == -1)
@@ -608,7 +609,7 @@ sy_execute_value_casting_by_type(sy_node_t *node, sy_record_t *record_value, sy_
                 int32_t found = 0;
                 for (sy_record_object_t *object2 = object_copy; object2 != NULL; object2 = object2->next)
                 {
-                    if (sy_execute_id_cmp(object1->key, object2->key) == 1)
+                    if (strcmp(object1->key, object2->key) == 0)
                     {
                         sy_record_t *r1 = sy_execute_value_casting_by_type(node, object2->value, object1->value, strip, applicant);
                         if (r1 == ERROR)
@@ -914,7 +915,7 @@ sy_execute_entity(sy_node_t *scope, sy_node_t *node, sy_record_t *value, sy_stri
         {
             for (sy_record_object_t *object = value->value; object != NULL; object = object->next)
             {
-                if (sy_execute_id_cmp(object->key, key_search) == 1)
+                if (sy_execute_id_strcmp(key_search, object->key) == 1)
                 {
                     value_select = object->value;
                     break;
@@ -1376,12 +1377,9 @@ region_start_loop:
                             {
                                 if (sy_record_link_decrease(rax) < 0)
                                 {
-                                    return -1;
-                                }
-                                if (sy_thread_set_rax(NULL) < 0)
-                                {
                                     goto region_error;
                                 }
+                                sy_thread_set_rax(NULL);
                                 ret_code = 0;
                             }
                         }
@@ -1417,12 +1415,9 @@ region_start_loop:
                             {
                                 if (sy_record_link_decrease(rax) < 0)
                                 {
-                                    return -1;
-                                }
-                                if (sy_thread_set_rax(NULL) < 0)
-                                {
                                     goto region_error;
                                 }
+                                sy_thread_set_rax(NULL);
                                 ret_code = 0;
 
                                 goto region_continue_loop;
@@ -1503,9 +1498,7 @@ region_start_loop:
         {
             if (for1->value)
             {
-                sy_node_basic_t *basic = (sy_node_basic_t *)object->key->value;
-
-                sy_record_t *record_key = sy_record_make_string(basic->value);
+                sy_record_t *record_key = sy_record_make_string(object->key);
                 if (record_key == ERROR)
                 {
                     if (sy_record_link_decrease(iterator) < 0)
@@ -1527,8 +1520,7 @@ region_start_loop:
                 else if (entry == NULL)
                 {
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->field->value;
-                    sy_error_type_by_node(for1->field, "'%s' already defined",
-                                          basic1->value);
+                    sy_error_type_by_node(for1->field, "'%s' already defined", basic1->value);
 
                     if (sy_record_link_decrease(iterator) < 0)
                     {
@@ -1549,8 +1541,7 @@ region_start_loop:
                 else if (entry == NULL)
                 {
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->value->value;
-                    sy_error_type_by_node(for1->value, "'%s' already defined",
-                                          basic1->value);
+                    sy_error_type_by_node(for1->value, "'%s' already defined", basic1->value);
 
                     if (sy_record_link_decrease(iterator) < 0)
                     {
@@ -1574,8 +1565,7 @@ region_start_loop:
                 else if (entry == NULL)
                 {
                     sy_node_basic_t *basic1 = (sy_node_basic_t *)for1->field->value;
-                    sy_error_type_by_node(for1->field, "'%s' already defined",
-                                          basic1->value);
+                    sy_error_type_by_node(for1->field, "'%s' already defined", basic1->value);
 
                     if (sy_record_link_decrease(iterator) < 0)
                     {
@@ -1719,12 +1709,9 @@ region_start_loop:
                     {
                         if (sy_record_link_decrease(rax) < 0)
                         {
-                            return -1;
-                        }
-                        if (sy_thread_set_rax(NULL) < 0)
-                        {
                             goto region_error;
                         }
+                        sy_thread_set_rax(NULL);
                         ret_code = 0;
                     }
                 }
@@ -1760,12 +1747,9 @@ region_start_loop:
                     {
                         if (sy_record_link_decrease(rax) < 0)
                         {
-                            return -1;
-                        }
-                        if (sy_thread_set_rax(NULL) < 0)
-                        {
                             goto region_error;
                         }
+                        sy_thread_set_rax(NULL);
                         ret_code = 0;
 
                         goto region_continue_loop;
@@ -1818,73 +1802,86 @@ sy_execute_try(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
     sy_node_try_t *try1 = (sy_node_try_t *)node->value;
 
     int32_t r2 = sy_execute_body(try1->body, strip, applicant);
-    if (r2 == -4)
+    if ((r2 == -4) || (r2 == -1))
     {
-        sy_record_t *rax = sy_thread_get_rax();
-        if (rax == ERROR)
+        if (r2 == -1)
         {
-            return -1;
+            if (!sy_config_expection_is_enable())
+            {
+                return -1;
+            }
         }
 
-        if (try1->catchs)
+        sy_thread_t *t = sy_thread_get_current();
+
+        for (sy_queue_entry_t *a = t->interpreter->expections->begin, *b = NULL; a != t->interpreter->expections->end; a = b)
         {
-            sy_node_catch_t *catch1 = (sy_node_catch_t *)try1->catchs->value;
-            int32_t r1 = sy_call_parameters_check_by_one_arg(try1->catchs, strip, catch1->parameters, rax, applicant);
-            if (r1 == -1)
-            {
-                return -1;
-            }
-            else if (r1 == 0)
-            {
-                return r2;
-            }
+            b = a->next;
+            sy_record_t *expection = (sy_record_t *)a->value;
 
-            if (sy_call_parameters_subs_by_one_arg(try1->catchs, try1->catchs, strip, catch1->parameters, rax, applicant) < 0)
+            if (try1->catchs)
             {
-                return -1;
-            }
-
-            if (sy_record_link_decrease(rax) < 0)
-            {
-                return -1;
-            }
-            if (sy_thread_set_rax(NULL) < 0)
-            {
-                return -1;
-            }
-
-            if (catch1->parameters)
-            {
-                sy_node_block_t *parameters = (sy_node_block_t *)catch1->parameters->value;
-                for (sy_node_t *item = parameters->items; item != NULL; item = item->next)
+                sy_node_catch_t *catch1 = (sy_node_catch_t *)try1->catchs->value;
+                int32_t r1 = sy_call_parameters_check_by_one_arg(try1->catchs, strip, catch1->parameters, expection, applicant);
+                if (r1 == -1)
                 {
-                    sy_node_parameter_t *parameter = (sy_node_parameter_t *)item->value;
-                    sy_entry_t *entry = sy_strip_input_find(strip, try1->catchs, parameter->key);
-                    if (entry == ERROR)
-                    {
-                        return -1;
-                    }
+                    return -1;
+                }
+                else if (r1 == 0)
+                {
+                    continue;
+                }
 
-                    sy_entry_t *entry2 = sy_strip_variable_push(strip, try1->catchs, item, parameter->key, entry->value);
-                    if (entry2 == ERROR)
+                if (sy_call_parameters_subs_by_one_arg(try1->catchs, try1->catchs, strip, catch1->parameters, expection, applicant) < 0)
+                {
+                    return -1;
+                }
+
+                if (sy_record_link_decrease(expection) < 0)
+                {
+                    return -1;
+                }
+
+                sy_queue_unlink(t->interpreter->expections, a);
+
+                if (catch1->parameters)
+                {
+                    sy_node_block_t *parameters = (sy_node_block_t *)catch1->parameters->value;
+                    for (sy_node_t *item = parameters->items; item != NULL; item = item->next)
                     {
-                        return -1;
+                        sy_node_parameter_t *parameter = (sy_node_parameter_t *)item->value;
+                        sy_entry_t *entry = sy_strip_input_find(strip, try1->catchs, parameter->key);
+                        if (entry == ERROR)
+                        {
+                            return -1;
+                        }
+
+                        sy_entry_t *entry2 = sy_strip_variable_push(strip, try1->catchs, item, parameter->key, entry->value);
+                        if (entry2 == ERROR)
+                        {
+                            return -1;
+                        }
                     }
                 }
-            }
 
-            int32_t r3 = sy_execute_body(catch1->body, strip, applicant);
-            if (r3 < 0)
-            {
-                return r3;
-            }
+                int32_t r3 = sy_execute_body(catch1->body, strip, applicant);
+                if (r3 < 0)
+                {
+                    return r3;
+                }
 
-            if (sy_strip_variable_remove_by_scope(strip, try1->catchs) < 0)
+                if (sy_strip_variable_remove_by_scope(strip, try1->catchs) < 0)
+                {
+                    return -1;
+                }
+            }
+            else
             {
-                return -1;
+                continue;
             }
         }
-        else
+
+        if (sy_queue_count(t->interpreter->expections) > 0)
         {
             return r2;
         }
@@ -1971,7 +1968,8 @@ sy_execute_throw(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
             return -1;
         }
 
-        if (sy_thread_set_rax(value) < 0)
+        sy_thread_t *t = sy_thread_get_current();
+        if (ERROR == sy_queue_right_push(t->interpreter->expections, value))
         {
             return -1;
         }
@@ -2012,10 +2010,7 @@ sy_execute_break(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
             goto region_error;
         }
 
-        if (sy_thread_set_rax(value) < 0)
-        {
-            return -1;
-        }
+        sy_thread_set_rax(value);
     }
 
     return -2;
@@ -2057,10 +2052,7 @@ sy_execute_continue(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
             goto region_error;
         }
 
-        if (sy_thread_set_rax(value) < 0)
-        {
-            return -1;
-        }
+        sy_thread_set_rax(value);
     }
 
     return -3;
@@ -2083,10 +2075,7 @@ sy_execute_return(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant)
             return -1;
         }
 
-        if (sy_thread_set_rax(value) < 0)
-        {
-            return -1;
-        }
+        sy_thread_set_rax(value);
     }
 
     return 0;

@@ -46,7 +46,7 @@ typedef struct sy_record_type
 
 typedef struct sy_record_object
 {
-    sy_node_t *key;
+    char *key;
     sy_record_t *value;
 
     struct sy_record_object *next;
@@ -98,7 +98,7 @@ sy_record_tuple_t *
 sy_record_make_tuple(sy_record_t *value, sy_record_tuple_t *next);
 
 sy_record_object_t *
-sy_record_make_object(sy_node_t *key, sy_record_t *value, sy_record_object_t *next);
+sy_record_make_object(char *key, sy_record_t *value, sy_record_object_t *next);
 
 sy_record_t *
 sy_record_make_string(char *value);

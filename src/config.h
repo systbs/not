@@ -9,19 +9,21 @@
 typedef struct sy_config
 {
     char input_file[MAX_PATH];
-    sy_mutex_t lock;
+    int32_t expection;
 } sy_config_t;
-
-int32_t
-sy_config_init();
-
-int32_t
-sy_config_destroy();
 
 int32_t
 sy_config_set_input_file(const char *path);
 
 char *
 sy_config_get_input_file();
+
+int32_t
+sy_config_init();
+
+int32_t
+sy_config_expection_is_enable();
+
+void sy_config_expection_set(int32_t expection);
 
 #endif

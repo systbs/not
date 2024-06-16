@@ -2218,8 +2218,6 @@ sy_semantic_var(sy_node_t *node)
                             sy_node_block_t *block = (sy_node_block_t *)var1->key->value;
                             for (sy_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                             {
-                                assert(item2->kind == NODE_KIND_ENTITY);
-
                                 sy_node_entity_t *entity1 = (sy_node_entity_t *)item2->value;
                                 if (sy_semantic_idcmp(entity1->key, var2->key) == 1)
                                 {
@@ -2239,8 +2237,6 @@ sy_semantic_var(sy_node_t *node)
                             sy_node_block_t *block = (sy_node_block_t *)var2->key->value;
                             for (sy_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                             {
-                                assert(item2->kind == NODE_KIND_ENTITY);
-
                                 sy_node_entity_t *entity1 = (sy_node_entity_t *)item2->value;
                                 if (sy_semantic_idcmp(var1->key, entity1->key) == 1)
                                 {

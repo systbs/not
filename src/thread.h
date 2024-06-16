@@ -12,31 +12,23 @@ typedef DWORD sy_thread_id_t;
 typedef pthread_t sy_thread_id_t;
 #endif
 
-typedef struct sy_thread {
-    struct sy_thread *begin;
-
-    struct sy_thread *previous;
-    struct sy_thread *next;
-
+typedef struct sy_thread
+{
     struct sy_thread *parent;
-
     sy_interpreter_t *interpreter;
-
+    sy_queue_t *childrens;
 #ifdef _WIN32
     DWORD id;
     HANDLE thread;
 #else
     pthread_t id;
 #endif
-
-    sy_mutex_t lock;
 } sy_thread_t;
 
 int32_t
 sy_thread_init();
 
-int32_t
-sy_thread_destroy();
+void sy_thread_destroy();
 
 sy_thread_t *
 sy_thread_get();
@@ -44,9 +36,9 @@ sy_thread_get();
 sy_thread_t *
 sy_thread_create(
 #ifdef _WIN32
-DWORD (*start_routine)(LPVOID), LPVOID arg
+    DWORD (*start_routine)(LPVOID), LPVOID arg
 #else
-void *(*start_routine)(void *), void *arg
+    void *(*start_routine)(void *), void *arg
 #endif
 );
 
@@ -62,8 +54,7 @@ sy_thread_join_all_childrens();
 int32_t
 sy_thread_exit();
 
-int32_t
-sy_thread_set_rax(sy_record_t *value);
+void sy_thread_set_rax(sy_record_t *value);
 
 sy_record_t *
 sy_thread_get_rax();
@@ -71,7 +62,6 @@ sy_thread_get_rax();
 sy_record_t *
 sy_thread_get_and_set_rax(sy_record_t *value);
 
-void 
-sy_thread_sleep(uint64_t ms);
+void sy_thread_sleep(uint64_t ms);
 
 #endif

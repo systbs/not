@@ -101,14 +101,14 @@ sy_record_to_string(sy_record_t *record, char *previous_buf)
     else if (record->kind == RECORD_KIND_STRING)
     {
         char *str = (char *)record->value;
-        size_t length = strlen(previous_buf) + strlen(str);
+        size_t length = strlen(previous_buf) + strlen(str) + 2;
         char *result = sy_memory_calloc(length + 1, sizeof(char));
         if (result == NULL)
         {
             sy_error_no_memory();
             return ERROR;
         }
-        snprintf(result, length + 1, "%s%s", previous_buf, str);
+        snprintf(result, length + 1, "%s\"%s\"", previous_buf, str);
         return result;
     }
     else if (record->kind == RECORD_KIND_INT)
@@ -164,15 +164,14 @@ sy_record_to_string(sy_record_t *record, char *previous_buf)
         snprintf(str, length + 1, "%s%c", previous_buf, '{');
         for (sy_record_object_t *item = (sy_record_object_t *)record->value; item != NULL; item = item->next)
         {
-            sy_node_basic_t *basic = (sy_node_basic_t *)item->key->value;
-            length = strlen(str) + strlen(basic->value) + 1;
+            length = strlen(str) + strlen(item->key) + 1;
             char *result = sy_memory_calloc(length + 1, sizeof(char));
             if (result == NULL)
             {
                 sy_error_no_memory();
                 return ERROR;
             }
-            snprintf(result, length + 1, "%s%s:", str, basic->value);
+            snprintf(result, length + 1, "%s%s:", str, item->key);
             sy_memory_free(str);
             str = result;
 
@@ -258,45 +257,6 @@ sy_record_to_string(sy_record_t *record, char *previous_buf)
         }
         snprintf(result, length + 1, "%s%c", str, ']');
         sy_memory_free(str);
-        return result;
-    }
-    else if (record->kind == RECORD_KIND_UNDEFINED)
-    {
-        char *str = "undefined";
-        size_t length = strlen(previous_buf) + strlen(str);
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%s", previous_buf, str);
-        return result;
-    }
-    else if (record->kind == RECORD_KIND_NAN)
-    {
-        char *str = "nan";
-        size_t length = strlen(previous_buf) + strlen(str);
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%s", previous_buf, str);
-        return result;
-    }
-    else if (record->kind == RECORD_KIND_NULL)
-    {
-        char *str = "null";
-        size_t length = strlen(previous_buf) + strlen(str);
-        char *result = sy_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
-        {
-            sy_error_no_memory();
-            return ERROR;
-        }
-        snprintf(result, length + 1, "%s%s", previous_buf, str);
         return result;
     }
     else if (record->kind == RECORD_KIND_TYPE)
@@ -818,7 +778,7 @@ sy_record_make_char(char value)
 sy_record_t *
 sy_record_make_string(char *value)
 {
-    char *basic = (char *)sy_memory_calloc(1, strlen(value));
+    char *basic = (char *)sy_memory_calloc(1, strlen(value) + 1);
     if (basic == NULL)
     {
         sy_error_no_memory();
@@ -837,7 +797,7 @@ sy_record_make_string(char *value)
 }
 
 sy_record_object_t *
-sy_record_make_object(sy_node_t *key, sy_record_t *value, sy_record_object_t *next)
+sy_record_make_object(char *key, sy_record_t *value, sy_record_object_t *next)
 {
     sy_record_object_t *basic = (sy_record_object_t *)sy_memory_calloc(1, sizeof(sy_record_object_t));
     if (basic == NULL)
@@ -846,7 +806,16 @@ sy_record_make_object(sy_node_t *key, sy_record_t *value, sy_record_object_t *ne
         return ERROR;
     }
 
-    basic->key = key;
+    size_t length = strlen(key);
+    basic->key = sy_memory_calloc(length, sizeof(char) + 1);
+    if (basic->key == ERROR)
+    {
+        sy_error_no_memory();
+        sy_memory_free(basic);
+        return ERROR;
+    }
+    strcpy(basic->key, key);
+
     basic->value = value;
     basic->next = next;
 
@@ -948,6 +917,7 @@ sy_record_object_destroy(sy_record_object_t *object)
         return -1;
     }
 
+    sy_memory_free(object->key);
     sy_memory_free(object);
 
     return 0;
@@ -1084,7 +1054,16 @@ sy_record_object_copy(sy_record_object_t *object)
         return ERROR;
     }
 
-    basic->key = object->key;
+    size_t length = strlen(object->key);
+    basic->key = sy_memory_calloc(length, sizeof(char) + 1);
+    if (basic->key == ERROR)
+    {
+        sy_error_no_memory();
+        sy_memory_free(basic);
+        return ERROR;
+    }
+    strcpy(basic->key, object->key);
+
     basic->value = record_copy;
     basic->next = next;
 

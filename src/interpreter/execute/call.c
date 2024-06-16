@@ -1284,7 +1284,8 @@ sy_call_parameters_subs(sy_node_t *base, sy_node_t *scope, sy_strip_t *strip, sy
                                 }
                             }
 
-                            sy_record_object_t *object2 = sy_record_make_object(argument->key, record_arg, NULL);
+                            sy_node_basic_t *basic = (sy_node_basic_t *)argument->key->value;
+                            sy_record_object_t *object2 = sy_record_make_object(basic->value, record_arg, NULL);
                             if (object2 == ERROR)
                             {
                                 if (sy_record_link_decrease(record_arg) < 0)
@@ -4095,75 +4096,6 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
                             goto region_cleanup_kwarg;
                         }
 
-                        ffi_type **elements_struct = sy_memory_calloc(3, sizeof(ffi_type *));
-                        if (!elements_struct)
-                        {
-                            sy_error_no_memory();
-
-                            if (cvt_ffi.type)
-                                ffi_type_destroy(cvt_ffi.type);
-
-                            if (cvt_ffi.ptr)
-                                sy_memory_free(cvt_ffi.ptr);
-
-                            goto region_cleanup_kwarg;
-                        }
-                        elements_struct[0] = &ffi_type_pointer;
-                        elements_struct[1] = cvt_ffi.type;
-                        elements_struct[2] = NULL;
-
-                        ffi_type *struct_type = sy_memory_calloc(1, sizeof(ffi_type));
-                        if (!struct_type)
-                        {
-                            sy_error_no_memory();
-
-                            if (cvt_ffi.type)
-                                ffi_type_destroy(cvt_ffi.type);
-
-                            if (cvt_ffi.ptr)
-                                sy_memory_free(cvt_ffi.ptr);
-
-                            if (elements_struct)
-                                sy_memory_free(elements_struct);
-
-                            goto region_cleanup_kwarg;
-                        }
-
-                        struct_type->size = 0;
-                        struct_type->alignment = 0;
-                        struct_type->type = FFI_TYPE_STRUCT;
-                        struct_type->elements = elements_struct;
-
-                        typedef struct pair
-                        {
-                            char *key;
-                            void *value;
-                        } pair_t;
-
-                        pair_t *ptr_struct = sy_memory_calloc(1, sizeof(pair_t));
-                        if (!ptr_struct)
-                        {
-                            sy_error_no_memory();
-
-                            if (cvt_ffi.type)
-                                ffi_type_destroy(cvt_ffi.type);
-
-                            if (cvt_ffi.ptr)
-                                sy_memory_free(cvt_ffi.ptr);
-
-                            if (elements_struct)
-                                sy_memory_free(elements_struct);
-
-                            if (struct_type)
-                                sy_memory_free(struct_type);
-
-                            goto region_cleanup_kwarg;
-                        }
-
-                        sy_node_basic_t *basic1 = (sy_node_basic_t *)argument->key->value;
-                        ptr_struct->key = basic1->value;
-                        ptr_struct->value = cvt_ffi.ptr;
-
                         if (index == 0)
                         {
                             ffi_type **elements_ptr = sy_memory_calloc(1, sizeof(ffi_type *) * (index + 2));
@@ -4177,16 +4109,10 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
                                 if (cvt_ffi.ptr)
                                     sy_memory_free(cvt_ffi.ptr);
 
-                                if (ptr_struct)
-                                    sy_memory_free(ptr_struct);
-
-                                if (elements_struct)
-                                    sy_memory_free(elements_struct);
-
                                 goto region_cleanup_kwarg;
                             }
 
-                            elements_ptr[index] = struct_type;
+                            elements_ptr[index] = cvt_ffi.type;
                             elements = elements_ptr;
 
                             void **ptr_copy = sy_memory_calloc(1, sizeof(void *) * (index + 2));
@@ -4197,13 +4123,10 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
                                 if (cvt_ffi.ptr)
                                     sy_memory_free(cvt_ffi.ptr);
 
-                                if (ptr_struct)
-                                    sy_memory_free(ptr_struct);
-
                                 goto region_cleanup_kwarg;
                             }
 
-                            ptr_copy[index] = ptr_struct;
+                            ptr_copy[index] = cvt_ffi.ptr;
                             ptr = ptr_copy;
 
                             index += 1;
@@ -4221,13 +4144,10 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
                                 if (cvt_ffi.ptr)
                                     sy_memory_free(cvt_ffi.ptr);
 
-                                if (elements_struct)
-                                    sy_memory_free(elements_struct);
-
                                 goto region_cleanup_kwarg;
                             }
 
-                            elements_ptr[index] = struct_type;
+                            elements_ptr[index] = cvt_ffi.type;
                             elements = elements_ptr;
 
                             void **ptr_copy = sy_memory_realloc(ptr, sizeof(void *) * (index + 2));
@@ -4241,7 +4161,7 @@ sy_call_ffi(sy_node_t *base, sy_node_t *arguments, sy_strip_t *strip, void *hand
                                 goto region_cleanup_kwarg;
                             }
 
-                            ptr_copy[index] = ptr_struct;
+                            ptr_copy[index] = cvt_ffi.ptr;
                             ptr = ptr_copy;
 
                             index += 1;

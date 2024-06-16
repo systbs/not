@@ -1,10 +1,8 @@
 using param2: param from "~/lib/types/primary.q";
-using add, println, add2 from "~/lib/c/shared.json";
+using add, println from "~/lib/c/shared.json";
 
 var f1 = add(5, 2);
 println("hello world %d %d", f1, 33);
-
-var f0 = add2(6, 3, 8);
 
 class B
 {
@@ -58,7 +56,7 @@ var f3 = f2 * 1;
 var f4 = string(typeof f2);
 var f5 = f4[2];
 var f6 = "hello world" + f2.b;
-
+var f6 = "hello world" + f2.b;
 export var sum = 0;
 try {
 	for loop1 (var a = 0;a < 1000000;a += 1)
@@ -67,7 +65,7 @@ try {
 
 		if (a > 500000)
 		{
-			throw f2;
+			throw "simple throw";
 			continue loop1;
 		}
 	}

@@ -1063,7 +1063,8 @@ sy_execute_object(sy_node_t *node, sy_strip_t *strip, sy_node_t *applicant, sy_n
             is_object = 1;
         }
 
-        sy_record_object_t *object = sy_record_make_object(pair->key, record_value, NULL);
+        sy_node_basic_t *basic = (sy_node_basic_t *)pair->key->value;
+        sy_record_object_t *object = sy_record_make_object(basic->value, record_value, NULL);
         if (object == ERROR)
         {
             if (sy_record_link_decrease(record_value) < 0)
