@@ -1,7 +1,7 @@
 # The Not Programming Language
 
 ## Build Instructions
-On Unix, Linux, BSD, macOS, and Cygwin:
+On Ubuntu:
 ```
 sudo apt-get update
 sudo apt-get install libffi-dev libgmp-dev
