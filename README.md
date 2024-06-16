@@ -86,7 +86,7 @@ var fun1 = fun (p1:int) {
 };
 ```
 
-# Others
+# simple code
 ```not
 var f2 = A<int>(100000);
 var f3 = f2 * 2;
