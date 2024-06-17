@@ -21,7 +21,7 @@ not_thread_init()
 {
     not_thread_t *bt = not_thread_get();
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     bt->id = GetCurrentThreadId();
     bt->thread = = GetCurrentThread();
 #else
@@ -60,7 +60,7 @@ not_thread_get()
 
 not_thread_t *
 not_thread_create(
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     DWORD (*start_routine)(LPVOID), LPVOID arg
 #else
     void *(*start_routine)(void *), void *arg
@@ -104,7 +104,7 @@ not_thread_create(
         return ERROR;
     }
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     DWORD threadId;
     HANDLE thread = CreateThread(NULL, 0, not_repository_load_by_thread, &data, 0, &threadId);
     if (!thread)
@@ -158,7 +158,7 @@ not_thread_find_by_id(not_thread_t *parent, not_thread_id_t id)
 not_thread_t *
 not_thread_get_current()
 {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     DWORD id = GetCurrentThreadId();
 #else
     pthread_t id = pthread_self();
@@ -183,7 +183,7 @@ not_thread_get_current()
 int32_t
 not_thread_join(not_thread_t *thread)
 {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     int32_t r1 = WaitForSingleObject(thread->thread, INFINITE);
     CloseHandle(thread->thread);
 
@@ -264,7 +264,7 @@ not_thread_exit()
     not_interpreter_destroy(thread->interpreter);
     not_memory_free(thread);
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     ExitThread(0);
 #else
     pthread_exit(NULL);
@@ -274,7 +274,7 @@ not_thread_exit()
 
 void not_thread_sleep(uint64_t ms)
 {
-#if _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     sleep(ms);
 #else
     usleep(ms * 1000);

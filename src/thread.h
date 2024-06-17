@@ -2,7 +2,7 @@
 #ifndef __THREAD_H__
 #define __THREAD_H__ 1
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 typedef DWORD not_thread_id_t;
 #else
@@ -17,7 +17,7 @@ typedef struct not_thread
     struct not_thread *parent;
     not_interpreter_t *interpreter;
     not_queue_t *childrens;
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     DWORD id;
     HANDLE thread;
 #else
@@ -35,7 +35,7 @@ not_thread_get();
 
 not_thread_t *
 not_thread_create(
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     DWORD (*start_routine)(LPVOID), LPVOID arg
 #else
     void *(*start_routine)(void *), void *arg

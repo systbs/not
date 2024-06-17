@@ -6,9 +6,11 @@
 #include <gmp.h>
 #include <jansson.h>
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
-#else
+#elif defined(__linux__)
+#include <dlfcn.h>
+#elif defined(__APPLE__) && defined(__MACH__)
 #include <dlfcn.h>
 #endif
 
@@ -40,11 +42,6 @@ int32_t
 not_repository_init()
 {
     not_repository_t *module = not_repository_get();
-    if (not_mutex_init(&module->lock) < 0)
-    {
-        not_error_system("'%s' could not initialize the lock", "not_repository.lock");
-        return -1;
-    }
 
     module->begin = NULL;
 
@@ -75,21 +72,10 @@ not_repository_push_normal_module(const char *path, not_node_t *root)
 {
     not_repository_t *repository = not_repository_get();
 
-    if (not_mutex_lock(&repository->lock) < 0)
-    {
-        not_error_system("'%s' could not lock", "not_repository.lock");
-        return ERROR;
-    }
-
     for (not_module_t *item = repository->begin; item != NULL; item = item->next)
     {
         if (strcmp(item->path, path) == 0)
         {
-            if (not_mutex_unlock(&repository->lock) < 0)
-            {
-                not_error_system("'%s' could not unlock", "not_repository.lock");
-                return ERROR;
-            }
             return NULL;
         }
     }
@@ -97,12 +83,6 @@ not_repository_push_normal_module(const char *path, not_node_t *root)
     not_module_t *entry = (not_module_t *)not_memory_calloc(1, sizeof(not_module_t));
     if (!entry)
     {
-        if (not_mutex_unlock(&repository->lock) < 0)
-        {
-            not_error_system("'%s' could not unlock", "not_repository.lock");
-            return ERROR;
-        }
-
         not_error_no_memory();
         return ERROR;
     }
@@ -111,13 +91,6 @@ not_repository_push_normal_module(const char *path, not_node_t *root)
     entry->root = root;
 
     not_repository_link(entry);
-
-    if (not_mutex_unlock(&repository->lock) < 0)
-    {
-        not_memory_free(entry);
-        not_error_system("'%s' could not unlock", "not_repository.lock");
-        return ERROR;
-    }
 
     return entry;
 }
@@ -133,21 +106,10 @@ not_repository_push_json_module(const char *path, json_t *root,
 {
     not_repository_t *repository = not_repository_get();
 
-    if (not_mutex_lock(&repository->lock) < 0)
-    {
-        not_error_system("'%s' could not lock", "not_repository.lock");
-        return ERROR;
-    }
-
     for (not_module_t *item = repository->begin; item != NULL; item = item->next)
     {
         if (strcmp(item->path, path) == 0)
         {
-            if (not_mutex_unlock(&repository->lock) < 0)
-            {
-                not_error_system("'%s' could not unlock", "not_repository.lock");
-                return ERROR;
-            }
             return NULL;
         }
     }
@@ -155,12 +117,6 @@ not_repository_push_json_module(const char *path, json_t *root,
     not_module_t *entry = (not_module_t *)not_memory_calloc(1, sizeof(not_module_t));
     if (!entry)
     {
-        if (not_mutex_unlock(&repository->lock) < 0)
-        {
-            not_error_system("'%s' could not unlock", "not_repository.lock");
-            return ERROR;
-        }
-
         not_error_no_memory();
         return ERROR;
     }
@@ -171,13 +127,6 @@ not_repository_push_json_module(const char *path, json_t *root,
     entry->handle = handle;
 
     not_repository_link(entry);
-
-    if (not_mutex_unlock(&repository->lock) < 0)
-    {
-        not_memory_free(entry);
-        not_error_system("'%s' could not unlock", "not_repository.lock");
-        return ERROR;
-    }
 
     return entry;
 }
@@ -190,7 +139,7 @@ not_repository_load(char *path)
     if (not_path_is_root(path))
     {
         char base_path[MAX_PATH];
-        not_path_normalize(getenv(ENV_LIBRARY_KEY), base_path, MAX_PATH);
+        not_path_normalize(not_config_get_library_path(), base_path, MAX_PATH);
         not_path_join(base_path, path + 2, base_file, MAX_PATH);
     }
     else
@@ -209,29 +158,12 @@ not_repository_load(char *path)
 
     not_repository_t *repository = not_repository_get();
 
-    if (not_mutex_lock(&repository->lock) < 0)
-    {
-        not_error_system("'%s' could not lock", "not_repository.lock");
-        return ERROR;
-    }
-
     for (not_module_t *item = repository->begin; item != NULL; item = item->next)
     {
         if (strcmp(item->path, base_file) == 0)
         {
-            if (not_mutex_unlock(&repository->lock) < 0)
-            {
-                not_error_system("'%s' could not unlock", "not_repository.lock");
-                return ERROR;
-            }
             return item;
         }
-    }
-
-    if (not_mutex_unlock(&repository->lock) < 0)
-    {
-        not_error_system("'%s' could not unlock", "not_repository.lock");
-        return ERROR;
     }
 
     FILE *file = fopen(base_file, "r");

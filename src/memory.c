@@ -102,7 +102,7 @@ not_memory_arena_malloc(size_t nbytes)
 void *
 not_memory_calloc(size_t num, size_t size)
 {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     return calloc(num, size);
 #else
     return calloc(num, size);
@@ -112,7 +112,7 @@ not_memory_calloc(size_t num, size_t size)
 void *
 not_memory_malloc(size_t size)
 {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     return malloc(size);
 #else
     return malloc(size);
@@ -122,7 +122,7 @@ not_memory_malloc(size_t size)
 void *
 not_memory_realloc(void *ptr, size_t size)
 {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     return realloc(ptr, size);
 #else
     return realloc(ptr, size);
@@ -131,7 +131,7 @@ not_memory_realloc(void *ptr, size_t size)
 
 void not_memory_free(void *ptr)
 {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     return free(size);
 #else
     free(ptr);

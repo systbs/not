@@ -2,7 +2,15 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#elif defined(__linux__)
 #include <pthread.h>
+#include <unistd.h>
+#elif defined(__APPLE__) && defined(__MACH__)
+#include <mach-o/dyld.h>
+#endif
 
 #include "types/types.h"
 #include "utils/path.h"
@@ -11,9 +19,14 @@
 #include "mutex.h"
 #include "config.h"
 
+#if defined(_WIN32) || defined(_WIN64)
+#define setenv(name, value, overwrite) _putenv_s(name, value)
+#define unsetenv(name) _putenv(name "=")
+#endif
+
 not_config_t base_config;
 
-static not_config_t *
+not_config_t *
 not_config_get()
 {
     return &base_config;
@@ -24,7 +37,71 @@ not_config_init()
 {
     not_config_t *config = not_config_get();
     config->expection = 0;
+
+    char *env = getenv(ENV_LIBRARY_KEY);
+    if (env == NULL)
+    {
+#if defined(_WIN32) || defined(_WIN64)
+        char path[MAX_PATH];
+        if (GetModuleFileName(NULL, path, MAX_PATH) != 0)
+        {
+            char dir_path[MAX_PATH];
+            not_path_get_directory_path(path, dir_path, MAX_PATH);
+            strcpy(config->library_path, dir_path);
+            setenv(ENV_LIBRARY_KEY, dir_path, 1);
+        }
+        else
+        {
+            setenv(ENV_LIBRARY_KEY, DEFAULT_LIBRARY_PATH, 1);
+        }
+#elif defined(__linux__)
+        char path[MAX_PATH];
+        ssize_t count = readlink("/proc/self/exe", path, MAX_PATH);
+        if (count != -1)
+        {
+            path[count] = '\0';
+
+            char dir_path[MAX_PATH];
+            not_path_get_directory_path(path, dir_path, MAX_PATH);
+
+            strcpy(config->library_path, dir_path);
+            setenv(ENV_LIBRARY_KEY, dir_path, 1);
+        }
+        else
+        {
+            setenv(ENV_LIBRARY_KEY, DEFAULT_LIBRARY_PATH, 1);
+        }
+#elif defined(__APPLE__) && defined(__MACH__)
+        uint32_t size = MAX_PATH;
+        if (_NSGetExecutablePath(path, &size) == 0)
+        {
+            char dir_path[MAX_PATH];
+            not_path_get_directory_path(path, dir_path, MAX_PATH);
+
+            strcpy(config->library_path, dir_path);
+            setenv(ENV_LIBRARY_KEY, dir_path, 1);
+        }
+        else
+        {
+            setenv(ENV_LIBRARY_KEY, DEFAULT_LIBRARY_PATH, 1);
+        }
+#endif
+    }
+    else
+    {
+        strcpy(config->library_path, env);
+    }
+
+    printf("path = %s\n", config->library_path);
+
     return 0;
+}
+
+char *
+not_config_get_library_path()
+{
+    not_config_t *config = not_config_get();
+    return config->library_path;
 }
 
 int32_t

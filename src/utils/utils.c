@@ -8,7 +8,7 @@
 
 #include "../types/types.h"
 
-#if defined(_WIN32) || defined(WIN32)
+#if defined(_WIN32) || defined(WIN32) || defined(_WIN64)
 #include <io.h>
 #include <direct.h>
 #define F_OK 0

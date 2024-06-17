@@ -16,7 +16,7 @@ enum path_style_type
     PATH_STYLE_UNIX
 };
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) || defined(_WIN64)
 #include <io.h>
 #include <direct.h>
 #define F_OK 0

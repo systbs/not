@@ -33,7 +33,7 @@ not_garbage_destroy();
 int32_t
 not_garbage_push(not_record_t *value);
 
-#if _WIN32
+#if defined(_WIN32) || defined(_WIN64)
 DWORD WINAPI
 not_garbage_clean_by_thread(LPVOID arg);
 #else

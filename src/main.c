@@ -49,12 +49,6 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	char *env = getenv(ENV_LIBRARY_KEY);
-	if (env == NULL)
-	{
-		setenv(ENV_LIBRARY_KEY, DEFAULT_LIBRARY_PATH, 1);
-	}
-
 	int32_t i;
 	for (i = 1; i < argc; i++)
 	{
