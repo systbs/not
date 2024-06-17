@@ -1,8 +1,10 @@
-VERSION := 0.0
+VERSION := 1.0.0
+
+LIBS := -lffi -lgmp -ljansson -lmpfr
 
 CC      :=  gcc
 CFLAGS  := -Wall -Wextra -Wno-unused-parameter
-LDFLAGS := -lm -lgmp -lmpfr -lffi -ljansson
+LDFLAGS := -lm $(LIBS)
 
 BUILDDIR := build
 SOURCEDIR := src
@@ -72,3 +74,5 @@ setup:
 # Builder uses this target to run your application.
 test: $(BINARY)
 	time ./$(BINARY) -f ./test/test.not
+
+.PHONY: all clean

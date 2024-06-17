@@ -1,10 +1,10 @@
-# The Not Programming Language
+# The Not Programming Language version 1.0.0 alpha 0
 
 ## Build Instructions
 On Ubuntu:
 ```
-sudo apt-get update
-sudo apt-get install libffi-dev libgmp-dev
+chmod +x install_dependencies.sh
+./install_dependencies.sh
 
 make
 make test
