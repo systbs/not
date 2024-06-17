@@ -4,21 +4,6 @@
     "path": "shared.so",
     "functions": [
         {
-            "name": "add",
-            "parameters": [
-                {
-                    "name": "a",
-                    "type": "sint"
-                },
-                {
-                    "name": "b",
-                    "type": "sint"
-                }
-            ],
-            "arg": false,
-            "return_type": "sint"
-        },
-        {
             "name": "print",
             "parameters": [
                 {
@@ -26,7 +11,7 @@
                     "type": "string"
                 }
             ],
-            "arg": true,
+            "arg": false,
             "return_type": "sint"
         },
         {
@@ -37,24 +22,8 @@
                     "type": "string"
                 }
             ],
-            "arg": true,
-            "return_type": "sint"
-        },
-        {
-            "name": "add2",
-            "parameters": [
-                {
-                    "name": "a",
-                    "type": "mpz"
-                },
-                {
-                    "name": "b",
-                    "type": "mpz",
-                    "prefix": "*"
-                }
-            ],
             "arg": false,
-            "return_type": "void"
+            "return_type": "sint"
         }
     ]
 }

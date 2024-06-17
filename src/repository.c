@@ -43,7 +43,11 @@ not_repository_init()
 {
     not_repository_t *module = not_repository_get();
 
-    module->begin = NULL;
+    module->queue = not_queue_create();
+    if (module->queue == ERROR)
+    {
+        return -1;
+    }
 
     return 0;
 }
@@ -52,83 +56,6 @@ not_repository_t *
 not_repository_get()
 {
     return &base_repository;
-}
-
-static void
-not_repository_link(not_module_t *entry)
-{
-    not_repository_t *repo = not_repository_get();
-    entry->next = repo->begin;
-    if (repo->begin)
-    {
-        repo->begin->previous = entry;
-    }
-    entry->previous = NULL;
-    repo->begin = entry;
-}
-
-static not_module_t *
-not_repository_push_normal_module(const char *path, not_node_t *root)
-{
-    not_repository_t *repository = not_repository_get();
-
-    for (not_module_t *item = repository->begin; item != NULL; item = item->next)
-    {
-        if (strcmp(item->path, path) == 0)
-        {
-            return NULL;
-        }
-    }
-
-    not_module_t *entry = (not_module_t *)not_memory_calloc(1, sizeof(not_module_t));
-    if (!entry)
-    {
-        not_error_no_memory();
-        return ERROR;
-    }
-
-    strcpy(entry->path, path);
-    entry->root = root;
-
-    not_repository_link(entry);
-
-    return entry;
-}
-
-static not_module_t *
-not_repository_push_json_module(const char *path, json_t *root,
-#ifdef _WIN32
-                                HMODULE handle
-#else
-                                void *handle
-#endif
-)
-{
-    not_repository_t *repository = not_repository_get();
-
-    for (not_module_t *item = repository->begin; item != NULL; item = item->next)
-    {
-        if (strcmp(item->path, path) == 0)
-        {
-            return NULL;
-        }
-    }
-
-    not_module_t *entry = (not_module_t *)not_memory_calloc(1, sizeof(not_module_t));
-    if (!entry)
-    {
-        not_error_no_memory();
-        return ERROR;
-    }
-
-    strcpy(entry->path, path);
-    entry->root = NULL;
-    entry->json = root;
-    entry->handle = handle;
-
-    not_repository_link(entry);
-
-    return entry;
 }
 
 not_module_t *
@@ -158,11 +85,12 @@ not_repository_load(char *path)
 
     not_repository_t *repository = not_repository_get();
 
-    for (not_module_t *item = repository->begin; item != NULL; item = item->next)
+    for (not_queue_entry_t *item = repository->queue->begin; item != repository->queue->end; item = item->next)
     {
-        if (strcmp(item->path, base_file) == 0)
+        not_module_t *module = (not_module_t *)item->value;
+        if (strcmp(module->path, base_file) == 0)
         {
-            return item;
+            return module;
         }
     }
 
@@ -216,7 +144,7 @@ not_repository_load(char *path)
     char module_path[MAX_PATH];
     not_path_join(directory_path, json_string_value(json_path), module_path, MAX_PATH);
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     HMODULE handle = LoadLibrary(module_path);
     if (!handle)
     {
@@ -233,7 +161,25 @@ not_repository_load(char *path)
     dlerror();
 #endif
 
-    return not_repository_push_json_module(base_file, root, handle);
+    not_module_t *entry = (not_module_t *)not_memory_calloc(1, sizeof(not_module_t));
+    if (!entry)
+    {
+        not_error_no_memory();
+        return ERROR;
+    }
+
+    strcpy(entry->path, base_file);
+    entry->root = NULL;
+    entry->json = root;
+    entry->handle = handle;
+
+    if (ERROR == not_queue_right_push(repository->queue, entry))
+    {
+        not_memory_free(entry);
+        return ERROR;
+    }
+
+    return entry;
 
 region_normal_module:
     not_syntax_t *syntax = not_syntax_create(base_file);
@@ -248,21 +194,55 @@ region_normal_module:
         return ERROR;
     }
 
-    not_module_t *module = not_repository_push_normal_module(base_file, root_node);
-    if (module == ERROR)
+    entry = (not_module_t *)not_memory_calloc(1, sizeof(not_module_t));
+    if (!entry)
+    {
+        not_error_no_memory();
+        return ERROR;
+    }
+
+    strcpy(entry->path, base_file);
+    entry->root = root_node;
+
+    if (ERROR == not_queue_right_push(repository->queue, entry))
+    {
+        not_memory_free(entry);
+        return ERROR;
+    }
+
+    if (not_semantic_module(entry->root) < 0)
     {
         return ERROR;
     }
 
-    if (not_semantic_module(module->root) < 0)
+    if (not_execute_run(entry->root) < 0)
     {
         return ERROR;
     }
 
-    if (not_execute_run(module->root) < 0)
-    {
-        return ERROR;
-    }
+    return entry;
+}
 
-    return module;
+void not_repository_destroy()
+{
+    not_repository_t *repository = not_repository_get();
+
+    for (not_queue_entry_t *n = repository->queue->begin, *b = NULL; n != repository->queue->end; n = b)
+    {
+        b = n->next;
+        not_module_t *module = (not_module_t *)n->value;
+        if (module->root)
+        {
+            not_node_destroy(module->root);
+        }
+        else
+        {
+#if defined(_WIN32) || defined(_WIN64)
+            FreeLibrary(module->handle);
+#else
+            dlclose(module->handle);
+#endif
+            json_decref(module->json);
+        }
+    }
 }

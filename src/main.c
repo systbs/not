@@ -77,8 +77,7 @@ int main(int argc, char **argv)
 		goto region_error;
 	}
 
-	not_module_t *module = not_repository_load(not_config_get_input_file());
-	if (module == ERROR)
+	if (ERROR == not_repository_load(not_config_get_input_file()))
 	{
 		goto region_error;
 	}
@@ -89,6 +88,7 @@ int main(int argc, char **argv)
 	}
 
 	not_thread_destroy();
+	not_repository_destroy();
 
 	return 0;
 

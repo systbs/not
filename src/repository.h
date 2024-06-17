@@ -2,7 +2,7 @@
 #ifndef __REPOSITORY_H__
 #define __REPOSITORY_H__ 1
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #else
 #include <dlfcn.h>
@@ -10,12 +10,9 @@
 
 typedef struct not_module
 {
-    struct not_module *previous;
-    struct not_module *next;
-
     char path[MAX_PATH];
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
     HMODULE handle;
 #else
     void *handle;
@@ -27,8 +24,7 @@ typedef struct not_module
 
 typedef struct not_repository
 {
-    not_module_t *begin;
-    not_mutex_t lock;
+    not_queue_t *queue;
 } not_repository_t;
 
 int32_t
@@ -39,5 +35,7 @@ not_repository_get();
 
 not_module_t *
 not_repository_load(char *path);
+
+void not_repository_destroy();
 
 #endif

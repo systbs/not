@@ -2,22 +2,17 @@
 #include <stdarg.h>
 #include <gmp.h>
 
-int add(int a, int b)
+int print(const char *message)
 {
-    return a + b;
+    return printf("%s", message);
 }
 
-int print(const char *format, ...)
+int println(const char *message)
 {
-    va_list arg;
-    va_start(arg, format);
-    int r = vprintf(format, arg);
-    va_end(arg);
-
-    return r;
+    return printf("%s\n", message);
 }
 
-int println(const char *format, ...)
+int printfln(const char *format, ...)
 {
     va_list arg;
     va_start(arg, format);

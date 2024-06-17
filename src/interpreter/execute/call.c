@@ -2773,6 +2773,34 @@ not_call_lambda(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not
     return rax;
 }
 
+void mpf_round(mpf_t rop, const mpf_t op, int64_t n)
+{
+    mpf_t scale, temp;
+    mpf_init(scale);
+    mpf_init(temp);
+
+    mpf_set_ui(scale, 10);
+    mpf_pow_ui(scale, scale, n);
+
+    mpf_mul(temp, op, scale);
+
+    if (mpf_sgn(temp) >= 0)
+    {
+        mpf_add_ui(temp, temp, 0.5);
+    }
+    else
+    {
+        mpf_sub_ui(temp, temp, 0.5);
+    }
+
+    mpf_floor(temp, temp);
+
+    mpf_div(rop, temp, scale);
+
+    mpf_clear(scale);
+    mpf_clear(temp);
+}
+
 typedef union
 {
     char c;
@@ -4995,6 +5023,56 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
 
                 return result;
             }
+            else if (record_value->kind == RECORD_KIND_STRING)
+            {
+                mpz_t num;
+                mpz_init(num);
+
+                if (mpz_set_str(num, (char *)record_value->value, 10) != 0)
+                {
+                    not_error_type_by_node(node, "invalid literal for int() with base 10:'%s'", (char *)record_value->value);
+
+                    if (not_record_link_decrease(record_value) < 0)
+                    {
+                        return ERROR;
+                    }
+
+                    if (not_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
+
+                    return ERROR;
+                }
+
+                not_record_t *result = not_record_make_int_from_z(num);
+                mpz_clear(num);
+                if (result == ERROR)
+                {
+                    if (not_record_link_decrease(record_value) < 0)
+                    {
+                        return ERROR;
+                    }
+
+                    if (not_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
+                    return ERROR;
+                }
+
+                if (not_record_link_decrease(record_value) < 0)
+                {
+                    return ERROR;
+                }
+
+                if (not_record_link_decrease(record_base) < 0)
+                {
+                    return ERROR;
+                }
+
+                return result;
+            }
             else if (record_value->kind == RECORD_KIND_INT)
             {
                 not_record_t *result = not_record_make_int_from_z(*(mpz_t *)record_value->value);
@@ -5099,6 +5177,7 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
                 }
                 return ERROR;
             }
+
             not_record_t *record_value = not_execute_expression(argument->key, strip, applicant, NULL);
             if (record_value == ERROR)
             {
@@ -5109,9 +5188,78 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
                 return ERROR;
             }
 
-            if (record_value->kind == RECORD_KIND_INT)
+            int64_t n = -1;
+            if (block->items->next)
             {
-                not_record_t *result = not_record_make_float_from_si((int64_t)(*(int8_t *)record_value->value));
+                not_node_argument_t *argument = (not_node_argument_t *)block->items->next->value;
+                if (argument->value)
+                {
+                    not_error_type_by_node(argument->key, "'%s' not support", "pair");
+                    if (not_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
+                    return ERROR;
+                }
+
+                not_record_t *record_round = not_execute_expression(argument->key, strip, applicant, NULL);
+                if (record_round == ERROR)
+                {
+                    if (not_record_link_decrease(record_value) < 0)
+                    {
+                        return ERROR;
+                    }
+
+                    if (not_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
+
+                    return ERROR;
+                }
+
+                if (record_round->kind != RECORD_KIND_INT)
+                {
+                    not_error_type_by_node(block->items->next, "'%s' must be of '%s' type", "n", "int");
+                    if (not_record_link_decrease(record_round) < 0)
+                    {
+                        return ERROR;
+                    }
+
+                    if (not_record_link_decrease(record_value) < 0)
+                    {
+                        return ERROR;
+                    }
+
+                    if (not_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
+
+                    return ERROR;
+                }
+
+                n = mpz_get_si(*(mpz_t *)record_round->value);
+
+                if (not_record_link_decrease(record_round) < 0)
+                {
+                    return ERROR;
+                }
+            }
+
+            if (record_value->kind == RECORD_KIND_CHAR)
+            {
+                mpf_t num;
+                mpf_init(num);
+                mpf_set_si(num, (int64_t)(*(char *)record_value->value));
+                if (n > 0)
+                {
+                    mpf_round(num, num, n);
+                }
+
+                not_record_t *result = not_record_make_float_from_f(num);
+                mpf_clear(num);
+
                 if (result == ERROR)
                 {
                     if (not_record_link_decrease(record_value) < 0)
@@ -5138,9 +5286,35 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
 
                 return result;
             }
-            else if (record_value->kind == RECORD_KIND_CHAR)
+            else if (record_value->kind == RECORD_KIND_STRING)
             {
-                not_record_t *result = not_record_make_float_from_si((int64_t)(*(char *)record_value->value));
+                mpf_t num;
+                mpf_init(num);
+
+                if (mpf_set_str(num, (char *)record_value->value, 10) != 0)
+                {
+                    not_error_type_by_node(node, "invalid literal for float() with base 10:'%s'", (char *)record_value->value);
+
+                    if (not_record_link_decrease(record_value) < 0)
+                    {
+                        return ERROR;
+                    }
+
+                    if (not_record_link_decrease(record_base) < 0)
+                    {
+                        return ERROR;
+                    }
+
+                    return ERROR;
+                }
+
+                if (n > 0)
+                {
+                    mpf_round(num, num, n);
+                }
+
+                not_record_t *result = not_record_make_float_from_f(num);
+                mpf_clear(num);
                 if (result == ERROR)
                 {
                     if (not_record_link_decrease(record_value) < 0)
@@ -5169,7 +5343,17 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
             }
             else if (record_value->kind == RECORD_KIND_INT)
             {
-                not_record_t *result = not_record_make_int_from_z(*(mpz_t *)record_value->value);
+                mpf_t num;
+                mpf_init(num);
+                mpf_set_z(num, *(mpz_t *)record_value->value);
+                if (n > 0)
+                {
+                    mpf_round(num, num, n);
+                }
+
+                not_record_t *result = not_record_make_float_from_f(num);
+                mpf_clear(num);
+
                 if (result == ERROR)
                 {
                     if (not_record_link_decrease(record_value) < 0)
@@ -5198,7 +5382,16 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
             }
             else if (record_value->kind == RECORD_KIND_FLOAT)
             {
-                not_record_t *result = not_record_make_float_from_f(*(mpf_t *)record_value->value);
+                mpf_t num;
+                mpf_init_set(num, *(mpf_t *)record_value->value);
+                if (n > 0)
+                {
+                    mpf_round(num, num, n);
+                }
+
+                not_record_t *result = not_record_make_float_from_f(num);
+                mpf_clear(num);
+
                 if (result == ERROR)
                 {
                     if (not_record_link_decrease(record_value) < 0)

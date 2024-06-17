@@ -15,7 +15,7 @@ Open source software is made better when users can easily contribute code and do
 
 
 
-## Simple Code
+## Sample Code
 ```not
 using param2: param from "~/lib/types/primary.not";
 
