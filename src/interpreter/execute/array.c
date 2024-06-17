@@ -935,7 +935,7 @@ not_execute_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, n
                 mpz_clear(cnt);
                 mpz_clear(length);
 
-                not_record_t *result = not_record_create(NODE_KIND_TUPLE, top);
+                not_record_t *result = not_record_create(RECORD_KIND_TUPLE, top);
                 if (result == ERROR)
                 {
                     if (not_record_link_decrease(base) < 0)
