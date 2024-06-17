@@ -101,14 +101,14 @@ not_record_to_string(not_record_t *record, char *previous_buf)
     else if (record->kind == RECORD_KIND_STRING)
     {
         char *str = (char *)record->value;
-        size_t length = strlen(previous_buf) + strlen(str) + 2;
+        size_t length = strlen(previous_buf) + strlen(str);
         char *result = not_memory_calloc(length + 1, sizeof(char));
         if (result == NULL)
         {
             not_error_no_memory();
             return ERROR;
         }
-        snprintf(result, length + 1, "%s\"%s\"", previous_buf, str);
+        snprintf(result, length + 1, "%s%s", previous_buf, str);
         return result;
     }
     else if (record->kind == RECORD_KIND_INT)
@@ -175,6 +175,20 @@ not_record_to_string(not_record_t *record, char *previous_buf)
             not_memory_free(str);
             str = result;
 
+            if (item->value->kind == RECORD_KIND_STRING)
+            {
+                length = strlen(str) + 1;
+                result = not_memory_calloc(length + 1, sizeof(char));
+                if (result == NULL)
+                {
+                    not_error_no_memory();
+                    return ERROR;
+                }
+                snprintf(result, length + 1, "%s\"", str);
+                not_memory_free(str);
+                str = result;
+            }
+
             result = not_record_to_string(item->value, str);
             if (result == ERROR)
             {
@@ -183,6 +197,20 @@ not_record_to_string(not_record_t *record, char *previous_buf)
             }
             not_memory_free(str);
             str = result;
+
+            if (item->value->kind == RECORD_KIND_STRING)
+            {
+                length = strlen(str) + 1;
+                result = not_memory_calloc(length + 1, sizeof(char));
+                if (result == NULL)
+                {
+                    not_error_no_memory();
+                    return ERROR;
+                }
+                snprintf(result, length + 1, "%s\"", str);
+                not_memory_free(str);
+                str = result;
+            }
 
             if (item->next)
             {
