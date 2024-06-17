@@ -92,8 +92,6 @@ not_config_init()
         strcpy(config->library_path, env);
     }
 
-    printf("path = %s\n", config->library_path);
-
     return 0;
 }
 
