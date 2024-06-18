@@ -1,7 +1,7 @@
 // import
 using param2: param from "~/lib/types/primary.not";
 
-// import c/.. library shared
+// on windows use "~/lib/c/shared_win.json"
 using println, add from "~/lib/c/shared.json";
 
 // convert string to float
