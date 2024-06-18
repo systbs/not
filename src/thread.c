@@ -23,7 +23,7 @@ not_thread_init()
 
 #if defined(_WIN32) || defined(_WIN64)
     bt->id = GetCurrentThreadId();
-    bt->thread = = GetCurrentThread();
+    bt->thread = GetCurrentThread();
 #else
     bt->id = pthread_self();
 #endif
@@ -106,7 +106,7 @@ not_thread_create(
 
 #if defined(_WIN32) || defined(_WIN64)
     DWORD threadId;
-    HANDLE thread = CreateThread(NOT_PTR_NULL, 0, not_repository_load_by_thread, &data, 0, &threadId);
+    HANDLE thread = CreateThread(NOT_PTR_NULL, 0, start_routine, arg, 0, &threadId);
     if (!thread)
     {
         not_interpreter_destroy(t->interpreter);
@@ -116,7 +116,7 @@ not_thread_create(
     }
 
     t->id = threadId;
-    t->thread = = thread;
+    t->thread = thread;
 #else
     pthread_t thread;
     if (pthread_create(&thread, NOT_PTR_NULL, start_routine, arg) != 0)
@@ -275,7 +275,7 @@ not_thread_exit()
 void not_thread_sleep(uint64_t ms)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    sleep(ms);
+    Sleep(ms);
 #else
     usleep(ms * 1000);
 #endif

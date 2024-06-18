@@ -148,7 +148,7 @@ not_repository_load(char *path)
     HMODULE handle = LoadLibrary(module_path);
     if (!handle)
     {
-        not_error_system("%s", "failed to load library");
+        not_error_system("%s: '%s'", "failed to load library", module_path);
         return NOT_PTR_ERROR;
     }
 #else

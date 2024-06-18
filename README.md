@@ -2,7 +2,7 @@
 
 ## Build Instructions
 On Ubuntu:
-```
+```sh
 chmod +x install_dependencies.sh
 ./install_dependencies.sh
 
@@ -10,10 +10,20 @@ make
 make test
 ```
 
+On Windows:
+```sh
+pacman -S mingw-w64-x86_64-jansson
+pacman -S mingw-w64-x86_64-gmp
+pacman -S mingw-w64-x86_64-libffi
+pacman -S mingw-w64-x86_64-mpfr
+
+make
+make test
+```
+and replace ("path": "shared.so") by ("path": "shared.dll") in "lib/c/shared.json"
+
 ## 'Not' Needs You
 Open source software is made better when users can easily contribute code and documentation to fix bugs and add features. 'Not' strongly encourages community involvement in improving the software.
-
-
 
 ## Sample Code
 ```not

@@ -8,6 +8,7 @@
 typedef long double float128_t;
 
 #if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
 #else
 #define _MAX_PATH 256
 #define _MAX_FNAME 256

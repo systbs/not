@@ -20,7 +20,36 @@
 #include "config.h"
 
 #if defined(_WIN32) || defined(_WIN64)
-#define setenv(name, value, overwrite) _putenv_s(name, value)
+int setenv(const char *name, const char *value, int overwrite)
+{
+    if (!overwrite)
+    {
+        char *existing_value = getenv(name);
+        if (existing_value != NULL)
+        {
+            return 0;
+        }
+    }
+
+    size_t name_len = strlen(name);
+    size_t value_len = strlen(value);
+    char *env_string = (char *)malloc(name_len + value_len + 2);
+    if (env_string == NULL)
+    {
+        return -1;
+    }
+
+    strcpy(env_string, name);
+    env_string[name_len] = '=';
+    strcpy(env_string + name_len + 1, value);
+
+    int result = _putenv(env_string);
+
+    free(env_string);
+
+    return result;
+}
+
 #define unsetenv(name) _putenv(name "=")
 #endif
 

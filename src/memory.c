@@ -6,6 +6,9 @@
 #include "types/types.h"
 #include "memory.h"
 
+#if defined(_WIN32) || defined(_WIN64)
+
+#else
 typedef long Align;
 
 union header
@@ -99,6 +102,8 @@ not_memory_arena_malloc(size_t nbytes)
     }
 }
 
+#endif
+
 void *
 not_memory_calloc(size_t num, size_t size)
 {
@@ -132,7 +137,7 @@ not_memory_realloc(void *ptr, size_t size)
 void not_memory_free(void *ptr)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    return free(size);
+    return free(ptr);
 #else
     free(ptr);
 #endif

@@ -18,7 +18,11 @@
 #include "scanner.h"
 #include "utf8.h"
 
+#if defined(_WIN32) || defined(_WIN64)
+#else
 #define max(a, b) a > b ? a : b
+#endif
+
 #define isoctal(c) (c >= '0' && c <= '7')
 #define isbinary(c) (c == '0' || c == '1')
 #define bom 0xFEFF
