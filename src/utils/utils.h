@@ -5,7 +5,7 @@
 char *
 not_utils_replace_char(char *str, char find, char replace);
 
-double128_t
+float128_t
 not_utils_stod(const char *str);
 
 uint64_t

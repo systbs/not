@@ -43,7 +43,7 @@ not_garbage_init()
         return -1;
     }
 
-    garbage->begin = NULL;
+    garbage->begin = NOT_PTR_NULL;
 
     return 0;
 }
@@ -69,7 +69,7 @@ not_garbage_unsafe_link(not_garbage_entry_t *entry)
     {
         garbage->begin->previous = entry;
     }
-    entry->previous = NULL;
+    entry->previous = NOT_PTR_NULL;
     garbage->begin = entry;
 }
 
@@ -137,7 +137,7 @@ not_garbage_clean()
         return -1;
     }
 
-    for (not_garbage_entry_t *item = garbage->begin, *next = NULL; item != NULL; item = next)
+    for (not_garbage_entry_t *item = garbage->begin, *next = NOT_PTR_NULL; item != NOT_PTR_NULL; item = next)
     {
         next = item->next;
 

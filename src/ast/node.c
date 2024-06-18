@@ -137,14 +137,14 @@ not_node_create(not_node_t *parent, not_position_t position)
 	if (!node)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	node->id = node_counter++;
 	node->position = position;
 	node->parent = parent;
 
-	node->next = node->previous = NULL;
+	node->next = node->previous = NOT_PTR_NULL;
 
 	return node;
 }
@@ -168,7 +168,7 @@ not_node_make_id(not_node_t *node, char *value)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->value = value;
@@ -184,7 +184,7 @@ not_node_make_number(not_node_t *node, char *value)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->value = value;
@@ -200,7 +200,7 @@ not_node_make_char(not_node_t *node, char *value)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->value = value;
@@ -216,7 +216,7 @@ not_node_make_string(not_node_t *node, char *value)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->value = value;
@@ -232,10 +232,10 @@ not_node_make_null(not_node_t *node)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
-	basic->value = NULL;
+	basic->value = NOT_PTR_NULL;
 
 	not_node_update(node, NODE_KIND_NULL, basic);
 	return node;
@@ -248,10 +248,10 @@ not_node_make_kint(not_node_t *node)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
-	basic->value = NULL;
+	basic->value = NOT_PTR_NULL;
 
 	not_node_update(node, NODE_KIND_KINT, basic);
 
@@ -265,10 +265,10 @@ not_node_make_kfloat(not_node_t *node)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
-	basic->value = NULL;
+	basic->value = NOT_PTR_NULL;
 
 	not_node_update(node, NODE_KIND_KFLOAT, basic);
 
@@ -282,10 +282,10 @@ not_node_make_kchar(not_node_t *node)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
-	basic->value = NULL;
+	basic->value = NOT_PTR_NULL;
 
 	not_node_update(node, NODE_KIND_KCHAR, basic);
 
@@ -299,10 +299,10 @@ not_node_make_kstring(not_node_t *node)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
-	basic->value = NULL;
+	basic->value = NOT_PTR_NULL;
 
 	not_node_update(node, NODE_KIND_KSTRING, basic);
 
@@ -316,7 +316,7 @@ not_node_make_tuple(not_node_t *node, not_node_t *items)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->items = items;
@@ -332,7 +332,7 @@ not_node_make_object(not_node_t *node, not_node_t *items)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->items = items;
@@ -348,7 +348,7 @@ not_node_make_pseudonym(not_node_t *node, not_node_t *base, not_node_t *concepts
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->base = base;
@@ -365,7 +365,7 @@ not_node_make_typeof(not_node_t *node, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->right = right;
@@ -381,7 +381,7 @@ not_node_make_sizeof(not_node_t *node, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->right = right;
@@ -397,7 +397,7 @@ not_node_make_parenthesis(not_node_t *node, not_node_t *value)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->right = value;
@@ -413,7 +413,7 @@ not_node_make_call(not_node_t *node, not_node_t *base, not_node_t *arguments)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->base = base;
@@ -430,7 +430,7 @@ not_node_make_array(not_node_t *node, not_node_t *base, not_node_t *arguments)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->base = base;
@@ -447,7 +447,7 @@ not_node_make_attribute(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -464,7 +464,7 @@ not_node_make_tilde(not_node_t *node, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->right = right;
@@ -480,7 +480,7 @@ not_node_make_not(not_node_t *node, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->right = right;
@@ -496,7 +496,7 @@ not_node_make_neg(not_node_t *node, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->right = right;
@@ -512,7 +512,7 @@ not_node_make_pos(not_node_t *node, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->right = right;
@@ -528,7 +528,7 @@ not_node_make_pow(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -545,7 +545,7 @@ not_node_make_epi(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -562,7 +562,7 @@ not_node_make_mul(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -579,7 +579,7 @@ not_node_make_div(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -596,7 +596,7 @@ not_node_make_mod(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -613,7 +613,7 @@ not_node_make_plus(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -630,7 +630,7 @@ not_node_make_minus(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -647,7 +647,7 @@ not_node_make_shl(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -664,7 +664,7 @@ not_node_make_shr(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -681,7 +681,7 @@ not_node_make_lt(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -698,7 +698,7 @@ not_node_make_le(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -715,7 +715,7 @@ not_node_make_gt(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -732,7 +732,7 @@ not_node_make_ge(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -749,7 +749,7 @@ not_node_make_eq(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -766,7 +766,7 @@ not_node_make_neq(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -783,7 +783,7 @@ not_node_make_and(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -800,7 +800,7 @@ not_node_make_xor(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -817,7 +817,7 @@ not_node_make_or(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -834,7 +834,7 @@ not_node_make_land(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -851,7 +851,7 @@ not_node_make_lor(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -868,7 +868,7 @@ not_node_make_instanceof(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -885,7 +885,7 @@ not_node_make_conditional(not_node_t *node, not_node_t *base, not_node_t *left, 
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->base = base;
@@ -903,7 +903,7 @@ not_node_make_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -920,7 +920,7 @@ not_node_make_add_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -937,7 +937,7 @@ not_node_make_sub_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -954,7 +954,7 @@ not_node_make_div_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -971,7 +971,7 @@ not_node_make_epi_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -988,7 +988,7 @@ not_node_make_mul_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -1005,7 +1005,7 @@ not_node_make_mod_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -1022,7 +1022,7 @@ not_node_make_pow_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -1039,7 +1039,7 @@ not_node_make_and_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -1056,7 +1056,7 @@ not_node_make_or_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -1073,7 +1073,7 @@ not_node_make_shl_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -1090,7 +1090,7 @@ not_node_make_shr_assign(not_node_t *node, not_node_t *left, not_node_t *right)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->left = left;
@@ -1107,7 +1107,7 @@ not_node_make_throw(not_node_t *node, not_node_t *value)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->right = value;
@@ -1123,7 +1123,7 @@ not_node_make_break(not_node_t *node, not_node_t *expression)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->right = expression;
@@ -1139,7 +1139,7 @@ not_node_make_continue(not_node_t *node, not_node_t *expression)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->right = expression;
@@ -1155,7 +1155,7 @@ not_node_make_return(not_node_t *node, not_node_t *expression)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->right = expression;
@@ -1171,7 +1171,7 @@ not_node_make_if(not_node_t *node, not_node_t *condition, not_node_t *then_body,
 	if (!(basic = (not_node_if_t *)not_memory_calloc(1, sizeof(not_node_if_t))))
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->condition = condition;
@@ -1189,7 +1189,7 @@ not_node_make_for(not_node_t *node, not_node_t *key, not_node_t *initializer, no
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->key = key;
@@ -1209,7 +1209,7 @@ not_node_make_forin(not_node_t *node, not_node_t *key, not_node_t *field, not_no
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->key = key;
@@ -1229,7 +1229,7 @@ not_node_make_catch(not_node_t *node, not_node_t *parameters, not_node_t *body)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->parameters = parameters;
@@ -1246,7 +1246,7 @@ not_node_make_try(not_node_t *node, not_node_t *body, not_node_t *catchs)
 	if (!(basic = (not_node_try_t *)not_memory_calloc(1, sizeof(not_node_try_t))))
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->body = body;
@@ -1264,7 +1264,7 @@ not_node_make_var(not_node_t *node, uint64_t flag, not_node_t *key, not_node_t *
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->flag = flag;
@@ -1283,7 +1283,7 @@ not_node_make_argument(not_node_t *node, not_node_t *key, not_node_t *value)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->key = key;
@@ -1300,7 +1300,7 @@ not_node_make_arguments(not_node_t *node, not_node_t *items)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->items = items;
@@ -1316,7 +1316,7 @@ not_node_make_parameter(not_node_t *node, uint64_t flag, not_node_t *key, not_no
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->flag = flag;
@@ -1335,7 +1335,7 @@ not_node_make_parameters(not_node_t *node, not_node_t *items)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->items = items;
@@ -1351,7 +1351,7 @@ not_node_make_field(not_node_t *node, not_node_t *key, not_node_t *value)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->key = key;
@@ -1368,7 +1368,7 @@ not_node_make_fields(not_node_t *node, not_node_t *items)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->items = items;
@@ -1384,7 +1384,7 @@ not_node_make_generic(not_node_t *node, not_node_t *key, not_node_t *type, not_n
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->key = key;
@@ -1402,7 +1402,7 @@ not_node_make_generics(not_node_t *node, not_node_t *items)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->items = items;
@@ -1418,7 +1418,7 @@ not_node_make_func(not_node_t *node, not_node_t *notes, uint64_t flag, not_node_
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->flag = flag;
@@ -1440,7 +1440,7 @@ not_node_make_lambda(not_node_t *node, not_node_t *generics, not_node_t *paramet
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->generics = generics;
@@ -1459,7 +1459,7 @@ not_node_make_property(not_node_t *node, not_node_t *notes, uint64_t flag, not_n
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->flag = flag;
@@ -1479,7 +1479,7 @@ not_node_make_entity(not_node_t *node, uint64_t flag, not_node_t *key, not_node_
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->flag = flag;
@@ -1498,7 +1498,7 @@ not_node_make_set(not_node_t *node, not_node_t *items)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->items = items;
@@ -1514,7 +1514,7 @@ not_node_make_pair(not_node_t *node, not_node_t *key, not_node_t *value)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->key = key;
@@ -1531,7 +1531,7 @@ not_node_make_heritage(not_node_t *node, not_node_t *key, not_node_t *type)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->key = key;
@@ -1548,7 +1548,7 @@ not_node_make_heritages(not_node_t *node, not_node_t *items)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->items = items;
@@ -1564,7 +1564,7 @@ not_node_make_class(not_node_t *node, not_node_t *notes, uint64_t flag, not_node
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->flag = flag;
@@ -1585,7 +1585,7 @@ not_node_make_note(not_node_t *node, not_node_t *key, not_node_t *arguments)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->base = key;
@@ -1602,7 +1602,7 @@ not_node_make_notes(not_node_t *node, not_node_t *items)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->items = items;
@@ -1618,7 +1618,7 @@ not_node_make_package(not_node_t *node, not_node_t *key, not_node_t *value)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->key = key;
@@ -1635,7 +1635,7 @@ not_node_make_packages(not_node_t *node, not_node_t *items)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->items = items;
@@ -1651,7 +1651,7 @@ not_node_make_using(not_node_t *node, not_node_t *path, not_node_t *packages)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->path = path;
@@ -1668,7 +1668,7 @@ not_node_make_body(not_node_t *node, not_node_t *declaration)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->declaration = declaration;
@@ -1684,7 +1684,7 @@ not_node_make_module(not_node_t *node, not_node_t *items)
 	if (!basic)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	basic->items = items;

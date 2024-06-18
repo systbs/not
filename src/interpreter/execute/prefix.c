@@ -56,7 +56,7 @@ size_of(not_record_t *record, size_t *size)
     }
     else if (record->kind == RECORD_KIND_OBJECT)
     {
-        for (not_record_object_t *item = (not_record_object_t *)record->value; item != NULL; item = item->next)
+        for (not_record_object_t *item = (not_record_object_t *)record->value; item != NOT_PTR_NULL; item = item->next)
         {
             int32_t r = size_of(item->value, size);
             if (r < 0)
@@ -68,7 +68,7 @@ size_of(not_record_t *record, size_t *size)
     }
     else if (record->kind == RECORD_KIND_TUPLE)
     {
-        for (not_record_object_t *item = (not_record_object_t *)record->value; item != NULL; item = item->next)
+        for (not_record_object_t *item = (not_record_object_t *)record->value; item != NOT_PTR_NULL; item = item->next)
         {
             int32_t r = size_of(item->value, size);
             if (r < 0)
@@ -86,7 +86,7 @@ size_of(not_record_t *record, size_t *size)
 
         not_node_class_t *class1 = (not_node_class_t *)type->value;
 
-        for (not_node_t *item = class1->block; item != NULL; item = item->next)
+        for (not_node_t *item = class1->block; item != NOT_PTR_NULL; item = item->next)
         {
             if (item->kind == NODE_KIND_PROPERTY)
             {
@@ -102,11 +102,11 @@ size_of(not_record_t *record, size_t *size)
                 }
 
                 not_entry_t *entry = not_strip_variable_find(strip_class, type, property->key);
-                if (entry == ERROR)
+                if (entry == NOT_PTR_ERROR)
                 {
                     return -1;
                 }
-                if (entry == NULL)
+                if (entry == NOT_PTR_NULL)
                 {
                     not_node_basic_t *basic = (not_node_basic_t *)property->key->value;
                     not_error_runtime_by_node(item, "'%s' is not initialized", basic->value);
@@ -129,15 +129,15 @@ size_of(not_record_t *record, size_t *size)
         if (class1->heritages)
         {
             not_node_block_t *block = (not_node_block_t *)class1->heritages->value;
-            for (not_node_t *item = block->items; item != NULL; item = item->next)
+            for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
             {
                 not_node_heritage_t *heritage = (not_node_heritage_t *)item->value;
                 not_entry_t *entry = not_strip_variable_find(strip_class, type, heritage->key);
-                if (entry == ERROR)
+                if (entry == NOT_PTR_ERROR)
                 {
                     return -1;
                 }
-                if (entry == NULL)
+                if (entry == NOT_PTR_NULL)
                 {
                     not_node_basic_t *basic = (not_node_basic_t *)heritage->key->value;
                     not_error_runtime_by_node(item, "'%s' is not initialized", basic->value);
@@ -171,28 +171,28 @@ not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         not_node_unary_t *unary = (not_node_unary_t *)node->value;
 
         not_record_t *left = not_record_make_int_from_si(-1);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *right = not_execute_prefix(unary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *record = not_execute_xor(node, left, right, applicant);
 
         if (not_record_link_decrease(left) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         if (not_record_link_decrease(right) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         return record;
@@ -202,28 +202,28 @@ not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         not_node_unary_t *unary = (not_node_unary_t *)node->value;
 
         not_record_t *left = not_record_make_int_from_si(0);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *right = not_execute_prefix(unary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *record = not_execute_plus(node, left, right, applicant);
 
         if (not_record_link_decrease(left) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         if (not_record_link_decrease(right) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         return record;
@@ -233,28 +233,28 @@ not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         not_node_unary_t *unary = (not_node_unary_t *)node->value;
 
         not_record_t *left = not_record_make_int_from_si(0);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *right = not_execute_prefix(unary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *record = not_execute_minus(node, left, right, applicant);
 
         if (not_record_link_decrease(left) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         if (not_record_link_decrease(right) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         return record;
@@ -264,28 +264,28 @@ not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         not_node_unary_t *unary = (not_node_unary_t *)node->value;
 
         not_record_t *left = not_record_make_int_from_si(0);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *right = not_execute_prefix(unary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *record = not_execute_eq(node, left, right, applicant);
 
         if (not_record_link_decrease(left) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         if (not_record_link_decrease(right) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         return record;
@@ -295,9 +295,9 @@ not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         not_node_unary_t *unary = (not_node_unary_t *)node->value;
 
         not_record_t *right = not_execute_prefix(unary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         size_t size = 0;
@@ -306,16 +306,16 @@ not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         {
             if (not_record_link_decrease(right) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *record = not_record_make_int_from_ui(size);
 
         if (not_record_link_decrease(right) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         return record;
@@ -325,9 +325,9 @@ not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         not_node_unary_t *unary = (not_node_unary_t *)node->value;
 
         not_record_t *right = not_execute_prefix(unary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         char *type_string = "null";
@@ -376,7 +376,7 @@ not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
 
         if (not_record_link_decrease(right) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         return record;

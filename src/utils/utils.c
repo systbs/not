@@ -32,7 +32,7 @@ not_utils_replace_char(char *str, char find, char replace)
 	return str;
 }
 
-double128_t
+float128_t
 not_utils_stod(const char *str)
 {
 	for (uint64_t i = 0; i < strlen(str); i++)
@@ -49,7 +49,7 @@ not_utils_stod(const char *str)
 					uint8_t value = ((str[j] & 0xF) + (str[j] >> 6)) | ((str[j] >> 3) & 0x8);
 					number = (number << 4) | (uint64_t)value;
 				}
-				return (double128_t)number;
+				return (float128_t)number;
 			}
 			else if (tolower(str[i]) == 'b')
 			{
@@ -60,7 +60,7 @@ not_utils_stod(const char *str)
 					uint8_t value = ((str[j] & 0x1) - '0');
 					number = (number << 1) | (uint64_t)value;
 				}
-				return (double128_t)number;
+				return (float128_t)number;
 			}
 			else if (tolower(str[i]) == 'o')
 			{
@@ -71,12 +71,12 @@ not_utils_stod(const char *str)
 					uint8_t value = (str[j] - '0');
 					number = (number << 3) | (uint64_t)value;
 				}
-				return (double128_t)number;
+				return (float128_t)number;
 			}
 			else if (tolower(str[i]) == '.')
 			{
 				i += 1;
-				double128_t number = 0, fact = 1;
+				float128_t number = 0, fact = 1;
 				int32_t sign = 1;
 				for (uint64_t j = i; j < strlen(str); j++)
 				{
@@ -131,12 +131,12 @@ not_utils_stod(const char *str)
 					uint8_t value = (str[j] - '0');
 					number = (number << 3) | (uint64_t)value;
 				}
-				return (double128_t)number;
+				return (float128_t)number;
 			}
 		}
 		else
 		{
-			double128_t number = 0, fact = 1;
+			float128_t number = 0, fact = 1;
 			int32_t sign = 0, exp = 0;
 			for (uint64_t j = i; j < strlen(str); j++)
 			{
@@ -238,7 +238,7 @@ not_utils_stoui(const char *str)
 			else if (tolower(str[i]) == '.')
 			{
 				i += 1;
-				double128_t number = 0, fact = 1;
+				float128_t number = 0, fact = 1;
 				int32_t sign = 1;
 				for (uint64_t j = i; j < strlen(str); j++)
 				{
@@ -298,7 +298,7 @@ not_utils_stoui(const char *str)
 		}
 		else
 		{
-			double128_t number = 0, fact = 1;
+			float128_t number = 0, fact = 1;
 			int32_t sign = 0, exp = 0;
 			for (uint64_t j = i; j < strlen(str); j++)
 			{

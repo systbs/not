@@ -387,7 +387,7 @@ not_path_get_first_segment_joined(const char **paths, not_path_segment_joined_t 
 
     int32_t result;
     result = 0;
-    while (paths[sj->path_index] != NULL && (result = not_path_get_first_segment(paths[sj->path_index], &sj->segment)) == 0)
+    while (paths[sj->path_index] != NOT_PTR_NULL && (result = not_path_get_first_segment(paths[sj->path_index], &sj->segment)) == 0)
     {
         ++sj->path_index;
     }
@@ -413,7 +413,7 @@ not_path_get_last_segment_without_root(const char *path, not_path_segment_t *seg
 static int32_t
 not_path_get_previous_segment_joined(not_path_segment_joined_t *sj)
 {
-    if (*sj->paths == NULL)
+    if (*sj->paths == NOT_PTR_NULL)
     {
         return 0;
     }
@@ -471,7 +471,7 @@ not_path_segment_back_will_be_removed(not_path_segment_joined_t *sj)
 static int32_t
 not_path_get_next_segment_joined(not_path_segment_joined_t *sj)
 {
-    if (sj->paths[sj->path_index] == NULL)
+    if (sj->paths[sj->path_index] == NOT_PTR_NULL)
     {
         return 0;
     }
@@ -484,7 +484,7 @@ not_path_get_next_segment_joined(not_path_segment_joined_t *sj)
     do
     {
         ++sj->path_index;
-        if (sj->paths[sj->path_index] == NULL)
+        if (sj->paths[sj->path_index] == NOT_PTR_NULL)
         {
             break;
         }
@@ -629,7 +629,7 @@ not_path_normalize(const char *path, char *buffer, size_t buffer_size)
     const char *paths[2];
 
     paths[0] = path;
-    paths[1] = NULL;
+    paths[1] = NOT_PTR_NULL;
 
     return not_path_join_and_normalize_multiple(paths, buffer, buffer_size);
 }
@@ -641,7 +641,7 @@ not_path_join(const char *path_a, const char *path_b, char *buffer, size_t buffe
 
     paths[0] = path_a;
     paths[1] = path_b;
-    paths[2] = NULL;
+    paths[2] = NOT_PTR_NULL;
 
     return not_path_join_and_normalize_multiple(paths, buffer, buffer_size);
 }
@@ -676,13 +676,13 @@ not_path_get_absolute(const char *base, const char *path, char *buffer, size_t b
     if (not_path_is_absolute(path))
     {
         paths[i++] = path;
-        paths[i] = NULL;
+        paths[i] = NOT_PTR_NULL;
     }
     else
     {
         paths[i++] = base;
         paths[i++] = path;
-        paths[i] = NULL;
+        paths[i] = NOT_PTR_NULL;
     }
 
     return not_path_join_and_normalize_multiple(paths, buffer, buffer_size);
@@ -720,11 +720,11 @@ not_path_is_string_equal(const char *first, const char *second, size_t first_siz
     {
         if (path_style == PATH_STYLE_WINDOWS)
         {
-            are_both_separators = strchr("\\/", *first) != NULL && strchr("\\/", *second) != NULL;
+            are_both_separators = strchr("\\/", *first) != NOT_PTR_NULL && strchr("\\/", *second) != NOT_PTR_NULL;
         }
         else
         {
-            are_both_separators = strchr("/", *first) != NULL && strchr("/", *second) != NULL;
+            are_both_separators = strchr("/", *first) != NOT_PTR_NULL && strchr("/", *second) != NOT_PTR_NULL;
         }
 
         if (tolower(*first) != tolower(*second) && !are_both_separators)
@@ -792,9 +792,9 @@ not_path_get_relative(const char *base_directory, const char *path, char *buffer
     not_path_segment_joined_t bsj, osj;
 
     base_paths[0] = base_directory;
-    base_paths[1] = NULL;
+    base_paths[1] = NOT_PTR_NULL;
     other_paths[0] = path;
-    other_paths[1] = NULL;
+    other_paths[1] = NOT_PTR_NULL;
     not_path_get_first_segment_joined(base_paths, &bsj);
     not_path_get_first_segment_joined(other_paths, &osj);
 

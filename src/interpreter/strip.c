@@ -36,14 +36,14 @@ not_strip_t *
 not_strip_create(not_strip_t *previous)
 {
     not_strip_t *strip = (not_strip_t *)not_memory_calloc(1, sizeof(not_strip_t));
-    if (strip == ERROR)
+    if (strip == NOT_PTR_ERROR)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
-    strip->inputs = NULL;
-    strip->variables = NULL;
+    strip->inputs = NOT_PTR_NULL;
+    strip->variables = NOT_PTR_NULL;
     strip->previous = previous;
 
     return strip;
@@ -57,7 +57,7 @@ not_strip_variable_link(not_strip_t *strip, not_entry_t *entry)
     {
         strip->variables->previous = entry;
     }
-    entry->previous = NULL;
+    entry->previous = NOT_PTR_NULL;
     strip->variables = entry;
 }
 
@@ -88,7 +88,7 @@ not_strip_input_link(not_strip_t *strip, not_entry_t *entry)
     {
         strip->inputs->previous = entry;
     }
-    entry->previous = NULL;
+    entry->previous = NOT_PTR_NULL;
     strip->inputs = entry;
 }
 
@@ -114,19 +114,19 @@ not_strip_input_unlink(not_strip_t *strip, not_entry_t *entry)
 not_entry_t *
 not_strip_variable_push(not_strip_t *strip, not_node_t *scope, not_node_t *block, not_node_t *key, not_record_t *value)
 {
-    for (not_entry_t *item = strip->variables; item != NULL; item = item->next)
+    for (not_entry_t *item = strip->variables; item != NOT_PTR_NULL; item = item->next)
     {
         if (not_strip_id_cmp(item->key, key) == 1)
         {
-            return NULL;
+            return NOT_PTR_NULL;
         }
     }
 
     not_entry_t *entry = (not_entry_t *)not_memory_calloc(1, sizeof(not_entry_t));
-    if (entry == NULL)
+    if (entry == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     entry->scope = scope;
@@ -142,7 +142,7 @@ not_strip_variable_push(not_strip_t *strip, not_node_t *scope, not_node_t *block
 not_entry_t *
 not_strip_variable_find(not_strip_t *strip, not_node_t *scope, not_node_t *key)
 {
-    for (not_entry_t *entry = strip->variables; entry != NULL; entry = entry->next)
+    for (not_entry_t *entry = strip->variables; entry != NOT_PTR_NULL; entry = entry->next)
     {
         if ((entry->scope->id == scope->id) && not_strip_id_cmp(entry->key, key) == 1)
         {
@@ -157,23 +157,23 @@ not_strip_variable_find(not_strip_t *strip, not_node_t *scope, not_node_t *key)
     if (strip->previous)
     {
         not_entry_t *entry = not_strip_variable_find(strip->previous, scope, key);
-        if (entry == ERROR)
+        if (entry == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
-        else if (entry != NULL)
+        else if (entry != NOT_PTR_NULL)
         {
             return entry;
         }
     }
 
-    return NULL;
+    return NOT_PTR_NULL;
 }
 
 not_entry_t *
 not_strip_input_find(not_strip_t *strip, not_node_t *scope, not_node_t *key)
 {
-    for (not_entry_t *entry = strip->inputs; entry != NULL; entry = entry->next)
+    for (not_entry_t *entry = strip->inputs; entry != NOT_PTR_NULL; entry = entry->next)
     {
         if ((entry->scope->id == scope->id) && not_strip_id_cmp(entry->key, key) == 1)
         {
@@ -185,25 +185,25 @@ not_strip_input_find(not_strip_t *strip, not_node_t *scope, not_node_t *key)
         }
     }
 
-    return NULL;
+    return NOT_PTR_NULL;
 }
 
 not_entry_t *
 not_strip_input_push(not_strip_t *strip, not_node_t *scope, not_node_t *block, not_node_t *key, not_record_t *value)
 {
-    for (not_entry_t *item = strip->inputs; item != NULL; item = item->next)
+    for (not_entry_t *item = strip->inputs; item != NOT_PTR_NULL; item = item->next)
     {
         if (not_strip_id_cmp(item->key, key) == 1)
         {
-            return NULL;
+            return NOT_PTR_NULL;
         }
     }
 
     not_entry_t *entry = (not_entry_t *)not_memory_calloc(1, sizeof(not_entry_t));
-    if (entry == NULL)
+    if (entry == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     entry->scope = scope;
@@ -219,7 +219,7 @@ not_strip_input_push(not_strip_t *strip, not_node_t *scope, not_node_t *block, n
 int32_t
 not_strip_variable_remove_by_scope(not_strip_t *strip, not_node_t *scope)
 {
-    for (not_entry_t *entry = strip->variables, *b = NULL; entry != NULL; entry = b)
+    for (not_entry_t *entry = strip->variables, *b = NOT_PTR_NULL; entry != NOT_PTR_NULL; entry = b)
     {
         b = entry->next;
         if (entry->scope->id == scope->id)
@@ -251,10 +251,10 @@ not_strip_destroy(not_strip_t *strip)
             return 0;
         }
 
-        strip->previous = NULL;
+        strip->previous = NOT_PTR_NULL;
     }
 
-    for (not_entry_t *item = strip->variables, *next = NULL; item != NULL; item = next)
+    for (not_entry_t *item = strip->variables, *next = NOT_PTR_NULL; item != NOT_PTR_NULL; item = next)
     {
         next = item->next;
 
@@ -317,7 +317,7 @@ not_strip_destroy(not_strip_t *strip)
         not_memory_free(item);
     }
 
-    for (not_entry_t *item = strip->inputs, *next = NULL; item != NULL; item = next)
+    for (not_entry_t *item = strip->inputs, *next = NOT_PTR_NULL; item != NOT_PTR_NULL; item = next)
     {
         next = item->next;
 
@@ -388,41 +388,41 @@ not_strip_destroy(not_strip_t *strip)
 not_strip_t *
 not_strip_copy(not_strip_t *strip)
 {
-    not_strip_t *strip_previous = NULL;
+    not_strip_t *strip_previous = NOT_PTR_NULL;
     if (strip->previous)
     {
         strip_previous = not_strip_copy(strip->previous);
-        if (strip_previous == ERROR)
+        if (strip_previous == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
     }
 
     not_strip_t *strip_copy = not_strip_create(strip_previous);
-    if (strip_copy == ERROR)
+    if (strip_copy == NOT_PTR_ERROR)
     {
         if (strip_previous)
         {
             if (not_strip_destroy(strip_previous) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
 
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
-    for (not_entry_t *item = strip->variables; item != NULL; item = item->next)
+    for (not_entry_t *item = strip->variables; item != NOT_PTR_NULL; item = item->next)
     {
         not_entry_t *entry = (not_entry_t *)not_memory_calloc(1, sizeof(not_entry_t));
-        if (entry == NULL)
+        if (entry == NOT_PTR_NULL)
         {
             not_error_no_memory();
             if (not_strip_destroy(strip_copy) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_link_increase(item->value);
@@ -435,17 +435,17 @@ not_strip_copy(not_strip_t *strip)
         not_strip_variable_link(strip_copy, entry);
     }
 
-    for (not_entry_t *item = strip->inputs; item != NULL; item = item->next)
+    for (not_entry_t *item = strip->inputs; item != NOT_PTR_NULL; item = item->next)
     {
         not_entry_t *entry = (not_entry_t *)not_memory_calloc(1, sizeof(not_entry_t));
-        if (entry == NULL)
+        if (entry == NOT_PTR_NULL)
         {
             not_error_no_memory();
             if (not_strip_destroy(strip_copy) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_link_increase(item->value);

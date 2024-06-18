@@ -473,28 +473,28 @@ not_execute_equality(not_node_t *node, not_strip_t *strip, not_node_t *applicant
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
         not_record_t *left = not_execute_relational(binary->left, strip, applicant, origin);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *right = not_execute_relational(binary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *record = not_execute_eq(node, left, right, applicant);
 
         if (not_record_link_decrease(left) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         if (not_record_link_decrease(right) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         return record;
@@ -503,39 +503,39 @@ not_execute_equality(not_node_t *node, not_strip_t *strip, not_node_t *applicant
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
         not_record_t *left = not_execute_relational(binary->left, strip, applicant, origin);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *right = not_execute_relational(binary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *record = not_execute_eq(node, left, right, applicant);
 
         if (not_record_link_decrease(left) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         if (not_record_link_decrease(right) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
-        if (record == ERROR)
+        if (record == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         left = not_record_make_int_from_si(1);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         right = record;
@@ -544,12 +544,12 @@ not_execute_equality(not_node_t *node, not_strip_t *strip, not_node_t *applicant
 
         if (not_record_link_decrease(left) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         if (not_record_link_decrease(right) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         return record;

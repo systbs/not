@@ -40,7 +40,7 @@ not_symbol_table_init()
         return -1;
     }
 
-    st->begin = NULL;
+    st->begin = NOT_PTR_NULL;
 
     return 0;
 }
@@ -76,7 +76,7 @@ not_symbol_table_link(not_entry_t *entry)
     {
         st->begin->previous = entry;
     }
-    entry->previous = NULL;
+    entry->previous = NOT_PTR_NULL;
     st->begin = entry;
 }
 
@@ -100,7 +100,7 @@ not_symbol_table_unlink(not_entry_t *entry)
         entry->previous->next = entry->next;
     }
 
-    entry->previous = entry->next = NULL;
+    entry->previous = entry->next = NOT_PTR_NULL;
 }
 
 not_entry_t *
@@ -110,7 +110,7 @@ not_symbol_table_push(not_node_t *scope, not_node_t *block, not_node_t *key, not
     if (!entry)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     entry->scope = scope;
@@ -125,7 +125,7 @@ not_symbol_table_push(not_node_t *scope, not_node_t *block, not_node_t *key, not
     {
         not_memory_free(entry);
         not_error_system("'%s' could not lock", "not_tymbol_table.lock");
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     not_symbol_table_link(entry);
@@ -134,7 +134,7 @@ not_symbol_table_push(not_node_t *scope, not_node_t *block, not_node_t *key, not
     {
         not_memory_free(entry);
         not_error_system("'%s' could not unlock", "not_tymbol_table.lock");
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     return entry;
@@ -148,18 +148,18 @@ not_symbol_table_find(not_node_t *scope, not_node_t *key)
     if (not_mutex_lock(&st->lock) < 0)
     {
         not_error_system("'%s' could not lock", "not_tymbol_table.lock");
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     not_entry_t *a1;
-    for (a1 = st->begin; a1 != NULL; a1 = a1->next)
+    for (a1 = st->begin; a1 != NOT_PTR_NULL; a1 = a1->next)
     {
         if ((a1->scope->id == scope->id) && (not_symbol_table_id_cmp(a1->key, key) == 1))
         {
             if (not_mutex_unlock(&st->lock) < 0)
             {
                 not_error_system("'%s' could not unlock", "not_tymbol_table.lock");
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
             if (a1->value)
             {
@@ -172,8 +172,8 @@ not_symbol_table_find(not_node_t *scope, not_node_t *key)
     if (not_mutex_unlock(&st->lock) < 0)
     {
         not_error_system("'%s' could not unlock", "not_tymbol_table.lock");
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
-    return NULL;
+    return NOT_PTR_NULL;
 }

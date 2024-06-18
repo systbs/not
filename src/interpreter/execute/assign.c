@@ -42,7 +42,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         {
             mpz_clear(*(mpz_t *)(left->value));
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -62,7 +62,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpz_clear(*(mpz_t *)(left->value));
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -77,7 +77,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         {
             mpz_clear(*(mpz_t *)(left->value));
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -98,7 +98,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpz_clear(*(mpz_t *)(left->value));
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -118,7 +118,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpz_clear(*(mpz_t *)(left->value));
             void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -137,7 +137,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpz_clear(*(mpz_t *)(left->value));
             void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -156,7 +156,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpz_clear(*(mpz_t *)(left->value));
             void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -175,7 +175,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpz_clear(*(mpz_t *)(left->value));
             void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -194,7 +194,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpz_clear(*(mpz_t *)(left->value));
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
 
             return 0;
@@ -208,7 +208,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpz_clear(*(mpz_t *)(left->value));
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             return 0;
@@ -222,7 +222,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpz_clear(*(mpz_t *)(left->value));
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
 
             return 0;
@@ -236,7 +236,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         {
             mpf_clear(*(mpf_t *)left->value);
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -252,7 +252,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         {
             mpf_clear(*(mpf_t *)left->value);
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -267,7 +267,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         {
             mpf_clear(*(mpf_t *)left->value);
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -288,7 +288,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpf_clear(*(mpf_t *)left->value);
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -308,7 +308,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpf_clear(*(mpf_t *)left->value);
             void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -327,7 +327,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpf_clear(*(mpf_t *)left->value);
             void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -346,7 +346,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpf_clear(*(mpf_t *)left->value);
             void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -365,7 +365,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpf_clear(*(mpf_t *)left->value);
             void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -384,7 +384,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpf_clear(*(mpf_t *)left->value);
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
 
             return 0;
@@ -398,7 +398,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpf_clear(*(mpf_t *)left->value);
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             return 0;
@@ -412,7 +412,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
             mpf_clear(*(mpf_t *)left->value);
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
 
             return 0;
@@ -431,7 +431,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -451,7 +451,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -465,7 +465,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_CHAR)
         {
             void *ptr = not_memory_realloc(left->value, sizeof(char));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -484,7 +484,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -503,7 +503,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -521,7 +521,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -539,7 +539,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -557,7 +557,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -575,7 +575,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
 
             return 0;
@@ -588,7 +588,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             return 0;
@@ -601,7 +601,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
 
             return 0;
@@ -620,7 +620,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -640,7 +640,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -654,7 +654,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_CHAR)
         {
             void *ptr = not_memory_realloc(left->value, sizeof(char));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -667,7 +667,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_STRING)
         {
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -686,7 +686,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -704,7 +704,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -722,7 +722,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -740,7 +740,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -758,7 +758,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
 
             return 0;
@@ -771,7 +771,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             return 0;
@@ -784,7 +784,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
 
             return 0;
@@ -808,7 +808,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpz_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -833,7 +833,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpf_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -858,7 +858,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(char));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -883,7 +883,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -908,7 +908,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -932,7 +932,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -956,7 +956,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -980,7 +980,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1004,7 +1004,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
 
             return 0;
@@ -1023,7 +1023,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             return 0;
@@ -1042,7 +1042,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
 
             return 0;
@@ -1066,7 +1066,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpz_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1091,7 +1091,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpf_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1116,7 +1116,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(char));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1140,7 +1140,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1165,7 +1165,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1189,7 +1189,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1213,7 +1213,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1237,7 +1237,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1261,7 +1261,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
 
             return 0;
@@ -1280,7 +1280,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             return 0;
@@ -1299,7 +1299,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
 
             return 0;
@@ -1323,7 +1323,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpz_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1348,7 +1348,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpf_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1373,7 +1373,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(char));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1397,7 +1397,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1422,7 +1422,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1446,7 +1446,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1470,7 +1470,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1494,7 +1494,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1518,7 +1518,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
 
             return 0;
@@ -1537,7 +1537,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             return 0;
@@ -1556,7 +1556,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
 
             return 0;
@@ -1580,7 +1580,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpz_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1605,7 +1605,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpf_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1630,7 +1630,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(char));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1654,7 +1654,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1679,7 +1679,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1703,7 +1703,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1727,7 +1727,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1751,7 +1751,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1775,7 +1775,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
 
             return 0;
@@ -1794,7 +1794,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             return 0;
@@ -1813,7 +1813,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
 
             return 0;
@@ -1832,7 +1832,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1852,7 +1852,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1872,7 +1872,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(char));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1890,7 +1890,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1909,7 +1909,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1927,7 +1927,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1945,7 +1945,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1963,7 +1963,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -1981,7 +1981,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
 
             return 0;
@@ -1994,7 +1994,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             return 0;
@@ -2007,7 +2007,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
 
             return 0;
@@ -2026,7 +2026,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2046,7 +2046,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2066,7 +2066,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(char));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2084,7 +2084,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2103,7 +2103,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -2121,7 +2121,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -2139,7 +2139,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -2157,7 +2157,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -2175,7 +2175,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
 
             return 0;
@@ -2188,7 +2188,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             return 0;
@@ -2201,7 +2201,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
 
             return 0;
@@ -2220,7 +2220,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2240,7 +2240,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2260,7 +2260,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(char));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2278,7 +2278,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NULL)
+            if (ptr == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2297,7 +2297,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -2315,7 +2315,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -2333,7 +2333,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -2351,7 +2351,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
-            if (ptr == ERROR)
+            if (ptr == NOT_PTR_ERROR)
             {
                 return -1;
             }
@@ -2369,7 +2369,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
 
             return 0;
@@ -2382,7 +2382,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             return 0;
@@ -2395,7 +2395,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
             not_memory_free(left->value);
-            left->value = NULL;
+            left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
 
             return 0;
@@ -2414,13 +2414,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
         not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
         not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2460,13 +2460,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
         not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
         not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2476,7 +2476,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         }
 
         not_record_t *result = not_execute_plus(node, left, right, applicant);
-        if (result == ERROR)
+        if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2516,13 +2516,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
         not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
         not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2532,7 +2532,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         }
 
         not_record_t *result = not_execute_minus(node, left, right, applicant);
-        if (result == ERROR)
+        if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2572,13 +2572,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
         not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
         not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2588,7 +2588,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         }
 
         not_record_t *result = not_execute_mul(node, left, right, applicant);
-        if (result == ERROR)
+        if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2628,13 +2628,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
         not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
         not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2644,7 +2644,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         }
 
         not_record_t *result = not_execute_plus(node, left, right, applicant);
-        if (result == ERROR)
+        if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2684,13 +2684,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
         not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
         not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2700,7 +2700,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         }
 
         not_record_t *result = not_execute_epi(node, left, right, applicant);
-        if (result == ERROR)
+        if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2740,13 +2740,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
         not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
         not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2756,7 +2756,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         }
 
         not_record_t *result = not_execute_mod(node, left, right, applicant);
-        if (result == ERROR)
+        if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2796,13 +2796,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
         not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
         not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2812,7 +2812,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         }
 
         not_record_t *result = not_execute_pow(node, left, right, applicant);
-        if (result == ERROR)
+        if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2852,13 +2852,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
         not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
         not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2868,7 +2868,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         }
 
         not_record_t *result = not_execute_shl(node, left, right, applicant);
-        if (result == ERROR)
+        if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2908,13 +2908,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
         not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
         not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2924,7 +2924,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         }
 
         not_record_t *result = not_execute_shr(node, left, right, applicant);
-        if (result == ERROR)
+        if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2964,13 +2964,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
         not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
         not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -2980,7 +2980,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         }
 
         not_record_t *result = not_execute_and(node, left, right, applicant);
-        if (result == ERROR)
+        if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -3020,13 +3020,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
         not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
         not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -3036,7 +3036,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         }
 
         not_record_t *result = not_execute_or(node, left, right, applicant);
-        if (result == ERROR)
+        if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -3075,7 +3075,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     else
     {
         not_record_t *value = not_execute_expression(node, strip, applicant, origin);
-        if (value == ERROR)
+        if (value == NOT_PTR_ERROR)
         {
             return -1;
         }

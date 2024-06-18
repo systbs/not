@@ -20,13 +20,13 @@ not_interpreter_create()
     if (!it)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     it->expections = not_queue_create();
-    if (it->expections == ERROR)
+    if (it->expections == NOT_PTR_ERROR)
     {
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     return it;

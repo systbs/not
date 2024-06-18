@@ -14,7 +14,7 @@ not_queue_apply(not_queue_t *queue)
 	if (!entry)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	entry->next = entry->previous = entry;
@@ -30,7 +30,7 @@ not_queue_create()
 	if (!queue)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	return not_queue_apply(queue);
@@ -121,7 +121,7 @@ void not_queue_unlink(not_queue_t *queue, not_queue_entry_t *entry)
 		entry->previous->next = entry->next;
 	}
 
-	entry->next = entry->previous = NULL;
+	entry->next = entry->previous = NOT_PTR_NULL;
 }
 
 void not_queue_sort(not_queue_t *queue, int (*f)(not_queue_entry_t *, not_queue_entry_t *))
@@ -157,7 +157,7 @@ not_queue_right_pop(not_queue_t *queue)
 {
 	if (not_queue_is_empty(queue))
 	{
-		return NULL;
+		return NOT_PTR_NULL;
 	}
 	not_queue_entry_t *entry = queue->end->previous;
 	not_queue_unlink(queue, entry);
@@ -171,7 +171,7 @@ not_queue_right_push(not_queue_t *queue, void *value)
 	if (!entry)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	entry->value = value;
@@ -195,7 +195,7 @@ not_queue_left_push(not_queue_t *queue, void *value)
 	if (!entry)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 	entry->value = value;
 
@@ -210,7 +210,7 @@ not_queue_insert(not_queue_t *queue, not_queue_entry_t *index, void *value)
 	if (!entry)
 	{
 		not_error_no_memory();
-		return ERROR;
+		return NOT_PTR_ERROR;
 	}
 
 	entry->value = value;

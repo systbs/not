@@ -35,15 +35,15 @@ not_execute_conditional(not_node_t *node, not_strip_t *strip, not_node_t *applic
         not_node_triple_t *triple = (not_node_triple_t *)node->value;
 
         not_record_t *condition = not_execute_instanceof(triple->base, strip, applicant, origin);
-        if (condition == ERROR)
+        if (condition == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         int32_t truthy = not_execute_truthy(condition);
         if (not_record_link_decrease(condition) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         if (truthy)

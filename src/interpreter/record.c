@@ -49,10 +49,10 @@ not_record_t *
 not_record_create(uint64_t kind, void *value)
 {
     not_record_t *record = (not_record_t *)not_memory_calloc(1, sizeof(not_record_t));
-    if (record == NULL)
+    if (record == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     record->kind = kind;
@@ -90,10 +90,10 @@ not_record_to_string(not_record_t *record, char *previous_buf)
         snprintf(str, sizeof(str), "%c", (char)(*(int8_t *)record->value));
         size_t length = strlen(previous_buf) + strlen(str);
         char *result = not_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
+        if (result == NOT_PTR_NULL)
         {
             not_error_no_memory();
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         snprintf(result, length + 1, "%s%s", previous_buf, str);
         return result;
@@ -103,23 +103,23 @@ not_record_to_string(not_record_t *record, char *previous_buf)
         char *str = (char *)record->value;
         size_t length = strlen(previous_buf) + strlen(str);
         char *result = not_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
+        if (result == NOT_PTR_NULL)
         {
             not_error_no_memory();
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         snprintf(result, length + 1, "%s%s", previous_buf, str);
         return result;
     }
     else if (record->kind == RECORD_KIND_INT)
     {
-        char *str = mpz_get_str(NULL, 10, *(mpz_t *)record->value);
+        char *str = mpz_get_str(NOT_PTR_NULL, 10, *(mpz_t *)record->value);
         size_t length = strlen(previous_buf) + strlen(str);
         char *result = not_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
+        if (result == NOT_PTR_NULL)
         {
             not_error_no_memory();
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         snprintf(result, length + 1, "%s%s", previous_buf, str);
         free(str);
@@ -133,7 +133,7 @@ not_record_to_string(not_record_t *record, char *previous_buf)
         if (!str)
         {
             not_error_no_memory();
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         size_t required_size = gmp_snprintf(str, buf_size, "%s%.Ff", previous_buf, (*(mpf_t *)record->value));
@@ -145,7 +145,7 @@ not_record_to_string(not_record_t *record, char *previous_buf)
             if (!str)
             {
                 not_error_no_memory();
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
             gmp_snprintf(str, buf_size, "%s%.Ff", previous_buf, (*(mpf_t *)record->value));
         }
@@ -156,20 +156,20 @@ not_record_to_string(not_record_t *record, char *previous_buf)
     {
         size_t length = strlen(previous_buf) + 1;
         char *str = not_memory_calloc(length + 1, sizeof(char));
-        if (str == NULL)
+        if (str == NOT_PTR_NULL)
         {
             not_error_no_memory();
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         snprintf(str, length + 1, "%s%c", previous_buf, '{');
-        for (not_record_object_t *item = (not_record_object_t *)record->value; item != NULL; item = item->next)
+        for (not_record_object_t *item = (not_record_object_t *)record->value; item != NOT_PTR_NULL; item = item->next)
         {
             length = strlen(str) + strlen(item->key) + 1;
             char *result = not_memory_calloc(length + 1, sizeof(char));
-            if (result == NULL)
+            if (result == NOT_PTR_NULL)
             {
                 not_error_no_memory();
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
             snprintf(result, length + 1, "%s%s:", str, item->key);
             not_memory_free(str);
@@ -179,10 +179,10 @@ not_record_to_string(not_record_t *record, char *previous_buf)
             {
                 length = strlen(str) + 1;
                 result = not_memory_calloc(length + 1, sizeof(char));
-                if (result == NULL)
+                if (result == NOT_PTR_NULL)
                 {
                     not_error_no_memory();
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
                 snprintf(result, length + 1, "%s\"", str);
                 not_memory_free(str);
@@ -190,10 +190,10 @@ not_record_to_string(not_record_t *record, char *previous_buf)
             }
 
             result = not_record_to_string(item->value, str);
-            if (result == ERROR)
+            if (result == NOT_PTR_ERROR)
             {
                 not_memory_free(str);
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
             not_memory_free(str);
             str = result;
@@ -202,10 +202,10 @@ not_record_to_string(not_record_t *record, char *previous_buf)
             {
                 length = strlen(str) + 1;
                 result = not_memory_calloc(length + 1, sizeof(char));
-                if (result == NULL)
+                if (result == NOT_PTR_NULL)
                 {
                     not_error_no_memory();
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
                 snprintf(result, length + 1, "%s\"", str);
                 not_memory_free(str);
@@ -216,10 +216,10 @@ not_record_to_string(not_record_t *record, char *previous_buf)
             {
                 length = strlen(str) + 1;
                 char *result = not_memory_calloc(length + 1, sizeof(char));
-                if (result == NULL)
+                if (result == NOT_PTR_NULL)
                 {
                     not_error_no_memory();
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
                 snprintf(result, length + 1, "%s,", str);
                 not_memory_free(str);
@@ -228,11 +228,11 @@ not_record_to_string(not_record_t *record, char *previous_buf)
         }
         length = strlen(str) + 1;
         char *result = not_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
+        if (result == NOT_PTR_NULL)
         {
             not_error_no_memory();
             not_memory_free(str);
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         snprintf(result, length + 1, "%s%c", str, '}');
         not_memory_free(str);
@@ -242,20 +242,20 @@ not_record_to_string(not_record_t *record, char *previous_buf)
     {
         size_t length = strlen(previous_buf) + 1;
         char *str = not_memory_calloc(length + 1, sizeof(char));
-        if (str == NULL)
+        if (str == NOT_PTR_NULL)
         {
             not_error_no_memory();
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         snprintf(str, length + 1, "%s%c", previous_buf, '[');
 
-        for (not_record_tuple_t *item = (not_record_tuple_t *)record->value; item != NULL; item = item->next)
+        for (not_record_tuple_t *item = (not_record_tuple_t *)record->value; item != NOT_PTR_NULL; item = item->next)
         {
             char *result = not_record_to_string(item->value, str);
-            if (result == ERROR)
+            if (result == NOT_PTR_ERROR)
             {
                 not_memory_free(str);
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
             not_memory_free(str);
             str = result;
@@ -264,10 +264,10 @@ not_record_to_string(not_record_t *record, char *previous_buf)
             {
                 length = strlen(str) + 1;
                 char *result = not_memory_calloc(length + 1, sizeof(char));
-                if (result == NULL)
+                if (result == NOT_PTR_NULL)
                 {
                     not_error_no_memory();
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
                 snprintf(result, length + 1, "%s,", str);
                 not_memory_free(str);
@@ -277,11 +277,11 @@ not_record_to_string(not_record_t *record, char *previous_buf)
 
         length = strlen(str) + 1;
         char *result = not_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
+        if (result == NOT_PTR_NULL)
         {
             not_error_no_memory();
             not_memory_free(str);
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         snprintf(result, length + 1, "%s%c", str, ']');
         not_memory_free(str);
@@ -293,10 +293,10 @@ not_record_to_string(not_record_t *record, char *previous_buf)
         char *str = "<type>";
         size_t length = strlen(previous_buf) + strlen(str);
         char *result = not_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
+        if (result == NOT_PTR_NULL)
         {
             not_error_no_memory();
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         snprintf(result, length + 1, "%s%s", previous_buf, str);
         return result;
@@ -311,14 +311,14 @@ not_record_to_string(not_record_t *record, char *previous_buf)
 
         size_t length = strlen(previous_buf) + 1;
         char *str = not_memory_calloc(length + 1, sizeof(char));
-        if (str == NULL)
+        if (str == NOT_PTR_NULL)
         {
             not_error_no_memory();
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         snprintf(str, length + 1, "%s%c", previous_buf, '{');
         uint64_t i = 0;
-        for (not_node_t *item = class1->block; item != NULL; item = item->next)
+        for (not_node_t *item = class1->block; item != NOT_PTR_NULL; item = item->next)
         {
             if (item->kind == NODE_KIND_PROPERTY)
             {
@@ -337,10 +337,10 @@ not_record_to_string(not_record_t *record, char *previous_buf)
                 {
                     length = strlen(str) + 1;
                     char *result = not_memory_calloc(length + 1, sizeof(char));
-                    if (result == NULL)
+                    if (result == NOT_PTR_NULL)
                     {
                         not_error_no_memory();
-                        return ERROR;
+                        return NOT_PTR_ERROR;
                     }
                     snprintf(result, length + 1, "%s,", str);
                     not_memory_free(str);
@@ -350,39 +350,39 @@ not_record_to_string(not_record_t *record, char *previous_buf)
                 not_node_basic_t *basic = (not_node_basic_t *)property->key->value;
                 length = strlen(str) + strlen(basic->value) + 1;
                 char *result = not_memory_calloc(length + 1, sizeof(char));
-                if (result == NULL)
+                if (result == NOT_PTR_NULL)
                 {
                     not_error_no_memory();
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
                 snprintf(result, length + 1, "%s%s:", str, basic->value);
                 not_memory_free(str);
                 str = result;
 
                 not_entry_t *entry = not_strip_variable_find(strip_class, type, property->key);
-                if (entry == ERROR)
+                if (entry == NOT_PTR_ERROR)
                 {
                     not_memory_free(str);
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
-                if (entry == NULL)
+                if (entry == NOT_PTR_NULL)
                 {
                     not_error_runtime_by_node(item, "'%s' is not initialized", basic->value);
                     not_memory_free(str);
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 result = not_record_to_string(entry->value, str);
 
                 if (not_record_link_decrease(entry->value) < 0)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
-                if (result == ERROR)
+                if (result == NOT_PTR_ERROR)
                 {
                     not_memory_free(str);
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
                 not_memory_free(str);
                 str = result;
@@ -393,17 +393,17 @@ not_record_to_string(not_record_t *record, char *previous_buf)
         if (class1->heritages)
         {
             not_node_block_t *block = (not_node_block_t *)class1->heritages->value;
-            for (not_node_t *item = block->items; item != NULL; item = item->next)
+            for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
             {
                 not_node_heritage_t *heritage = (not_node_heritage_t *)item->value;
                 if (i > 0)
                 {
                     length = strlen(str) + 1;
                     char *result = not_memory_calloc(length + 1, sizeof(char));
-                    if (result == NULL)
+                    if (result == NOT_PTR_NULL)
                     {
                         not_error_no_memory();
-                        return ERROR;
+                        return NOT_PTR_ERROR;
                     }
                     snprintf(result, length + 1, "%s,", str);
                     not_memory_free(str);
@@ -413,39 +413,39 @@ not_record_to_string(not_record_t *record, char *previous_buf)
                 not_node_basic_t *basic = (not_node_basic_t *)heritage->key->value;
                 length = strlen(str) + strlen(basic->value) + 1;
                 char *result = not_memory_calloc(length + 1, sizeof(char));
-                if (result == NULL)
+                if (result == NOT_PTR_NULL)
                 {
                     not_error_no_memory();
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
                 snprintf(result, length + 1, "%s%s:", str, basic->value);
                 not_memory_free(str);
                 str = result;
 
                 not_entry_t *entry = not_strip_variable_find(strip_class, type, heritage->key);
-                if (entry == ERROR)
+                if (entry == NOT_PTR_ERROR)
                 {
                     not_memory_free(str);
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
-                if (entry == NULL)
+                if (entry == NOT_PTR_NULL)
                 {
                     not_error_runtime_by_node(item, "'%s' is not initialized", basic->value);
                     not_memory_free(str);
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 result = not_record_to_string(entry->value, str);
 
                 if (not_record_link_decrease(entry->value) < 0)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
-                if (result == ERROR)
+                if (result == NOT_PTR_ERROR)
                 {
                     not_memory_free(str);
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
                 not_memory_free(str);
                 str = result;
@@ -455,11 +455,11 @@ not_record_to_string(not_record_t *record, char *previous_buf)
 
         length = strlen(str) + 1;
         char *result = not_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
+        if (result == NOT_PTR_NULL)
         {
             not_error_no_memory();
             not_memory_free(str);
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         snprintf(result, length + 1, "%s%c", str, '}');
         not_memory_free(str);
@@ -470,10 +470,10 @@ not_record_to_string(not_record_t *record, char *previous_buf)
         char *str = "undefined";
         size_t length = strlen(previous_buf) + strlen(str);
         char *result = not_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
+        if (result == NOT_PTR_NULL)
         {
             not_error_no_memory();
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         snprintf(result, length + 1, "%s%s", previous_buf, str);
         return result;
@@ -483,10 +483,10 @@ not_record_to_string(not_record_t *record, char *previous_buf)
         char *str = "nan";
         size_t length = strlen(previous_buf) + strlen(str);
         char *result = not_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
+        if (result == NOT_PTR_NULL)
         {
             not_error_no_memory();
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         snprintf(result, length + 1, "%s%s", previous_buf, str);
         return result;
@@ -496,10 +496,10 @@ not_record_to_string(not_record_t *record, char *previous_buf)
         char *str = "null";
         size_t length = strlen(previous_buf) + strlen(str);
         char *result = not_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
+        if (result == NOT_PTR_NULL)
         {
             not_error_no_memory();
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         snprintf(result, length + 1, "%s%s", previous_buf, str);
         return result;
@@ -509,10 +509,10 @@ not_record_to_string(not_record_t *record, char *previous_buf)
         char *str = "";
         size_t length = strlen(previous_buf) + strlen(str);
         char *result = not_memory_calloc(length + 1, sizeof(char));
-        if (result == NULL)
+        if (result == NOT_PTR_NULL)
         {
             not_error_no_memory();
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         snprintf(result, length + 1, "%s%s", previous_buf, str);
         return result;
@@ -523,20 +523,20 @@ not_record_t *
 not_record_make_proc(void *handle, json_t *map)
 {
     not_record_proc_t *basic = (not_record_proc_t *)not_memory_calloc(1, sizeof(not_record_proc_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     basic->handle = handle;
     basic->map = map;
 
     not_record_t *record = not_record_create(RECORD_KIND_PROC, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -545,10 +545,10 @@ not_record_t *
 not_record_make_int(const char *value)
 {
     mpz_t *basic = (mpz_t *)not_memory_calloc(1, sizeof(mpz_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     mpz_init(*basic);
@@ -556,10 +556,10 @@ not_record_make_int(const char *value)
     mpz_set_str(*basic, value, 10);
 
     not_record_t *record = not_record_create(RECORD_KIND_INT, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -568,10 +568,10 @@ not_record_t *
 not_record_make_int_from_ui(uint64_t value)
 {
     mpz_t *basic = (mpz_t *)not_memory_calloc(1, sizeof(mpz_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     mpz_init(*basic);
@@ -579,10 +579,10 @@ not_record_make_int_from_ui(uint64_t value)
     mpz_set_ui(*basic, value);
 
     not_record_t *record = not_record_create(RECORD_KIND_INT, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -591,20 +591,20 @@ not_record_t *
 not_record_make_int_from_si(int64_t value)
 {
     mpz_t *basic = (mpz_t *)not_memory_calloc(1, sizeof(mpz_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     mpz_init(*basic);
     mpz_set_si(*basic, value);
 
     not_record_t *record = not_record_create(RECORD_KIND_INT, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -613,19 +613,19 @@ not_record_t *
 not_record_make_int_from_z(mpz_t value)
 {
     mpz_t *basic = (mpz_t *)not_memory_calloc(1, sizeof(mpz_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     mpz_init_set(*basic, value);
 
     not_record_t *record = not_record_create(RECORD_KIND_INT, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -634,20 +634,20 @@ not_record_t *
 not_record_make_int_from_f(mpf_t value)
 {
     mpz_t *basic = (mpz_t *)not_memory_calloc(1, sizeof(mpz_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     mpz_init(*basic);
     mpz_set_f(*basic, value);
 
     not_record_t *record = not_record_create(RECORD_KIND_INT, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -656,20 +656,20 @@ not_record_t *
 not_record_make_float(const char *value)
 {
     mpf_t *basic = (mpf_t *)not_memory_calloc(1, sizeof(mpf_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     mpf_init(*basic);
     mpf_set_str(*basic, value, 10);
 
     not_record_t *record = not_record_create(RECORD_KIND_FLOAT, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -678,20 +678,20 @@ not_record_t *
 not_record_make_float_from_d(double value)
 {
     mpf_t *basic = (mpf_t *)not_memory_calloc(1, sizeof(mpf_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     mpf_init(*basic);
     mpf_set_d(*basic, value);
 
     not_record_t *record = not_record_create(RECORD_KIND_FLOAT, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -700,20 +700,20 @@ not_record_t *
 not_record_make_float_from_si(int64_t value)
 {
     mpf_t *basic = (mpf_t *)not_memory_calloc(1, sizeof(mpf_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     mpf_init(*basic);
     mpf_set_si(*basic, value);
 
     not_record_t *record = not_record_create(RECORD_KIND_FLOAT, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -722,20 +722,20 @@ not_record_t *
 not_record_make_float_from_ui(uint64_t value)
 {
     mpf_t *basic = (mpf_t *)not_memory_calloc(1, sizeof(mpf_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     mpf_init(*basic);
     mpf_set_ui(*basic, value);
 
     not_record_t *record = not_record_create(RECORD_KIND_FLOAT, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -744,19 +744,19 @@ not_record_t *
 not_record_make_float_from_f(mpf_t value)
 {
     mpf_t *basic = (mpf_t *)not_memory_calloc(1, sizeof(mpf_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     mpf_init_set(*basic, value);
 
     not_record_t *record = not_record_create(RECORD_KIND_FLOAT, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -765,20 +765,20 @@ not_record_t *
 not_record_make_float_from_z(mpz_t value)
 {
     mpf_t *basic = (mpf_t *)not_memory_calloc(1, sizeof(mpf_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     mpf_init(*basic);
     mpf_set_z(*basic, value);
 
     not_record_t *record = not_record_create(RECORD_KIND_FLOAT, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -787,19 +787,19 @@ not_record_t *
 not_record_make_char(char value)
 {
     char *basic = (char *)not_memory_calloc(1, sizeof(char));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     *basic = value;
 
     not_record_t *record = not_record_create(RECORD_KIND_CHAR, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -808,19 +808,19 @@ not_record_t *
 not_record_make_string(char *value)
 {
     char *basic = (char *)not_memory_calloc(1, strlen(value) + 1);
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     strcpy(basic, value);
 
     not_record_t *record = not_record_create(RECORD_KIND_STRING, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -829,19 +829,19 @@ not_record_object_t *
 not_record_make_object(char *key, not_record_t *value, not_record_object_t *next)
 {
     not_record_object_t *basic = (not_record_object_t *)not_memory_calloc(1, sizeof(not_record_object_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     size_t length = strlen(key);
     basic->key = not_memory_calloc(length, sizeof(char) + 1);
-    if (basic->key == ERROR)
+    if (basic->key == NOT_PTR_ERROR)
     {
         not_error_no_memory();
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     strcpy(basic->key, key);
 
@@ -855,10 +855,10 @@ not_record_tuple_t *
 not_record_make_tuple(not_record_t *value, not_record_tuple_t *next)
 {
     not_record_tuple_t *basic = (not_record_tuple_t *)not_memory_calloc(1, sizeof(not_record_tuple_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     basic->value = value;
@@ -871,20 +871,20 @@ not_record_t *
 not_record_make_struct(not_node_t *type, not_strip_t *value)
 {
     not_record_struct_t *basic = (not_record_struct_t *)not_memory_calloc(1, sizeof(not_record_struct_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     basic->type = type;
     basic->value = value;
 
     not_record_t *record = not_record_create(RECORD_KIND_STRUCT, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -893,20 +893,20 @@ not_record_t *
 not_record_make_type(not_node_t *type, void *value)
 {
     not_record_type_t *basic = (not_record_type_t *)not_memory_calloc(1, sizeof(not_record_type_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     basic->type = type;
     basic->value = value;
 
     not_record_t *record = not_record_create(RECORD_KIND_TYPE, basic);
-    if (record == ERROR)
+    if (record == NOT_PTR_ERROR)
     {
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     return record;
 }
@@ -914,19 +914,19 @@ not_record_make_type(not_node_t *type, void *value)
 not_record_t *
 not_record_make_null()
 {
-    return not_record_create(RECORD_KIND_NULL, NULL);
+    return not_record_create(RECORD_KIND_NULL, NOT_PTR_NULL);
 }
 
 not_record_t *
 not_record_make_undefined()
 {
-    return not_record_create(RECORD_KIND_UNDEFINED, NULL);
+    return not_record_create(RECORD_KIND_UNDEFINED, NOT_PTR_NULL);
 }
 
 not_record_t *
 not_record_make_nan()
 {
-    return not_record_create(RECORD_KIND_NAN, NULL);
+    return not_record_create(RECORD_KIND_NAN, NOT_PTR_NULL);
 }
 
 int32_t
@@ -938,7 +938,7 @@ not_record_object_destroy(not_record_object_t *object)
         {
             return -1;
         }
-        object->next = NULL;
+        object->next = NOT_PTR_NULL;
     }
 
     if (not_record_link_decrease(object->value) < 0)
@@ -961,7 +961,7 @@ not_record_tuple_destroy(not_record_tuple_t *tuple)
         {
             return -1;
         }
-        tuple->next = NULL;
+        tuple->next = NOT_PTR_NULL;
     }
 
     if (not_record_link_decrease(tuple->value) < 0)
@@ -1045,51 +1045,51 @@ not_record_type_destroy(not_record_type_t *type)
 not_record_object_t *
 not_record_object_copy(not_record_object_t *object)
 {
-    not_record_object_t *next = NULL;
+    not_record_object_t *next = NOT_PTR_NULL;
     if (object->next)
     {
         next = not_record_object_copy(object->next);
-        if (next == ERROR)
+        if (next == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
     }
 
     not_record_object_t *basic = (not_record_object_t *)not_memory_calloc(1, sizeof(not_record_object_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
         if (next)
         {
             if (not_record_object_destroy(next) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     not_record_t *record_copy = not_record_copy(object->value);
-    if (record_copy == ERROR)
+    if (record_copy == NOT_PTR_ERROR)
     {
         if (next)
         {
             if (not_record_object_destroy(next) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     size_t length = strlen(object->key);
     basic->key = not_memory_calloc(length, sizeof(char) + 1);
-    if (basic->key == ERROR)
+    if (basic->key == NOT_PTR_ERROR)
     {
         not_error_no_memory();
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     strcpy(basic->key, object->key);
 
@@ -1102,42 +1102,42 @@ not_record_object_copy(not_record_object_t *object)
 not_record_tuple_t *
 not_record_tuple_copy(not_record_tuple_t *tuple)
 {
-    not_record_tuple_t *next = NULL;
+    not_record_tuple_t *next = NOT_PTR_NULL;
     if (tuple->next)
     {
         next = not_record_tuple_copy(tuple->next);
-        if (next == ERROR)
+        if (next == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
     }
 
     not_record_tuple_t *basic = (not_record_tuple_t *)not_memory_calloc(1, sizeof(not_record_tuple_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
         if (next)
         {
             if (not_record_tuple_destroy(next) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     not_record_t *record_copy = not_record_copy(tuple->value);
-    if (record_copy == ERROR)
+    if (record_copy == NOT_PTR_ERROR)
     {
         if (next)
         {
             if (not_record_tuple_destroy(next) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
         not_memory_free(basic);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     basic->value = record_copy;
@@ -1149,30 +1149,30 @@ not_record_tuple_copy(not_record_tuple_t *tuple)
 not_record_struct_t *
 not_record_struct_copy(not_record_struct_t *struct1)
 {
-    not_strip_t *value = NULL;
+    not_strip_t *value = NOT_PTR_NULL;
 
     if (struct1->value)
     {
         value = not_strip_copy(struct1->value);
-        if (value == ERROR)
+        if (value == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
     }
 
     not_record_struct_t *basic = (not_record_struct_t *)not_memory_calloc(1, sizeof(not_record_struct_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
         if (value)
         {
             if (not_strip_destroy(value) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
 
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     basic->type = struct1->type;
@@ -1184,16 +1184,16 @@ not_record_struct_copy(not_record_struct_t *struct1)
 not_record_type_t *
 not_record_type_copy(not_record_type_t *type)
 {
-    void *value = NULL;
+    void *value = NOT_PTR_NULL;
 
     if (type->type->kind == NODE_KIND_OBJECT)
     {
         if (type->value)
         {
             value = not_record_object_copy((not_record_object_t *)type->value);
-            if (value == ERROR)
+            if (value == NOT_PTR_ERROR)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
     }
@@ -1202,9 +1202,9 @@ not_record_type_copy(not_record_type_t *type)
         if (type->value)
         {
             value = not_record_copy((not_record_t *)type->value);
-            if (value == ERROR)
+            if (value == NOT_PTR_ERROR)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
     }
@@ -1213,9 +1213,9 @@ not_record_type_copy(not_record_type_t *type)
         if (type->value)
         {
             value = not_record_tuple_copy((not_record_tuple_t *)type->value);
-            if (value == ERROR)
+            if (value == NOT_PTR_ERROR)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
     }
@@ -1224,9 +1224,9 @@ not_record_type_copy(not_record_type_t *type)
         if (type->value)
         {
             value = not_strip_copy((not_strip_t *)type->value);
-            if (value == ERROR)
+            if (value == NOT_PTR_ERROR)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
     }
@@ -1235,9 +1235,9 @@ not_record_type_copy(not_record_type_t *type)
         if (type->value)
         {
             value = not_strip_copy((not_strip_t *)type->value);
-            if (value == ERROR)
+            if (value == NOT_PTR_ERROR)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
     }
@@ -1246,22 +1246,22 @@ not_record_type_copy(not_record_type_t *type)
         if (type->value)
         {
             value = not_strip_copy((not_strip_t *)type->value);
-            if (value == ERROR)
+            if (value == NOT_PTR_ERROR)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
     }
 
     not_record_type_t *basic = (not_record_type_t *)not_memory_calloc(1, sizeof(not_record_type_t));
-    if (basic == NULL)
+    if (basic == NOT_PTR_NULL)
     {
         not_error_no_memory();
         if (type->type->kind == NODE_KIND_OBJECT)
         {
             if (not_record_object_destroy((not_record_object_t *)value) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
         else if (type->type->kind == NODE_KIND_ARRAY)
@@ -1269,25 +1269,25 @@ not_record_type_copy(not_record_type_t *type)
             not_record_t *rec = (not_record_t *)value;
             if (not_record_link_decrease(rec) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
         else if (type->type->kind == NODE_KIND_TUPLE)
         {
             if (not_record_tuple_destroy((not_record_tuple_t *)value) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
         else if (type->type->kind == NODE_KIND_CLASS)
         {
             if (not_strip_destroy((not_strip_t *)value) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
 
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     basic->type = type->type;
@@ -1318,38 +1318,38 @@ not_record_copy(not_record_t *record)
     else if (record->kind == RECORD_KIND_OBJECT)
     {
         not_record_object_t *basic = not_record_object_copy((not_record_object_t *)record->value);
-        if (basic == ERROR)
+        if (basic == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *record_copy = not_record_create(RECORD_KIND_OBJECT, basic);
-        if (record_copy == ERROR)
+        if (record_copy == NOT_PTR_ERROR)
         {
             if (not_record_object_destroy(basic) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         return record_copy;
     }
     else if (record->kind == RECORD_KIND_TUPLE)
     {
         not_record_tuple_t *basic = not_record_tuple_copy((not_record_tuple_t *)record->value);
-        if (basic == ERROR)
+        if (basic == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *record_copy = not_record_create(RECORD_KIND_TUPLE, basic);
-        if (record_copy == ERROR)
+        if (record_copy == NOT_PTR_ERROR)
         {
             if (not_record_tuple_destroy(basic) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
         return record_copy;
     }
@@ -1357,19 +1357,19 @@ not_record_copy(not_record_t *record)
     {
         not_record_struct_t *basic = not_record_struct_copy((not_record_struct_t *)record->value);
         ;
-        if (basic == ERROR)
+        if (basic == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *record_copy = not_record_create(RECORD_KIND_STRUCT, basic);
-        if (record_copy == ERROR)
+        if (record_copy == NOT_PTR_ERROR)
         {
             if (not_record_struct_destroy(basic) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         return record_copy;
@@ -1377,19 +1377,19 @@ not_record_copy(not_record_t *record)
     else if (record->kind == RECORD_KIND_TYPE)
     {
         not_record_type_t *basic = not_record_type_copy((not_record_type_t *)record->value);
-        if (basic == ERROR)
+        if (basic == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *record_copy = not_record_create(RECORD_KIND_TYPE, basic);
-        if (record_copy == ERROR)
+        if (record_copy == NOT_PTR_ERROR)
         {
             if (not_record_type_destroy(basic) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         return record_copy;
@@ -1407,7 +1407,7 @@ not_record_copy(not_record_t *record)
         return not_record_make_nan();
     }
 
-    return NULL;
+    return NOT_PTR_NULL;
 }
 
 int32_t

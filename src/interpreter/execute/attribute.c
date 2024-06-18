@@ -31,7 +31,7 @@ not_record_t *
 not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, not_node_t *right, not_node_t *applicant)
 {
     not_node_class_t *class1 = (not_node_class_t *)left->value;
-    for (not_node_t *item = class1->block; item != NULL; item = item->next)
+    for (not_node_t *item = class1->block; item != NOT_PTR_NULL; item = item->next)
     {
         if (item->kind == NODE_KIND_PROPERTY)
         {
@@ -44,38 +44,38 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
                     not_error_type_by_node(node, "'%s' unexpected access to '%s'",
                                            basic2->value, basic1->value);
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 not_entry_t *entry = not_symbol_table_find(left, property->key);
-                if (entry == ERROR)
+                if (entry == NOT_PTR_ERROR)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
-                else if (entry != NULL)
+                else if (entry != NOT_PTR_NULL)
                 {
                     return entry->value;
                 }
 
-                not_record_t *record_value = NULL;
+                not_record_t *record_value = NOT_PTR_NULL;
                 if (property->value)
                 {
-                    record_value = not_execute_expression(property->value, strip, applicant, NULL);
-                    if (record_value == ERROR)
+                    record_value = not_execute_expression(property->value, strip, applicant, NOT_PTR_NULL);
+                    if (record_value == NOT_PTR_ERROR)
                     {
-                        return ERROR;
+                        return NOT_PTR_ERROR;
                     }
 
                     if (property->type)
                     {
-                        not_record_t *record_type = not_execute_expression(property->type, strip, applicant, NULL);
-                        if (record_type == ERROR)
+                        not_record_t *record_type = not_execute_expression(property->type, strip, applicant, NOT_PTR_NULL);
+                        if (record_type == NOT_PTR_ERROR)
                         {
                             if (not_record_link_decrease(record_value) < 0)
                             {
-                                return ERROR;
+                                return NOT_PTR_ERROR;
                             }
-                            return ERROR;
+                            return NOT_PTR_ERROR;
                         }
 
                         if (record_type->kind != RECORD_KIND_TYPE)
@@ -86,14 +86,14 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
 
                             if (not_record_link_decrease(record_type) < 0)
                             {
-                                return ERROR;
+                                return NOT_PTR_ERROR;
                             }
                             if (not_record_link_decrease(record_value) < 0)
                             {
-                                return ERROR;
+                                return NOT_PTR_ERROR;
                             }
 
-                            return ERROR;
+                            return NOT_PTR_ERROR;
                         }
 
                         int32_t r1 = not_execute_value_check_by_type(node, record_value, record_type, strip, applicant);
@@ -101,13 +101,13 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
                         {
                             if (not_record_link_decrease(record_type) < 0)
                             {
-                                return ERROR;
+                                return NOT_PTR_ERROR;
                             }
                             if (not_record_link_decrease(record_value) < 0)
                             {
-                                return ERROR;
+                                return NOT_PTR_ERROR;
                             }
-                            return ERROR;
+                            return NOT_PTR_ERROR;
                         }
                         else if (r1 == 0)
                         {
@@ -119,34 +119,34 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
 
                                 if (not_record_link_decrease(record_type) < 0)
                                 {
-                                    return ERROR;
+                                    return NOT_PTR_ERROR;
                                 }
                                 if (not_record_link_decrease(record_value) < 0)
                                 {
-                                    return ERROR;
+                                    return NOT_PTR_ERROR;
                                 }
 
-                                return ERROR;
+                                return NOT_PTR_ERROR;
                             }
                             else
                             {
                                 record_value = not_record_copy(record_value);
 
                                 not_record_t *record_value2 = not_execute_value_casting_by_type(node, record_value, record_type, strip, applicant);
-                                if (record_value2 == ERROR)
+                                if (record_value2 == NOT_PTR_ERROR)
                                 {
                                     if (not_record_link_decrease(record_type) < 0)
                                     {
-                                        return ERROR;
+                                        return NOT_PTR_ERROR;
                                     }
                                     if (not_record_link_decrease(record_value) < 0)
                                     {
-                                        return ERROR;
+                                        return NOT_PTR_ERROR;
                                     }
 
-                                    return ERROR;
+                                    return NOT_PTR_ERROR;
                                 }
-                                else if (record_value2 == NULL)
+                                else if (record_value2 == NOT_PTR_NULL)
                                 {
                                     not_node_basic_t *basic1 = (not_node_basic_t *)property->key->value;
                                     not_error_type_by_node(property->key, "'%s' mismatch: '%s' and '%s'",
@@ -154,14 +154,14 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
 
                                     if (not_record_link_decrease(record_type) < 0)
                                     {
-                                        return ERROR;
+                                        return NOT_PTR_ERROR;
                                     }
                                     if (not_record_link_decrease(record_value) < 0)
                                     {
-                                        return ERROR;
+                                        return NOT_PTR_ERROR;
                                     }
 
-                                    return ERROR;
+                                    return NOT_PTR_ERROR;
                                 }
 
                                 record_value = record_value2;
@@ -170,7 +170,7 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
 
                         if (not_record_link_decrease(record_type) < 0)
                         {
-                            return ERROR;
+                            return NOT_PTR_ERROR;
                         }
                     }
                 }
@@ -181,18 +181,18 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
                 }
 
                 entry = not_symbol_table_push(left, item, property->key, record_value);
-                if (entry == ERROR)
+                if (entry == NOT_PTR_ERROR)
                 {
                     if ((property->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                     {
                         if (not_record_link_decrease(record_value) < 0)
                         {
-                            return ERROR;
+                            return NOT_PTR_ERROR;
                         }
                     }
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
-                else if (entry == NULL)
+                else if (entry == NOT_PTR_NULL)
                 {
                     entry = not_symbol_table_find(left, property->key);
                 }
@@ -211,23 +211,23 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
                     not_error_type_by_node(node, "'%s' unexpected access to '%s'",
                                            basic2->value, basic1->value);
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 not_strip_t *copy_strip = not_strip_copy(strip);
-                if (copy_strip == ERROR)
+                if (copy_strip == NOT_PTR_ERROR)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 not_strip_t *strip_new = not_strip_create(copy_strip);
-                if (strip_new == ERROR)
+                if (strip_new == NOT_PTR_ERROR)
                 {
                     if (not_strip_destroy(copy_strip) < 0)
                     {
-                        return ERROR;
+                        return NOT_PTR_ERROR;
                     }
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 return not_record_make_type(item, strip_new);
@@ -244,23 +244,23 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
                     not_error_type_by_node(node, "'%s' unexpected access to '%s'",
                                            basic2->value, basic1->value);
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 not_strip_t *copy_strip = not_strip_copy(strip);
-                if (copy_strip == ERROR)
+                if (copy_strip == NOT_PTR_ERROR)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 not_strip_t *strip_new = not_strip_create(copy_strip);
-                if (strip_new == ERROR)
+                if (strip_new == NOT_PTR_ERROR)
                 {
                     if (not_strip_destroy(copy_strip) < 0)
                     {
-                        return ERROR;
+                        return NOT_PTR_ERROR;
                     }
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 return not_record_make_type(item, strip_new);
@@ -271,14 +271,14 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
     if (class1->heritages)
     {
         not_node_block_t *block = (not_node_block_t *)class1->heritages->value;
-        for (not_node_t *item = block->items; item != NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
         {
             not_node_heritage_t *heritage = (not_node_heritage_t *)item->value;
 
-            not_record_t *resp = not_execute_expression(heritage->type, strip, applicant, NULL);
-            if (resp == ERROR)
+            not_record_t *resp = not_execute_expression(heritage->type, strip, applicant, NOT_PTR_NULL);
+            if (resp == NOT_PTR_ERROR)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
 
             if (resp->kind != RECORD_KIND_TYPE)
@@ -290,10 +290,10 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
 
                 if (not_record_link_decrease(resp) < 0)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
 
             not_record_type_t *record_type = (not_record_type_t *)resp->value;
@@ -306,14 +306,14 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
 
                 if (not_record_link_decrease(resp) < 0)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
-                if (result == ERROR)
+                if (result == NOT_PTR_ERROR)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
-                else if (result != NULL)
+                else if (result != NOT_PTR_NULL)
                 {
                     return result;
                 }
@@ -327,22 +327,22 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
 
                 if (not_record_link_decrease(resp) < 0)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
         }
     }
 
-    return NULL;
+    return NOT_PTR_NULL;
 }
 
 not_record_t *
 not_execute_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left, not_node_t *right, not_node_t *applicant)
 {
     not_node_class_t *class1 = (not_node_class_t *)left->value;
-    for (not_node_t *item = class1->block; item != NULL; item = item->next)
+    for (not_node_t *item = class1->block; item != NOT_PTR_NULL; item = item->next)
     {
         if (item->kind == NODE_KIND_PROPERTY)
         {
@@ -355,7 +355,7 @@ not_execute_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
                     not_error_type_by_node(node, "'%s' unexpected access to '%s'",
                                            basic2->value, basic1->value);
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 if ((property->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
@@ -364,21 +364,21 @@ not_execute_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
                     not_error_type_by_node(node, "'%s' unexpected access to '%s'",
                                            basic2->value, basic1->value);
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 not_entry_t *entry = not_strip_variable_find(strip, left, property->key);
-                if (entry == ERROR)
+                if (entry == NOT_PTR_ERROR)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
-                else if (entry == NULL)
+                else if (entry == NOT_PTR_NULL)
                 {
                     not_node_basic_t *basic1 = (not_node_basic_t *)property->key->value;
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
                     not_error_type_by_node(node, "in class '%s', property '%s' is not initialized",
                                            basic2->value, basic1->value);
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 return entry->value;
@@ -395,23 +395,23 @@ not_execute_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
                     not_error_type_by_node(node, "'%s' unexpected access to '%s'",
                                            basic2->value, basic1->value);
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 not_strip_t *copy_strip = not_strip_copy(strip);
-                if (copy_strip == ERROR)
+                if (copy_strip == NOT_PTR_ERROR)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 not_strip_t *strip_new = not_strip_create(copy_strip);
-                if (strip_new == ERROR)
+                if (strip_new == NOT_PTR_ERROR)
                 {
                     if (not_strip_destroy(copy_strip) < 0)
                     {
-                        return ERROR;
+                        return NOT_PTR_ERROR;
                     }
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 return not_record_make_type(item, strip_new);
@@ -428,7 +428,7 @@ not_execute_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
                     not_error_type_by_node(node, "'%s' unexpected access to '%s'",
                                            basic2->value, basic1->value);
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 if ((fun1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
@@ -437,23 +437,23 @@ not_execute_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
                     not_error_type_by_node(node, "'%s' unexpected access to '%s'",
                                            basic2->value, basic1->value);
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 not_strip_t *copy_strip = not_strip_copy(strip);
-                if (copy_strip == ERROR)
+                if (copy_strip == NOT_PTR_ERROR)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 not_strip_t *strip_new = not_strip_create(copy_strip);
-                if (strip_new == ERROR)
+                if (strip_new == NOT_PTR_ERROR)
                 {
                     if (not_strip_destroy(copy_strip) < 0)
                     {
-                        return ERROR;
+                        return NOT_PTR_ERROR;
                     }
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 return not_record_make_type(item, strip_new);
@@ -464,22 +464,22 @@ not_execute_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node
     if (class1->heritages)
     {
         not_node_block_t *block = (not_node_block_t *)class1->heritages->value;
-        for (not_node_t *item = block->items; item != NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
         {
             not_node_heritage_t *heritage = (not_node_heritage_t *)item->value;
 
             not_entry_t *entry = not_strip_variable_find(strip, left, heritage->key);
-            if (entry == ERROR)
+            if (entry == NOT_PTR_ERROR)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
-            else if (entry == NULL)
+            else if (entry == NOT_PTR_NULL)
             {
                 not_node_basic_t *basic1 = (not_node_basic_t *)heritage->key->value;
                 not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
                 not_error_type_by_node(node, "in class '%s', heritage '%s' is not initialized",
                                        basic2->value, basic1->value);
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
 
             not_record_struct_t *record_struct = (not_record_struct_t *)entry->value->value;
@@ -487,26 +487,26 @@ not_execute_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node
 
             not_record_t *result = not_execute_attribute_from_struct(node, (not_strip_t *)record_struct->value, type, right, applicant);
 
-            if (result == ERROR)
+            if (result == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(entry->value) < 0)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
-            else if (result != NULL)
+            else if (result != NOT_PTR_NULL)
             {
                 if (not_record_link_decrease(entry->value) < 0)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
                 return result;
             }
         }
     }
 
-    return NULL;
+    return NOT_PTR_NULL;
 }
 
 not_record_t *
@@ -515,9 +515,9 @@ not_execute_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applican
     not_node_binary_t *binary = (not_node_binary_t *)node->value;
 
     not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
-    if (left == ERROR)
+    if (left == NOT_PTR_ERROR)
     {
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     if (left->kind == RECORD_KIND_TYPE)
@@ -529,11 +529,11 @@ not_execute_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applican
         {
             not_record_t *result = not_execute_attribute_from_type(node, strip_new, type, binary->right, applicant);
 
-            if (result == ERROR)
+            if (result == NOT_PTR_ERROR)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
-            else if (result == NULL)
+            else if (result == NOT_PTR_NULL)
             {
                 not_node_class_t *class1 = (not_node_class_t *)type->value;
                 not_node_basic_t *basic1 = (not_node_basic_t *)binary->right->value;
@@ -543,15 +543,15 @@ not_execute_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applican
 
                 if (not_record_link_decrease(left) < 0)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
 
             if (not_record_link_decrease(left) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
 
             return result;
@@ -575,10 +575,10 @@ not_execute_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applican
 
             if (not_record_link_decrease(left) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
 
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
     }
     else if (left->kind == RECORD_KIND_STRUCT)
@@ -589,11 +589,11 @@ not_execute_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applican
 
         not_record_t *result = not_execute_attribute_from_struct(node, strip_new, type, binary->right, applicant);
 
-        if (result == ERROR)
+        if (result == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
-        else if (result == NULL)
+        else if (result == NOT_PTR_NULL)
         {
             not_node_class_t *class1 = (not_node_class_t *)type->value;
             not_node_basic_t *basic1 = (not_node_basic_t *)binary->right->value;
@@ -603,28 +603,28 @@ not_execute_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applican
 
             if (not_record_link_decrease(left) < 0)
             {
-                return ERROR;
+                return NOT_PTR_ERROR;
             }
 
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         if (not_record_link_decrease(left) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         return result;
     }
     else if (left->kind == RECORD_KIND_OBJECT)
     {
-        for (not_record_object_t *item = (not_record_object_t *)left->value; item != NULL; item = item->next)
+        for (not_record_object_t *item = (not_record_object_t *)left->value; item != NOT_PTR_NULL; item = item->next)
         {
             if (not_execute_id_strcmp(binary->right, item->key) == 1)
             {
                 if (not_record_link_decrease(left) < 0)
                 {
-                    return ERROR;
+                    return NOT_PTR_ERROR;
                 }
 
                 return item->value;
@@ -637,10 +637,10 @@ not_execute_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applican
 
         if (not_record_link_decrease(left) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     else
     {
@@ -650,9 +650,9 @@ not_execute_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applican
 
         if (not_record_link_decrease(left) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 }

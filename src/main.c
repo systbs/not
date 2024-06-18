@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 		goto region_error;
 	}
 
-	if (ERROR == not_repository_load(not_config_get_input_file()))
+	if (NOT_PTR_ERROR == not_repository_load(not_config_get_input_file()))
 	{
 		goto region_error;
 	}
@@ -96,7 +96,7 @@ region_error:
 
 	not_thread_t *t = not_thread_get_current();
 
-	for (not_queue_entry_t *a = t->interpreter->expections->begin, *b = NULL; a != t->interpreter->expections->end; a = b)
+	for (not_queue_entry_t *a = t->interpreter->expections->begin, *b = NOT_PTR_NULL; a != t->interpreter->expections->end; a = b)
 	{
 		b = a->next;
 		not_record_t *expection = (not_record_t *)a->value;

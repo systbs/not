@@ -767,27 +767,27 @@ not_execute_bitwise_or(not_node_t *node, not_strip_t *strip, not_node_t *applica
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
         not_record_t *left = not_execute_bitwise_or(binary->left, strip, applicant, origin);
-        if (left == ERROR)
+        if (left == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *right = not_execute_bitwise_xor(binary->right, strip, applicant, origin);
-        if (right == ERROR)
+        if (right == NOT_PTR_ERROR)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         not_record_t *record = not_execute_or(node, left, right, applicant);
 
         if (not_record_link_decrease(left) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         if (not_record_link_decrease(right) < 0)
         {
-            return ERROR;
+            return NOT_PTR_ERROR;
         }
 
         return record;

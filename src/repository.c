@@ -44,7 +44,7 @@ not_repository_init()
     not_repository_t *module = not_repository_get();
 
     module->queue = not_queue_create();
-    if (module->queue == ERROR)
+    if (module->queue == NOT_PTR_ERROR)
     {
         return -1;
     }
@@ -98,7 +98,7 @@ not_repository_load(char *path)
     if (!file)
     {
         not_error_system("error opening file:%s", base_file);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     fseek(file, 0, SEEK_END);
@@ -109,14 +109,14 @@ not_repository_load(char *path)
     {
         fclose(file);
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     int64_t i;
     if ((i = fread(data, 1, length, file)) < length)
     {
         not_error_system("%s: read returned %ld", base_file, i);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     fclose(file);
     data[i] = '\0';
@@ -135,7 +135,7 @@ not_repository_load(char *path)
     if (!json_is_string(json_path))
     {
         not_error_system("'json' path is not of string type in: %s", base_file);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     char directory_path[MAX_PATH];
@@ -149,14 +149,14 @@ not_repository_load(char *path)
     if (!handle)
     {
         not_error_system("%s", "failed to load library");
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 #else
     void *handle = dlopen(module_path, RTLD_LAZY);
     if (!handle)
     {
         not_error_system("%s", dlerror());
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
     dlerror();
 #endif
@@ -165,59 +165,59 @@ not_repository_load(char *path)
     if (!entry)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     strcpy(entry->path, base_file);
-    entry->root = NULL;
+    entry->root = NOT_PTR_NULL;
     entry->json = root;
     entry->handle = handle;
 
-    if (ERROR == not_queue_right_push(repository->queue, entry))
+    if (NOT_PTR_ERROR == not_queue_right_push(repository->queue, entry))
     {
         not_memory_free(entry);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     return entry;
 
 region_normal_module:
     not_syntax_t *syntax = not_syntax_create(base_file);
-    if (syntax == ERROR)
+    if (syntax == NOT_PTR_ERROR)
     {
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     not_node_t *root_node = not_syntax_module(syntax);
-    if (root_node == ERROR)
+    if (root_node == NOT_PTR_ERROR)
     {
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     entry = (not_module_t *)not_memory_calloc(1, sizeof(not_module_t));
     if (!entry)
     {
         not_error_no_memory();
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     strcpy(entry->path, base_file);
     entry->root = root_node;
 
-    if (ERROR == not_queue_right_push(repository->queue, entry))
+    if (NOT_PTR_ERROR == not_queue_right_push(repository->queue, entry))
     {
         not_memory_free(entry);
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     if (not_semantic_module(entry->root) < 0)
     {
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     if (not_execute_run(entry->root) < 0)
     {
-        return ERROR;
+        return NOT_PTR_ERROR;
     }
 
     return entry;
@@ -227,7 +227,7 @@ void not_repository_destroy()
 {
     not_repository_t *repository = not_repository_get();
 
-    for (not_queue_entry_t *n = repository->queue->begin, *b = NULL; n != repository->queue->end; n = b)
+    for (not_queue_entry_t *n = repository->queue->begin, *b = NOT_PTR_NULL; n != repository->queue->end; n = b)
     {
         b = n->next;
         not_module_t *module = (not_module_t *)n->value;

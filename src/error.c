@@ -61,24 +61,24 @@ void not_error_no_memory()
 
         not_record_t *code = not_record_make_int_from_si(ERR_LEXER_TYPE);
         not_record_t *message = not_record_make_string("Out of memory");
-        if ((code == ERROR) || (message == ERROR))
+        if ((code == NOT_PTR_ERROR) || (message == NOT_PTR_ERROR))
         {
             goto region_fatal;
         }
 
-        not_record_object_t *object_code = not_record_make_object("code", code, NULL);
-        if (object_code == ERROR)
+        not_record_object_t *object_code = not_record_make_object("code", code, NOT_PTR_NULL);
+        if (object_code == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_message = not_record_make_object("message", message, object_code);
-        if (object_message == ERROR)
+        if (object_message == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
 
         not_record_t *record_error = not_record_create(RECORD_KIND_OBJECT, object_message);
-        if (object_message == ERROR)
+        if (object_message == NOT_PTR_ERROR)
         {
             not_record_object_destroy(object_message);
             goto region_fatal;
@@ -90,7 +90,7 @@ void not_error_no_memory()
             goto region_fatal;
         }
 
-        if (ERROR == not_queue_right_push(t->interpreter->expections, record_error))
+        if (NOT_PTR_ERROR == not_queue_right_push(t->interpreter->expections, record_error))
         {
             goto region_fatal;
         }
@@ -121,24 +121,24 @@ void not_error_system(const char *format, ...)
 
         not_record_t *code = not_record_make_int_from_si(ERR_LEXER_TYPE);
         not_record_t *message = not_record_make_string(message_str);
-        if ((code == ERROR) || (message == ERROR))
+        if ((code == NOT_PTR_ERROR) || (message == NOT_PTR_ERROR))
         {
             goto region_fatal;
         }
 
-        not_record_object_t *object_code = not_record_make_object("code", code, NULL);
-        if (object_code == ERROR)
+        not_record_object_t *object_code = not_record_make_object("code", code, NOT_PTR_NULL);
+        if (object_code == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_message = not_record_make_object("message", message, object_code);
-        if (object_message == ERROR)
+        if (object_message == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
 
         not_record_t *record_error = not_record_create(RECORD_KIND_OBJECT, object_message);
-        if (object_message == ERROR)
+        if (object_message == NOT_PTR_ERROR)
         {
             not_record_object_destroy(object_message);
             goto region_fatal;
@@ -150,7 +150,7 @@ void not_error_system(const char *format, ...)
             goto region_fatal;
         }
 
-        if (ERROR == not_queue_right_push(t->interpreter->expections, record_error))
+        if (NOT_PTR_ERROR == not_queue_right_push(t->interpreter->expections, record_error))
         {
             goto region_fatal;
         }
@@ -176,34 +176,34 @@ void not_error_lexer_by_position(not_position_t position, const char *format, ..
         not_record_t *column = not_record_make_int_from_ui(position.column);
         not_record_t *offset = not_record_make_int_from_ui(position.offset);
         not_record_t *path = not_record_make_string(position.path);
-        if ((line == ERROR) || (column == ERROR) || (offset == ERROR) || (path == ERROR))
+        if ((line == NOT_PTR_ERROR) || (column == NOT_PTR_ERROR) || (offset == NOT_PTR_ERROR) || (path == NOT_PTR_ERROR))
         {
             goto region_fatal;
         }
 
-        not_record_object_t *object_line = not_record_make_object("line", line, NULL);
-        if (object_line == ERROR)
+        not_record_object_t *object_line = not_record_make_object("line", line, NOT_PTR_NULL);
+        if (object_line == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_column = not_record_make_object("column", column, object_line);
-        if (object_column == ERROR)
+        if (object_column == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_offset = not_record_make_object("offset", offset, object_column);
-        if (object_offset == ERROR)
+        if (object_offset == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_path = not_record_make_object("path", path, object_offset);
-        if (object_path == ERROR)
+        if (object_path == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
 
         not_record_t *record_position = not_record_create(RECORD_KIND_OBJECT, object_path);
-        if (record_position == ERROR)
+        if (record_position == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
@@ -220,29 +220,29 @@ void not_error_lexer_by_position(not_position_t position, const char *format, ..
 
         not_record_t *code = not_record_make_int_from_si(ERR_LEXER_TYPE);
         not_record_t *message = not_record_make_string(message_str);
-        if ((code == ERROR) || (message == ERROR))
+        if ((code == NOT_PTR_ERROR) || (message == NOT_PTR_ERROR))
         {
             goto region_fatal;
         }
 
-        not_record_object_t *object_position = not_record_make_object("position", record_position, NULL);
-        if (object_position == ERROR)
+        not_record_object_t *object_position = not_record_make_object("position", record_position, NOT_PTR_NULL);
+        if (object_position == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_code = not_record_make_object("code", code, object_position);
-        if (object_code == ERROR)
+        if (object_code == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_message = not_record_make_object("message", message, object_code);
-        if (object_message == ERROR)
+        if (object_message == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
 
         not_record_t *record_error = not_record_create(RECORD_KIND_OBJECT, object_message);
-        if (object_message == ERROR)
+        if (object_message == NOT_PTR_ERROR)
         {
             not_record_object_destroy(object_message);
             goto region_fatal;
@@ -254,7 +254,7 @@ void not_error_lexer_by_position(not_position_t position, const char *format, ..
             goto region_fatal;
         }
 
-        if (ERROR == not_queue_right_push(t->interpreter->expections, record_error))
+        if (NOT_PTR_ERROR == not_queue_right_push(t->interpreter->expections, record_error))
         {
             goto region_fatal;
         }
@@ -273,7 +273,7 @@ region_fatal:
     not_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
 
     fprintf(stderr,
-            "File \"%s\", Line %lld, Column %lld\n",
+            "File \"%s\", Line %ld, Column %ld\n",
             relative_path,
             position.line,
             position.column);
@@ -292,7 +292,7 @@ region_fatal:
 
     FILE *fp = fopen(position.path, "rb");
 
-    if (fp == NULL)
+    if (fp == NOT_PTR_NULL)
     {
         fprintf(stderr, "%s-%u:could not open(%s)\n",
                 __FILE__, __LINE__, position.path);
@@ -305,7 +305,7 @@ region_fatal:
     size_t len = sizeof(chunk);
 
     char *buf = calloc(1, len);
-    if (buf == NULL)
+    if (buf == NOT_PTR_NULL)
     {
         fprintf(stderr, "%s-%u:Unable to allocted a block of %zu bytes\n",
                 __FILE__, __LINE__, sizeof(chunk));
@@ -313,7 +313,7 @@ region_fatal:
     }
 
     buf[0] = '\0';
-    while (fgets(chunk, sizeof(chunk), fp) != NULL)
+    while (fgets(chunk, sizeof(chunk), fp) != NOT_PTR_NULL)
     {
         size_t len_used = strlen(buf);
         size_t chunk_used = strlen(chunk);
@@ -321,7 +321,7 @@ region_fatal:
         if (len - len_used < chunk_used)
         {
             len *= 2;
-            if ((buf = realloc(buf, len)) == NULL)
+            if ((buf = realloc(buf, len)) == NOT_PTR_NULL)
             {
                 fprintf(stderr, "%s-%u:Unable to reallocate a block of %zu bytes\n",
                         __FILE__, __LINE__, sizeof(len));
@@ -341,7 +341,7 @@ region_fatal:
             {
                 if (line == position.line)
                 {
-                    fprintf(stderr, "  \033[31m%lld\033[m\t|", line);
+                    fprintf(stderr, "  \033[31m%ld\033[m\t|", line);
 
                     uint64_t j = 0;
                     for (uint64_t i = 0; i < strlen(buf); i++)
@@ -364,7 +364,7 @@ region_fatal:
                 }
                 else
                 {
-                    fprintf(stderr, "  %lld\t|%s", line, buf);
+                    fprintf(stderr, "  %ld\t|%s", line, buf);
                 }
             }
 
@@ -393,34 +393,34 @@ void not_error_syntax_by_position(not_position_t position, const char *format, .
         not_record_t *column = not_record_make_int_from_ui(position.column);
         not_record_t *offset = not_record_make_int_from_ui(position.offset);
         not_record_t *path = not_record_make_string(position.path);
-        if ((line == ERROR) || (column == ERROR) || (offset == ERROR) || (path == ERROR))
+        if ((line == NOT_PTR_ERROR) || (column == NOT_PTR_ERROR) || (offset == NOT_PTR_ERROR) || (path == NOT_PTR_ERROR))
         {
             goto region_fatal;
         }
 
-        not_record_object_t *object_line = not_record_make_object("line", line, NULL);
-        if (object_line == ERROR)
+        not_record_object_t *object_line = not_record_make_object("line", line, NOT_PTR_NULL);
+        if (object_line == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_column = not_record_make_object("column", column, object_line);
-        if (object_column == ERROR)
+        if (object_column == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_offset = not_record_make_object("offset", offset, object_column);
-        if (object_offset == ERROR)
+        if (object_offset == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_path = not_record_make_object("path", path, object_offset);
-        if (object_path == ERROR)
+        if (object_path == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
 
         not_record_t *record_position = not_record_create(RECORD_KIND_OBJECT, object_path);
-        if (record_position == ERROR)
+        if (record_position == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
@@ -437,29 +437,29 @@ void not_error_syntax_by_position(not_position_t position, const char *format, .
 
         not_record_t *code = not_record_make_int_from_si(ERR_SYNTAX_TYPE);
         not_record_t *message = not_record_make_string(message_str);
-        if ((code == ERROR) || (message == ERROR))
+        if ((code == NOT_PTR_ERROR) || (message == NOT_PTR_ERROR))
         {
             goto region_fatal;
         }
 
-        not_record_object_t *object_position = not_record_make_object("position", record_position, NULL);
-        if (object_position == ERROR)
+        not_record_object_t *object_position = not_record_make_object("position", record_position, NOT_PTR_NULL);
+        if (object_position == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_code = not_record_make_object("code", code, object_position);
-        if (object_code == ERROR)
+        if (object_code == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_message = not_record_make_object("message", message, object_code);
-        if (object_message == ERROR)
+        if (object_message == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
 
         not_record_t *record_error = not_record_create(RECORD_KIND_OBJECT, object_message);
-        if (object_message == ERROR)
+        if (object_message == NOT_PTR_ERROR)
         {
             not_record_object_destroy(object_message);
             goto region_fatal;
@@ -471,7 +471,7 @@ void not_error_syntax_by_position(not_position_t position, const char *format, .
             goto region_fatal;
         }
 
-        if (ERROR == not_queue_right_push(t->interpreter->expections, record_error))
+        if (NOT_PTR_ERROR == not_queue_right_push(t->interpreter->expections, record_error))
         {
             goto region_fatal;
         }
@@ -490,7 +490,7 @@ region_fatal:
     not_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
 
     fprintf(stderr,
-            "File \"%s\", Line %lld, Column %lld\n",
+            "File \"%s\", Line %ld, Column %ld\n",
             relative_path,
             position.line,
             position.column);
@@ -509,7 +509,7 @@ region_fatal:
 
     FILE *fp = fopen(position.path, "rb");
 
-    if (fp == NULL)
+    if (fp == NOT_PTR_NULL)
     {
         fprintf(stderr, "%s-%u:could not open(%s)\n",
                 __FILE__, __LINE__, position.path);
@@ -522,7 +522,7 @@ region_fatal:
     size_t len = sizeof(chunk);
 
     char *buf = calloc(1, len);
-    if (buf == NULL)
+    if (buf == NOT_PTR_NULL)
     {
         fprintf(stderr, "%s-%u:Unable to allocted a block of %zu bytes\n",
                 __FILE__, __LINE__, sizeof(chunk));
@@ -530,7 +530,7 @@ region_fatal:
     }
 
     buf[0] = '\0';
-    while (fgets(chunk, sizeof(chunk), fp) != NULL)
+    while (fgets(chunk, sizeof(chunk), fp) != NOT_PTR_NULL)
     {
         size_t len_used = strlen(buf);
         size_t chunk_used = strlen(chunk);
@@ -538,7 +538,7 @@ region_fatal:
         if (len - len_used < chunk_used)
         {
             len *= 2;
-            if ((buf = realloc(buf, len)) == NULL)
+            if ((buf = realloc(buf, len)) == NOT_PTR_NULL)
             {
                 fprintf(stderr, "%s-%u:Unable to reallocate a block of %zu bytes\n",
                         __FILE__, __LINE__, sizeof(len));
@@ -558,7 +558,7 @@ region_fatal:
             {
                 if (line == position.line)
                 {
-                    fprintf(stderr, "  \033[31m%lld\033[m\t|", line);
+                    fprintf(stderr, "  \033[31m%ld\033[m\t|", line);
 
                     uint64_t j = 0;
                     for (uint64_t i = 0; i < strlen(buf); i++)
@@ -581,7 +581,7 @@ region_fatal:
                 }
                 else
                 {
-                    fprintf(stderr, "  %lld\t|%s", line, buf);
+                    fprintf(stderr, "  %ld\t|%s", line, buf);
                 }
             }
 
@@ -611,34 +611,34 @@ void not_error_semantic_by_node(not_node_t *node, const char *format, ...)
         not_record_t *column = not_record_make_int_from_ui(position.column);
         not_record_t *offset = not_record_make_int_from_ui(position.offset);
         not_record_t *path = not_record_make_string(position.path);
-        if ((line == ERROR) || (column == ERROR) || (offset == ERROR) || (path == ERROR))
+        if ((line == NOT_PTR_ERROR) || (column == NOT_PTR_ERROR) || (offset == NOT_PTR_ERROR) || (path == NOT_PTR_ERROR))
         {
             goto region_fatal;
         }
 
-        not_record_object_t *object_line = not_record_make_object("line", line, NULL);
-        if (object_line == ERROR)
+        not_record_object_t *object_line = not_record_make_object("line", line, NOT_PTR_NULL);
+        if (object_line == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_column = not_record_make_object("column", column, object_line);
-        if (object_column == ERROR)
+        if (object_column == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_offset = not_record_make_object("offset", offset, object_column);
-        if (object_offset == ERROR)
+        if (object_offset == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_path = not_record_make_object("path", path, object_offset);
-        if (object_path == ERROR)
+        if (object_path == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
 
         not_record_t *record_position = not_record_create(RECORD_KIND_OBJECT, object_path);
-        if (record_position == ERROR)
+        if (record_position == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
@@ -655,29 +655,29 @@ void not_error_semantic_by_node(not_node_t *node, const char *format, ...)
 
         not_record_t *code = not_record_make_int_from_si(ERR_SEMANTIC_TYPE);
         not_record_t *message = not_record_make_string(message_str);
-        if ((code == ERROR) || (message == ERROR))
+        if ((code == NOT_PTR_ERROR) || (message == NOT_PTR_ERROR))
         {
             goto region_fatal;
         }
 
-        not_record_object_t *object_position = not_record_make_object("position", record_position, NULL);
-        if (object_position == ERROR)
+        not_record_object_t *object_position = not_record_make_object("position", record_position, NOT_PTR_NULL);
+        if (object_position == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_code = not_record_make_object("code", code, object_position);
-        if (object_code == ERROR)
+        if (object_code == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_message = not_record_make_object("message", message, object_code);
-        if (object_message == ERROR)
+        if (object_message == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
 
         not_record_t *record_error = not_record_create(RECORD_KIND_OBJECT, object_message);
-        if (object_message == ERROR)
+        if (object_message == NOT_PTR_ERROR)
         {
             not_record_object_destroy(object_message);
             goto region_fatal;
@@ -689,7 +689,7 @@ void not_error_semantic_by_node(not_node_t *node, const char *format, ...)
             goto region_fatal;
         }
 
-        if (ERROR == not_queue_right_push(t->interpreter->expections, record_error))
+        if (NOT_PTR_ERROR == not_queue_right_push(t->interpreter->expections, record_error))
         {
             goto region_fatal;
         }
@@ -710,13 +710,13 @@ region_fatal:
     not_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
 
     fprintf(stderr,
-            "File \"%s\", Line %lld, Column %lld",
+            "File \"%s\", Line %ld, Column %ld",
             relative_path,
             position.line,
             position.column);
 
     not_node_t *node1 = node;
-    while (node1 != NULL)
+    while (node1 != NOT_PTR_NULL)
     {
         if (node1->kind == NODE_KIND_MODULE)
         {
@@ -761,7 +761,7 @@ region_fatal:
 
     FILE *fp = fopen(position.path, "rb");
 
-    if (fp == NULL)
+    if (fp == NOT_PTR_NULL)
     {
         fprintf(stderr, "%s-%u:could not open(%s)\n",
                 __FILE__, __LINE__, position.path);
@@ -774,7 +774,7 @@ region_fatal:
     size_t len = sizeof(chunk);
 
     char *buf = calloc(1, len);
-    if (buf == NULL)
+    if (buf == NOT_PTR_NULL)
     {
         fprintf(stderr, "%s-%u:Unable to allocted a block of %zu bytes\n",
                 __FILE__, __LINE__, sizeof(chunk));
@@ -782,7 +782,7 @@ region_fatal:
     }
 
     buf[0] = '\0';
-    while (fgets(chunk, sizeof(chunk), fp) != NULL)
+    while (fgets(chunk, sizeof(chunk), fp) != NOT_PTR_NULL)
     {
         size_t len_used = strlen(buf);
         size_t chunk_used = strlen(chunk);
@@ -790,7 +790,7 @@ region_fatal:
         if (len - len_used < chunk_used)
         {
             len *= 2;
-            if ((buf = realloc(buf, len)) == NULL)
+            if ((buf = realloc(buf, len)) == NOT_PTR_NULL)
             {
                 fprintf(stderr, "%s-%u:Unable to reallocate a block of %zu bytes\n",
                         __FILE__, __LINE__, sizeof(len));
@@ -810,7 +810,7 @@ region_fatal:
             {
                 if (line == position.line)
                 {
-                    fprintf(stderr, "  \033[31m%lld\033[m\t|", line);
+                    fprintf(stderr, "  \033[31m%ld\033[m\t|", line);
 
                     uint64_t j = 0;
                     for (uint64_t i = 0; i < strlen(buf); i++)
@@ -833,7 +833,7 @@ region_fatal:
                 }
                 else
                 {
-                    fprintf(stderr, "  %lld\t|%s", line, buf);
+                    fprintf(stderr, "  %ld\t|%s", line, buf);
                 }
             }
 
@@ -863,34 +863,34 @@ void not_error_runtime_by_node(not_node_t *node, const char *format, ...)
         not_record_t *column = not_record_make_int_from_ui(position.column);
         not_record_t *offset = not_record_make_int_from_ui(position.offset);
         not_record_t *path = not_record_make_string(position.path);
-        if ((line == ERROR) || (column == ERROR) || (offset == ERROR) || (path == ERROR))
+        if ((line == NOT_PTR_ERROR) || (column == NOT_PTR_ERROR) || (offset == NOT_PTR_ERROR) || (path == NOT_PTR_ERROR))
         {
             goto region_fatal;
         }
 
-        not_record_object_t *object_line = not_record_make_object("line", line, NULL);
-        if (object_line == ERROR)
+        not_record_object_t *object_line = not_record_make_object("line", line, NOT_PTR_NULL);
+        if (object_line == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_column = not_record_make_object("column", column, object_line);
-        if (object_column == ERROR)
+        if (object_column == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_offset = not_record_make_object("offset", offset, object_column);
-        if (object_offset == ERROR)
+        if (object_offset == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_path = not_record_make_object("path", path, object_offset);
-        if (object_path == ERROR)
+        if (object_path == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
 
         not_record_t *record_position = not_record_create(RECORD_KIND_OBJECT, object_path);
-        if (record_position == ERROR)
+        if (record_position == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
@@ -907,29 +907,29 @@ void not_error_runtime_by_node(not_node_t *node, const char *format, ...)
 
         not_record_t *code = not_record_make_int_from_si(ERR_RUNTIME_TYPE);
         not_record_t *message = not_record_make_string(message_str);
-        if ((code == ERROR) || (message == ERROR))
+        if ((code == NOT_PTR_ERROR) || (message == NOT_PTR_ERROR))
         {
             goto region_fatal;
         }
 
-        not_record_object_t *object_position = not_record_make_object("position", record_position, NULL);
-        if (object_position == ERROR)
+        not_record_object_t *object_position = not_record_make_object("position", record_position, NOT_PTR_NULL);
+        if (object_position == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_code = not_record_make_object("code", code, object_position);
-        if (object_code == ERROR)
+        if (object_code == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_message = not_record_make_object("message", message, object_code);
-        if (object_message == ERROR)
+        if (object_message == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
 
         not_record_t *record_error = not_record_create(RECORD_KIND_OBJECT, object_message);
-        if (object_message == ERROR)
+        if (object_message == NOT_PTR_ERROR)
         {
             not_record_object_destroy(object_message);
             goto region_fatal;
@@ -941,7 +941,7 @@ void not_error_runtime_by_node(not_node_t *node, const char *format, ...)
             goto region_fatal;
         }
 
-        if (ERROR == not_queue_right_push(t->interpreter->expections, record_error))
+        if (NOT_PTR_ERROR == not_queue_right_push(t->interpreter->expections, record_error))
         {
             goto region_fatal;
         }
@@ -962,13 +962,13 @@ region_fatal:
     not_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
 
     fprintf(stderr,
-            "File \"%s\", Line %lld, Column %lld",
+            "File \"%s\", Line %ld, Column %ld",
             relative_path,
             position.line,
             position.column);
 
     not_node_t *node1 = node;
-    while (node1 != NULL)
+    while (node1 != NOT_PTR_NULL)
     {
         if (node1->kind == NODE_KIND_MODULE)
         {
@@ -1013,7 +1013,7 @@ region_fatal:
 
     FILE *fp = fopen(position.path, "rb");
 
-    if (fp == NULL)
+    if (fp == NOT_PTR_NULL)
     {
         fprintf(stderr, "%s-%u:could not open(%s)\n",
                 __FILE__, __LINE__, position.path);
@@ -1026,7 +1026,7 @@ region_fatal:
     size_t len = sizeof(chunk);
 
     char *buf = calloc(1, len);
-    if (buf == NULL)
+    if (buf == NOT_PTR_NULL)
     {
         fprintf(stderr, "%s-%u:Unable to allocted a block of %zu bytes\n",
                 __FILE__, __LINE__, sizeof(chunk));
@@ -1034,7 +1034,7 @@ region_fatal:
     }
 
     buf[0] = '\0';
-    while (fgets(chunk, sizeof(chunk), fp) != NULL)
+    while (fgets(chunk, sizeof(chunk), fp) != NOT_PTR_NULL)
     {
         size_t len_used = strlen(buf);
         size_t chunk_used = strlen(chunk);
@@ -1042,7 +1042,7 @@ region_fatal:
         if (len - len_used < chunk_used)
         {
             len *= 2;
-            if ((buf = realloc(buf, len)) == NULL)
+            if ((buf = realloc(buf, len)) == NOT_PTR_NULL)
             {
                 fprintf(stderr, "%s-%u:Unable to reallocate a block of %zu bytes\n",
                         __FILE__, __LINE__, sizeof(len));
@@ -1062,7 +1062,7 @@ region_fatal:
             {
                 if (line == position.line)
                 {
-                    fprintf(stderr, "  \033[31m%lld\033[m\t|", line);
+                    fprintf(stderr, "  \033[31m%ld\033[m\t|", line);
 
                     uint64_t j = 0;
                     for (uint64_t i = 0; i < strlen(buf); i++)
@@ -1085,7 +1085,7 @@ region_fatal:
                 }
                 else
                 {
-                    fprintf(stderr, "  %lld\t|%s", line, buf);
+                    fprintf(stderr, "  %ld\t|%s", line, buf);
                 }
             }
 
@@ -1115,34 +1115,34 @@ void not_error_type_by_node(not_node_t *node, const char *format, ...)
         not_record_t *column = not_record_make_int_from_ui(position.column);
         not_record_t *offset = not_record_make_int_from_ui(position.offset);
         not_record_t *path = not_record_make_string(position.path);
-        if ((line == ERROR) || (column == ERROR) || (offset == ERROR) || (path == ERROR))
+        if ((line == NOT_PTR_ERROR) || (column == NOT_PTR_ERROR) || (offset == NOT_PTR_ERROR) || (path == NOT_PTR_ERROR))
         {
             goto region_fatal;
         }
 
-        not_record_object_t *object_line = not_record_make_object("line", line, NULL);
-        if (object_line == ERROR)
+        not_record_object_t *object_line = not_record_make_object("line", line, NOT_PTR_NULL);
+        if (object_line == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_column = not_record_make_object("column", column, object_line);
-        if (object_column == ERROR)
+        if (object_column == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_offset = not_record_make_object("offset", offset, object_column);
-        if (object_offset == ERROR)
+        if (object_offset == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_path = not_record_make_object("path", path, object_offset);
-        if (object_path == ERROR)
+        if (object_path == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
 
         not_record_t *record_position = not_record_create(RECORD_KIND_OBJECT, object_path);
-        if (record_position == ERROR)
+        if (record_position == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
@@ -1159,29 +1159,29 @@ void not_error_type_by_node(not_node_t *node, const char *format, ...)
 
         not_record_t *code = not_record_make_int_from_si(ERR_TYPE_TYPE);
         not_record_t *message = not_record_make_string(message_str);
-        if ((code == ERROR) || (message == ERROR))
+        if ((code == NOT_PTR_ERROR) || (message == NOT_PTR_ERROR))
         {
             goto region_fatal;
         }
 
-        not_record_object_t *object_position = not_record_make_object("position", record_position, NULL);
-        if (object_position == ERROR)
+        not_record_object_t *object_position = not_record_make_object("position", record_position, NOT_PTR_NULL);
+        if (object_position == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_code = not_record_make_object("code", code, object_position);
-        if (object_code == ERROR)
+        if (object_code == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
         not_record_object_t *object_message = not_record_make_object("message", message, object_code);
-        if (object_message == ERROR)
+        if (object_message == NOT_PTR_ERROR)
         {
             goto region_fatal;
         }
 
         not_record_t *record_error = not_record_create(RECORD_KIND_OBJECT, object_message);
-        if (object_message == ERROR)
+        if (object_message == NOT_PTR_ERROR)
         {
             not_record_object_destroy(object_message);
             goto region_fatal;
@@ -1193,7 +1193,7 @@ void not_error_type_by_node(not_node_t *node, const char *format, ...)
             goto region_fatal;
         }
 
-        if (ERROR == not_queue_right_push(t->interpreter->expections, record_error))
+        if (NOT_PTR_ERROR == not_queue_right_push(t->interpreter->expections, record_error))
         {
             goto region_fatal;
         }
@@ -1214,13 +1214,13 @@ region_fatal:
     not_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
 
     fprintf(stderr,
-            "File \"%s\", Line %lld, Column %lld",
+            "File \"%s\", Line %ld, Column %ld",
             relative_path,
             position.line,
             position.column);
 
     not_node_t *node1 = node;
-    while (node1 != NULL)
+    while (node1 != NOT_PTR_NULL)
     {
         if (node1->kind == NODE_KIND_MODULE)
         {
@@ -1265,7 +1265,7 @@ region_fatal:
 
     FILE *fp = fopen(position.path, "rb");
 
-    if (fp == NULL)
+    if (fp == NOT_PTR_NULL)
     {
         fprintf(stderr, "%s-%u:could not open(%s)\n",
                 __FILE__, __LINE__, position.path);
@@ -1278,7 +1278,7 @@ region_fatal:
     size_t len = sizeof(chunk);
 
     char *buf = calloc(1, len);
-    if (buf == NULL)
+    if (buf == NOT_PTR_NULL)
     {
         fprintf(stderr, "%s-%u:Unable to allocted a block of %zu bytes\n",
                 __FILE__, __LINE__, sizeof(chunk));
@@ -1286,7 +1286,7 @@ region_fatal:
     }
 
     buf[0] = '\0';
-    while (fgets(chunk, sizeof(chunk), fp) != NULL)
+    while (fgets(chunk, sizeof(chunk), fp) != NOT_PTR_NULL)
     {
         size_t len_used = strlen(buf);
         size_t chunk_used = strlen(chunk);
@@ -1294,7 +1294,7 @@ region_fatal:
         if (len - len_used < chunk_used)
         {
             len *= 2;
-            if ((buf = realloc(buf, len)) == NULL)
+            if ((buf = realloc(buf, len)) == NOT_PTR_NULL)
             {
                 fprintf(stderr, "%s-%u:Unable to reallocate a block of %zu bytes\n",
                         __FILE__, __LINE__, sizeof(len));
@@ -1314,7 +1314,7 @@ region_fatal:
             {
                 if (line == position.line)
                 {
-                    fprintf(stderr, "  \033[31m%lld\033[m\t|", line);
+                    fprintf(stderr, "  \033[31m%ld\033[m\t|", line);
 
                     uint64_t j = 0;
                     for (uint64_t i = 0; i < strlen(buf); i++)
@@ -1337,7 +1337,7 @@ region_fatal:
                 }
                 else
                 {
-                    fprintf(stderr, "  %lld\t|%s", line, buf);
+                    fprintf(stderr, "  %ld\t|%s", line, buf);
                 }
             }
 

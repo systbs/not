@@ -39,11 +39,11 @@ not_config_init()
     config->expection = 0;
 
     char *env = getenv(ENV_LIBRARY_KEY);
-    if (env == NULL)
+    if (env == NOT_PTR_NULL)
     {
 #if defined(_WIN32) || defined(_WIN64)
         char path[MAX_PATH];
-        if (GetModuleFileName(NULL, path, MAX_PATH) != 0)
+        if (GetModuleFileName(NOT_PTR_NULL, path, MAX_PATH) != 0)
         {
             char dir_path[MAX_PATH];
             not_path_get_directory_path(path, dir_path, MAX_PATH);
