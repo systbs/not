@@ -12,7 +12,7 @@
                 }
             ],
             "arg": false,
-            "return_type": "sint"
+            "return_type": "int"
         },
         {
             "name": "println",
@@ -23,7 +23,22 @@
                 }
             ],
             "arg": false,
-            "return_type": "sint"
+            "return_type": "int"
+        },
+        {
+            "name": "add",
+            "parameters": [
+                {
+                    "name": "a",
+                    "type": "int"
+                },
+                {
+                    "name": "b",
+                    "type": "int"
+                }
+            ],
+            "arg": false,
+            "return_type": "int"
         }
     ]
 }

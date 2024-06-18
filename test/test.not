@@ -2,7 +2,7 @@
 using param2: param from "~/lib/types/primary.not";
 
 // import c/.. library shared
-using println from "~/lib/c/shared.json";
+using println, add from "~/lib/c/shared.json";
 
 // convert string to float
 var b1 = float ("12e-1");
@@ -13,7 +13,9 @@ var b2 = int ("12345");
 // round
 var b3 = float (1.3451, 2);
 
-println("hello world" + " " + b1 + " " + b2 + " " + b3 + " " + param2);
+var b4 = add(1, 2);
+
+println("hello world" + " " + b1 + " " + b2 + " " + b3 + " " + param2 + " " + b4);
 
 // types
 

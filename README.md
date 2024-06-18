@@ -17,10 +17,26 @@ Open source software is made better when users can easily contribute code and do
 
 ## Sample Code
 ```not
+// import
 using param2: param from "~/lib/types/primary.not";
 
 // import c/.. library shared
-using println from "~/lib/c/shared.json";
+using println, add from "~/lib/c/shared.json";
+
+// convert string to float
+var b1 = float ("12e-1");
+
+// convert string to int
+var b2 = int ("12345");
+
+// round
+var b3 = float (1.3451, 2);
+
+var b4 = add(1, 2);
+
+println("hello world" + " " + b1 + " " + b2 + " " + b3 + " " + param2 + " " + b4);
+
+// types
 
 // int type
 var a1 = 1;
@@ -40,6 +56,7 @@ var a5 = [1, 2, 3, 4, 5];
 // object
 var a6 = {a:1, b:2, c:3, d:4, e:5};
 
+// class definition
 class B
 {
 	// static property
@@ -86,10 +103,12 @@ class A<T> extends (b1:B)
 	}
 }
 
+// lambda functions
 var fun1 = fun (p1:int) {
 	return p1 * 1000;
 };
 
+// new class
 var f2 = A<int>(100000);
 var f3 = f2 * 2;
 

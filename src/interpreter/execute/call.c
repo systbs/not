@@ -2823,153 +2823,47 @@ typedef union
     uint16_t ui16;
     uint32_t ui32;
     uint64_t ui64;
-} ffi_ret_type;
+} union_return_value_t;
 
 typedef struct ffi_sized
 {
     void *ptr;
     ffi_type *type;
-    size_t size;
-} ffi_sized_t;
+} ffi_pair_t;
 
 static void
 ffi_type_destroy(ffi_type *type)
 {
-}
-
-static ffi_type *
-json_to_ffi(json_t *type)
-{
-    if (json_is_string(type))
+    if (type->type == FFI_TYPE_STRUCT)
     {
-        const char *str = json_string_value(type);
-        if (strcmp(str, "schar") == 0)
+        for (ffi_type *t = *type->elements; t != NULL; t++)
         {
-            return &ffi_type_schar;
+            ffi_type_destroy(t);
         }
-        else if (strcmp(str, "uchar") == 0)
-        {
-            return &ffi_type_uchar;
-        }
-        else if (strcmp(str, "sshort") == 0)
-        {
-            return &ffi_type_sshort;
-        }
-        else if (strcmp(str, "ushort") == 0)
-        {
-            return &ffi_type_ushort;
-        }
-        else if (strcmp(str, "sint") == 0)
-        {
-            return &ffi_type_sint;
-        }
-        else if (strcmp(str, "uint") == 0)
-        {
-            return &ffi_type_uint;
-        }
-        else if (strcmp(str, "slong") == 0)
-        {
-            return &ffi_type_slong;
-        }
-        else if (strcmp(str, "ulong") == 0)
-        {
-            return &ffi_type_ulong;
-        }
-        else if (strcmp(str, "sint8") == 0)
-        {
-            return &ffi_type_sint8;
-        }
-        else if (strcmp(str, "uint8") == 0)
-        {
-            return &ffi_type_uint8;
-        }
-        else if (strcmp(str, "sint16") == 0)
-        {
-            return &ffi_type_sint16;
-        }
-        else if (strcmp(str, "uint16") == 0)
-        {
-            return &ffi_type_uint16;
-        }
-        else if (strcmp(str, "sint32") == 0)
-        {
-            return &ffi_type_sint32;
-        }
-        else if (strcmp(str, "uint32") == 0)
-        {
-            return &ffi_type_uint32;
-        }
-        else if (strcmp(str, "sint64") == 0)
-        {
-            return &ffi_type_sint64;
-        }
-        else if (strcmp(str, "uint64") == 0)
-        {
-            return &ffi_type_uint64;
-        }
-        else if (strcmp(str, "float") == 0)
-        {
-            return &ffi_type_float;
-        }
-        else if (strcmp(str, "double") == 0)
-        {
-            return &ffi_type_double;
-        }
-        else if (strcmp(str, "string") == 0)
-        {
-            return &ffi_type_pointer;
-        }
-        else if (strcmp(str, "void") == 0)
-        {
-            return &ffi_type_void;
-        }
+        not_memory_free(type->elements);
     }
-    else if (json_is_object(type))
-    {
-    }
-    else if (json_is_array(type))
-    {
-    }
-    else
-    {
-    }
-
-    return &ffi_type_void;
 }
 
 static int32_t
-record_cvt_by_json(not_record_t *arg, json_t *type, ffi_sized_t *ret)
+not_call_cvt_arg(not_record_t *arg, json_t *type, ffi_pair_t *ret)
 {
     if (json_is_string(type))
     {
         const char *str = json_string_value(type);
-        if (strcmp(str, "schar") == 0)
+        if (strcmp(str, "char") == 0)
         {
             if (arg->kind == RECORD_KIND_CHAR)
             {
-                void *ptr = not_memory_calloc(1, sizeof(char));
+                void **ptr = not_memory_calloc(1, sizeof(void *));
                 if (!ptr)
                 {
                     not_error_no_memory();
                     return -1;
                 }
-                *(char *)ptr = *(char *)arg->value;
-                ret->size = sizeof(char);
-                ret->type = &ffi_type_schar;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(char));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(char *)ptr = (char)mpz_get_si(*(mpz_t *)arg->value);
-                ret->size = sizeof(char);
-                ret->type = &ffi_type_schar;
+
+                ptr[0] = arg->value;
+
+                ret->type = &ffi_type_pointer;
                 ret->ptr = ptr;
                 return 1;
             }
@@ -2978,523 +2872,20 @@ record_cvt_by_json(not_record_t *arg, json_t *type, ffi_sized_t *ret)
                 return 0;
             }
         }
-        else if (strcmp(str, "uchar") == 0)
+        else if (strcmp(str, "int") == 0)
         {
-            if (arg->kind == RECORD_KIND_CHAR)
+            if (arg->kind == RECORD_KIND_INT)
             {
-                void *ptr = not_memory_calloc(1, sizeof(unsigned char));
+                void **ptr = not_memory_calloc(1, sizeof(void *));
                 if (!ptr)
                 {
                     not_error_no_memory();
                     return -1;
                 }
-                *(unsigned char *)ptr = (unsigned char)(*(char *)arg->value);
-                ret->size = sizeof(unsigned char);
-                ret->type = &ffi_type_uchar;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(unsigned char));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(unsigned char *)ptr = (unsigned char)mpz_get_ui(*(mpz_t *)arg->value);
-                ret->size = sizeof(unsigned char);
-                ret->type = &ffi_type_uchar;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "sshort") == 0)
-        {
-            if (arg->kind == RECORD_KIND_CHAR)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(short));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(short *)ptr = (short)(*(char *)arg->value);
-                ret->size = sizeof(short);
-                ret->type = &ffi_type_sshort;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(short));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(short *)ptr = (short)mpz_get_si(*(mpz_t *)arg->value);
-                ret->size = sizeof(short);
-                ret->type = &ffi_type_sshort;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "ushort") == 0)
-        {
-            if (arg->kind == RECORD_KIND_CHAR)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(unsigned short));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(unsigned short *)ptr = (unsigned short)(*(char *)arg->value);
-                ret->size = sizeof(unsigned short);
-                ret->type = &ffi_type_ushort;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(unsigned short));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(unsigned short *)ptr = (unsigned short)mpz_get_ui(*(mpz_t *)arg->value);
-                ret->size = sizeof(unsigned short);
-                ret->type = &ffi_type_ushort;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "sint") == 0)
-        {
-            if (arg->kind == RECORD_KIND_CHAR)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(int));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(int *)ptr = (int)(*(char *)arg->value);
-                ret->size = sizeof(int);
-                ret->type = &ffi_type_sint;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(int));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(int *)ptr = (int)mpz_get_si(*(mpz_t *)arg->value);
-                ret->size = sizeof(int);
-                ret->type = &ffi_type_sint;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "uint") == 0)
-        {
-            if (arg->kind == RECORD_KIND_CHAR)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(unsigned int));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(unsigned int *)ptr = (unsigned int)(*(char *)arg->value);
-                ret->size = sizeof(unsigned int);
-                ret->type = &ffi_type_uint;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(unsigned int));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(unsigned int *)ptr = (unsigned int)mpz_get_ui(*(mpz_t *)arg->value);
-                ret->size = sizeof(unsigned int);
-                ret->type = &ffi_type_uint;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "slong") == 0)
-        {
-            if (arg->kind == RECORD_KIND_CHAR)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(long));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(long *)ptr = (long)(*(char *)arg->value);
-                ret->size = sizeof(long);
-                ret->type = &ffi_type_slong;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(long));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(long *)ptr = (long)mpz_get_si(*(mpz_t *)arg->value);
-                ret->size = sizeof(long);
-                ret->type = &ffi_type_slong;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "ulong") == 0)
-        {
-            if (arg->kind == RECORD_KIND_CHAR)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(unsigned long));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(unsigned long *)ptr = (unsigned long)(*(char *)arg->value);
-                ret->size = sizeof(unsigned long);
-                ret->type = &ffi_type_ulong;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(unsigned long));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(unsigned long *)ptr = (unsigned long)mpz_get_ui(*(mpz_t *)arg->value);
-                ret->size = sizeof(unsigned long);
-                ret->type = &ffi_type_ulong;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "sint8") == 0)
-        {
-            if (arg->kind == RECORD_KIND_CHAR)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(int8_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(int8_t *)ptr = (int8_t)(*(char *)arg->value);
-                ret->size = sizeof(int8_t);
-                ret->type = &ffi_type_sint8;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(int8_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(int8_t *)ptr = (int8_t)mpz_get_si(*(mpz_t *)arg->value);
-                ret->size = sizeof(int8_t);
-                ret->type = &ffi_type_sint8;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "uint8") == 0)
-        {
-            if (arg->kind == RECORD_KIND_CHAR)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(uint8_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(uint8_t *)ptr = (uint8_t)(*(char *)arg->value);
-                ret->size = sizeof(uint8_t);
-                ret->type = &ffi_type_uint8;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(uint8_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(uint8_t *)ptr = (uint8_t)mpz_get_ui(*(mpz_t *)arg->value);
-                ret->size = sizeof(uint8_t);
-                ret->type = &ffi_type_uint8;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "sint16") == 0)
-        {
-            if (arg->kind == RECORD_KIND_CHAR)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(int16_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(int16_t *)ptr = (int16_t)(*(char *)arg->value);
-                ret->size = sizeof(int16_t);
-                ret->type = &ffi_type_sint16;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(int16_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(int16_t *)ptr = (int16_t)mpz_get_si(*(mpz_t *)arg->value);
-                ret->size = sizeof(int16_t);
-                ret->type = &ffi_type_sint16;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "uint16") == 0)
-        {
-            if (arg->kind == RECORD_KIND_CHAR)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(uint16_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(uint16_t *)ptr = (uint16_t)(*(char *)arg->value);
-                ret->size = sizeof(uint16_t);
-                ret->type = &ffi_type_uint16;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(uint16_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(uint16_t *)ptr = (uint16_t)mpz_get_ui(*(mpz_t *)arg->value);
-                ret->size = sizeof(uint16_t);
-                ret->type = &ffi_type_uint16;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "sint32") == 0)
-        {
-            if (arg->kind == RECORD_KIND_CHAR)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(int32_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(int32_t *)ptr = (int32_t)(*(char *)arg->value);
-                ret->size = sizeof(int32_t);
-                ret->type = &ffi_type_sint32;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(int32_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(int32_t *)ptr = (int32_t)mpz_get_si(*(mpz_t *)arg->value);
-                ret->size = sizeof(int32_t);
-                ret->type = &ffi_type_sint32;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "uint32") == 0)
-        {
-            if (arg->kind == RECORD_KIND_CHAR)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(uint32_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(uint32_t *)ptr = (uint32_t)(*(char *)arg->value);
-                ret->size = sizeof(uint32_t);
-                ret->type = &ffi_type_uint32;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(uint32_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(uint32_t *)ptr = (uint32_t)mpz_get_ui(*(mpz_t *)arg->value);
-                ret->size = sizeof(uint32_t);
-                ret->type = &ffi_type_uint32;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "sint64") == 0)
-        {
-            if (arg->kind == RECORD_KIND_CHAR)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(int64_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(int64_t *)ptr = (int64_t)(*(char *)arg->value);
-                ret->size = sizeof(int64_t);
-                ret->type = &ffi_type_sint64;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(int64_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(int64_t *)ptr = (int64_t)mpz_get_si(*(mpz_t *)arg->value);
-                ret->size = sizeof(int64_t);
-                ret->type = &ffi_type_sint64;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "uint64") == 0)
-        {
-            if (arg->kind == RECORD_KIND_CHAR)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(uint64_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(uint64_t *)ptr = (uint64_t)(*(char *)arg->value);
-                ret->size = sizeof(uint64_t);
-                ret->type = &ffi_type_uint64;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else if (arg->kind == RECORD_KIND_INT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(uint64_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(uint64_t *)ptr = (uint64_t)mpz_get_ui(*(mpz_t *)arg->value);
-                ret->size = sizeof(uint64_t);
-                ret->type = &ffi_type_uint64;
+
+                ptr[0] = arg->value;
+
+                ret->type = &ffi_type_pointer;
                 ret->ptr = ptr;
                 return 1;
             }
@@ -3507,36 +2898,16 @@ record_cvt_by_json(not_record_t *arg, json_t *type, ffi_sized_t *ret)
         {
             if (arg->kind == RECORD_KIND_FLOAT)
             {
-                void *ptr = not_memory_calloc(1, sizeof(float));
+                void **ptr = not_memory_calloc(1, sizeof(void *));
                 if (!ptr)
                 {
                     not_error_no_memory();
                     return -1;
                 }
-                *(float *)ptr = (float)mpf_get_d(*(mpf_t *)arg->value);
-                ret->size = sizeof(float);
-                ret->type = &ffi_type_float;
-                ret->ptr = ptr;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "double") == 0)
-        {
-            if (arg->kind == RECORD_KIND_FLOAT)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(double));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(double *)ptr = (double)mpf_get_d(*(mpf_t *)arg->value);
-                ret->size = sizeof(double);
-                ret->type = &ffi_type_double;
+
+                ptr[0] = arg->value;
+
+                ret->type = &ffi_type_pointer;
                 ret->ptr = ptr;
                 return 1;
             }
@@ -3549,23 +2920,15 @@ record_cvt_by_json(not_record_t *arg, json_t *type, ffi_sized_t *ret)
         {
             if (arg->kind == RECORD_KIND_STRING)
             {
-                char **ptr = not_memory_calloc(1, sizeof(char *));
+                void **ptr = not_memory_calloc(1, sizeof(void *));
                 if (!ptr)
                 {
                     not_error_no_memory();
                     return -1;
                 }
 
-                size_t length = strlen((char *)arg->value);
-                ptr[0] = not_memory_calloc(1, length);
-                if (!ptr[0])
-                {
-                    not_error_no_memory();
-                    not_memory_free(ptr);
-                    return -1;
-                }
-                memcpy(ptr[0], arg->value, length);
-                ret->size = sizeof(char *);
+                ptr[0] = arg->value;
+
                 ret->type = &ffi_type_pointer;
                 ret->ptr = ptr;
                 return 1;
@@ -3575,71 +2938,6 @@ record_cvt_by_json(not_record_t *arg, json_t *type, ffi_sized_t *ret)
                 return 0;
             }
         }
-        else if (strcmp(str, "mpz") == 0)
-        {
-            if (arg->kind == RECORD_KIND_INT)
-            {
-                mpz_t **ptr = not_memory_calloc(1, sizeof(mpz_t *));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-
-                mpz_t *num = not_memory_calloc(1, sizeof(mpz_t));
-                if (!num)
-                {
-                    not_error_no_memory();
-                    not_memory_free(ptr);
-                    return -1;
-                }
-                mpz_init_set(*num, *(mpz_t *)arg->value);
-                ptr[0] = num;
-
-                ret->size = sizeof(mpz_t *);
-                ret->type = &ffi_type_pointer;
-                ret->ptr = ptr;
-
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(str, "mpf") == 0)
-        {
-            if (arg->kind == RECORD_KIND_FLOAT)
-            {
-                mpf_t **ptr = not_memory_calloc(1, sizeof(mpf_t *));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-
-                mpf_t *num = not_memory_calloc(1, sizeof(mpf_t));
-                if (!num)
-                {
-                    not_error_no_memory();
-                    not_memory_free(ptr);
-                    return -1;
-                }
-                mpf_init_set(*num, *(mpf_t *)arg->value);
-                ptr[0] = num;
-
-                ret->size = sizeof(mpf_t *);
-                ret->type = &ffi_type_pointer;
-                ret->ptr = ptr;
-
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else
         {
             return 0;
         }
@@ -3654,241 +2952,60 @@ record_cvt_by_json(not_record_t *arg, json_t *type, ffi_sized_t *ret)
     {
         if (arg->kind == RECORD_KIND_CHAR)
         {
-            void *ptr = not_memory_calloc(1, sizeof(char));
+            void **ptr = not_memory_calloc(1, sizeof(void *));
             if (!ptr)
             {
                 not_error_no_memory();
                 return -1;
             }
-            *(char *)ptr = *(char *)arg->value;
-            ret->size = sizeof(char);
-            ret->type = &ffi_type_schar;
+
+            ptr[0] = arg->value;
+
+            ret->type = &ffi_type_pointer;
             ret->ptr = ptr;
             return 1;
         }
         else if (arg->kind == RECORD_KIND_INT)
         {
-            if (mpz_cmp_si(*(mpz_t *)arg->value, INT32_MIN) >= 0 && mpz_cmp_si(*(mpz_t *)arg->value, INT32_MAX) <= 0)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(int32_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(int32_t *)ptr = (int32_t)mpz_get_si(*(mpz_t *)arg->value);
-                ret->size = sizeof(int32_t);
-                ret->type = &ffi_type_sint32;
-                ret->ptr = ptr;
-                return 1;
-            }
-
-            // Check uint32_t range
-            else if (mpz_cmp_ui(*(mpz_t *)arg->value, 0) >= 0 && mpz_cmp_ui(*(mpz_t *)arg->value, UINT32_MAX) <= 0)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(uint32_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(uint32_t *)ptr = (uint32_t)mpz_get_ui(*(mpz_t *)arg->value);
-                ret->size = sizeof(uint32_t);
-                ret->type = &ffi_type_uint32;
-                ret->ptr = ptr;
-                return 1;
-            }
-
-            // Check int64_t range
-            else if (mpz_cmp_si(*(mpz_t *)arg->value, INT64_MIN) >= 0 && mpz_cmp_si(*(mpz_t *)arg->value, INT64_MAX) <= 0)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(int64_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(int64_t *)ptr = (int64_t)mpz_get_si(*(mpz_t *)arg->value);
-                ret->size = sizeof(int64_t);
-                ret->type = &ffi_type_sint64;
-                ret->ptr = ptr;
-                return 1;
-            }
-
-            // Check uint64_t range
-            else if (mpz_cmp_ui(*(mpz_t *)arg->value, 0) >= 0 && mpz_cmp_ui(*(mpz_t *)arg->value, UINT64_MAX) <= 0)
-            {
-                void *ptr = not_memory_calloc(1, sizeof(uint64_t));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-                *(uint64_t *)ptr = (uint64_t)mpz_get_ui(*(mpz_t *)arg->value);
-                ret->size = sizeof(uint64_t);
-                ret->type = &ffi_type_uint64;
-                ret->ptr = ptr;
-                return 1;
-            }
-
-            else
-            {
-                mpz_t **ptr = not_memory_calloc(1, sizeof(mpz_t *));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-
-                mpz_t *num = not_memory_calloc(1, sizeof(mpz_t));
-                if (!num)
-                {
-                    not_error_no_memory();
-                    not_memory_free(ptr);
-                    return -1;
-                }
-                mpz_init_set(*num, *(mpz_t *)arg->value);
-                ptr[0] = num;
-
-                ret->size = sizeof(mpz_t *);
-                ret->type = &ffi_type_pointer;
-                ret->ptr = ptr;
-
-                return 1;
-            }
-        }
-        else if (arg->kind == RECORD_KIND_FLOAT)
-        {
-            double d_val = mpf_get_d(*(mpf_t *)arg->value);
-
-            // Check float range
-            if (d_val >= FLT_MIN && d_val <= FLT_MAX)
-            {
-                float f_val = (float)d_val;
-                mpf_t temp;
-                mpf_init_set_d(temp, f_val);
-                if (mpf_cmp(*(mpf_t *)arg->value, temp) == 0)
-                {
-                    void *ptr = not_memory_calloc(1, sizeof(float));
-                    if (!ptr)
-                    {
-                        not_error_no_memory();
-                        return -1;
-                    }
-                    *(float *)ptr = f_val;
-                    ret->size = sizeof(float);
-                    ret->type = &ffi_type_float;
-                    ret->ptr = ptr;
-                    return 1;
-                }
-                else
-                {
-                    void *ptr = not_memory_calloc(1, sizeof(double));
-                    if (!ptr)
-                    {
-                        not_error_no_memory();
-                        return -1;
-                    }
-                    *(double *)ptr = d_val;
-                    ret->size = sizeof(double);
-                    ret->type = &ffi_type_double;
-                    ret->ptr = ptr;
-                    return 1;
-                }
-                mpf_clear(temp);
-            }
-
-            // Check double range
-            else if (d_val >= DBL_MIN && d_val <= DBL_MAX)
-            {
-                mpf_t temp;
-                mpf_init_set_d(temp, d_val);
-                if (mpf_cmp(*(mpf_t *)arg->value, temp) == 0)
-                {
-                    void *ptr = not_memory_calloc(1, sizeof(double));
-                    if (!ptr)
-                    {
-                        not_error_no_memory();
-                        return -1;
-                    }
-                    *(double *)ptr = d_val;
-                    ret->size = sizeof(double);
-                    ret->type = &ffi_type_double;
-                    ret->ptr = ptr;
-                    return 1;
-                }
-                else
-                {
-                    mpf_t **ptr = not_memory_calloc(1, sizeof(mpf_t *));
-                    if (!ptr)
-                    {
-                        not_error_no_memory();
-                        return -1;
-                    }
-
-                    mpf_t *num = not_memory_calloc(1, sizeof(mpf_t));
-                    if (!num)
-                    {
-                        not_error_no_memory();
-                        not_memory_free(ptr);
-                        return -1;
-                    }
-                    mpf_init_set(*num, *(mpf_t *)arg->value);
-                    ptr[0] = num;
-
-                    ret->size = sizeof(mpf_t *);
-                    ret->type = &ffi_type_pointer;
-                    ret->ptr = ptr;
-
-                    return 1;
-                }
-                mpf_clear(temp);
-            }
-            else
-            {
-                mpf_t **ptr = not_memory_calloc(1, sizeof(mpf_t *));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-
-                mpf_t *num = not_memory_calloc(1, sizeof(mpf_t));
-                if (!num)
-                {
-                    not_error_no_memory();
-                    not_memory_free(ptr);
-                    return -1;
-                }
-                mpf_init_set(*num, *(mpf_t *)arg->value);
-                ptr[0] = num;
-
-                ret->size = sizeof(mpf_t *);
-                ret->type = &ffi_type_pointer;
-                ret->ptr = ptr;
-
-                return 1;
-            }
-        }
-        else if (arg->kind == RECORD_KIND_STRING)
-        {
-            char **ptr = not_memory_calloc(1, sizeof(char *));
+            void **ptr = not_memory_calloc(1, sizeof(void *));
             if (!ptr)
             {
                 not_error_no_memory();
                 return -1;
             }
 
-            size_t length = strlen((char *)arg->value);
-            ptr[0] = not_memory_calloc(1, length);
-            if (!ptr[0])
+            ptr[0] = arg->value;
+
+            ret->type = &ffi_type_pointer;
+            ret->ptr = ptr;
+            return 1;
+        }
+        else if (arg->kind == RECORD_KIND_FLOAT)
+        {
+            void **ptr = not_memory_calloc(1, sizeof(void *));
+            if (!ptr)
             {
                 not_error_no_memory();
-                not_memory_free(ptr);
                 return -1;
             }
-            memcpy(ptr[0], arg->value, length);
-            ret->size = sizeof(char *);
+
+            ptr[0] = arg->value;
+
+            ret->type = &ffi_type_pointer;
+            ret->ptr = ptr;
+            return 1;
+        }
+        else if (arg->kind == RECORD_KIND_STRING)
+        {
+            void **ptr = not_memory_calloc(1, sizeof(void *));
+            if (!ptr)
+            {
+                not_error_no_memory();
+                return -1;
+            }
+
+            ptr[0] = arg->value;
+
             ret->type = &ffi_type_pointer;
             ret->ptr = ptr;
             return 1;
@@ -3899,86 +3016,45 @@ record_cvt_by_json(not_record_t *arg, json_t *type, ffi_sized_t *ret)
 }
 
 static not_record_t *
-union_cvt_record_by_json(ffi_ret_type *value, json_t *type)
+not_call_cvt_return_type(union_return_value_t *value, json_t *type)
 {
+    not_record_t *result = NULL;
     if (json_is_string(type))
     {
-        const char *str = json_string_value(type);
-        if (strcmp(str, "schar") == 0)
+        const char *type_value = json_string_value(type);
+        if (strcmp(type_value, "char") == 0)
         {
-            return not_record_make_char(value->c);
+            if (value->ptr)
+            {
+                result = not_record_make_char(*(char *)value->ptr);
+                free(value->ptr);
+            }
         }
-        else if (strcmp(str, "uchar") == 0)
+        else if (strcmp(type_value, "int") == 0)
         {
-            return not_record_make_int_from_ui(value->uc);
+            if (value->ptr)
+            {
+                result = not_record_make_int_from_z(*(mpz_t *)value->ptr);
+                mpz_clear(*(mpz_t *)value->ptr);
+                free(value->ptr);
+            }
         }
-        else if (strcmp(str, "sshort") == 0)
+        else if (strcmp(type_value, "float") == 0)
         {
-            return not_record_make_int_from_si(value->s);
+            if (value->ptr)
+            {
+                result = not_record_make_float_from_f(*(mpf_t *)value->ptr);
+                mpf_clear(*(mpf_t *)value->ptr);
+                free(value->ptr);
+            }
         }
-        else if (strcmp(str, "ushort") == 0)
+        else if (strcmp(type_value, "string") == 0)
         {
-            return not_record_make_int_from_ui(value->us);
-        }
-        else if (strcmp(str, "sint") == 0)
-        {
-            return not_record_make_int_from_si(value->i);
-        }
-        else if (strcmp(str, "uint") == 0)
-        {
-            return not_record_make_int_from_ui(value->ui);
-        }
-        else if (strcmp(str, "slong") == 0)
-        {
-            return not_record_make_int_from_si(value->l);
-        }
-        else if (strcmp(str, "ulong") == 0)
-        {
-            return not_record_make_int_from_ui(value->ul);
-        }
-        else if (strcmp(str, "sint8") == 0)
-        {
-            return not_record_make_int_from_si(value->i8);
-        }
-        else if (strcmp(str, "uint8") == 0)
-        {
-            return not_record_make_int_from_ui(value->ui8);
-        }
-        else if (strcmp(str, "sint16") == 0)
-        {
-            return not_record_make_int_from_si(value->i16);
-        }
-        else if (strcmp(str, "uint16") == 0)
-        {
-            return not_record_make_int_from_ui(value->ui16);
-        }
-        else if (strcmp(str, "sint32") == 0)
-        {
-            return not_record_make_int_from_si(value->i32);
-        }
-        else if (strcmp(str, "uint32") == 0)
-        {
-            return not_record_make_int_from_ui(value->ui32);
-        }
-        else if (strcmp(str, "sint64") == 0)
-        {
-            return not_record_make_int_from_si(value->i64);
-        }
-        else if (strcmp(str, "uint64") == 0)
-        {
-            return not_record_make_int_from_ui(value->ui64);
-        }
-        else if (strcmp(str, "float") == 0)
-        {
-            return not_record_make_float_from_d(value->f);
-        }
-        else if (strcmp(str, "double") == 0)
-        {
-            return not_record_make_float_from_d(value->d);
-        }
-        else if (strcmp(str, "string") == 0)
-        {
-            return not_record_make_string((char *)value->ptr);
+            if (value->ptr)
+            {
+                result = not_record_make_string(*(char **)value->ptr);
+                free(value->ptr);
+            }
         }
     }
     else if (json_is_object(type))
@@ -3991,7 +3067,12 @@ union_cvt_record_by_json(ffi_ret_type *value, json_t *type)
     {
     }
 
-    return not_record_make_undefined();
+    if (!result)
+    {
+        return not_record_make_undefined();
+    }
+
+    return result;
 }
 
 static not_record_t *
@@ -4021,6 +3102,13 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
     not_queue_t *repo = not_queue_create();
     if (repo == ERROR)
     {
+        return ERROR;
+    }
+
+    not_queue_t *garbage = not_queue_create();
+    if (garbage == ERROR)
+    {
+        not_queue_destroy(garbage);
         return ERROR;
     }
 
@@ -4097,8 +3185,8 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                             goto region_cleanup_kwarg;
                         }
 
-                        ffi_sized_t cvt_ffi;
-                        int32_t r = record_cvt_by_json(record_arg, type, &cvt_ffi);
+                        ffi_pair_t cvt_ffi;
+                        int32_t r = not_call_cvt_arg(record_arg, type, &cvt_ffi);
                         if (r < 0)
                         {
                             not_record_link_decrease(record_arg);
@@ -4113,7 +3201,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                             goto region_cleanup_kwarg;
                         }
 
-                        if (not_record_link_decrease(record_arg) < 0)
+                        if (ERROR == not_queue_right_push(garbage, record_arg))
                         {
                             if (cvt_ffi.type)
                                 ffi_type_destroy(cvt_ffi.type);
@@ -4121,6 +3209,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                             if (cvt_ffi.ptr)
                                 not_memory_free(cvt_ffi.ptr);
 
+                            not_record_link_decrease(record_arg);
                             goto region_cleanup_kwarg;
                         }
 
@@ -4259,8 +3348,8 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                                 goto region_cleanup;
                             }
 
-                            ffi_sized_t cvt_ffi;
-                            int32_t r = record_cvt_by_json(record_arg, type, &cvt_ffi);
+                            ffi_pair_t cvt_ffi;
+                            int32_t r = not_call_cvt_arg(record_arg, type, &cvt_ffi);
                             if (r < 0)
                             {
                                 not_record_link_decrease(record_arg);
@@ -4275,7 +3364,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                                 goto region_cleanup;
                             }
 
-                            if (not_record_link_decrease(record_arg) < 0)
+                            if (ERROR == not_queue_right_push(garbage, record_arg))
                             {
                                 if (cvt_ffi.type)
                                     ffi_type_destroy(cvt_ffi.type);
@@ -4283,6 +3372,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                                 if (cvt_ffi.ptr)
                                     not_memory_free(cvt_ffi.ptr);
 
+                                not_record_link_decrease(record_arg);
                                 goto region_cleanup;
                             }
 
@@ -4361,8 +3451,8 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                             goto region_cleanup_karg;
                         }
 
-                        ffi_sized_t cvt_ffi;
-                        int32_t r = record_cvt_by_json(record_arg, type, &cvt_ffi);
+                        ffi_pair_t cvt_ffi;
+                        int32_t r = not_call_cvt_arg(record_arg, type, &cvt_ffi);
                         if (r < 0)
                         {
                             not_record_link_decrease(record_arg);
@@ -4377,7 +3467,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                             goto region_cleanup_karg;
                         }
 
-                        if (not_record_link_decrease(record_arg) < 0)
+                        if (ERROR == not_queue_right_push(garbage, record_arg))
                         {
                             if (cvt_ffi.type)
                                 ffi_type_destroy(cvt_ffi.type);
@@ -4385,6 +3475,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                             if (cvt_ffi.ptr)
                                 not_memory_free(cvt_ffi.ptr);
 
+                            not_record_link_decrease(record_arg);
                             goto region_cleanup_karg;
                         }
 
@@ -4496,8 +3587,8 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                         goto region_cleanup;
                     }
 
-                    ffi_sized_t cvt_ffi;
-                    int32_t r = record_cvt_by_json(record_arg, type, &cvt_ffi);
+                    ffi_pair_t cvt_ffi;
+                    int32_t r = not_call_cvt_arg(record_arg, type, &cvt_ffi);
                     if (r < 0)
                     {
                         not_record_link_decrease(record_arg);
@@ -4512,7 +3603,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                         goto region_cleanup;
                     }
 
-                    if (not_record_link_decrease(record_arg) < 0)
+                    if (ERROR == not_queue_right_push(garbage, record_arg))
                     {
                         if (cvt_ffi.type)
                             ffi_type_destroy(cvt_ffi.type);
@@ -4520,6 +3611,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                         if (cvt_ffi.ptr)
                             not_memory_free(cvt_ffi.ptr);
 
+                        not_record_link_decrease(record_arg);
                         goto region_cleanup;
                     }
 
@@ -4573,8 +3665,8 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
 
             json_t *type2 = json_object_get(map, "arg");
 
-            ffi_sized_t cvt_ffi;
-            int32_t r = record_cvt_by_json(record_arg, type2, &cvt_ffi);
+            ffi_pair_t cvt_ffi;
+            int32_t r = not_call_cvt_arg(record_arg, type2, &cvt_ffi);
             if (r < 0)
             {
                 not_record_link_decrease(record_arg);
@@ -4586,17 +3678,6 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                                        "argument", not_record_type_as_string(record_arg),
                                        json_is_string(type2) ? json_string_value(type2) : "struct");
                 not_record_link_decrease(record_arg);
-                goto region_cleanup;
-            }
-
-            if (not_record_link_decrease(record_arg) < 0)
-            {
-                if (cvt_ffi.type)
-                    ffi_type_destroy(cvt_ffi.type);
-
-                if (cvt_ffi.ptr)
-                    not_memory_free(cvt_ffi.ptr);
-
                 goto region_cleanup;
             }
 
@@ -4690,18 +3771,10 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
 
     json_t *return_type = json_object_get(map, "return_type");
 
-    ffi_type *ret_arg = json_to_ffi(return_type);
-    if (ret_arg == ERROR)
-    {
-        not_memory_free(args);
-        not_memory_free(values);
-        goto region_cleanup;
-    }
-
-    ffi_ret_type result;
+    union_return_value_t result;
 
     ffi_cif cif;
-    if (ffi_prep_cif_var(&cif, FFI_DEFAULT_ABI, index - var_index, index, ret_arg, args) == FFI_OK)
+    if (ffi_prep_cif_var(&cif, FFI_DEFAULT_ABI, index - var_index, index, &ffi_type_pointer, args) == FFI_OK)
     {
         ffi_call(&cif, FFI_FN(handle), &result, values);
         goto region_result;
@@ -4723,9 +3796,21 @@ region_result:
             ffi_type_destroy(entry->type);
     }
 
+    for (not_queue_entry_t *item = garbage->begin; item != garbage->end; item = item->next)
+    {
+        not_record_t *entry = (not_record_t *)item->value;
+        if (not_record_link_decrease(entry) < 0)
+        {
+            not_queue_destroy(garbage);
+            not_queue_destroy(repo);
+            return ERROR;
+        }
+    }
+
+    not_queue_destroy(garbage);
     not_queue_destroy(repo);
 
-    return union_cvt_record_by_json(&result, return_type);
+    return not_call_cvt_return_type(&result, return_type);
 
 region_cleanup:
     for (not_queue_entry_t *item = repo->begin; item != repo->end; item = item->next)
@@ -4738,6 +3823,18 @@ region_cleanup:
             ffi_type_destroy(entry->type);
     }
 
+    for (not_queue_entry_t *item = garbage->begin; item != garbage->end; item = item->next)
+    {
+        not_record_t *entry = (not_record_t *)item->value;
+        if (not_record_link_decrease(entry) < 0)
+        {
+            not_queue_destroy(garbage);
+            not_queue_destroy(repo);
+            return ERROR;
+        }
+    }
+
+    not_queue_destroy(garbage);
     not_queue_destroy(repo);
 
     return ERROR;
