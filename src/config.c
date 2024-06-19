@@ -51,6 +51,166 @@ int setenv(const char *name, const char *value, int overwrite)
 }
 
 #define unsetenv(name) _putenv(name "=")
+
+int set_system_environment_variable(const char *name, const char *value)
+{
+    HKEY hKey;
+    LONG result;
+
+    result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment", 0, KEY_SET_VALUE, &hKey);
+    if (result != ERROR_SUCCESS)
+    {
+        return -1;
+    }
+
+    result = RegSetValueEx(hKey, name, 0, REG_SZ, (const BYTE *)value, strlen(value) + 1);
+    if (result != ERROR_SUCCESS)
+    {
+        RegCloseKey(hKey);
+        return -1;
+    }
+
+    RegCloseKey(hKey);
+
+    SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0, (LPARAM) "Environment", SMTO_ABORTIFHUNG, 5000, NULL);
+
+    setenv(name, value, 1);
+
+    return 0;
+}
+
+const char *
+get_system_environment_variable(const char *name)
+{
+    char value[1024];
+    DWORD size = sizeof(value);
+
+    if (GetEnvironmentVariable(name, value, size))
+    {
+        return value;
+    }
+
+    HKEY hKey;
+    LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment", 0, KEY_READ, &hKey);
+    if (result == ERROR_SUCCESS)
+    {
+        DWORD type;
+        result = RegQueryValueEx(hKey, name, NULL, &type, (LPBYTE)value, &size);
+        if (result == ERROR_SUCCESS && type == REG_SZ)
+        {
+            goto region_result;
+        }
+        else
+        {
+            return NOT_PTR_NULL;
+        }
+        RegCloseKey(hKey);
+    }
+
+region_result:
+    return value;
+}
+
+#else
+#define MAX_LINE_LENGTH 1024
+
+int check_variable_in_file(const char *filename, const char *name)
+{
+    FILE *file = fopen(filename, "r");
+    if (file == NULL)
+    {
+        return -1;
+    }
+
+    char line[MAX_LINE_LENGTH];
+    int found = 0;
+
+    while (fgets(line, sizeof(line), file))
+    {
+        line[strcspn(line, "\n\r")] = '\0';
+        if (strncmp(line, name, strlen(name)) == 0 && line[strlen(name)] == '=')
+        {
+            found = 1;
+            break;
+        }
+    }
+
+    fclose(file);
+    return found;
+}
+
+int replace_variable_in_file(const char *filename, const char *name, const char *new_value)
+{
+    FILE *file = fopen(filename, "r+");
+    if (file == NULL)
+    {
+        return -1;
+    }
+
+    char line[MAX_LINE_LENGTH];
+    long int pos;
+    int found = 0;
+
+    while (fgets(line, sizeof(line), file))
+    {
+        line[strcspn(line, "\n\r")] = '\0';
+
+        if (strncmp(line, name, strlen(name)) == 0 && line[strlen(name)] == '=')
+        {
+            pos = ftell(file);
+            found = 1;
+            break;
+        }
+    }
+
+    if (found)
+    {
+        fseek(file, pos, SEEK_SET);
+        fprintf(file, "%s=%s\n", name, new_value);
+    }
+
+    fclose(file);
+    return found;
+}
+
+int set_system_environment_variable(const char *name, const char *value)
+{
+    int found = check_variable_in_file("/etc/environment", name);
+    if (found == 1)
+    {
+        int r = replace_variable_in_file("/etc/environment", name, value);
+        if (r == -1)
+        {
+            return -1;
+        }
+        setenv(name, value, 1);
+        return 0;
+    }
+    else if (found == 0)
+    {
+        FILE *file = fopen("/etc/environment", "a");
+        if (file == NULL)
+        {
+            return -1;
+        }
+
+        fprintf(file, "%s=%s\n", name, value);
+        fclose(file);
+
+        setenv(name, value, 1);
+
+        return 0;
+    }
+
+    return -1;
+}
+
+const char *
+get_system_environment_variable(const char *name)
+{
+    return getenv(name);
+}
+
 #endif
 
 not_config_t base_config;
@@ -67,7 +227,7 @@ not_config_init()
     not_config_t *config = not_config_get();
     config->expection = 0;
 
-    char *env = getenv(ENV_LIBRARY_KEY);
+    const char *env = get_system_environment_variable(ENV_LIBRARY_KEY);
     if (env == NOT_PTR_NULL)
     {
 #if defined(_WIN32) || defined(_WIN64)
@@ -77,11 +237,11 @@ not_config_init()
             char dir_path[MAX_PATH];
             not_path_get_directory_path(path, dir_path, MAX_PATH);
             strcpy(config->library_path, dir_path);
-            setenv(ENV_LIBRARY_KEY, dir_path, 1);
+            set_system_environment_variable(ENV_LIBRARY_KEY, dir_path);
         }
         else
         {
-            setenv(ENV_LIBRARY_KEY, DEFAULT_LIBRARY_PATH, 1);
+            set_system_environment_variable(ENV_LIBRARY_KEY, DEFAULT_LIBRARY_PATH);
         }
 #elif defined(__linux__)
         char path[MAX_PATH];
@@ -94,11 +254,11 @@ not_config_init()
             not_path_get_directory_path(path, dir_path, MAX_PATH);
 
             strcpy(config->library_path, dir_path);
-            setenv(ENV_LIBRARY_KEY, dir_path, 1);
+            set_system_environment_variable(ENV_LIBRARY_KEY, dir_path);
         }
         else
         {
-            setenv(ENV_LIBRARY_KEY, DEFAULT_LIBRARY_PATH, 1);
+            set_system_environment_variable(ENV_LIBRARY_KEY, DEFAULT_LIBRARY_PATH);
         }
 #elif defined(__APPLE__) && defined(__MACH__)
         uint32_t size = MAX_PATH;
@@ -108,11 +268,11 @@ not_config_init()
             not_path_get_directory_path(path, dir_path, MAX_PATH);
 
             strcpy(config->library_path, dir_path);
-            setenv(ENV_LIBRARY_KEY, dir_path, 1);
+            set_system_environment_variable(ENV_LIBRARY_KEY, dir_path);
         }
         else
         {
-            setenv(ENV_LIBRARY_KEY, DEFAULT_LIBRARY_PATH, 1);
+            set_system_environment_variable(ENV_LIBRARY_KEY, DEFAULT_LIBRARY_PATH);
         }
 #endif
     }

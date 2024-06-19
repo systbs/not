@@ -11,7 +11,9 @@
         "stdio.h": "c",
         "scanner.h": "c",
         "execute.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "compare": "c",
+        "typeinfo": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

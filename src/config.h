@@ -2,7 +2,7 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-#define ENV_LIBRARY_KEY "SYNTAX_LIBRARY_PATH"
+#define ENV_LIBRARY_KEY "NOT_LIBRARY_PATH"
 #define DEFAULT_LIBRARY_PATH "/home/not/"
 #define CONSTRUCTOR_STR "constructor"
 

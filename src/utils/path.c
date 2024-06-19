@@ -924,35 +924,32 @@ not_path_get_directory_path(const char *path, char *buffer, size_t buffer_size)
         return length;
     }
 
-    if (strchr(path, '.'))
+    const char *c, *d;
+    c = strrchr(path, windows_separator);
+    d = strrchr(path, unix_separator);
+    if (!!c && !!d)
     {
-        const char *c, *d;
-        c = strrchr(path, windows_separator);
-        d = strrchr(path, unix_separator);
-        if (!!c && !!d)
-        {
-            if ((size_t)c > (size_t)d)
-            {
-                length = (size_t)((c + 1) - path);
-            }
-            else
-            {
-                length = (size_t)((d + 1) - path);
-            }
-        }
-        else if (!!c)
+        if ((size_t)c > (size_t)d)
         {
             length = (size_t)((c + 1) - path);
         }
-        else if (!!d)
+        else
         {
             length = (size_t)((d + 1) - path);
         }
-        else
-        {
-            not_path_terminate_output(buffer, buffer_size, 0);
-            return 0;
-        }
+    }
+    else if (!!c)
+    {
+        length = (size_t)((c + 1) - path);
+    }
+    else if (!!d)
+    {
+        length = (size_t)((d + 1) - path);
+    }
+    else
+    {
+        not_path_terminate_output(buffer, buffer_size, 0);
+        return 0;
     }
 
     not_path_output_sized(buffer, buffer_size, 0, path, length);
