@@ -79,15 +79,15 @@ int set_system_environment_variable(const char *name, const char *value)
     return 0;
 }
 
-const char *
-get_system_environment_variable(const char *name)
+int get_system_environment_variable(const char *name, char *buffer)
 {
     char value[1024];
     DWORD size = sizeof(value);
 
     if (GetEnvironmentVariable(name, value, size))
     {
-        return value;
+        strcpy(buffer, value);
+        return 0;
     }
 
     HKEY hKey;
@@ -98,17 +98,16 @@ get_system_environment_variable(const char *name)
         result = RegQueryValueEx(hKey, name, NULL, &type, (LPBYTE)value, &size);
         if (result == ERROR_SUCCESS && type == REG_SZ)
         {
-            goto region_result;
+            strcpy(buffer, value);
+            return 0;
         }
         else
         {
-            return NOT_PTR_NULL;
+            return -1;
         }
         RegCloseKey(hKey);
     }
-
-region_result:
-    return value;
+    return -1;
 }
 
 #else
@@ -205,10 +204,15 @@ int set_system_environment_variable(const char *name, const char *value)
     return -1;
 }
 
-const char *
-get_system_environment_variable(const char *name)
+int get_system_environment_variable(const char *name, char *buffer)
 {
-    return getenv(name);
+    char *value = getenv(name);
+    if (value)
+    {
+        strcpy(buffer, value);
+        return 0;
+    }
+    return -1;
 }
 
 #endif
@@ -227,8 +231,9 @@ not_config_init()
     not_config_t *config = not_config_get();
     config->expection = 0;
 
-    const char *env = get_system_environment_variable(ENV_LIBRARY_KEY);
-    if (env == NOT_PTR_NULL)
+    char env[MAX_PATH];
+    int r = get_system_environment_variable(ENV_LIBRARY_KEY, env);
+    if (r < 0)
     {
 #if defined(_WIN32) || defined(_WIN64)
         char path[MAX_PATH];
