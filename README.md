@@ -106,7 +106,7 @@ class A<T> extends (b1:B)
 	}
 
 	// override operators
-	fun * (p1:int)
+	export fun * (p1:int)
 	{
 		return b * p1;
 	}

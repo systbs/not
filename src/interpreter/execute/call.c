@@ -2470,6 +2470,15 @@ not_call_operator_by_one_arg(not_node_t *base, not_record_t *content, not_record
             not_node_fun_t *fun1 = (not_node_fun_t *)item->value;
             if (not_helper_id_strcmp(fun1->key, operator) == 0)
             {
+                if ((fun1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                {
+                    not_node_basic_t *basic1 = (not_node_basic_t *)fun1->key->value;
+                    not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
+                    not_error_type_by_node(base, "'%s' unexpected access to '%s'",
+                                           basic2->value, basic1->value);
+                    return NOT_PTR_ERROR;
+                }
+
                 not_strip_t *strip_copy = not_strip_copy(strip_class);
                 if (strip_copy == NOT_PTR_ERROR)
                 {
@@ -2554,6 +2563,15 @@ not_call_class(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_
             not_node_fun_t *fun1 = (not_node_fun_t *)item->value;
             if (not_helper_id_strcmp(fun1->key, CONSTRUCTOR_STR) == 0)
             {
+                if ((fun1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                {
+                    not_node_basic_t *basic1 = (not_node_basic_t *)fun1->key->value;
+                    not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
+                    not_error_type_by_node(base, "'%s' unexpected access to '%s'",
+                                           basic2->value, basic1->value);
+                    return NOT_PTR_ERROR;
+                }
+
                 not_strip_t *strip_copy = not_strip_copy(strip_class);
                 if (strip_copy == NOT_PTR_ERROR)
                 {
