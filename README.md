@@ -162,4 +162,16 @@ for loop1 (var key, value in ["hello", "world", 123])
 	println(string(value));
 }
 
+var a7 = {a:1};
+
+a7.Remove(key = "a");
+a7.Add("b", 123);
+
+println(string(a7));
+
+var a8 = [0];
+a8.Insert(12, 10).Remove(-2);
+
+println(string(a8));
+
 ```
