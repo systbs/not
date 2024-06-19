@@ -1434,7 +1434,7 @@ not_node_make_func(not_node_t *node, not_node_t *notes, uint64_t flag, not_node_
 }
 
 not_node_t *
-not_node_make_lambda(not_node_t *node, not_node_t *generics, not_node_t *parameters, not_node_t *body, not_node_t *result)
+not_node_make_lambda(not_node_t *node, not_node_t *key, not_node_t *generics, not_node_t *parameters, not_node_t *body, not_node_t *result)
 {
 	not_node_lambda_t *basic = (not_node_lambda_t *)not_memory_calloc(1, sizeof(not_node_lambda_t));
 	if (!basic)
@@ -1443,6 +1443,7 @@ not_node_make_lambda(not_node_t *node, not_node_t *generics, not_node_t *paramet
 		return NOT_PTR_ERROR;
 	}
 
+	basic->key = key;
 	basic->generics = generics;
 	basic->parameters = parameters;
 	basic->body = body;

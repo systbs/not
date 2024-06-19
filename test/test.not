@@ -85,9 +85,18 @@ class A<T> extends (b1:B)
 }
 
 // lambda functions
-var fun1 = fun (p1:int) {
+// or: fun (p1:int) -> p1 * 1000;
+var fun1 = fun fun2 (p1:int) {
+	if (p1 > 0)
+	{
+		println("f = " + p1);
+		return fun2(p1 - 1);
+	}
 	return p1 * 1000;
 };
+
+var f1 = fun1(100);
+println("f1 = " + f1);
 
 // new class
 var f2 = A<int>(100000);

@@ -2261,25 +2261,38 @@ not_execute_run_lambda(not_node_t *node, not_strip_t *strip, not_node_t *applica
         }
     }
 
-    int32_t r1 = not_execute_body(fun->body, strip, applicant);
+    if (fun->body->kind == NODE_KIND_BODY)
+    {
+        int32_t r1 = not_execute_body(fun->body, strip, applicant);
 
-    if (not_strip_variable_remove_by_scope(strip, node) < 0)
-    {
-        return -1;
-    }
-
-    if (r1 == -1)
-    {
-        return -1;
-    }
-    else if (r1 < 0)
-    {
-        if (r1 == -4)
+        if (not_strip_variable_remove_by_scope(strip, node) < 0)
         {
-            return r1;
+            return -1;
         }
-        not_error_runtime_by_node(node, "there is no loop");
-        return -1;
+
+        if (r1 == -1)
+        {
+            return -1;
+        }
+        else if (r1 < 0)
+        {
+            if (r1 == -4)
+            {
+                return r1;
+            }
+            not_error_runtime_by_node(node, "there is no loop");
+            return -1;
+        }
+    }
+    else
+    {
+        not_record_t *value = not_execute_expression(fun->body, strip, applicant, NOT_PTR_NULL);
+        if (value == NOT_PTR_ERROR)
+        {
+            return -1;
+        }
+
+        not_thread_set_rax(value);
     }
 
     return 0;

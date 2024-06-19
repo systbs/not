@@ -256,6 +256,25 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
     {
         not_node_lambda_t *fun1 = (not_node_lambda_t *)base->value;
 
+        if (fun1->key)
+        {
+            if (not_helper_id_cmp(fun1->key, name) == 0)
+            {
+                not_strip_t *strip_copy = not_strip_copy(strip);
+                if (strip_copy == NOT_PTR_ERROR)
+                {
+                    return NOT_PTR_ERROR;
+                }
+
+                not_strip_t *new_strip = not_strip_create(strip_copy);
+                if (new_strip == NOT_PTR_ERROR)
+                {
+                    return NOT_PTR_ERROR;
+                }
+                return not_record_make_type(base, new_strip);
+            }
+        }
+
         if (fun1->generics != NOT_PTR_NULL)
         {
             not_node_t *node1 = fun1->generics;

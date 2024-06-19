@@ -759,6 +759,16 @@ not_syntax_lambda(not_syntax_t *syntax, not_node_t *parent)
 		return NOT_PTR_ERROR;
 	}
 
+	not_node_t *key = NOT_PTR_NULL;
+	if (syntax->token->type == TOKEN_ID)
+	{
+		key = not_syntax_id(syntax, node);
+		if (key == NOT_PTR_NULL)
+		{
+			return NOT_PTR_ERROR;
+		}
+	}
+
 	not_node_t *generics = NOT_PTR_NULL;
 	if (syntax->token->type == TOKEN_LT)
 	{
@@ -854,7 +864,7 @@ not_syntax_lambda(not_syntax_t *syntax, not_node_t *parent)
 			}
 		}
 
-		return not_node_make_lambda(node, generics, parameters, body, return_type);
+		return not_node_make_lambda(node, key, generics, parameters, body, return_type);
 	}
 
 	if (syntax->token->type == TOKEN_MINUS_GT)
@@ -870,10 +880,10 @@ not_syntax_lambda(not_syntax_t *syntax, not_node_t *parent)
 			return NOT_PTR_ERROR;
 		}
 
-		return not_node_make_lambda(node, generics, parameters, body, NOT_PTR_NULL);
+		return not_node_make_lambda(node, key, generics, parameters, body, NOT_PTR_NULL);
 	}
 
-	if (syntax->token->type == TOKEN_LBRACE)
+	if ((syntax->token->type == TOKEN_LBRACE) || (key != NULL))
 	{
 		syntax->fun_depth += 1;
 
@@ -885,11 +895,11 @@ not_syntax_lambda(not_syntax_t *syntax, not_node_t *parent)
 
 		syntax->fun_depth -= 1;
 
-		return not_node_make_lambda(node, generics, parameters, body, NOT_PTR_NULL);
+		return not_node_make_lambda(node, key, generics, parameters, body, NOT_PTR_NULL);
 	}
 	else
 	{
-		return not_node_make_lambda(node, generics, parameters, NOT_PTR_NULL, NOT_PTR_NULL);
+		return not_node_make_lambda(node, key, generics, parameters, NOT_PTR_NULL, NOT_PTR_NULL);
 	}
 }
 

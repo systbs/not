@@ -248,6 +248,7 @@ typedef struct not_node_body
 
 typedef struct not_node_lambda
 {
+	not_node_t *key;
 	not_node_t *generics;
 	not_node_t *parameters;
 	not_node_t *body;
@@ -560,7 +561,7 @@ not_node_t *
 not_node_make_func(not_node_t *node, not_node_t *note, uint64_t flag, not_node_t *key, not_node_t *generics, not_node_t *parameters, not_node_t *result, not_node_t *body);
 
 not_node_t *
-not_node_make_lambda(not_node_t *node, not_node_t *generics, not_node_t *parameters, not_node_t *body, not_node_t *result);
+not_node_make_lambda(not_node_t *node, not_node_t *key, not_node_t *generics, not_node_t *parameters, not_node_t *body, not_node_t *result);
 
 not_node_t *
 not_node_make_heritage(not_node_t *node, not_node_t *key, not_node_t *type);
