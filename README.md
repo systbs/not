@@ -1,4 +1,4 @@
-# <img src="assets/logo-base.svg" alt="not logo" height="64"> The Not Programming Language
+# <img src="assets/logo-base.png" alt="not logo" height="64"> The Not Programming Language
 
 ## Build Instructions
 On Ubuntu:
