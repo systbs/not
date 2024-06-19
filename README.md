@@ -1,3 +1,7 @@
+<picture>
+	<source media="(prefers-color-scheme: dark)" srcset="assets/logo.svg" height="64">
+	<img src="assets/not.svg" alt="not logo" height="64">
+</picture>
 # The Not Programming Language version 1.0.0 alpha 0
 
 ## Build Instructions
