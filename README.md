@@ -1,9 +1,8 @@
 <picture>
-	<img src="assets/logo.svg" alt="not logo" height="128">
 	<img src="assets/not.svg" alt="not" height="128">
 </picture>
 
-# The Not Programming Language version 1.0.0 alpha 0
+# <img src="assets/logo.svg" alt="not logo" height="64"> The Not Programming Language version 1.0.0 alpha 0
 
 ## Build Instructions
 On Ubuntu:
