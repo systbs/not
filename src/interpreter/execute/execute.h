@@ -3,12 +3,6 @@
 #define __EXECUTE_H__ 1
 
 int32_t
-not_execute_id_cmp(not_node_t *n1, not_node_t *n2);
-
-int32_t
-not_execute_id_strcmp(not_node_t *n1, const char *name);
-
-int32_t
 not_execute_type_check_by_type(not_node_t *node, not_record_t *record_type1, not_record_t *record_type2, not_strip_t *strip, not_node_t *applicant);
 
 int32_t

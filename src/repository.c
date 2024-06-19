@@ -31,7 +31,6 @@
 #include "interpreter.h"
 #include "thread.h"
 #include "interpreter/record.h"
-#include "interpreter/garbage.h"
 #include "interpreter/symbol_table.h"
 #include "interpreter/strip.h"
 #include "interpreter/execute/execute.h"

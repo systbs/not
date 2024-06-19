@@ -23,7 +23,6 @@
 #include "../../scanner/scanner.h"
 #include "../../parser/syntax/syntax.h"
 #include "../record.h"
-#include "../garbage.h"
 #include "../symbol_table.h"
 #include "../strip.h"
 #include "execute.h"

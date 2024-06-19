@@ -6,7 +6,7 @@ typedef struct not_entry not_entry_t;
 
 typedef struct not_symbol_table
 {
-    not_entry_t *begin;
+    not_queue_t *queue_variables;
     not_mutex_t lock;
 } not_symbol_table_t;
 

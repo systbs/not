@@ -6,8 +6,8 @@ typedef struct not_entry not_entry_t;
 
 typedef struct not_strip /*Activation Records*/
 {
-    not_entry_t *variables;
-    not_entry_t *inputs;
+    not_queue_t *variables;
+    not_queue_t *inputs;
 
     struct not_strip *previous;
     not_mutex_t lock;

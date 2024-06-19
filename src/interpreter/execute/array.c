@@ -24,9 +24,10 @@
 #include "../../interpreter.h"
 #include "../../thread.h"
 #include "../record.h"
-#include "../garbage.h"
+
 #include "../symbol_table.h"
 #include "../strip.h"
+#include "../helper.h"
 #include "execute.h"
 
 static not_record_t *
@@ -39,7 +40,7 @@ not_call_for_bracket(not_node_t *base, not_node_t *arguments, not_strip_t *strip
         if (item->kind == NODE_KIND_FUN)
         {
             not_node_fun_t *fun1 = (not_node_fun_t *)item->value;
-            if (not_execute_id_strcmp(fun1->key, "[]") == 1)
+            if (not_helper_id_strcmp(fun1->key, "[]") == 0)
             {
                 not_strip_t *strip_copy = not_strip_copy(strip);
                 if (strip_copy == NOT_PTR_ERROR)

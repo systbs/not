@@ -23,28 +23,12 @@
 #include "../../thread.h"
 #include "../../config.h"
 #include "../record.h"
-#include "../garbage.h"
+
 #include "../entry.h"
 #include "../symbol_table.h"
 #include "../strip.h"
+#include "../helper.h"
 #include "execute.h"
-
-int32_t
-not_execute_id_cmp(not_node_t *n1, not_node_t *n2)
-{
-    not_node_basic_t *nb1 = (not_node_basic_t *)n1->value;
-    not_node_basic_t *nb2 = (not_node_basic_t *)n2->value;
-
-    return (strcmp(nb1->value, nb2->value) == 0);
-}
-
-int32_t
-not_execute_id_strcmp(not_node_t *n1, const char *name)
-{
-    not_node_basic_t *nb1 = (not_node_basic_t *)n1->value;
-
-    return (strcmp(nb1->value, name) == 0);
-}
 
 static int32_t
 not_execute_body(not_node_t *node, not_strip_t *strip, not_node_t *applicant);
@@ -915,7 +899,7 @@ not_execute_entity(not_node_t *scope, not_node_t *node, not_record_t *value, not
         {
             for (not_record_object_t *object = value->value; object != NOT_PTR_NULL; object = object->next)
             {
-                if (not_execute_id_strcmp(key_search, object->key) == 1)
+                if (not_helper_id_strcmp(key_search, object->key) == 0)
                 {
                     value_select = object->value;
                     break;
@@ -1373,7 +1357,7 @@ region_start_loop:
                         if (type->type->kind == NODE_KIND_FOR)
                         {
                             not_node_for_t *for2 = (not_node_for_t *)type->type->value;
-                            if (not_execute_id_cmp(for1->key, for2->key) == 1)
+                            if (not_helper_id_cmp(for1->key, for2->key) == 0)
                             {
                                 if (not_record_link_decrease(rax) < 0)
                                 {
@@ -1411,7 +1395,7 @@ region_start_loop:
                         if (type->type->kind == NODE_KIND_FOR)
                         {
                             not_node_for_t *for2 = (not_node_for_t *)type->type->value;
-                            if (not_execute_id_cmp(for1->key, for2->key) == 1)
+                            if (not_helper_id_cmp(for1->key, for2->key) == 0)
                             {
                                 if (not_record_link_decrease(rax) < 0)
                                 {
@@ -1705,7 +1689,7 @@ region_start_loop:
                 if (type->type->kind == NODE_KIND_FORIN)
                 {
                     not_node_forin_t *for2 = (not_node_forin_t *)type->type->value;
-                    if (not_execute_id_cmp(for1->key, for2->key) == 1)
+                    if (not_helper_id_cmp(for1->key, for2->key) == 0)
                     {
                         if (not_record_link_decrease(rax) < 0)
                         {
@@ -1743,7 +1727,7 @@ region_start_loop:
                 if (type->type->kind == NODE_KIND_FORIN)
                 {
                     not_node_forin_t *for2 = (not_node_forin_t *)type->type->value;
-                    if (not_execute_id_cmp(for1->key, for2->key) == 1)
+                    if (not_helper_id_cmp(for1->key, for2->key) == 0)
                     {
                         if (not_record_link_decrease(rax) < 0)
                         {

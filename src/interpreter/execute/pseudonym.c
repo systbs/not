@@ -21,10 +21,11 @@
 #include "../../error.h"
 #include "../../mutex.h"
 #include "../record.h"
-#include "../garbage.h"
+
 #include "../entry.h"
 #include "../symbol_table.h"
 #include "../strip.h"
+#include "../helper.h"
 #include "execute.h"
 
 int32_t
@@ -446,7 +447,7 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
             for (not_node_t *item3 = item1; item3 != NOT_PTR_NULL; item3 = item3->next)
             {
                 not_node_generic_t *generic = (not_node_generic_t *)item3->value;
-                if (not_execute_id_cmp(field->key, generic->key) == 1)
+                if (not_helper_id_cmp(field->key, generic->key) == 0)
                 {
                     found = 1;
                     not_record_t *record_field = not_execute_expression(field->value, new_strip, applicant, NOT_PTR_NULL);

@@ -25,7 +25,6 @@
 #include "parser/syntax/syntax.h"
 #include "parser/semantic/semantic.h"
 #include "interpreter/record.h"
-#include "interpreter/garbage.h"
 #include "interpreter/symbol_table.h"
 #include "interpreter/strip.h"
 #include "interpreter/execute/execute.h"

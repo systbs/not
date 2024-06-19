@@ -21,6 +21,7 @@
 #include "record.h"
 #include "entry.h"
 #include "symbol_table.h"
+#include "helper.h"
 
 not_symbol_table_t base_symbol_table;
 
@@ -40,7 +41,16 @@ not_symbol_table_init()
         return -1;
     }
 
-    st->begin = NOT_PTR_NULL;
+    st->queue_variables = not_queue_create();
+    if (st->queue_variables == NOT_PTR_ERROR)
+    {
+        if (not_mutex_destroy(&st->lock) < 0)
+        {
+            not_error_system("'%s' could not destroy the lock", "not_symbol_table.lock");
+            return -1;
+        }
+        return -1;
+    }
 
     return 0;
 }
@@ -49,58 +59,43 @@ int32_t
 not_symbol_table_destroy()
 {
     not_symbol_table_t *st = not_symbol_table_get();
+
+    if (not_mutex_lock(&st->lock) < 0)
+    {
+        not_error_system("'%s' could not lock", "not_tymbol_table.lock");
+        return -1;
+    }
+
+    for (not_queue_entry_t *n = st->queue_variables->begin, *b; n != st->queue_variables->end; n = b)
+    {
+        b = n->next;
+        not_entry_t *entry = (not_entry_t *)n->value;
+
+        if (entry->value)
+        {
+            not_record_link_decrease(entry->value);
+        }
+
+        not_memory_free(entry);
+        not_queue_unlink(st->queue_variables, n);
+        not_memory_free(n);
+    }
+
+    not_queue_destroy(st->queue_variables);
+
+    if (not_mutex_unlock(&st->lock) < 0)
+    {
+        not_error_system("'%s' could not unlock", "not_tymbol_table.lock");
+        return -1;
+    }
+
     if (not_mutex_destroy(&st->lock) < 0)
     {
         not_error_system("'%s' could not destroy the lock", "not_symbol_table.lock");
         return -1;
     }
+
     return 0;
-}
-
-static int32_t
-not_symbol_table_id_cmp(not_node_t *n1, not_node_t *n2)
-{
-    not_node_basic_t *nb1 = (not_node_basic_t *)n1->value;
-    not_node_basic_t *nb2 = (not_node_basic_t *)n2->value;
-
-    return (strcmp(nb1->value, nb2->value) == 0);
-}
-
-static void
-not_symbol_table_link(not_entry_t *entry)
-{
-    not_symbol_table_t *st = not_symbol_table_get();
-
-    entry->next = st->begin;
-    if (st->begin)
-    {
-        st->begin->previous = entry;
-    }
-    entry->previous = NOT_PTR_NULL;
-    st->begin = entry;
-}
-
-static void
-not_symbol_table_unlink(not_entry_t *entry)
-{
-    not_symbol_table_t *st = not_symbol_table_get();
-
-    if (st->begin == entry)
-    {
-        st->begin = entry->next;
-    }
-
-    if (entry->next)
-    {
-        entry->next->previous = entry->previous;
-    }
-
-    if (entry->previous)
-    {
-        entry->previous->next = entry->next;
-    }
-
-    entry->previous = entry->next = NOT_PTR_NULL;
 }
 
 not_entry_t *
@@ -128,7 +123,16 @@ not_symbol_table_push(not_node_t *scope, not_node_t *block, not_node_t *key, not
         return NOT_PTR_ERROR;
     }
 
-    not_symbol_table_link(entry);
+    if (NOT_PTR_ERROR == not_queue_right_push(st->queue_variables, entry))
+    {
+        not_memory_free(entry);
+        if (not_mutex_unlock(&st->lock) < 0)
+        {
+            not_error_system("'%s' could not unlock", "not_tymbol_table.lock");
+            return NOT_PTR_ERROR;
+        }
+        return NOT_PTR_ERROR;
+    }
 
     if (not_mutex_unlock(&st->lock) < 0)
     {
@@ -151,21 +155,21 @@ not_symbol_table_find(not_node_t *scope, not_node_t *key)
         return NOT_PTR_ERROR;
     }
 
-    not_entry_t *a1;
-    for (a1 = st->begin; a1 != NOT_PTR_NULL; a1 = a1->next)
+    for (not_queue_entry_t *a1 = st->queue_variables->begin; a1 != st->queue_variables->end; a1 = a1->next)
     {
-        if ((a1->scope->id == scope->id) && (not_symbol_table_id_cmp(a1->key, key) == 1))
+        not_entry_t *entry = (not_entry_t *)a1->value;
+        if ((entry->scope->id == scope->id) && (not_helper_id_cmp(entry->key, key) == 0))
         {
             if (not_mutex_unlock(&st->lock) < 0)
             {
                 not_error_system("'%s' could not unlock", "not_tymbol_table.lock");
                 return NOT_PTR_ERROR;
             }
-            if (a1->value)
+            if (entry->value)
             {
-                not_record_link_increase(a1->value);
+                not_record_link_increase(entry->value);
             }
-            return a1;
+            return entry;
         }
     }
 

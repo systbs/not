@@ -27,10 +27,11 @@
 #include "../../scanner/scanner.h"
 #include "../../parser/syntax/syntax.h"
 #include "../record.h"
-#include "../garbage.h"
+
 #include "../symbol_table.h"
 #include "../strip.h"
 #include "../entry.h"
+#include "../helper.h"
 #include "execute.h"
 
 static not_record_t *
@@ -1356,7 +1357,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                         for (not_node_t *item3 = item1; item3 != NOT_PTR_NULL; item3 = item3->next)
                         {
                             parameter = (not_node_parameter_t *)item3->value;
-                            if (not_execute_id_cmp(argument->key, parameter->key) == 1)
+                            if (not_helper_id_cmp(argument->key, parameter->key) == 0)
                             {
                                 found = 1;
 
@@ -2467,7 +2468,7 @@ not_call_operator_by_one_arg(not_node_t *base, not_record_t *content, not_record
         if (item->kind == NODE_KIND_FUN)
         {
             not_node_fun_t *fun1 = (not_node_fun_t *)item->value;
-            if (not_execute_id_strcmp(fun1->key, operator) == 1)
+            if (not_helper_id_strcmp(fun1->key, operator) == 0)
             {
                 not_strip_t *strip_copy = not_strip_copy(strip_class);
                 if (strip_copy == NOT_PTR_ERROR)
@@ -2551,7 +2552,7 @@ not_call_class(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_
         if (item->kind == NODE_KIND_FUN)
         {
             not_node_fun_t *fun1 = (not_node_fun_t *)item->value;
-            if (not_execute_id_strcmp(fun1->key, CONSTRUCTOR_STR) == 1)
+            if (not_helper_id_strcmp(fun1->key, CONSTRUCTOR_STR) == 0)
             {
                 not_strip_t *strip_copy = not_strip_copy(strip_class);
                 if (strip_copy == NOT_PTR_ERROR)
@@ -3337,7 +3338,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                         name = json_object_get(parameter, "name");
                         type = json_object_get(parameter, "type");
 
-                        if (not_execute_id_strcmp(argument->key, json_string_value(name)) == 1)
+                        if (not_helper_id_strcmp(argument->key, json_string_value(name)) == 0)
                         {
                             found = 1;
 

@@ -272,11 +272,19 @@ region_fatal:
     char relative_path[MAX_PATH];
     not_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
 
+#if defined(_WIN32) || defined(_WIN64)
+    fprintf(stderr,
+            "File \"%s\", Line %lld, Column %lld\n",
+            relative_path,
+            position.line,
+            position.column);
+#else
     fprintf(stderr,
             "File \"%s\", Line %ld, Column %ld\n",
             relative_path,
             position.line,
             position.column);
+#endif
 
     fputs("Lexer error: ", stderr);
 
@@ -341,7 +349,12 @@ region_fatal:
             {
                 if (line == position.line)
                 {
+
+#if defined(_WIN32) || defined(_WIN64)
+                    fprintf(stderr, "  \033[31m%lld\033[m\t|", line);
+#else
                     fprintf(stderr, "  \033[31m%ld\033[m\t|", line);
+#endif
 
                     uint64_t j = 0;
                     for (uint64_t i = 0; i < strlen(buf); i++)
@@ -364,7 +377,11 @@ region_fatal:
                 }
                 else
                 {
+#if defined(_WIN32) || defined(_WIN64)
+                    fprintf(stderr, "  %lld\t|%s", line, buf);
+#else
                     fprintf(stderr, "  %ld\t|%s", line, buf);
+#endif
                 }
             }
 
@@ -489,11 +506,19 @@ region_fatal:
     char relative_path[MAX_PATH];
     not_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
 
+#if defined(_WIN32) || defined(_WIN64)
+    fprintf(stderr,
+            "File \"%s\", Line %lld, Column %lld\n",
+            relative_path,
+            position.line,
+            position.column);
+#else
     fprintf(stderr,
             "File \"%s\", Line %ld, Column %ld\n",
             relative_path,
             position.line,
             position.column);
+#endif
 
     fputs("Syntax error: ", stderr);
 
@@ -558,7 +583,11 @@ region_fatal:
             {
                 if (line == position.line)
                 {
+#if defined(_WIN32) || defined(_WIN64)
+                    fprintf(stderr, "  \033[31m%lld\033[m\t|", line);
+#else
                     fprintf(stderr, "  \033[31m%ld\033[m\t|", line);
+#endif
 
                     uint64_t j = 0;
                     for (uint64_t i = 0; i < strlen(buf); i++)
@@ -581,7 +610,11 @@ region_fatal:
                 }
                 else
                 {
+#if defined(_WIN32) || defined(_WIN64)
+                    fprintf(stderr, "  %lld\t|%s", line, buf);
+#else
                     fprintf(stderr, "  %ld\t|%s", line, buf);
+#endif
                 }
             }
 
@@ -709,11 +742,19 @@ region_fatal:
     char relative_path[MAX_PATH];
     not_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
 
+#if defined(_WIN32) || defined(_WIN64)
+    fprintf(stderr,
+            "File \"%s\", Line %lld, Column %lld\n",
+            relative_path,
+            position.line,
+            position.column);
+#else
     fprintf(stderr,
             "File \"%s\", Line %ld, Column %ld",
             relative_path,
             position.line,
             position.column);
+#endif
 
     not_node_t *node1 = node;
     while (node1 != NOT_PTR_NULL)
@@ -810,7 +851,11 @@ region_fatal:
             {
                 if (line == position.line)
                 {
+#if defined(_WIN32) || defined(_WIN64)
+                    fprintf(stderr, "  \033[31m%lld\033[m\t|", line);
+#else
                     fprintf(stderr, "  \033[31m%ld\033[m\t|", line);
+#endif
 
                     uint64_t j = 0;
                     for (uint64_t i = 0; i < strlen(buf); i++)
@@ -833,7 +878,11 @@ region_fatal:
                 }
                 else
                 {
+#if defined(_WIN32) || defined(_WIN64)
+                    fprintf(stderr, "  %lld\t|%s", line, buf);
+#else
                     fprintf(stderr, "  %ld\t|%s", line, buf);
+#endif
                 }
             }
 
@@ -961,11 +1010,19 @@ region_fatal:
     char relative_path[MAX_PATH];
     not_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
 
+#if defined(_WIN32) || defined(_WIN64)
+    fprintf(stderr,
+            "File \"%s\", Line %lld, Column %lld\n",
+            relative_path,
+            position.line,
+            position.column);
+#else
     fprintf(stderr,
             "File \"%s\", Line %ld, Column %ld",
             relative_path,
             position.line,
             position.column);
+#endif
 
     not_node_t *node1 = node;
     while (node1 != NOT_PTR_NULL)
@@ -1062,7 +1119,11 @@ region_fatal:
             {
                 if (line == position.line)
                 {
+#if defined(_WIN32) || defined(_WIN64)
+                    fprintf(stderr, "  \033[31m%lld\033[m\t|", line);
+#else
                     fprintf(stderr, "  \033[31m%ld\033[m\t|", line);
+#endif
 
                     uint64_t j = 0;
                     for (uint64_t i = 0; i < strlen(buf); i++)
@@ -1085,7 +1146,11 @@ region_fatal:
                 }
                 else
                 {
+#if defined(_WIN32) || defined(_WIN64)
+                    fprintf(stderr, "  %lld\t|%s", line, buf);
+#else
                     fprintf(stderr, "  %ld\t|%s", line, buf);
+#endif
                 }
             }
 
@@ -1213,11 +1278,19 @@ region_fatal:
     char relative_path[MAX_PATH];
     not_path_get_relative(base_path, position.path, relative_path, sizeof(relative_path));
 
+#if defined(_WIN32) || defined(_WIN64)
+    fprintf(stderr,
+            "File \"%s\", Line %lld, Column %lld\n",
+            relative_path,
+            position.line,
+            position.column);
+#else
     fprintf(stderr,
             "File \"%s\", Line %ld, Column %ld",
             relative_path,
             position.line,
             position.column);
+#endif
 
     not_node_t *node1 = node;
     while (node1 != NOT_PTR_NULL)
@@ -1314,7 +1387,11 @@ region_fatal:
             {
                 if (line == position.line)
                 {
+#if defined(_WIN32) || defined(_WIN64)
+                    fprintf(stderr, "  \033[31m%lld\033[m\t|", line);
+#else
                     fprintf(stderr, "  \033[31m%ld\033[m\t|", line);
+#endif
 
                     uint64_t j = 0;
                     for (uint64_t i = 0; i < strlen(buf); i++)
@@ -1337,7 +1414,11 @@ region_fatal:
                 }
                 else
                 {
+#if defined(_WIN32) || defined(_WIN64)
+                    fprintf(stderr, "  %lld\t|%s", line, buf);
+#else
                     fprintf(stderr, "  %ld\t|%s", line, buf);
+#endif
                 }
             }
 

@@ -25,9 +25,10 @@
 #include "../../parser/syntax/syntax.h"
 #include "../record.h"
 #include "../entry.h"
-#include "../garbage.h"
+
 #include "../symbol_table.h"
 #include "../strip.h"
+#include "../helper.h"
 #include "execute.h"
 
 not_record_t *
@@ -45,7 +46,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
             if (item1->kind == NODE_KIND_PARAMETER)
             {
                 not_node_parameter_t *parameter1 = (not_node_parameter_t *)item1->value;
-                if (not_execute_id_cmp(parameter1->key, name) == 1)
+                if (not_helper_id_cmp(parameter1->key, name) == 0)
                 {
                     not_entry_t *entry = not_strip_variable_find(strip, base, parameter1->key);
                     if (entry == NOT_PTR_ERROR)
@@ -75,7 +76,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                 not_node_var_t *var1 = (not_node_var_t *)item1->value;
                 if (var1->key->kind == NODE_KIND_ID)
                 {
-                    if (not_execute_id_cmp(var1->key, name) == 1)
+                    if (not_helper_id_cmp(var1->key, name) == 0)
                     {
                         assert(strip != NOT_PTR_NULL);
                         not_entry_t *entry = not_strip_variable_find(strip, base, var1->key);
@@ -102,7 +103,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                         if (item2->kind == NODE_KIND_ENTITY)
                         {
                             not_node_entity_t *entity1 = (not_node_entity_t *)item2->value;
-                            if (not_execute_id_cmp(entity1->key, name) == 1)
+                            if (not_helper_id_cmp(entity1->key, name) == 0)
                             {
                                 assert(strip != NOT_PTR_NULL);
                                 not_entry_t *entry = not_strip_variable_find(strip, base, entity1->key);
@@ -131,7 +132,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
 
         if (for1->field)
         {
-            if (not_execute_id_cmp(for1->field, name) == 1)
+            if (not_helper_id_cmp(for1->field, name) == 0)
             {
                 not_entry_t *entry = not_strip_variable_find(strip, base, for1->field);
                 if (entry == NOT_PTR_ERROR)
@@ -150,7 +151,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
 
         if (for1->value)
         {
-            if (not_execute_id_cmp(for1->value, name) == 1)
+            if (not_helper_id_cmp(for1->value, name) == 0)
             {
                 not_entry_t *entry = not_strip_variable_find(strip, base, for1->value);
                 if (entry == NOT_PTR_ERROR)
@@ -178,7 +179,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                 not_node_for_t *for1 = (not_node_for_t *)item1->value;
                 if (for1->key != NOT_PTR_NULL)
                 {
-                    if (not_execute_id_cmp(for1->key, name) == 1)
+                    if (not_helper_id_cmp(for1->key, name) == 0)
                     {
                         return not_record_make_type(item1, NOT_PTR_NULL);
                     }
@@ -189,7 +190,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                 not_node_forin_t *for1 = (not_node_forin_t *)item1->value;
                 if (for1->key != NOT_PTR_NULL)
                 {
-                    if (not_execute_id_cmp(for1->key, name) == 1)
+                    if (not_helper_id_cmp(for1->key, name) == 0)
                     {
                         return not_record_make_type(item1, NOT_PTR_NULL);
                     }
@@ -200,7 +201,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                 not_node_var_t *var1 = (not_node_var_t *)item1->value;
                 if (var1->key->kind == NODE_KIND_ID)
                 {
-                    if (not_execute_id_cmp(var1->key, name) == 1)
+                    if (not_helper_id_cmp(var1->key, name) == 0)
                     {
                         assert(strip != NOT_PTR_NULL);
                         not_entry_t *entry = not_strip_variable_find(strip, base, var1->key);
@@ -228,7 +229,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                         if (item2->kind == NODE_KIND_ENTITY)
                         {
                             not_node_entity_t *entity1 = (not_node_entity_t *)item2->value;
-                            if (not_execute_id_cmp(entity1->key, name) == 1)
+                            if (not_helper_id_cmp(entity1->key, name) == 0)
                             {
                                 assert(strip != NOT_PTR_NULL);
                                 not_entry_t *entry = not_strip_variable_find(strip, base, entity1->key);
@@ -265,7 +266,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                 if (item1->kind == NODE_KIND_GENERIC)
                 {
                     not_node_generic_t *generic1 = (not_node_generic_t *)item1->value;
-                    if (not_execute_id_cmp(generic1->key, name) == 1)
+                    if (not_helper_id_cmp(generic1->key, name) == 0)
                     {
                         assert(strip != NOT_PTR_NULL);
                         not_entry_t *entry = not_strip_variable_find(strip, base, generic1->key);
@@ -296,7 +297,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                 if (item1->kind == NODE_KIND_PARAMETER)
                 {
                     not_node_parameter_t *parameter1 = (not_node_parameter_t *)item1->value;
-                    if (not_execute_id_cmp(parameter1->key, name) == 1)
+                    if (not_helper_id_cmp(parameter1->key, name) == 0)
                     {
                         assert(strip != NOT_PTR_NULL);
                         not_entry_t *entry = not_strip_variable_find(strip, base, parameter1->key);
@@ -331,7 +332,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                 if (item1->kind == NODE_KIND_GENERIC)
                 {
                     not_node_generic_t *generic1 = (not_node_generic_t *)item1->value;
-                    if (not_execute_id_cmp(generic1->key, name) == 1)
+                    if (not_helper_id_cmp(generic1->key, name) == 0)
                     {
                         assert(strip != NOT_PTR_NULL);
                         not_entry_t *entry = not_strip_variable_find(strip, base, generic1->key);
@@ -362,7 +363,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                 if (item1->kind == NODE_KIND_PARAMETER)
                 {
                     not_node_parameter_t *parameter1 = (not_node_parameter_t *)item1->value;
-                    if (not_execute_id_cmp(parameter1->key, name) == 1)
+                    if (not_helper_id_cmp(parameter1->key, name) == 0)
                     {
                         assert(strip != NOT_PTR_NULL);
                         not_entry_t *entry = not_strip_variable_find(strip, base, parameter1->key);
@@ -397,7 +398,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                 if (item1->kind == NODE_KIND_GENERIC)
                 {
                     not_node_generic_t *generic1 = (not_node_generic_t *)item1->value;
-                    if (not_execute_id_cmp(generic1->key, name) == 1)
+                    if (not_helper_id_cmp(generic1->key, name) == 0)
                     {
                         assert(strip != NOT_PTR_NULL);
                         not_entry_t *entry = not_strip_variable_find(strip, base, generic1->key);
@@ -428,7 +429,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                 if (item1->kind == NODE_KIND_HERITAGE)
                 {
                     not_node_heritage_t *heritage1 = (not_node_heritage_t *)item1->value;
-                    if (not_execute_id_cmp(heritage1->key, name) == 1)
+                    if (not_helper_id_cmp(heritage1->key, name) == 0)
                     {
                         assert(strip != NOT_PTR_NULL);
                         not_entry_t *entry = not_strip_variable_find(strip, base, heritage1->key);
@@ -454,7 +455,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
             if (item1->kind == NODE_KIND_CLASS)
             {
                 not_node_class_t *class2 = (not_node_class_t *)item1->value;
-                if (not_execute_id_cmp(class2->key, name) == 1)
+                if (not_helper_id_cmp(class2->key, name) == 0)
                 {
                     not_strip_t *strip_copy = not_strip_copy(strip);
                     if (strip_copy == NOT_PTR_ERROR)
@@ -474,7 +475,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
             else if (item1->kind == NODE_KIND_FUN)
             {
                 not_node_fun_t *fun1 = (not_node_fun_t *)item1->value;
-                if (not_execute_id_cmp(fun1->key, name) == 1)
+                if (not_helper_id_cmp(fun1->key, name) == 0)
                 {
                     not_strip_t *strip_copy = not_strip_copy(strip);
                     if (strip_copy == NOT_PTR_ERROR)
@@ -494,7 +495,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
             else if (item1->kind == NODE_KIND_PROPERTY)
             {
                 not_node_property_t *property1 = (not_node_property_t *)item1->value;
-                if (not_execute_id_cmp(property1->key, name) == 1)
+                if (not_helper_id_cmp(property1->key, name) == 0)
                 {
                     if ((property1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
                     {
@@ -558,7 +559,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                         if (item2->kind == NODE_KIND_PACKAGE)
                         {
                             not_node_package_t *package1 = (not_node_package_t *)item2->value;
-                            if (not_execute_id_cmp(package1->key, name) == 1)
+                            if (not_helper_id_cmp(package1->key, name) == 0)
                             {
                                 not_node_basic_t *basic1 = (not_node_basic_t *)using1->path->value;
                                 not_module_t *entry = not_repository_load(basic1->value);
@@ -655,7 +656,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
             {
                 not_node_class_t *class1 = (not_node_class_t *)item1->value;
 
-                if (not_execute_id_cmp(class1->key, name) == 1)
+                if (not_helper_id_cmp(class1->key, name) == 0)
                 {
                     if (applicant->id != base->id)
                     {
@@ -693,7 +694,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                 not_node_for_t *for1 = (not_node_for_t *)item1->value;
                 if (for1->key != NOT_PTR_NULL)
                 {
-                    if (not_execute_id_cmp(for1->key, name) == 1)
+                    if (not_helper_id_cmp(for1->key, name) == 0)
                     {
                         return not_record_make_type(item1, NOT_PTR_NULL);
                     }
@@ -709,7 +710,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                 not_node_forin_t *for1 = (not_node_forin_t *)item1->value;
                 if (for1->key != NOT_PTR_NULL)
                 {
-                    if (not_execute_id_cmp(for1->key, name) == 1)
+                    if (not_helper_id_cmp(for1->key, name) == 0)
                     {
                         return not_record_make_type(item1, NOT_PTR_NULL);
                     }
@@ -720,7 +721,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                 not_node_var_t *var1 = (not_node_var_t *)item1->value;
                 if (var1->key->kind == NODE_KIND_ID)
                 {
-                    if (not_execute_id_cmp(var1->key, name) == 1)
+                    if (not_helper_id_cmp(var1->key, name) == 0)
                     {
                         if (applicant->id != base->id)
                         {
@@ -756,7 +757,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                         if (item2->kind == NODE_KIND_ENTITY)
                         {
                             not_node_entity_t *entity1 = (not_node_entity_t *)item2->value;
-                            if (not_execute_id_cmp(entity1->key, name) == 1)
+                            if (not_helper_id_cmp(entity1->key, name) == 0)
                             {
                                 if (applicant->id != base->id)
                                 {

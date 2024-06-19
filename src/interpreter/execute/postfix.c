@@ -21,7 +21,7 @@
 #include "../../error.h"
 #include "../../mutex.h"
 #include "../record.h"
-#include "../garbage.h"
+
 #include "../symbol_table.h"
 #include "../strip.h"
 #include "execute.h"

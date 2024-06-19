@@ -22,7 +22,6 @@
 #include "../parser/syntax/syntax.h"
 #include "record.h"
 #include "strip.h"
-#include "garbage.h"
 #include "entry.h"
 
 static const char *const symbols[] = {

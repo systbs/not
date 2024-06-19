@@ -10,11 +10,7 @@ typedef long double float128_t;
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #else
-#define _MAX_PATH 256
-#define _MAX_FNAME 256
-#define _MAX_EXT 256
-#define _MAX_DIR 256
-#define MAX_PATH (_MAX_PATH + _MAX_DIR + _MAX_FNAME + _MAX_EXT)
+#define MAX_PATH 4096
 #endif
 
 #define NOT_PTR_NULL ((void *)0)

@@ -21,10 +21,11 @@
 #include "../../error.h"
 #include "../../mutex.h"
 #include "../record.h"
-#include "../garbage.h"
+
 #include "../symbol_table.h"
 #include "../strip.h"
 #include "../entry.h"
+#include "../helper.h"
 #include "execute.h"
 
 not_record_t *
@@ -36,7 +37,7 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
         if (item->kind == NODE_KIND_PROPERTY)
         {
             not_node_property_t *property = (not_node_property_t *)item->value;
-            if (not_execute_id_cmp(property->key, right) == 1)
+            if (not_helper_id_cmp(property->key, right) == 0)
             {
                 if ((property->flag & (SYNTAX_MODIFIER_STATIC | SYNTAX_MODIFIER_EXPORT)) != (SYNTAX_MODIFIER_STATIC | SYNTAX_MODIFIER_EXPORT))
                 {
@@ -203,7 +204,7 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
         else if (item->kind == NODE_KIND_CLASS)
         {
             not_node_class_t *class2 = (not_node_class_t *)item->value;
-            if (not_execute_id_cmp(class2->key, right) == 1)
+            if (not_helper_id_cmp(class2->key, right) == 0)
             {
                 if ((class2->flag & (SYNTAX_MODIFIER_STATIC | SYNTAX_MODIFIER_EXPORT)) != (SYNTAX_MODIFIER_STATIC | SYNTAX_MODIFIER_EXPORT))
                 {
@@ -236,7 +237,7 @@ not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t
         else if (item->kind == NODE_KIND_FUN)
         {
             not_node_fun_t *fun1 = (not_node_fun_t *)item->value;
-            if (not_execute_id_cmp(fun1->key, right) == 1)
+            if (not_helper_id_cmp(fun1->key, right) == 0)
             {
                 if ((fun1->flag & (SYNTAX_MODIFIER_STATIC | SYNTAX_MODIFIER_EXPORT)) != (SYNTAX_MODIFIER_STATIC | SYNTAX_MODIFIER_EXPORT))
                 {
@@ -347,7 +348,7 @@ not_execute_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node
         if (item->kind == NODE_KIND_PROPERTY)
         {
             not_node_property_t *property = (not_node_property_t *)item->value;
-            if (not_execute_id_cmp(property->key, right) == 1)
+            if (not_helper_id_cmp(property->key, right) == 0)
             {
                 if ((property->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                 {
@@ -387,7 +388,7 @@ not_execute_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node
         else if (item->kind == NODE_KIND_CLASS)
         {
             not_node_class_t *class2 = (not_node_class_t *)item->value;
-            if (not_execute_id_cmp(class2->key, right) == 1)
+            if (not_helper_id_cmp(class2->key, right) == 0)
             {
                 if ((class2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                 {
@@ -420,7 +421,7 @@ not_execute_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node
         else if (item->kind == NODE_KIND_FUN)
         {
             not_node_fun_t *fun1 = (not_node_fun_t *)item->value;
-            if (not_execute_id_cmp(fun1->key, right) == 1)
+            if (not_helper_id_cmp(fun1->key, right) == 0)
             {
                 if ((fun1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
                 {
@@ -620,7 +621,7 @@ not_execute_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applican
     {
         for (not_record_object_t *item = (not_record_object_t *)left->value; item != NOT_PTR_NULL; item = item->next)
         {
-            if (not_execute_id_strcmp(binary->right, item->key) == 1)
+            if (not_helper_id_strcmp(binary->right, item->key) == 0)
             {
                 if (not_record_link_decrease(left) < 0)
                 {
