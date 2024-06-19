@@ -78,7 +78,7 @@ not_record_t *
 not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin);
 
 not_record_t *
-not_execute_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin);
+not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin);
 
 not_record_t *
 not_execute_primary(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin);
@@ -178,10 +178,10 @@ not_record_t *
 not_execute_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant);
 
 not_record_t *
-not_execute_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left, not_node_t *right, not_node_t *applicant);
+not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left, not_node_t *right, not_node_t *applicant);
 
 not_record_t *
-not_execute_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, not_node_t *right, not_node_t *applicant);
+not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, not_node_t *right, not_node_t *applicant);
 
 not_record_t *
 not_execute_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant);

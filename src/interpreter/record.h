@@ -29,7 +29,8 @@ typedef enum not_record_kind
     RECORD_KIND_NULL,
     RECORD_KIND_UNDEFINED,
     RECORD_KIND_NAN,
-    RECORD_KIND_PROC
+    RECORD_KIND_PROC,
+    RECORD_KIND_BUILTIN
 } not_record_kind_t;
 
 typedef struct not_record_struct
@@ -64,6 +65,12 @@ typedef struct not_record_proc
     void *handle;
     json_t *map;
 } not_record_proc_t;
+
+typedef struct not_record_builtin
+{
+    not_record_t *source;
+    void *handle;
+} not_record_builtin_t;
 
 void not_record_link_increase(not_record_t *record);
 
@@ -171,5 +178,8 @@ not_record_make_proc(void *handle, json_t *map);
 
 char *
 not_record_to_string(not_record_t *record, char *previous_buf);
+
+not_record_t *
+not_record_make_builtin(not_record_t *source, void *handle);
 
 #endif

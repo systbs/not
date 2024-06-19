@@ -878,7 +878,7 @@ not_execute_entity(not_node_t *scope, not_node_t *node, not_record_t *value, not
             not_record_struct_t *record_struct = (not_record_struct_t *)value->value;
             not_node_t *type = record_struct->type;
             not_strip_t *strip_new = (not_strip_t *)record_struct->value;
-            value_select = not_execute_attribute_from_struct(node, strip_new, type, key_search, applicant);
+            value_select = not_attribute_from_struct(node, strip_new, type, key_search, applicant);
             if (value_select == NOT_PTR_ERROR)
             {
                 return -1;
@@ -889,7 +889,7 @@ not_execute_entity(not_node_t *scope, not_node_t *node, not_record_t *value, not
             not_record_type_t *record_type = (not_record_type_t *)value;
             not_node_t *type = record_type->type;
             not_strip_t *strip_new = (not_strip_t *)record_type->value;
-            value_select = not_execute_attribute_from_type(node, strip_new, type, key_search, applicant);
+            value_select = not_attribute_from_type(node, strip_new, type, key_search, applicant);
             if (value_select == NOT_PTR_ERROR)
             {
                 return -1;

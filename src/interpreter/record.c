@@ -36,7 +36,8 @@ static const char *const symbols[] = {
     [RECORD_KIND_NULL] = "null",
     [RECORD_KIND_UNDEFINED] = "undefined",
     [RECORD_KIND_NAN] = "nan",
-    [RECORD_KIND_PROC] = "proc"};
+    [RECORD_KIND_PROC] = "proc",
+    [RECORD_KIND_BUILTIN] = "builtin"};
 
 const char *
 not_record_type_as_string(not_record_t *record)
@@ -516,6 +517,29 @@ not_record_to_string(not_record_t *record, char *previous_buf)
         snprintf(result, length + 1, "%s%s", previous_buf, str);
         return result;
     }
+}
+
+not_record_t *
+not_record_make_builtin(not_record_t *source, void *handle)
+{
+    not_record_builtin_t *basic = (not_record_builtin_t *)not_memory_calloc(1, sizeof(not_record_builtin_t));
+    if (basic == NOT_PTR_NULL)
+    {
+        not_error_no_memory();
+        return NOT_PTR_ERROR;
+    }
+
+    basic->handle = handle;
+    basic->source = source;
+
+    not_record_t *record = not_record_create(RECORD_KIND_BUILTIN, basic);
+    if (record == NOT_PTR_ERROR)
+    {
+        not_memory_free(basic);
+        return NOT_PTR_ERROR;
+    }
+
+    return record;
 }
 
 not_record_t *
@@ -1405,6 +1429,17 @@ not_record_copy(not_record_t *record)
     {
         return not_record_make_nan();
     }
+    else if (record->kind == RECORD_KIND_PROC)
+    {
+        not_record_proc_t *basic = (not_record_proc_t *)record->value;
+        return not_record_make_proc(basic->handle, basic->map);
+    }
+    else if (record->kind == RECORD_KIND_BUILTIN)
+    {
+        not_record_builtin_t *basic = (not_record_builtin_t *)record->value;
+        not_record_link_increase(basic->source);
+        return not_record_make_builtin(basic->source, basic->handle);
+    }
 
     return NOT_PTR_NULL;
 }
@@ -1412,11 +1447,6 @@ not_record_copy(not_record_t *record)
 int32_t
 not_record_destroy(not_record_t *record)
 {
-    if (!record)
-    {
-        return 0;
-    }
-
     if (record->kind == RECORD_KIND_OBJECT)
     {
         not_record_object_t *object = (not_record_object_t *)record->value;
@@ -1448,6 +1478,15 @@ not_record_destroy(not_record_t *record)
     {
         not_record_struct_t *struct1 = (not_record_struct_t *)record->value;
         if (not_record_struct_destroy(struct1) < 0)
+        {
+            return -1;
+        }
+        not_memory_free(record);
+    }
+    else if (record->kind == RECORD_KIND_BUILTIN)
+    {
+        not_record_builtin_t *basic = (not_record_builtin_t *)record->value;
+        if (not_record_link_decrease(basic->source) < 0)
         {
             return -1;
         }

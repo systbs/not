@@ -4650,6 +4650,27 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
 
         return result;
     }
+    else if (record_base->kind == RECORD_KIND_BUILTIN)
+    {
+        not_record_builtin_t *record_builtin = (not_record_builtin_t *)record_base->value;
+
+        not_record_t *(*handle)(not_node_t *, not_record_t *, not_node_t *, not_strip_t *, not_node_t *) =
+            (not_record_t * (*)(not_node_t *, not_record_t *, not_node_t *, not_strip_t *, not_node_t *)) record_builtin->handle;
+
+        not_record_t *result = handle(node, record_builtin->source, carrier->data, strip, applicant);
+
+        if (not_record_link_decrease(record_base) < 0)
+        {
+            return NOT_PTR_ERROR;
+        }
+
+        if (result == NOT_PTR_ERROR)
+        {
+            return NOT_PTR_ERROR;
+        }
+
+        return result;
+    }
 
     not_error_type_by_node(carrier->base, "'%s' object is not callable",
                            not_record_type_as_string(record_base));

@@ -39,7 +39,7 @@ not_execute_postfix(not_node_t *node, not_strip_t *strip, not_node_t *applicant,
     }
     else if (node->kind == NODE_KIND_ATTRIBUTE)
     {
-        return not_execute_attribute(node, strip, applicant, origin);
+        return not_attribute(node, strip, applicant, origin);
     }
     else if (node->kind == NODE_KIND_PSEUDONYM)
     {
