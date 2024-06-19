@@ -92,6 +92,7 @@ var fun1 = fun fun2 (p1:int) {
 		println("f = " + p1);
 		return fun2(p1 - 1);
 	}
+	println("f2 = " + p1);
 	return p1 * 1000;
 };
 

@@ -2062,7 +2062,7 @@ not_execute_return(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
         not_thread_set_rax(value);
     }
 
-    return 0;
+    return -5;
 }
 
 static int32_t
@@ -2229,6 +2229,10 @@ not_execute_run_fun(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
         {
             return r1;
         }
+        else if (r1 == -5)
+        {
+            return 0;
+        }
         not_error_runtime_by_node(node, "there is no loop");
         return -1;
     }
@@ -2279,6 +2283,10 @@ not_execute_run_lambda(not_node_t *node, not_strip_t *strip, not_node_t *applica
             if (r1 == -4)
             {
                 return r1;
+            }
+            else if (r1 == -5)
+            {
+                return 0;
             }
             not_error_runtime_by_node(node, "there is no loop");
             return -1;
