@@ -152,6 +152,6 @@ a7.Add("b", 123);
 println(string(a7));
 
 var a8 = [0];
-a8.Insert(12, 10).Remove(-2);
+a8.Set(1, 10).Append(15);
 
 println(string(a8) + " " + a8.Count());

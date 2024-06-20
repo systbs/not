@@ -1438,6 +1438,206 @@ region_cleanup:
 }
 
 not_record_t *
+not_attribute_tuple_builtin_append(not_node_t *base, not_record_t *source, not_node_t *arguments, not_strip_t *strip, not_node_t *applicant)
+{
+    if (arguments)
+    {
+        not_node_block_t *block = (not_node_block_t *)arguments->value;
+
+        uint64_t cnt1 = 0;
+        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        {
+            cnt1 += 1;
+        }
+
+        if (cnt1 > 1)
+        {
+            not_error_type_by_node(base, "'%s' takes %lld positional arguments but %lld were given", "Append", 1, cnt1);
+            return NOT_PTR_ERROR;
+        }
+    }
+    else
+    {
+        not_error_type_by_node(base, "'%s' takes %lld positional arguments but %lld were given", "Append", 1, 0);
+        return NOT_PTR_ERROR;
+    }
+
+    not_record_t *return_value = NOT_PTR_ERROR;
+
+    not_node_block_t *block = (not_node_block_t *)arguments->value;
+    not_record_t *record_arg[1];
+
+    size_t array_length = sizeof(record_arg) / sizeof(record_arg[0]);
+    for (size_t i = 0; i < array_length; i++)
+    {
+        record_arg[i] = NOT_PTR_NULL;
+    }
+
+    size_t parameter_index = 0;
+    for (not_node_t *item = block->items; item != NULL; item = item->next)
+    {
+        not_node_argument_t *argument = (not_node_argument_t *)item->value;
+        if (argument->value)
+        {
+            if (not_helper_id_strcmp(argument->key, "value") == 0)
+            {
+                not_record_t *arg = not_execute_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                if (arg == NOT_PTR_ERROR)
+                {
+                    goto region_cleanup;
+                }
+
+                record_arg[0] = arg;
+            }
+        }
+        else
+        {
+            not_record_t *arg = not_execute_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            if (arg == NOT_PTR_ERROR)
+            {
+                goto region_cleanup;
+            }
+
+            if (parameter_index == 0)
+            {
+                if (arg->kind != RECORD_KIND_INT)
+                {
+                    not_error_type_by_node(argument->key, "mismatch: '%s' and '%s'",
+                                           not_record_type_as_string(arg), "int");
+                }
+            }
+
+            record_arg[parameter_index] = arg;
+
+            parameter_index += 1;
+        }
+    }
+
+    for (size_t i = 0; i < array_length; i++)
+    {
+        if (record_arg[i] == NOT_PTR_NULL)
+        {
+            if (i == 0)
+            {
+                not_error_type_by_node(base, "'%s' missing '%s' required positional argument", "Append", "value");
+            }
+            goto region_cleanup;
+        }
+    }
+
+    mpz_t length;
+    mpz_init_set_si(length, 0);
+    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value; tuple != NOT_PTR_NULL; tuple = tuple->next)
+    {
+        mpz_add_ui(length, length, 1);
+    }
+
+    mpz_t term;
+    mpz_init_set(term, length);
+
+    mpz_clear(length);
+
+    int appended = 0;
+    mpz_t index;
+    mpz_init_set_si(index, 0);
+    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value, *previous = NOT_PTR_NULL; tuple != NOT_PTR_NULL; tuple = tuple->next)
+    {
+        if (mpz_cmp(index, term) < 0)
+        {
+            if (tuple->next == NOT_PTR_NULL)
+            {
+                not_record_t *arg = not_record_make_undefined();
+                if (arg == NOT_PTR_ERROR)
+                {
+                    mpz_clear(term);
+                    mpz_clear(index);
+                    goto region_cleanup;
+                }
+
+                not_record_tuple_t *new_tuple = not_record_make_tuple(arg, NOT_PTR_NULL);
+                if (new_tuple == NOT_PTR_ERROR)
+                {
+                    mpz_clear(term);
+                    mpz_clear(index);
+                    not_record_link_decrease(arg);
+                    goto region_cleanup;
+                }
+
+                appended = 1;
+                tuple->next = new_tuple;
+            }
+            mpz_add_ui(index, index, 1);
+
+            previous = tuple;
+            continue;
+        }
+        else if (mpz_cmp(index, term) == 0)
+        {
+            if (appended == 1)
+            {
+                if (not_record_link_decrease(tuple->value) < 0)
+                {
+                    mpz_clear(term);
+                    mpz_clear(index);
+                    goto region_cleanup;
+                }
+
+                not_record_link_increase(record_arg[0]);
+                tuple->value = record_arg[0];
+            }
+            else
+            {
+                not_record_link_increase(record_arg[0]);
+                not_record_tuple_t *new_tuple = not_record_make_tuple(record_arg[0], NOT_PTR_NULL);
+                if (new_tuple == NOT_PTR_ERROR)
+                {
+                    mpz_clear(term);
+                    mpz_clear(index);
+                    not_record_link_decrease(record_arg[0]);
+                    goto region_cleanup;
+                }
+
+                if (previous)
+                {
+                    new_tuple->next = tuple;
+                    previous->next = new_tuple;
+                }
+                else
+                {
+                    new_tuple->next = tuple;
+                    source->value = new_tuple;
+                }
+            }
+            break;
+        }
+    }
+
+    mpz_clear(term);
+    mpz_clear(index);
+
+    not_record_link_increase(source);
+    return_value = source;
+
+region_cleanup:
+    for (size_t i = 0; i < array_length; i++)
+    {
+        if (record_arg[i])
+        {
+            if (not_record_link_decrease(record_arg[i]) < 0)
+            {
+                if (return_value != NOT_PTR_ERROR)
+                {
+                    not_record_link_decrease(return_value);
+                }
+                return NOT_PTR_ERROR;
+            }
+        }
+    }
+
+    return return_value;
+}
+
+not_record_t *
 not_attribute_tuple_builtin_count(not_node_t *base, not_record_t *source, not_node_t *arguments, not_strip_t *strip, not_node_t *applicant)
 {
     if (arguments)
@@ -1682,6 +1882,20 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
         else if (not_helper_id_strcmp(binary->right, "Count") == 0)
         {
             not_record_t *result = not_record_make_builtin(left, &not_attribute_tuple_builtin_count);
+            if (result == NOT_PTR_ERROR)
+            {
+                if (not_record_link_decrease(left) < 0)
+                {
+                    return NOT_PTR_ERROR;
+                }
+
+                return NOT_PTR_ERROR;
+            }
+            return result;
+        }
+        else if (not_helper_id_strcmp(binary->right, "Append") == 0)
+        {
+            not_record_t *result = not_record_make_builtin(left, &not_attribute_tuple_builtin_append);
             if (result == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(left) < 0)
