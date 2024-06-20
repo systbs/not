@@ -164,14 +164,14 @@ not_record_to_string(not_record_t *record, char *previous_buf)
         snprintf(str, length + 1, "%s%c", previous_buf, '{');
         for (not_record_object_t *item = (not_record_object_t *)record->value; item != NOT_PTR_NULL; item = item->next)
         {
-            length = strlen(str) + strlen(item->key) + 1;
+            length = strlen(str) + strlen(item->key) + 3;
             char *result = not_memory_calloc(length + 1, sizeof(char));
             if (result == NOT_PTR_NULL)
             {
                 not_error_no_memory();
                 return NOT_PTR_ERROR;
             }
-            snprintf(result, length + 1, "%s%s:", str, item->key);
+            snprintf(result, length + 1, "%s\"%s\":", str, item->key);
             not_memory_free(str);
             str = result;
 
