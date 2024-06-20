@@ -1,4 +1,4 @@
-# <div style="display: table;"><div style="display: table-row;"><div style="vertical-align: middle;display: table-cell;"><img src="assets/logo-base.png" alt="not logo" height="64"></div><div style="vertical-align: middle;display: table-cell;">The Not Programming Language</div></div></div> 
+# <table style="border: 0px solid #ffffff;border-collapse: collapse;"><tr style="vertical-align: middle;"><th><img src="assets/logo-base.png" alt="not logo" height="64"></th><th>The Not Programming Language</th></tr></table> 
 
 ## Build Instructions
 On Ubuntu:
