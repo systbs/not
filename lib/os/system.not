@@ -1,11 +1,11 @@
-using println, nop_print:print from "./unix/shared.json";
+using println, puts:print from "./shared.json";
 
 export readonly var print = fun (value, end = 1) {
     if (value instanceof string)
     {
         if (end == 0)
         {
-            nop_print(value);
+            puts(value);
         }
         else
         {
@@ -20,7 +20,7 @@ export readonly var print = fun (value, end = 1) {
             {
                 if (end == 0)
                 {
-                    nop_print(stringify);
+                    puts(stringify);
                 }
                 else
                 {
@@ -31,7 +31,7 @@ export readonly var print = fun (value, end = 1) {
             {
                 if (end == 0)
                 {
-                    nop_print(string(stringify));
+                    puts(string(stringify));
                 }
                 else
                 {
@@ -44,7 +44,7 @@ export readonly var print = fun (value, end = 1) {
             var stringify = string(value);
             if (end == 0)
             {
-                nop_print(stringify);
+                puts(stringify);
             }
             else
             {
@@ -57,7 +57,7 @@ export readonly var print = fun (value, end = 1) {
         var stringify = string(value);
         if (end == 0)
         {
-            nop_print(stringify);
+            puts(stringify);
         }
         else
         {

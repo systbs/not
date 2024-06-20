@@ -25,12 +25,13 @@ make test
 Open source software is made better when users can easily contribute code and documentation to fix bugs and add features. 'Not' strongly encourages community involvement in improving the software.
 
 ## Sample Code
+set "NOT_LIBRARY_PATH" in file "etc/environment" to path of lib folder
 ```not
 // import forigen function: on windows use "~/lib/c/shared_win.json"
 using println, add from "~/lib/c/shared.json";
 
-// import, if use windows import "~/lib/os/windows.not";
-using print from "~/lib/os/unix.not";
+// import, if use windows import "~/os/windows/system.not";
+using print from "~/os/system.not";
 
 // convert string to float
 var b1 = float ("12e-1");

@@ -3523,9 +3523,7 @@ not_semantic_package(not_node_t *node)
                     not_node_block_t *packages1 = (not_node_block_t *)using1->packages->value;
                     for (not_node_t *item2 = packages1->items; item2 != NOT_PTR_NULL; item2 = item2->next)
                     {
-                        assert(item2->kind == NODE_KIND_PACKAGE);
-
-                        not_node_package_t *package2 = (not_node_package_t *)item1->value;
+                        not_node_package_t *package2 = (not_node_package_t *)item2->value;
                         if (not_semantic_idcmp(package1->key, package2->key) == 1)
                         {
                             not_node_basic_t *basic1 = (not_node_basic_t *)package1->key->value;
@@ -3669,7 +3667,6 @@ not_semantic_using(not_node_t *node)
     {
         return -1;
     }
-
     return 0;
 }
 

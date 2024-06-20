@@ -241,8 +241,12 @@ not_config_init()
         {
             char dir_path[MAX_PATH];
             not_path_get_directory_path(path, dir_path, MAX_PATH);
-            strcpy(config->library_path, dir_path);
-            set_system_environment_variable(ENV_LIBRARY_KEY, dir_path);
+
+            char full_path[MAX_PATH];
+            not_path_join(dir_path, "./lib", full_path, MAX_PATH);
+
+            strcpy(config->library_path, full_path);
+            set_system_environment_variable(ENV_LIBRARY_KEY, full_path);
         }
         else
         {
@@ -258,8 +262,11 @@ not_config_init()
             char dir_path[MAX_PATH];
             not_path_get_directory_path(path, dir_path, MAX_PATH);
 
-            strcpy(config->library_path, dir_path);
-            set_system_environment_variable(ENV_LIBRARY_KEY, dir_path);
+            char full_path[MAX_PATH];
+            not_path_join(dir_path, "./lib", full_path, MAX_PATH);
+
+            strcpy(config->library_path, full_path);
+            set_system_environment_variable(ENV_LIBRARY_KEY, full_path);
         }
         else
         {
@@ -272,8 +279,11 @@ not_config_init()
             char dir_path[MAX_PATH];
             not_path_get_directory_path(path, dir_path, MAX_PATH);
 
-            strcpy(config->library_path, dir_path);
-            set_system_environment_variable(ENV_LIBRARY_KEY, dir_path);
+            char full_path[MAX_PATH];
+            not_path_join(dir_path, "./lib", full_path, MAX_PATH);
+
+            strcpy(config->library_path, full_path);
+            set_system_environment_variable(ENV_LIBRARY_KEY, full_path);
         }
         else
         {
