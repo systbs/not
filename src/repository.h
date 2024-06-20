@@ -34,7 +34,7 @@ not_repository_t *
 not_repository_get();
 
 not_module_t *
-not_repository_load(char *path);
+not_repository_load(char *base, char *path);
 
 void not_repository_destroy();
 

@@ -29,8 +29,8 @@ Open source software is made better when users can easily contribute code and do
 // import forigen function: on windows use "~/lib/c/shared_win.json"
 using println, add from "~/lib/c/shared.json";
 
-// import, if use windows import "~/lib/os/essential_win.not";
-using print from "~/lib/os/essential.not";
+// import, if use windows import "~/lib/os/windows.not";
+using print from "~/lib/os/unix.not";
 
 // convert string to float
 var b1 = float ("12e-1");

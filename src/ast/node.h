@@ -315,6 +315,7 @@ typedef struct not_node_package
 
 typedef struct not_node_using
 {
+	char *base;
 	not_node_t *path;
 	not_node_t *packages;
 } not_node_using_t;
@@ -597,7 +598,7 @@ not_node_t *
 not_node_make_packages(not_node_t *node, not_node_t *items);
 
 not_node_t *
-not_node_make_using(not_node_t *node, not_node_t *path, not_node_t *packages);
+not_node_make_using(not_node_t *node, char *base, not_node_t *path, not_node_t *packages);
 
 not_node_t *
 not_node_make_body(not_node_t *node, not_node_t *declaration);

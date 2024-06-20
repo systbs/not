@@ -4293,7 +4293,7 @@ not_syntax_using(not_syntax_t *syntax, not_node_t *parent)
 		return NOT_PTR_ERROR;
 	}
 
-	return not_node_make_using(node, path, packages);
+	return not_node_make_using(node, syntax->scanner->path, path, packages);
 }
 
 static not_node_t *

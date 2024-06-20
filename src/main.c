@@ -76,7 +76,10 @@ int main(int argc, char **argv)
 		goto region_error;
 	}
 
-	if (NOT_PTR_ERROR == not_repository_load(not_config_get_input_file()))
+	char directory_path[MAX_PATH];
+	not_path_get_current_directory(directory_path, MAX_PATH);
+
+	if (NOT_PTR_ERROR == not_repository_load(directory_path, not_config_get_input_file()))
 	{
 		goto region_error;
 	}

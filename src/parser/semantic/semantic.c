@@ -3664,10 +3664,9 @@ not_semantic_using(not_node_t *node)
     not_node_t *node1 = using1->path;
     not_node_basic_t *basic1 = (not_node_basic_t *)node1->value;
 
-    not_module_t *module_entry = not_repository_load(basic1->value);
+    not_module_t *module_entry = not_repository_load(using1->base, basic1->value);
     if (module_entry == NOT_PTR_ERROR)
     {
-        not_error_semantic_by_node(node, "Error:incapable of loading the modulus");
         return -1;
     }
 

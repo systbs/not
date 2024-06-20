@@ -576,7 +576,8 @@ not_primary_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                             if (not_helper_id_cmp(package1->key, name) == 0)
                             {
                                 not_node_basic_t *basic1 = (not_node_basic_t *)using1->path->value;
-                                not_module_t *entry = not_repository_load(basic1->value);
+
+                                not_module_t *entry = not_repository_load(using1->base, basic1->value);
                                 if (entry == NOT_PTR_ERROR)
                                 {
                                     return NOT_PTR_ERROR;

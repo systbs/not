@@ -1,4 +1,4 @@
-using println, nop_print:print from "~/lib/c/shared_win.json";
+using println, nop_print:print from "./windows/shared.json";
 
 export readonly var print = fun (value, end = 1) {
     if (value instanceof string)

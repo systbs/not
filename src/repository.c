@@ -58,7 +58,7 @@ not_repository_get()
 }
 
 not_module_t *
-not_repository_load(char *path)
+not_repository_load(char *base, char *path)
 {
     char base_file[MAX_PATH];
 
@@ -70,11 +70,11 @@ not_repository_load(char *path)
     }
     else
     {
-        char base_path[MAX_PATH];
-        not_path_get_current_directory(base_path, MAX_PATH);
+        char directory_path[MAX_PATH];
+        not_path_get_directory_path(base, directory_path, MAX_PATH);
         if (not_path_is_relative(path))
         {
-            not_path_join(base_path, path, base_file, MAX_PATH);
+            not_path_join(directory_path, path, base_file, MAX_PATH);
         }
         else
         {
