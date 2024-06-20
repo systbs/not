@@ -130,7 +130,14 @@ not_repository_load(char *base, char *path)
 
     not_memory_free(data);
 
-    json_t *json_path = json_object_get(root, "path");
+#if defined(_WIN32) || defined(_WIN64)
+    json_t *json_path = json_object_get(root, "windows_path");
+#elif defined(__APPLE__) || defined(__MACH__)
+    json_t *json_path = json_object_get(root, "macos_path");
+#else
+    json_t *json_path = json_object_get(root, "linux_path");
+#endif
+
     if (!json_is_string(json_path))
     {
         not_error_system("'json' path is not of string type in: %s", base_file);

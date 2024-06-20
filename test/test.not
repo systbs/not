@@ -1,4 +1,3 @@
-// import, if use windows import "~/os/windows/system.not";
 using print from "~/os/system.not";
 
 // convert string to float

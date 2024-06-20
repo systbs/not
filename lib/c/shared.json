@@ -1,7 +1,9 @@
 {
     "name": "shared",
     "version": 1,
-    "path": "shared.so",
+    "linux_path": "shared.so",
+    "windows_path": "shared.dll",
+    "macos_path": "shared.dylib",
     "functions": [
         {
             "name": "print",
