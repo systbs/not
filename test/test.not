@@ -1,8 +1,5 @@
 // import
-using param2: param from "~/lib/types/primary.not";
-
-// on windows use "~/lib/c/shared_win.json"
-using println, add from "~/lib/c/shared.json";
+using print from "~/lib/os/essential.not";
 
 // convert string to float
 var b1 = float ("12e-1");
@@ -13,9 +10,7 @@ var b2 = int ("12345");
 // round
 var b3 = float (1.3451, 2);
 
-var b4 = add(1, 2);
-
-println("hello world" + " " + b1 + " " + b2 + " " + b3 + " " + param2 + " " + b4);
+print("hello world" + " " + b1 + " " + b2 + " " + b3 + " ", end = 1);
 
 // types
 
@@ -89,15 +84,15 @@ class A<T> extends (b1:B)
 var fun1 = fun fun2 (p1:int) {
 	if (p1 > 0)
 	{
-		println("f = " + p1);
+		print("f = " + p1, end = 1);
 		return fun2(p1 - 1);
 	}
-	println("f2 = " + p1);
+	print("f2 = " + p1, end = 1);
 	return p1 * 1000;
 };
 
 var f1 = fun1(100);
-println("f1 = " + f1);
+print("f1 = " + f1, end = 1);
 
 // new class
 var f2 = A<int>(100000);
@@ -113,7 +108,7 @@ var f6 = f4[2];
 // slice -> [start, stop, step]
 var f7 = a5[1, 2]; 
 var f8 = a5[1, -1, 1];
-println(string (f8));
+print(f8, end = 1);
 
 export var sum = 0;
 
@@ -135,13 +130,13 @@ try {
 }
 catch(ex)
 {
-	println(string(ex));
+	print(ex, end = 1);
 }
 
 // forin loop
 for loop1 (var key, value in ["hello", "world", 123])
 {
-	println(string(value));
+	print(value, end = 1);
 }
 
 var a7 = {a:1};
@@ -149,9 +144,9 @@ var a7 = {a:1};
 a7.Remove(key = "a");
 a7.Add("b", 123);
 
-println(string(a7));
+print(a7, end = 1);
 
 var a8 = [0];
 a8.Set(1, 10).Append(15);
 
-println(string(a8) + " " + a8.Count());
+print(string(a8) + " " + a8.Count(), end = 1);

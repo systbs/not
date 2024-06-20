@@ -28,7 +28,7 @@
 #include "execute.h"
 
 not_record_t *
-not_execute_expression(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_expression(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    return not_execute_conditional(node, strip, applicant, origin);
+    return not_conditional(node, strip, applicant, origin);
 }

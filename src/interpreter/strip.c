@@ -349,9 +349,27 @@ not_strip_destroy(not_strip_t *strip)
     return 0;
 }
 
+void not_strip_attach(not_strip_t *strip, not_strip_t *previous)
+{
+    not_strip_t *strip_itr = strip;
+    while (strip_itr && strip_itr->previous)
+    {
+        strip_itr = strip_itr->previous;
+    }
+    if (strip_itr)
+    {
+        strip_itr->previous = previous;
+    }
+}
+
 not_strip_t *
 not_strip_copy(not_strip_t *strip)
 {
+    if (strip == NOT_PTR_NULL)
+    {
+        return NOT_PTR_NULL;
+    }
+
     not_strip_t *strip_previous = NOT_PTR_NULL;
     if (strip->previous)
     {

@@ -202,18 +202,18 @@ not_execute_land(not_node_t *node, not_record_t *left, not_record_t *right, not_
 }
 
 not_record_t *
-not_execute_logical_and(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_logical_and(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_LAND)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_logical_and(binary->left, strip, applicant, origin);
+        not_record_t *left = not_logical_and(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *right = not_execute_bitwise_or(binary->right, strip, applicant, origin);
+        not_record_t *right = not_bitwise_or(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
@@ -224,6 +224,6 @@ not_execute_logical_and(not_node_t *node, not_strip_t *strip, not_node_t *applic
     }
     else
     {
-        return not_execute_bitwise_or(node, strip, applicant, origin);
+        return not_bitwise_or(node, strip, applicant, origin);
     }
 }

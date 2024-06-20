@@ -28,13 +28,13 @@
 #include "execute.h"
 
 not_record_t *
-not_execute_conditional(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_conditional(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_CONDITIONAL)
     {
         not_node_triple_t *triple = (not_node_triple_t *)node->value;
 
-        not_record_t *condition = not_execute_instanceof(triple->base, strip, applicant, origin);
+        not_record_t *condition = not_instanceof(triple->base, strip, applicant, origin);
         if (condition == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;
@@ -48,15 +48,15 @@ not_execute_conditional(not_node_t *node, not_strip_t *strip, not_node_t *applic
 
         if (truthy)
         {
-            return not_execute_conditional(triple->left, strip, applicant, origin);
+            return not_conditional(triple->left, strip, applicant, origin);
         }
         else
         {
-            return not_execute_conditional(triple->right, strip, applicant, origin);
+            return not_conditional(triple->right, strip, applicant, origin);
         }
     }
     else
     {
-        return not_execute_instanceof(node, strip, applicant, origin);
+        return not_instanceof(node, strip, applicant, origin);
     }
 }

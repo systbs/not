@@ -1,0 +1,67 @@
+using println, nop_print:print from "~/lib/c/shared.json";
+
+export readonly var print = fun (value, end = 0) {
+    if (value instanceof string)
+    {
+        if (end == 0)
+        {
+            nop_print(value);
+        }
+        else
+        {
+            println(value);
+        }
+    }
+    else if (typeof value == "struct")
+    {
+        try {
+            var stringify = value.ToString();
+            if (stringify instanceof string)
+            {
+                if (end == 0)
+                {
+                    nop_print(stringify);
+                }
+                else
+                {
+                    println(stringify);
+                }
+            }
+            else
+            {
+                if (end == 0)
+                {
+                    nop_print(string(stringify));
+                }
+                else
+                {
+                    println(string(stringify));
+                }
+            }
+        }
+        catch (ex)
+        {
+            var stringify = string(value);
+            if (end == 0)
+            {
+                nop_print(stringify);
+            }
+            else
+            {
+                println(stringify);
+            }
+        }
+    }
+    else
+    {
+        var stringify = string(value);
+        if (end == 0)
+        {
+            nop_print(stringify);
+        }
+        else
+        {
+            println(stringify);
+        }
+    }
+};

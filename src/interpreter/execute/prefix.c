@@ -164,7 +164,7 @@ size_of(not_record_t *record, size_t *size)
 }
 
 not_record_t *
-not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_TILDE)
     {
@@ -176,7 +176,7 @@ not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *right = not_execute_prefix(unary->right, strip, applicant, origin);
+        not_record_t *right = not_prefix(unary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
@@ -207,14 +207,14 @@ not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *right = not_execute_prefix(unary->right, strip, applicant, origin);
+        not_record_t *right = not_prefix(unary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *record = not_execute_plus(node, left, right, applicant);
+        not_record_t *record = not_addative_plus(node, left, right, applicant);
 
         if (not_record_link_decrease(left) < 0)
         {
@@ -238,14 +238,14 @@ not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *right = not_execute_prefix(unary->right, strip, applicant, origin);
+        not_record_t *right = not_prefix(unary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *record = not_execute_minus(node, left, right, applicant);
+        not_record_t *record = not_addative_minus(node, left, right, applicant);
 
         if (not_record_link_decrease(left) < 0)
         {
@@ -269,14 +269,14 @@ not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *right = not_execute_prefix(unary->right, strip, applicant, origin);
+        not_record_t *right = not_prefix(unary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *record = not_execute_eq(node, left, right, applicant);
+        not_record_t *record = not_equality_eq(node, left, right, applicant);
 
         if (not_record_link_decrease(left) < 0)
         {
@@ -294,7 +294,7 @@ not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_unary_t *unary = (not_node_unary_t *)node->value;
 
-        not_record_t *right = not_execute_prefix(unary->right, strip, applicant, origin);
+        not_record_t *right = not_prefix(unary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;
@@ -324,7 +324,7 @@ not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_unary_t *unary = (not_node_unary_t *)node->value;
 
-        not_record_t *right = not_execute_prefix(unary->right, strip, applicant, origin);
+        not_record_t *right = not_prefix(unary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;
@@ -383,6 +383,6 @@ not_execute_prefix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     }
     else
     {
-        return not_execute_postfix(node, strip, applicant, origin);
+        return not_postfix(node, strip, applicant, origin);
     }
 }

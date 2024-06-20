@@ -2413,13 +2413,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     if (node->kind == NODE_KIND_ASSIGN)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
+        not_record_t *left = not_expression(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
-        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2459,13 +2459,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     else if (node->kind == NODE_KIND_ADD_ASSIGN)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
+        not_record_t *left = not_expression(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
-        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2475,7 +2475,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        not_record_t *result = not_execute_plus(node, left, right, applicant);
+        not_record_t *result = not_addative_plus(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2515,13 +2515,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     else if (node->kind == NODE_KIND_SUB_ASSIGN)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
+        not_record_t *left = not_expression(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
-        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2531,7 +2531,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        not_record_t *result = not_execute_minus(node, left, right, applicant);
+        not_record_t *result = not_addative_minus(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2571,13 +2571,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     else if (node->kind == NODE_KIND_MUL_ASSIGN)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
+        not_record_t *left = not_expression(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
-        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2587,7 +2587,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        not_record_t *result = not_execute_mul(node, left, right, applicant);
+        not_record_t *result = not_multipicative_mul(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2627,13 +2627,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     else if (node->kind == NODE_KIND_DIV_ASSIGN)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
+        not_record_t *left = not_expression(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
-        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2643,7 +2643,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        not_record_t *result = not_execute_plus(node, left, right, applicant);
+        not_record_t *result = not_addative_plus(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2683,13 +2683,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     else if (node->kind == NODE_KIND_EPI_ASSIGN)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
+        not_record_t *left = not_expression(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
-        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2699,7 +2699,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        not_record_t *result = not_execute_epi(node, left, right, applicant);
+        not_record_t *result = not_multipicative_epi(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2739,13 +2739,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     else if (node->kind == NODE_KIND_MOD_ASSIGN)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
+        not_record_t *left = not_expression(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
-        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2755,7 +2755,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        not_record_t *result = not_execute_mod(node, left, right, applicant);
+        not_record_t *result = not_multipicative_mod(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2795,13 +2795,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     else if (node->kind == NODE_KIND_POW_ASSIGN)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
+        not_record_t *left = not_expression(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
-        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2811,7 +2811,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        not_record_t *result = not_execute_pow(node, left, right, applicant);
+        not_record_t *result = not_power_pow(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2851,13 +2851,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     else if (node->kind == NODE_KIND_SHL_ASSIGN)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
+        not_record_t *left = not_expression(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
-        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2867,7 +2867,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        not_record_t *result = not_execute_shl(node, left, right, applicant);
+        not_record_t *result = not_shifting_shl(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2907,13 +2907,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     else if (node->kind == NODE_KIND_SHR_ASSIGN)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
+        not_record_t *left = not_expression(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
-        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2923,7 +2923,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        not_record_t *result = not_execute_shr(node, left, right, applicant);
+        not_record_t *result = not_shifting_shr(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -2963,13 +2963,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     else if (node->kind == NODE_KIND_AND_ASSIGN)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
+        not_record_t *left = not_expression(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
-        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -3019,13 +3019,13 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     else if (node->kind == NODE_KIND_OR_ASSIGN)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_expression(binary->left, strip, applicant, origin);
+        not_record_t *left = not_expression(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return -1;
         }
 
-        not_record_t *right = not_execute_expression(binary->right, strip, applicant, origin);
+        not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             if (not_record_link_decrease(left) < 0)
@@ -3074,7 +3074,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     }
     else
     {
-        not_record_t *value = not_execute_expression(node, strip, applicant, origin);
+        not_record_t *value = not_expression(node, strip, applicant, origin);
         if (value == NOT_PTR_ERROR)
         {
             return -1;

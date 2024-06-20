@@ -48,33 +48,20 @@ not_call_for_bracket(not_node_t *base, not_node_t *arguments, not_strip_t *strip
                     return NOT_PTR_ERROR;
                 }
 
-                not_strip_t *strip_fun = not_strip_create(strip_copy);
-                if (strip_fun == NOT_PTR_ERROR)
+                if (not_call_parameters_subs(base, item, strip_copy, fun1->parameters, arguments, applicant) < 0)
                 {
+                    not_strip_destroy(strip_copy);
                     return NOT_PTR_ERROR;
                 }
 
-                if (not_call_parameters_subs(base, item, strip_fun, fun1->parameters, arguments, applicant) < 0)
-                {
-                    if (not_strip_destroy(strip_fun) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
-                    return NOT_PTR_ERROR;
-                }
-
-                int32_t r1 = not_execute_run_fun(item, strip_fun, applicant);
+                int32_t r1 = not_execute_fun(item, strip_copy, applicant);
                 if (r1 == -1)
                 {
-                    if (not_strip_destroy(strip_fun) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
-
+                    not_strip_destroy(strip_copy);
                     return NOT_PTR_ERROR;
                 }
 
-                if (not_strip_destroy(strip_fun) < 0)
+                if (not_strip_destroy(strip_copy) < 0)
                 {
                     return NOT_PTR_ERROR;
                 }
@@ -114,11 +101,11 @@ record_to_mpz(not_record_t *value, mpz_t num)
 }
 
 not_record_t *
-not_execute_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     not_node_carrier_t *carrier = (not_node_carrier_t *)node->value;
 
-    not_record_t *base = not_execute_expression(carrier->base, strip, applicant, origin);
+    not_record_t *base = not_expression(carrier->base, strip, applicant, origin);
     if (base == NOT_PTR_ERROR)
     {
         return NOT_PTR_ERROR;
@@ -182,7 +169,7 @@ not_execute_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, n
                 return NOT_PTR_ERROR;
             }
 
-            not_record_t *record_arg = not_execute_expression(argument->key, strip, applicant, origin);
+            not_record_t *record_arg = not_expression(argument->key, strip, applicant, origin);
             if (record_arg == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(base) < 0)
@@ -289,7 +276,7 @@ not_execute_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, n
                     return NOT_PTR_ERROR;
                 }
 
-                not_record_t *record_arg = not_execute_expression(argument->key, strip, applicant, origin);
+                not_record_t *record_arg = not_expression(argument->key, strip, applicant, origin);
                 if (record_arg == NOT_PTR_ERROR)
                 {
                     mpz_clears(start, stop, step);
@@ -647,7 +634,7 @@ not_execute_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, n
                     return NOT_PTR_ERROR;
                 }
 
-                not_record_t *record_arg = not_execute_expression(argument->key, strip, applicant, origin);
+                not_record_t *record_arg = not_expression(argument->key, strip, applicant, origin);
                 if (record_arg == NOT_PTR_ERROR)
                 {
                     mpz_clears(start, stop, step);

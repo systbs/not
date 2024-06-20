@@ -60,7 +60,7 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
 
                 if (parameter->type)
                 {
-                    not_record_t *record_parameter_type = not_execute_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                    not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                     if (record_parameter_type == NOT_PTR_ERROR)
                     {
                         if (not_record_link_decrease(record_arg) < 0)
@@ -263,7 +263,7 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
 
             if (parameter->type)
             {
-                not_record_t *record_parameter_type = not_execute_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                 if (record_parameter_type == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_arg) < 0)
@@ -443,7 +443,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
 
                 if (parameter->type)
                 {
-                    not_record_t *record_parameter_type = not_execute_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                    not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                     if (record_parameter_type == NOT_PTR_ERROR)
                     {
                         if (not_record_link_decrease(record_arg) < 0)
@@ -662,7 +662,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
 
             if (parameter->type)
             {
-                not_record_t *record_parameter_type = not_execute_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                 if (record_parameter_type == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_arg) < 0)
@@ -825,7 +825,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
             {
                 if (parameter->value)
                 {
-                    not_record_t *record_arg = not_execute_expression(parameter->value, strip, applicant, NOT_PTR_NULL);
+                    not_record_t *record_arg = not_expression(parameter->value, strip, applicant, NOT_PTR_NULL);
                     if (record_arg == NOT_PTR_ERROR)
                     {
                         return -1;
@@ -833,7 +833,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
 
                     if (parameter->type)
                     {
-                        not_record_t *record_parameter_type = not_execute_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                        not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                         if (record_parameter_type == NOT_PTR_ERROR)
                         {
                             if (not_record_link_decrease(record_arg) < 0)
@@ -1130,7 +1130,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                 break;
                             }
 
-                            not_record_t *record_arg = not_execute_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                            not_record_t *record_arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
                             if (record_arg == NOT_PTR_ERROR)
                             {
                                 return -1;
@@ -1138,7 +1138,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
 
                             if (parameter->type)
                             {
-                                not_record_t *record_parameter_type = not_execute_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                                not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                                 if (record_parameter_type == NOT_PTR_ERROR)
                                 {
                                     if (not_record_link_decrease(record_arg) < 0)
@@ -1361,7 +1361,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                             {
                                 found = 1;
 
-                                not_record_t *record_arg = not_execute_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                                not_record_t *record_arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
                                 if (record_arg == NOT_PTR_ERROR)
                                 {
                                     return -1;
@@ -1369,7 +1369,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
 
                                 if (parameter->type)
                                 {
-                                    not_record_t *record_parameter_type = not_execute_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                                    not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                                     if (record_parameter_type == NOT_PTR_ERROR)
                                     {
                                         if (not_record_link_decrease(record_arg) < 0)
@@ -1556,7 +1556,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                         {
                             argument = (not_node_argument_t *)item2->value;
 
-                            not_record_t *record_arg = not_execute_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+                            not_record_t *record_arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
                             if (record_arg == NOT_PTR_ERROR)
                             {
                                 return -1;
@@ -1564,7 +1564,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
 
                             if (parameter->type)
                             {
-                                not_record_t *record_parameter_type = not_execute_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                                not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                                 if (record_parameter_type == NOT_PTR_ERROR)
                                 {
                                     if (not_record_link_decrease(record_arg) < 0)
@@ -1778,7 +1778,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                     }
                     else if ((parameter->flag & SYNTAX_MODIFIER_KWARG) == SYNTAX_MODIFIER_KWARG)
                     {
-                        not_record_t *record_arg = not_execute_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+                        not_record_t *record_arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
                         if (record_arg == NOT_PTR_ERROR)
                         {
                             return -1;
@@ -1795,7 +1795,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                     }
                     else
                     {
-                        not_record_t *record_arg = not_execute_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+                        not_record_t *record_arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
                         if (record_arg == NOT_PTR_ERROR)
                         {
                             return -1;
@@ -1803,7 +1803,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
 
                         if (parameter->type)
                         {
-                            not_record_t *record_parameter_type = not_execute_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                            not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                             if (record_parameter_type == NOT_PTR_ERROR)
                             {
                                 if (not_record_link_decrease(record_arg) < 0)
@@ -1971,7 +1971,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
             {
                 if (parameter->value)
                 {
-                    not_record_t *record_arg = not_execute_expression(parameter->value, strip, applicant, NOT_PTR_NULL);
+                    not_record_t *record_arg = not_expression(parameter->value, strip, applicant, NOT_PTR_NULL);
                     if (record_arg == NOT_PTR_ERROR)
                     {
                         return -1;
@@ -1979,7 +1979,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
 
                     if (parameter->type)
                     {
-                        not_record_t *record_parameter_type = not_execute_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                        not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                         if (record_parameter_type == NOT_PTR_ERROR)
                         {
                             if (not_record_link_decrease(record_arg) < 0)
@@ -2161,7 +2161,7 @@ not_call_heritage_subs(not_node_t *scope, not_strip_t *strip, not_node_t *node, 
 {
     not_node_heritage_t *heritage = (not_node_heritage_t *)node->value;
 
-    not_record_t *record_heritage = not_execute_expression(heritage->type, strip, applicant, NOT_PTR_NULL);
+    not_record_t *record_heritage = not_expression(heritage->type, strip, applicant, NOT_PTR_NULL);
     if (record_heritage == NOT_PTR_ERROR)
     {
         return -1;
@@ -2254,7 +2254,7 @@ not_call_property_subs(not_node_t *scope, not_strip_t *strip, not_node_t *node, 
     if (property->value)
     {
 
-        record_value = not_execute_expression(property->value, strip, applicant, NOT_PTR_NULL);
+        record_value = not_expression(property->value, strip, applicant, NOT_PTR_NULL);
         if (record_value == NOT_PTR_ERROR)
         {
             return -1;
@@ -2262,7 +2262,7 @@ not_call_property_subs(not_node_t *scope, not_strip_t *strip, not_node_t *node, 
 
         if (property->type)
         {
-            not_record_t *record_parameter_type = not_execute_expression(property->type, strip, applicant, NOT_PTR_NULL);
+            not_record_t *record_parameter_type = not_expression(property->type, strip, applicant, NOT_PTR_NULL);
             if (record_parameter_type == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(record_value) < 0)
@@ -2485,37 +2485,20 @@ not_call_operator_by_one_arg(not_node_t *base, not_record_t *content, not_record
                     return NOT_PTR_ERROR;
                 }
 
-                not_strip_t *strip_fun = not_strip_create(strip_copy);
-                if (strip_fun == NOT_PTR_ERROR)
+                if (not_call_parameters_subs_by_one_arg(base, item, strip_copy, fun1->parameters, arg, applicant) < 0)
                 {
-                    if (not_strip_destroy(strip_copy) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    not_strip_destroy(strip_copy);
                     return NOT_PTR_ERROR;
                 }
 
-                if (not_call_parameters_subs_by_one_arg(base, item, strip_fun, fun1->parameters, arg, applicant) < 0)
-                {
-                    if (not_strip_destroy(strip_fun) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
-                    return NOT_PTR_ERROR;
-                }
-
-                int32_t r1 = not_execute_run_fun(item, strip_fun, applicant);
+                int32_t r1 = not_execute_fun(item, strip_copy, applicant);
                 if (r1 == -1)
                 {
-                    if (not_strip_destroy(strip_fun) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
-
+                    not_strip_destroy(strip_copy);
                     return NOT_PTR_ERROR;
                 }
 
-                if (not_strip_destroy(strip_fun) < 0)
+                if (not_strip_destroy(strip_copy) < 0)
                 {
                     return NOT_PTR_ERROR;
                 }
@@ -2578,24 +2561,10 @@ not_call_class(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_
                     return NOT_PTR_ERROR;
                 }
 
-                not_strip_t *strip_fun = not_strip_create(strip_copy);
-                if (strip_fun == NOT_PTR_ERROR)
+                if (not_call_parameters_subs(base, item, strip_copy, fun1->parameters, arguments, applicant) < 0)
                 {
-                    if (not_record_link_decrease(content) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
                     if (not_strip_destroy(strip_copy) < 0)
                     {
-                        return NOT_PTR_ERROR;
-                    }
-                    return NOT_PTR_ERROR;
-                }
-
-                if (not_call_parameters_subs(base, item, strip_fun, fun1->parameters, arguments, applicant) < 0)
-                {
-                    if (not_strip_destroy(strip_fun) < 0)
-                    {
                         if (not_record_link_decrease(content) < 0)
                         {
                             return NOT_PTR_ERROR;
@@ -2608,10 +2577,10 @@ not_call_class(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_
                     }
                     return NOT_PTR_ERROR;
                 }
-                int32_t r1 = not_execute_run_fun(item, strip_fun, applicant);
+                int32_t r1 = not_execute_fun(item, strip_copy, applicant);
                 if (r1 == -1)
                 {
-                    if (not_strip_destroy(strip_fun) < 0)
+                    if (not_strip_destroy(strip_copy) < 0)
                     {
                         if (not_record_link_decrease(content) < 0)
                         {
@@ -2628,7 +2597,7 @@ not_call_class(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_
                     return NOT_PTR_ERROR;
                 }
 
-                if (not_strip_destroy(strip_fun) < 0)
+                if (not_strip_destroy(strip_copy) < 0)
                 {
                     if (not_record_link_decrease(content) < 0)
                     {
@@ -2679,36 +2648,20 @@ not_call_fun(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_no
         return NOT_PTR_ERROR;
     }
 
-    not_strip_t *strip_lambda = not_strip_create(strip_copy);
-    if (strip_lambda == NOT_PTR_ERROR)
+    if (not_call_parameters_subs(base, node, strip_copy, fun1->parameters, arguments, applicant) < 0)
     {
-        if (not_strip_destroy(strip_copy) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
+        not_strip_destroy(strip_copy);
         return NOT_PTR_ERROR;
     }
 
-    if (not_call_parameters_subs(base, node, strip_lambda, fun1->parameters, arguments, applicant) < 0)
-    {
-        if (not_strip_destroy(strip_lambda) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
-        return NOT_PTR_ERROR;
-    }
-
-    int32_t r1 = not_execute_run_fun(node, strip_lambda, applicant);
+    int32_t r1 = not_execute_fun(node, strip_copy, applicant);
     if (r1 == -1)
     {
-        if (not_strip_destroy(strip_lambda) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
+        not_strip_destroy(strip_copy);
         return NOT_PTR_ERROR;
     }
 
-    if (not_strip_destroy(strip_lambda) < 0)
+    if (not_strip_destroy(strip_copy) < 0)
     {
         return NOT_PTR_ERROR;
     }
@@ -2741,36 +2694,20 @@ not_call_lambda(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not
         return NOT_PTR_ERROR;
     }
 
-    not_strip_t *strip_lambda = not_strip_create(strip_copy);
-    if (strip_lambda == NOT_PTR_ERROR)
+    if (not_call_parameters_subs(base, node, strip_copy, fun1->parameters, arguments, applicant) < 0)
     {
-        if (not_strip_destroy(strip_copy) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
+        not_strip_destroy(strip_copy);
         return NOT_PTR_ERROR;
     }
 
-    if (not_call_parameters_subs(base, node, strip_lambda, fun1->parameters, arguments, applicant) < 0)
-    {
-        if (not_strip_destroy(strip_lambda) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
-        return NOT_PTR_ERROR;
-    }
-
-    int32_t r1 = not_execute_run_lambda(node, strip_lambda, applicant);
+    int32_t r1 = not_execute_lambda(node, strip_copy, applicant);
     if (r1 == -1)
     {
-        if (not_strip_destroy(strip_lambda) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
+        not_strip_destroy(strip_copy);
         return NOT_PTR_ERROR;
     }
 
-    if (not_strip_destroy(strip_lambda) < 0)
+    if (not_strip_destroy(strip_copy) < 0)
     {
         return NOT_PTR_ERROR;
     }
@@ -3197,7 +3134,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                             break;
                         }
 
-                        not_record_t *record_arg = not_execute_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                        not_record_t *record_arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
                         if (record_arg == NOT_PTR_ERROR)
                         {
                             not_error_no_memory();
@@ -3360,7 +3297,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                         {
                             found = 1;
 
-                            not_record_t *record_arg = not_execute_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                            not_record_t *record_arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
                             if (record_arg == NOT_PTR_ERROR)
                             {
                                 not_error_no_memory();
@@ -3463,7 +3400,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                             break;
                         }
 
-                        not_record_t *record_arg = not_execute_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+                        not_record_t *record_arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
                         if (record_arg == NOT_PTR_ERROR)
                         {
                             not_error_no_memory();
@@ -3599,7 +3536,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                 }
                 else
                 {
-                    not_record_t *record_arg = not_execute_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+                    not_record_t *record_arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
                     if (record_arg == NOT_PTR_ERROR)
                     {
                         not_error_no_memory();
@@ -3675,7 +3612,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
             continue;
 
         region_enable_vararg:
-            not_record_t *record_arg = not_execute_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *record_arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
             if (record_arg == NOT_PTR_ERROR)
             {
                 not_error_no_memory();
@@ -3864,7 +3801,7 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
 {
     not_node_carrier_t *carrier = (not_node_carrier_t *)node->value;
 
-    not_record_t *record_base = not_execute_expression(carrier->base, strip, applicant, origin);
+    not_record_t *record_base = not_expression(carrier->base, strip, applicant, origin);
     if (record_base == NOT_PTR_ERROR)
     {
         return NOT_PTR_ERROR;
@@ -3877,8 +3814,32 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
 
         if (type->kind == NODE_KIND_CLASS)
         {
-            not_strip_t *strip_new = (not_strip_t *)record_type->value;
-            not_record_t *result = not_call_class(node, carrier->data, strip_new, type, applicant);
+            not_strip_t *strip_copy = not_strip_copy((not_strip_t *)record_type->value);
+            if (strip_copy == NOT_PTR_ERROR)
+            {
+                return NOT_PTR_ERROR;
+            }
+
+            not_strip_t *strip_local = not_strip_copy(strip);
+            if (strip_local == NOT_PTR_ERROR)
+            {
+                return NOT_PTR_ERROR;
+            }
+
+            not_strip_attach(strip_copy, strip_local);
+
+            not_record_t *result = not_call_class(node, carrier->data, strip_copy, type, applicant);
+
+            if (not_strip_destroy(strip_copy) < 0)
+            {
+                if (result != NOT_PTR_ERROR)
+                {
+                    not_record_link_decrease(result);
+                }
+                not_record_link_decrease(record_base);
+                return NOT_PTR_ERROR;
+            }
+
             if (not_record_link_decrease(record_base) < 0)
             {
                 return NOT_PTR_ERROR;
@@ -3892,8 +3853,31 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
         }
         else if (type->kind == NODE_KIND_FUN)
         {
-            not_strip_t *strip_new = (not_strip_t *)record_type->value;
-            not_record_t *result = not_call_fun(node, carrier->data, strip_new, type, applicant);
+            not_strip_t *strip_copy = not_strip_copy((not_strip_t *)record_type->value);
+            if (strip_copy == NOT_PTR_ERROR)
+            {
+                return NOT_PTR_ERROR;
+            }
+
+            not_strip_t *strip_local = not_strip_copy(strip);
+            if (strip_local == NOT_PTR_ERROR)
+            {
+                return NOT_PTR_ERROR;
+            }
+
+            not_strip_attach(strip_copy, strip_local);
+
+            not_record_t *result = not_call_fun(node, carrier->data, strip_copy, type, applicant);
+
+            if (not_strip_destroy(strip_copy) < 0)
+            {
+                if (result != NOT_PTR_ERROR)
+                {
+                    not_record_link_decrease(result);
+                }
+                not_record_link_decrease(record_base);
+                return NOT_PTR_ERROR;
+            }
 
             if (not_record_link_decrease(record_base) < 0)
             {
@@ -3909,8 +3893,31 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
         }
         else if (type->kind == NODE_KIND_LAMBDA)
         {
-            not_strip_t *strip_new = (not_strip_t *)record_type->value;
-            not_record_t *result = not_call_lambda(node, carrier->data, strip_new, type, applicant);
+            not_strip_t *strip_copy = not_strip_copy((not_strip_t *)record_type->value);
+            if (strip_copy == NOT_PTR_ERROR)
+            {
+                return NOT_PTR_ERROR;
+            }
+
+            not_strip_t *strip_local = not_strip_copy(strip);
+            if (strip_local == NOT_PTR_ERROR)
+            {
+                return NOT_PTR_ERROR;
+            }
+
+            not_strip_attach(strip_copy, strip_local);
+
+            not_record_t *result = not_call_lambda(node, carrier->data, strip_copy, type, applicant);
+
+            if (not_strip_destroy(strip_copy) < 0)
+            {
+                if (result != NOT_PTR_ERROR)
+                {
+                    not_record_link_decrease(result);
+                }
+                not_record_link_decrease(record_base);
+                return NOT_PTR_ERROR;
+            }
 
             if (not_record_link_decrease(record_base) < 0)
             {
@@ -3957,7 +3964,7 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
                 }
                 return NOT_PTR_ERROR;
             }
-            not_record_t *record_value = not_execute_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *record_value = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
             if (record_value == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(record_base) < 0)
@@ -4100,7 +4107,7 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
                 }
                 return NOT_PTR_ERROR;
             }
-            not_record_t *record_value = not_execute_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *record_value = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
             if (record_value == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(record_base) < 0)
@@ -4294,7 +4301,7 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
                 return NOT_PTR_ERROR;
             }
 
-            not_record_t *record_value = not_execute_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *record_value = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
             if (record_value == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(record_base) < 0)
@@ -4318,7 +4325,7 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
                     return NOT_PTR_ERROR;
                 }
 
-                not_record_t *record_round = not_execute_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+                not_record_t *record_round = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
                 if (record_round == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_value) < 0)
@@ -4580,7 +4587,7 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
                 }
                 return NOT_PTR_ERROR;
             }
-            not_record_t *record_value = not_execute_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *record_value = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
             if (record_value == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(record_base) < 0)

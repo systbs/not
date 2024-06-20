@@ -27,7 +27,7 @@
 #include "execute.h"
 
 not_record_t *
-not_execute_postfix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_postfix(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_CALL)
     {
@@ -35,7 +35,7 @@ not_execute_postfix(not_node_t *node, not_strip_t *strip, not_node_t *applicant,
     }
     else if (node->kind == NODE_KIND_ARRAY)
     {
-        return not_execute_array(node, strip, applicant, origin);
+        return not_array(node, strip, applicant, origin);
     }
     else if (node->kind == NODE_KIND_ATTRIBUTE)
     {
@@ -43,10 +43,10 @@ not_execute_postfix(not_node_t *node, not_strip_t *strip, not_node_t *applicant,
     }
     else if (node->kind == NODE_KIND_PSEUDONYM)
     {
-        return not_execute_pseudonym(node, strip, applicant, origin);
+        return not_pseudonym(node, strip, applicant, origin);
     }
     else
     {
-        return not_execute_primary(node, strip, applicant, origin);
+        return not_primary(node, strip, applicant, origin);
     }
 }

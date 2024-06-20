@@ -25,7 +25,7 @@
 #include "execute.h"
 
 not_record_t *
-not_execute_lt(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
+not_relational_lt(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
     if (left->kind == RECORD_KIND_UNDEFINED)
     {
@@ -469,7 +469,7 @@ not_execute_lt(not_node_t *node, not_record_t *left, not_record_t *right, not_no
 }
 
 not_record_t *
-not_execute_le(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
+not_relational_le(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
     if (left->kind == RECORD_KIND_UNDEFINED)
     {
@@ -914,7 +914,7 @@ not_execute_le(not_node_t *node, not_record_t *left, not_record_t *right, not_no
 }
 
 not_record_t *
-not_execute_gt(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
+not_relational_gt(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
     if (left->kind == RECORD_KIND_UNDEFINED)
     {
@@ -1358,7 +1358,7 @@ not_execute_gt(not_node_t *node, not_record_t *left, not_record_t *right, not_no
 }
 
 not_record_t *
-not_execute_ge(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
+not_relational_ge(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
     if (left->kind == RECORD_KIND_UNDEFINED)
     {
@@ -1803,25 +1803,25 @@ not_execute_ge(not_node_t *node, not_record_t *left, not_record_t *right, not_no
 }
 
 not_record_t *
-not_execute_relational(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_relational(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_LT)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_shifting(binary->left, strip, applicant, origin);
+        not_record_t *left = not_shifting(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *right = not_execute_shifting(binary->right, strip, applicant, origin);
+        not_record_t *right = not_shifting(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *record = not_execute_lt(node, left, right, applicant);
+        not_record_t *record = not_relational_lt(node, left, right, applicant);
 
         if (not_record_link_decrease(left) < 0)
         {
@@ -1838,20 +1838,20 @@ not_execute_relational(not_node_t *node, not_strip_t *strip, not_node_t *applica
     else if (node->kind == NODE_KIND_LE)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_shifting(binary->left, strip, applicant, origin);
+        not_record_t *left = not_shifting(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *right = not_execute_shifting(binary->right, strip, applicant, origin);
+        not_record_t *right = not_shifting(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *record = not_execute_le(node, left, right, applicant);
+        not_record_t *record = not_relational_le(node, left, right, applicant);
 
         if (not_record_link_decrease(left) < 0)
         {
@@ -1868,20 +1868,20 @@ not_execute_relational(not_node_t *node, not_strip_t *strip, not_node_t *applica
     else if (node->kind == NODE_KIND_GT)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_shifting(binary->left, strip, applicant, origin);
+        not_record_t *left = not_shifting(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *right = not_execute_shifting(binary->right, strip, applicant, origin);
+        not_record_t *right = not_shifting(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *record = not_execute_gt(node, left, right, applicant);
+        not_record_t *record = not_relational_gt(node, left, right, applicant);
 
         if (not_record_link_decrease(left) < 0)
         {
@@ -1898,20 +1898,20 @@ not_execute_relational(not_node_t *node, not_strip_t *strip, not_node_t *applica
     else if (node->kind == NODE_KIND_GE)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_shifting(binary->left, strip, applicant, origin);
+        not_record_t *left = not_shifting(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *right = not_execute_shifting(binary->right, strip, applicant, origin);
+        not_record_t *right = not_shifting(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *record = not_execute_ge(node, left, right, applicant);
+        not_record_t *record = not_relational_ge(node, left, right, applicant);
 
         if (not_record_link_decrease(left) < 0)
         {
@@ -1927,6 +1927,6 @@ not_execute_relational(not_node_t *node, not_strip_t *strip, not_node_t *applica
     }
     else
     {
-        return not_execute_shifting(node, strip, applicant, origin);
+        return not_shifting(node, strip, applicant, origin);
     }
 }

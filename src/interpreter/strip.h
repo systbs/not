@@ -31,8 +31,9 @@ not_strip_input_find(not_strip_t *strip, not_node_t *scope, not_node_t *key);
 int32_t
 not_strip_variable_remove_by_scope(not_strip_t *strip, not_node_t *scope);
 
-not_strip_t *
-not_strip_copy(not_strip_t *ar);
+void not_strip_attach(not_strip_t *strip, not_strip_t *previous);
+
+not_strip_t *not_strip_copy(not_strip_t *ar);
 
 int32_t
 not_strip_destroy(not_strip_t *strip);

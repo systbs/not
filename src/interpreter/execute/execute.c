@@ -912,7 +912,7 @@ not_execute_entity(not_node_t *scope, not_node_t *node, not_record_t *value, not
     {
         if (entity->value)
         {
-            value_select = not_execute_expression(entity->value, strip, applicant, NOT_PTR_NULL);
+            value_select = not_expression(entity->value, strip, applicant, NOT_PTR_NULL);
             if (value_select == NOT_PTR_ERROR)
             {
                 return -1;
@@ -1028,7 +1028,7 @@ not_execute_entity(not_node_t *scope, not_node_t *node, not_record_t *value, not
 static int32_t
 not_execute_set(not_node_t *scope, not_node_t *node, not_node_t *value, not_strip_t *strip, not_node_t *applicant)
 {
-    not_record_t *record_value = not_execute_expression(value, strip, applicant, NOT_PTR_NULL);
+    not_record_t *record_value = not_expression(value, strip, applicant, NOT_PTR_NULL);
     if (record_value == NOT_PTR_ERROR)
     {
         return -1;
@@ -1072,7 +1072,7 @@ not_execute_var(not_node_t *scope, not_node_t *node, not_strip_t *strip, not_nod
         not_record_t *record_value = NOT_PTR_NULL;
         if (var1->value)
         {
-            record_value = not_execute_expression(var1->value, strip, applicant, NOT_PTR_NULL);
+            record_value = not_expression(var1->value, strip, applicant, NOT_PTR_NULL);
             if (record_value == NOT_PTR_ERROR)
             {
                 return -1;
@@ -1080,7 +1080,7 @@ not_execute_var(not_node_t *scope, not_node_t *node, not_strip_t *strip, not_nod
 
             if (var1->type)
             {
-                not_record_t *record_type = not_execute_expression(var1->type, strip, applicant, NOT_PTR_NULL);
+                not_record_t *record_type = not_expression(var1->type, strip, applicant, NOT_PTR_NULL);
                 if (record_type == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_value) < 0)
@@ -1318,7 +1318,7 @@ not_execute_for(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
 region_start_loop:
     if (for1->condition)
     {
-        not_record_t *condition = not_execute_expression(for1->condition, strip, applicant, NOT_PTR_NULL);
+        not_record_t *condition = not_expression(for1->condition, strip, applicant, NOT_PTR_NULL);
         if (condition == NOT_PTR_ERROR)
         {
             goto region_error;
@@ -1458,7 +1458,7 @@ not_execute_forin(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
     not_node_forin_t *for1 = (not_node_forin_t *)node->value;
     int32_t ret_code = 0;
 
-    not_record_t *iterator = not_execute_expression(for1->iterator, strip, applicant, NOT_PTR_NULL);
+    not_record_t *iterator = not_expression(for1->iterator, strip, applicant, NOT_PTR_NULL);
     if (iterator == NOT_PTR_ERROR)
     {
         return -1;
@@ -1840,8 +1840,7 @@ not_execute_try(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
                             return -1;
                         }
 
-                        not_entry_t *entry2 = not_strip_variable_push(strip, try1->catchs, item, parameter->key, entry->value);
-                        if (entry2 == NOT_PTR_ERROR)
+                        if (NOT_PTR_ERROR == not_strip_variable_push(strip, entry->scope, entry->block, entry->key, entry->value))
                         {
                             return -1;
                         }
@@ -1884,7 +1883,7 @@ not_execute_if(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
     not_node_if_t *if1 = (not_node_if_t *)node->value;
     if (if1->condition != NOT_PTR_NULL)
     {
-        not_record_t *condition = not_execute_expression(if1->condition, strip, applicant, NOT_PTR_NULL);
+        not_record_t *condition = not_expression(if1->condition, strip, applicant, NOT_PTR_NULL);
         if (condition == NOT_PTR_ERROR)
         {
             return -1;
@@ -1946,7 +1945,7 @@ not_execute_throw(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
 
     if (unary->right)
     {
-        not_record_t *value = not_execute_expression(unary->right, strip, applicant, NOT_PTR_NULL);
+        not_record_t *value = not_expression(unary->right, strip, applicant, NOT_PTR_NULL);
         if (value == NOT_PTR_ERROR)
         {
             return -1;
@@ -1969,7 +1968,7 @@ not_execute_break(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
 
     if (unary->right)
     {
-        not_record_t *value = not_execute_expression(unary->right, strip, applicant, NOT_PTR_NULL);
+        not_record_t *value = not_expression(unary->right, strip, applicant, NOT_PTR_NULL);
         if (value == NOT_PTR_ERROR)
         {
             return -1;
@@ -2011,7 +2010,7 @@ not_execute_continue(not_node_t *node, not_strip_t *strip, not_node_t *applicant
 
     if (unary->right)
     {
-        not_record_t *value = not_execute_expression(unary->right, strip, applicant, NOT_PTR_NULL);
+        not_record_t *value = not_expression(unary->right, strip, applicant, NOT_PTR_NULL);
         if (value == NOT_PTR_ERROR)
         {
             return -1;
@@ -2053,7 +2052,7 @@ not_execute_return(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
 
     if (unary->right)
     {
-        not_record_t *value = not_execute_expression(unary->right, strip, applicant, NOT_PTR_NULL);
+        not_record_t *value = not_expression(unary->right, strip, applicant, NOT_PTR_NULL);
         if (value == NOT_PTR_ERROR)
         {
             return -1;
@@ -2188,7 +2187,7 @@ not_execute_body(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
 }
 
 int32_t
-not_execute_run_fun(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
+not_execute_fun(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
 {
     not_node_fun_t *fun = (not_node_fun_t *)node->value;
 
@@ -2204,8 +2203,7 @@ not_execute_run_fun(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
                 return -1;
             }
 
-            not_entry_t *entry2 = not_strip_variable_push(strip, node, item, parameter->key, entry->value);
-            if (entry2 == NOT_PTR_ERROR)
+            if (NOT_PTR_ERROR == not_strip_variable_push(strip, entry->scope, entry->block, entry->key, entry->value))
             {
                 return -1;
             }
@@ -2241,7 +2239,7 @@ not_execute_run_fun(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
 }
 
 int32_t
-not_execute_run_lambda(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
+not_execute_lambda(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
 {
     not_node_lambda_t *fun = (not_node_lambda_t *)node->value;
 
@@ -2257,8 +2255,7 @@ not_execute_run_lambda(not_node_t *node, not_strip_t *strip, not_node_t *applica
                 return -1;
             }
 
-            not_entry_t *entry2 = not_strip_variable_push(strip, node, item, parameter->key, entry->value);
-            if (entry2 == NOT_PTR_ERROR)
+            if (NOT_PTR_ERROR == not_strip_variable_push(strip, entry->scope, entry->block, entry->key, entry->value))
             {
                 return -1;
             }
@@ -2294,13 +2291,18 @@ not_execute_run_lambda(not_node_t *node, not_strip_t *strip, not_node_t *applica
     }
     else
     {
-        not_record_t *value = not_execute_expression(fun->body, strip, applicant, NOT_PTR_NULL);
+        not_record_t *value = not_expression(fun->body, strip, applicant, NOT_PTR_NULL);
         if (value == NOT_PTR_ERROR)
         {
             return -1;
         }
 
         not_thread_set_rax(value);
+
+        if (not_strip_variable_remove_by_scope(strip, node) < 0)
+        {
+            return -1;
+        }
     }
 
     return 0;

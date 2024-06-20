@@ -732,18 +732,18 @@ not_execute_and(not_node_t *node, not_record_t *left, not_record_t *right, not_n
 }
 
 not_record_t *
-not_execute_bitwise_and(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_bitwise_and(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_AND)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_bitwise_and(binary->left, strip, applicant, origin);
+        not_record_t *left = not_bitwise_and(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *right = not_execute_equality(binary->right, strip, applicant, origin);
+        not_record_t *right = not_equality(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;
@@ -765,6 +765,6 @@ not_execute_bitwise_and(not_node_t *node, not_strip_t *strip, not_node_t *applic
     }
     else
     {
-        return not_execute_equality(node, strip, applicant, origin);
+        return not_equality(node, strip, applicant, origin);
     }
 }

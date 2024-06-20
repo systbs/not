@@ -31,8 +31,19 @@
 #include "../helper.h"
 #include "execute.h"
 
+not_node_t *
+not_primary_get_root(not_node_t *base)
+{
+    if (base && base->kind != NODE_KIND_MODULE)
+    {
+        return not_primary_get_root(base->parent);
+    }
+
+    return base;
+}
+
 not_record_t *
-not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, not_node_t *applicant)
+not_primary_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, not_node_t *applicant)
 {
     if (base->kind == NODE_KIND_CATCH)
     {
@@ -260,18 +271,13 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
         {
             if (not_helper_id_cmp(fun1->key, name) == 0)
             {
-                not_strip_t *strip_copy = not_strip_copy(strip);
+                not_strip_t *strip_copy = not_strip_create(NOT_PTR_NULL);
                 if (strip_copy == NOT_PTR_ERROR)
                 {
                     return NOT_PTR_ERROR;
                 }
 
-                not_strip_t *new_strip = not_strip_create(strip_copy);
-                if (new_strip == NOT_PTR_ERROR)
-                {
-                    return NOT_PTR_ERROR;
-                }
-                return not_record_make_type(base, new_strip);
+                return not_record_make_type(base, strip_copy);
             }
         }
 
@@ -318,7 +324,6 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                     not_node_parameter_t *parameter1 = (not_node_parameter_t *)item1->value;
                     if (not_helper_id_cmp(parameter1->key, name) == 0)
                     {
-                        assert(strip != NOT_PTR_NULL);
                         not_entry_t *entry = not_strip_variable_find(strip, base, parameter1->key);
                         if (entry == NOT_PTR_ERROR)
                         {
@@ -476,18 +481,13 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                 not_node_class_t *class2 = (not_node_class_t *)item1->value;
                 if (not_helper_id_cmp(class2->key, name) == 0)
                 {
-                    not_strip_t *strip_copy = not_strip_copy(strip);
+                    not_strip_t *strip_copy = not_strip_create(NOT_PTR_NULL);
                     if (strip_copy == NOT_PTR_ERROR)
                     {
                         return NOT_PTR_ERROR;
                     }
 
-                    not_strip_t *new_strip = not_strip_create(strip_copy);
-                    if (new_strip == NOT_PTR_ERROR)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
-                    return not_record_make_type(item1, new_strip);
+                    return not_record_make_type(item1, strip_copy);
                 }
                 continue;
             }
@@ -496,18 +496,13 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                 not_node_fun_t *fun1 = (not_node_fun_t *)item1->value;
                 if (not_helper_id_cmp(fun1->key, name) == 0)
                 {
-                    not_strip_t *strip_copy = not_strip_copy(strip);
+                    not_strip_t *strip_copy = not_strip_create(NOT_PTR_NULL);
                     if (strip_copy == NOT_PTR_ERROR)
                     {
                         return NOT_PTR_ERROR;
                     }
 
-                    not_strip_t *new_strip = not_strip_create(strip_copy);
-                    if (new_strip == NOT_PTR_ERROR)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
-                    return not_record_make_type(item1, new_strip);
+                    return not_record_make_type(item1, strip_copy);
                 }
                 continue;
             }
@@ -561,7 +556,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
         {
             if (item1->kind == NODE_KIND_USING)
             {
-                if (applicant->id != base->id)
+                if (not_primary_get_root(name)->id != base->id)
                 {
                     continue;
                 }
@@ -655,7 +650,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                                     return not_record_make_proc(proc, json_root);
                                 }
 
-                                not_record_t *result = not_execute_expression(address, strip, base, entry->root);
+                                not_record_t *result = not_expression(address, strip, base, entry->root);
                                 if (result == NOT_PTR_ERROR)
                                 {
                                     return NOT_PTR_ERROR;
@@ -686,19 +681,13 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                         }
                     }
 
-                    not_strip_t *strip_copy = not_strip_copy(strip);
+                    not_strip_t *strip_copy = not_strip_create(NOT_PTR_NULL);
                     if (strip_copy == NOT_PTR_ERROR)
                     {
                         return NOT_PTR_ERROR;
                     }
 
-                    not_strip_t *new_strip = not_strip_create(strip_copy);
-                    if (new_strip == NOT_PTR_ERROR)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
-
-                    return not_record_make_type(item1, new_strip);
+                    return not_record_make_type(item1, strip_copy);
                 }
 
                 continue;
@@ -810,7 +799,7 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
 
     if (base->parent != NOT_PTR_NULL)
     {
-        return not_execute_selection(base->parent, name, strip, applicant);
+        return not_primary_selection(base->parent, name, strip, applicant);
     }
 
     not_node_basic_t *basic1 = (not_node_basic_t *)name->value;
@@ -819,17 +808,17 @@ not_execute_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
 }
 
 not_record_t *
-not_execute_id(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_primary_id(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (origin)
     {
-        return not_execute_selection(origin, node, strip, applicant);
+        return not_primary_selection(origin, node, strip, applicant);
     }
-    return not_execute_selection(node->parent, node, strip, applicant);
+    return not_primary_selection(node->parent, node, strip, applicant);
 }
 
 not_record_t *
-not_execute_number(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_primary_number(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     not_node_basic_t *basic1 = (not_node_basic_t *)node->value;
     char *str = basic1->value;
@@ -875,7 +864,7 @@ not_execute_number(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
 }
 
 not_record_t *
-not_execute_char(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_primary_char(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     not_node_basic_t *basic1 = (not_node_basic_t *)node->value;
     char *str = basic1->value;
@@ -884,60 +873,55 @@ not_execute_char(not_node_t *node, not_strip_t *strip, not_node_t *applicant, no
 }
 
 not_record_t *
-not_execute_string(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_primary_string(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     not_node_basic_t *basic = (not_node_basic_t *)node->value;
     return not_record_make_string(basic->value);
 }
 
 not_record_t *
-not_execute_null(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_primary_null(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     return not_record_make_null();
 }
 
 not_record_t *
-not_execute_kint(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_primary_kint(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     return not_record_make_type(node, NOT_PTR_NULL);
 }
 
 not_record_t *
-not_execute_kfloat(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_primary_kfloat(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     return not_record_make_type(node, NOT_PTR_NULL);
 }
 
 not_record_t *
-not_execute_kchar(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_primary_kchar(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     return not_record_make_type(node, NOT_PTR_NULL);
 }
 
 not_record_t *
-not_execute_kstring(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_primary_kstring(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     return not_record_make_type(node, NOT_PTR_NULL);
 }
 
 not_record_t *
-not_execute_lambda(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_primary_lambda(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     not_node_lambda_t *fun1 = (not_node_lambda_t *)node->value;
     if (fun1->body)
     {
-        not_strip_t *strip_copy = not_strip_copy(strip);
+        not_strip_t *strip_copy = not_strip_create(NOT_PTR_NULL);
         if (strip_copy == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;
         }
 
-        not_strip_t *new_strip = not_strip_create(strip_copy);
-        if (new_strip == NOT_PTR_ERROR)
-        {
-            return NOT_PTR_ERROR;
-        }
-        return not_record_make_type(node, new_strip);
+        return not_record_make_type(node, strip_copy);
     }
     else
     {
@@ -946,15 +930,15 @@ not_execute_lambda(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
 }
 
 not_record_t *
-not_execute_parenthesis(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_primary_parenthesis(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     not_node_unary_t *unary1 = (not_node_unary_t *)node->value;
 
-    return not_execute_expression(unary1->right, strip, applicant, origin);
+    return not_expression(unary1->right, strip, applicant, origin);
 }
 
 not_record_t *
-not_execute_tuple(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_primary_tuple(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     not_node_block_t *block = (not_node_block_t *)node->value;
 
@@ -965,7 +949,7 @@ not_execute_tuple(not_node_t *node, not_strip_t *strip, not_node_t *applicant, n
 
     for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
     {
-        not_record_t *record_value = not_execute_expression(item, strip, applicant, NOT_PTR_NULL);
+        not_record_t *record_value = not_expression(item, strip, applicant, NOT_PTR_NULL);
         if (record_value == NOT_PTR_ERROR)
         {
             if (top)
@@ -1054,7 +1038,7 @@ not_execute_tuple(not_node_t *node, not_strip_t *strip, not_node_t *applicant, n
 }
 
 not_record_t *
-not_execute_object(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_primary_object(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     not_node_block_t *block = (not_node_block_t *)node->value;
 
@@ -1065,7 +1049,7 @@ not_execute_object(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_pair_t *pair = (not_node_pair_t *)item->value;
 
-        not_record_t *record_value = not_execute_expression(pair->value, strip, applicant, NOT_PTR_NULL);
+        not_record_t *record_value = not_expression(pair->value, strip, applicant, NOT_PTR_NULL);
         if (record_value == NOT_PTR_ERROR)
         {
             if (top)
@@ -1159,71 +1143,71 @@ not_execute_object(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
 }
 
 not_record_t *
-not_execute_primary(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_primary(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_ID)
     {
-        return not_execute_id(node, strip, applicant, origin);
+        return not_primary_id(node, strip, applicant, origin);
     }
     else
 
         if (node->kind == NODE_KIND_NUMBER)
     {
-        return not_execute_number(node, strip, applicant, origin);
+        return not_primary_number(node, strip, applicant, origin);
     }
     else if (node->kind == NODE_KIND_CHAR)
     {
-        return not_execute_char(node, strip, applicant, origin);
+        return not_primary_char(node, strip, applicant, origin);
     }
     else if (node->kind == NODE_KIND_STRING)
     {
-        return not_execute_string(node, strip, applicant, origin);
+        return not_primary_string(node, strip, applicant, origin);
     }
     else
 
         if (node->kind == NODE_KIND_NULL)
     {
-        return not_execute_null(node, strip, applicant, origin);
+        return not_primary_null(node, strip, applicant, origin);
     }
     else
 
         if (node->kind == NODE_KIND_KINT)
     {
-        return not_execute_kint(node, strip, applicant, origin);
+        return not_primary_kint(node, strip, applicant, origin);
     }
     else if (node->kind == NODE_KIND_KFLOAT)
     {
-        return not_execute_kfloat(node, strip, applicant, origin);
+        return not_primary_kfloat(node, strip, applicant, origin);
     }
     else
 
         if (node->kind == NODE_KIND_KCHAR)
     {
-        return not_execute_kchar(node, strip, applicant, origin);
+        return not_primary_kchar(node, strip, applicant, origin);
     }
     else if (node->kind == NODE_KIND_KSTRING)
     {
-        return not_execute_kstring(node, strip, applicant, origin);
+        return not_primary_kstring(node, strip, applicant, origin);
     }
     else
 
         if (node->kind == NODE_KIND_TUPLE)
     {
-        return not_execute_tuple(node, strip, applicant, origin);
+        return not_primary_tuple(node, strip, applicant, origin);
     }
     else if (node->kind == NODE_KIND_OBJECT)
     {
-        return not_execute_object(node, strip, applicant, origin);
+        return not_primary_object(node, strip, applicant, origin);
     }
     else
 
         if (node->kind == NODE_KIND_LAMBDA)
     {
-        return not_execute_lambda(node, strip, applicant, origin);
+        return not_primary_lambda(node, strip, applicant, origin);
     }
     else if (node->kind == NODE_KIND_PARENTHESIS)
     {
-        return not_execute_parenthesis(node, strip, applicant, origin);
+        return not_primary_parenthesis(node, strip, applicant, origin);
     }
 
     not_error_type_by_node(node, "primary implement not support %d", node->kind);

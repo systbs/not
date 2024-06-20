@@ -73,7 +73,7 @@ mpz_epi(mpz_t r, const mpz_t n, const mpz_t d)
 }
 
 not_record_t *
-not_execute_mul(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
+not_multipicative_mul(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
   if (left->kind == RECORD_KIND_INT)
   {
@@ -781,7 +781,7 @@ not_execute_mul(not_node_t *node, not_record_t *left, not_record_t *right, not_n
 }
 
 not_record_t *
-not_execute_div(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
+not_multipicative_div(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
   if (left->kind == RECORD_KIND_INT)
   {
@@ -1542,7 +1542,7 @@ not_execute_div(not_node_t *node, not_record_t *left, not_record_t *right, not_n
 }
 
 not_record_t *
-not_execute_mod(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
+not_multipicative_mod(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
   if (left->kind == RECORD_KIND_INT)
   {
@@ -2250,7 +2250,7 @@ not_execute_mod(not_node_t *node, not_record_t *left, not_record_t *right, not_n
 }
 
 not_record_t *
-not_execute_epi(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
+not_multipicative_epi(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
   if (left->kind == RECORD_KIND_INT)
   {
@@ -2958,25 +2958,25 @@ not_execute_epi(not_node_t *node, not_record_t *left, not_record_t *right, not_n
 }
 
 not_record_t *
-not_execute_multipicative(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_multipicative(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
   if (node->kind == NODE_KIND_MUL)
   {
     not_node_binary_t *binary = (not_node_binary_t *)node->value;
-    not_record_t *left = not_execute_multipicative(binary->left, strip, applicant, origin);
+    not_record_t *left = not_multipicative(binary->left, strip, applicant, origin);
     if (left == NOT_PTR_ERROR)
     {
       return NOT_PTR_ERROR;
     }
 
-    not_record_t *right = not_execute_power(binary->right, strip, applicant, origin);
+    not_record_t *right = not_power(binary->right, strip, applicant, origin);
     if (right == NOT_PTR_ERROR)
     {
       not_record_link_decrease(left);
       return NOT_PTR_ERROR;
     }
 
-    not_record_t *record = not_execute_mul(node, left, right, applicant);
+    not_record_t *record = not_multipicative_mul(node, left, right, applicant);
 
     if (not_record_link_decrease(left) < 0)
     {
@@ -2993,20 +2993,20 @@ not_execute_multipicative(not_node_t *node, not_strip_t *strip, not_node_t *appl
   else if (node->kind == NODE_KIND_DIV)
   {
     not_node_binary_t *binary = (not_node_binary_t *)node->value;
-    not_record_t *left = not_execute_multipicative(binary->left, strip, applicant, origin);
+    not_record_t *left = not_multipicative(binary->left, strip, applicant, origin);
     if (left == NOT_PTR_ERROR)
     {
       return NOT_PTR_ERROR;
     }
 
-    not_record_t *right = not_execute_power(binary->right, strip, applicant, origin);
+    not_record_t *right = not_power(binary->right, strip, applicant, origin);
     if (right == NOT_PTR_ERROR)
     {
       not_record_link_decrease(left);
       return NOT_PTR_ERROR;
     }
 
-    not_record_t *record = not_execute_div(node, left, right, applicant);
+    not_record_t *record = not_multipicative_div(node, left, right, applicant);
 
     if (not_record_link_decrease(left) < 0)
     {
@@ -3023,20 +3023,20 @@ not_execute_multipicative(not_node_t *node, not_strip_t *strip, not_node_t *appl
   else if (node->kind == NODE_KIND_MOD)
   {
     not_node_binary_t *binary = (not_node_binary_t *)node->value;
-    not_record_t *left = not_execute_multipicative(binary->left, strip, applicant, origin);
+    not_record_t *left = not_multipicative(binary->left, strip, applicant, origin);
     if (left == NOT_PTR_ERROR)
     {
       return NOT_PTR_ERROR;
     }
 
-    not_record_t *right = not_execute_power(binary->right, strip, applicant, origin);
+    not_record_t *right = not_power(binary->right, strip, applicant, origin);
     if (right == NOT_PTR_ERROR)
     {
       not_record_link_decrease(left);
       return NOT_PTR_ERROR;
     }
 
-    not_record_t *record = not_execute_mod(node, left, right, applicant);
+    not_record_t *record = not_multipicative_mod(node, left, right, applicant);
 
     if (not_record_link_decrease(left) < 0)
     {
@@ -3053,20 +3053,20 @@ not_execute_multipicative(not_node_t *node, not_strip_t *strip, not_node_t *appl
   else if (node->kind == NODE_KIND_EPI)
   {
     not_node_binary_t *binary = (not_node_binary_t *)node->value;
-    not_record_t *left = not_execute_multipicative(binary->left, strip, applicant, origin);
+    not_record_t *left = not_multipicative(binary->left, strip, applicant, origin);
     if (left == NOT_PTR_ERROR)
     {
       return NOT_PTR_ERROR;
     }
 
-    not_record_t *right = not_execute_power(binary->right, strip, applicant, origin);
+    not_record_t *right = not_power(binary->right, strip, applicant, origin);
     if (right == NOT_PTR_ERROR)
     {
       not_record_link_decrease(left);
       return NOT_PTR_ERROR;
     }
 
-    not_record_t *record = not_execute_epi(node, left, right, applicant);
+    not_record_t *record = not_multipicative_epi(node, left, right, applicant);
 
     if (not_record_link_decrease(left) < 0)
     {
@@ -3082,6 +3082,6 @@ not_execute_multipicative(not_node_t *node, not_strip_t *strip, not_node_t *appl
   }
   else
   {
-    return not_execute_power(node, strip, applicant, origin);
+    return not_power(node, strip, applicant, origin);
   }
 }

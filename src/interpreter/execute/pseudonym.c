@@ -178,7 +178,7 @@ not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, n
                     {
                         not_node_heritage_t *heritage = (not_node_heritage_t *)item->value;
 
-                        not_record_t *record_heritage = not_execute_expression(heritage->type, strip, applicant, NOT_PTR_NULL);
+                        not_record_t *record_heritage = not_expression(heritage->type, strip, applicant, NOT_PTR_NULL);
                         if (record_heritage == NOT_PTR_ERROR)
                         {
                             return -1;
@@ -304,11 +304,11 @@ not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, n
 }
 
 not_record_t *
-not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     not_node_carrier_t *carrier = (not_node_carrier_t *)node->value;
 
-    not_record_t *base = not_execute_expression(carrier->base, strip, applicant, origin);
+    not_record_t *base = not_expression(carrier->base, strip, applicant, origin);
     if (base == NOT_PTR_ERROR)
     {
         return NOT_PTR_ERROR;
@@ -319,17 +319,8 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
         goto region_error_nogen;
     }
 
-    if (base->link > 0)
-    {
-        base = not_record_copy(base);
-        if (base == NOT_PTR_ERROR)
-        {
-            return NOT_PTR_ERROR;
-        }
-    }
-
     not_record_type_t *base_type = (not_record_type_t *)base->value;
-    not_strip_t *new_strip = NOT_PTR_NULL;
+    not_strip_t *copy_strip = NOT_PTR_NULL;
     not_node_block_t *block1 = NOT_PTR_NULL;
     if (base_type->type->kind == NODE_KIND_CLASS)
     {
@@ -339,7 +330,12 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
             goto region_error_nogen;
         }
 
-        new_strip = (not_strip_t *)base_type->value;
+        copy_strip = not_strip_copy((not_strip_t *)base_type->value);
+        if (copy_strip == NOT_PTR_ERROR)
+        {
+            return NOT_PTR_ERROR;
+        }
+
         block1 = (not_node_block_t *)class1->generics->value;
     }
     else if (base_type->type->kind == NODE_KIND_FUN)
@@ -350,7 +346,12 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
             goto region_error_nogen;
         }
 
-        new_strip = (not_strip_t *)base_type->value;
+        copy_strip = not_strip_copy((not_strip_t *)base_type->value);
+        if (copy_strip == NOT_PTR_ERROR)
+        {
+            return NOT_PTR_ERROR;
+        }
+
         block1 = (not_node_block_t *)fun1->generics->value;
     }
     else if (base_type->type->kind == NODE_KIND_LAMBDA)
@@ -361,7 +362,12 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
             goto region_error_nogen;
         }
 
-        new_strip = (not_strip_t *)base_type->value;
+        copy_strip = not_strip_copy((not_strip_t *)base_type->value);
+        if (copy_strip == NOT_PTR_ERROR)
+        {
+            return NOT_PTR_ERROR;
+        }
+
         block1 = (not_node_block_t *)fun1->generics->value;
     }
     else
@@ -450,7 +456,7 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
                 if (not_helper_id_cmp(field->key, generic->key) == 0)
                 {
                     found = 1;
-                    not_record_t *record_field = not_execute_expression(field->value, new_strip, applicant, NOT_PTR_NULL);
+                    not_record_t *record_field = not_expression(field->value, copy_strip, applicant, NOT_PTR_NULL);
                     if (record_field == NOT_PTR_ERROR)
                     {
                         goto region_error;
@@ -466,7 +472,7 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
 
                     if (generic->type)
                     {
-                        not_record_t *record_gen_type = not_execute_expression(generic->type, new_strip, applicant, NOT_PTR_NULL);
+                        not_record_t *record_gen_type = not_expression(generic->type, copy_strip, applicant, NOT_PTR_NULL);
                         if (record_gen_type == NOT_PTR_ERROR)
                         {
                             if (not_record_link_decrease(record_field) < 0)
@@ -490,7 +496,7 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
                             goto region_error;
                         }
 
-                        int32_t r1 = not_execute_type_extends_of_type(field->key, record_field, record_gen_type, new_strip, applicant);
+                        int32_t r1 = not_execute_type_extends_of_type(field->key, record_field, record_gen_type, copy_strip, applicant);
                         if (r1 < 0)
                         {
                             if (not_record_link_decrease(record_field) < 0)
@@ -525,7 +531,7 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
                         }
                     }
 
-                    not_entry_t *entry = not_strip_variable_push(new_strip, base_type->type, item3, generic->key, record_field);
+                    not_entry_t *entry = not_strip_variable_push(copy_strip, base_type->type, item3, generic->key, record_field);
                     if (entry == NOT_PTR_ERROR)
                     {
                         if (not_record_link_decrease(record_field) < 0)
@@ -579,7 +585,7 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
         {
             not_node_generic_t *generic = (not_node_generic_t *)item1->value;
 
-            not_record_t *record_field = not_execute_expression(field->key, new_strip, applicant, NOT_PTR_NULL);
+            not_record_t *record_field = not_expression(field->key, copy_strip, applicant, NOT_PTR_NULL);
 
             if (record_field == NOT_PTR_ERROR)
             {
@@ -595,7 +601,7 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
 
             if (generic->type)
             {
-                not_record_t *record_gen_type = not_execute_expression(generic->type, new_strip, applicant, NOT_PTR_NULL);
+                not_record_t *record_gen_type = not_expression(generic->type, copy_strip, applicant, NOT_PTR_NULL);
                 if (record_gen_type == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_field) < 0)
@@ -605,7 +611,7 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
                     goto region_error;
                 }
 
-                int32_t r1 = not_execute_type_extends_of_type(field->key, record_field, record_gen_type, new_strip, applicant);
+                int32_t r1 = not_execute_type_extends_of_type(field->key, record_field, record_gen_type, copy_strip, applicant);
                 if (r1 < 0)
                 {
                     if (not_record_link_decrease(record_field) < 0)
@@ -639,7 +645,7 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
                 }
             }
 
-            not_entry_t *entry = not_strip_variable_push(new_strip, base_type->type, item1, generic->key, record_field);
+            not_entry_t *entry = not_strip_variable_push(copy_strip, base_type->type, item1, generic->key, record_field);
             if (entry == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(record_field) < 0)
@@ -667,12 +673,12 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
     for (; item1 != NOT_PTR_NULL; item1 = item1->next)
     {
         not_node_generic_t *generic = (not_node_generic_t *)item1->value;
-        not_entry_t *entry = not_strip_variable_find(new_strip, base_type->type, generic->key);
+        not_entry_t *entry = not_strip_variable_find(copy_strip, base_type->type, generic->key);
         if (!entry)
         {
             if (generic->value)
             {
-                not_record_t *record_field = not_execute_expression(generic->value, new_strip, applicant, NOT_PTR_NULL);
+                not_record_t *record_field = not_expression(generic->value, copy_strip, applicant, NOT_PTR_NULL);
                 if (record_field == NOT_PTR_ERROR)
                 {
                     goto region_error;
@@ -686,7 +692,7 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
                     goto region_error;
                 }
 
-                not_entry_t *entry = not_strip_variable_push(new_strip, base_type->type, item1, generic->key, record_field);
+                not_entry_t *entry = not_strip_variable_push(copy_strip, base_type->type, item1, generic->key, record_field);
                 if (entry == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_field) < 0)
@@ -736,7 +742,18 @@ not_execute_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applican
         }
     }
 
-    return base;
+    not_record_t *result = not_record_make_type(base_type->type, copy_strip);
+
+    if (not_record_link_decrease(base) < 0)
+    {
+        if (result != NOT_PTR_ERROR)
+        {
+            not_record_link_decrease(result);
+        }
+        return NOT_PTR_ERROR;
+    }
+
+    return result;
 
 region_error:
     if (not_record_link_decrease(base) < 0)

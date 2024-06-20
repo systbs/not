@@ -200,18 +200,18 @@ not_execute_lor(not_node_t *node, not_record_t *left, not_record_t *right, not_n
 }
 
 not_record_t *
-not_execute_logical_or(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_logical_or(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_LOR)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_execute_logical_or(binary->left, strip, applicant, origin);
+        not_record_t *left = not_logical_or(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *right = not_execute_logical_and(binary->right, strip, applicant, origin);
+        not_record_t *right = not_logical_and(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             not_record_link_decrease(left);
@@ -222,6 +222,6 @@ not_execute_logical_or(not_node_t *node, not_strip_t *strip, not_node_t *applica
     }
     else
     {
-        return not_execute_logical_and(node, strip, applicant, origin);
+        return not_logical_and(node, strip, applicant, origin);
     }
 }
