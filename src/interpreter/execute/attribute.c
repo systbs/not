@@ -1458,15 +1458,6 @@ not_attribute_tuple_builtin_append(not_node_t *base, not_record_t *source, not_n
                 goto region_cleanup;
             }
 
-            if (parameter_index == 0)
-            {
-                if (arg->kind != RECORD_KIND_INT)
-                {
-                    not_error_type_by_node(argument->key, "mismatch: '%s' and '%s'",
-                                           not_record_type_as_string(arg), "int");
-                }
-            }
-
             record_arg[parameter_index] = arg;
 
             parameter_index += 1;
@@ -1629,6 +1620,516 @@ not_attribute_tuple_builtin_count(not_node_t *base, not_record_t *source, not_no
     return_value = not_record_make_int_from_z(length);
 
     mpz_clear(length);
+
+    return return_value;
+}
+
+not_record_t *
+not_attribute_string_builtin_length(not_node_t *base, not_record_t *source, not_node_t *arguments, not_strip_t *strip, not_node_t *applicant)
+{
+    if (arguments)
+    {
+        not_node_block_t *block = (not_node_block_t *)arguments->value;
+
+        uint64_t cnt1 = 0;
+        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        {
+            cnt1 += 1;
+        }
+
+        if (cnt1 > 0)
+        {
+            not_error_type_by_node(base, "'%s' takes %lld positional arguments but %lld were given", "Length", 0, cnt1);
+            return NOT_PTR_ERROR;
+        }
+    }
+
+    not_record_t *return_value = NOT_PTR_ERROR;
+
+    mpz_t length;
+    mpz_init_set_si(length, 0);
+    for (char *c = (char *)source->value; *c && (*c != '\0'); c++)
+    {
+        mpz_add_ui(length, length, 1);
+    }
+
+    return_value = not_record_make_int_from_z(length);
+
+    mpz_clear(length);
+
+    return return_value;
+}
+
+not_record_t *
+not_attribute_string_builtin_upper(not_node_t *base, not_record_t *source, not_node_t *arguments, not_strip_t *strip, not_node_t *applicant)
+{
+    if (arguments)
+    {
+        not_node_block_t *block = (not_node_block_t *)arguments->value;
+
+        uint64_t cnt1 = 0;
+        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        {
+            cnt1 += 1;
+        }
+
+        if (cnt1 > 0)
+        {
+            not_error_type_by_node(base, "'%s' takes %lld positional arguments but %lld were given", "Upper", 0, cnt1);
+            return NOT_PTR_ERROR;
+        }
+    }
+
+    not_record_t *return_value = NOT_PTR_ERROR;
+
+    char *str = not_memory_calloc(strlen((char *)source->value) + 1, sizeof(char));
+    if (!str)
+    {
+        not_error_no_memory();
+        return NOT_PTR_ERROR;
+    }
+
+    for (char *c = (char *)source->value, *s = str; *c && (*c != '\0'); c++, s++)
+    {
+        *s = toupper(*c);
+    }
+
+    return_value = not_record_make_string(str);
+
+    not_memory_free(str);
+
+    return return_value;
+}
+
+not_record_t *
+not_attribute_string_builtin_lower(not_node_t *base, not_record_t *source, not_node_t *arguments, not_strip_t *strip, not_node_t *applicant)
+{
+    if (arguments)
+    {
+        not_node_block_t *block = (not_node_block_t *)arguments->value;
+
+        uint64_t cnt1 = 0;
+        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        {
+            cnt1 += 1;
+        }
+
+        if (cnt1 > 0)
+        {
+            not_error_type_by_node(base, "'%s' takes %lld positional arguments but %lld were given", "Lower", 0, cnt1);
+            return NOT_PTR_ERROR;
+        }
+    }
+
+    not_record_t *return_value = NOT_PTR_ERROR;
+
+    char *str = not_memory_calloc(strlen((char *)source->value) + 1, sizeof(char));
+    if (!str)
+    {
+        not_error_no_memory();
+        return NOT_PTR_ERROR;
+    }
+
+    for (char *c = (char *)source->value, *s = str; *c && (*c != '\0'); c++, s++)
+    {
+        *s = tolower(*c);
+    }
+
+    return_value = not_record_make_string(str);
+
+    not_memory_free(str);
+
+    return return_value;
+}
+
+not_record_t *
+not_attribute_string_builtin_count(not_node_t *base, not_record_t *source, not_node_t *arguments, not_strip_t *strip, not_node_t *applicant)
+{
+    if (arguments)
+    {
+        not_node_block_t *block = (not_node_block_t *)arguments->value;
+
+        uint64_t cnt1 = 0;
+        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        {
+            cnt1 += 1;
+        }
+
+        if (cnt1 > 1)
+        {
+            not_error_type_by_node(base, "'%s' takes %lld positional arguments but %lld were given", "Count", 1, cnt1);
+            return NOT_PTR_ERROR;
+        }
+    }
+    else
+    {
+        not_error_type_by_node(base, "'%s' takes %lld positional arguments but %lld were given", "Count", 1, 0);
+        return NOT_PTR_ERROR;
+    }
+
+    not_record_t *return_value = NOT_PTR_ERROR;
+
+    not_node_block_t *block = (not_node_block_t *)arguments->value;
+    not_record_t *record_arg[1];
+
+    size_t array_length = sizeof(record_arg) / sizeof(record_arg[0]);
+    for (size_t i = 0; i < array_length; i++)
+    {
+        record_arg[i] = NOT_PTR_NULL;
+    }
+
+    size_t parameter_index = 0;
+    for (not_node_t *item = block->items; item != NULL; item = item->next)
+    {
+        not_node_argument_t *argument = (not_node_argument_t *)item->value;
+        if (argument->value)
+        {
+            if (not_helper_id_strcmp(argument->key, "value") == 0)
+            {
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                if (arg == NOT_PTR_ERROR)
+                {
+                    goto region_cleanup;
+                }
+
+                if (arg->kind != RECORD_KIND_STRING)
+                {
+                    not_node_basic_t *basic = (not_node_basic_t *)argument->key->value;
+                    not_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
+                                           basic->value, not_record_type_as_string(arg), "string");
+                }
+
+                record_arg[0] = arg;
+            }
+        }
+        else
+        {
+            not_record_t *arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            if (arg == NOT_PTR_ERROR)
+            {
+                goto region_cleanup;
+            }
+
+            if (parameter_index == 0)
+            {
+                if (arg->kind != RECORD_KIND_STRING)
+                {
+                    not_error_type_by_node(argument->key, "mismatch: '%s' and '%s'",
+                                           not_record_type_as_string(arg), "string");
+                }
+            }
+
+            record_arg[parameter_index] = arg;
+
+            parameter_index += 1;
+        }
+    }
+
+    for (size_t i = 0; i < array_length; i++)
+    {
+        if (record_arg[i] == NOT_PTR_NULL)
+        {
+            if (i == 0)
+            {
+                not_error_type_by_node(base, "'%s' missing '%s' required positional argument", "Count", "value");
+            }
+            goto region_cleanup;
+        }
+    }
+
+    const char *temp = (char *)source->value;
+    const char *sub = (char *)record_arg[0]->value;
+
+    mpz_t length;
+    mpz_init_set_si(length, 0);
+
+    while ((temp = strstr(temp, sub)) != NULL)
+    {
+        mpz_add_ui(length, length, 1);
+        temp += strlen(sub);
+    }
+
+    return_value = not_record_make_int_from_z(length);
+
+    mpz_clear(length);
+
+region_cleanup:
+    for (size_t i = 0; i < array_length; i++)
+    {
+        if (record_arg[i])
+        {
+            if (not_record_link_decrease(record_arg[i]) < 0)
+            {
+                if (return_value != NOT_PTR_ERROR)
+                {
+                    not_record_link_decrease(return_value);
+                }
+                return NOT_PTR_ERROR;
+            }
+        }
+    }
+
+    return return_value;
+}
+
+not_record_t *
+not_attribute_string_builtin_replace(not_node_t *base, not_record_t *source, not_node_t *arguments, not_strip_t *strip, not_node_t *applicant)
+{
+    if (arguments)
+    {
+        not_node_block_t *block = (not_node_block_t *)arguments->value;
+
+        uint64_t cnt1 = 0;
+        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        {
+            cnt1 += 1;
+        }
+
+        if (cnt1 > 2)
+        {
+            not_error_type_by_node(base, "'%s' takes %lld positional arguments but %lld were given", "Replace", 2, cnt1);
+            return NOT_PTR_ERROR;
+        }
+    }
+    else
+    {
+        not_error_type_by_node(base, "'%s' takes %lld positional arguments but %lld were given", "Replace", 2, 0);
+        return NOT_PTR_ERROR;
+    }
+
+    not_record_t *return_value = NOT_PTR_ERROR;
+
+    not_node_block_t *block = (not_node_block_t *)arguments->value;
+    not_record_t *record_arg[2];
+
+    size_t array_length = sizeof(record_arg) / sizeof(record_arg[0]);
+    for (size_t i = 0; i < array_length; i++)
+    {
+        record_arg[i] = NOT_PTR_NULL;
+    }
+
+    size_t parameter_index = 0;
+    for (not_node_t *item = block->items; item != NULL; item = item->next)
+    {
+        not_node_argument_t *argument = (not_node_argument_t *)item->value;
+        if (argument->value)
+        {
+            if (not_helper_id_strcmp(argument->key, "old") == 0)
+            {
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                if (arg == NOT_PTR_ERROR)
+                {
+                    goto region_cleanup;
+                }
+
+                if (arg->kind != RECORD_KIND_STRING)
+                {
+                    not_node_basic_t *basic = (not_node_basic_t *)argument->key->value;
+                    not_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
+                                           basic->value, not_record_type_as_string(arg), "string");
+                }
+
+                record_arg[0] = arg;
+            }
+            else if (not_helper_id_strcmp(argument->key, "new") == 0)
+            {
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                if (arg == NOT_PTR_ERROR)
+                {
+                    goto region_cleanup;
+                }
+
+                if (arg->kind != RECORD_KIND_STRING)
+                {
+                    not_node_basic_t *basic = (not_node_basic_t *)argument->key->value;
+                    not_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
+                                           basic->value, not_record_type_as_string(arg), "string");
+                }
+
+                record_arg[1] = arg;
+            }
+        }
+        else
+        {
+            not_record_t *arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            if (arg == NOT_PTR_ERROR)
+            {
+                goto region_cleanup;
+            }
+
+            if (parameter_index == 0)
+            {
+                if (arg->kind != RECORD_KIND_STRING)
+                {
+                    not_error_type_by_node(argument->key, "mismatch: '%s' and '%s'",
+                                           not_record_type_as_string(arg), "string");
+                }
+            }
+            else if (parameter_index == 1)
+            {
+                if (arg->kind != RECORD_KIND_STRING)
+                {
+                    not_error_type_by_node(argument->key, "mismatch: '%s' and '%s'",
+                                           not_record_type_as_string(arg), "string");
+                }
+            }
+
+            record_arg[parameter_index] = arg;
+
+            parameter_index += 1;
+        }
+    }
+
+    for (size_t i = 0; i < array_length; i++)
+    {
+        if (record_arg[i] == NOT_PTR_NULL)
+        {
+            if (i == 0)
+            {
+                not_error_type_by_node(base, "'%s' missing '%s' required positional argument", "Replace", "old");
+            }
+            else if (i == 1)
+            {
+                not_error_type_by_node(base, "'%s' missing '%s' required positional argument", "Replace", "new");
+            }
+            goto region_cleanup;
+        }
+    }
+
+    const char *str = (char *)source->value;
+    const char *old_sub = (char *)record_arg[0]->value;
+    const char *new_sub = (char *)record_arg[1]->value;
+
+    char *result;
+    size_t i, count = 0;
+    size_t new_sub_len = strlen(new_sub);
+    size_t old_sub_len = strlen(old_sub);
+
+    for (i = 0; str[i] != '\0'; i++)
+    {
+        if (strstr(&str[i], old_sub) == &str[i])
+        {
+            count++;
+            i += old_sub_len - 1;
+        }
+    }
+
+    result = (char *)not_memory_calloc(i + count * (new_sub_len - old_sub_len) + 1, sizeof(char));
+    if (result == NULL)
+    {
+        not_error_no_memory();
+        goto region_cleanup;
+    }
+
+    i = 0;
+    while (*str)
+    {
+        if (strstr(str, old_sub) == str)
+        {
+            strcpy(&result[i], new_sub);
+            i += new_sub_len;
+            str += old_sub_len;
+        }
+        else
+        {
+            result[i++] = *str++;
+        }
+    }
+
+    result[i] = '\0';
+
+    return_value = not_record_make_string(result);
+
+    not_memory_free(result);
+
+region_cleanup:
+    for (size_t i = 0; i < array_length; i++)
+    {
+        if (record_arg[i])
+        {
+            if (not_record_link_decrease(record_arg[i]) < 0)
+            {
+                if (return_value != NOT_PTR_ERROR)
+                {
+                    not_record_link_decrease(return_value);
+                }
+                return NOT_PTR_ERROR;
+            }
+        }
+    }
+
+    return return_value;
+}
+
+not_record_t *
+not_attribute_string_builtin_trim(not_node_t *base, not_record_t *source, not_node_t *arguments, not_strip_t *strip, not_node_t *applicant)
+{
+    if (arguments)
+    {
+        not_node_block_t *block = (not_node_block_t *)arguments->value;
+
+        uint64_t cnt1 = 0;
+        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        {
+            cnt1 += 1;
+        }
+
+        if (cnt1 > 0)
+        {
+            not_error_type_by_node(base, "'%s' takes %lld positional arguments but %lld were given", "Trim", 0, cnt1);
+            return NOT_PTR_ERROR;
+        }
+    }
+
+    not_record_t *return_value = NOT_PTR_ERROR;
+
+    const char *str = (char *)source->value;
+
+    const char *start = str;
+    const char *end;
+    size_t len;
+
+    while (isspace((unsigned char)*start))
+    {
+        start++;
+    }
+
+    char *trimmed_str = NULL;
+    if (*start == '\0')
+    {
+        trimmed_str = not_memory_calloc(1, sizeof(char));
+        if (!trimmed_str)
+        {
+            not_error_no_memory();
+            return NOT_PTR_ERROR;
+        }
+        trimmed_str[0] = '\0';
+
+        goto region_finalize;
+    }
+
+    end = start + strlen(start) - 1;
+    while (end > start && isspace((unsigned char)*end))
+    {
+        end--;
+    }
+
+    len = end - start + 1;
+
+    trimmed_str = not_memory_calloc(len + 1, sizeof(char));
+    if (!trimmed_str)
+    {
+        not_error_no_memory();
+        return NOT_PTR_ERROR;
+    }
+
+    strncpy(trimmed_str, start, len);
+    trimmed_str[len] = '\0';
+
+region_finalize:
+    return_value = not_record_make_string(trimmed_str);
+
+    not_memory_free(trimmed_str);
 
     return return_value;
 }
@@ -1856,6 +2357,104 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
         else if (not_helper_id_strcmp(binary->right, "Append") == 0)
         {
             not_record_t *result = not_record_make_builtin(left, &not_attribute_tuple_builtin_append);
+            if (result == NOT_PTR_ERROR)
+            {
+                if (not_record_link_decrease(left) < 0)
+                {
+                    return NOT_PTR_ERROR;
+                }
+
+                return NOT_PTR_ERROR;
+            }
+            return result;
+        }
+
+        not_node_basic_t *basic1 = (not_node_basic_t *)binary->right->value;
+        not_error_type_by_node(node, "'%s' has no attribute '%s'",
+                               not_record_type_as_string(left), basic1->value);
+
+        if (not_record_link_decrease(left) < 0)
+        {
+            return NOT_PTR_ERROR;
+        }
+
+        return NOT_PTR_ERROR;
+    }
+    else if (left->kind == RECORD_KIND_STRING)
+    {
+        if (not_helper_id_strcmp(binary->right, "Length") == 0)
+        {
+            not_record_t *result = not_record_make_builtin(left, &not_attribute_string_builtin_length);
+            if (result == NOT_PTR_ERROR)
+            {
+                if (not_record_link_decrease(left) < 0)
+                {
+                    return NOT_PTR_ERROR;
+                }
+
+                return NOT_PTR_ERROR;
+            }
+            return result;
+        }
+        else if (not_helper_id_strcmp(binary->right, "Upper") == 0)
+        {
+            not_record_t *result = not_record_make_builtin(left, &not_attribute_string_builtin_upper);
+            if (result == NOT_PTR_ERROR)
+            {
+                if (not_record_link_decrease(left) < 0)
+                {
+                    return NOT_PTR_ERROR;
+                }
+
+                return NOT_PTR_ERROR;
+            }
+            return result;
+        }
+        else if (not_helper_id_strcmp(binary->right, "Lower") == 0)
+        {
+            not_record_t *result = not_record_make_builtin(left, &not_attribute_string_builtin_lower);
+            if (result == NOT_PTR_ERROR)
+            {
+                if (not_record_link_decrease(left) < 0)
+                {
+                    return NOT_PTR_ERROR;
+                }
+
+                return NOT_PTR_ERROR;
+            }
+            return result;
+        }
+        else if (not_helper_id_strcmp(binary->right, "Count") == 0)
+        {
+            not_record_t *result = not_record_make_builtin(left, &not_attribute_string_builtin_count);
+            if (result == NOT_PTR_ERROR)
+            {
+                if (not_record_link_decrease(left) < 0)
+                {
+                    return NOT_PTR_ERROR;
+                }
+
+                return NOT_PTR_ERROR;
+            }
+            return result;
+        }
+        else if (not_helper_id_strcmp(binary->right, "Replace") == 0)
+        {
+            not_record_t *result = not_record_make_builtin(left, &not_attribute_string_builtin_replace);
+            if (result == NOT_PTR_ERROR)
+            {
+                if (not_record_link_decrease(left) < 0)
+                {
+                    return NOT_PTR_ERROR;
+                }
+
+                return NOT_PTR_ERROR;
+            }
+            return result;
+        }
+        else if (not_helper_id_strcmp(binary->right, "Trim") == 0)
+        {
+            not_record_t *result = not_record_make_builtin(left, &not_attribute_string_builtin_trim);
             if (result == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(left) < 0)
