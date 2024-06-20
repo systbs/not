@@ -27,8 +27,8 @@ Open source software is made better when users can easily contribute code and do
 ## Sample Code
 set "NOT_LIBRARY_PATH" in file "etc/environment" to path of lib folder
 ```not
-// import forigen function: on windows use "~/lib/c/shared_win.json"
-using println, add from "~/lib/c/shared.json";
+// import forigen function: on windows use "~/c/shared_win.json"
+using println, add from "~/c/shared.json";
 
 // import, if use windows import "~/os/windows/system.not";
 using print from "~/os/system.not";
