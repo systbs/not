@@ -154,4 +154,4 @@ println(string(a7));
 var a8 = [0];
 a8.Insert(12, 10).Remove(-2);
 
-println(string(a8));
+println(string(a8) + " " + a8.Count());
