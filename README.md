@@ -1,4 +1,4 @@
-# <img src="assets/logo-base.png" alt="not logo" height="64"> The Not Programming Language
+# <table style="border: 0px solid #dddddd;"><tr style="vertical-align: middle;"><th><img src="assets/logo-base.png" alt="not logo" height="64"></th><th>The Not Programming Language</th></tr></table> 
 
 ## Build Instructions
 On Ubuntu:
