@@ -20,10 +20,12 @@
 #include "../../parser/syntax/syntax.h"
 #include "../../error.h"
 #include "../../mutex.h"
+#include "../../memory.h"
 #include "../record.h"
 
 #include "../symbol_table.h"
 #include "../strip.h"
+
 #include "execute.h"
 
 static void
@@ -355,8 +357,40 @@ not_multipicative_mul(not_node_t *node, not_record_t *left, not_record_t *right,
     }
     else if (right->kind == RECORD_KIND_INT)
     {
-      not_error_type_by_node(node, "unsupported operand type(s) for *: '%s' and '%s'", "string", "int");
-      return NOT_PTR_ERROR;
+      mpz_t count;
+      mpz_init_set_ui(count, 0);
+
+      size_t length = strlen((char *)(left->value));
+      char *str = not_memory_calloc(1, sizeof(char));
+      if (!str)
+      {
+        not_error_no_memory();
+        mpz_clear(count);
+        return NOT_PTR_ERROR;
+      }
+
+      str[0] = '\0';
+
+      while (mpz_cmp(count, (*(mpz_t *)(right->value))) < 0)
+      {
+        char *buf = not_memory_calloc(strlen(str) + length + 1, sizeof(char));
+        if (!buf)
+        {
+          not_error_no_memory();
+          not_memory_free(str);
+          mpz_clear(count);
+          return NOT_PTR_ERROR;
+        }
+        sprintf(buf, "%s%s", str, (char *)(left->value));
+        not_memory_free(str);
+        str = buf;
+        mpz_add_ui(count, count, 1);
+      }
+      mpz_clear(count);
+
+      not_record_t *record = not_record_make_string(str);
+      not_memory_free(str);
+      return record;
     }
     else if (right->kind == RECORD_KIND_FLOAT)
     {

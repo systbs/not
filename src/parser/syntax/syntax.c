@@ -4367,6 +4367,10 @@ not_syntax_export(not_syntax_t *syntax, not_node_t *parent, not_node_t *note)
 	else if ((syntax->token->type == TOKEN_READONLY_KEYWORD) && (note == NOT_PTR_NULL))
 	{
 		node = not_syntax_readonly(syntax, parent, flag);
+		if (not_syntax_match(syntax, TOKEN_SEMICOLON) == -1)
+		{
+			return NOT_PTR_ERROR;
+		}
 	}
 	else
 	{
@@ -4559,6 +4563,10 @@ not_syntax_module(not_syntax_t *syntax)
 		{
 			item = not_syntax_readonly(syntax, node, SYNTAX_MODIFIER_NONE);
 			if (item == NOT_PTR_NULL)
+			{
+				return NOT_PTR_ERROR;
+			}
+			if (not_syntax_match(syntax, TOKEN_SEMICOLON) == -1)
 			{
 				return NOT_PTR_ERROR;
 			}
