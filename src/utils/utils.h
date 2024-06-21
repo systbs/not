@@ -17,4 +17,6 @@ not_utils_index_of(char *str, char x);
 int32_t
 not_utils_str_is_float(char *str);
 
+bool not_utils_is_octal_string(const char *str);
+
 #endif

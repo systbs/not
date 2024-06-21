@@ -1,4 +1,4 @@
-using println, puts:print from "./shared.json";
+using println, puts:print, f_open from "./shared.json";
 
 export readonly var print = fun (value, end = 1) {
     if (value instanceof string)
@@ -66,35 +66,35 @@ export readonly var print = fun (value, end = 1) {
     }
 };
 
-class File {
-    export static readonly O_RDONLY = 00;
-    export static readonly O_WRONLY = 01;
-    export static readonly O_RDWR = 02;
-    export static readonly O_CREAT = 0100;
-    export static readonly O_EXCL = 0200;
-    export static readonly O_NOCTTY = 0400;
-    export static readonly O_TRUNC = 01000;
-    export static readonly O_APPEND = 02000;
-    export static readonly O_NONBLOCK = 04000;
-    export static readonly O_SYNC = 04010000;
-    export static readonly O_ASYNC = 020000;
+export class File {
+    export static readonly O_RDONLY = 0x0000;
+    export static readonly O_WRONLY = 0x0001;
+    export static readonly O_RDWR = 0x0002;
+    export static readonly O_APPEND = 0x0008;
+    export static readonly O_CREAT = 0x0100;
+    export static readonly O_TRUNC = 0x0200;
+    export static readonly O_EXCL = 0x0400;
+    export static readonly O_ACCMODE = (File.O_RDONLY|File.O_WRONLY|File.O_RDWR);
 
-    export static readonly O_LARGEFILE = 0100000;
-    export static readonly O_DIRECTORY = 0200000;
-    export static readonly O_NOFOLLOW = 0400000;
-    export static readonly O_CLOEXEC = 02000000;
-    export static readonly O_DIRECT = 040000;
-    export static readonly O_NOATIME = 01000000;
-    export static readonly O_PATH = 010000000;
-    export static readonly O_DSYNC = 010000;
-    export static readonly O_TMPFILE = (020000000 | 0200000);
+    export static readonly O_RAW = 0x8000;
+    export static readonly O_NOINHERIT = 0x0080;
+    export static readonly O_TEMPORARY = 0x0040;
+    export static readonly O_SHORT_LIVED = 0x1000;
 
-    fd = -1;
-    is_binary_mode = 0;
+    export static readonly O_SEQUENTIAL = 0x0020;
+    export static readonly O_RANDOM = 0x0010;
 
-    export fun constructor (path:string, flag:int, mode:int)
+    export static readonly SEEK_SET = 0;
+    export static readonly SEEK_CUR = 1;
+    export static readonly SEEK_END = 2;
+
+    export fd = -1;
+    export flag = 0;
+    export mode = 0;
+
+    export fun constructor (path:string, flag:int = File.O_RDWR, mode:int = 0)
     {
-
+        fd = f_open(path, flag, mode);
     }
 
     export fun Read(count:int = -1) {
@@ -105,7 +105,7 @@ class File {
 
     }
 
-    export fun Seek(position:int, mode:int = 0) {
+    export fun Seek(offset:int, whence:int = File.SEEK_SET) {
 
     }
 

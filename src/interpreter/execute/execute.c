@@ -89,7 +89,29 @@ not_execute_type_check_by_type(not_node_t *node, not_record_t *record_type1, not
     not_record_type_t *type1 = (not_record_type_t *)record_type1->value;
     not_record_type_t *type2 = (not_record_type_t *)record_type2->value;
 
-    if (type1->type->kind == NODE_KIND_KINT)
+    if (type1->type->kind == NODE_KIND_KCHAR)
+    {
+        if (type2->type->kind == NODE_KIND_KCHAR)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else if (type1->type->kind == NODE_KIND_KSTRING)
+    {
+        if (type2->type->kind == NODE_KIND_KSTRING)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else if (type1->type->kind == NODE_KIND_KINT)
     {
         if (type2->type->kind == NODE_KIND_KINT)
         {
@@ -311,7 +333,29 @@ not_execute_value_check_by_type(not_node_t *node, not_record_t *record_value, no
 {
     not_record_type_t *type1 = (not_record_type_t *)record_type->value;
 
-    if (type1->type->kind == NODE_KIND_KINT)
+    if (type1->type->kind == NODE_KIND_KCHAR)
+    {
+        if (record_value->kind == RECORD_KIND_CHAR)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else if (type1->type->kind == NODE_KIND_KSTRING)
+    {
+        if (record_value->kind == RECORD_KIND_STRING)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else if (type1->type->kind == NODE_KIND_KINT)
     {
         if (record_value->kind == RECORD_KIND_INT)
         {
@@ -537,7 +581,29 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
 {
     not_record_type_t *type1 = (not_record_type_t *)record_type->value;
 
-    if (type1->type->kind == NODE_KIND_KINT)
+    if (type1->type->kind == NODE_KIND_KCHAR)
+    {
+        if (record_value->kind == RECORD_KIND_CHAR)
+        {
+            return record_value;
+        }
+        else
+        {
+            return NOT_PTR_NULL;
+        }
+    }
+    else if (type1->type->kind == NODE_KIND_KSTRING)
+    {
+        if (record_value->kind == RECORD_KIND_STRING)
+        {
+            return record_value;
+        }
+        else
+        {
+            return NOT_PTR_NULL;
+        }
+    }
+    else if (type1->type->kind == NODE_KIND_KINT)
     {
         if (record_value->kind == RECORD_KIND_INT)
         {

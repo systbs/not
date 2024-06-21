@@ -28,6 +28,25 @@
             "return_type": "int"
         },
         {
+            "name": "f_open",
+            "parameters": [
+                {
+                    "name": "path",
+                    "type": "string"
+                },
+                {
+                    "name": "flag",
+                    "type": "int"
+                },
+                {
+                    "name": "mode",
+                    "type": "int"
+                }
+            ],
+            "arg": false,
+            "return_type": "int"
+        },
+        {
             "name": "add",
             "parameters": [
                 {

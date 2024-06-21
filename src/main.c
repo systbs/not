@@ -7,6 +7,7 @@
 #include <math.h>
 #include <float.h>
 #include <jansson.h>
+#include <fcntl.h>
 
 #include "types/types.h"
 #include "utils/utils.h"

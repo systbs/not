@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <stdbool.h>
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -375,6 +376,32 @@ int32_t
 not_utils_str_is_float(char *str)
 {
 	return not_utils_index_of(str, '.') >= 0;
+}
+
+bool not_utils_is_octal_string(const char *str)
+{
+	if (str == NULL || *str == '\0')
+	{
+		return false;
+	}
+
+	if (*str != '0')
+	{
+		return false;
+	}
+
+	str++;
+
+	while (*str)
+	{
+		if (!isdigit(*str) || *str > '7')
+		{
+			return false;
+		}
+		str++;
+	}
+
+	return true;
 }
 
 /*

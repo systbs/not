@@ -1,4 +1,4 @@
-using print from "~/os/system.not";
+using print, File from "~/os/system.not";
 
 // convert string to float
 var b1 = float ("12e-1");
@@ -169,3 +169,6 @@ print("count:" + a9.Count("l"));
 print("length:" + a9.Length());
 print("replace:" + a9.Replace("world", "not"));
 print("trim:" + a9.Trim());
+
+var file = File("text.txt", File.O_RDWR | File.O_CREAT);
+print(file);

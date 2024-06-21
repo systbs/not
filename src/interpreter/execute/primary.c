@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <jansson.h>
+#include <stdbool.h>
 
 #include "../../types/types.h"
 #include "../../container/queue.h"
@@ -831,14 +832,23 @@ not_primary_number(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         if (str[1] == 'x' || str[1] == 'X')
         {
             base = 16;
+            str += 2;
         }
         else if (str[1] == 'b' || str[1] == 'B')
         {
             base = 2;
+            str += 2;
         }
         else if (isdigit(str[1]))
         {
-            base = 8;
+            if (not_utils_is_octal_string(str))
+            {
+                base = 8;
+            }
+            else
+            {
+                base = 10;
+            }
         }
     }
 
@@ -858,6 +868,11 @@ not_primary_number(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         mpz_init(result_mpz);
         mpz_set_str(result_mpz, str, base);
         record = not_record_make_int_from_z(result_mpz);
+
+        if (base == 16)
+        {
+            gmp_printf("Xnumber = %s %Zd\n", str, result_mpz);
+        }
         mpz_clear(result_mpz);
     }
 
