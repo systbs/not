@@ -1,4 +1,4 @@
-using println, puts:print, f_open from "./shared.json";
+using println, puts:print, f_open, f_read from "./shared.json";
 
 export readonly var print = fun (value, end = 1) {
     if (value instanceof string)
@@ -91,8 +91,9 @@ export class File {
     export fd:int = -1;
     _flag:int = 0;
     _mode:int = 0;
+    _path:string;
 
-    export fun constructor (path:string, flag:int = File.O_RDWR, mode:int = 0)
+    export fun constructor (path:string, flag:int = File.O_RDWR, mode:int = 0777)
     {
         fd = f_open(path, flag, mode);
         if (fd == -1)
@@ -101,10 +102,15 @@ export class File {
         }
         _flag = flag;
         _mode = mode;
+        _path = path;
     }
 
     export fun Read(count:int = -1) {
+        if (fd < 0) {
+            throw "file is closed";
+        }
 
+        return f_read(fd, count);
     }
 
     export fun Write(content) {

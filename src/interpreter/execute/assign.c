@@ -32,7 +32,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 {
     if (left->readonly)
     {
-        not_error_type_by_node(node, "readonly assignment");
+        not_error_type_by_node(node, "readonly variable");
         return -1;
     }
 
@@ -1825,12 +1825,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
     {
         if (right->kind == RECORD_KIND_INT)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "int");
-                return -1;
-            }
-
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
             if (ptr == NOT_PTR_NULL)
             {
@@ -1845,12 +1839,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "float");
-                return -1;
-            }
-
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
             if (ptr == NOT_PTR_NULL)
             {
@@ -1865,12 +1853,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "char");
-                return -1;
-            }
-
             void *ptr = not_memory_realloc(left->value, sizeof(char));
             if (ptr == NOT_PTR_NULL)
             {
@@ -1884,11 +1866,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "string");
-                return -1;
-            }
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
             if (ptr == NOT_PTR_NULL)
             {
@@ -1903,11 +1880,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "object");
-                return -1;
-            }
             void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
             if (ptr == NOT_PTR_ERROR)
             {
@@ -1921,11 +1893,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "tuple");
-                return -1;
-            }
             void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
             if (ptr == NOT_PTR_ERROR)
             {
@@ -1939,11 +1906,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "type");
-                return -1;
-            }
             void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
             if (ptr == NOT_PTR_ERROR)
             {
@@ -1957,11 +1919,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "struct");
-                return -1;
-            }
             void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
             if (ptr == NOT_PTR_ERROR)
             {
@@ -1975,11 +1932,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "null");
-                return -1;
-            }
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
@@ -1988,11 +1940,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "undefined");
-                return -1;
-            }
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
@@ -2001,11 +1948,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "null", "nan");
-                return -1;
-            }
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
@@ -2019,12 +1961,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
     {
         if (right->kind == RECORD_KIND_INT)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "int");
-                return -1;
-            }
-
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
             if (ptr == NOT_PTR_NULL)
             {
@@ -2039,12 +1975,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "float");
-                return -1;
-            }
-
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
             if (ptr == NOT_PTR_NULL)
             {
@@ -2059,12 +1989,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "char");
-                return -1;
-            }
-
             void *ptr = not_memory_realloc(left->value, sizeof(char));
             if (ptr == NOT_PTR_NULL)
             {
@@ -2078,11 +2002,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "string");
-                return -1;
-            }
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
             if (ptr == NOT_PTR_NULL)
             {
@@ -2097,11 +2016,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "object");
-                return -1;
-            }
             void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
             if (ptr == NOT_PTR_ERROR)
             {
@@ -2115,11 +2029,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "tuple");
-                return -1;
-            }
             void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
             if (ptr == NOT_PTR_ERROR)
             {
@@ -2133,11 +2042,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "type");
-                return -1;
-            }
             void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
             if (ptr == NOT_PTR_ERROR)
             {
@@ -2151,11 +2055,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "struct");
-                return -1;
-            }
             void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
             if (ptr == NOT_PTR_ERROR)
             {
@@ -2169,11 +2068,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "null");
-                return -1;
-            }
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
@@ -2182,11 +2076,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "undefined");
-                return -1;
-            }
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
@@ -2195,11 +2084,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "undefined", "nan");
-                return -1;
-            }
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
@@ -2213,12 +2097,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
     {
         if (right->kind == RECORD_KIND_INT)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "int");
-                return -1;
-            }
-
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
             if (ptr == NOT_PTR_NULL)
             {
@@ -2233,12 +2111,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "float");
-                return -1;
-            }
-
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
             if (ptr == NOT_PTR_NULL)
             {
@@ -2253,12 +2125,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "char");
-                return -1;
-            }
-
             void *ptr = not_memory_realloc(left->value, sizeof(char));
             if (ptr == NOT_PTR_NULL)
             {
@@ -2272,11 +2138,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "string");
-                return -1;
-            }
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
             if (ptr == NOT_PTR_NULL)
             {
@@ -2291,11 +2152,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "object");
-                return -1;
-            }
             void *ptr = not_record_object_copy((not_record_object_t *)(right->value));
             if (ptr == NOT_PTR_ERROR)
             {
@@ -2309,11 +2165,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "tuple");
-                return -1;
-            }
             void *ptr = not_record_tuple_copy((not_record_tuple_t *)(right->value));
             if (ptr == NOT_PTR_ERROR)
             {
@@ -2327,11 +2178,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "type");
-                return -1;
-            }
             void *ptr = not_record_type_copy((not_record_type_t *)(right->value));
             if (ptr == NOT_PTR_ERROR)
             {
@@ -2345,11 +2191,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "struct");
-                return -1;
-            }
             void *ptr = not_record_struct_copy((not_record_struct_t *)(right->value));
             if (ptr == NOT_PTR_ERROR)
             {
@@ -2363,11 +2204,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "null");
-                return -1;
-            }
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
@@ -2376,11 +2212,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "undefined");
-                return -1;
-            }
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
@@ -2389,11 +2220,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_NAN)
         {
-            if (left->typed == 1)
-            {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "nan", "nan");
-                return -1;
-            }
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;

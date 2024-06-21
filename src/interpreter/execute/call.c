@@ -385,16 +385,6 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
                 }
             }
 
-            if ((parameter->flag & SYNTAX_MODIFIER_READONLY) == SYNTAX_MODIFIER_READONLY)
-            {
-                record_arg->readonly = 1;
-            }
-
-            if (parameter->type)
-            {
-                record_arg->typed = 1;
-            }
-
             if (not_record_link_decrease(record_arg) < 0)
             {
                 return -1;
@@ -433,6 +423,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
         {
             not_record_tuple_t *tuple = NOT_PTR_NULL;
 
+            not_record_t *record_parameter_type = NOT_PTR_NULL;
             if (arg)
             {
                 not_record_t *record_arg = not_record_copy(arg);
@@ -443,7 +434,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
 
                 if (parameter->type)
                 {
-                    not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                    record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                     if (record_parameter_type == NOT_PTR_ERROR)
                     {
                         if (not_record_link_decrease(record_arg) < 0)
@@ -581,6 +572,11 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
                     }
                 }
 
+                if (parameter->type)
+                {
+                    record_arg->typed = 1;
+                }
+
                 not_record_tuple_t *tuple2 = not_record_make_tuple(record_arg, tuple);
                 if (tuple2 == NOT_PTR_ERROR)
                 {
@@ -660,9 +656,10 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
                 return -1;
             }
 
+            not_record_t *record_parameter_type = NOT_PTR_NULL;
             if (parameter->type)
             {
-                not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                 if (record_parameter_type == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_arg) < 0)
@@ -831,9 +828,10 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
                         return -1;
                     }
 
+                    not_record_t *record_parameter_type = NOT_PTR_NULL;
                     if (parameter->type)
                     {
-                        not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                        record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                         if (record_parameter_type == NOT_PTR_ERROR)
                         {
                             if (not_record_link_decrease(record_arg) < 0)
@@ -1136,9 +1134,10 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                 return -1;
                             }
 
+                            not_record_t *record_parameter_type = NOT_PTR_NULL;
                             if (parameter->type)
                             {
-                                not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                                record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                                 if (record_parameter_type == NOT_PTR_ERROR)
                                 {
                                     if (not_record_link_decrease(record_arg) < 0)
@@ -1285,6 +1284,11 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                 }
                             }
 
+                            if (parameter->type)
+                            {
+                                record_arg->typed = 1;
+                            }
+
                             not_node_basic_t *basic = (not_node_basic_t *)argument->key->value;
                             not_record_object_t *object2 = not_record_make_object(basic->value, record_arg, NOT_PTR_NULL);
                             if (object2 == NOT_PTR_ERROR)
@@ -1367,9 +1371,10 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                     return -1;
                                 }
 
+                                not_record_t *record_parameter_type = NOT_PTR_NULL;
                                 if (parameter->type)
                                 {
-                                    not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                                    record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                                     if (record_parameter_type == NOT_PTR_ERROR)
                                     {
                                         if (not_record_link_decrease(record_arg) < 0)
@@ -1496,6 +1501,10 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                         not_record_t *record_copy = not_record_copy(record_arg);
                                         if (not_record_link_decrease(record_arg) < 0)
                                         {
+                                            if (record_parameter_type)
+                                            {
+                                                not_record_link_decrease(record_parameter_type);
+                                            }
                                             return -1;
                                         }
                                         record_arg = record_copy;
@@ -1562,9 +1571,10 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                 return -1;
                             }
 
+                            not_record_t *record_parameter_type = NOT_PTR_NULL;
                             if (parameter->type)
                             {
-                                not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                                record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                                 if (record_parameter_type == NOT_PTR_ERROR)
                                 {
                                     if (not_record_link_decrease(record_arg) < 0)
@@ -1711,6 +1721,11 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                 }
                             }
 
+                            if (parameter->type)
+                            {
+                                record_arg->typed = 1;
+                            }
+
                             not_record_tuple_t *tuple2 = not_record_make_tuple(record_arg, NOT_PTR_NULL);
                             if (tuple2 == NOT_PTR_ERROR)
                             {
@@ -1801,9 +1816,10 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                             return -1;
                         }
 
+                        not_record_t *record_parameter_type = NOT_PTR_NULL;
                         if (parameter->type)
                         {
-                            not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                            record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                             if (record_parameter_type == NOT_PTR_ERROR)
                             {
                                 if (not_record_link_decrease(record_arg) < 0)
@@ -1977,9 +1993,10 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                         return -1;
                     }
 
+                    not_record_t *record_parameter_type = NOT_PTR_NULL;
                     if (parameter->type)
                     {
-                        not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                        record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
                         if (record_parameter_type == NOT_PTR_ERROR)
                         {
                             if (not_record_link_decrease(record_arg) < 0)
@@ -2250,10 +2267,10 @@ not_call_property_subs(not_node_t *scope, not_strip_t *strip, not_node_t *node, 
 {
     not_node_property_t *property = (not_node_property_t *)node->value;
     not_record_t *record_value = NOT_PTR_NULL;
+    not_record_t *record_parameter_type = NOT_PTR_NULL;
 
     if (property->value)
     {
-
         record_value = not_expression(property->value, strip, applicant, NOT_PTR_NULL);
         if (record_value == NOT_PTR_ERROR)
         {
@@ -2262,7 +2279,7 @@ not_call_property_subs(not_node_t *scope, not_strip_t *strip, not_node_t *node, 
 
         if (property->type)
         {
-            not_record_t *record_parameter_type = not_expression(property->type, strip, applicant, NOT_PTR_NULL);
+            record_parameter_type = not_expression(property->type, strip, applicant, NOT_PTR_NULL);
             if (record_parameter_type == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(record_value) < 0)
@@ -3008,7 +3025,7 @@ not_call_cvt_return_type(union_return_value_t *value, json_t *type)
         {
             if (value->ptr)
             {
-                result = not_record_make_string(*(char **)value->ptr);
+                result = not_record_make_string((char *)value->ptr);
                 free(value->ptr);
             }
         }

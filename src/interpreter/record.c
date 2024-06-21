@@ -71,7 +71,7 @@ int32_t
 not_record_link_decrease(not_record_t *record)
 {
     record->link -= 1;
-    if (record->link <= 0)
+    if (record->link == 0)
     {
         if (not_record_destroy(record) < 0)
         {

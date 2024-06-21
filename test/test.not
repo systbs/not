@@ -170,5 +170,5 @@ print("length:" + a9.Length());
 print("replace:" + a9.Replace("world", "not"));
 print("trim:" + a9.Trim());
 
-var file:File = File("text2.txt");
-print(file);
+var file = File("text.txt", File.O_CREAT | File.O_RDWR);
+print(file.Read());

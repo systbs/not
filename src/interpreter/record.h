@@ -10,7 +10,8 @@ typedef struct not_record
     uint8_t reference : 1;
     uint8_t readonly : 1;
     uint8_t typed : 1;
-    uint8_t reserved : 5;
+    uint8_t null : 1;
+    uint8_t reserved : 4;
     int64_t link;
     uint8_t kind;
     void *value;

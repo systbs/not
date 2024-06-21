@@ -587,6 +587,10 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
         {
             return record_value;
         }
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
+        {
+            return record_value;
+        }
         else
         {
             return NOT_PTR_NULL;
@@ -598,6 +602,10 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
         {
             return record_value;
         }
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
+        {
+            return record_value;
+        }
         else
         {
             return NOT_PTR_NULL;
@@ -606,6 +614,10 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
     else if (type1->type->kind == NODE_KIND_KINT)
     {
         if (record_value->kind == RECORD_KIND_INT)
+        {
+            return record_value;
+        }
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
         {
             return record_value;
         }
@@ -635,6 +647,10 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
             mpz_clear(val);
             record_value->value = ptr;
             record_value->kind = RECORD_KIND_FLOAT;
+            return record_value;
+        }
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
+        {
             return record_value;
         }
         else
@@ -721,7 +737,10 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
 
             return record_value;
         }
-
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
+        {
+            return record_value;
+        }
         return NOT_PTR_NULL;
     }
     else if (type1->type->kind == NODE_KIND_ARRAY)
@@ -763,7 +782,10 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
 
             return record_value;
         }
-
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
+        {
+            return record_value;
+        }
         return NOT_PTR_NULL;
     }
     else if (type1->type->kind == NODE_KIND_TUPLE)
@@ -831,7 +853,10 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
 
             return record_value;
         }
-
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
+        {
+            return record_value;
+        }
         return NOT_PTR_NULL;
     }
     else if (type1->type->kind == NODE_KIND_CLASS)
@@ -921,6 +946,10 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
             return record_value;
         }
         else if (record_value->kind == RECORD_KIND_NULL)
+        {
+            return record_value;
+        }
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
         {
             return record_value;
         }
@@ -1141,6 +1170,7 @@ not_execute_var(not_node_t *scope, not_node_t *node, not_strip_t *strip, not_nod
     else
     {
         not_record_t *record_value = NOT_PTR_NULL;
+        not_record_t *record_type = NOT_PTR_NULL;
         if (var1->value)
         {
             record_value = not_expression(var1->value, strip, applicant, NOT_PTR_NULL);
@@ -1151,7 +1181,7 @@ not_execute_var(not_node_t *scope, not_node_t *node, not_strip_t *strip, not_nod
 
             if (var1->type)
             {
-                not_record_t *record_type = not_expression(var1->type, strip, applicant, NOT_PTR_NULL);
+                record_type = not_expression(var1->type, strip, applicant, NOT_PTR_NULL);
                 if (record_type == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_value) < 0)
