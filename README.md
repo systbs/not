@@ -45,8 +45,7 @@ var print_diamond = fun (n:int) {
 	}
 };
 
-print_diamond(5);
-Print("Hello World");
+print_diamond(6);
 ```
 
 ```csharp
