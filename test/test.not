@@ -1,7 +1,9 @@
 using Print, File from "~/os/system.not";
 
-var print_diamond = fun (n:int) {
-	for (var i = 1;i < 2 * n; i += 1)
+Print("Hello World");
+
+var print_diamond = fun(n: int) {
+	for (var i = 1; i < 2 * n; i += 1)
 	{
 		var spaces = (n - i) > 0 ? n - i : i - n;
 		var stars = 2 * (n - spaces) - 1;
@@ -9,5 +11,17 @@ var print_diamond = fun (n:int) {
 	}
 };
 
-print_diamond(5);
-Print("Hello World");
+print_diamond(6);
+
+readonly var print_pattern = fun(str: string) {
+	for (var i = 1; i < str.Length(); i += 1)
+	{
+		Print(str[0, i - 1]);
+	}
+
+	for (var i = str.Length(); i > 0; i -= 1) {
+		Print(str[0, i - 1]);
+	}
+};
+print_pattern("Hello World");
+

@@ -28,7 +28,12 @@ Open source software is made better when users can easily contribute code and do
 set "NOT_LIBRARY_PATH" in file "etc/environment" to path of lib folder,
 windows: set "NOT_LIBRARY_PATH" in "Environment Variables" to path of lib folder
 
-```not
+```csharp
+using Print from "~/os/system.not";
+Print("Hello World");
+```
+
+```csharp
 using Print, File from "~/os/system.not";
 
 var print_diamond = fun (n:int) {
@@ -44,7 +49,23 @@ print_diamond(5);
 Print("Hello World");
 ```
 
-```not
+```csharp
+using Print from "~/os/system.not";
+
+readonly var print_pattern = fun(str: string) {
+	for (var i = 1; i < str.Length(); i += 1)
+	{
+		Print(str[0, i - 1]);
+	}
+
+	for (var i = str.Length(); i > 0; i -= 1) {
+		Print(str[0, i - 1]);
+	}
+};
+print_pattern("Hello World");
+```
+
+```csharp
 using Print, File from "~/os/system.not";
 
 // convert string to float
