@@ -267,14 +267,62 @@ err:
     return NULL;
 }
 
+void replace_escaped(const char *input, char *output)
+{
+    while (*input)
+    {
+        if (*input == '\\' && *(input + 1) == 'n')
+        {
+            *output++ = '\n';
+            input += 2;
+        }
+        else if (*input == '\\' && *(input + 1) == 't')
+        {
+            *output++ = '\t';
+            input += 2;
+        }
+        else if (*input == '\\' && *(input + 1) == 'r')
+        {
+            *output++ = '\r';
+            input += 2;
+        }
+        else if (*input == '\\' && *(input + 1) == 'v')
+        {
+            *output++ = '\v';
+            input += 2;
+        }
+        else if (*input == '\\' && *(input + 1) == '\\')
+        {
+            *output++ = '\\';
+            input += 2;
+        }
+        else
+        {
+            *output++ = *input++;
+        }
+    }
+    *output = '\0';
+}
+
 mpz_t *
 f_write(mpz_t *fd, const char *buf, mpz_t *n)
 {
+    ssize_t t = -1;
     int _fd = mpz_get_si(*fd);
     ssize_t nbytes = mpz_get_ui(*n);
 
-    ssize_t t = write(_fd, buf, nbytes);
+    char *modified = calloc(strlen(buf) + 1, sizeof(char));
+    if (!modified)
+    {
+        goto final;
+    }
+    replace_escaped(buf, modified);
 
+    t = write(_fd, modified, nbytes);
+
+    free(modified);
+
+final:
     mpz_t *r = calloc(1, sizeof(mpz_t));
     mpz_init(*r);
     mpz_set_si(*r, t);

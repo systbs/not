@@ -28,7 +28,7 @@ Open source software is made better when users can easily contribute code and do
 set "NOT_LIBRARY_PATH" in file "etc/environment" to path of lib folder,
 windows: set "NOT_LIBRARY_PATH" in "Environment Variables" to path of lib folder
 ```not
-using print, File from "~/os/system.not";
+using Print, File from "~/os/system.not";
 
 // convert string to float
 var b1 = float ("12e-1");
@@ -39,7 +39,7 @@ var b2 = int ("12345");
 // round
 var b3 = float (1.3451, 2);
 
-print("hello world" + " " + b1 + " " + b2 + " " + b3 + " ");
+Print("hello world" + " " + b1 + " " + b2 + " " + b3 + " ");
 
 // types
 
@@ -118,20 +118,20 @@ class A<T> extends (b1:B)
 var fun1 = fun fun2 (p1:int) {
 	if (p1 > 0)
 	{
-		print("f = " + p1);
+		Print("f = " + p1);
 		return fun2(p1 - 1);
 	}
-	print("f2 = " + p1);
+	Print("f2 = " + p1);
 	return p1 * 1000;
 };
 
 var f1 = fun1(100);
-print("f1 = " + f1);
+Print("f1 = " + f1);
 
 // new class
 var f2 = A<int>(100000);
 var f3 = f2 * 2;
-print(f2);
+Print(f2);
 
 // typeof|instanceof
 var f4 = typeof f2;
@@ -143,7 +143,7 @@ var f6 = f4[2];
 // slice -> [start, stop, step]
 var f7 = a5[1, 2]; 
 var f8 = a5[1, -1, 1];
-print(f8);
+Print(f8);
 
 // try/catch
 var sum = 0;
@@ -164,13 +164,13 @@ try {
 }
 catch(ex)
 {
-	print(ex);
+	Print(ex);
 }
 
 // forin loop
 for loop1 (var key, value in ["hello", "world", 123])
 {
-	print(value);
+	Print(value);
 }
 
 // object methods
@@ -179,7 +179,7 @@ var a7 = {a:1};
 a7.Remove(key = "a");
 a7.Add("b", 123);
 
-print(a7);
+Print(a7);
 
 // tuple/sequence methods
 var a8 = [0];
@@ -189,26 +189,26 @@ a8.Append(15);
 a8.Insert(4, 15);
 a8.Remove(2);
 
-print(a8);
-print("count tuple:" + a8.Count());
+Print(a8);
+Print("count tuple:" + a8.Count());
 
 var a9 = "   Hello world   ";
-print("to upper:" + a9.Upper());
-print("to lower:" + a9.Lower());
-print("count:" + a9.Count("l"));
-print("length:" + a9.Length());
-print("replace:" + a9.Replace("world", "not"));
-print("trim:" + a9.Trim());
+Print("to upper:" + a9.Upper());
+Print("to lower:" + a9.Lower());
+Print("count:" + a9.Count("l"));
+Print("length:" + a9.Length());
+Print("replace:" + a9.Replace("world", "not"));
+Print("trim:" + a9.Trim());
 
 
 var file = File("text.txt", File.O_CREAT | File.O_RDWR);
 
 if (file)
 {
-	print("read file:" + file.Read());
-	print("write to file:" + file.Write(a9));
-	print("size of file:" + file.Seek(0, File.SEEK_END));
-	print("close file:" + file.Close());
+	Print("read file:" + file.Read());
+	Print("write to file:" + file.Write(a9));
+	Print("size of file:" + file.Seek(0, File.SEEK_END));
+	Print("close file:" + file.Close());
 }
 
 

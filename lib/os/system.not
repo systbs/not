@@ -1,68 +1,23 @@
-using println, puts:print, f_open, f_read, f_write, f_close, f_seek from "./shared.json";
+using f_open, f_read, f_write, f_close, f_seek from "./shared.json";
 
-export readonly var print = fun (value, end = 1) {
-    if (value instanceof string)
+export readonly var Print = fun (value, end = 1, f:File = null) {
+
+    var content = ((value instanceof string) ? value : string(value)) + (end ? "\n":"");
+    if (f)
     {
-        if (end == 0)
+        var fd = f.GetFd();
+        if (fd > 0)
         {
-            puts(value);
+            f_write(fd, content, content.Length());
         }
         else
         {
-            println(value);
-        }
-    }
-    else if (typeof value == "struct")
-    {
-        try {
-            var stringify = value.ToString();
-            if (stringify instanceof string)
-            {
-                if (end == 0)
-                {
-                    puts(stringify);
-                }
-                else
-                {
-                    println(stringify);
-                }
-            }
-            else
-            {
-                if (end == 0)
-                {
-                    puts(string(stringify));
-                }
-                else
-                {
-                    println(string(stringify));
-                }
-            }
-        }
-        catch (ex)
-        {
-            var stringify = string(value);
-            if (end == 0)
-            {
-                puts(stringify);
-            }
-            else
-            {
-                println(stringify);
-            }
+            f_write(1, content, content.Length());
         }
     }
     else
     {
-        var stringify = string(value);
-        if (end == 0)
-        {
-            puts(stringify);
-        }
-        else
-        {
-            println(stringify);
-        }
+        f_write(1, content, content.Length());
     }
 };
 
@@ -126,7 +81,7 @@ export class File {
     export static readonly SEEK_CUR = 1;
     export static readonly SEEK_END = 2;
 
-    export fd:int = -1;
+    fd:int = -1;
     _flag:int = 0;
     _mode:int = 0;
     _path:string;
@@ -188,5 +143,9 @@ export class File {
         fd = -1;
         
         return r;
+    }
+
+    export fun GetFd {
+        return fd;
     }
 }
