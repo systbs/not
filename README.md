@@ -27,6 +27,23 @@ Open source software is made better when users can easily contribute code and do
 ## Sample Code
 set "NOT_LIBRARY_PATH" in file "etc/environment" to path of lib folder,
 windows: set "NOT_LIBRARY_PATH" in "Environment Variables" to path of lib folder
+
+```not
+using Print, File from "~/os/system.not";
+
+var print_diamond = fun (n:int) {
+	for (var i = 1;i < 2 * n; i += 1)
+	{
+		var spaces = (n - i) > 0 ? n - i : i - n;
+		var stars = 2 * (n - spaces) - 1;
+		Print(" " * spaces + "*" * stars);
+	}
+};
+
+print_diamond(5);
+Print("Hello World");
+```
+
 ```not
 using Print, File from "~/os/system.not";
 

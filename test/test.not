@@ -1,7 +1,7 @@
 using Print, File from "~/os/system.not";
 
 var print_diamond = fun (n:int) {
-	for (var i = 0;i < 2 * n; i += 1)
+	for (var i = 1;i < 2 * n; i += 1)
 	{
 		var spaces = (n - i) > 0 ? n - i : i - n;
 		var stars = 2 * (n - spaces) - 1;
