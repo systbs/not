@@ -3083,15 +3083,7 @@ not_syntax_readonly_stmt(not_syntax_t *syntax, not_node_t *parent, uint64_t flag
 
 	flag |= SYNTAX_MODIFIER_READONLY;
 
-	not_node_t *node = NOT_PTR_NULL;
-	if (syntax->token->type == TOKEN_REFERENCE_KEYWORD)
-	{
-		node = not_syntax_reference_stmt(syntax, parent, flag);
-	}
-	else
-	{
-		node = not_syntax_var_stmt(syntax, parent, flag);
-	}
+	not_node_t *node = not_syntax_var_stmt(syntax, parent, flag);
 
 	flag &= ~SYNTAX_MODIFIER_READONLY;
 
@@ -3731,6 +3723,10 @@ not_syntax_class_static(not_syntax_t *syntax, not_node_t *parent, not_node_t *no
 		{
 			return NOT_PTR_ERROR;
 		}
+		if (not_syntax_match(syntax, TOKEN_SEMICOLON) == -1)
+		{
+			return NOT_PTR_ERROR;
+		}
 	}
 	else if (syntax->token->type == TOKEN_FUN_KEYWORD)
 	{
@@ -3953,11 +3949,19 @@ not_syntax_class_block(not_syntax_t *syntax, not_node_t *parent)
 			{
 				return NOT_PTR_ERROR;
 			}
+			if (not_syntax_match(syntax, TOKEN_SEMICOLON) == -1)
+			{
+				return NOT_PTR_ERROR;
+			}
 		}
 		else if (syntax->token->type == TOKEN_READONLY_KEYWORD)
 		{
 			item = not_syntax_class_readonly(syntax, parent, NOT_PTR_NULL, SYNTAX_MODIFIER_NONE);
 			if (item == NOT_PTR_NULL)
+			{
+				return NOT_PTR_ERROR;
+			}
+			if (not_syntax_match(syntax, TOKEN_SEMICOLON) == -1)
 			{
 				return NOT_PTR_ERROR;
 			}

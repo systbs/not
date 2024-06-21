@@ -65,3 +65,55 @@ export readonly var print = fun (value, end = 1) {
         }
     }
 };
+
+class File {
+    export static readonly O_RDONLY = 00;
+    export static readonly O_WRONLY = 01;
+    export static readonly O_RDWR = 02;
+    export static readonly O_CREAT = 0100;
+    export static readonly O_EXCL = 0200;
+    export static readonly O_NOCTTY = 0400;
+    export static readonly O_TRUNC = 01000;
+    export static readonly O_APPEND = 02000;
+    export static readonly O_NONBLOCK = 04000;
+    export static readonly O_SYNC = 04010000;
+    export static readonly O_ASYNC = 020000;
+
+    export static readonly O_LARGEFILE = 0100000;
+    export static readonly O_DIRECTORY = 0200000;
+    export static readonly O_NOFOLLOW = 0400000;
+    export static readonly O_CLOEXEC = 02000000;
+    export static readonly O_DIRECT = 040000;
+    export static readonly O_NOATIME = 01000000;
+    export static readonly O_PATH = 010000000;
+    export static readonly O_DSYNC = 010000;
+    export static readonly O_TMPFILE = (020000000 | 0200000);
+
+    fd = -1;
+    is_binary_mode = 0;
+
+    export fun constructor (path:string, flag:int, mode:int)
+    {
+
+    }
+
+    export fun Read(count:int = -1) {
+
+    }
+
+    export fun Write(content) {
+
+    }
+
+    export fun Seek(position:int, mode:int = 0) {
+
+    }
+
+    export fun Tell() {
+
+    }
+
+    export fun Close() {
+
+    }
+}

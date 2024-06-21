@@ -15,7 +15,15 @@
         "compare": "c",
         "typeinfo": "c",
         "strip.h": "c",
-        "memory.h": "c"
+        "memory.h": "c",
+        "queue.h": "c",
+        "types.h": "c",
+        "fcntl.h": "c",
+        "fcntl2.h": "c",
+        "features.h": "c",
+        "stubs.h": "c",
+        "cdefs.h": "c",
+        "path.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

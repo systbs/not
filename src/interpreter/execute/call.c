@@ -3021,11 +3021,12 @@ not_call_cvt_return_type(union_return_value_t *value, json_t *type)
     }
     else
     {
+        result = not_record_make_undefined();
     }
 
     if (!result)
     {
-        return not_record_make_undefined();
+        return not_record_make_null();
     }
 
     return result;

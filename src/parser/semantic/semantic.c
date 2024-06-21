@@ -3057,6 +3057,7 @@ not_semantic_property(not_node_t *node)
                 else if (item1->kind == NODE_KIND_PROPERTY)
                 {
                     not_node_property_t *property2 = (not_node_property_t *)item1->value;
+
                     if (not_semantic_idcmp(property1->key, property2->key) == 1)
                     {
                         not_node_basic_t *basic1 = (not_node_basic_t *)property1->key->value;
@@ -3471,14 +3472,10 @@ not_semantic_class(not_node_t *node)
                 }
             }
 
-            not_node_property_t *property1 = (not_node_property_t *)item->value;
-            if ((property1->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
+            int32_t r1 = not_semantic_property(item);
+            if (r1 == -1)
             {
-                int32_t r1 = not_semantic_property(item);
-                if (r1 == -1)
-                {
-                    return -1;
-                }
+                return -1;
             }
         }
     }
