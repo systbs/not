@@ -34,7 +34,7 @@ Print("Hello World");
 ```
 
 ```csharp
-using Print, File from "~/os/system.not";
+using Print from "~/os/system.not";
 
 var print_diamond = fun (n:int) {
 	for (var i = 1;i < 2 * n; i += 1)
@@ -63,6 +63,25 @@ readonly var print_pattern = fun(str: string) {
 	}
 };
 print_pattern("Hello World");
+```
+
+```csharp
+using Print from "~/os/system.not";
+
+readonly var print_alphabetical = fun(n:int) {
+	var num = 0;
+	for (var i = 1; i < n + 1; i += 1)
+	{
+		for (var j = 1; j < i + 1; j += 1)
+		{
+			Print('A' + num, end = " ");
+			num += 1;
+		}
+		Print("");
+	}
+};
+
+print_alphabetical(6);
 ```
 
 ```csharp

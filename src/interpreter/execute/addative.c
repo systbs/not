@@ -270,7 +270,15 @@ not_addative_plus(not_node_t *node, not_record_t *left, not_record_t *right, not
             mpz_clear(num1);
             mpz_clear(num2);
 
-            not_record_t *record = not_record_make_int_from_z(result);
+            not_record_t *record = NOT_PTR_NULL;
+            if (mpz_cmp_si(result, 255) <= 0)
+            {
+                record = not_record_make_char(mpz_get_si(result));
+            }
+            else
+            {
+                record = not_record_make_int_from_z(result);
+            }
 
             mpz_clear(result);
 
@@ -306,7 +314,15 @@ not_addative_plus(not_node_t *node, not_record_t *left, not_record_t *right, not
             mpz_clear(num1);
             mpz_clear(num2);
 
-            not_record_t *record = not_record_make_int_from_z(result);
+            not_record_t *record = NOT_PTR_NULL;
+            if (mpz_cmp_si(result, 255) <= 0)
+            {
+                record = not_record_make_char(mpz_get_si(result));
+            }
+            else
+            {
+                record = not_record_make_int_from_z(result);
+            }
 
             mpz_clear(result);
 
@@ -314,7 +330,6 @@ not_addative_plus(not_node_t *node, not_record_t *left, not_record_t *right, not
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-
             not_error_type_by_node(node, "unsupported operand type(s) for +: '%s' and '%s'", "char", "string");
             return NOT_PTR_ERROR;
         }
