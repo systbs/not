@@ -88,13 +88,19 @@ export class File {
     export static readonly SEEK_CUR = 1;
     export static readonly SEEK_END = 2;
 
-    export fd = -1;
-    export flag = 0;
-    export mode = 0;
+    export fd:int = -1;
+    _flag:int = 0;
+    _mode:int = 0;
 
     export fun constructor (path:string, flag:int = File.O_RDWR, mode:int = 0)
     {
         fd = f_open(path, flag, mode);
+        if (fd == -1)
+        {
+            return null;
+        }
+        _flag = flag;
+        _mode = mode;
     }
 
     export fun Read(count:int = -1) {

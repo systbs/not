@@ -868,11 +868,6 @@ not_primary_number(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         mpz_init(result_mpz);
         mpz_set_str(result_mpz, str, base);
         record = not_record_make_int_from_z(result_mpz);
-
-        if (base == 16)
-        {
-            gmp_printf("Xnumber = %s %Zd\n", str, result_mpz);
-        }
         mpz_clear(result_mpz);
     }
 

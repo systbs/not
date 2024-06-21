@@ -920,6 +920,11 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
             }
             return record_value;
         }
+        else if (record_value->kind == RECORD_KIND_NULL)
+        {
+            return record_value;
+        }
+
         return NOT_PTR_NULL;
     }
     return NOT_PTR_NULL;
