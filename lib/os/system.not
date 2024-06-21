@@ -1,8 +1,8 @@
 using f_open, f_read, f_write, f_close, f_seek from "./shared.json";
 
-export readonly var Print = fun (value, end = 1, f:File = null) {
+export readonly var Print = fun (value, end = "\n", f:File = null) {
 
-    var content = ((value instanceof string) ? value : string(value)) + (end ? "\n":"");
+    var content = ((value instanceof string) ? value : string(value)) + ((end instanceof string) ? end : string(end));
     if (f)
     {
         var fd = f.GetFd();
