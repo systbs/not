@@ -1,4 +1,4 @@
-using println, puts:print, f_open, f_read, f_write, f_close from "./shared.json";
+using println, puts:print, f_open, f_read, f_write, f_close, f_seek from "./shared.json";
 
 export readonly var print = fun (value, end = 1) {
     if (value instanceof string)
@@ -66,6 +66,19 @@ export readonly var print = fun (value, end = 1) {
     }
 };
 
+export class ValueError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
 export class File {
     export static readonly O_RDONLY = 0x0000;
     export static readonly O_WRONLY = 0x0001;
@@ -109,19 +122,16 @@ export class File {
     export static readonly S_IXOTH = (File.S_IXGRP >> 3);
     export static readonly S_IRWXO = (File.S_IRWXG >> 3);
 
-
     export static readonly SEEK_SET = 0;
     export static readonly SEEK_CUR = 1;
     export static readonly SEEK_END = 2;
-
 
     export fd:int = -1;
     _flag:int = 0;
     _mode:int = 0;
     _path:string;
 
-    export fun constructor (path:string, flag:int = File.O_RDWR, mode:int = 0777)
-    {
+    export fun constructor (path:string, flag:int = File.O_RDWR, mode:int = File.S_IWUSR | File.S_IRUSR) {
         fd = f_open(path, flag, mode);
         if (fd == -1)
         {
@@ -134,7 +144,7 @@ export class File {
 
     export fun Read(count:int = -1) {
         if (fd < 0) {
-            throw "file is closed";
+            throw ValueError("I/O operation on closed file");
         }
 
         return f_read(fd, count);
@@ -142,7 +152,7 @@ export class File {
 
     export fun Write(content) {
         if (fd < 0) {
-            throw "file is closed";
+            throw ValueError("I/O operation on closed file");
         }
 
         if (content instanceof string)
@@ -157,16 +167,16 @@ export class File {
     }
 
     export fun Seek(offset:int, whence:int = File.SEEK_SET) {
+        if (fd < 0) {
+            throw ValueError("I/O operation on closed file");
+        }
 
-    }
-
-    export fun Tell() {
-
+        return f_seek(fd, offset, whence);
     }
 
     export fun Close() {
         if (fd < 0) {
-            throw "file is closed";
+            throw ValueError("I/O operation on closed file");
         }
 
         var r = f_close(fd);

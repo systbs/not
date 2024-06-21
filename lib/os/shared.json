@@ -92,6 +92,25 @@
             "return_type": "int"
         },
         {
+            "name": "f_seek",
+            "parameters": [
+                {
+                    "name": "fd",
+                    "type": "int"
+                },
+                {
+                    "name": "offset",
+                    "type": "int"
+                },
+                {
+                    "name": "whence",
+                    "type": "int"
+                }
+            ],
+            "arg": false,
+            "return_type": "int"
+        },
+        {
             "name": "add",
             "parameters": [
                 {

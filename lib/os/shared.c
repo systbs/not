@@ -124,6 +124,17 @@ struct permission
 };
 
 struct permission permissions[21] = {
+#if defined(_WIN32) || defined(_WIN64)
+    {P_S_IFMT, S_IFMT},
+    {P_S_IFDIR, S_IFDIR},
+    {P_S_IFCHR, S_IFCHR},
+    {P_S_IFREG, S_IFREG},
+    {P_S_IREAD, S_IREAD},
+    {P_S_IWRITE, S_IWRITE},
+    {P_S_IEXEC, S_IEXEC},
+    {P_S_IFIFO, S_IFIFO},
+    {P_S_IFBLK, S_IFBLK},
+#else
     {P_S_IFMT, __S_IFMT},
     {P_S_IFDIR, __S_IFDIR},
     {P_S_IFCHR, __S_IFCHR},
@@ -133,6 +144,7 @@ struct permission permissions[21] = {
     {P_S_IEXEC, __S_IEXEC},
     {P_S_IFIFO, __S_IFIFO},
     {P_S_IFBLK, __S_IFBLK},
+#endif
     {P_S_IRWXU, S_IRWXU},
     {P_S_IXUSR, S_IXUSR},
     {P_S_IWUSR, S_IWUSR},
@@ -275,6 +287,53 @@ f_close(mpz_t *fd)
 {
     int _fd = mpz_get_si(*fd);
     int t = close(_fd);
+
+    mpz_t *r = calloc(1, sizeof(mpz_t));
+    mpz_init(*r);
+    mpz_set_si(*r, t);
+
+    return r;
+}
+
+#define P_SEEK_SET 0
+#define P_SEEK_CUR 1
+#define P_SEEK_END 2
+
+struct whence
+{
+    int term;
+    int value;
+};
+
+struct whence whences[3] = {
+#if defined(_WIN32) || defined(_WIN64)
+    {P_SEEK_SET, SEEK_SET},
+    {P_SEEK_CUR, SEEK_CUR},
+    {P_SEEK_END, SEEK_END}
+#else
+    {P_SEEK_SET, SEEK_SET},
+    {P_SEEK_CUR, SEEK_CUR},
+    {P_SEEK_END, SEEK_END}
+#endif
+};
+
+mpz_t *
+f_seek(mpz_t *fd, mpz_t *offset, mpz_t *whence)
+{
+    int _fd = mpz_get_si(*fd);
+    long _off = mpz_get_si(*offset);
+    int _whence = mpz_get_si(*whence);
+
+    size_t num_whences = sizeof(whences) / sizeof(whences[0]);
+    mode_t final_whences = 0;
+
+    for (size_t i = 0; i < num_whences; i++)
+    {
+        if ((_whence & whences[i].term) == whences[i].term)
+            final_whences |= whences[i].value;
+    }
+
+    long t = lseek(_fd, _off, final_whences);
 
     mpz_t *r = calloc(1, sizeof(mpz_t));
     mpz_init(*r);

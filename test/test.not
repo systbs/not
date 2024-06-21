@@ -170,7 +170,8 @@ print("length:" + a9.Length());
 print("replace:" + a9.Replace("world", "not"));
 print("trim:" + a9.Trim());
 
-var file = File("text.txt", File.O_CREAT | File.O_RDWR | File.O_APPEND);
-file.Write(a9);
-print(file.Close());
-print(file.Read());
+var file = File("text.txt", File.O_CREAT | File.O_RDWR);
+print("read file:" + file.Read());
+print("write to file:" + file.Write(a9));
+print("size of file:" + file.Seek(0, File.SEEK_END));
+print("close file:" + file.Close());

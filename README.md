@@ -28,8 +28,7 @@ Open source software is made better when users can easily contribute code and do
 set "NOT_LIBRARY_PATH" in file "etc/environment" to path of lib folder,
 windows: set "NOT_LIBRARY_PATH" in "Environment Variables" to path of lib folder
 ```not
-using println, add from "~/c/shared.json";
-using print from "~/os/system.not";
+using print, File from "~/os/system.not";
 
 // convert string to float
 var b1 = float ("12e-1");
@@ -200,5 +199,13 @@ print("count:" + a9.Count("l"));
 print("length:" + a9.Length());
 print("replace:" + a9.Replace("world", "not"));
 print("trim:" + a9.Trim());
+
+
+var file = File("text.txt", File.O_CREAT | File.O_RDWR);
+print("read file:" + file.Read());
+print("write to file:" + file.Write(a9));
+print("size of file:" + file.Seek(0, File.SEEK_END));
+print("close file:" + file.Close());
+
 
 ```
