@@ -155,17 +155,17 @@ not_syntax_expected(not_syntax_t *syntax, int32_t type)
 	case TOKEN_STRING:
 		sprintf(
 			message,
-			"expected '%s', got '%s'\n\tMajor:%s-%u",
+			"expected '%s', got '%s'",
 			not_token_get_name(type),
-			syntax->token->value, __FILE__, __LINE__);
+			syntax->token->value);
 		break;
 
 	default:
 		sprintf(
 			message,
-			"expected '%s', got '%s'\n\tMajor:%s-%u",
+			"expected '%s', got '%s'",
 			not_token_get_name(type),
-			not_token_get_name(syntax->token->type), __FILE__, __LINE__);
+			not_token_get_name(syntax->token->type));
 		break;
 	}
 
@@ -556,7 +556,7 @@ not_syntax_operator(not_syntax_t *syntax, not_node_t *parent)
 	}
 	else
 	{
-		not_error_syntax_by_position(syntax->token->position, "operator expected\n\tMajor:%s-%u", __FILE__, __LINE__);
+		not_error_syntax_by_position(syntax->token->position, "operator expected");
 		return NOT_PTR_ERROR;
 	}
 
@@ -637,7 +637,7 @@ not_syntax_pair(not_syntax_t *syntax, not_node_t *parent)
 	}
 
 	not_node_t *key = not_syntax_expression(syntax, node);
-	if (key == NOT_PTR_NULL)
+	if (key == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -651,7 +651,7 @@ not_syntax_pair(not_syntax_t *syntax, not_node_t *parent)
 		}
 
 		value = not_syntax_expression(syntax, node);
-		if (value == NOT_PTR_NULL)
+		if (value == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -680,7 +680,7 @@ not_syntax_object(not_syntax_t *syntax, not_node_t *parent)
 		while (true)
 		{
 			not_node_t *item = not_syntax_pair(syntax, node);
-			if (item == NOT_PTR_NULL)
+			if (item == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -732,7 +732,7 @@ not_syntax_parenthesis(not_syntax_t *syntax, not_node_t *parent)
 	}
 
 	not_node_t *value = not_syntax_expression(syntax, node);
-	if (value == NOT_PTR_NULL)
+	if (value == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -763,7 +763,7 @@ not_syntax_lambda(not_syntax_t *syntax, not_node_t *parent)
 	if (syntax->token->type == TOKEN_ID)
 	{
 		key = not_syntax_id(syntax, node);
-		if (key == NOT_PTR_NULL)
+		if (key == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -784,12 +784,12 @@ not_syntax_lambda(not_syntax_t *syntax, not_node_t *parent)
 
 		if (syntax->token->type == TOKEN_GT)
 		{
-			not_error_syntax_by_position(syntax->token->position, "empty generic types\n\tMajor:%s-%u", __FILE__, __LINE__);
+			not_error_syntax_by_position(syntax->token->position, "empty generic types");
 			return NOT_PTR_ERROR;
 		}
 
 		generics = not_syntax_generics(syntax, node);
-		if (generics == NOT_PTR_NULL)
+		if (generics == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -816,7 +816,7 @@ not_syntax_lambda(not_syntax_t *syntax, not_node_t *parent)
 		if (syntax->token->type != TOKEN_RPAREN)
 		{
 			parameters = not_syntax_parameters(syntax, node);
-			if (parameters == NOT_PTR_NULL)
+			if (parameters == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -836,7 +836,7 @@ not_syntax_lambda(not_syntax_t *syntax, not_node_t *parent)
 		}
 
 		not_node_t *return_type = not_syntax_postfix(syntax, node);
-		if (return_type == NOT_PTR_NULL)
+		if (return_type == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -850,7 +850,7 @@ not_syntax_lambda(not_syntax_t *syntax, not_node_t *parent)
 			}
 
 			body = not_syntax_expression(syntax, node);
-			if (body == NOT_PTR_NULL)
+			if (body == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -858,7 +858,7 @@ not_syntax_lambda(not_syntax_t *syntax, not_node_t *parent)
 		else
 		{
 			body = not_syntax_body(syntax, node);
-			if (body == NOT_PTR_NULL)
+			if (body == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -875,7 +875,7 @@ not_syntax_lambda(not_syntax_t *syntax, not_node_t *parent)
 		}
 
 		not_node_t *body = not_syntax_expression(syntax, node);
-		if (body == NOT_PTR_NULL)
+		if (body == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -888,7 +888,7 @@ not_syntax_lambda(not_syntax_t *syntax, not_node_t *parent)
 		syntax->fun_depth += 1;
 
 		not_node_t *body = not_syntax_body(syntax, node);
-		if (body == NOT_PTR_NULL)
+		if (body == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -974,7 +974,7 @@ not_syntax_field(not_syntax_t *syntax, not_node_t *parent)
 	}
 
 	not_node_t *key = not_syntax_postfix(syntax, node);
-	if (key == NOT_PTR_NULL)
+	if (key == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -988,7 +988,7 @@ not_syntax_field(not_syntax_t *syntax, not_node_t *parent)
 		}
 
 		value = not_syntax_postfix(syntax, node);
-		if (value == NOT_PTR_NULL)
+		if (value == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -1011,7 +1011,7 @@ not_syntax_fields(not_syntax_t *syntax, not_node_t *parent)
 	while (true)
 	{
 		not_node_t *item = not_syntax_field(syntax, node);
-		if (item == NOT_PTR_NULL)
+		if (item == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -1052,7 +1052,7 @@ not_syntax_argument(not_syntax_t *syntax, not_node_t *parent)
 	}
 
 	not_node_t *key = not_syntax_expression(syntax, node);
-	if (key == NOT_PTR_NULL)
+	if (key == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -1066,7 +1066,7 @@ not_syntax_argument(not_syntax_t *syntax, not_node_t *parent)
 		}
 
 		value = not_syntax_expression(syntax, node);
-		if (value == NOT_PTR_NULL)
+		if (value == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -1089,7 +1089,7 @@ not_syntax_arguments(not_syntax_t *syntax, not_node_t *parent)
 	while (true)
 	{
 		not_node_t *item = not_syntax_argument(syntax, node);
-		if (item == NOT_PTR_NULL)
+		if (item == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -1156,12 +1156,12 @@ not_syntax_postfix(not_syntax_t *syntax, not_node_t *parent)
 
 			if (syntax->token->type == TOKEN_GT)
 			{
-				not_error_syntax_by_position(syntax->token->position, "empty generic types\n\tMajor:%s-%u", __FILE__, __LINE__);
+				not_error_syntax_by_position(syntax->token->position, "empty generic types");
 				return NOT_PTR_ERROR;
 			}
 
 			not_node_t *concepts = not_syntax_fields(syntax, node);
-			if (concepts == NOT_PTR_NULL)
+			if (concepts == NOT_PTR_ERROR)
 			{
 				if (not_syntax_restore(syntax) == -1)
 				{
@@ -1221,7 +1221,7 @@ not_syntax_postfix(not_syntax_t *syntax, not_node_t *parent)
 			if (syntax->token->type != TOKEN_RBRACKET)
 			{
 				arguments = not_syntax_arguments(syntax, node);
-				if (arguments == NOT_PTR_NULL)
+				if (arguments == NOT_PTR_ERROR)
 				{
 					return NOT_PTR_ERROR;
 				}
@@ -1274,7 +1274,7 @@ not_syntax_postfix(not_syntax_t *syntax, not_node_t *parent)
 			if (syntax->token->type != TOKEN_RPAREN)
 			{
 				arguments = not_syntax_arguments(syntax, node);
-				if (arguments == NOT_PTR_NULL)
+				if (arguments == NOT_PTR_ERROR)
 				{
 					return NOT_PTR_ERROR;
 				}
@@ -2440,7 +2440,7 @@ not_syntax_entity(not_syntax_t *syntax, not_node_t *parent, uint64_t flag)
 	}
 
 	not_node_t *key = not_syntax_id(syntax, node);
-	if (key == NOT_PTR_NULL)
+	if (key == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -2453,7 +2453,7 @@ not_syntax_entity(not_syntax_t *syntax, not_node_t *parent, uint64_t flag)
 			return NOT_PTR_ERROR;
 		}
 		type = not_syntax_id(syntax, node);
-		if (type == NOT_PTR_NULL)
+		if (type == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2467,7 +2467,7 @@ not_syntax_entity(not_syntax_t *syntax, not_node_t *parent, uint64_t flag)
 			return NOT_PTR_ERROR;
 		}
 		value = not_syntax_expression(syntax, node);
-		if (value == NOT_PTR_NULL)
+		if (value == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2495,7 +2495,7 @@ not_syntax_set(not_syntax_t *syntax, not_node_t *parent, uint64_t flag)
 	while (true)
 	{
 		not_node_t *item = not_syntax_entity(syntax, parent, flag);
-		if (item == NOT_PTR_NULL)
+		if (item == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2550,7 +2550,7 @@ not_syntax_var_stmt(not_syntax_t *syntax, not_node_t *parent, uint64_t flag)
 	if (syntax->token->type != TOKEN_ID)
 	{
 		key = not_syntax_set(syntax, node, flag);
-		if (key == NOT_PTR_NULL)
+		if (key == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2559,7 +2559,7 @@ not_syntax_var_stmt(not_syntax_t *syntax, not_node_t *parent, uint64_t flag)
 	else
 	{
 		key = not_syntax_id(syntax, node);
-		if (key == NOT_PTR_NULL)
+		if (key == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2573,7 +2573,7 @@ not_syntax_var_stmt(not_syntax_t *syntax, not_node_t *parent, uint64_t flag)
 			return NOT_PTR_ERROR;
 		}
 		type = not_syntax_postfix(syntax, node);
-		if (type == NOT_PTR_NULL)
+		if (type == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2588,7 +2588,7 @@ not_syntax_var_stmt(not_syntax_t *syntax, not_node_t *parent, uint64_t flag)
 		}
 
 		value = not_syntax_expression(syntax, node);
-		if (value == NOT_PTR_NULL)
+		if (value == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2615,7 +2615,7 @@ not_syntax_for_stmt(not_syntax_t *syntax, not_node_t *parent)
 	if (syntax->token->type == TOKEN_ID)
 	{
 		key = not_syntax_id(syntax, node);
-		if (key == NOT_PTR_NULL)
+		if (key == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2630,7 +2630,7 @@ not_syntax_for_stmt(not_syntax_t *syntax, not_node_t *parent)
 		syntax->loop_depth += 1;
 
 		not_node_t *body = not_syntax_body(syntax, node);
-		if (body == NOT_PTR_NULL)
+		if (body == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2667,7 +2667,7 @@ not_syntax_for_stmt(not_syntax_t *syntax, not_node_t *parent)
 		}
 
 		not_node_t *field = not_syntax_id(syntax, node);
-		if (field == NOT_PTR_NULL)
+		if (field == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2681,7 +2681,7 @@ not_syntax_for_stmt(not_syntax_t *syntax, not_node_t *parent)
 			}
 
 			value = not_syntax_id(syntax, node);
-			if (value == NOT_PTR_NULL)
+			if (value == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -2707,7 +2707,7 @@ not_syntax_for_stmt(not_syntax_t *syntax, not_node_t *parent)
 		}
 
 		not_node_t *iterator = not_syntax_expression(syntax, node);
-		if (iterator == NOT_PTR_NULL)
+		if (iterator == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2720,7 +2720,7 @@ not_syntax_for_stmt(not_syntax_t *syntax, not_node_t *parent)
 		syntax->loop_depth += 1;
 
 		not_node_t *body = not_syntax_body(syntax, node);
-		if (body == NOT_PTR_NULL)
+		if (body == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2760,7 +2760,7 @@ region_for_loop:
 			item = not_syntax_assign(syntax, node);
 		}
 
-		if (item == NOT_PTR_NULL)
+		if (item == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2823,7 +2823,7 @@ region_step:
 	while (true)
 	{
 		not_node_t *item = not_syntax_assign(syntax, node);
-		if (item == NOT_PTR_NULL)
+		if (item == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2860,7 +2860,7 @@ region_finish:
 	syntax->loop_depth += 1;
 
 	not_node_t *body = not_syntax_body(syntax, node);
-	if (body == NOT_PTR_NULL)
+	if (body == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -2888,7 +2888,7 @@ not_syntax_break_stmt(not_syntax_t *syntax, not_node_t *parent)
 	if (syntax->token->type != TOKEN_SEMICOLON)
 	{
 		value = not_syntax_id(syntax, node);
-		if (value == NOT_PTR_NULL)
+		if (value == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2915,7 +2915,7 @@ not_syntax_continue_stmt(not_syntax_t *syntax, not_node_t *parent)
 	if (syntax->token->type != TOKEN_SEMICOLON)
 	{
 		value = not_syntax_id(syntax, node);
-		if (value == NOT_PTR_NULL)
+		if (value == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -2960,7 +2960,7 @@ not_syntax_catch_stmt(not_syntax_t *syntax, not_node_t *parent)
 	}
 
 	not_node_t *body = not_syntax_body(syntax, node);
-	if (body == NOT_PTR_NULL)
+	if (body == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -2983,7 +2983,7 @@ not_syntax_try_stmt(not_syntax_t *syntax, not_node_t *parent)
 	}
 
 	not_node_t *body = not_syntax_body(syntax, node);
-	if (body == NOT_PTR_NULL)
+	if (body == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -2992,7 +2992,7 @@ not_syntax_try_stmt(not_syntax_t *syntax, not_node_t *parent)
 	if (syntax->token->type == TOKEN_CATCH_KEYWORD)
 	{
 		catchs = not_syntax_catch_stmt(syntax, node);
-		if (catchs == NOT_PTR_NULL)
+		if (catchs == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -3016,7 +3016,7 @@ not_syntax_throw_stmt(not_syntax_t *syntax, not_node_t *parent)
 	}
 
 	not_node_t *value = not_syntax_expression(syntax, node);
-	if (value == NOT_PTR_NULL)
+	if (value == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -3042,7 +3042,7 @@ not_syntax_return_stmt(not_syntax_t *syntax, not_node_t *parent)
 	if (syntax->token->type != TOKEN_SEMICOLON)
 	{
 		value = not_syntax_expression(syntax, node);
-		if (value == NOT_PTR_NULL)
+		if (value == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -3226,7 +3226,7 @@ not_syntax_body(not_syntax_t *syntax, not_node_t *parent)
 		}
 
 		not_node_t *item = not_syntax_statement(syntax, node, SYNTAX_MODIFIER_NONE);
-		if (item == NOT_PTR_NULL)
+		if (item == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -3297,7 +3297,7 @@ not_syntax_parameter(not_syntax_t *syntax, not_node_t *parent)
 	}
 
 	not_node_t *key = not_syntax_id(syntax, node);
-	if (key == NOT_PTR_NULL)
+	if (key == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -3310,7 +3310,7 @@ not_syntax_parameter(not_syntax_t *syntax, not_node_t *parent)
 			return NOT_PTR_ERROR;
 		}
 		type = not_syntax_postfix(syntax, node);
-		if (type == NOT_PTR_NULL)
+		if (type == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -3326,12 +3326,12 @@ not_syntax_parameter(not_syntax_t *syntax, not_node_t *parent)
 
 		if ((flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
 		{
-			not_error_syntax_by_position(syntax->token->position, "reference parameter by value\n\tMajor:%s-%u", __FILE__, __LINE__);
+			not_error_syntax_by_position(syntax->token->position, "reference parameter by value");
 			return NOT_PTR_ERROR;
 		}
 
 		value = not_syntax_expression(syntax, node);
-		if (value == NOT_PTR_NULL)
+		if (value == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -3354,7 +3354,7 @@ not_syntax_parameters(not_syntax_t *syntax, not_node_t *parent)
 	while (true)
 	{
 		not_node_t *item = not_syntax_parameter(syntax, parent);
-		if (item == NOT_PTR_NULL)
+		if (item == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -3396,7 +3396,7 @@ not_syntax_generic(not_syntax_t *syntax, not_node_t *parent)
 
 	not_node_t *key;
 	key = not_syntax_id(syntax, node);
-	if (key == NOT_PTR_NULL)
+	if (key == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -3409,7 +3409,7 @@ not_syntax_generic(not_syntax_t *syntax, not_node_t *parent)
 			return NOT_PTR_ERROR;
 		}
 		type = not_syntax_postfix(syntax, node);
-		if (type == NOT_PTR_NULL)
+		if (type == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -3423,7 +3423,7 @@ not_syntax_generic(not_syntax_t *syntax, not_node_t *parent)
 			return NOT_PTR_ERROR;
 		}
 		value = not_syntax_postfix(syntax, node);
-		if (value == NOT_PTR_NULL)
+		if (value == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -3446,7 +3446,7 @@ not_syntax_generics(not_syntax_t *syntax, not_node_t *parent)
 	while (true)
 	{
 		not_node_t *item = not_syntax_generic(syntax, parent);
-		if (item == NOT_PTR_NULL)
+		if (item == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -3496,7 +3496,7 @@ not_syntax_class_fun(not_syntax_t *syntax, not_node_t *parent, not_node_t *note,
 	if (syntax->token->type == TOKEN_ID)
 	{
 		key = not_syntax_id(syntax, node);
-		if (key == NOT_PTR_NULL)
+		if (key == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -3509,7 +3509,7 @@ not_syntax_class_fun(not_syntax_t *syntax, not_node_t *parent, not_node_t *note,
 	else
 	{
 		key = not_syntax_operator(syntax, node);
-		if (key == NOT_PTR_NULL)
+		if (key == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -3527,13 +3527,13 @@ not_syntax_class_fun(not_syntax_t *syntax, not_node_t *parent, not_node_t *note,
 
 		if (used_constructor == 1)
 		{
-			not_error_syntax_by_position(syntax->token->position, "constructor with generic types\n\tMajor:%s-%u", __FILE__, __LINE__);
+			not_error_syntax_by_position(syntax->token->position, "constructor with generic types");
 			return NOT_PTR_ERROR;
 		}
 
 		if (used_operator == 1)
 		{
-			not_error_syntax_by_position(syntax->token->position, "operator with generic types\n\tMajor:%s-%u", __FILE__, __LINE__);
+			not_error_syntax_by_position(syntax->token->position, "operator with generic types");
 			return NOT_PTR_ERROR;
 		}
 
@@ -3544,7 +3544,7 @@ not_syntax_class_fun(not_syntax_t *syntax, not_node_t *parent, not_node_t *note,
 
 		if (syntax->token->type == TOKEN_GT)
 		{
-			not_error_syntax_by_position(syntax->token->position, "empty generic types\n\tMajor:%s-%u", __FILE__, __LINE__);
+			not_error_syntax_by_position(syntax->token->position, "empty generic types");
 			return NOT_PTR_ERROR;
 		}
 
@@ -3596,7 +3596,7 @@ not_syntax_class_fun(not_syntax_t *syntax, not_node_t *parent, not_node_t *note,
 			return NOT_PTR_ERROR;
 		}
 		result = not_syntax_postfix(syntax, node);
-		if (result == NOT_PTR_NULL)
+		if (result == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -3605,7 +3605,7 @@ not_syntax_class_fun(not_syntax_t *syntax, not_node_t *parent, not_node_t *note,
 	syntax->fun_depth += 1;
 
 	not_node_t *body = not_syntax_body(syntax, node);
-	if (body == NOT_PTR_NULL)
+	if (body == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -3625,7 +3625,7 @@ not_syntax_class_property(not_syntax_t *syntax, not_node_t *parent, not_node_t *
 	}
 
 	not_node_t *key = not_syntax_id(syntax, node);
-	if (key == NOT_PTR_NULL)
+	if (key == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -3639,7 +3639,7 @@ not_syntax_class_property(not_syntax_t *syntax, not_node_t *parent, not_node_t *
 		}
 
 		type = not_syntax_postfix(syntax, node);
-		if (type == NOT_PTR_NULL)
+		if (type == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -3654,7 +3654,7 @@ not_syntax_class_property(not_syntax_t *syntax, not_node_t *parent, not_node_t *
 		}
 
 		value = not_syntax_expression(syntax, node);
-		if (value == NOT_PTR_NULL)
+		if (value == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -3843,7 +3843,7 @@ static not_node_t *
 not_syntax_class_annotation(not_syntax_t *syntax, not_node_t *parent)
 {
 	not_node_t *note = not_syntax_notes(syntax, parent);
-	if (note == NOT_PTR_NULL)
+	if (note == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -3929,7 +3929,7 @@ not_syntax_class_block(not_syntax_t *syntax, not_node_t *parent)
 		if (syntax->token->type == TOKEN_AT)
 		{
 			item = not_syntax_class_annotation(syntax, parent);
-			if (item == NOT_PTR_NULL)
+			if (item == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -3937,7 +3937,7 @@ not_syntax_class_block(not_syntax_t *syntax, not_node_t *parent)
 		else if (syntax->token->type == TOKEN_EXPORT_KEYWORD)
 		{
 			item = not_syntax_class_export(syntax, parent, NOT_PTR_NULL);
-			if (item == NOT_PTR_NULL)
+			if (item == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -3945,7 +3945,7 @@ not_syntax_class_block(not_syntax_t *syntax, not_node_t *parent)
 		else if (syntax->token->type == TOKEN_REFERENCE_KEYWORD)
 		{
 			item = not_syntax_class_reference(syntax, parent, NOT_PTR_NULL, SYNTAX_MODIFIER_NONE);
-			if (item == NOT_PTR_NULL)
+			if (item == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -3957,7 +3957,7 @@ not_syntax_class_block(not_syntax_t *syntax, not_node_t *parent)
 		else if (syntax->token->type == TOKEN_READONLY_KEYWORD)
 		{
 			item = not_syntax_class_readonly(syntax, parent, NOT_PTR_NULL, SYNTAX_MODIFIER_NONE);
-			if (item == NOT_PTR_NULL)
+			if (item == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -3969,7 +3969,7 @@ not_syntax_class_block(not_syntax_t *syntax, not_node_t *parent)
 		else if (syntax->token->type == TOKEN_STATIC_KEYWORD)
 		{
 			item = not_syntax_class_static(syntax, parent, NOT_PTR_NULL, SYNTAX_MODIFIER_NONE);
-			if (item == NOT_PTR_NULL)
+			if (item == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -3977,7 +3977,7 @@ not_syntax_class_block(not_syntax_t *syntax, not_node_t *parent)
 		else if (syntax->token->type == TOKEN_FUN_KEYWORD)
 		{
 			item = not_syntax_class_fun(syntax, parent, NOT_PTR_NULL, SYNTAX_MODIFIER_NONE);
-			if (item == NOT_PTR_NULL)
+			if (item == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -3985,7 +3985,7 @@ not_syntax_class_block(not_syntax_t *syntax, not_node_t *parent)
 		else if (syntax->token->type == TOKEN_CLASS_KEYWORD)
 		{
 			item = not_syntax_class(syntax, parent, NOT_PTR_NULL, SYNTAX_MODIFIER_NONE);
-			if (item == NOT_PTR_NULL)
+			if (item == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -3993,7 +3993,7 @@ not_syntax_class_block(not_syntax_t *syntax, not_node_t *parent)
 		else
 		{
 			item = not_syntax_class_property(syntax, parent, NOT_PTR_NULL, SYNTAX_MODIFIER_NONE);
-			if (item == NOT_PTR_NULL)
+			if (item == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -4034,7 +4034,7 @@ not_syntax_heritage(not_syntax_t *syntax, not_node_t *parent)
 	}
 
 	not_node_t *key = not_syntax_id(syntax, node);
-	if (key == NOT_PTR_NULL)
+	if (key == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -4045,7 +4045,7 @@ not_syntax_heritage(not_syntax_t *syntax, not_node_t *parent)
 	}
 
 	not_node_t *type = not_syntax_expression(syntax, node);
-	if (type == NOT_PTR_NULL)
+	if (type == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -4066,7 +4066,7 @@ not_syntax_heritages(not_syntax_t *syntax, not_node_t *parent)
 	while (true)
 	{
 		not_node_t *item = not_syntax_heritage(syntax, parent);
-		if (item == NOT_PTR_NULL)
+		if (item == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -4112,7 +4112,7 @@ not_syntax_class(not_syntax_t *syntax, not_node_t *parent, not_node_t *note, uin
 	}
 
 	not_node_t *key = not_syntax_id(syntax, node);
-	if (key == NOT_PTR_NULL)
+	if (key == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -4132,7 +4132,7 @@ not_syntax_class(not_syntax_t *syntax, not_node_t *parent, not_node_t *note, uin
 
 		if (syntax->token->type == TOKEN_GT)
 		{
-			not_error_syntax_by_position(syntax->token->position, "empty generic types\n\tMajor:%s-%u", __FILE__, __LINE__);
+			not_error_syntax_by_position(syntax->token->position, "empty generic types");
 			return NOT_PTR_ERROR;
 		}
 
@@ -4168,7 +4168,7 @@ not_syntax_class(not_syntax_t *syntax, not_node_t *parent, not_node_t *note, uin
 
 		if (syntax->token->type == TOKEN_RPAREN)
 		{
-			not_error_syntax_by_position(syntax->token->position, "empty heritages\n\tMajor:%s-%u", __FILE__, __LINE__);
+			not_error_syntax_by_position(syntax->token->position, "empty heritages");
 			return NOT_PTR_ERROR;
 		}
 
@@ -4203,7 +4203,7 @@ not_syntax_package(not_syntax_t *syntax, not_node_t *parent)
 	}
 
 	not_node_t *key = not_syntax_id(syntax, node);
-	if (key == NOT_PTR_NULL)
+	if (key == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -4235,7 +4235,7 @@ not_syntax_packages(not_syntax_t *syntax, not_node_t *parent)
 	while (true)
 	{
 		not_node_t *item = not_syntax_package(syntax, parent);
-		if (item == NOT_PTR_NULL)
+		if (item == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -4281,7 +4281,7 @@ not_syntax_using(not_syntax_t *syntax, not_node_t *parent)
 	}
 
 	not_node_t *packages = not_syntax_packages(syntax, node);
-	if (packages == NOT_PTR_NULL)
+	if (packages == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -4292,7 +4292,7 @@ not_syntax_using(not_syntax_t *syntax, not_node_t *parent)
 	}
 
 	not_node_t *path = not_syntax_string(syntax, node);
-	if (path == NOT_PTR_NULL)
+	if (path == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -4377,7 +4377,7 @@ not_syntax_export(not_syntax_t *syntax, not_node_t *parent, not_node_t *note)
 		if (note != NOT_PTR_NULL)
 		{
 			not_error_syntax_by_position(syntax->token->position,
-										 "'Annotation' is not defined for variable\n\tMajor:%s-%u",
+										 "'Annotation' is not defined for variable",
 										 __FILE__, __LINE__);
 			return NOT_PTR_ERROR;
 		}
@@ -4404,7 +4404,7 @@ not_syntax_note(not_syntax_t *syntax, not_node_t *parent)
 	}
 
 	not_node_t *key = not_syntax_id(syntax, node);
-	if (key == NOT_PTR_NULL)
+	if (key == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -4418,7 +4418,7 @@ not_syntax_note(not_syntax_t *syntax, not_node_t *parent)
 		}
 
 		arguments = not_syntax_arguments(syntax, node);
-		if (arguments == NOT_PTR_NULL)
+		if (arguments == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -4446,7 +4446,7 @@ not_syntax_notes(not_syntax_t *syntax, not_node_t *parent)
 	while (true)
 	{
 		not_node_t *item = not_syntax_note(syntax, node);
-		if (item == NOT_PTR_NULL)
+		if (item == NOT_PTR_ERROR)
 		{
 			return NOT_PTR_ERROR;
 		}
@@ -4476,7 +4476,7 @@ static not_node_t *
 not_syntax_annotation(not_syntax_t *syntax, not_node_t *parent)
 {
 	not_node_t *note = not_syntax_notes(syntax, parent);
-	if (note == NOT_PTR_NULL)
+	if (note == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;
 	}
@@ -4534,7 +4534,7 @@ not_syntax_module(not_syntax_t *syntax)
 		if (syntax->token->type == TOKEN_USING_KEYWORD)
 		{
 			item = not_syntax_using(syntax, node);
-			if (item == NOT_PTR_NULL)
+			if (item == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -4546,7 +4546,7 @@ not_syntax_module(not_syntax_t *syntax)
 		else if (syntax->token->type == TOKEN_AT)
 		{
 			item = not_syntax_annotation(syntax, node);
-			if (item == NOT_PTR_NULL)
+			if (item == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -4554,7 +4554,7 @@ not_syntax_module(not_syntax_t *syntax)
 		else if (syntax->token->type == TOKEN_EXPORT_KEYWORD)
 		{
 			item = not_syntax_export(syntax, node, NOT_PTR_NULL);
-			if (item == NOT_PTR_NULL)
+			if (item == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -4562,7 +4562,7 @@ not_syntax_module(not_syntax_t *syntax)
 		else if (syntax->token->type == TOKEN_READONLY_KEYWORD)
 		{
 			item = not_syntax_readonly(syntax, node, SYNTAX_MODIFIER_NONE);
-			if (item == NOT_PTR_NULL)
+			if (item == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -4574,7 +4574,7 @@ not_syntax_module(not_syntax_t *syntax)
 		else if (syntax->token->type == TOKEN_CLASS_KEYWORD)
 		{
 			item = not_syntax_class(syntax, node, NOT_PTR_NULL, SYNTAX_MODIFIER_NONE);
-			if (item == NOT_PTR_NULL)
+			if (item == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
@@ -4582,7 +4582,7 @@ not_syntax_module(not_syntax_t *syntax)
 		else
 		{
 			item = not_syntax_statement(syntax, node, SYNTAX_MODIFIER_NONE);
-			if (item == NOT_PTR_NULL)
+			if (item == NOT_PTR_ERROR)
 			{
 				return NOT_PTR_ERROR;
 			}
