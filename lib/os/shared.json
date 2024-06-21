@@ -62,6 +62,36 @@
             "return_type": "string"
         },
         {
+            "name": "f_write",
+            "parameters": [
+                {
+                    "name": "fd",
+                    "type": "int"
+                },
+                {
+                    "name": "data",
+                    "type": "string"
+                },
+                {
+                    "name": "n",
+                    "type": "int"
+                }
+            ],
+            "arg": false,
+            "return_type": "int"
+        },
+        {
+            "name": "f_close",
+            "parameters": [
+                {
+                    "name": "fd",
+                    "type": "int"
+                }
+            ],
+            "arg": false,
+            "return_type": "int"
+        },
+        {
             "name": "add",
             "parameters": [
                 {

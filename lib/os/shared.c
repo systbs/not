@@ -5,6 +5,7 @@
 #include <gmp.h>
 #include <fcntl.h>
 #include <string.h>
+#include <sys/stat.h>
 
 mpz_t *
 add(mpz_t *a, mpz_t *b)
@@ -56,143 +57,135 @@ printfln(const char *format, ...)
     return num;
 }
 
-#define TO_RDONLY 0x0000
-#define TO_WRONLY 0x0001
-#define TO_RDWR 0x0002
-#define TO_APPEND 0x0008
-#define TO_CREAT 0x0100
-#define TO_TRUNC 0x0200
-#define TO_EXCL 0x0400
-#define TO_ACCMODE (TO_RDONLY | TO_WRONLY | TO_RDWR)
-#define TO_TEMPORARY 0x0040
-#define TO_RANDOM 0x0010
+#define P_O_RDONLY 0x0000
+#define P_O_WRONLY 0x0001
+#define P_O_RDWR 0x0002
+#define P_O_APPEND 0x0008
+#define P_O_CREAT 0x0100
+#define P_O_TRUNC 0x0200
+#define P_O_EXCL 0x0400
+#define P_O_ACCMODE (P_O_RDONLY | P_O_WRONLY | P_O_RDWR)
+#define P_O_TEMPORARY 0x0040
+#define P_O_RANDOM 0x0010
+
+struct flag
+{
+    int term;
+    int value;
+};
+
+struct flag flags[10] = {
+    {P_O_RDONLY, O_RDONLY},
+    {P_O_WRONLY, O_WRONLY},
+    {P_O_RDWR, O_RDWR},
+    {P_O_APPEND, O_APPEND},
+    {P_O_CREAT, O_CREAT},
+    {P_O_TRUNC, O_TRUNC},
+    {P_O_EXCL, O_EXCL},
+    {P_O_ACCMODE, O_ACCMODE},
+#if defined(_WIN32) || defined(_WIN64)
+    {P_O_TEMPORARY, O_TEMPORARY},
+    {P_O_RANDOM, O_RANDOM}
+#else
+    {P_O_TEMPORARY, __O_TMPFILE},
+    {P_O_RANDOM, __O_DIRECT}
+#endif
+};
+
+#define P_S_IFMT 0xF000
+#define P_S_IFDIR 0x4000
+#define P_S_IFCHR 0x2000
+#define P_S_IFREG 0x8000
+#define P_S_IREAD 0x0100
+#define P_S_IWRITE 0x0080
+#define P_S_IEXEC 0x0040
+#define P_S_IFIFO 0x1000
+#define P_S_IFBLK 0x3000
+
+#define P_S_IRWXU (P_S_IREAD | P_S_IWRITE | P_S_IEXEC)
+#define P_S_IXUSR P_S_IEXEC
+#define P_S_IWUSR P_S_IWRITE
+#define P_S_IRUSR P_S_IREAD
+
+#define P_S_IRGRP (P_S_IRUSR >> 3)
+#define P_S_IWGRP (P_S_IWUSR >> 3)
+#define P_S_IXGRP (P_S_IXUSR >> 3)
+#define P_S_IRWXG (P_S_IRWXU >> 3)
+
+#define P_S_IROTH (P_S_IRGRP >> 3)
+#define P_S_IWOTH (P_S_IWGRP >> 3)
+#define P_S_IXOTH (P_S_IXGRP >> 3)
+#define P_S_IRWXO (P_S_IRWXG >> 3)
+
+struct permission
+{
+    int term;
+    int value;
+};
+
+struct permission permissions[21] = {
+    {P_S_IFMT, __S_IFMT},
+    {P_S_IFDIR, __S_IFDIR},
+    {P_S_IFCHR, __S_IFCHR},
+    {P_S_IFREG, __S_IFREG},
+    {P_S_IREAD, __S_IREAD},
+    {P_S_IWRITE, __S_IWRITE},
+    {P_S_IEXEC, __S_IEXEC},
+    {P_S_IFIFO, __S_IFIFO},
+    {P_S_IFBLK, __S_IFBLK},
+    {P_S_IRWXU, S_IRWXU},
+    {P_S_IXUSR, S_IXUSR},
+    {P_S_IWUSR, S_IWUSR},
+    {P_S_IRUSR, S_IRUSR},
+    {P_S_IRGRP, S_IRGRP},
+    {P_S_IWGRP, S_IWGRP},
+    {P_S_IXGRP, S_IXGRP},
+    {P_S_IRWXG, S_IRWXG},
+    {P_S_IROTH, S_IROTH},
+    {P_S_IWOTH, S_IWOTH},
+    {P_S_IXOTH, S_IXOTH},
+    {P_S_IRWXO, S_IRWXO}};
 
 mpz_t *
 f_open(const char *path, mpz_t *flag, mpz_t *mode)
 {
-    int _flag = 0;
+    int _flag = mpz_get_si(*flag);
 
-    int tflag = mpz_get_si(*flag);
+    size_t num_flags = sizeof(flags) / sizeof(flags[0]);
+    mode_t final_flags = 0;
+
+    for (size_t i = 0; i < num_flags; i++)
+    {
+        if ((_flag & flags[i].term) == flags[i].term)
+            final_flags |= flags[i].value;
+    }
 
 #if defined(_WIN32) || defined(_WIN64)
-    if ((tflag & TO_RDONLY) == TO_RDONLY)
-    {
-        _flag |= O_RDONLY;
-    }
-
-    if ((tflag & TO_WRONLY) == TO_WRONLY)
-    {
-        _flag |= O_WRONLY;
-    }
-
-    if ((tflag & TO_RDWR) == TO_RDWR)
-    {
-        _flag |= O_RDWR;
-    }
-
-    if ((tflag & TO_APPEND) == TO_APPEND)
-    {
-        _flag |= O_APPEND;
-    }
-
-    if ((tflag & TO_CREAT) == TO_CREAT)
-    {
-        _flag |= O_CREAT;
-    }
-
-    if ((tflag & TO_TRUNC) == TO_TRUNC)
-    {
-        _flag |= O_TRUNC;
-    }
-
-    if ((tflag & TO_EXCL) == TO_EXCL)
-    {
-        _flag |= O_EXCL;
-    }
-
-    if ((tflag & TO_ACCMODE) == TO_ACCMODE)
-    {
-        _flag |= O_ACCMODE;
-    }
-
-    if ((tflag & TO_TEMPORARY) == TO_TEMPORARY)
-    {
-        _flag |= O_TEMPORARY;
-    }
-
-    if ((tflag & TO_RANDOM) == TO_RANDOM)
-    {
-        _flag |= O_RANDOM;
-    }
+    final_flags |= O_BINARY;
+    final_flags |= O_SEQUENTIAL;
 #else
-    if ((tflag & TO_RDONLY) == TO_RDONLY)
-    {
-        _flag |= O_RDONLY;
-    }
-
-    if ((tflag & TO_WRONLY) == TO_WRONLY)
-    {
-        _flag |= O_WRONLY;
-    }
-
-    if ((tflag & TO_RDWR) == TO_RDWR)
-    {
-        _flag |= O_RDWR;
-    }
-
-    if ((tflag & TO_APPEND) == TO_APPEND)
-    {
-        _flag |= O_APPEND;
-    }
-
-    if ((tflag & TO_CREAT) == TO_CREAT)
-    {
-        _flag |= O_CREAT;
-    }
-
-    if ((tflag & TO_TRUNC) == TO_TRUNC)
-    {
-        _flag |= O_TRUNC;
-    }
-
-    if ((tflag & TO_EXCL) == TO_EXCL)
-    {
-        _flag |= O_EXCL;
-    }
-
-    if ((tflag & TO_ACCMODE) == TO_ACCMODE)
-    {
-        _flag |= O_ACCMODE;
-    }
-
-    if ((tflag & TO_TEMPORARY) == TO_TEMPORARY)
-    {
-        _flag |= __O_TMPFILE;
-    }
-
-    if ((tflag & TO_RANDOM) == TO_RANDOM)
-    {
-        _flag |= __O_DIRECT;
-    }
-#endif
-
-#if defined(_WIN32) || defined(_WIN64)
-    _flag |= O_BINARY;
-    _flag |= O_SEQUENTIAL;
-#else
-    _flag |= __O_LARGEFILE;
-    _flag |= O_NONBLOCK;
+    final_flags |= __O_LARGEFILE;
+    final_flags |= O_NONBLOCK;
 #endif
 
     int _mode = mpz_get_si(*mode);
 
-    int fd = open(path, _flag, _mode);
+    size_t num_permissions = sizeof(permissions) / sizeof(permissions[0]);
+    mode_t final_modes = 0;
 
-    mpz_t *num = calloc(1, sizeof(mpz_t));
-    mpz_init(*num);
-    mpz_set_si(*num, fd);
+    for (size_t i = 0; i < num_permissions; i++)
+    {
+        if ((_mode & permissions[i].term) == permissions[i].term)
+            final_modes |= permissions[i].value;
+    }
 
-    return num;
+    int fd = open(path, final_flags, final_modes);
+
+    mpz_t *r = calloc(1, sizeof(mpz_t));
+    mpz_init(*r);
+    mpz_set_si(*r, fd);
+
+    return r;
 }
 
 char *
@@ -260,4 +253,32 @@ f_read(mpz_t *fd, mpz_t *count)
 
 err:
     return NULL;
+}
+
+mpz_t *
+f_write(mpz_t *fd, const char *buf, mpz_t *n)
+{
+    int _fd = mpz_get_si(*fd);
+    ssize_t nbytes = mpz_get_ui(*n);
+
+    ssize_t t = write(_fd, buf, nbytes);
+
+    mpz_t *r = calloc(1, sizeof(mpz_t));
+    mpz_init(*r);
+    mpz_set_si(*r, t);
+
+    return r;
+}
+
+mpz_t *
+f_close(mpz_t *fd)
+{
+    int _fd = mpz_get_si(*fd);
+    int t = close(_fd);
+
+    mpz_t *r = calloc(1, sizeof(mpz_t));
+    mpz_init(*r);
+    mpz_set_si(*r, t);
+
+    return r;
 }

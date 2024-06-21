@@ -2595,7 +2595,7 @@ not_call_class(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_
                     return NOT_PTR_ERROR;
                 }
                 int32_t r1 = not_execute_fun(item, strip_copy, applicant);
-                if (r1 == -1)
+                if (r1 < 0)
                 {
                     if (not_strip_destroy(strip_copy) < 0)
                     {
@@ -2672,9 +2672,12 @@ not_call_fun(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_no
     }
 
     int32_t r1 = not_execute_fun(node, strip_copy, applicant);
-    if (r1 == -1)
+    if (r1 < 0)
     {
-        not_strip_destroy(strip_copy);
+        if (not_strip_destroy(strip_copy) < 0)
+        {
+            return NOT_PTR_ERROR;
+        }
         return NOT_PTR_ERROR;
     }
 
@@ -2718,9 +2721,12 @@ not_call_lambda(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not
     }
 
     int32_t r1 = not_execute_lambda(node, strip_copy, applicant);
-    if (r1 == -1)
+    if (r1 < 0)
     {
-        not_strip_destroy(strip_copy);
+        if (not_strip_destroy(strip_copy) < 0)
+        {
+            return NOT_PTR_ERROR;
+        }
         return NOT_PTR_ERROR;
     }
 
