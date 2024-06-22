@@ -1,4 +1,4 @@
-using f_open, f_read, f_write, f_close, f_seek from "./shared.json";
+using f_open, f_read, f_write, f_close, f_seek, f_gets, f_getc from "./shared.json";
 
 export readonly var Print = fun (value, end = "\n", f:File = null) {
 
@@ -19,6 +19,16 @@ export readonly var Print = fun (value, end = "\n", f:File = null) {
     {
         f_write(1, content, content.Length());
     }
+};
+
+export readonly var Input = fun (comment:string = "") {
+    Print(comment, end = "");
+    var r = f_gets();
+    return r;
+};
+
+export readonly var GetChar = fun () {
+    return f_getc();
 };
 
 export class ValueError {

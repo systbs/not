@@ -7,56 +7,6 @@
 #include <string.h>
 #include <sys/stat.h>
 
-mpz_t *
-add(mpz_t *a, mpz_t *b)
-{
-    mpz_t *num = calloc(1, sizeof(mpz_t));
-    mpz_init(*num);
-    mpz_add(*num, *a, *b);
-
-    return num;
-}
-
-mpz_t *
-print(const char *message)
-{
-    int r = printf("%s", message);
-
-    mpz_t *num = calloc(1, sizeof(mpz_t));
-    mpz_init(*num);
-    mpz_set_si(*num, r);
-
-    return num;
-}
-
-mpz_t *
-println(const char *message)
-{
-    int r = printf("%s\n", message);
-
-    mpz_t *num = calloc(1, sizeof(mpz_t));
-    mpz_init(*num);
-    mpz_set_si(*num, r);
-
-    return num;
-}
-
-mpz_t *
-printfln(const char *format, ...)
-{
-    va_list arg;
-    va_start(arg, format);
-    int r = vprintf(format, arg);
-    va_end(arg);
-    printf("\n");
-
-    mpz_t *num = calloc(1, sizeof(mpz_t));
-    mpz_init(*num);
-    mpz_set_si(*num, r);
-
-    return num;
-}
-
 #define P_O_RDONLY 0x0000
 #define P_O_WRONLY 0x0001
 #define P_O_RDWR 0x0002
@@ -267,7 +217,8 @@ err:
     return NULL;
 }
 
-void replace_escaped(const char *input, char *output)
+static inline void
+replace_escaped(const char *input, char *output)
 {
     while (*input)
     {
@@ -388,4 +339,85 @@ f_seek(mpz_t *fd, mpz_t *offset, mpz_t *whence)
     mpz_set_si(*r, t);
 
     return r;
+}
+
+static inline void
+get_input(char **buffer, size_t *size)
+{
+    int c;
+    size_t i = 0;
+
+    while ((c = getchar()) != '\n' && c != EOF)
+    {
+        if (c == '\b' || c == 127)
+        { // 127 is the ASCII code for DEL
+            if (i > 0)
+            {
+                // Move the cursor back
+                printf("\b \b");
+                fflush(stdout);
+                i--;
+            }
+        }
+        else
+        {
+            if (i >= *size - 1)
+            {
+                *size *= 2;
+                *buffer = realloc(*buffer, *size);
+                if (*buffer == NULL)
+                {
+                    return;
+                }
+            }
+            (*buffer)[i++] = c;
+            fflush(stdout);
+        }
+    }
+
+    (*buffer)[i] = '\0';
+}
+
+char *
+f_gets()
+{
+    size_t buffer_size = 100;
+    char *buffer = (char *)malloc(buffer_size * sizeof(char));
+
+    if (buffer == NULL)
+    {
+        goto err;
+    }
+
+    fflush(stdout);
+    get_input(&buffer, &buffer_size);
+
+    size_t len = strlen(buffer);
+    if (len > 0 && buffer[len - 1] == '\n')
+    {
+        buffer[len - 1] = '\0';
+    }
+
+    return buffer;
+
+err:
+    return NULL;
+}
+
+char *
+f_getc()
+{
+    char *buffer = (char *)malloc(1 * sizeof(char));
+
+    if (buffer == NULL)
+    {
+        goto err;
+    }
+
+    getchar();
+
+    return buffer;
+
+err:
+    return NULL;
 }

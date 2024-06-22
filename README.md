@@ -146,6 +146,16 @@ Print("square 5: " + square(5));
 ```
 
 ```csharp
+using Print, Input from "~/os/system.not";
+
+var data = Input("Enter your name?");
+if (data)
+{
+	Print("Hello, " + data);
+}
+```
+
+```csharp
 using Print, File from "~/os/system.not";
 
 // convert string to float

@@ -1,4 +1,4 @@
-using Print, File from "~/os/system.not";
+using Print, File, Input from "~/os/system.not";
 
 Print("Hello World");
 
@@ -82,3 +82,9 @@ greet(type = "string");
 
 readonly var square = fun (x) -> x ** 2;
 Print("square 5: " + square(5));
+
+var data = Input("Enter your name?");
+if (data)
+{
+	Print("Hello, " + data);
+}
