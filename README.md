@@ -102,6 +102,41 @@ readonly var print_alphabetical = fun(n:int) {
 print_alphabetical(6);
 ```
 
+how to use *arg?
+```csharp
+using Print from "~/os/system.not";
+
+readonly var add = fun(*args:int) {
+	var result = 0;
+	for (var num in args)
+	{
+		result += num;
+	}
+	return result;
+};
+
+Print("sum :" + add(1, 2, 3, 4));
+```
+
+how to use **kwarg?
+```csharp
+using Print from "~/os/system.not";
+
+readonly var greet = fun (**kwargs:string) {
+	if (kwargs.Contain("name"))
+	{
+		Print("Hello, " + kwargs["name"]);
+	}
+	else
+	{
+		Print("Hello, stranger!");
+	}
+};
+
+greet(name = "Alice");
+greet(type = "string");
+```
+
 ```csharp
 using Print, File from "~/os/system.not";
 

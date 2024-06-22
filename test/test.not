@@ -54,3 +54,28 @@ readonly var print_vowels = fun(str:string) {
 };
 
 print_vowels("hello world");
+
+readonly var add = fun(*args:int) {
+	var result = 0;
+	for (var num in args)
+	{
+		result += num;
+	}
+	return result;
+};
+
+Print("sum :" + add(1, 2, 3, 4));
+
+readonly var greet = fun (**kwargs:string) {
+	if (kwargs.Contain("name"))
+	{
+		Print("Hello, " + kwargs["name"]);
+	}
+	else
+	{
+		Print("Hello, stranger!");
+	}
+};
+
+greet(name = "Alice");
+greet(type = "string");
