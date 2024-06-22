@@ -25,8 +25,6 @@ make test
 Open source software is made better when users can easily contribute code and documentation to fix bugs and add features. 'Not' strongly encourages community involvement in improving the software.
 
 ## Sample Code
-set "NOT_LIBRARY_PATH" in file "etc/environment" to path of lib folder,
-windows: set "NOT_LIBRARY_PATH" in "Environment Variables" to path of lib folder
 
 ```csharp
 using Print from "~/os";

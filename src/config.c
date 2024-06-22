@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <jansson.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
@@ -18,6 +19,7 @@
 #include "error.h"
 #include "mutex.h"
 #include "config.h"
+#include "memory.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 int setenv(const char *name, const char *value, int overwrite)
@@ -231,70 +233,51 @@ not_config_init()
     not_config_t *config = not_config_get();
     config->expection = 0;
 
+    FILE *file = fopen(CONFIG_PATH, "r");
+    if (!file)
+    {
+        not_error_system("error opening file:%s", CONFIG_PATH);
+        return -1;
+    }
+
+    fseek(file, 0, SEEK_END);
+    int64_t length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    char *data = (char *)not_memory_calloc(length + 1, sizeof(char));
+    if (!data)
+    {
+        fclose(file);
+        not_error_no_memory();
+        return -1;
+    }
+
+    int64_t i;
+    if ((i = fread(data, 1, length, file)) < length)
+    {
+        not_error_system("%s: read returned %ld", CONFIG_PATH, i);
+        fclose(file);
+        return -1;
+    }
+    fclose(file);
+    data[i] = '\0';
+
+    json_error_t error;
+    json_t *root = json_loads(data, 0, &error);
+    if (!root)
+    {
+        not_memory_free(data);
+        return -1;
+    }
+
     char env[MAX_PATH];
-    int r = get_system_environment_variable(ENV_LIBRARY_KEY, env);
-    if (r < 0)
+    json_t *packages_path = json_object_get(root, "packages_path");
+    if (!packages_path || !json_is_string(packages_path))
     {
-#if defined(_WIN32) || defined(_WIN64)
-        char path[MAX_PATH];
-        if (GetModuleFileName(NOT_PTR_NULL, path, MAX_PATH) != 0)
-        {
-            char dir_path[MAX_PATH];
-            not_path_get_directory_path(path, dir_path, MAX_PATH);
-
-            char full_path[MAX_PATH];
-            not_path_join(dir_path, "./lib", full_path, MAX_PATH);
-
-            strcpy(config->library_path, full_path);
-            set_system_environment_variable(ENV_LIBRARY_KEY, full_path);
-        }
-        else
-        {
-            set_system_environment_variable(ENV_LIBRARY_KEY, DEFAULT_LIBRARY_PATH);
-        }
-#elif defined(__linux__)
-        char path[MAX_PATH];
-        ssize_t count = readlink("/proc/self/exe", path, MAX_PATH);
-        if (count != -1)
-        {
-            path[count] = '\0';
-
-            char dir_path[MAX_PATH];
-            not_path_get_directory_path(path, dir_path, MAX_PATH);
-
-            char full_path[MAX_PATH];
-            not_path_join(dir_path, "./lib", full_path, MAX_PATH);
-
-            strcpy(config->library_path, full_path);
-            set_system_environment_variable(ENV_LIBRARY_KEY, full_path);
-        }
-        else
-        {
-            set_system_environment_variable(ENV_LIBRARY_KEY, DEFAULT_LIBRARY_PATH);
-        }
-#elif defined(__APPLE__) && defined(__MACH__)
-        uint32_t size = MAX_PATH;
-        if (_NSGetExecutablePath(path, &size) == 0)
-        {
-            char dir_path[MAX_PATH];
-            not_path_get_directory_path(path, dir_path, MAX_PATH);
-
-            char full_path[MAX_PATH];
-            not_path_join(dir_path, "./lib", full_path, MAX_PATH);
-
-            strcpy(config->library_path, full_path);
-            set_system_environment_variable(ENV_LIBRARY_KEY, full_path);
-        }
-        else
-        {
-            set_system_environment_variable(ENV_LIBRARY_KEY, DEFAULT_LIBRARY_PATH);
-        }
-#endif
+        not_error_system("'%s': missing 'packages_path'", CONFIG_PATH);
+        return -1;
     }
-    else
-    {
-        strcpy(config->library_path, env);
-    }
+
+    strcpy(config->library_path, json_string_value(packages_path));
 
     return 0;
 }
