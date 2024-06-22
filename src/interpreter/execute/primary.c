@@ -1012,7 +1012,7 @@ not_primary_tuple(not_node_t *node, not_strip_t *strip, not_node_t *applicant, n
         }
     }
 
-    if (is_tuple)
+    if (is_tuple || (top == NOT_PTR_NULL))
     {
         not_record_t *result = not_record_create(RECORD_KIND_TUPLE, top);
         if (result == NOT_PTR_ERROR)
@@ -1117,7 +1117,7 @@ not_primary_object(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
         }
     }
 
-    if (is_object)
+    if (is_object || (top == NOT_PTR_NULL))
     {
         not_record_t *result = not_record_create(RECORD_KIND_OBJECT, top);
         if (result == NOT_PTR_ERROR)

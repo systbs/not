@@ -137,6 +137,14 @@ greet(name = "Alice");
 greet(type = "string");
 ```
 
+lambda functions?
+```csharp
+using Print from "~/os/system.not";
+
+readonly var square = fun (x) -> x ** 2;
+Print("square 5: " + square(5));
+```
+
 ```csharp
 using Print, File from "~/os/system.not";
 

@@ -955,6 +955,11 @@ not_record_make_nan()
 int32_t
 not_record_object_destroy(not_record_object_t *object)
 {
+    if (!object)
+    {
+        return 0;
+    }
+
     if (object->next)
     {
         if (not_record_object_destroy(object->next) < 0)
@@ -978,6 +983,11 @@ not_record_object_destroy(not_record_object_t *object)
 int32_t
 not_record_tuple_destroy(not_record_tuple_t *tuple)
 {
+    if (!tuple)
+    {
+        return 0;
+    }
+
     if (tuple->next)
     {
         if (not_record_tuple_destroy(tuple->next) < 0)
@@ -1068,6 +1078,11 @@ not_record_type_destroy(not_record_type_t *type)
 not_record_object_t *
 not_record_object_copy(not_record_object_t *object)
 {
+    if (!object)
+    {
+        return NOT_PTR_NULL;
+    }
+
     not_record_object_t *next = NOT_PTR_NULL;
     if (object->next)
     {
@@ -1125,8 +1140,13 @@ not_record_object_copy(not_record_object_t *object)
 not_record_tuple_t *
 not_record_tuple_copy(not_record_tuple_t *tuple)
 {
+    if (!tuple)
+    {
+        return NOT_PTR_NULL;
+    }
+
     not_record_tuple_t *next = NOT_PTR_NULL;
-    if (tuple->next)
+    if (tuple && tuple->next)
     {
         next = not_record_tuple_copy(tuple->next);
         if (next == NOT_PTR_ERROR)
@@ -1149,21 +1169,25 @@ not_record_tuple_copy(not_record_tuple_t *tuple)
         return NOT_PTR_ERROR;
     }
 
-    not_record_t *record_copy = not_record_copy(tuple->value);
-    if (record_copy == NOT_PTR_ERROR)
+    if (tuple)
     {
-        if (next)
+        not_record_t *record_copy = not_record_copy(tuple->value);
+        if (record_copy == NOT_PTR_ERROR)
         {
-            if (not_record_tuple_destroy(next) < 0)
+            if (next)
             {
-                return NOT_PTR_ERROR;
+                if (not_record_tuple_destroy(next) < 0)
+                {
+                    return NOT_PTR_ERROR;
+                }
             }
+            not_memory_free(basic);
+            return NOT_PTR_ERROR;
         }
-        not_memory_free(basic);
-        return NOT_PTR_ERROR;
+
+        basic->value = record_copy;
     }
 
-    basic->value = record_copy;
     basic->next = next;
 
     return basic;

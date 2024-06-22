@@ -79,3 +79,6 @@ readonly var greet = fun (**kwargs:string) {
 
 greet(name = "Alice");
 greet(type = "string");
+
+readonly var square = fun (x) -> x ** 2;
+Print("square 5: " + square(5));
