@@ -269,7 +269,6 @@ not_config_init()
         return -1;
     }
 
-    char env[MAX_PATH];
     json_t *packages_path = json_object_get(root, "packages_path");
     if (!packages_path || !json_is_string(packages_path))
     {
