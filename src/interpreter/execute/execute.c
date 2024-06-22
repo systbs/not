@@ -1567,6 +1567,8 @@ not_execute_forin(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
 
     not_record_object_t *object = NOT_PTR_NULL;
     not_record_tuple_t *tuple = NOT_PTR_NULL;
+    not_record_t *item = NOT_PTR_NULL;
+    size_t index = 0;
 region_start_loop:
     if (iterator->kind == RECORD_KIND_OBJECT)
     {
@@ -1767,6 +1769,114 @@ region_start_loop:
             goto region_end_loop;
         }
     }
+    else if (iterator->kind == RECORD_KIND_STRING)
+    {
+        if (item)
+        {
+            char *str = (char *)iterator->value;
+            str += index++;
+            item->value = str;
+        }
+        else
+        {
+            item = not_record_create(RECORD_KIND_CHAR, (char *)iterator->value);
+            if (item == NOT_PTR_ERROR)
+            {
+                return -1;
+            }
+            item->reference = 1;
+        }
+
+        if (*(char *)item->value != '\0')
+        {
+            if (for1->value)
+            {
+                not_record_t *record_key = not_record_make_undefined();
+                if (record_key == NOT_PTR_ERROR)
+                {
+                    if (not_record_link_decrease(iterator) < 0)
+                    {
+                        return -1;
+                    }
+                    return -1;
+                }
+
+                not_entry_t *entry = not_strip_variable_push(strip, node, node, for1->field, record_key);
+                if (entry == NOT_PTR_ERROR)
+                {
+                    if (not_record_link_decrease(iterator) < 0)
+                    {
+                        return -1;
+                    }
+                    return -1;
+                }
+                else if (entry == NOT_PTR_NULL)
+                {
+                    not_node_basic_t *basic1 = (not_node_basic_t *)for1->field->value;
+                    not_error_type_by_node(for1->field, "'%s' already defined",
+                                           basic1->value);
+
+                    if (not_record_link_decrease(iterator) < 0)
+                    {
+                        return -1;
+                    }
+                    return -1;
+                }
+
+                entry = not_strip_variable_push(strip, node, node, for1->value, item);
+                if (entry == NOT_PTR_ERROR)
+                {
+                    if (not_record_link_decrease(iterator) < 0)
+                    {
+                        return -1;
+                    }
+                    return -1;
+                }
+                else if (entry == NOT_PTR_NULL)
+                {
+                    not_node_basic_t *basic1 = (not_node_basic_t *)for1->value->value;
+                    not_error_type_by_node(for1->value, "'%s' already defined",
+                                           basic1->value);
+
+                    if (not_record_link_decrease(iterator) < 0)
+                    {
+                        return -1;
+                    }
+                    return -1;
+                }
+                not_record_link_increase(tuple->value);
+            }
+            else
+            {
+                not_entry_t *entry = not_strip_variable_push(strip, node, node, for1->field, item);
+                if (entry == NOT_PTR_ERROR)
+                {
+                    if (not_record_link_decrease(iterator) < 0)
+                    {
+                        return -1;
+                    }
+                    return -1;
+                }
+                else if (entry == NOT_PTR_NULL)
+                {
+                    not_node_basic_t *basic1 = (not_node_basic_t *)for1->field->value;
+                    not_error_type_by_node(for1->field, "'%s' already defined",
+                                           basic1->value);
+
+                    if (not_record_link_decrease(iterator) < 0)
+                    {
+                        return -1;
+                    }
+                    return -1;
+                }
+                not_record_link_increase(item);
+            }
+        }
+        else
+        {
+            goto region_end_loop;
+        }
+    }
 
     int32_t r2 = not_execute_body(for1->body, strip, applicant);
     if (r2 == -1)
@@ -1864,6 +1974,13 @@ region_continue_loop:
     goto region_start_loop;
 
 region_end_loop:
+    if (item)
+    {
+        if (not_record_link_decrease(item) < 0)
+        {
+            return -1;
+        }
+    }
 
     if (not_record_link_decrease(iterator) < 0)
     {

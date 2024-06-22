@@ -39,3 +39,18 @@ readonly var print_alphabetical = fun(n:int) {
 };
 
 print_alphabetical(6);
+
+readonly var print_vowels = fun(str:string) {
+	var vowels = {h:0, e:0, l:0, o:0, r:0};
+	for (var c in str)
+	{
+		if (vowels.Contain(string(c)))
+		{
+			vowels[string(c)] += 1;
+		}
+	}
+
+	Print ("Count of vowels in given string: " + vowels);
+};
+
+print_vowels("hello world");

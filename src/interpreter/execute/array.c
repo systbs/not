@@ -208,6 +208,8 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                     {
                         return NOT_PTR_ERROR;
                     }
+
+                    not_record_link_increase(item->value);
                     return item->value;
                 }
             }

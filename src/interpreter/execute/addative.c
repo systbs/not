@@ -271,7 +271,7 @@ not_addative_plus(not_node_t *node, not_record_t *left, not_record_t *right, not
             mpz_clear(num2);
 
             not_record_t *record = NOT_PTR_NULL;
-            if (mpz_cmp_si(result, 128) <= 0)
+            if ((mpz_cmp_si(result, -127) >= 0) && (mpz_cmp_si(result, 128) <= 0))
             {
                 record = not_record_make_char(mpz_get_si(result));
             }
@@ -315,7 +315,7 @@ not_addative_plus(not_node_t *node, not_record_t *left, not_record_t *right, not
             mpz_clear(num2);
 
             not_record_t *record = NOT_PTR_NULL;
-            if (mpz_cmp_si(result, 128) <= 0)
+            if ((mpz_cmp_si(result, -127) >= 0) && (mpz_cmp_si(result, 128) <= 0))
             {
                 record = not_record_make_char(mpz_get_si(result));
             }

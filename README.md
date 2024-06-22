@@ -51,6 +51,25 @@ print_diamond(6);
 ```csharp
 using Print from "~/os/system.not";
 
+readonly var print_vowels = fun(str:string) {
+	var vowels = {h:0, e:0, l:0, o:0, r:0};
+	for (var c in str)
+	{
+		if (vowels.Contain(string(c)))
+		{
+			vowels[string(c)] += 1;
+		}
+	}
+
+	Print ("Count of vowels in given string: " + vowels);
+};
+
+print_vowels("hello world");
+```
+
+```csharp
+using Print from "~/os/system.not";
+
 readonly var print_pattern = fun(str: string) {
 	for (var i = 1; i < str.Length(); i += 1)
 	{
