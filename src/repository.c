@@ -82,6 +82,13 @@ not_repository_load(char *base, char *path)
         }
     }
 
+    if (not_path_is_directory(base_file))
+    {
+        char base_path[MAX_PATH];
+        not_path_join(base_file, INDEX_FILE_STR, base_path, MAX_PATH);
+        strcpy(base_file, base_path);
+    }
+
     not_repository_t *repository = not_repository_get();
 
     for (not_queue_entry_t *item = repository->queue->begin; item != repository->queue->end; item = item->next)

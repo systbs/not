@@ -137,10 +137,9 @@ int32_t
 not_path_is_absolute(const char *path);
 
 int32_t
-path_is_directory(const char *path);
+not_path_is_directory(const char *path);
 
-char *
-not_path_get_current_directory(char *buffer, size_t buffer_size);
+char *not_path_get_current_directory(char *buffer, size_t buffer_size);
 
 int32_t
 not_path_is_root(const char *path);

@@ -29,12 +29,12 @@ set "NOT_LIBRARY_PATH" in file "etc/environment" to path of lib folder,
 windows: set "NOT_LIBRARY_PATH" in "Environment Variables" to path of lib folder
 
 ```csharp
-using Print from "~/os/system.not";
+using Print from "~/os";
 Print("Hello World");
 ```
 
 ```csharp
-using Print from "~/os/system.not";
+using Print from "~/os";
 
 var print_diamond = fun (n:int) {
 	for (var i = 1;i < 2 * n; i += 1)
@@ -49,7 +49,7 @@ print_diamond(6);
 ```
 
 ```csharp
-using Print from "~/os/system.not";
+using Print from "~/os";
 
 readonly var print_vowels = fun(str:string) {
 	var vowels = {h:0, e:0, l:0, o:0, r:0};
@@ -68,7 +68,7 @@ print_vowels("hello world");
 ```
 
 ```csharp
-using Print from "~/os/system.not";
+using Print from "~/os";
 
 readonly var print_pattern = fun(str: string) {
 	for (var i = 1; i < str.Length(); i += 1)
@@ -84,7 +84,7 @@ print_pattern("Hello World");
 ```
 
 ```csharp
-using Print from "~/os/system.not";
+using Print from "~/os";
 
 readonly var print_alphabetical = fun(n:int) {
 	var num = 0;
@@ -104,7 +104,7 @@ print_alphabetical(6);
 
 how to use *arg?
 ```csharp
-using Print from "~/os/system.not";
+using Print from "~/os";
 
 readonly var add = fun(*args:int) {
 	var result = 0;
@@ -120,7 +120,7 @@ Print("sum :" + add(1, 2, 3, 4));
 
 how to use **kwarg?
 ```csharp
-using Print from "~/os/system.not";
+using Print from "~/os";
 
 readonly var greet = fun (**kwargs:string) {
 	if (kwargs.Contain("name"))
@@ -139,14 +139,14 @@ greet(type = "string");
 
 lambda functions?
 ```csharp
-using Print from "~/os/system.not";
+using Print from "~/os";
 
 readonly var square = fun (x) -> x ** 2;
 Print("square 5: " + square(5));
 ```
 
 ```csharp
-using Print, Input from "~/os/system.not";
+using Print, Input from "~/os";
 
 var data = Input("Enter your name?");
 if (data)
@@ -156,7 +156,7 @@ if (data)
 ```
 
 ```csharp
-using Print, File from "~/os/system.not";
+using Print, File from "~/os";
 
 // convert string to float
 var b1 = float ("12e-1");

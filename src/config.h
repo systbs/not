@@ -5,6 +5,7 @@
 #define ENV_LIBRARY_KEY "NOT_LIBRARY_PATH"
 #define DEFAULT_LIBRARY_PATH "/home/not/lib"
 #define CONSTRUCTOR_STR "constructor"
+#define INDEX_FILE_STR "index.not"
 
 typedef struct not_config
 {
