@@ -101,7 +101,7 @@ not_execute_truthy(not_record_t *left)
 }
 
 int32_t
-not_execute_type_check_by_type(not_node_t *node, not_record_t *record_type1, not_record_t *record_type2, not_strip_t *strip, not_node_t *applicant)
+not_execute_type_check_by_type(not_node_t *node, not_record_t *record_type1, not_record_t *record_type2)
 {
     not_record_type_t *type1 = (not_record_type_t *)record_type1->value;
     not_record_type_t *type2 = (not_record_type_t *)record_type2->value;
@@ -163,7 +163,7 @@ not_execute_type_check_by_type(not_node_t *node, not_record_t *record_type1, not
                 {
                     if (strcmp(object1->key, object2->key) == 0)
                     {
-                        int32_t r1 = not_execute_type_check_by_type(node, object1->value, object2->value, strip, applicant);
+                        int32_t r1 = not_execute_type_check_by_type(node, object1->value, object2->value);
                         if (r1 == -1)
                         {
                             return -1;
@@ -200,7 +200,7 @@ not_execute_type_check_by_type(not_node_t *node, not_record_t *record_type1, not
     {
         if (type2->type->kind == NODE_KIND_ARRAY)
         {
-            int32_t r1 = not_execute_type_check_by_type(node, type1->value, type2->value, strip, applicant);
+            int32_t r1 = not_execute_type_check_by_type(node, type1->value, type2->value);
             if (r1 == -1)
             {
                 return -1;
@@ -230,7 +230,7 @@ not_execute_type_check_by_type(not_node_t *node, not_record_t *record_type1, not
                     return 0;
                 }
 
-                int32_t r1 = not_execute_type_check_by_type(node, tuple2->value, tuple1->value, strip, applicant);
+                int32_t r1 = not_execute_type_check_by_type(node, tuple2->value, tuple1->value);
                 if (r1 == -1)
                 {
                     return -1;
@@ -306,7 +306,7 @@ not_execute_type_check_by_type(not_node_t *node, not_record_t *record_type1, not
                         return -1;
                     }
 
-                    int32_t r1 = not_execute_type_check_by_type(node, strip_entry1->value, strip_entry2->value, strip, applicant);
+                    int32_t r1 = not_execute_type_check_by_type(node, strip_entry1->value, strip_entry2->value);
                     if (r1 == -1)
                     {
                         if (not_record_link_decrease(strip_entry1->value) < 0)
@@ -346,7 +346,7 @@ not_execute_type_check_by_type(not_node_t *node, not_record_t *record_type1, not
 }
 
 int32_t
-not_execute_value_check_by_type(not_node_t *node, not_record_t *record_value, not_record_t *record_type, not_strip_t *strip, not_node_t *applicant)
+not_execute_value_check_by_type(not_node_t *node, not_record_t *record_value, not_record_t *record_type)
 {
     not_record_type_t *type1 = (not_record_type_t *)record_type->value;
 
@@ -407,7 +407,7 @@ not_execute_value_check_by_type(not_node_t *node, not_record_t *record_value, no
                 {
                     if (strcmp(object1->key, object2->key) == 0)
                     {
-                        int32_t r1 = not_execute_value_check_by_type(node, object1->value, object2->value, strip, applicant);
+                        int32_t r1 = not_execute_value_check_by_type(node, object1->value, object2->value);
                         if (r1 == -1)
                         {
                             return -1;
@@ -446,7 +446,7 @@ not_execute_value_check_by_type(not_node_t *node, not_record_t *record_value, no
         {
             for (not_record_tuple_t *tuple = (not_record_tuple_t *)record_value->value; tuple != NOT_PTR_NULL; tuple = tuple->next)
             {
-                int32_t r1 = not_execute_value_check_by_type(node, tuple->value, (not_record_t *)type1->value, strip, applicant);
+                int32_t r1 = not_execute_value_check_by_type(node, tuple->value, (not_record_t *)type1->value);
                 if (r1 == -1)
                 {
                     return -1;
@@ -479,7 +479,7 @@ not_execute_value_check_by_type(not_node_t *node, not_record_t *record_value, no
                     return 0;
                 }
 
-                int32_t r1 = not_execute_value_check_by_type(node, tuple2->value, tuple1->value, strip, applicant);
+                int32_t r1 = not_execute_value_check_by_type(node, tuple2->value, tuple1->value);
                 if (r1 == -1)
                 {
                     return -1;
@@ -558,7 +558,232 @@ not_execute_value_check_by_type(not_node_t *node, not_record_t *record_value, no
                             return -1;
                         }
 
-                        int32_t r1 = not_execute_type_check_by_type(node, strip_entry1->value, strip_entry2->value, strip, applicant);
+                        int32_t r1 = not_execute_type_check_by_type(node, strip_entry1->value, strip_entry2->value);
+                        if (r1 == -1)
+                        {
+                            if (not_record_link_decrease(strip_entry1->value) < 0)
+                            {
+                                return -1;
+                            }
+                            if (not_record_link_decrease(strip_entry2->value) < 0)
+                            {
+                                return -1;
+                            }
+                            return -1;
+                        }
+                        else if (r1 == 0)
+                        {
+                            if (not_record_link_decrease(strip_entry1->value) < 0)
+                            {
+                                return -1;
+                            }
+                            if (not_record_link_decrease(strip_entry2->value) < 0)
+                            {
+                                return -1;
+                            }
+                            return 0;
+                        }
+                    }
+                }
+            }
+            return 1;
+        }
+        return 0;
+    }
+    return 0;
+}
+
+int32_t
+not_execute_value_check_by_value(not_node_t *node, not_record_t *record_value1, not_record_t *record_value2)
+{
+    if (record_value1->kind == RECORD_KIND_CHAR)
+    {
+        if (record_value2->kind == RECORD_KIND_CHAR)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else if (record_value1->kind == RECORD_KIND_STRING)
+    {
+        if (record_value2->kind == RECORD_KIND_STRING)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else if (record_value1->kind == RECORD_KIND_INT)
+    {
+        if (record_value2->kind == RECORD_KIND_INT)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else if (record_value1->kind == RECORD_KIND_FLOAT)
+    {
+        if (record_value2->kind == RECORD_KIND_FLOAT)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else if (record_value1->kind == RECORD_KIND_OBJECT)
+    {
+        if (record_value2->kind == RECORD_KIND_OBJECT)
+        {
+            uint64_t cnt1 = 0;
+            for (not_record_object_t *object1 = (not_record_object_t *)record_value1->value; object1 != NOT_PTR_NULL; object1 = object1->next)
+            {
+                int32_t found = 0;
+                cnt1 += 1;
+                for (not_record_object_t *object2 = (not_record_object_t *)record_value2->value; object2 != NOT_PTR_NULL; object2 = object2->next)
+                {
+                    if (strcmp(object1->key, object2->key) == 0)
+                    {
+                        int32_t r1 = not_execute_value_check_by_value(node, object1->value, object2->value);
+                        if (r1 == -1)
+                        {
+                            return -1;
+                        }
+                        else if (r1 == 0)
+                        {
+                            return 0;
+                        }
+                        found = 1;
+                    }
+                }
+                if (found == 0)
+                {
+                    return 0;
+                }
+            }
+
+            uint64_t cnt2 = 0;
+            for (not_record_object_t *object2 = (not_record_object_t *)record_value2->value; object2 != NOT_PTR_NULL; object2 = object2->next)
+            {
+                cnt2 += 1;
+            }
+
+            if (cnt1 != cnt2)
+            {
+                return 0;
+            }
+
+            return 1;
+        }
+        return 0;
+    }
+    else if (record_value1->kind == RECORD_KIND_TUPLE)
+    {
+        if (record_value2->kind == RECORD_KIND_TUPLE)
+        {
+            uint64_t cnt1 = 0;
+            for (
+                not_record_tuple_t *tuple1 = (not_record_tuple_t *)record_value1->value, *tuple2 = (not_record_tuple_t *)record_value2->value;
+                tuple1 != NOT_PTR_NULL;
+                tuple1 = tuple1->next, tuple2 = tuple2->next)
+            {
+                cnt1 += 1;
+
+                if (tuple2 == NOT_PTR_NULL)
+                {
+                    return 0;
+                }
+
+                int32_t r1 = not_execute_value_check_by_value(node, tuple1->value, tuple2->value);
+                if (r1 == -1)
+                {
+                    return -1;
+                }
+                else if (r1 == 0)
+                {
+                    return 0;
+                }
+            }
+
+            uint64_t cnt2 = 0;
+            for (not_record_tuple_t *tuple2 = (not_record_tuple_t *)record_value2->value; tuple2 != NOT_PTR_NULL; tuple2 = tuple2->next)
+            {
+                cnt2 += 1;
+            }
+
+            if (cnt1 != cnt2)
+            {
+                return 0;
+            }
+
+            return 1;
+        }
+
+        return 0;
+    }
+    else if (record_value1->kind == RECORD_KIND_STRUCT)
+    {
+        if (record_value2->kind == RECORD_KIND_STRUCT)
+        {
+            not_record_struct_t *struct1 = (not_record_struct_t *)record_value1->value;
+            not_record_struct_t *struct2 = (not_record_struct_t *)record_value2->value;
+            if (struct1->type->id != struct2->type->id)
+            {
+                return 0;
+            }
+
+            not_node_class_t *class1 = (not_node_class_t *)struct1->type->value;
+            if (class1->generics)
+            {
+                not_node_block_t *block1 = (not_node_block_t *)class1->generics->value;
+                if (block1 != NOT_PTR_NULL)
+                {
+                    for (not_node_t *item1 = block1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+                    {
+                        not_node_generic_t *generic1 = (not_node_generic_t *)item1->value;
+
+                        not_entry_t *strip_entry1 = not_strip_variable_find(struct1->value, struct1->type, generic1->key);
+                        if (strip_entry1 == NOT_PTR_ERROR)
+                        {
+                            return -1;
+                        }
+                        if (strip_entry1 == NOT_PTR_NULL)
+                        {
+                            not_node_basic_t *basic1 = (not_node_basic_t *)generic1->key->value;
+                            not_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
+                            return -1;
+                        }
+
+                        not_entry_t *strip_entry2 = not_strip_variable_find(struct2->value, struct2->type, generic1->key);
+                        if (strip_entry2 == NOT_PTR_ERROR)
+                        {
+                            if (not_record_link_decrease(strip_entry1->value) < 0)
+                            {
+                                return -1;
+                            }
+                            return -1;
+                        }
+                        if (strip_entry2 == NOT_PTR_NULL)
+                        {
+                            not_node_basic_t *basic1 = (not_node_basic_t *)generic1->key->value;
+                            not_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
+                            if (not_record_link_decrease(strip_entry1->value) < 0)
+                            {
+                                return -1;
+                            }
+                            return -1;
+                        }
+
+                        int32_t r1 = not_execute_value_check_by_value(node, strip_entry1->value, strip_entry2->value);
                         if (r1 == -1)
                         {
                             if (not_record_link_decrease(strip_entry1->value) < 0)
@@ -594,7 +819,7 @@ not_execute_value_check_by_type(not_node_t *node, not_record_t *record_value, no
 }
 
 not_record_t *
-not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, not_record_t *record_type, not_strip_t *strip, not_node_t *applicant)
+not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, not_record_t *record_type)
 {
     not_record_type_t *type1 = (not_record_type_t *)record_type->value;
 
@@ -694,7 +919,7 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
                 {
                     if (strcmp(object1->key, object2->key) == 0)
                     {
-                        not_record_t *r1 = not_execute_value_casting_by_type(node, object2->value, object1->value, strip, applicant);
+                        not_record_t *r1 = not_execute_value_casting_by_type(node, object2->value, object1->value);
                         if (r1 == NOT_PTR_ERROR)
                         {
                             if (not_record_object_destroy(object_copy) < 0)
@@ -769,7 +994,7 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
 
             for (not_record_tuple_t *tuple = tuple_copy; tuple != NOT_PTR_NULL; tuple = tuple->next)
             {
-                not_record_t *r1 = not_execute_value_casting_by_type(node, tuple->value, array_type, strip, applicant);
+                not_record_t *r1 = not_execute_value_casting_by_type(node, tuple->value, array_type);
                 if (r1 == NOT_PTR_ERROR)
                 {
                     if (not_record_tuple_destroy(tuple_copy) < 0)
@@ -825,7 +1050,7 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
                     return NOT_PTR_NULL;
                 }
 
-                not_record_t *r1 = not_execute_value_casting_by_type(node, tuple2->value, tuple1->value, strip, applicant);
+                not_record_t *r1 = not_execute_value_casting_by_type(node, tuple2->value, tuple1->value);
                 if (r1 == NOT_PTR_ERROR)
                 {
                     if (not_record_tuple_destroy(tuple_copy) < 0)
@@ -932,7 +1157,7 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
                             return NOT_PTR_ERROR;
                         }
 
-                        int32_t r1 = not_execute_type_check_by_type(node, strip_entry1->value, strip_entry2->value, strip, applicant);
+                        int32_t r1 = not_execute_type_check_by_type(node, strip_entry1->value, strip_entry2->value);
                         if (r1 == -1)
                         {
                             if (not_record_link_decrease(strip_entry2->value) < 0)
@@ -1233,7 +1458,7 @@ not_execute_var(not_node_t *scope, not_node_t *node, not_strip_t *strip, not_nod
                     return -1;
                 }
 
-                int32_t r1 = not_execute_value_check_by_type(var1->key, record_value, record_type, strip, applicant);
+                int32_t r1 = not_execute_value_check_by_type(var1->key, record_value, record_type);
                 if (r1 < 0)
                 {
                     if (not_record_link_decrease(record_type) < 0)
@@ -1276,7 +1501,7 @@ not_execute_var(not_node_t *scope, not_node_t *node, not_strip_t *strip, not_nod
                             record_value = record_copy;
                         }
 
-                        not_record_t *record_value2 = not_execute_value_casting_by_type(var1->key, record_value, record_type, strip, applicant);
+                        not_record_t *record_value2 = not_execute_value_casting_by_type(var1->key, record_value, record_type);
                         if (record_value2 == NOT_PTR_ERROR)
                         {
                             if (not_record_link_decrease(record_type) < 0)

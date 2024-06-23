@@ -54,7 +54,7 @@ not_instanceof(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_
         int32_t r = 0;
         if (right->kind == RECORD_KIND_TYPE)
         {
-            r = not_execute_value_check_by_type(node, left, right, strip, applicant);
+            r = not_execute_value_check_by_type(node, left, right);
             if (r < 0)
             {
                 if (not_record_link_decrease(left) < 0)

@@ -103,7 +103,7 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                             return NOT_PTR_ERROR;
                         }
 
-                        int32_t r1 = not_execute_value_check_by_type(node, record_value, record_type, strip, applicant);
+                        int32_t r1 = not_execute_value_check_by_type(node, record_value, record_type);
                         if (r1 < 0)
                         {
                             if (not_record_link_decrease(record_type) < 0)
@@ -139,7 +139,7 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                             {
                                 record_value = not_record_copy(record_value);
 
-                                not_record_t *record_value2 = not_execute_value_casting_by_type(node, record_value, record_type, strip, applicant);
+                                not_record_t *record_value2 = not_execute_value_casting_by_type(node, record_value, record_type);
                                 if (record_value2 == NOT_PTR_ERROR)
                                 {
                                     if (not_record_link_decrease(record_type) < 0)

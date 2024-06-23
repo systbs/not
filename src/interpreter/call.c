@@ -89,7 +89,7 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
                         return -1;
                     }
 
-                    int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                    int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type);
                     if (r1 < 0)
                     {
                         if (not_record_link_decrease(record_parameter_type) < 0)
@@ -134,7 +134,7 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
                                 record_arg = record_copy;
                             }
 
-                            not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                            not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
                             if (record_arg2 == NOT_PTR_ERROR)
                             {
                                 if (not_record_link_decrease(record_parameter_type) < 0)
@@ -292,7 +292,7 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
                     return -1;
                 }
 
-                int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type);
                 if (r1 < 0)
                 {
                     if (not_record_link_decrease(record_parameter_type) < 0)
@@ -333,7 +333,7 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
                             record_arg = record_copy;
                         }
 
-                        not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                        not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
                         if (record_arg2 == NOT_PTR_ERROR)
                         {
                             if (not_record_link_decrease(record_parameter_type) < 0)
@@ -463,7 +463,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
                         return -1;
                     }
 
-                    int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                    int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type);
                     if (r1 < 0)
                     {
                         if (not_record_link_decrease(record_parameter_type) < 0)
@@ -512,7 +512,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
                                 record_arg = record_copy;
                             }
 
-                            not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                            not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
                             if (record_arg2 == NOT_PTR_ERROR)
                             {
                                 if (not_record_link_decrease(record_parameter_type) < 0)
@@ -688,7 +688,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
                     return -1;
                 }
 
-                int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type);
                 if (r1 < 0)
                 {
                     if (not_record_link_decrease(record_parameter_type) < 0)
@@ -734,7 +734,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
                             record_arg = record_copy;
                         }
 
-                        not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                        not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
                         if (record_arg2 == NOT_PTR_ERROR)
                         {
                             if (not_record_link_decrease(record_parameter_type) < 0)
@@ -860,7 +860,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
                             return -1;
                         }
 
-                        int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                        int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type);
                         if (r1 < 0)
                         {
                             if (not_record_link_decrease(record_parameter_type) < 0)
@@ -907,7 +907,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
                                     record_arg = record_copy;
                                 }
 
-                                not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                                not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
                                 if (record_arg2 == NOT_PTR_ERROR)
                                 {
                                     if (not_record_link_decrease(record_parameter_type) < 0)
@@ -1166,7 +1166,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                     return -1;
                                 }
 
-                                int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                                int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type);
                                 if (r1 < 0)
                                 {
                                     if (not_record_link_decrease(record_parameter_type) < 0)
@@ -1220,7 +1220,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                             record_arg = record_copy;
                                         }
 
-                                        not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                                        not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
                                         if (record_arg2 == NOT_PTR_ERROR)
                                         {
                                             if (not_record_link_decrease(record_parameter_type) < 0)
@@ -1403,7 +1403,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                         return -1;
                                     }
 
-                                    int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                                    int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type);
                                     if (r1 < 0)
                                     {
                                         if (not_record_link_decrease(record_parameter_type) < 0)
@@ -1450,7 +1450,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                                 record_arg = record_copy;
                                             }
 
-                                            not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                                            not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
                                             if (record_arg2 == NOT_PTR_ERROR)
                                             {
                                                 if (not_record_link_decrease(record_parameter_type) < 0)
@@ -1603,7 +1603,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                     return -1;
                                 }
 
-                                int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                                int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type);
                                 if (r1 < 0)
                                 {
                                     if (not_record_link_decrease(record_parameter_type) < 0)
@@ -1657,7 +1657,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                             record_arg = record_copy;
                                         }
 
-                                        not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                                        not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
                                         if (record_arg2 == NOT_PTR_ERROR)
                                         {
                                             if (not_record_link_decrease(record_parameter_type) < 0)
@@ -1848,7 +1848,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                 return -1;
                             }
 
-                            int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                            int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type);
                             if (r1 < 0)
                             {
                                 if (not_record_link_decrease(record_parameter_type) < 0)
@@ -1894,7 +1894,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                         record_arg = record_copy;
                                     }
 
-                                    not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                                    not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
                                     if (record_arg2 == NOT_PTR_ERROR)
                                     {
                                         if (not_record_link_decrease(record_parameter_type) < 0)
@@ -2025,7 +2025,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                             return -1;
                         }
 
-                        int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                        int32_t r1 = not_execute_value_check_by_type(base, record_arg, record_parameter_type);
                         if (r1 < 0)
                         {
                             if (not_record_link_decrease(record_parameter_type) < 0)
@@ -2072,7 +2072,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                     record_arg = record_copy;
                                 }
 
-                                not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type, strip, applicant);
+                                not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
                                 if (record_arg2 == NOT_PTR_ERROR)
                                 {
                                     if (not_record_link_decrease(record_parameter_type) < 0)
@@ -2308,7 +2308,7 @@ not_call_property_subs(not_node_t *scope, not_strip_t *strip, not_node_t *node, 
                 return -1;
             }
 
-            int32_t r1 = not_execute_value_check_by_type(property->key, record_value, record_parameter_type, strip, applicant);
+            int32_t r1 = not_execute_value_check_by_type(property->key, record_value, record_parameter_type);
             if (r1 < 0)
             {
                 if (not_record_link_decrease(record_parameter_type) < 0)
@@ -2330,7 +2330,7 @@ not_call_property_subs(not_node_t *scope, not_strip_t *strip, not_node_t *node, 
                     record_value = not_record_copy(record_value);
                 }
 
-                not_record_t *record_arg2 = not_execute_value_casting_by_type(property->key, record_value, record_parameter_type, strip, applicant);
+                not_record_t *record_arg2 = not_execute_value_casting_by_type(property->key, record_value, record_parameter_type);
                 if (record_arg2 == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_parameter_type) < 0)

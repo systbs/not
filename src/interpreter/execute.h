@@ -3,13 +3,16 @@
 #define __EXECUTE_H__ 1
 
 int32_t
-not_execute_type_check_by_type(not_node_t *node, not_record_t *record_type1, not_record_t *record_type2, not_strip_t *strip, not_node_t *applicant);
+not_execute_type_check_by_type(not_node_t *node, not_record_t *record_type1, not_record_t *record_type2);
 
 int32_t
-not_execute_value_check_by_type(not_node_t *node, not_record_t *record_value, not_record_t *record_type, not_strip_t *strip, not_node_t *applicant);
+not_execute_value_check_by_type(not_node_t *node, not_record_t *record_value, not_record_t *record_type);
 
 not_record_t *
-not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, not_record_t *record_type, not_strip_t *strip, not_node_t *applicant);
+not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, not_record_t *record_type);
+
+int32_t
+not_execute_value_check_by_value(not_node_t *node, not_record_t *record_value1, not_record_t *record_value2);
 
 int32_t
 not_execute_fun(not_node_t *node, not_strip_t *strip, not_node_t *applicant);

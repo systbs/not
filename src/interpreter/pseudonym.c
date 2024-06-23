@@ -75,7 +75,7 @@ not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, n
                 {
                     if (strcmp(object1->key, object2->key) == 0)
                     {
-                        int32_t r1 = not_execute_type_check_by_type(node, object1->value, object2->value, strip, applicant);
+                        int32_t r1 = not_execute_type_check_by_type(node, object1->value, object2->value);
                         if (r1 == -1)
                         {
                             return -1;
@@ -112,7 +112,7 @@ not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, n
     {
         if (type2->type->kind == NODE_KIND_ARRAY)
         {
-            int32_t r1 = not_execute_type_check_by_type(node, type1->value, type2->value, strip, applicant);
+            int32_t r1 = not_execute_type_check_by_type(node, type1->value, type2->value);
             if (r1 == -1)
             {
                 return -1;
@@ -142,7 +142,7 @@ not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, n
                     return 0;
                 }
 
-                int32_t r1 = not_execute_type_check_by_type(node, tuple2->value, tuple1->value, strip, applicant);
+                int32_t r1 = not_execute_type_check_by_type(node, tuple2->value, tuple1->value);
                 if (r1 == -1)
                 {
                     return -1;

@@ -35,7 +35,7 @@
 #include "execute.h"
 
 int32_t
-not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right, not_strip_t *strip, not_node_t *applicant)
+not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 {
     if (left->readonly)
     {
@@ -1438,8 +1438,16 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right,
         {
             if (left->typed == 1)
             {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "object");
-                return -1;
+                int32_t r1 = not_execute_value_check_by_value(node, left, right);
+                if (r1 == -1)
+                {
+                    return -1;
+                }
+                else if (r1 == 0)
+                {
+                    not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "object", "object");
+                    return -1;
+                }
             }
 
             if (left->reference == 1)
@@ -1843,8 +1851,16 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right,
         {
             if (left->typed == 1)
             {
-                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "tuple", "tuple");
-                return -1;
+                int32_t r1 = not_execute_value_check_by_value(node, left, right);
+                if (r1 == -1)
+                {
+                    return -1;
+                }
+                else if (r1 == 0)
+                {
+                    not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "tuple", "tuple");
+                    return -1;
+                }
             }
 
             if (left->reference == 1)
@@ -2655,89 +2671,15 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right,
         {
             if (left->typed == 1)
             {
-                not_record_struct_t *struct1 = (not_record_struct_t *)left->value;
-                not_record_struct_t *struct2 = (not_record_struct_t *)right->value;
-                if (struct1->type->id != struct2->type->id)
+                int32_t r1 = not_execute_value_check_by_value(node, left, right);
+                if (r1 == -1)
+                {
+                    return -1;
+                }
+                else if (r1 == 0)
                 {
                     not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "struct", "struct");
                     return -1;
-                }
-
-                not_node_class_t *class1 = (not_node_class_t *)struct1->type->value;
-                if (class1->generics)
-                {
-                    not_node_block_t *block1 = (not_node_block_t *)class1->generics->value;
-                    if (block1 != NOT_PTR_NULL)
-                    {
-                        for (not_node_t *item1 = block1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
-                        {
-                            not_node_generic_t *generic1 = (not_node_generic_t *)item1->value;
-
-                            not_entry_t *strip_entry1 = not_strip_variable_find(struct1->value, struct1->type, generic1->key);
-                            if (strip_entry1 == NOT_PTR_ERROR)
-                            {
-                                return -1;
-                            }
-                            if (strip_entry1 == NOT_PTR_NULL)
-                            {
-                                not_node_basic_t *basic1 = (not_node_basic_t *)generic1->key->value;
-                                not_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
-                                if (not_record_link_decrease(strip_entry1->value) < 0)
-                                {
-                                    return -1;
-                                }
-                                return -1;
-                            }
-
-                            not_entry_t *strip_entry2 = not_strip_variable_find(struct2->value, struct2->type, generic1->key);
-                            if (strip_entry2 == NOT_PTR_ERROR)
-                            {
-                                if (not_record_link_decrease(strip_entry1->value) < 0)
-                                {
-                                    return -1;
-                                }
-                                return -1;
-                            }
-                            if (strip_entry2 == NOT_PTR_NULL)
-                            {
-                                not_node_basic_t *basic1 = (not_node_basic_t *)generic1->key->value;
-                                not_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
-                                if (not_record_link_decrease(strip_entry1->value) < 0)
-                                {
-                                    return -1;
-                                }
-                                return -1;
-                            }
-
-                            int32_t r1 = not_execute_type_check_by_type(node, strip_entry1->value, strip_entry2->value, strip, applicant);
-                            if (r1 == -1)
-                            {
-                                if (not_record_link_decrease(strip_entry2->value) < 0)
-                                {
-                                    return -1;
-                                }
-                                if (not_record_link_decrease(strip_entry1->value) < 0)
-                                {
-                                    return -1;
-                                }
-                                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "struct", "struct");
-                                return -1;
-                            }
-                            else if (r1 == 0)
-                            {
-                                if (not_record_link_decrease(strip_entry2->value) < 0)
-                                {
-                                    return -1;
-                                }
-                                if (not_record_link_decrease(strip_entry1->value) < 0)
-                                {
-                                    return -1;
-                                }
-                                not_error_type_by_node(node, "mismatch type: '%s' and '%s'", "struct", "struct");
-                                return -1;
-                            }
-                        }
-                    }
                 }
             }
 
@@ -4057,7 +3999,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, right, strip, applicant) < 0)
+        if (not_execute_set_value(node, left, right) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -4124,7 +4066,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result, strip, applicant) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -4180,7 +4122,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result, strip, applicant) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -4236,7 +4178,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result, strip, applicant) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -4292,7 +4234,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result, strip, applicant) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -4348,7 +4290,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result, strip, applicant) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -4404,7 +4346,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result, strip, applicant) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -4460,7 +4402,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result, strip, applicant) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -4516,7 +4458,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result, strip, applicant) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -4572,7 +4514,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result, strip, applicant) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -4628,7 +4570,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result, strip, applicant) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -4684,7 +4626,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result, strip, applicant) < 0)
+        if (not_execute_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
