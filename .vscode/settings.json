@@ -23,7 +23,19 @@
         "features.h": "c",
         "stubs.h": "c",
         "cdefs.h": "c",
-        "path.h": "c"
+        "path.h": "c",
+        "string.h": "c",
+        "dirent.h": "c",
+        "stdlib.h": "c",
+        "error.h": "c",
+        "jansson.h": "c",
+        "token.h": "c",
+        "mutex.h": "c",
+        "utils.h": "c",
+        "helper.h": "c",
+        "record.h": "c",
+        "interpreter.h": "c",
+        "repository.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

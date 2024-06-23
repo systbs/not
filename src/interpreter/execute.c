@@ -5,29 +5,33 @@
 #include <ctype.h>
 #include <assert.h>
 #include <gmp.h>
+#include <mpfr.h>
+#include <stdint.h>
+#include <float.h>
 #include <jansson.h>
+#include <ffi.h>
 
-#include "../../types/types.h"
-#include "../../container/queue.h"
-#include "../../token/position.h"
-#include "../../token/token.h"
-#include "../../scanner/scanner.h"
-#include "../../ast/node.h"
-#include "../../utils/utils.h"
-#include "../../utils/path.h"
-#include "../../parser/syntax/syntax.h"
-#include "../../error.h"
-#include "../../mutex.h"
-#include "../../memory.h"
-#include "../../interpreter.h"
-#include "../../thread.h"
-#include "../../config.h"
-#include "../record.h"
-
-#include "../entry.h"
-#include "../symbol_table.h"
-#include "../strip.h"
-#include "../helper.h"
+#include "../types/types.h"
+#include "../container/queue.h"
+#include "../token/position.h"
+#include "../token/token.h"
+#include "../ast/node.h"
+#include "../utils/utils.h"
+#include "../utils/path.h"
+#include "../error.h"
+#include "../mutex.h"
+#include "../memory.h"
+#include "../config.h"
+#include "../scanner/scanner.h"
+#include "../parser/syntax/syntax.h"
+#include "record.h"
+#include "../repository.h"
+#include "../interpreter.h"
+#include "../thread.h"
+#include "symbol_table.h"
+#include "strip.h"
+#include "entry.h"
+#include "helper.h"
 #include "execute.h"
 
 static int32_t
@@ -36,6 +40,11 @@ not_execute_body(not_node_t *node, not_strip_t *strip, not_node_t *applicant);
 int32_t
 not_execute_truthy(not_record_t *left)
 {
+    if (left->null)
+    {
+        return 0;
+    }
+
     if (left->kind == RECORD_KIND_UNDEFINED)
     {
         return 0;
@@ -73,6 +82,14 @@ not_execute_truthy(not_record_t *left)
         return 1;
     }
     else if (left->kind == RECORD_KIND_STRUCT)
+    {
+        return 1;
+    }
+    else if (left->kind == RECORD_KIND_PROC)
+    {
+        return 1;
+    }
+    else if (left->kind == RECORD_KIND_BUILTIN)
     {
         return 1;
     }
@@ -947,11 +964,16 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
         }
         else if (record_value->kind == RECORD_KIND_NULL)
         {
-            return record_value;
-        }
-        else if (record_value->kind == RECORD_KIND_UNDEFINED)
-        {
-            return record_value;
+            not_strip_t *copy_strip = not_strip_copy(type1->value);
+            if (copy_strip == NOT_PTR_ERROR)
+            {
+                return NOT_PTR_ERROR;
+            }
+
+            not_record_t *r = not_record_make_struct(type1->type, copy_strip);
+            r->null = 1;
+
+            return r;
         }
 
         return NOT_PTR_NULL;

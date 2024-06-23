@@ -3,9 +3,13 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <ctype.h>
-#include <gmp.h>
 #include <assert.h>
+#include <gmp.h>
+#include <mpfr.h>
+#include <stdint.h>
+#include <float.h>
 #include <jansson.h>
+#include <ffi.h>
 
 #include "../types/types.h"
 #include "../container/queue.h"
@@ -15,14 +19,20 @@
 #include "../utils/utils.h"
 #include "../utils/path.h"
 #include "../error.h"
-#include "../memory.h"
 #include "../mutex.h"
+#include "../memory.h"
 #include "../config.h"
 #include "../scanner/scanner.h"
 #include "../parser/syntax/syntax.h"
 #include "record.h"
+#include "../repository.h"
+#include "../interpreter.h"
+#include "../thread.h"
+#include "symbol_table.h"
 #include "strip.h"
 #include "entry.h"
+#include "helper.h"
+#include "execute.h"
 
 static const char *const symbols[] = {
     [RECORD_KIND_INT] = "instance int",
@@ -1403,7 +1413,7 @@ not_record_copy(not_record_t *record)
     else if (record->kind == RECORD_KIND_STRUCT)
     {
         not_record_struct_t *basic = not_record_struct_copy((not_record_struct_t *)record->value);
-        ;
+
         if (basic == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;
@@ -1417,6 +1427,11 @@ not_record_copy(not_record_t *record)
                 return NOT_PTR_ERROR;
             }
             return NOT_PTR_ERROR;
+        }
+
+        if (record->null)
+        {
+            record_copy->null = 1;
         }
 
         return record_copy;

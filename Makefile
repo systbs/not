@@ -3,7 +3,7 @@ VERSION := 1.0.0
 LIBS := -lffi -lgmp -ljansson -lmpfr
 
 CC      :=  gcc
-CFLAGS  := -Wall -Wextra -Wno-unused-parameter
+CFLAGS  := -Wall -Wextra -Wno-unused-parameter 
 LDFLAGS := -lm $(LIBS)
 
 BUILDDIR := build

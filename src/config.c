@@ -278,6 +278,8 @@ not_config_init()
 
     strcpy(config->library_path, json_string_value(packages_path));
 
+    json_decref(root);
+
     return 0;
 }
 

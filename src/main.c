@@ -28,7 +28,7 @@
 #include "interpreter/record.h"
 #include "interpreter/symbol_table.h"
 #include "interpreter/strip.h"
-#include "interpreter/execute/execute.h"
+#include "interpreter/execute.h"
 
 int main(int argc, char **argv)
 {

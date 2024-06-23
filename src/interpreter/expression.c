@@ -33,19 +33,8 @@
 #include "entry.h"
 #include "helper.h"
 #include "execute.h"
-int32_t
-not_helper_id_cmp(not_node_t *n1, not_node_t *n2)
+not_record_t *
+not_expression(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    not_node_basic_t *nb1 = (not_node_basic_t *)n1->value;
-    not_node_basic_t *nb2 = (not_node_basic_t *)n2->value;
-
-    return strcmp(nb1->value, nb2->value);
-}
-
-int32_t
-not_helper_id_strcmp(not_node_t *n1, const char *name)
-{
-    not_node_basic_t *nb1 = (not_node_basic_t *)n1->value;
-
-    return strcmp(nb1->value, name);
+    return not_conditional(node, strip, applicant, origin);
 }

@@ -5,27 +5,37 @@
 #include <ctype.h>
 #include <assert.h>
 #include <gmp.h>
+#include <mpfr.h>
+#include <stdint.h>
+#include <float.h>
 #include <jansson.h>
+#include <ffi.h>
 
-#include "../../types/types.h"
-#include "../../container/queue.h"
-#include "../../token/position.h"
-#include "../../token/token.h"
-#include "../../scanner/scanner.h"
-#include "../../ast/node.h"
-#include "../../utils/utils.h"
-#include "../../utils/path.h"
-#include "../../parser/syntax/syntax.h"
-#include "../../error.h"
-#include "../../mutex.h"
-#include "../record.h"
-
-#include "../symbol_table.h"
-#include "../strip.h"
+#include "../types/types.h"
+#include "../container/queue.h"
+#include "../token/position.h"
+#include "../token/token.h"
+#include "../ast/node.h"
+#include "../utils/utils.h"
+#include "../utils/path.h"
+#include "../error.h"
+#include "../mutex.h"
+#include "../memory.h"
+#include "../config.h"
+#include "../scanner/scanner.h"
+#include "../parser/syntax/syntax.h"
+#include "record.h"
+#include "../repository.h"
+#include "../interpreter.h"
+#include "../thread.h"
+#include "symbol_table.h"
+#include "strip.h"
+#include "entry.h"
+#include "helper.h"
 #include "execute.h"
 
 not_record_t *
-not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
+not_execute_and(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
     if (left->kind == RECORD_KIND_UNDEFINED)
     {
@@ -157,7 +167,7 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
         {
             mpz_t result;
             mpz_init(result);
-            mpz_ior(result, (*(mpz_t *)(left->value)), (*(mpz_t *)(right->value)));
+            mpz_and(result, (*(mpz_t *)(left->value)), (*(mpz_t *)(right->value)));
 
             not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
@@ -169,7 +179,7 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
             mpz_init(result);
             mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            mpz_ior(result, (*(mpz_t *)(left->value)), result);
+            mpz_and(result, (*(mpz_t *)(left->value)), result);
 
             not_record_t *record = not_record_make_int_from_z(result);
             mpz_clear(result);
@@ -182,7 +192,7 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
 
             mpz_t op_mpz;
             mpz_init_set_si(op_mpz, (*(char *)(right->value)));
-            mpz_ior(result, (*(mpz_t *)(left->value)), op_mpz);
+            mpz_and(result, (*(mpz_t *)(left->value)), op_mpz);
             mpz_clear(op_mpz);
 
             not_record_t *record = not_record_make_int_from_z(result);
@@ -252,7 +262,7 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
 
             mpz_t result;
             mpz_init(result);
-            mpz_ior(result, op1_mpz, (*(mpz_t *)(right->value)));
+            mpz_and(result, op1_mpz, (*(mpz_t *)(right->value)));
             mpz_clear(op1_mpz);
 
             not_record_t *record = not_record_make_int_from_z(result);
@@ -271,7 +281,7 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
 
             mpz_t result;
             mpz_init(result);
-            mpz_ior(result, op1_mpz, op2_mpz);
+            mpz_and(result, op1_mpz, op2_mpz);
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
@@ -290,7 +300,7 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
 
             mpz_t result;
             mpz_init(result);
-            mpz_ior(result, op1_mpz, op2_mpz);
+            mpz_and(result, op1_mpz, op2_mpz);
             mpz_clear(op1_mpz);
             mpz_clear(op2_mpz);
 
@@ -378,7 +388,7 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
             mpz_t op_mpz, result;
             mpz_init(result);
             mpz_init_set_si(op_mpz, (*(char *)(left->value)));
-            mpz_ior(result, (*(mpz_t *)(right->value)), op_mpz);
+            mpz_and(result, (*(mpz_t *)(right->value)), op_mpz);
             mpz_clear(op_mpz);
 
             not_record_t *record = not_record_make_int_from_z(result);
@@ -393,7 +403,7 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
 
             mpz_t op2_mpz;
             mpz_init_set_si(op2_mpz, (*(char *)(left->value)));
-            mpz_ior(result, result, op2_mpz);
+            mpz_and(result, result, op2_mpz);
             mpz_clear(op2_mpz);
 
             not_record_t *record = not_record_make_int_from_z(result);
@@ -402,7 +412,7 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            not_record_t *record = not_record_make_char((*(char *)(left->value)) | (*(char *)(right->value)));
+            not_record_t *record = not_record_make_char((*(char *)(left->value)) & (*(char *)(right->value)));
             return record;
         }
         else if (right->kind == RECORD_KIND_STRING)
@@ -470,32 +480,26 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-
             return not_record_make_nan();
         }
 
@@ -533,32 +537,26 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-
             return not_record_make_nan();
         }
 
@@ -596,32 +594,26 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-
             return not_record_make_nan();
         }
 
@@ -663,27 +655,22 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-
             return not_record_make_nan();
         }
 
@@ -691,7 +678,7 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
     }
     else if (left->kind == RECORD_KIND_STRUCT)
     {
-        return not_call_operator_by_one_arg(node, left, right, "|", applicant);
+        return not_call_operator_by_one_arg(node, left, right, "&", applicant);
     }
     else if (left->kind == RECORD_KIND_NULL)
     {
@@ -725,32 +712,26 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_OBJECT)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TUPLE)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_TYPE)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_STRUCT)
         {
-
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-
             return not_record_make_nan();
         }
 
@@ -761,24 +742,24 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
 }
 
 not_record_t *
-not_bitwise_or(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_bitwise_and(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
-    if (node->kind == NODE_KIND_OR)
+    if (node->kind == NODE_KIND_AND)
     {
         not_node_binary_t *binary = (not_node_binary_t *)node->value;
-        not_record_t *left = not_bitwise_or(binary->left, strip, applicant, origin);
+        not_record_t *left = not_bitwise_and(binary->left, strip, applicant, origin);
         if (left == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *right = not_bitwise_xor(binary->right, strip, applicant, origin);
+        not_record_t *right = not_equality(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *record = not_execute_or(node, left, right, applicant);
+        not_record_t *record = not_execute_and(node, left, right, applicant);
 
         if (not_record_link_decrease(left) < 0)
         {
@@ -794,6 +775,6 @@ not_bitwise_or(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_
     }
     else
     {
-        return not_bitwise_xor(node, strip, applicant, origin);
+        return not_equality(node, strip, applicant, origin);
     }
 }
