@@ -64,6 +64,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -91,6 +96,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_CHAR)
@@ -112,6 +122,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             mpz_set_ui(*(mpz_t *)(ptr), *(char *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -140,6 +155,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
@@ -165,6 +185,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -192,6 +217,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_TYPE)
@@ -217,6 +247,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -244,6 +279,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NULL)
@@ -264,6 +304,8 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
+
+            left->null = 1;
 
             return 0;
         }
@@ -286,6 +328,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NAN)
@@ -306,6 +353,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -332,6 +384,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_PROC;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -360,6 +417,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BUILTIN;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
 
@@ -372,6 +434,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             if (left->reference == 1)
             {
                 mpf_set_z(*(mpf_t *)(left->value), *(mpz_t *)(right->value));
+                if (left->null)
+                {
+                    left->null = 0;
+                }
+
                 return 0;
             }
 
@@ -387,6 +454,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -394,6 +466,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             if (left->reference == 1)
             {
                 mpf_set(*(mpf_t *)(left->value), *(mpf_t *)(right->value));
+                if (left->null)
+                {
+                    left->null = 0;
+                }
+
                 return 0;
             }
 
@@ -408,6 +485,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_CHAR)
@@ -415,6 +497,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             if (left->reference == 1)
             {
                 mpf_set_si(*(mpf_t *)(left->value), *(char *)(right->value));
+                if (left->null)
+                {
+                    left->null = 0;
+                }
+
                 return 0;
             }
 
@@ -429,6 +516,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             mpf_set_d(*(mpf_t *)(ptr), *(char *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -457,6 +549,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
@@ -482,6 +579,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -509,6 +611,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_TYPE)
@@ -534,6 +641,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -561,6 +673,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NULL)
@@ -581,6 +698,8 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
+
+            left->null = 1;
 
             return 0;
         }
@@ -603,6 +722,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NAN)
@@ -623,6 +747,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -650,6 +779,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_PROC;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_BUILTIN)
@@ -676,6 +810,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_BUILTIN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -708,6 +847,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -734,6 +878,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_CHAR)
@@ -741,6 +890,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             if (left->reference == 1)
             {
                 *(char *)left->value = *(char *)(right->value);
+                if (left->null)
+                {
+                    left->null = 0;
+                }
+
                 return 0;
             }
 
@@ -753,6 +907,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             *(char *)(ptr) = (char)(*(char *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -780,6 +939,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
@@ -804,6 +968,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -830,6 +999,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_TYPE)
@@ -854,6 +1028,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -880,6 +1059,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NULL)
@@ -899,6 +1083,8 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
+
+            left->null = 1;
 
             return 0;
         }
@@ -920,6 +1106,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NAN)
@@ -939,6 +1130,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -966,6 +1162,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_PROC;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_BUILTIN)
@@ -992,6 +1193,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_BUILTIN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -1024,6 +1230,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -1050,6 +1261,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_CHAR)
@@ -1069,6 +1285,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             *(char *)(ptr) = (char)(*(char *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_STRING)
@@ -1076,6 +1297,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             if (left->reference == 1)
             {
                 strncpy((char *)(left->value), (char *)(right->value), strlen((char *)(left->value)));
+                if (left->null)
+                {
+                    left->null = 0;
+                }
+
                 return 0;
             }
 
@@ -1089,6 +1315,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             strcpy((char *)(ptr), (char *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -1115,6 +1346,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_TUPLE)
@@ -1139,6 +1375,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -1165,6 +1406,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_STRUCT)
@@ -1190,6 +1436,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NULL)
@@ -1209,6 +1460,8 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
+
+            left->null = 1;
 
             return 0;
         }
@@ -1230,6 +1483,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NAN)
@@ -1249,6 +1507,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -1276,6 +1539,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_PROC;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_BUILTIN)
@@ -1302,6 +1570,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_BUILTIN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -1339,6 +1612,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -1369,6 +1647,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             mpf_init_set(*(mpf_t *)(ptr), *(mpf_t *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -1401,6 +1684,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_STRING)
@@ -1431,6 +1719,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             strcpy((char *)(ptr), (char *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -1470,6 +1763,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_TUPLE)
@@ -1499,6 +1797,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -1530,6 +1833,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_STRUCT)
@@ -1560,6 +1868,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NULL)
@@ -1584,6 +1897,8 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
+
+            left->null = 1;
 
             return 0;
         }
@@ -1610,6 +1925,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NAN)
@@ -1634,6 +1954,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -1660,6 +1985,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_PROC;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -1688,8 +2018,14 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BUILTIN;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
+
         return 0;
     }
     else if (left->kind == RECORD_KIND_TUPLE)
@@ -1723,6 +2059,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -1754,6 +2095,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_CHAR)
@@ -1784,6 +2130,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             *(char *)(ptr) = (char)(*(char *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_STRING)
@@ -1815,6 +2166,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
@@ -1844,6 +2200,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -1883,6 +2244,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_TYPE)
@@ -1912,6 +2278,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -1943,6 +2314,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NULL)
@@ -1967,6 +2343,8 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
+
+            left->null = 1;
 
             return 0;
         }
@@ -1993,6 +2371,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NAN)
@@ -2017,6 +2400,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -2044,6 +2432,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_PROC;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_BUILTIN)
@@ -2070,6 +2463,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_BUILTIN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -2107,6 +2505,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -2138,6 +2541,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_CHAR)
@@ -2168,6 +2576,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             *(char *)(ptr) = (char)(*(char *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_STRING)
@@ -2199,6 +2612,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
@@ -2228,6 +2646,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -2259,6 +2682,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_TYPE)
@@ -2288,6 +2716,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -2319,6 +2752,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NULL)
@@ -2343,6 +2781,8 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
+
+            left->null = 1;
 
             return 0;
         }
@@ -2369,6 +2809,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NAN)
@@ -2393,6 +2838,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -2420,6 +2870,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_PROC;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_BUILTIN)
@@ -2446,6 +2901,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_BUILTIN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -2483,6 +2943,16 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -2514,6 +2984,16 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_CHAR)
@@ -2544,6 +3024,17 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             *(char *)(ptr) = (char)(*(char *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_STRING)
@@ -2575,6 +3066,16 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
@@ -2604,6 +3105,16 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -2635,6 +3146,16 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_TYPE)
@@ -2664,6 +3185,16 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -2703,6 +3234,16 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NULL)
@@ -2727,6 +3268,8 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
+
+            left->null = 1;
 
             return 0;
         }
@@ -2753,6 +3296,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NAN)
@@ -2777,6 +3325,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -2804,6 +3357,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_PROC;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_BUILTIN)
@@ -2830,6 +3388,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_BUILTIN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -2850,6 +3413,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -2864,6 +3432,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_CHAR)
@@ -2877,6 +3450,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             *(char *)(ptr) = (char)(*(char *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_STRING)
@@ -2891,6 +3469,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
@@ -2903,6 +3486,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -2917,6 +3505,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_TYPE)
@@ -2929,6 +3522,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -2943,6 +3541,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NULL)
@@ -2950,6 +3553,8 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
+
+            left->null = 1;
 
             return 0;
         }
@@ -2959,6 +3564,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NAN)
@@ -2966,6 +3576,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -2981,6 +3596,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_PROC;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_BUILTIN)
@@ -2995,6 +3615,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_BUILTIN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3015,6 +3640,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -3029,6 +3659,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_CHAR)
@@ -3042,6 +3677,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             *(char *)(ptr) = (char)(*(char *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_STRING)
@@ -3056,6 +3696,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
@@ -3068,6 +3713,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3082,6 +3732,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_TYPE)
@@ -3094,6 +3749,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3108,6 +3768,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NULL)
@@ -3115,6 +3780,8 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
+
+            left->null = 1;
 
             return 0;
         }
@@ -3124,6 +3791,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NAN)
@@ -3131,6 +3803,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3146,6 +3823,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_PROC;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_BUILTIN)
@@ -3160,6 +3842,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_BUILTIN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3180,6 +3867,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -3194,6 +3886,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_CHAR)
@@ -3207,6 +3904,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             *(char *)(ptr) = (char)(*(char *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_STRING)
@@ -3221,6 +3923,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
@@ -3233,6 +3940,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3247,6 +3959,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_TYPE)
@@ -3259,6 +3976,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3273,6 +3995,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NULL)
@@ -3280,6 +4007,8 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
+
+            left->null = 1;
 
             return 0;
         }
@@ -3289,6 +4018,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NAN)
@@ -3296,6 +4030,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3311,6 +4050,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_PROC;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_BUILTIN)
@@ -3325,6 +4069,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_BUILTIN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3357,6 +4106,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -3383,6 +4137,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_CHAR)
@@ -3408,6 +4167,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             *(char *)(ptr) = (char)(*(char *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_STRING)
@@ -3434,6 +4198,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
@@ -3458,6 +4227,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3484,6 +4258,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_TYPE)
@@ -3508,6 +4287,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3534,6 +4318,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NULL)
@@ -3553,6 +4342,8 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
+
+            left->null = 1;
 
             return 0;
         }
@@ -3574,6 +4365,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NAN)
@@ -3594,6 +4390,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_PROC)
@@ -3604,6 +4405,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 not_record_proc_t *basic2 = (not_record_proc_t *)right->value;
                 basic1->handle = basic2->handle;
                 basic1->map = basic2->map;
+                if (left->null)
+                {
+                    left->null = 0;
+                }
+
                 return 0;
             }
 
@@ -3616,6 +4422,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_PROC;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3643,6 +4454,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_BUILTIN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3675,6 +4491,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_INT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_FLOAT)
@@ -3701,6 +4522,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_FLOAT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_CHAR)
@@ -3726,6 +4552,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             *(char *)(ptr) = (char)(*(char *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_CHAR;
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_STRING)
@@ -3752,6 +4583,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_OBJECT)
@@ -3776,6 +4612,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_OBJECT;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3802,6 +4643,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_TUPLE;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_TYPE)
@@ -3826,6 +4672,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = ptr;
             left->kind = RECORD_KIND_TYPE;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3852,6 +4703,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_STRUCT;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NULL)
@@ -3871,6 +4727,8 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NULL;
+
+            left->null = 1;
 
             return 0;
         }
@@ -3892,6 +4750,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_NAN)
@@ -3911,6 +4774,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             not_memory_free(left->value);
             left->value = NOT_PTR_NULL;
             left->kind = RECORD_KIND_NAN;
+
+            if (left->null)
+            {
+                left->null = 0;
+            }
 
             return 0;
         }
@@ -3938,6 +4806,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_PROC;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
         }
         else if (right->kind == RECORD_KIND_BUILTIN)
@@ -3954,6 +4827,11 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 {
                     return -1;
                 }
+                if (left->null)
+                {
+                    left->null = 0;
+                }
+
                 return 0;
             }
 
@@ -3968,7 +4846,17 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             left->value = ptr;
             left->kind = RECORD_KIND_BUILTIN;
 
+            if (left->null)
+            {
+                left->null = 0;
+            }
+
             return 0;
+        }
+
+        if (left->null)
+        {
+            left->null = 0;
         }
 
         return 0;
