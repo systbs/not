@@ -859,7 +859,7 @@ not_record_make_string(char *value)
 }
 
 not_record_object_t *
-not_record_make_object(char *key, not_record_t *value, not_record_object_t *next)
+not_record_make_object(const char *key, not_record_t *value, not_record_object_t *next)
 {
     not_record_object_t *basic = (not_record_object_t *)not_memory_calloc(1, sizeof(not_record_object_t));
     if (basic == NOT_PTR_NULL)

@@ -154,7 +154,7 @@ if (data)
 ```
 
 ```csharp
-using Print, File from "~/os";
+using Print, File, Stat from "~/os";
 
 // convert string to float
 var b1 = float ("12e-1");
@@ -337,5 +337,7 @@ if (file)
 	Print("close file:" + file.Close());
 }
 
+var st = Stat("text.txt");
+Print(st);
 
 ```

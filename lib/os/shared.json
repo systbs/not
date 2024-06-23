@@ -99,6 +99,31 @@
             "parameters": [],
             "arg": false,
             "return_type": "string"
+        },
+        {
+            "name": "f_stat",
+            "parameters": [
+                {
+                    "name": "path",
+                    "type": "string"
+                }
+            ],
+            "arg": false,
+            "return_type": {
+                "dev": "int",
+                "ino": "int",
+                "mode": "int",
+                "nlink": "int",
+                "uid": "int",
+                "gid": "int",
+                "rdev": "int",
+                "size": "int",
+                "blksize": "int",
+                "blocks": "int",
+                "atime": "int",
+                "mtime": "int",
+                "ctime": "int"
+            }
         }
     ]
 }

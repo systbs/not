@@ -421,3 +421,54 @@ f_getc()
 err:
     return NULL;
 }
+
+mpz_t **
+f_stat(const char *path)
+{
+    mpz_t **elements = (mpz_t **)calloc(13, sizeof(mpz_t *));
+    if (!elements)
+    {
+        goto err;
+    }
+
+    for (long i = 0; i < 13; i++)
+    {
+        elements[i] = malloc(sizeof(mpz_t));
+        if (!elements[i])
+        {
+            free(elements);
+            goto err;
+        }
+        mpz_init(*elements[i]);
+    }
+
+    struct stat st;
+    if (stat(path, &st) < 0)
+    {
+        for (long i = 0; i < 13; i++)
+        {
+            free(elements[i]);
+        }
+        free(elements);
+        goto err;
+    }
+
+    mpz_init_set_ui(*elements[0], st.st_dev);
+    mpz_init_set_ui(*elements[1], st.st_ino);
+    mpz_init_set_ui(*elements[2], st.st_mode);
+    mpz_init_set_ui(*elements[3], st.st_nlink);
+    mpz_init_set_ui(*elements[4], st.st_uid);
+    mpz_init_set_ui(*elements[5], st.st_gid);
+    mpz_init_set_ui(*elements[6], st.st_rdev);
+    mpz_init_set_ui(*elements[7], st.st_size);
+    mpz_init_set_ui(*elements[8], st.st_blksize);
+    mpz_init_set_ui(*elements[9], st.st_blocks);
+    mpz_init_set_ui(*elements[10], st.st_atime);
+    mpz_init_set_ui(*elements[11], st.st_mtime);
+    mpz_init_set_ui(*elements[12], st.st_ctime);
+
+    return elements;
+
+err:
+    return NULL;
+}

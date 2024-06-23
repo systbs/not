@@ -1,4 +1,4 @@
-using Print, File, Input from "~/os";
+using Print, File, Input, Stat from "~/os";
 
 Print("Hello World");
 
@@ -88,3 +88,6 @@ if (data)
 {
 	Print("Hello, " + data);
 }
+
+var st = Stat("text.txt");
+Print(st);

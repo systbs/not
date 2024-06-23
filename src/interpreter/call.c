@@ -2823,6 +2823,11 @@ ffi_type_destroy(ffi_type *type)
     }
 }
 
+static void
+ffi_value_destroy(void *value, ffi_type *type)
+{
+}
+
 static int32_t
 not_call_cvt_arg(not_record_t *arg, json_t *type, ffi_pair_t *ret)
 {
@@ -2923,6 +2928,153 @@ not_call_cvt_arg(not_record_t *arg, json_t *type, ffi_pair_t *ret)
     }
     else if (json_is_object(type))
     {
+        if (arg->kind == RECORD_KIND_OBJECT)
+        {
+            void **elements = NOT_PTR_NULL;
+            ffi_type **atypes = NOT_PTR_NULL;
+            size_t index = 0;
+
+            const char *key;
+            json_t *value_json = NOT_PTR_NULL;
+            json_object_foreach(type, key, value_json)
+            {
+                for (not_record_object_t *object = (not_record_object_t *)arg->value; object != NOT_PTR_NULL; object = object->next)
+                {
+                    if (strcmp(key, object->key) == 0)
+                    {
+                        ffi_pair_t pair;
+                        int32_t r = not_call_cvt_arg(object->value, value_json, &pair);
+                        if (r < 0)
+                        {
+                            for (size_t i = 0; i < index; i++)
+                                ffi_value_destroy(elements[i], atypes[i]);
+
+                            if (atypes)
+                                not_memory_free(atypes);
+
+                            if (elements)
+                                not_memory_free(elements);
+
+                            return -1;
+                        }
+                        else if (r == 0)
+                        {
+                            for (size_t i = 0; i < index; i++)
+                                ffi_value_destroy(elements[i], atypes[i]);
+
+                            if (atypes)
+                                not_memory_free(atypes);
+
+                            if (elements)
+                                not_memory_free(elements);
+
+                            return 0;
+                        }
+
+                        if (index == 0)
+                        {
+                            elements = not_memory_calloc(index + 2, sizeof(void *));
+                            if (!elements)
+                            {
+                                not_error_no_memory();
+                                return -1;
+                            }
+                            elements[index] = pair.ptr;
+
+                            atypes = not_memory_calloc(index + 2, sizeof(ffi_type *));
+                            if (!atypes)
+                            {
+                                not_error_no_memory();
+                                not_memory_free(elements);
+                                return -1;
+                            }
+                            atypes[index] = pair.type;
+
+                            index += 1;
+                        }
+                        else
+                        {
+                            void **ptr = not_memory_realloc(elements, sizeof(void *) * (index + 2));
+                            if (!ptr)
+                            {
+                                not_error_no_memory();
+
+                                for (size_t i = 0; i < index; i++)
+                                    ffi_value_destroy(elements[i], atypes[i]);
+
+                                if (atypes)
+                                    not_memory_free(atypes);
+
+                                if (elements)
+                                    not_memory_free(elements);
+
+                                return -1;
+                            }
+                            ptr[index] = pair.ptr;
+                            elements = ptr;
+
+                            ffi_type **tt = not_memory_realloc(atypes, sizeof(ffi_type *) * (index + 2));
+                            if (!tt)
+                            {
+                                not_error_no_memory();
+
+                                ffi_value_destroy(pair.ptr, pair.type);
+
+                                for (size_t i = 0; i < index; i++)
+                                    ffi_value_destroy(elements[i], atypes[i]);
+
+                                if (atypes)
+                                    not_memory_free(atypes);
+
+                                if (elements)
+                                    not_memory_free(elements);
+
+                                return -1;
+                            }
+                            tt[index] = pair.type;
+                            atypes = tt;
+
+                            index += 1;
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            atypes[index + 1] = NULL;
+
+            ffi_type *array_type = not_memory_calloc(1, sizeof(ffi_type));
+            if (!array_type)
+            {
+                not_error_no_memory();
+
+                for (size_t i = 0; i < index; i++)
+                    ffi_value_destroy(elements[i], atypes[i]);
+
+                if (atypes)
+                    not_memory_free(atypes);
+
+                if (elements)
+                    not_memory_free(elements);
+
+                return -1;
+            }
+
+            array_type->size = 0;
+            array_type->alignment = 0;
+            array_type->type = FFI_TYPE_STRUCT;
+            array_type->elements = atypes;
+
+            ret->ptr = elements;
+            ret->type = array_type;
+
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
     }
     else if (json_is_array(type))
     {
@@ -3038,6 +3190,62 @@ not_call_cvt_return_type(union_return_value_t *value, json_t *type)
     }
     else if (json_is_object(type))
     {
+        if (value->ptr)
+        {
+            void **elements = value->ptr;
+            size_t index = 0;
+            not_record_object_t *top = NOT_PTR_NULL, *declaration = NOT_PTR_NULL;
+
+            const char *key;
+            json_t *value_json = NULL;
+            json_object_foreach(type, key, value_json)
+            {
+                not_record_t *record = not_call_cvt_return_type((union_return_value_t *)(&elements[index]), value_json);
+                if (record == NOT_PTR_ERROR)
+                {
+                    if (top)
+                    {
+                        not_record_object_destroy(top);
+                    }
+                    return NOT_PTR_ERROR;
+                }
+
+                not_record_object_t *object = not_record_make_object(key, record, NOT_PTR_NULL);
+                if (object == NOT_PTR_ERROR)
+                {
+                    if (top)
+                    {
+                        not_record_object_destroy(top);
+                    }
+                    return NOT_PTR_ERROR;
+                }
+
+                if (!top)
+                {
+                    top = object;
+                    declaration = object;
+                }
+                else
+                {
+                    declaration->next = object;
+                    declaration = object;
+                }
+
+                index += 1;
+            }
+
+            result = not_record_create(RECORD_KIND_OBJECT, top);
+            if (result == NOT_PTR_ERROR)
+            {
+                if (top)
+                {
+                    not_record_object_destroy(top);
+                }
+                return NOT_PTR_ERROR;
+            }
+
+            return result;
+        }
     }
     else if (json_is_array(type))
     {
