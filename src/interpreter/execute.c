@@ -2819,7 +2819,8 @@ not_execute_module(not_node_t *node)
 int32_t
 not_execute_run(not_node_t *root)
 {
-    if (not_execute_module(root) < 0)
+    int32_t r = not_execute_module(root);
+    if (r < 0)
     {
         return -1;
     }
