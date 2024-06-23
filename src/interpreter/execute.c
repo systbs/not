@@ -2799,11 +2799,7 @@ not_execute_module(not_node_t *node)
             int32_t r = not_execute_statement(node, item, strip, node);
             if (r < 0)
             {
-                if (r == -4)
-                {
-                    not_error_runtime_by_node(node, "expection is not handled");
-                }
-                return -1;
+                return r;
             }
         }
     }
@@ -2819,10 +2815,5 @@ not_execute_module(not_node_t *node)
 int32_t
 not_execute_run(not_node_t *root)
 {
-    int32_t r = not_execute_module(root);
-    if (r < 0)
-    {
-        return -1;
-    }
-    return 0;
+    return not_execute_module(root);
 }
