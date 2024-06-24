@@ -140,6 +140,15 @@ not_relational_le(not_node_t *node, not_record_t *left, not_record_t *right, not
 {
     if (left->null)
     {
+        if (right->null)
+        {
+            return not_record_make_int_from_si(1);
+        }
+        else if (right->kind == RECORD_KIND_NULL)
+        {
+            return not_record_make_int_from_si(1);
+        }
+
         return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_INT)
@@ -342,6 +351,15 @@ not_relational_ge(not_node_t *node, not_record_t *left, not_record_t *right, not
 {
     if (left->null)
     {
+        if (right->null)
+        {
+            return not_record_make_int_from_si(1);
+        }
+        else if (right->kind == RECORD_KIND_NULL)
+        {
+            return not_record_make_int_from_si(1);
+        }
+
         return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_INT)
