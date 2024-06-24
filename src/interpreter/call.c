@@ -2804,32 +2804,8 @@ typedef union
     uint64_t ui64;
 } union_return_value_t;
 
-typedef struct ffi_sized
-{
-    void *ptr;
-    ffi_type *type;
-} ffi_pair_t;
-
-static void
-ffi_type_destroy(ffi_type *type)
-{
-    if (type->type == FFI_TYPE_STRUCT)
-    {
-        for (ffi_type *t = *type->elements; t != NOT_PTR_NULL; t++)
-        {
-            ffi_type_destroy(t);
-        }
-        not_memory_free(type->elements);
-    }
-}
-
-static void
-ffi_value_destroy(void *value, ffi_type *type)
-{
-}
-
 static int32_t
-not_call_cvt_arg(not_record_t *arg, json_t *type, ffi_pair_t *ret)
+not_check_value_by_type_json(not_record_t *arg, json_t *type)
 {
     if (json_is_string(type))
     {
@@ -2838,17 +2814,6 @@ not_call_cvt_arg(not_record_t *arg, json_t *type, ffi_pair_t *ret)
         {
             if (arg->kind == RECORD_KIND_CHAR)
             {
-                void **ptr = not_memory_calloc(1, sizeof(void *));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-
-                ptr[0] = arg->value;
-
-                ret->type = &ffi_type_pointer;
-                ret->ptr = ptr;
                 return 1;
             }
             else
@@ -2860,17 +2825,6 @@ not_call_cvt_arg(not_record_t *arg, json_t *type, ffi_pair_t *ret)
         {
             if (arg->kind == RECORD_KIND_INT)
             {
-                void **ptr = not_memory_calloc(1, sizeof(void *));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-
-                ptr[0] = arg->value;
-
-                ret->type = &ffi_type_pointer;
-                ret->ptr = ptr;
                 return 1;
             }
             else
@@ -2882,17 +2836,6 @@ not_call_cvt_arg(not_record_t *arg, json_t *type, ffi_pair_t *ret)
         {
             if (arg->kind == RECORD_KIND_FLOAT)
             {
-                void **ptr = not_memory_calloc(1, sizeof(void *));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-
-                ptr[0] = arg->value;
-
-                ret->type = &ffi_type_pointer;
-                ret->ptr = ptr;
                 return 1;
             }
             else
@@ -2904,17 +2847,6 @@ not_call_cvt_arg(not_record_t *arg, json_t *type, ffi_pair_t *ret)
         {
             if (arg->kind == RECORD_KIND_STRING)
             {
-                void **ptr = not_memory_calloc(1, sizeof(void *));
-                if (!ptr)
-                {
-                    not_error_no_memory();
-                    return -1;
-                }
-
-                ptr[0] = arg->value;
-
-                ret->type = &ffi_type_pointer;
-                ret->ptr = ptr;
                 return 1;
             }
             else
@@ -2930,10 +2862,6 @@ not_call_cvt_arg(not_record_t *arg, json_t *type, ffi_pair_t *ret)
     {
         if (arg->kind == RECORD_KIND_OBJECT)
         {
-            void **elements = NOT_PTR_NULL;
-            ffi_type **atypes = NOT_PTR_NULL;
-            size_t index = 0;
-
             const char *key;
             json_t *value_json = NOT_PTR_NULL;
             json_object_foreach(type, key, value_json)
@@ -2942,132 +2870,20 @@ not_call_cvt_arg(not_record_t *arg, json_t *type, ffi_pair_t *ret)
                 {
                     if (strcmp(key, object->key) == 0)
                     {
-                        ffi_pair_t pair;
-                        int32_t r = not_call_cvt_arg(object->value, value_json, &pair);
+                        int32_t r = not_check_value_by_type_json(object->value, value_json);
                         if (r < 0)
                         {
-                            for (size_t i = 0; i < index; i++)
-                                ffi_value_destroy(elements[i], atypes[i]);
-
-                            if (atypes)
-                                not_memory_free(atypes);
-
-                            if (elements)
-                                not_memory_free(elements);
-
                             return -1;
                         }
                         else if (r == 0)
                         {
-                            for (size_t i = 0; i < index; i++)
-                                ffi_value_destroy(elements[i], atypes[i]);
-
-                            if (atypes)
-                                not_memory_free(atypes);
-
-                            if (elements)
-                                not_memory_free(elements);
-
                             return 0;
-                        }
-
-                        if (index == 0)
-                        {
-                            elements = not_memory_calloc(index + 2, sizeof(void *));
-                            if (!elements)
-                            {
-                                not_error_no_memory();
-                                return -1;
-                            }
-                            elements[index] = pair.ptr;
-
-                            atypes = not_memory_calloc(index + 2, sizeof(ffi_type *));
-                            if (!atypes)
-                            {
-                                not_error_no_memory();
-                                not_memory_free(elements);
-                                return -1;
-                            }
-                            atypes[index] = pair.type;
-
-                            index += 1;
-                        }
-                        else
-                        {
-                            void **ptr = not_memory_realloc(elements, sizeof(void *) * (index + 2));
-                            if (!ptr)
-                            {
-                                not_error_no_memory();
-
-                                for (size_t i = 0; i < index; i++)
-                                    ffi_value_destroy(elements[i], atypes[i]);
-
-                                if (atypes)
-                                    not_memory_free(atypes);
-
-                                if (elements)
-                                    not_memory_free(elements);
-
-                                return -1;
-                            }
-                            ptr[index] = pair.ptr;
-                            elements = ptr;
-
-                            ffi_type **tt = not_memory_realloc(atypes, sizeof(ffi_type *) * (index + 2));
-                            if (!tt)
-                            {
-                                not_error_no_memory();
-
-                                ffi_value_destroy(pair.ptr, pair.type);
-
-                                for (size_t i = 0; i < index; i++)
-                                    ffi_value_destroy(elements[i], atypes[i]);
-
-                                if (atypes)
-                                    not_memory_free(atypes);
-
-                                if (elements)
-                                    not_memory_free(elements);
-
-                                return -1;
-                            }
-                            tt[index] = pair.type;
-                            atypes = tt;
-
-                            index += 1;
                         }
 
                         break;
                     }
                 }
             }
-
-            atypes[index + 1] = NULL;
-
-            ffi_type *array_type = not_memory_calloc(1, sizeof(ffi_type));
-            if (!array_type)
-            {
-                not_error_no_memory();
-
-                for (size_t i = 0; i < index; i++)
-                    ffi_value_destroy(elements[i], atypes[i]);
-
-                if (atypes)
-                    not_memory_free(atypes);
-
-                if (elements)
-                    not_memory_free(elements);
-
-                return -1;
-            }
-
-            array_type->size = 0;
-            array_type->alignment = 0;
-            array_type->type = FFI_TYPE_STRUCT;
-            array_type->elements = atypes;
-
-            ret->ptr = elements;
-            ret->type = array_type;
 
             return 1;
         }
@@ -3079,189 +2895,8 @@ not_call_cvt_arg(not_record_t *arg, json_t *type, ffi_pair_t *ret)
     else if (json_is_array(type))
     {
     }
-    else
-    {
-        if (arg->kind == RECORD_KIND_CHAR)
-        {
-            void **ptr = not_memory_calloc(1, sizeof(void *));
-            if (!ptr)
-            {
-                not_error_no_memory();
-                return -1;
-            }
-
-            ptr[0] = arg->value;
-
-            ret->type = &ffi_type_pointer;
-            ret->ptr = ptr;
-            return 1;
-        }
-        else if (arg->kind == RECORD_KIND_INT)
-        {
-            void **ptr = not_memory_calloc(1, sizeof(void *));
-            if (!ptr)
-            {
-                not_error_no_memory();
-                return -1;
-            }
-
-            ptr[0] = arg->value;
-
-            ret->type = &ffi_type_pointer;
-            ret->ptr = ptr;
-            return 1;
-        }
-        else if (arg->kind == RECORD_KIND_FLOAT)
-        {
-            void **ptr = not_memory_calloc(1, sizeof(void *));
-            if (!ptr)
-            {
-                not_error_no_memory();
-                return -1;
-            }
-
-            ptr[0] = arg->value;
-
-            ret->type = &ffi_type_pointer;
-            ret->ptr = ptr;
-            return 1;
-        }
-        else if (arg->kind == RECORD_KIND_STRING)
-        {
-            void **ptr = not_memory_calloc(1, sizeof(void *));
-            if (!ptr)
-            {
-                not_error_no_memory();
-                return -1;
-            }
-
-            ptr[0] = arg->value;
-
-            ret->type = &ffi_type_pointer;
-            ret->ptr = ptr;
-            return 1;
-        }
-    }
 
     return 0;
-}
-
-static not_record_t *
-not_call_cvt_return_type(union_return_value_t *value, json_t *type)
-{
-    not_record_t *result = NOT_PTR_NULL;
-    if (json_is_string(type))
-    {
-        const char *type_value = json_string_value(type);
-        if (strcmp(type_value, "char") == 0)
-        {
-            if (value->ptr)
-            {
-                result = not_record_make_char(*(char *)value->ptr);
-                free(value->ptr);
-            }
-        }
-        else if (strcmp(type_value, "int") == 0)
-        {
-            if (value->ptr)
-            {
-                result = not_record_make_int_from_z(*(mpz_t *)value->ptr);
-                mpz_clear(*(mpz_t *)value->ptr);
-                free(value->ptr);
-            }
-        }
-        else if (strcmp(type_value, "float") == 0)
-        {
-            if (value->ptr)
-            {
-                result = not_record_make_float_from_f(*(mpf_t *)value->ptr);
-                mpf_clear(*(mpf_t *)value->ptr);
-                free(value->ptr);
-            }
-        }
-        else if (strcmp(type_value, "string") == 0)
-        {
-            if (value->ptr)
-            {
-                result = not_record_make_string((char *)value->ptr);
-                free(value->ptr);
-            }
-        }
-    }
-    else if (json_is_object(type))
-    {
-        if (value->ptr)
-        {
-            void **elements = value->ptr;
-            size_t index = 0;
-            not_record_object_t *top = NOT_PTR_NULL, *declaration = NOT_PTR_NULL;
-
-            const char *key;
-            json_t *value_json = NULL;
-            json_object_foreach(type, key, value_json)
-            {
-                not_record_t *record = not_call_cvt_return_type((union_return_value_t *)(&elements[index]), value_json);
-                if (record == NOT_PTR_ERROR)
-                {
-                    if (top)
-                    {
-                        not_record_object_destroy(top);
-                    }
-                    return NOT_PTR_ERROR;
-                }
-
-                not_record_object_t *object = not_record_make_object(key, record, NOT_PTR_NULL);
-                if (object == NOT_PTR_ERROR)
-                {
-                    if (top)
-                    {
-                        not_record_object_destroy(top);
-                    }
-                    return NOT_PTR_ERROR;
-                }
-
-                if (!top)
-                {
-                    top = object;
-                    declaration = object;
-                }
-                else
-                {
-                    declaration->next = object;
-                    declaration = object;
-                }
-
-                index += 1;
-            }
-
-            result = not_record_create(RECORD_KIND_OBJECT, top);
-            if (result == NOT_PTR_ERROR)
-            {
-                if (top)
-                {
-                    not_record_object_destroy(top);
-                }
-                return NOT_PTR_ERROR;
-            }
-
-            free(value->ptr);
-            return result;
-        }
-    }
-    else if (json_is_array(type))
-    {
-    }
-    else
-    {
-        result = not_record_make_undefined();
-    }
-
-    if (!result)
-    {
-        return not_record_make_null();
-    }
-
-    return result;
 }
 
 static not_record_t *
@@ -3288,25 +2923,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
         }
     }
 
-    not_queue_t *repo = not_queue_create();
-    if (repo == NOT_PTR_ERROR)
-    {
-        return NOT_PTR_ERROR;
-    }
-
-    not_queue_t *garbage = not_queue_create();
-    if (garbage == NOT_PTR_ERROR)
-    {
-        not_queue_destroy(garbage);
-        return NOT_PTR_ERROR;
-    }
-
-    typedef struct
-    {
-        const char *key;
-        void *ptr;
-        ffi_type *type;
-    } ffi_repository_entry_t;
+    not_record_tuple_t *top = NOT_PTR_NULL, *iter = NOT_PTR_NULL;
 
     size_t param_count = json_array_size(parameters);
     size_t param_index = 0;
@@ -3319,12 +2936,6 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
 
             if (param_index >= param_count)
             {
-                json_t *var_arg = json_object_get(map, "arg");
-                if (json_is_boolean(var_arg) && json_boolean_value(var_arg))
-                {
-                    goto region_enable_vararg;
-                }
-
                 if (argument->value)
                 {
                     not_node_basic_t *basic2 = (not_node_basic_t *)argument->key->value;
@@ -3347,17 +2958,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
             {
                 if (json_is_string(prefix) && (strcmp(json_string_value(prefix), "**") == 0))
                 {
-                    void **ptr = NOT_PTR_NULL;
-
-                    ffi_type **elements = NOT_PTR_NULL;
-                    size_t index = 0;
-
-                    ffi_type *struct_type = not_memory_calloc(1, sizeof(ffi_type));
-                    if (!struct_type)
-                    {
-                        not_error_no_memory();
-                        goto region_cleanup;
-                    }
+                    not_record_object_t *object_top = NOT_PTR_NULL, *object_iter = NOT_PTR_NULL;
 
                     for (; item != NOT_PTR_NULL; item = item->next)
                     {
@@ -3374,8 +2975,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                             goto region_cleanup_kwarg;
                         }
 
-                        ffi_pair_t cvt_ffi;
-                        int32_t r = not_call_cvt_arg(record_arg, type, &cvt_ffi);
+                        int32_t r = not_check_value_by_type_json(record_arg, type);
                         if (r < 0)
                         {
                             not_record_link_decrease(record_arg);
@@ -3383,137 +2983,66 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                         }
                         else if (r == 0)
                         {
-                            not_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
-                                                   "argument", not_record_type_as_string(record_arg),
-                                                   json_is_string(type) ? json_string_value(type) : "struct");
+                            not_error_type_by_node(argument->key, "mismatch: '%s' and '%s'",
+                                                   not_record_type_as_string(record_arg),
+                                                   json_is_string(type) ? json_string_value(type) : "object");
                             not_record_link_decrease(record_arg);
                             goto region_cleanup_kwarg;
                         }
 
-                        if (NOT_PTR_ERROR == not_queue_right_push(garbage, record_arg))
+                        not_node_basic_t *basic = (not_node_basic_t *)argument->key->value;
+
+                        not_record_object_t *object = not_record_make_object(basic->value, record_arg, NOT_PTR_NULL);
+                        if (object == NOT_PTR_ERROR)
                         {
-                            if (cvt_ffi.type)
-                                ffi_type_destroy(cvt_ffi.type);
-
-                            if (cvt_ffi.ptr)
-                                not_memory_free(cvt_ffi.ptr);
-
                             not_record_link_decrease(record_arg);
                             goto region_cleanup_kwarg;
                         }
 
-                        if (index == 0)
+                        if (!object_top)
                         {
-                            ffi_type **elements_ptr = not_memory_calloc(1, sizeof(ffi_type *) * (index + 2));
-                            if (!elements_ptr)
-                            {
-                                not_error_no_memory();
-
-                                if (cvt_ffi.type)
-                                    ffi_type_destroy(cvt_ffi.type);
-
-                                if (cvt_ffi.ptr)
-                                    not_memory_free(cvt_ffi.ptr);
-
-                                goto region_cleanup_kwarg;
-                            }
-
-                            elements_ptr[index] = cvt_ffi.type;
-                            elements = elements_ptr;
-
-                            void **ptr_copy = not_memory_calloc(1, sizeof(void *) * (index + 2));
-                            if (!ptr_copy)
-                            {
-                                not_error_no_memory();
-
-                                if (cvt_ffi.ptr)
-                                    not_memory_free(cvt_ffi.ptr);
-
-                                goto region_cleanup_kwarg;
-                            }
-
-                            ptr_copy[index] = cvt_ffi.ptr;
-                            ptr = ptr_copy;
-
-                            index += 1;
+                            object_top = object;
+                            object_iter = object;
                         }
                         else
                         {
-                            ffi_type **elements_ptr = not_memory_realloc(elements, sizeof(ffi_type *) * (index + 2));
-                            if (!elements_ptr)
-                            {
-                                not_error_no_memory();
-
-                                if (cvt_ffi.type)
-                                    ffi_type_destroy(cvt_ffi.type);
-
-                                if (cvt_ffi.ptr)
-                                    not_memory_free(cvt_ffi.ptr);
-
-                                goto region_cleanup_kwarg;
-                            }
-
-                            elements_ptr[index] = cvt_ffi.type;
-                            elements = elements_ptr;
-
-                            void **ptr_copy = not_memory_realloc(ptr, sizeof(void *) * (index + 2));
-                            if (!ptr_copy)
-                            {
-                                not_error_no_memory();
-
-                                if (cvt_ffi.ptr)
-                                    not_memory_free(cvt_ffi.ptr);
-
-                                goto region_cleanup_kwarg;
-                            }
-
-                            ptr_copy[index] = cvt_ffi.ptr;
-                            ptr = ptr_copy;
-
-                            index += 1;
+                            object_iter->next = object;
+                            object_iter = object;
                         }
 
                         continue;
                     }
 
-                    elements[index] = NOT_PTR_NULL;
-
-                    struct_type->size = 0;
-                    struct_type->alignment = 0;
-                    struct_type->type = FFI_TYPE_STRUCT;
-                    struct_type->elements = elements;
-
-                    ffi_repository_entry_t *entry = not_memory_calloc(1, sizeof(ffi_repository_entry_t));
-                    if (!entry)
+                    not_record_t *record = not_record_create(RECORD_KIND_OBJECT, object_top);
+                    if (record == NOT_PTR_ERROR)
                     {
-                        not_error_no_memory();
                         goto region_cleanup_kwarg;
                     }
 
-                    entry->key = json_string_value(name);
-                    entry->type = struct_type;
-                    entry->ptr = ptr;
-
-                    if (NOT_PTR_ERROR == not_queue_right_push(repo, entry))
+                    not_record_tuple_t *tuple = not_record_make_tuple(record, NOT_PTR_NULL);
+                    if (record == NOT_PTR_ERROR)
                     {
-                        not_memory_free(entry);
+                        not_record_link_decrease(record);
                         goto region_cleanup_kwarg;
+                    }
+
+                    if (!top)
+                    {
+                        top = tuple;
+                        iter = tuple;
+                    }
+                    else
+                    {
+                        iter->next = tuple;
+                        iter = tuple;
                     }
 
                     param_index += 1;
                     continue;
-
                 region_cleanup_kwarg:
-                    if (ptr)
-                        not_memory_free(ptr);
 
-                    for (size_t i = 0; i < index; i++)
-                    {
-                        ffi_type_destroy(elements[i]);
-                    }
-
-                    if (struct_type)
-                        not_memory_free(struct_type);
+                    if (object_top)
+                        not_record_object_destroy(object_top);
 
                     goto region_cleanup;
                 }
@@ -3537,8 +3066,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                                 goto region_cleanup;
                             }
 
-                            ffi_pair_t cvt_ffi;
-                            int32_t r = not_call_cvt_arg(record_arg, type, &cvt_ffi);
+                            int32_t r = not_check_value_by_type_json(record_arg, type);
                             if (r < 0)
                             {
                                 not_record_link_decrease(record_arg);
@@ -3546,53 +3074,29 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                             }
                             else if (r == 0)
                             {
-                                not_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
-                                                       "argument", not_record_type_as_string(record_arg),
-                                                       json_is_string(type) ? json_string_value(type) : "struct");
+                                not_error_type_by_node(argument->key, "mismatch: '%s' and '%s'",
+                                                       not_record_type_as_string(record_arg),
+                                                       json_is_string(type) ? json_string_value(type) : "object");
                                 not_record_link_decrease(record_arg);
                                 goto region_cleanup;
                             }
 
-                            if (NOT_PTR_ERROR == not_queue_right_push(garbage, record_arg))
+                            not_record_tuple_t *tuple = not_record_make_tuple(record_arg, NOT_PTR_NULL);
+                            if (tuple == NOT_PTR_ERROR)
                             {
-                                if (cvt_ffi.type)
-                                    ffi_type_destroy(cvt_ffi.type);
-
-                                if (cvt_ffi.ptr)
-                                    not_memory_free(cvt_ffi.ptr);
-
                                 not_record_link_decrease(record_arg);
                                 goto region_cleanup;
                             }
 
-                            ffi_repository_entry_t *entry = not_memory_calloc(1, sizeof(ffi_repository_entry_t));
-                            if (!entry)
+                            if (!top)
                             {
-                                not_error_no_memory();
-
-                                if (cvt_ffi.type)
-                                    ffi_type_destroy(cvt_ffi.type);
-
-                                if (cvt_ffi.ptr)
-                                    not_memory_free(cvt_ffi.ptr);
-
-                                goto region_cleanup;
+                                top = tuple;
+                                iter = tuple;
                             }
-
-                            entry->key = json_string_value(name);
-                            entry->type = cvt_ffi.type;
-                            entry->ptr = cvt_ffi.ptr;
-
-                            if (NOT_PTR_ERROR == not_queue_right_push(repo, entry))
+                            else
                             {
-                                if (cvt_ffi.type)
-                                    ffi_type_destroy(cvt_ffi.type);
-
-                                if (cvt_ffi.ptr)
-                                    not_memory_free(cvt_ffi.ptr);
-
-                                not_memory_free(entry);
-                                goto region_cleanup;
+                                iter->next = tuple;
+                                iter = tuple;
                             }
 
                             break;
@@ -3613,17 +3117,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
             {
                 if (json_is_string(prefix) && (strcmp(json_string_value(prefix), "*") == 0))
                 {
-                    void **ptr = NOT_PTR_NULL;
-
-                    ffi_type **elements = NOT_PTR_NULL;
-                    size_t index = 0;
-
-                    ffi_type *struct_type = not_memory_calloc(1, sizeof(ffi_type));
-                    if (!struct_type)
-                    {
-                        not_error_no_memory();
-                        goto region_cleanup;
-                    }
+                    not_record_tuple_t *tuple_top = NOT_PTR_NULL, *tuple_iter = NOT_PTR_NULL;
 
                     for (; item != NOT_PTR_NULL; item = item->next)
                     {
@@ -3640,8 +3134,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                             goto region_cleanup_karg;
                         }
 
-                        ffi_pair_t cvt_ffi;
-                        int32_t r = not_call_cvt_arg(record_arg, type, &cvt_ffi);
+                        int32_t r = not_check_value_by_type_json(record_arg, type);
                         if (r < 0)
                         {
                             not_record_link_decrease(record_arg);
@@ -3651,114 +3144,63 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                         {
                             not_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
                                                    "argument", not_record_type_as_string(record_arg),
-                                                   json_is_string(type) ? json_string_value(type) : "struct");
+                                                   json_is_string(type) ? json_string_value(type) : "object");
                             not_record_link_decrease(record_arg);
                             goto region_cleanup_karg;
                         }
 
-                        if (NOT_PTR_ERROR == not_queue_right_push(garbage, record_arg))
+                        not_record_tuple_t *tuple = not_record_make_tuple(record_arg, NOT_PTR_NULL);
+                        if (tuple == NOT_PTR_ERROR)
                         {
-                            if (cvt_ffi.type)
-                                ffi_type_destroy(cvt_ffi.type);
-
-                            if (cvt_ffi.ptr)
-                                not_memory_free(cvt_ffi.ptr);
-
                             not_record_link_decrease(record_arg);
                             goto region_cleanup_karg;
                         }
 
-                        if (index == 0)
+                        if (!tuple_top)
                         {
-                            ffi_type **elements_ptr = not_memory_calloc(1, sizeof(ffi_type *) * (index + 2));
-                            if (!elements_ptr)
-                            {
-                                not_error_no_memory();
-                                goto region_cleanup_karg;
-                            }
-
-                            elements_ptr[index] = cvt_ffi.type;
-                            elements = elements_ptr;
-
-                            void **ptr_copy = not_memory_calloc(1, sizeof(void *) * (index + 2));
-                            if (!ptr_copy)
-                            {
-                                not_error_no_memory();
-                                goto region_cleanup_karg;
-                            }
-
-                            ptr_copy[index] = cvt_ffi.ptr;
-                            ptr = ptr_copy;
-
-                            index += 1;
+                            tuple_top = tuple;
+                            tuple_iter = tuple;
                         }
                         else
                         {
-                            ffi_type **elements_ptr = not_memory_realloc(elements, sizeof(ffi_type *) * (index + 2));
-                            if (!elements_ptr)
-                            {
-                                not_error_no_memory();
-                                goto region_cleanup_karg;
-                            }
-
-                            elements_ptr[index] = cvt_ffi.type;
-                            elements = elements_ptr;
-
-                            void **ptr_copy = not_memory_realloc(ptr, sizeof(void *) * (index + 2));
-                            if (!ptr_copy)
-                            {
-                                not_error_no_memory();
-                                goto region_cleanup_karg;
-                            }
-
-                            ptr_copy[index] = cvt_ffi.ptr;
-                            ptr = ptr_copy;
-
-                            index += 1;
+                            tuple_iter->next = tuple;
+                            tuple_iter = tuple;
                         }
 
                         continue;
                     }
 
-                    elements[index] = NOT_PTR_NULL;
-                    ptr[index] = NOT_PTR_NULL;
-
-                    struct_type->size = 0;
-                    struct_type->alignment = 0;
-                    struct_type->type = FFI_TYPE_STRUCT;
-                    struct_type->elements = elements;
-
-                    ffi_repository_entry_t *entry = not_memory_calloc(1, sizeof(ffi_repository_entry_t));
-                    if (!entry)
+                    not_record_t *record = not_record_create(RECORD_KIND_TUPLE, tuple_top);
+                    if (record == NOT_PTR_ERROR)
                     {
-                        not_error_no_memory();
                         goto region_cleanup_karg;
                     }
 
-                    entry->key = json_string_value(name);
-                    entry->type = struct_type;
-                    entry->ptr = ptr;
-
-                    if (NOT_PTR_ERROR == not_queue_right_push(repo, entry))
+                    not_record_tuple_t *tuple = not_record_make_tuple(record, NOT_PTR_NULL);
+                    if (record == NOT_PTR_ERROR)
                     {
-                        not_memory_free(entry);
+                        not_record_link_decrease(record);
                         goto region_cleanup_karg;
+                    }
+
+                    if (!top)
+                    {
+                        top = tuple;
+                        iter = tuple;
+                    }
+                    else
+                    {
+                        iter->next = tuple;
+                        iter = tuple;
                     }
 
                     param_index += 1;
                     continue;
 
                 region_cleanup_karg:
-                    if (ptr)
-                        not_memory_free(ptr);
 
-                    for (size_t i = 0; i < index; i++)
-                    {
-                        ffi_type_destroy(elements[i]);
-                    }
-
-                    if (struct_type)
-                        not_memory_free(struct_type);
+                    if (tuple_top)
+                        not_record_tuple_destroy(tuple_top);
 
                     goto region_cleanup;
                 }
@@ -3776,8 +3218,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                         goto region_cleanup;
                     }
 
-                    ffi_pair_t cvt_ffi;
-                    int32_t r = not_call_cvt_arg(record_arg, type, &cvt_ffi);
+                    int32_t r = not_check_value_by_type_json(record_arg, type);
                     if (r < 0)
                     {
                         not_record_link_decrease(record_arg);
@@ -3785,53 +3226,29 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                     }
                     else if (r == 0)
                     {
-                        not_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
-                                               "argument", not_record_type_as_string(record_arg),
-                                               json_is_string(type) ? json_string_value(type) : "struct|tuple");
+                        not_error_type_by_node(argument->key, "mismatch: '%s' and '%s'",
+                                               not_record_type_as_string(record_arg),
+                                               json_is_string(type) ? json_string_value(type) : "object");
                         not_record_link_decrease(record_arg);
                         goto region_cleanup;
                     }
 
-                    if (NOT_PTR_ERROR == not_queue_right_push(garbage, record_arg))
+                    not_record_tuple_t *tuple = not_record_make_tuple(record_arg, NOT_PTR_NULL);
+                    if (tuple == NOT_PTR_ERROR)
                     {
-                        if (cvt_ffi.type)
-                            ffi_type_destroy(cvt_ffi.type);
-
-                        if (cvt_ffi.ptr)
-                            not_memory_free(cvt_ffi.ptr);
-
                         not_record_link_decrease(record_arg);
                         goto region_cleanup;
                     }
 
-                    ffi_repository_entry_t *entry = not_memory_calloc(1, sizeof(ffi_repository_entry_t));
-                    if (!entry)
+                    if (!top)
                     {
-                        not_error_no_memory();
-
-                        if (cvt_ffi.type)
-                            ffi_type_destroy(cvt_ffi.type);
-
-                        if (cvt_ffi.ptr)
-                            not_memory_free(cvt_ffi.ptr);
-
-                        goto region_cleanup;
+                        top = tuple;
+                        iter = tuple;
                     }
-
-                    entry->key = json_string_value(name);
-                    entry->type = cvt_ffi.type;
-                    entry->ptr = cvt_ffi.ptr;
-
-                    if (NOT_PTR_ERROR == not_queue_right_push(repo, entry))
+                    else
                     {
-                        if (cvt_ffi.type)
-                            ffi_type_destroy(cvt_ffi.type);
-
-                        if (cvt_ffi.ptr)
-                            not_memory_free(cvt_ffi.ptr);
-
-                        not_memory_free(entry);
-                        goto region_cleanup;
+                        iter->next = tuple;
+                        iter = tuple;
                     }
 
                     param_index += 1;
@@ -3839,65 +3256,6 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                     item = item->next;
                     continue;
                 }
-            }
-
-            item = item->next;
-            continue;
-
-        region_enable_vararg:
-            not_record_t *record_arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
-            if (record_arg == NOT_PTR_ERROR)
-            {
-                not_error_no_memory();
-                goto region_cleanup;
-            }
-
-            json_t *type2 = json_object_get(map, "arg");
-
-            ffi_pair_t cvt_ffi;
-            int32_t r = not_call_cvt_arg(record_arg, type2, &cvt_ffi);
-            if (r < 0)
-            {
-                not_record_link_decrease(record_arg);
-                goto region_cleanup;
-            }
-            else if (r == 0)
-            {
-                not_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
-                                       "argument", not_record_type_as_string(record_arg),
-                                       json_is_string(type2) ? json_string_value(type2) : "struct");
-                not_record_link_decrease(record_arg);
-                goto region_cleanup;
-            }
-
-            ffi_repository_entry_t *entry = not_memory_calloc(1, sizeof(ffi_repository_entry_t));
-            if (!entry)
-            {
-                not_error_no_memory();
-
-                if (cvt_ffi.type)
-                    ffi_type_destroy(cvt_ffi.type);
-
-                if (cvt_ffi.ptr)
-                    not_memory_free(cvt_ffi.ptr);
-
-                goto region_cleanup;
-            }
-
-            entry->key = "";
-            entry->type = cvt_ffi.type;
-            entry->ptr = cvt_ffi.ptr;
-
-            if (NOT_PTR_ERROR == not_queue_right_push(repo, entry))
-            {
-                if (cvt_ffi.type)
-                    ffi_type_destroy(cvt_ffi.type);
-
-                if (cvt_ffi.ptr)
-                    not_memory_free(cvt_ffi.ptr);
-
-                not_memory_free(entry);
-                goto region_cleanup;
             }
 
             item = item->next;
@@ -3911,120 +3269,53 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
         goto region_cleanup;
     }
 
-    size_t index = 0, var_index = 0, total = (size_t)not_queue_count(repo);
+    ffi_type *atypes[1];
+    void *avalues[1];
 
-    ffi_type **args = not_memory_calloc(total, sizeof(ffi_type *));
-    if (!args)
+    atypes[0] = &ffi_type_pointer;
+
+    not_record_t *record = not_record_create(RECORD_KIND_TUPLE, top);
+    if (record == NOT_PTR_ERROR)
     {
         goto region_cleanup;
     }
-    void **values = not_memory_calloc(total, sizeof(void *));
-    if (!values)
-    {
-        not_memory_free(args);
-        goto region_cleanup;
-    }
 
-    for (size_t i = 0; i < param_count; i++)
-    {
-        json_t *parameter = json_array_get(parameters, i);
-        json_t *name = json_object_get(parameter, "name");
-
-        for (not_queue_entry_t *item = repo->begin; item != repo->end; item = item->next)
-        {
-            ffi_repository_entry_t *entry = (ffi_repository_entry_t *)item->value;
-
-            if (strcmp(entry->key, json_string_value(name)) == 0)
-            {
-                args[index] = entry->type;
-                values[index] = entry->ptr;
-                index += 1;
-                break;
-            }
-        }
-    }
-
-    for (not_queue_entry_t *item = repo->begin; item != repo->end; item = item->next)
-    {
-        ffi_repository_entry_t *entry = (ffi_repository_entry_t *)item->value;
-
-        if (strcmp(entry->key, "") == 0)
-        {
-            args[index] = entry->type;
-            values[index] = entry->ptr;
-
-            index += 1;
-            var_index += 1;
-        }
-    }
-
-    json_t *return_type = json_object_get(map, "return_type");
+    avalues[0] = &record;
 
     union_return_value_t result;
 
     ffi_cif cif;
-    if (ffi_prep_cif_var(&cif, FFI_DEFAULT_ABI, index - var_index, index, &ffi_type_pointer, args) == FFI_OK)
+    if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, 1, &ffi_type_pointer, atypes) == FFI_OK)
     {
-        ffi_call(&cif, FFI_FN(handle), &result, values);
-        goto region_result;
+        ffi_call(&cif, FFI_FN(handle), &result, avalues);
     }
     else
     {
         not_error_system("ffi_prep_cif failed");
-        goto region_cleanup;
+        not_record_link_decrease(record);
+        return NOT_PTR_ERROR;
     }
 
-region_result:
-    for (not_queue_entry_t *item = repo->begin; item != repo->end; item = item->next)
+    if (not_record_link_decrease(record) < 0)
     {
-        ffi_repository_entry_t *entry = (ffi_repository_entry_t *)item->value;
-        if (entry->ptr)
-            not_memory_free(entry->ptr);
-
-        if (entry->type)
-            ffi_type_destroy(entry->type);
-    }
-
-    for (not_queue_entry_t *item = garbage->begin; item != garbage->end; item = item->next)
-    {
-        not_record_t *entry = (not_record_t *)item->value;
-        if (not_record_link_decrease(entry) < 0)
+        if (result.ptr)
         {
-            not_queue_destroy(garbage);
-            not_queue_destroy(repo);
-            return NOT_PTR_ERROR;
+            not_record_t *r = (not_record_t *)result.ptr;
+            not_record_link_decrease(r);
         }
+        return NOT_PTR_ERROR;
     }
 
-    not_queue_destroy(garbage);
-    not_queue_destroy(repo);
+    if (result.ptr)
+    {
+        return (not_record_t *)result.ptr;
+    }
 
-    return not_call_cvt_return_type(&result, return_type);
+    return not_record_make_undefined();
 
 region_cleanup:
-    for (not_queue_entry_t *item = repo->begin; item != repo->end; item = item->next)
-    {
-        ffi_repository_entry_t *entry = (ffi_repository_entry_t *)item->value;
-        if (entry->ptr)
-            not_memory_free(entry->ptr);
-
-        if (entry->type)
-            ffi_type_destroy(entry->type);
-    }
-
-    for (not_queue_entry_t *item = garbage->begin; item != garbage->end; item = item->next)
-    {
-        not_record_t *entry = (not_record_t *)item->value;
-        if (not_record_link_decrease(entry) < 0)
-        {
-            not_queue_destroy(garbage);
-            not_queue_destroy(repo);
-            return NOT_PTR_ERROR;
-        }
-    }
-
-    not_queue_destroy(garbage);
-    not_queue_destroy(repo);
+    if (top)
+        not_record_tuple_destroy(top);
 
     return NOT_PTR_ERROR;
 }

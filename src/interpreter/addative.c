@@ -265,11 +265,6 @@ not_addative_plus(not_node_t *node, not_record_t *left, not_record_t *right, not
         {
             return not_record_make_nan();
         }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-            not_error_type_by_node(node, "unsupported operand type(s) for +: '%s' and '%s'", "object", "object");
-            return NOT_PTR_ERROR;
-        }
 
         return not_record_make_nan();
     }
@@ -278,11 +273,6 @@ not_addative_plus(not_node_t *node, not_record_t *left, not_record_t *right, not
         if (right->null)
         {
             return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-            not_error_type_by_node(node, "unsupported operand type(s) for +: '%s' and '%s'", "tuple", "tuple");
-            return NOT_PTR_ERROR;
         }
 
         return not_record_make_nan();
@@ -513,11 +503,6 @@ not_addative_minus(not_node_t *node, not_record_t *left, not_record_t *right, no
         {
             return not_record_make_nan();
         }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-            not_error_type_by_node(node, "unsupported operand type(s) for -: '%s' and '%s'", "object", "object");
-            return NOT_PTR_ERROR;
-        }
 
         return not_record_make_nan();
     }
@@ -526,11 +511,6 @@ not_addative_minus(not_node_t *node, not_record_t *left, not_record_t *right, no
         if (right->null)
         {
             return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-            not_error_type_by_node(node, "unsupported operand type(s) for -: '%s' and '%s'", "tuple", "tuple");
-            return NOT_PTR_ERROR;
         }
 
         return not_record_make_nan();

@@ -35,7 +35,8 @@
         "helper.h": "c",
         "record.h": "c",
         "interpreter.h": "c",
-        "repository.h": "c"
+        "repository.h": "c",
+        "ffi.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

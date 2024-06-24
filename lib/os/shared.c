@@ -6,6 +6,9 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <jansson.h>
+
+#include "../not.h"
 
 #define P_O_RDONLY 0x0000
 #define P_O_WRONLY 0x0001
@@ -108,13 +111,17 @@ struct permission permissions[21] = {
     {P_S_IXOTH, S_IXOTH},
     {P_S_IRWXO, S_IRWXO}};
 
-mpz_t *
-f_open(const char *path, mpz_t *flag, mpz_t *mode)
+not_record_t *
+f_open(not_record_t *args) // (const char *path, mpz_t *flag, mpz_t *mode)
 {
-    int _flag = mpz_get_si(*flag);
+    not_record_t *arg0 = tuple_arg_by_index(args, 0);
+    not_record_t *arg1 = tuple_arg_by_index(args, 1);
+    not_record_t *arg2 = tuple_arg_by_index(args, 2);
+
+    int _flag = mpz_get_ui(*(mpz_t *)arg1->value);
 
     size_t num_flags = sizeof(flags) / sizeof(flags[0]);
-    mode_t final_flags = 0;
+    unsigned int final_flags = 0;
 
     for (size_t i = 0; i < num_flags; i++)
     {
@@ -130,7 +137,7 @@ f_open(const char *path, mpz_t *flag, mpz_t *mode)
     final_flags |= O_NONBLOCK;
 #endif
 
-    int _mode = mpz_get_si(*mode);
+    unsigned int _mode = mpz_get_ui(*(mpz_t *)arg2->value);
 
     size_t num_permissions = sizeof(permissions) / sizeof(permissions[0]);
     mode_t final_modes = 0;
@@ -141,22 +148,21 @@ f_open(const char *path, mpz_t *flag, mpz_t *mode)
             final_modes |= permissions[i].value;
     }
 
-    int fd = open(path, final_flags, final_modes);
+    int fd = open((char *)arg0->value, final_flags, final_modes);
 
-    mpz_t *r = calloc(1, sizeof(mpz_t));
-    mpz_init(*r);
-    mpz_set_si(*r, fd);
-
-    return r;
+    return not_record_make_int_from_si(fd);
 }
 
-char *
-f_read(mpz_t *fd, mpz_t *count)
+not_record_t *
+f_read(not_record_t *args) // (mpz_t *fd, mpz_t *count)
 {
-    int _fd = mpz_get_si(*fd);
-    ssize_t __nbytes = mpz_get_si(*count);
+    not_record_t *arg0 = tuple_arg_by_index(args, 0);
+    not_record_t *arg1 = tuple_arg_by_index(args, 1);
 
-    if (__nbytes < 0)
+    int fd = mpz_get_si(*(mpz_t *)arg0->value);
+    ssize_t nbytes = mpz_get_si(*(mpz_t *)arg1->value);
+
+    if (nbytes < 0)
     {
         char buffer[1024];
         ssize_t bytesRead;
@@ -170,7 +176,7 @@ f_read(mpz_t *fd, mpz_t *count)
             goto err;
         }
 
-        while ((bytesRead = read(_fd, buffer, bufferSize)) > 0)
+        while ((bytesRead = read(fd, buffer, bufferSize)) > 0)
         {
             while (totalBytesRead + bytesRead > contentSize)
             {
@@ -191,30 +197,34 @@ f_read(mpz_t *fd, mpz_t *count)
             goto err;
         }
 
-        return content;
+        not_record_t *record = not_record_make_string(content);
+        free(content);
+        return record;
     }
     else
     {
         ssize_t bytesRead;
 
-        char *buffer = (char *)malloc(__nbytes);
+        char *buffer = (char *)malloc(nbytes);
         if (buffer == NULL)
         {
             goto err;
         }
 
-        bytesRead = read(_fd, buffer, __nbytes);
+        bytesRead = read(fd, buffer, nbytes);
         if (bytesRead == -1)
         {
             free(buffer);
             goto err;
         }
 
-        return buffer;
+        not_record_t *record = not_record_make_string(buffer);
+        free(buffer);
+        return record;
     }
 
 err:
-    return NULL;
+    return not_record_make_null();
 }
 
 static inline void
@@ -255,12 +265,18 @@ replace_escaped(const char *input, char *output)
     *output = '\0';
 }
 
-mpz_t *
-f_write(mpz_t *fd, const char *buf, mpz_t *n)
+not_record_t *
+f_write(not_record_t *args) // (mpz_t *fd, const char *buf, mpz_t *n)
 {
+    not_record_t *arg0 = tuple_arg_by_index(args, 0);
+    not_record_t *arg1 = tuple_arg_by_index(args, 1);
+    not_record_t *arg2 = tuple_arg_by_index(args, 2);
+
+    int fd = mpz_get_si(*(mpz_t *)arg0->value);
+    const char *buf = (char *)arg1->value;
+    ssize_t nbytes = mpz_get_ui(*(mpz_t *)arg2->value);
+
     ssize_t t = -1;
-    int _fd = mpz_get_si(*fd);
-    ssize_t nbytes = mpz_get_ui(*n);
 
     char *modified = calloc(strlen(buf) + 1, sizeof(char));
     if (!modified)
@@ -269,29 +285,24 @@ f_write(mpz_t *fd, const char *buf, mpz_t *n)
     }
     replace_escaped(buf, modified);
 
-    t = write(_fd, modified, nbytes);
+    t = write(fd, modified, nbytes);
 
     free(modified);
 
 final:
-    mpz_t *r = calloc(1, sizeof(mpz_t));
-    mpz_init(*r);
-    mpz_set_si(*r, t);
 
-    return r;
+    return not_record_make_int_from_si(t);
 }
 
-mpz_t *
-f_close(mpz_t *fd)
+not_record_t *
+f_close(not_record_t *args) // (mpz_t *fd)
 {
-    int _fd = mpz_get_si(*fd);
-    int t = close(_fd);
+    not_record_t *arg0 = tuple_arg_by_index(args, 0);
 
-    mpz_t *r = calloc(1, sizeof(mpz_t));
-    mpz_init(*r);
-    mpz_set_si(*r, t);
+    int fd = mpz_get_si(*(mpz_t *)arg0->value);
+    int t = close(fd);
 
-    return r;
+    return not_record_make_int_from_si(t);
 }
 
 #define P_SEEK_SET 0
@@ -316,29 +327,29 @@ struct whence whences[3] = {
 #endif
 };
 
-mpz_t *
-f_seek(mpz_t *fd, mpz_t *offset, mpz_t *whence)
+not_record_t *
+f_seek(not_record_t *args) // (mpz_t *fd, mpz_t *offset, mpz_t *whence)
 {
-    int _fd = mpz_get_si(*fd);
-    long _off = mpz_get_si(*offset);
-    int _whence = mpz_get_si(*whence);
+    not_record_t *arg0 = tuple_arg_by_index(args, 0);
+    not_record_t *arg1 = tuple_arg_by_index(args, 1);
+    not_record_t *arg2 = tuple_arg_by_index(args, 2);
+
+    int fd = mpz_get_si(*(mpz_t *)arg0->value);
+    long off = mpz_get_si(*(mpz_t *)arg1->value);
+    int whence = mpz_get_si(*(mpz_t *)arg2->value);
 
     size_t num_whences = sizeof(whences) / sizeof(whences[0]);
     mode_t final_whences = 0;
 
     for (size_t i = 0; i < num_whences; i++)
     {
-        if ((_whence & whences[i].term) == whences[i].term)
+        if ((whence & whences[i].term) == whences[i].term)
             final_whences |= whences[i].value;
     }
 
-    long t = lseek(_fd, _off, final_whences);
+    long t = lseek(fd, off, final_whences);
 
-    mpz_t *r = calloc(1, sizeof(mpz_t));
-    mpz_init(*r);
-    mpz_set_si(*r, t);
-
-    return r;
+    return not_record_make_int_from_si(t);
 }
 
 static inline void
@@ -378,8 +389,8 @@ get_input(char **buffer, size_t *size)
     (*buffer)[i] = '\0';
 }
 
-char *
-f_gets()
+not_record_t *
+f_gets(not_record_t *args)
 {
     size_t buffer_size = 100;
     char *buffer = (char *)malloc(buffer_size * sizeof(char));
@@ -398,75 +409,75 @@ f_gets()
         buffer[len - 1] = '\0';
     }
 
-    return buffer;
+    not_record_t *record = not_record_make_string(buffer);
+    free(buffer);
+    return record;
 
 err:
-    return NULL;
+    return not_record_make_null();
 }
 
-char *
-f_getc()
+not_record_t *
+f_getc(not_record_t *args)
 {
-    char *buffer = (char *)malloc(1 * sizeof(char));
+    int c = getchar();
 
-    if (buffer == NULL)
-    {
-        goto err;
-    }
-
-    getchar();
-
-    return buffer;
+    return not_record_make_char(c);
 
 err:
-    return NULL;
+    return not_record_make_null();
 }
 
-mpz_t **
-f_stat(const char *path)
+not_record_t *
+f_stat(not_record_t *args) // (const char *path)
 {
-    mpz_t **elements = (mpz_t **)calloc(11, sizeof(mpz_t *));
-    if (!elements)
-    {
-        goto err;
-    }
-
-    for (long i = 0; i < 11; i++)
-    {
-        elements[i] = malloc(sizeof(mpz_t));
-        if (!elements[i])
-        {
-            free(elements);
-            goto err;
-        }
-        mpz_init(*elements[i]);
-    }
+    not_record_t *arg0 = tuple_arg_by_index(args, 0);
+    const char *path = (char *)arg0->value;
 
     struct stat st;
     if (stat(path, &st) < 0)
     {
-        for (long i = 0; i < 11; i++)
-        {
-            free(elements[i]);
-        }
-        free(elements);
         goto err;
     }
 
-    mpz_init_set_ui(*elements[0], st.st_dev);
-    mpz_init_set_ui(*elements[1], st.st_ino);
-    mpz_init_set_ui(*elements[2], st.st_mode);
-    mpz_init_set_ui(*elements[3], st.st_nlink);
-    mpz_init_set_ui(*elements[4], st.st_uid);
-    mpz_init_set_ui(*elements[5], st.st_gid);
-    mpz_init_set_ui(*elements[6], st.st_rdev);
-    mpz_init_set_ui(*elements[7], st.st_size);
-    mpz_init_set_ui(*elements[8], st.st_atime);
-    mpz_init_set_ui(*elements[9], st.st_mtime);
-    mpz_init_set_ui(*elements[10], st.st_ctime);
+    not_record_t *value;
+    not_record_object_t *next = NOT_PTR_NULL;
 
-    return elements;
+    value = not_record_make_int_from_si(st.st_ctime);
+    next = not_record_make_object("ctime", value, next);
+
+    value = not_record_make_int_from_si(st.st_mtime);
+    next = not_record_make_object("mtime", value, next);
+
+    value = not_record_make_int_from_si(st.st_atime);
+    next = not_record_make_object("atime", value, next);
+
+    value = not_record_make_int_from_ui(st.st_size);
+    next = not_record_make_object("size", value, next);
+
+    value = not_record_make_int_from_ui(st.st_rdev);
+    next = not_record_make_object("rdev", value, next);
+
+    value = not_record_make_int_from_ui(st.st_gid);
+    next = not_record_make_object("gid", value, next);
+
+    value = not_record_make_int_from_ui(st.st_uid);
+    next = not_record_make_object("uid", value, next);
+
+    value = not_record_make_int_from_ui(st.st_nlink);
+    next = not_record_make_object("nlink", value, next);
+
+    value = not_record_make_int_from_ui(st.st_mode);
+    next = not_record_make_object("mode", value, next);
+
+    value = not_record_make_int_from_ui(st.st_ino);
+    next = not_record_make_object("ino", value, next);
+
+    value = not_record_make_int_from_ui(st.st_dev);
+    next = not_record_make_object("dev", value, next);
+
+    return not_record_create(RECORD_KIND_OBJECT, next);
 
 err:
-    return NULL;
+    return not_record_make_null();
 }

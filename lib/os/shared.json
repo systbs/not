@@ -20,9 +20,7 @@
                     "name": "mode",
                     "type": "int"
                 }
-            ],
-            "arg": false,
-            "return_type": "int"
+            ]
         },
         {
             "name": "f_read",
@@ -35,9 +33,7 @@
                     "name": "count",
                     "type": "int"
                 }
-            ],
-            "arg": false,
-            "return_type": "string"
+            ]
         },
         {
             "name": "f_write",
@@ -54,9 +50,7 @@
                     "name": "n",
                     "type": "int"
                 }
-            ],
-            "arg": false,
-            "return_type": "int"
+            ]
         },
         {
             "name": "f_close",
@@ -65,9 +59,7 @@
                     "name": "fd",
                     "type": "int"
                 }
-            ],
-            "arg": false,
-            "return_type": "int"
+            ]
         },
         {
             "name": "f_seek",
@@ -84,21 +76,15 @@
                     "name": "whence",
                     "type": "int"
                 }
-            ],
-            "arg": false,
-            "return_type": "int"
+            ]
         },
         {
             "name": "f_getc",
-            "parameters": [],
-            "arg": false,
-            "return_type": "char"
+            "parameters": []
         },
         {
             "name": "f_gets",
-            "parameters": [],
-            "arg": false,
-            "return_type": "string"
+            "parameters": []
         },
         {
             "name": "f_stat",
@@ -107,21 +93,7 @@
                     "name": "path",
                     "type": "string"
                 }
-            ],
-            "arg": false,
-            "return_type": {
-                "dev": "int",
-                "ino": "int",
-                "mode": "int",
-                "nlink": "int",
-                "uid": "int",
-                "gid": "int",
-                "rdev": "int",
-                "size": "int",
-                "atime": "int",
-                "mtime": "int",
-                "ctime": "int"
-            }
+            ]
         }
     ]
 }
