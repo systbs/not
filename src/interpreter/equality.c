@@ -47,6 +47,18 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
         {
             return not_record_make_int_from_si(1);
         }
+        else if (right->kind == RECORD_KIND_INT)
+        {
+            return not_record_make_int_from_si(mpz_cmp_d((*(mpz_t *)(right->value)), 0) == 0);
+        }
+        else if (right->kind == RECORD_KIND_FLOAT)
+        {
+            return not_record_make_int_from_si(mpf_cmp_d((*(mpf_t *)(right->value)), 0) == 0);
+        }
+        else if (right->kind == RECORD_KIND_CHAR)
+        {
+            return not_record_make_int_from_si(*(char *)(right->value) == 0);
+        }
 
         return not_record_make_int_from_si(0);
     }
@@ -54,7 +66,7 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     {
         if (right->null)
         {
-            return not_record_make_int_from_si(0);
+            return not_record_make_int_from_si(mpz_cmp_d((*(mpz_t *)(left->value)), 0) == 0);
         }
         else if (right->kind == RECORD_KIND_INT)
         {
@@ -73,14 +85,26 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
         {
             return not_record_make_int_from_si(mpz_cmp_d((*(mpz_t *)(left->value)), (*(char *)(right->value))) == 0);
         }
+        else if (right->kind == RECORD_KIND_NULL)
+        {
+            return not_record_make_int_from_si(mpz_cmp_d((*(mpz_t *)(left->value)), 0) == 0);
+        }
+        else if (right->kind == RECORD_KIND_UNDEFINED)
+        {
+            return not_record_make_int_from_si(mpz_cmp_d((*(mpz_t *)(left->value)), 0) == 0);
+        }
+        else if (right->kind == RECORD_KIND_NAN)
+        {
+            return not_record_make_int_from_si(mpz_cmp_d((*(mpz_t *)(left->value)), 0) == 0);
+        }
 
-        return not_record_make_int_from_si(0);
+        return not_record_make_int_from_si(mpz_cmp_d((*(mpz_t *)(left->value)), 0) != 0);
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
         if (right->null)
         {
-            return not_record_make_int_from_si(0);
+            return not_record_make_int_from_si(mpf_cmp_d((*(mpf_t *)(left->value)), 0) == 0);
         }
         else if (right->kind == RECORD_KIND_INT)
         {
@@ -99,14 +123,26 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
         {
             return not_record_make_int_from_si(mpf_cmp_si((*(mpf_t *)(left->value)), (*(char *)(right->value))) == 0);
         }
+        else if (right->kind == RECORD_KIND_NULL)
+        {
+            return not_record_make_int_from_si(mpf_cmp_d((*(mpf_t *)(left->value)), 0) == 0);
+        }
+        else if (right->kind == RECORD_KIND_UNDEFINED)
+        {
+            return not_record_make_int_from_si(mpf_cmp_d((*(mpf_t *)(left->value)), 0) == 0);
+        }
+        else if (right->kind == RECORD_KIND_NAN)
+        {
+            return not_record_make_int_from_si(mpf_cmp_d((*(mpf_t *)(left->value)), 0) == 0);
+        }
 
-        return not_record_make_int_from_si(0);
+        return not_record_make_int_from_si(mpf_cmp_d((*(mpf_t *)(left->value)), 0) != 0);
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
         if (right->null)
         {
-            return not_record_make_int_from_si(0);
+            return not_record_make_int_from_si((*(char *)(left->value)) == 0);
         }
         else if (right->kind == RECORD_KIND_INT)
         {
@@ -120,8 +156,20 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
         {
             return not_record_make_int_from_si((*(char *)(left->value)) == (*(char *)(right->value)));
         }
+        else if (right->kind == RECORD_KIND_NULL)
+        {
+            return not_record_make_int_from_si((*(char *)(left->value)) == 0);
+        }
+        else if (right->kind == RECORD_KIND_UNDEFINED)
+        {
+            return not_record_make_int_from_si((*(char *)(left->value)) == 0);
+        }
+        else if (right->kind == RECORD_KIND_NAN)
+        {
+            return not_record_make_int_from_si((*(char *)(left->value)) == 0);
+        }
 
-        return not_record_make_int_from_si(0);
+        return not_record_make_int_from_si((*(char *)(left->value)) != 0);
     }
     else if (left->kind == RECORD_KIND_STRING)
     {
@@ -138,15 +186,70 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_OBJECT)
     {
+        if (right->null)
+        {
+            return not_record_make_int_from_si(0);
+        }
+        else if (right->kind == RECORD_KIND_INT)
+        {
+            return not_record_make_int_from_si(mpz_cmp_d((*(mpz_t *)(right->value)), 0) != 0);
+        }
+        else if (right->kind == RECORD_KIND_FLOAT)
+        {
+            return not_record_make_int_from_si(mpf_cmp_d((*(mpf_t *)(right->value)), 0) != 0);
+        }
+        else if (right->kind == RECORD_KIND_CHAR)
+        {
+            return not_record_make_int_from_si(*(char *)(right->value) != 0);
+        }
+
         return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_TUPLE)
     {
+        if (right->null)
+        {
+            return not_record_make_int_from_si(0);
+        }
+        else if (right->kind == RECORD_KIND_INT)
+        {
+            return not_record_make_int_from_si(mpz_cmp_d((*(mpz_t *)(right->value)), 0) != 0);
+        }
+        else if (right->kind == RECORD_KIND_FLOAT)
+        {
+            return not_record_make_int_from_si(mpf_cmp_d((*(mpf_t *)(right->value)), 0) != 0);
+        }
+        else if (right->kind == RECORD_KIND_CHAR)
+        {
+            return not_record_make_int_from_si(*(char *)(right->value) != 0);
+        }
+
         return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_STRUCT)
     {
         return not_call_operator_by_one_arg(node, left, right, "==", applicant);
+    }
+    else if (left->kind == RECORD_KIND_TYPE)
+    {
+        if (right->null)
+        {
+            return not_record_make_int_from_si(0);
+        }
+        else if (right->kind == RECORD_KIND_INT)
+        {
+            return not_record_make_int_from_si(mpz_cmp_d((*(mpz_t *)(right->value)), 0) != 0);
+        }
+        else if (right->kind == RECORD_KIND_FLOAT)
+        {
+            return not_record_make_int_from_si(mpf_cmp_d((*(mpf_t *)(right->value)), 0) != 0);
+        }
+        else if (right->kind == RECORD_KIND_CHAR)
+        {
+            return not_record_make_int_from_si(*(char *)(right->value) != 0);
+        }
+
+        return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_NULL)
     {
@@ -158,6 +261,18 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
         {
             return not_record_make_int_from_si(1);
         }
+        else if (right->kind == RECORD_KIND_INT)
+        {
+            return not_record_make_int_from_si(mpz_cmp_si((*(mpz_t *)(right->value)), 0) == 0);
+        }
+        else if (right->kind == RECORD_KIND_FLOAT)
+        {
+            return not_record_make_int_from_si(mpf_cmp_si((*(mpf_t *)(right->value)), 0) == 0);
+        }
+        else if (right->kind == RECORD_KIND_CHAR)
+        {
+            return not_record_make_int_from_si((*(char *)(right->value)) == 0);
+        }
 
         return not_record_make_int_from_si(0);
     }
@@ -167,6 +282,19 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
         {
             return not_record_make_int_from_si(1);
         }
+        else if (right->kind == RECORD_KIND_INT)
+        {
+            return not_record_make_int_from_si(mpz_cmp_si((*(mpz_t *)(right->value)), 0) == 0);
+        }
+        else if (right->kind == RECORD_KIND_FLOAT)
+        {
+            return not_record_make_int_from_si(mpf_cmp_si((*(mpf_t *)(right->value)), 0) == 0);
+        }
+        else if (right->kind == RECORD_KIND_CHAR)
+        {
+            return not_record_make_int_from_si((*(char *)(right->value)) == 0);
+        }
+
         return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_NAN)
@@ -175,6 +303,61 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
         {
             return not_record_make_int_from_si(1);
         }
+        else if (right->kind == RECORD_KIND_INT)
+        {
+            return not_record_make_int_from_si(mpz_cmp_si((*(mpz_t *)(right->value)), 0) == 0);
+        }
+        else if (right->kind == RECORD_KIND_FLOAT)
+        {
+            return not_record_make_int_from_si(mpf_cmp_si((*(mpf_t *)(right->value)), 0) == 0);
+        }
+        else if (right->kind == RECORD_KIND_CHAR)
+        {
+            return not_record_make_int_from_si((*(char *)(right->value)) == 0);
+        }
+
+        return not_record_make_int_from_si(0);
+    }
+    else if (left->kind == RECORD_KIND_PROC)
+    {
+        if (right->null)
+        {
+            return not_record_make_int_from_si(0);
+        }
+        else if (right->kind == RECORD_KIND_INT)
+        {
+            return not_record_make_int_from_si(mpz_cmp_d((*(mpz_t *)(right->value)), 0) != 0);
+        }
+        else if (right->kind == RECORD_KIND_FLOAT)
+        {
+            return not_record_make_int_from_si(mpf_cmp_d((*(mpf_t *)(right->value)), 0) != 0);
+        }
+        else if (right->kind == RECORD_KIND_CHAR)
+        {
+            return not_record_make_int_from_si(*(char *)(right->value) != 0);
+        }
+
+        return not_record_make_int_from_si(0);
+    }
+    else if (left->kind == RECORD_KIND_BUILTIN)
+    {
+        if (right->null)
+        {
+            return not_record_make_int_from_si(0);
+        }
+        else if (right->kind == RECORD_KIND_INT)
+        {
+            return not_record_make_int_from_si(mpz_cmp_d((*(mpz_t *)(right->value)), 0) != 0);
+        }
+        else if (right->kind == RECORD_KIND_FLOAT)
+        {
+            return not_record_make_int_from_si(mpf_cmp_d((*(mpf_t *)(right->value)), 0) != 0);
+        }
+        else if (right->kind == RECORD_KIND_CHAR)
+        {
+            return not_record_make_int_from_si(*(char *)(right->value) != 0);
+        }
+
         return not_record_make_int_from_si(0);
     }
 

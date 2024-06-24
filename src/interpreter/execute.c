@@ -55,15 +55,15 @@ not_execute_truthy(not_record_t *left)
     }
     else if (left->kind == RECORD_KIND_INT)
     {
-        return !(mpz_cmp_si((*(mpz_t *)(left->value)), 0) == 0);
+        return (mpz_cmp_si((*(mpz_t *)(left->value)), 0) != 0);
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
-        return !(mpf_cmp_d((*(mpf_t *)(left->value)), 0.0) == 0);
+        return (mpf_cmp_d((*(mpf_t *)(left->value)), 0.0) != 0);
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
-        return !((*(char *)(left->value)) == 0);
+        return ((*(char *)(left->value)) != 0);
     }
     else if (left->kind == RECORD_KIND_STRING)
     {
@@ -97,6 +97,7 @@ not_execute_truthy(not_record_t *left)
     {
         return 0;
     }
+
     return 0;
 }
 

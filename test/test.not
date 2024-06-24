@@ -91,3 +91,5 @@ if (data)
 
 var st = Stat("text.txt");
 Print(st);
+
+Print(!data);
