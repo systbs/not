@@ -93,3 +93,8 @@ var st = Stat("text.txt");
 Print(st);
 
 Print(!data);
+
+var obj1 = {a:0, b:1};
+var obj2 = {a:1, b:2, c:3};
+
+Print(obj1 < obj2);

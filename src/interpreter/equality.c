@@ -202,6 +202,63 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
         {
             return not_record_make_int_from_si(*(char *)(right->value) != 0);
         }
+        else if (right->kind == RECORD_KIND_OBJECT)
+        {
+            size_t left_count = 0, right_count = 0;
+            not_record_object_t *object_left;
+            not_record_object_t *object_right;
+            for (object_left = (not_record_object_t *)left->value; object_left != NOT_PTR_NULL; object_left = object_left->next)
+            {
+                left_count += 1;
+                int found = 0;
+                for (object_right = (not_record_object_t *)right->value; object_right != NOT_PTR_NULL; object_right = object_right->next)
+                {
+                    if (strcmp(object_left->key, object_right->key) == 0)
+                    {
+                        found = 1;
+
+                        not_record_t *r = not_equality_eq(node, object_left->value, object_right->value, applicant);
+                        if (r == NOT_PTR_ERROR)
+                        {
+                            return NOT_PTR_ERROR;
+                        }
+
+                        if (!not_execute_truthy(r))
+                        {
+                            if (not_record_link_decrease(r) < 0)
+                            {
+                                return NOT_PTR_ERROR;
+                            }
+                            return not_record_make_int_from_si(0);
+                        }
+
+                        if (not_record_link_decrease(r) < 0)
+                        {
+                            return NOT_PTR_ERROR;
+                        }
+
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    return not_record_make_int_from_si(0);
+                }
+            }
+
+            for (object_right = (not_record_object_t *)right->value; object_right != NOT_PTR_NULL; object_right = object_right->next)
+            {
+                right_count += 1;
+            }
+
+            if (left_count != right_count)
+            {
+                return not_record_make_int_from_si(0);
+            }
+
+            return not_record_make_int_from_si(1);
+        }
 
         return not_record_make_int_from_si(0);
     }
@@ -222,6 +279,54 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
         else if (right->kind == RECORD_KIND_CHAR)
         {
             return not_record_make_int_from_si(*(char *)(right->value) != 0);
+        }
+        else if (right->kind == RECORD_KIND_TUPLE)
+        {
+            size_t left_count = 0, right_count = 0;
+
+            not_record_tuple_t *tuple_left;
+            not_record_tuple_t *tuple_right;
+            for (tuple_left = (not_record_tuple_t *)left->value, tuple_right = (not_record_tuple_t *)right->value; tuple_left != NOT_PTR_NULL; tuple_left = tuple_left->next, tuple_right = tuple_right->next)
+            {
+                left_count += 1;
+
+                if (tuple_right == NOT_PTR_NULL)
+                {
+                    return not_record_make_int_from_si(0);
+                }
+
+                not_record_t *r = not_equality_eq(node, tuple_left->value, tuple_right->value, applicant);
+                if (r == NOT_PTR_ERROR)
+                {
+                    return NOT_PTR_ERROR;
+                }
+
+                if (!not_execute_truthy(r))
+                {
+                    if (not_record_link_decrease(r) < 0)
+                    {
+                        return NOT_PTR_ERROR;
+                    }
+                    return not_record_make_int_from_si(0);
+                }
+
+                if (not_record_link_decrease(r) < 0)
+                {
+                    return NOT_PTR_ERROR;
+                }
+            }
+
+            for (tuple_right = (not_record_tuple_t *)right->value; tuple_right != NOT_PTR_NULL; tuple_right = tuple_right->next)
+            {
+                right_count += 1;
+            }
+
+            if (left_count != right_count)
+            {
+                return not_record_make_int_from_si(0);
+            }
+
+            return not_record_make_int_from_si(1);
         }
 
         return not_record_make_int_from_si(0);
