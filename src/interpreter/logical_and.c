@@ -33,28 +33,15 @@
 #include "entry.h"
 #include "helper.h"
 #include "execute.h"
+
 not_record_t *
 not_execute_land(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-    if (left->kind == RECORD_KIND_UNDEFINED)
+    if (left->null)
     {
-        if (right)
+        if (not_record_link_decrease(right) < 0)
         {
-            if (not_record_link_decrease(right) < 0)
-            {
-                return NOT_PTR_ERROR;
-            }
-        }
-        return left;
-    }
-    else if (left->kind == RECORD_KIND_NAN)
-    {
-        if (right)
-        {
-            if (not_record_link_decrease(right) < 0)
-            {
-                return NOT_PTR_ERROR;
-            }
+            return NOT_PTR_ERROR;
         }
         return left;
     }
@@ -63,12 +50,9 @@ not_execute_land(not_node_t *node, not_record_t *left, not_record_t *right, not_
         int32_t a_is_zero = mpz_cmp_ui(*(mpz_t *)(left->value), 0) == 0;
         if (a_is_zero)
         {
-            if (right)
+            if (not_record_link_decrease(right) < 0)
             {
-                if (not_record_link_decrease(right) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
+                return NOT_PTR_ERROR;
             }
             return left;
         }
@@ -86,12 +70,9 @@ not_execute_land(not_node_t *node, not_record_t *left, not_record_t *right, not_
         int a_is_zero = mpf_cmp_ui(*(mpf_t *)(left->value), 0) == 0;
         if (a_is_zero)
         {
-            if (right)
+            if (not_record_link_decrease(right) < 0)
             {
-                if (not_record_link_decrease(right) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
+                return NOT_PTR_ERROR;
             }
             return left;
         }
@@ -109,12 +90,9 @@ not_execute_land(not_node_t *node, not_record_t *left, not_record_t *right, not_
         int a_is_zero = (*(char *)(left->value)) == 0;
         if (a_is_zero)
         {
-            if (right)
+            if (not_record_link_decrease(right) < 0)
             {
-                if (not_record_link_decrease(right) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
+                return NOT_PTR_ERROR;
             }
             return left;
         }
@@ -132,67 +110,9 @@ not_execute_land(not_node_t *node, not_record_t *left, not_record_t *right, not_
         int a_is_zero = strcmp((char *)(left->value), "") == 0;
         if (a_is_zero)
         {
-            if (right)
-            {
-                if (not_record_link_decrease(right) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-            }
-            return left;
-        }
-        else
-        {
-            if (not_record_link_decrease(left) < 0)
+            if (not_record_link_decrease(right) < 0)
             {
                 return NOT_PTR_ERROR;
-            }
-            return right;
-        }
-    }
-    else if (left->kind == RECORD_KIND_OBJECT)
-    {
-        if (not_record_link_decrease(left) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
-        return right;
-    }
-    else if (left->kind == RECORD_KIND_TUPLE)
-    {
-        if (not_record_link_decrease(left) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
-        return right;
-    }
-    else if (left->kind == RECORD_KIND_TYPE)
-    {
-        if (not_record_link_decrease(left) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
-        return right;
-    }
-    else if (left->kind == RECORD_KIND_STRUCT)
-    {
-        if (not_record_link_decrease(left) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
-        return right;
-    }
-    else if (left->kind == RECORD_KIND_NULL)
-    {
-        int a_is_zero = (*(int64_t *)(left->value)) == 0;
-        if (a_is_zero)
-        {
-            if (right)
-            {
-                if (not_record_link_decrease(right) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
             }
             return left;
         }
@@ -206,7 +126,11 @@ not_execute_land(not_node_t *node, not_record_t *left, not_record_t *right, not_
         }
     }
 
-    return not_record_make_undefined();
+    if (not_record_link_decrease(right) < 0)
+    {
+        return NOT_PTR_ERROR;
+    }
+    return left;
 }
 
 not_record_t *

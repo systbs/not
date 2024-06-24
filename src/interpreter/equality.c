@@ -37,24 +37,35 @@
 not_record_t *
 not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-    if (left->kind == RECORD_KIND_UNDEFINED)
+    if (left->null)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        if (right->null)
         {
             return not_record_make_int_from_si(1);
         }
-        else if (right->kind == RECORD_KIND_NAN)
+        else if (right->kind == RECORD_KIND_NULL)
+        {
+            return not_record_make_int_from_si(1);
+        }
+
+        return not_record_make_int_from_si(0);
+    }
+    else if (left->kind == RECORD_KIND_UNDEFINED)
+    {
+        if (right->null)
         {
             return not_record_make_int_from_si(0);
         }
-        else
+        else if (right->kind == RECORD_KIND_UNDEFINED)
         {
-            return not_record_make_int_from_si(0);
+            return not_record_make_int_from_si(1);
         }
+
+        return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_NAN)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        if (right->null)
         {
             return not_record_make_int_from_si(0);
         }
@@ -62,18 +73,12 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
         {
             return not_record_make_int_from_si(1);
         }
-        else
-        {
-            return not_record_make_int_from_si(0);
-        }
+
+        return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_INT)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NAN)
+        if (right->null)
         {
             return not_record_make_int_from_si(0);
         }
@@ -94,40 +99,12 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
         {
             return not_record_make_int_from_si(mpz_cmp_d((*(mpz_t *)(left->value)), (*(char *)(right->value))) == 0);
         }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-            return not_record_make_int_from_si(0);
-        }
 
         return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NAN)
+        if (right->null)
         {
             return not_record_make_int_from_si(0);
         }
@@ -148,40 +125,12 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
         {
             return not_record_make_int_from_si(mpf_cmp_si((*(mpf_t *)(left->value)), (*(char *)(right->value))) == 0);
         }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-            return not_record_make_int_from_si(0);
-        }
 
         return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NAN)
+        if (right->null)
         {
             return not_record_make_int_from_si(0);
         }
@@ -197,52 +146,12 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
         {
             return not_record_make_int_from_si((*(char *)(left->value)) == (*(char *)(right->value)));
         }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-            return not_record_make_int_from_si(0);
-        }
 
         return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_STRING)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NAN)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_INT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_FLOAT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_CHAR)
+        if (right->null)
         {
             return not_record_make_int_from_si(0);
         }
@@ -250,174 +159,15 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
         {
             return not_record_make_int_from_si(strcmp(((char *)(left->value)), ((char *)(right->value))) == 0);
         }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-            return not_record_make_int_from_si(0);
-        }
 
         return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_OBJECT)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NAN)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_INT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_FLOAT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_CHAR)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-            return not_record_make_int_from_si(0);
-        }
-
         return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_TUPLE)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NAN)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_INT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_FLOAT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_CHAR)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-            return not_record_make_int_from_si(0);
-        }
-
-        return not_record_make_int_from_si(0);
-    }
-    else if (left->kind == RECORD_KIND_TYPE)
-    {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NAN)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_INT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_FLOAT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_CHAR)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-            return not_record_make_int_from_si(0);
-        }
-
         return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_STRUCT)
@@ -426,53 +176,18 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_NULL)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        if (right->null)
         {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NAN)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_INT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_FLOAT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_CHAR)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-            return not_record_make_int_from_si(0);
+            return not_record_make_int_from_si(1);
         }
         else if (right->kind == RECORD_KIND_NULL)
         {
-            return not_record_make_int_from_si(0);
+            return not_record_make_int_from_si(1);
         }
 
         return not_record_make_int_from_si(0);
     }
+
     return not_record_make_int_from_si(0);
 }
 

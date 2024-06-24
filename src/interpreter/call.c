@@ -3244,6 +3244,7 @@ not_call_cvt_return_type(union_return_value_t *value, json_t *type)
                 return NOT_PTR_ERROR;
             }
 
+            free(value->ptr);
             return result;
         }
     }

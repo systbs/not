@@ -37,20 +37,19 @@
 not_record_t *
 not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-    if (left->kind == RECORD_KIND_UNDEFINED)
+    if (left->null)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_NAN)
+        return not_record_make_nan();
+    }
+    else if (left->kind == RECORD_KIND_UNDEFINED)
+    {
+        if (right->null)
         {
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_INT)
         {
-            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(right->value)));
-            return record;
+            return not_record_make_int_from_z((*(mpz_t *)(right->value)));
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
@@ -64,104 +63,37 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            not_record_t *record = not_record_make_char((*(char *)(right->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-            return not_record_make_nan();
+            return not_record_make_char((*(char *)(right->value)));
         }
 
-        return not_record_make_undefined();
+        return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_NAN)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_NAN)
+        if (right->null)
         {
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_INT)
         {
-            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(right->value)));
-            return record;
+            return not_record_make_int_from_z((*(mpz_t *)(right->value)));
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
-            mpz_t result;
-            mpz_init(result);
-            mpz_set_f(result, (*(mpf_t *)(right->value)));
-
-            not_record_t *record = not_record_make_int_from_z(result);
-            mpz_clear(result);
-            return record;
+            return not_record_make_int_from_f(*(mpf_t *)(right->value));
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            not_record_t *record = not_record_make_char((*(char *)(right->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-            return not_record_make_nan();
+            return not_record_make_char((*(char *)(right->value)));
         }
 
-        return not_record_make_undefined();
+        return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_INT)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        if (right->null)
         {
-            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_NAN)
-        {
-            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
-            return record;
+            return not_record_make_int_from_z((*(mpz_t *)(left->value)));
         }
         else if (right->kind == RECORD_KIND_INT)
         {
@@ -199,60 +131,14 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
             mpz_clear(result);
             return record;
         }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(left->value)));
-            return record;
-        }
 
-        return not_record_make_undefined();
+        return not_record_make_int_from_z((*(mpz_t *)(left->value)));
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        if (right->null)
         {
-            mpz_t result;
-            mpz_init(result);
-            mpz_set_f(result, (*(mpf_t *)(left->value)));
-
-            not_record_t *record = not_record_make_int_from_z(result);
-            mpz_clear(result);
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_NAN)
-        {
-            mpz_t result;
-            mpz_init(result);
-            mpz_set_f(result, (*(mpf_t *)(left->value)));
-
-            not_record_t *record = not_record_make_int_from_z(result);
-            mpz_clear(result);
-            return record;
+            return not_record_make_int_from_f((*(mpf_t *)(left->value)));
         }
         else if (right->kind == RECORD_KIND_INT)
         {
@@ -308,80 +194,14 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
             mpz_clear(result);
             return record;
         }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-            mpz_t result;
-            mpz_init(result);
-            mpz_set_f(result, (*(mpf_t *)(left->value)));
 
-            not_record_t *record = not_record_make_int_from_z(result);
-            mpz_clear(result);
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-            mpz_t result;
-            mpz_init(result);
-            mpz_set_f(result, (*(mpf_t *)(left->value)));
-
-            not_record_t *record = not_record_make_int_from_z(result);
-            mpz_clear(result);
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-            mpz_t result;
-            mpz_init(result);
-            mpz_set_f(result, (*(mpf_t *)(left->value)));
-
-            not_record_t *record = not_record_make_int_from_z(result);
-            mpz_clear(result);
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-            mpz_t result;
-            mpz_init(result);
-            mpz_set_f(result, (*(mpf_t *)(left->value)));
-
-            not_record_t *record = not_record_make_int_from_z(result);
-            mpz_clear(result);
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-            mpz_t result;
-            mpz_init(result);
-            mpz_set_f(result, (*(mpf_t *)(left->value)));
-
-            not_record_t *record = not_record_make_int_from_z(result);
-            mpz_clear(result);
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-            mpz_t result;
-            mpz_init(result);
-            mpz_set_f(result, (*(mpf_t *)(left->value)));
-
-            not_record_t *record = not_record_make_int_from_z(result);
-            mpz_clear(result);
-            return record;
-        }
-
-        return not_record_make_undefined();
+        return not_record_make_int_from_f((*(mpf_t *)(left->value)));
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
+        if (right->null)
         {
-            not_record_t *record = not_record_make_char((*(char *)(left->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_NAN)
-        {
-            not_record_t *record = not_record_make_char((*(char *)(left->value)));
-            return record;
+            return not_record_make_char((*(char *)(left->value)));
         }
         else if (right->kind == RECORD_KIND_INT)
         {
@@ -415,359 +235,99 @@ not_execute_or(not_node_t *node, not_record_t *left, not_record_t *right, not_no
             not_record_t *record = not_record_make_char((*(char *)(left->value)) | (*(char *)(right->value)));
             return record;
         }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-            not_record_t *record = not_record_make_char((*(char *)(left->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-            not_record_t *record = not_record_make_char((*(char *)(left->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-            not_record_t *record = not_record_make_char((*(char *)(left->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-            not_record_t *record = not_record_make_char((*(char *)(left->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-            not_record_t *record = not_record_make_char((*(char *)(left->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-            not_record_t *record = not_record_make_char((*(char *)(left->value)));
-            return record;
-        }
 
-        return not_record_make_undefined();
+        return not_record_make_char((*(char *)(left->value)));
     }
     else if (left->kind == RECORD_KIND_STRING)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_NAN)
+        if (right->null)
         {
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_INT)
         {
-            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(right->value)));
-            return record;
+            return not_record_make_int_from_z(*(mpz_t *)(right->value));
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
-            mpz_t result;
-            mpz_init(result);
-            mpz_set_f(result, (*(mpf_t *)(right->value)));
-
-            not_record_t *record = not_record_make_int_from_z(result);
-            mpz_clear(result);
-            return record;
+            return not_record_make_int_from_f(*(mpf_t *)(right->value));
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            not_record_t *record = not_record_make_char((*(char *)(right->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-
-            return not_record_make_nan();
+            return not_record_make_char((*(char *)(right->value)));
         }
 
-        return not_record_make_undefined();
+        return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_OBJECT)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_NAN)
+        if (right->null)
         {
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_INT)
         {
-            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(right->value)));
-            return record;
+            return not_record_make_int_from_z((*(mpz_t *)(right->value)));
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
-            mpz_t result;
-            mpz_init(result);
-            mpz_set_f(result, (*(mpf_t *)(right->value)));
-
-            not_record_t *record = not_record_make_int_from_z(result);
-            mpz_clear(result);
-            return record;
+            return not_record_make_int_from_f((*(mpf_t *)(right->value)));
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            not_record_t *record = not_record_make_char((*(char *)(right->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-
-            return not_record_make_nan();
+            return not_record_make_char((*(char *)(right->value)));
         }
 
-        return not_record_make_undefined();
+        return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_TUPLE)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_NAN)
+        if (right->null)
         {
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_INT)
         {
-            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(right->value)));
-            return record;
+            return not_record_make_int_from_z((*(mpz_t *)(right->value)));
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
-            mpz_t result;
-            mpz_init(result);
-            mpz_set_f(result, (*(mpf_t *)(right->value)));
-
-            not_record_t *record = not_record_make_int_from_z(result);
-            mpz_clear(result);
-            return record;
+            return not_record_make_int_from_f((*(mpf_t *)(right->value)));
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            not_record_t *record = not_record_make_char((*(char *)(right->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-
-            return not_record_make_nan();
+            return not_record_make_char((*(char *)(right->value)));
         }
 
-        return not_record_make_undefined();
+        return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_TYPE)
     {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_NAN)
+        if (right->null)
         {
             return not_record_make_nan();
         }
         else if (right->kind == RECORD_KIND_INT)
         {
-            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(right->value)));
-            return record;
+            return not_record_make_int_from_z((*(mpz_t *)(right->value)));
         }
         else if (right->kind == RECORD_KIND_FLOAT)
         {
-            mpz_t result;
-            mpz_init(result);
-            mpz_set_f(result, (*(mpf_t *)(right->value)));
-
-            not_record_t *record = not_record_make_int_from_z(result);
-            mpz_clear(result);
-            return record;
+            return not_record_make_int_from_f((*(mpf_t *)(right->value)));
         }
         else if (right->kind == RECORD_KIND_CHAR)
         {
-            not_record_t *record = not_record_make_char((*(char *)(right->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-
-            return not_record_make_nan();
+            return not_record_make_char((*(char *)(right->value)));
         }
 
-        return not_record_make_undefined();
+        return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_STRUCT)
     {
         return not_call_operator_by_one_arg(node, left, right, "|", applicant);
     }
-    else if (left->kind == RECORD_KIND_NULL)
-    {
-        if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_NAN)
-        {
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_INT)
-        {
-            not_record_t *record = not_record_make_int_from_z((*(mpz_t *)(right->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_FLOAT)
-        {
-            mpz_t result;
-            mpz_init(result);
-            mpz_set_f(result, (*(mpf_t *)(right->value)));
 
-            not_record_t *record = not_record_make_int_from_z(result);
-            mpz_clear(result);
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_CHAR)
-        {
-            not_record_t *record = not_record_make_char((*(char *)(right->value)));
-            return record;
-        }
-        else if (right->kind == RECORD_KIND_STRING)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_OBJECT)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TUPLE)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_TYPE)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_STRUCT)
-        {
-
-            return not_record_make_nan();
-        }
-        else if (right->kind == RECORD_KIND_NULL)
-        {
-
-            return not_record_make_nan();
-        }
-
-        return not_record_make_undefined();
-    }
-
-    return not_record_make_undefined();
+    return not_record_make_nan();
 }
 
 not_record_t *
