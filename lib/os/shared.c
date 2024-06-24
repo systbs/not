@@ -425,13 +425,13 @@ err:
 mpz_t **
 f_stat(const char *path)
 {
-    mpz_t **elements = (mpz_t **)calloc(13, sizeof(mpz_t *));
+    mpz_t **elements = (mpz_t **)calloc(11, sizeof(mpz_t *));
     if (!elements)
     {
         goto err;
     }
 
-    for (long i = 0; i < 13; i++)
+    for (long i = 0; i < 11; i++)
     {
         elements[i] = malloc(sizeof(mpz_t));
         if (!elements[i])
@@ -445,7 +445,7 @@ f_stat(const char *path)
     struct stat st;
     if (stat(path, &st) < 0)
     {
-        for (long i = 0; i < 13; i++)
+        for (long i = 0; i < 11; i++)
         {
             free(elements[i]);
         }
@@ -461,11 +461,9 @@ f_stat(const char *path)
     mpz_init_set_ui(*elements[5], st.st_gid);
     mpz_init_set_ui(*elements[6], st.st_rdev);
     mpz_init_set_ui(*elements[7], st.st_size);
-    mpz_init_set_ui(*elements[8], st.st_blksize);
-    mpz_init_set_ui(*elements[9], st.st_blocks);
-    mpz_init_set_ui(*elements[10], st.st_atime);
-    mpz_init_set_ui(*elements[11], st.st_mtime);
-    mpz_init_set_ui(*elements[12], st.st_ctime);
+    mpz_init_set_ui(*elements[8], st.st_atime);
+    mpz_init_set_ui(*elements[9], st.st_mtime);
+    mpz_init_set_ui(*elements[10], st.st_ctime);
 
     return elements;
 

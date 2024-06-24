@@ -118,8 +118,6 @@
                 "gid": "int",
                 "rdev": "int",
                 "size": "int",
-                "blksize": "int",
-                "blocks": "int",
                 "atime": "int",
                 "mtime": "int",
                 "ctime": "int"
