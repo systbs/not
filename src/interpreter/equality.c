@@ -50,32 +50,6 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
 
         return not_record_make_int_from_si(0);
     }
-    else if (left->kind == RECORD_KIND_UNDEFINED)
-    {
-        if (right->null)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_UNDEFINED)
-        {
-            return not_record_make_int_from_si(1);
-        }
-
-        return not_record_make_int_from_si(0);
-    }
-    else if (left->kind == RECORD_KIND_NAN)
-    {
-        if (right->null)
-        {
-            return not_record_make_int_from_si(0);
-        }
-        else if (right->kind == RECORD_KIND_NAN)
-        {
-            return not_record_make_int_from_si(1);
-        }
-
-        return not_record_make_int_from_si(0);
-    }
     else if (left->kind == RECORD_KIND_INT)
     {
         if (right->null)
@@ -185,6 +159,22 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
             return not_record_make_int_from_si(1);
         }
 
+        return not_record_make_int_from_si(0);
+    }
+    else if (left->kind == RECORD_KIND_UNDEFINED)
+    {
+        if (right->kind == RECORD_KIND_UNDEFINED)
+        {
+            return not_record_make_int_from_si(1);
+        }
+        return not_record_make_int_from_si(0);
+    }
+    else if (left->kind == RECORD_KIND_NAN)
+    {
+        if (right->kind == RECORD_KIND_NAN)
+        {
+            return not_record_make_int_from_si(1);
+        }
         return not_record_make_int_from_si(0);
     }
 
