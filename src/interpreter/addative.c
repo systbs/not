@@ -248,19 +248,11 @@ not_addative_plus(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_STRING)
     {
-        char *str_left = not_record_to_string(left, "");
-        if (str_left == NOT_PTR_ERROR)
-        {
-            return NOT_PTR_ERROR;
-        }
-
-        char *str_all = not_record_to_string(right, str_left);
+        char *str_all = not_record_to_string(right, (char *)left->value);
         if (str_all == NOT_PTR_ERROR)
         {
-            not_memory_free(str_left);
             return NOT_PTR_ERROR;
         }
-        not_memory_free(str_left);
 
         not_record_t *result = not_record_make_string(str_all);
         not_memory_free(str_all);
@@ -513,24 +505,7 @@ not_addative_minus(not_node_t *node, not_record_t *left, not_record_t *right, no
     }
     else if (left->kind == RECORD_KIND_STRING)
     {
-        char *str_left = not_record_to_string(left, "");
-        if (str_left == NOT_PTR_ERROR)
-        {
-            return NOT_PTR_ERROR;
-        }
-
-        char *str_all = not_record_to_string(right, str_left);
-        if (str_all == NOT_PTR_ERROR)
-        {
-            not_memory_free(str_left);
-            return NOT_PTR_ERROR;
-        }
-        not_memory_free(str_left);
-
-        not_record_t *result = not_record_make_string(str_all);
-        not_memory_free(str_all);
-
-        return result;
+        return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_OBJECT)
     {
