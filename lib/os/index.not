@@ -1,4 +1,4 @@
-using f_open, f_read, f_write, f_close, f_seek, f_gets, f_getc, f_stat from "./shared.json";
+using f_open, f_read, f_write, f_close, f_seek, f_gets, f_getc, f_stat, f_readdir from "./shared.json";
 
 export readonly var Print = fun (value, end = "\n", f:File = null) {
 
@@ -19,6 +19,10 @@ export readonly var Print = fun (value, end = "\n", f:File = null) {
     {
         f_write(1, content, content.Length());
     }
+};
+
+export readonly var ReadDirectory = fun (path:string) {
+    return f_readdir(path);
 };
 
 export readonly var Input = fun (comment:string = "") {

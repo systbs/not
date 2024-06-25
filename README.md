@@ -154,6 +154,14 @@ if (data)
 ```
 
 ```csharp
+using Print, ReadDirectory from "~/os";
+for (var dir in ReadDirectory("./"))
+{
+	Print(dir);
+}
+```
+
+```csharp
 using Print, File, Stat from "~/os";
 
 // convert string to float

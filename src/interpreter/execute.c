@@ -1817,6 +1817,7 @@ not_execute_forin(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
     not_record_tuple_t *tuple = NULL;
     not_record_t *item = NULL;
     size_t index = 0;
+    int no_iterable = 0;
 region_start_loop:
     if (iterator->kind == RECORD_KIND_OBJECT)
     {
@@ -2124,6 +2125,96 @@ region_start_loop:
         {
             goto region_end_loop;
         }
+    }
+    else
+    {
+        if (no_iterable)
+        {
+            goto region_end_loop;
+        }
+
+        if (for1->value)
+        {
+            not_record_t *record_key = not_record_make_undefined();
+            if (record_key == NOT_PTR_ERROR)
+            {
+                if (not_record_link_decrease(iterator) < 0)
+                {
+                    return -1;
+                }
+                return -1;
+            }
+
+            not_entry_t *entry = not_strip_variable_push(strip, node, node, for1->field, record_key);
+            if (entry == NOT_PTR_ERROR)
+            {
+                if (not_record_link_decrease(iterator) < 0)
+                {
+                    return -1;
+                }
+                return -1;
+            }
+            else if (entry == NULL)
+            {
+                not_node_basic_t *basic1 = (not_node_basic_t *)for1->field->value;
+                not_error_type_by_node(for1->field, "'%s' already defined",
+                                       basic1->value);
+
+                if (not_record_link_decrease(iterator) < 0)
+                {
+                    return -1;
+                }
+                return -1;
+            }
+
+            entry = not_strip_variable_push(strip, node, node, for1->value, iterator);
+            if (entry == NOT_PTR_ERROR)
+            {
+                if (not_record_link_decrease(iterator) < 0)
+                {
+                    return -1;
+                }
+                return -1;
+            }
+            else if (entry == NULL)
+            {
+                not_node_basic_t *basic1 = (not_node_basic_t *)for1->value->value;
+                not_error_type_by_node(for1->value, "'%s' already defined",
+                                       basic1->value);
+
+                if (not_record_link_decrease(iterator) < 0)
+                {
+                    return -1;
+                }
+                return -1;
+            }
+        }
+        else
+        {
+            not_entry_t *entry = not_strip_variable_push(strip, node, node, for1->field, iterator);
+            if (entry == NOT_PTR_ERROR)
+            {
+                if (not_record_link_decrease(iterator) < 0)
+                {
+                    return -1;
+                }
+                return -1;
+            }
+            else if (entry == NULL)
+            {
+                not_node_basic_t *basic1 = (not_node_basic_t *)for1->field->value;
+                not_error_type_by_node(for1->field, "'%s' already defined",
+                                       basic1->value);
+
+                if (not_record_link_decrease(iterator) < 0)
+                {
+                    return -1;
+                }
+                return -1;
+            }
+        }
+
+        no_iterable = 1;
     }
 
     int32_t r2 = not_execute_body(for1->body, strip, applicant);

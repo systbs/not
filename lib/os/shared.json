@@ -94,6 +94,15 @@
                     "type": "string"
                 }
             ]
+        },
+        {
+            "name": "f_readdir",
+            "parameters": [
+                {
+                    "name": "path",
+                    "type": "string"
+                }
+            ]
         }
     ]
 }

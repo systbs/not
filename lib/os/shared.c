@@ -7,6 +7,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <jansson.h>
+#include <dirent.h>
 
 #include "../not.h"
 
@@ -224,7 +225,7 @@ f_read(not_record_t *args) // (mpz_t *fd, mpz_t *count)
     }
 
 err:
-    return NULL;
+    return not_record_make_null();
 }
 
 static inline void
@@ -425,7 +426,7 @@ f_getc(not_record_t *args)
     return not_record_make_char(c);
 
 err:
-    return NULL;
+    return not_record_make_null();
 }
 
 not_record_t *
@@ -591,5 +592,132 @@ cleanup:
         not_record_object_destroy(top);
 
 err:
-    return NULL;
+    return not_record_make_null();
+}
+
+not_record_t *
+f_readdir(not_record_t *args) // (const char *path)
+{
+    not_record_t *arg0 = not_record_tuple_arg_by_index(args, 0);
+    const char *path = (char *)arg0->value;
+
+    DIR *dp = opendir(path);
+    if (dp == NULL)
+    {
+        return not_record_make_null();
+    }
+
+    not_record_tuple_t *tuple_top = NULL, *tuple_iter = NULL;
+
+    struct dirent *entry;
+    while ((entry = readdir(dp)))
+    {
+        not_record_t *value;
+        not_record_object_t *top = NULL, *iter = NULL;
+
+        value = not_record_make_string(entry->d_name);
+        if (value == NOT_PTR_ERROR)
+        {
+            goto cleanup;
+        }
+        iter = not_record_make_object("name", value, NULL);
+        if (iter == NOT_PTR_ERROR)
+        {
+            goto cleanup;
+        }
+        top = iter;
+
+        value = not_record_make_int_from_ui(entry->d_type);
+        if (value == NOT_PTR_ERROR)
+        {
+            goto cleanup;
+        }
+        iter->next = not_record_make_object("type", value, NULL);
+        iter = iter->next;
+        if (iter == NOT_PTR_ERROR)
+        {
+            goto cleanup;
+        }
+
+        value = not_record_make_int_from_ui(entry->d_reclen);
+        if (value == NOT_PTR_ERROR)
+        {
+            goto cleanup;
+        }
+        iter->next = not_record_make_object("length", value, NULL);
+        iter = iter->next;
+        if (iter == NOT_PTR_ERROR)
+        {
+            goto cleanup;
+        }
+
+        value = not_record_make_int_from_ui(entry->d_off);
+        if (value == NOT_PTR_ERROR)
+        {
+            goto cleanup;
+        }
+        iter->next = not_record_make_object("offset", value, NULL);
+        iter = iter->next;
+        if (iter == NOT_PTR_ERROR)
+        {
+            goto cleanup;
+        }
+
+        value = not_record_make_int_from_ui(entry->d_ino);
+        if (value == NOT_PTR_ERROR)
+        {
+            goto cleanup;
+        }
+        iter->next = not_record_make_object("ino", value, NULL);
+        iter = iter->next;
+        if (iter == NOT_PTR_ERROR)
+        {
+            goto cleanup;
+        }
+
+        not_record_t *record_object = not_record_create(RECORD_KIND_OBJECT, top);
+        if (record_object == NOT_PTR_ERROR)
+        {
+            goto cleanup;
+        }
+
+        not_record_tuple_t *tuple = not_record_make_tuple(record_object, NULL);
+        if (tuple == NOT_PTR_ERROR)
+        {
+            goto cleanup;
+        }
+
+        if (!tuple_top)
+        {
+            tuple_top = tuple;
+            tuple_iter = tuple;
+        }
+        else
+        {
+            tuple_iter->next = tuple;
+            tuple_iter = tuple;
+        }
+        continue;
+
+    cleanup:
+        if (top)
+            not_record_object_destroy(top);
+        goto err;
+    }
+
+    closedir(dp);
+
+    not_record_t *record_tuple = not_record_create(RECORD_KIND_TUPLE, tuple_top);
+    if (record_tuple == NOT_PTR_ERROR)
+    {
+        goto err;
+    }
+
+    return record_tuple;
+
+err:
+    if (tuple_top)
+        not_record_tuple_destroy(tuple_top);
+
+    return not_record_make_null();
 }

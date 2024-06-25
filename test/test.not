@@ -1,4 +1,4 @@
-using Print, File, Input, Stat from "~/os";
+using Print, File, Input, Stat, ReadDirectory from "~/os";
 
 Print("Hello World");
 
@@ -98,3 +98,8 @@ var obj1 = {a:0, b:1};
 var obj2 = {a:1, b:2, c:3};
 
 Print(obj1 < obj2);
+
+for (var dir in ReadDirectory("./"))
+{
+	Print(dir);
+}

@@ -3387,7 +3387,12 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
         return NOT_PTR_ERROR;
     }
 
-    if (result.ptr && (result.ptr != NOT_PTR_ERROR))
+    if (result.ptr == NOT_PTR_ERROR)
+    {
+        return not_record_make_null();
+    }
+
+    if (result.ptr)
     {
         return (not_record_t *)result.ptr;
     }
