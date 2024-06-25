@@ -55,7 +55,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 
             mpz_clear(*(mpz_t *)(left->value));
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -91,7 +91,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 
             mpz_clear(*(mpz_t *)(left->value));
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -121,7 +121,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 
             mpz_clear(*(mpz_t *)(left->value));
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -158,7 +158,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 
             mpz_clear(*(mpz_t *)(left->value));
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -340,7 +340,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 
             mpz_clear(*(mpz_t *)(left->value));
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             if (right->null)
@@ -370,7 +370,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 
             mpz_clear(*(mpz_t *)(left->value));
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
             if (right->null)
@@ -475,7 +475,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 
             mpf_clear(*(mpf_t *)left->value);
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -511,7 +511,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 
             mpf_clear(*(mpf_t *)left->value);
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -546,7 +546,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 
             mpf_clear(*(mpf_t *)left->value);
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -583,7 +583,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 
             mpf_clear(*(mpf_t *)left->value);
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -765,7 +765,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 
             mpf_clear(*(mpf_t *)left->value);
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             if (right->null)
@@ -795,7 +795,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 
             mpf_clear(*(mpf_t *)left->value);
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
             if (right->null)
@@ -900,7 +900,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -935,7 +935,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -969,7 +969,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(char));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1004,7 +1004,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1181,7 +1181,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             if (right->null)
@@ -1210,7 +1210,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
             if (right->null)
@@ -1315,7 +1315,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1350,7 +1350,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1379,7 +1379,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(char));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1412,7 +1412,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1590,7 +1590,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             if (right->null)
@@ -1619,7 +1619,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
             if (right->null)
@@ -1729,7 +1729,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpz_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1769,7 +1769,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpf_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1809,7 +1809,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(char));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -1849,7 +1849,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2059,7 +2059,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             if (right->null)
@@ -2093,7 +2093,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
             if (right->null)
@@ -2203,7 +2203,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpz_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2243,7 +2243,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpf_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2283,7 +2283,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(char));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2322,7 +2322,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2532,7 +2532,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             if (right->null)
@@ -2566,7 +2566,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
             if (right->null)
@@ -2676,7 +2676,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpz_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2716,7 +2716,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpf_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2756,7 +2756,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(char));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2795,7 +2795,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -2997,7 +2997,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             if (right->null)
@@ -3031,7 +3031,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
             if (right->null)
@@ -3141,7 +3141,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpz_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -3190,7 +3190,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(mpf_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -3239,7 +3239,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, sizeof(char));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -3288,7 +3288,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -3543,7 +3543,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             if (right->null)
@@ -3577,7 +3577,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
             if (right->null)
@@ -3670,7 +3670,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         if (right->kind == RECORD_KIND_INT)
         {
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -3693,7 +3693,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_FLOAT)
         {
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -3716,7 +3716,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_CHAR)
         {
             void *ptr = not_memory_realloc(left->value, sizeof(char));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -3738,7 +3738,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_STRING)
         {
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -3855,7 +3855,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_UNDEFINED)
         {
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             if (right->null)
@@ -3872,7 +3872,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_NAN)
         {
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
             if (right->null)
@@ -3941,7 +3941,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         if (right->kind == RECORD_KIND_INT)
         {
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -3964,7 +3964,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_FLOAT)
         {
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -3987,7 +3987,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_CHAR)
         {
             void *ptr = not_memory_realloc(left->value, sizeof(char));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -4009,7 +4009,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_STRING)
         {
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -4126,7 +4126,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_UNDEFINED)
         {
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             if (right->null)
@@ -4143,7 +4143,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_NAN)
         {
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
             if (right->null)
@@ -4212,7 +4212,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         if (right->kind == RECORD_KIND_INT)
         {
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -4235,7 +4235,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_FLOAT)
         {
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -4258,7 +4258,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_CHAR)
         {
             void *ptr = not_memory_realloc(left->value, sizeof(char));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -4280,7 +4280,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_STRING)
         {
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -4397,7 +4397,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_UNDEFINED)
         {
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             if (right->null)
@@ -4414,7 +4414,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         else if (right->kind == RECORD_KIND_NAN)
         {
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
             if (right->null)
@@ -4495,7 +4495,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -4530,7 +4530,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -4565,7 +4565,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(char));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -4599,7 +4599,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -4776,7 +4776,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             if (right->null)
@@ -4805,7 +4805,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
             if (right->null)
@@ -4912,7 +4912,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpz_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -4947,7 +4947,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(mpf_t));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -4982,7 +4982,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, sizeof(char));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -5016,7 +5016,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
-            if (ptr == NOT_PTR_NULL)
+            if (ptr == NULL)
             {
                 not_error_no_memory();
                 return -1;
@@ -5193,7 +5193,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_UNDEFINED;
 
             if (right->null)
@@ -5222,7 +5222,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             not_memory_free(left->value);
-            left->value = NOT_PTR_NULL;
+            left->value = NULL;
             left->kind = RECORD_KIND_NAN;
 
             if (right->null)

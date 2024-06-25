@@ -224,7 +224,7 @@ f_read(not_record_t *args) // (mpz_t *fd, mpz_t *count)
     }
 
 err:
-    return not_record_make_null();
+    return NULL;
 }
 
 static inline void
@@ -425,7 +425,7 @@ f_getc(not_record_t *args)
     return not_record_make_char(c);
 
 err:
-    return not_record_make_null();
+    return NULL;
 }
 
 not_record_t *
@@ -450,7 +450,7 @@ f_stat(not_record_t *args) // (const char *path)
     }
 
     not_record_t *value;
-    not_record_object_t *next = NOT_PTR_NULL;
+    not_record_object_t *next = NULL;
 
     value = not_record_make_int_from_si(st.st_ctime);
     next = not_record_make_object("ctime", value, next);
@@ -488,5 +488,5 @@ f_stat(not_record_t *args) // (const char *path)
     return not_record_create(RECORD_KIND_OBJECT, next);
 
 err:
-    return not_record_make_null();
+    return NULL;
 }

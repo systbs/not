@@ -52,7 +52,7 @@ not_scanner_t *
 not_scanner_create(char *path)
 {
 	not_scanner_t *scanner = (not_scanner_t *)not_memory_calloc(1, sizeof(not_scanner_t));
-	if (scanner == NOT_PTR_NULL)
+	if (scanner == NULL)
 	{
 		not_error_no_memory();
 		return NOT_PTR_ERROR;
@@ -61,7 +61,7 @@ not_scanner_create(char *path)
 	strcpy(scanner->path, path);
 
 	FILE *fd = fopen(scanner->path, "rb");
-	if (fd == NOT_PTR_NULL)
+	if (fd == NULL)
 	{
 		not_error_system("could not open(%s)\n", scanner->path);
 		return NOT_PTR_ERROR;
@@ -73,7 +73,7 @@ not_scanner_create(char *path)
 	fseek(fd, pos, SEEK_SET);
 
 	char *buf = not_memory_calloc(1, chunk + 1);
-	if (buf == NOT_PTR_NULL)
+	if (buf == NULL)
 	{
 		not_error_no_memory();
 		return NOT_PTR_ERROR;
@@ -106,10 +106,10 @@ not_scanner_t *
 not_scanner_create_from_buffer(char *buf, char *path)
 {
 	not_scanner_t *scanner = (not_scanner_t *)not_memory_calloc(1, sizeof(not_scanner_t));
-	if (scanner == NOT_PTR_NULL)
+	if (scanner == NULL)
 	{
 		not_error_no_memory();
-		return NOT_PTR_NULL;
+		return NULL;
 	}
 
 	strcpy(scanner->path, path);
@@ -397,7 +397,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				}
 
 				char *data = not_memory_calloc(1, (scanner->offset - start_offset) + 1);
-				if (data == NOT_PTR_NULL)
+				if (data == NULL)
 				{
 					not_error_no_memory();
 					return -1;
@@ -440,7 +440,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				}
 
 				char *data = not_memory_calloc(1, (scanner->offset - start_offset) + 1);
-				if (data == NOT_PTR_NULL)
+				if (data == NULL)
 				{
 					not_error_no_memory();
 					return -1;
@@ -487,7 +487,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				}
 
 				char *data = not_memory_calloc(1, (scanner->offset - start_offset) + 1);
-				if (data == NOT_PTR_NULL)
+				if (data == NULL)
 				{
 					not_error_no_memory();
 					return -1;
@@ -515,7 +515,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_HASH,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -533,7 +533,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_DOLLER,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -551,7 +551,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_LPAREN,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -569,7 +569,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_RPAREN,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -587,7 +587,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_LBRACKET,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -605,7 +605,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_RBRACKET,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -623,7 +623,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_LBRACE,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -641,7 +641,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_RBRACE,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -659,7 +659,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_COMMA,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -677,7 +677,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_DOT,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -705,7 +705,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_COLON,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -733,7 +733,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_SEMICOLON,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -751,7 +751,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_QUESTION,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -769,7 +769,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_AT,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -791,7 +791,7 @@ not_scanner_advance(not_scanner_t *scanner)
 
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_BACKSLASH,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -817,7 +817,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_BACKSLASH_EQ,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -838,7 +838,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_UNDERLINE,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -860,7 +860,7 @@ not_scanner_advance(not_scanner_t *scanner)
 
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_PLUS,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -886,7 +886,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_PLUS_EQ,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -911,7 +911,7 @@ not_scanner_advance(not_scanner_t *scanner)
 
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_MINUS,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -937,7 +937,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_MINUS_EQ,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -956,7 +956,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_MINUS_GT,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -981,7 +981,7 @@ not_scanner_advance(not_scanner_t *scanner)
 
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_STAR,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -1008,7 +1008,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_STAR_EQ,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -1027,7 +1027,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_POWER,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -1055,7 +1055,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_POWER_EQ,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -1162,7 +1162,7 @@ not_scanner_advance(not_scanner_t *scanner)
 
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_SLASH,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = scanner->offset,
@@ -1188,7 +1188,7 @@ not_scanner_advance(not_scanner_t *scanner)
 					{
 						not_scanner_set_token(scanner, (not_token_t){
 														   .type = TOKEN_SLASH_EQ,
-														   .value = NOT_PTR_NULL,
+														   .value = NULL,
 														   .position = {
 															   .path = scanner->path,
 															   .offset = offset,
@@ -1214,7 +1214,7 @@ not_scanner_advance(not_scanner_t *scanner)
 
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_PERCENT,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -1240,7 +1240,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_PERCENT_EQ,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -1264,7 +1264,7 @@ not_scanner_advance(not_scanner_t *scanner)
 
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_AND,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -1290,7 +1290,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_AND_AND,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -1309,7 +1309,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_AND_EQ,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -1334,7 +1334,7 @@ not_scanner_advance(not_scanner_t *scanner)
 
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_OR,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -1360,7 +1360,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_OR_OR,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -1379,7 +1379,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_OR_EQ,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -1399,7 +1399,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_CARET,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -1417,7 +1417,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_TILDE,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -1439,7 +1439,7 @@ not_scanner_advance(not_scanner_t *scanner)
 
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_LT,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -1465,7 +1465,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_LT_LT,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -1491,7 +1491,7 @@ not_scanner_advance(not_scanner_t *scanner)
 					{
 						not_scanner_set_token(scanner, (not_token_t){
 														   .type = TOKEN_LT_LT_EQ,
-														   .value = NOT_PTR_NULL,
+														   .value = NULL,
 														   .position = {
 															   .path = scanner->path,
 															   .offset = offset,
@@ -1512,7 +1512,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_LT_EQ,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -1535,7 +1535,7 @@ not_scanner_advance(not_scanner_t *scanner)
 
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_GT,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -1561,7 +1561,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_GT_GT,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -1587,7 +1587,7 @@ not_scanner_advance(not_scanner_t *scanner)
 					{
 						not_scanner_set_token(scanner, (not_token_t){
 														   .type = TOKEN_GT_GT_EQ,
-														   .value = NOT_PTR_NULL,
+														   .value = NULL,
 														   .position = {
 															   .path = scanner->path,
 															   .offset = offset,
@@ -1608,7 +1608,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_GT_EQ,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -1632,7 +1632,7 @@ not_scanner_advance(not_scanner_t *scanner)
 
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_NOT,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -1658,7 +1658,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_NOT_EQ,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -1681,7 +1681,7 @@ not_scanner_advance(not_scanner_t *scanner)
 
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_EQ,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset,
@@ -1707,7 +1707,7 @@ not_scanner_advance(not_scanner_t *scanner)
 				{
 					not_scanner_set_token(scanner, (not_token_t){
 													   .type = TOKEN_EQ_EQ,
-													   .value = NOT_PTR_NULL,
+													   .value = NULL,
 													   .position = {
 														   .path = scanner->path,
 														   .offset = offset,
@@ -1985,7 +1985,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			}
 
 			char *data = not_memory_calloc(1, (scanner->offset - start_offset) + 1);
-			if (data == NOT_PTR_NULL)
+			if (data == NULL)
 			{
 				not_error_no_memory();
 				return -1;
@@ -2023,7 +2023,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_NULL_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2037,7 +2037,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_INT_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2051,7 +2051,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_FLOAT_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2065,7 +2065,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_CHAR_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2079,7 +2079,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_STRING_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2093,7 +2093,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_FOR_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2107,7 +2107,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_CLASS_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2121,7 +2121,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_EXTENDS_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2135,7 +2135,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_STATIC_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2149,7 +2149,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_READONLY_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2163,7 +2163,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_REFERENCE_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2177,7 +2177,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_IF_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2191,7 +2191,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_ELSE_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2205,7 +2205,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_TRY_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2219,7 +2219,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_CATCH_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2233,7 +2233,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_THROW_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2247,7 +2247,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_BREAK_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2261,7 +2261,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_CONTINUE_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2275,7 +2275,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_RETURN_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2289,7 +2289,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_SIZEOF_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2303,7 +2303,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_TYPEOF_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2317,7 +2317,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_INSTANCEOF_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2331,7 +2331,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_IN_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2345,7 +2345,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_FUN_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2359,7 +2359,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_VAR_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2373,7 +2373,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_EXPORT_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2387,7 +2387,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_USING_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2401,7 +2401,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			{
 				not_scanner_set_token(scanner, (not_token_t){
 												   .type = TOKEN_FROM_KEYWORD,
-												   .value = NOT_PTR_NULL,
+												   .value = NULL,
 												   .position = {
 													   .path = scanner->path,
 													   .offset = scanner->offset - length,
@@ -2413,7 +2413,7 @@ not_scanner_advance(not_scanner_t *scanner)
 			}
 
 			char *data = not_memory_calloc(1, length + 1);
-			if (data == NOT_PTR_NULL)
+			if (data == NULL)
 			{
 				not_error_no_memory();
 				return -1;
@@ -2442,7 +2442,7 @@ not_scanner_advance(not_scanner_t *scanner)
 
 	not_scanner_set_token(scanner, (not_token_t){
 									   .type = TOKEN_EOF,
-									   .value = NOT_PTR_NULL,
+									   .value = NULL,
 									   .position = {
 										   .path = scanner->path,
 										   .offset = scanner->offset,

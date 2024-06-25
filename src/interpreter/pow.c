@@ -130,7 +130,7 @@ not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_nod
             mpz_clear(num1);
             mpz_clear(num2);
 
-            not_record_t *record = NOT_PTR_NULL;
+            not_record_t *record = NULL;
 
             if (mpf_is_int(result))
             {
@@ -184,7 +184,7 @@ not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_nod
             mpz_clear(num1);
             mpz_clear(num2);
 
-            not_record_t *record = NOT_PTR_NULL;
+            not_record_t *record = NULL;
 
             if (mpf_is_int(result))
             {
@@ -230,7 +230,7 @@ not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_nod
             mpz_clear(num1);
             mpz_clear(num2);
 
-            not_record_t *record = NOT_PTR_NULL;
+            not_record_t *record = NULL;
 
             if (mpf_is_int(result))
             {
@@ -306,7 +306,7 @@ not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_nod
             mpz_clear(num1);
             mpz_clear(num2);
 
-            not_record_t *record = NOT_PTR_NULL;
+            not_record_t *record = NULL;
 
             if (mpf_is_int(result))
             {
@@ -359,7 +359,7 @@ not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_nod
             mpz_clear(num1);
             mpz_clear(num2);
 
-            not_record_t *record = NOT_PTR_NULL;
+            not_record_t *record = NULL;
 
             if (mpf_is_int(result))
             {

@@ -13,7 +13,6 @@ typedef long double float128_t;
 #define MAX_PATH 4096
 #endif
 
-#define NOT_PTR_NULL ((void *)0)
 #define NOT_PTR_ERROR ((void *)(int *)-1)
 
 #endif /* __TYPES_H__ */

@@ -99,7 +99,7 @@ region_error:
 
 	not_thread_t *t = not_thread_get_current();
 
-	for (not_queue_entry_t *a = t->interpreter->expections->begin, *b = NOT_PTR_NULL; a != t->interpreter->expections->end; a = b)
+	for (not_queue_entry_t *a = t->interpreter->expections->begin, *b = NULL; a != t->interpreter->expections->end; a = b)
 	{
 		b = a->next;
 		not_record_t *expection = (not_record_t *)a->value;

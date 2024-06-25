@@ -48,7 +48,7 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
         not_node_parameter_t *parameter = (not_node_parameter_t *)item1->value;
         if ((parameter->flag & SYNTAX_MODIFIER_KARG) == SYNTAX_MODIFIER_KARG)
         {
-            not_record_tuple_t *tuple = NOT_PTR_NULL;
+            not_record_tuple_t *tuple = NULL;
 
             if (arg)
             {
@@ -60,7 +60,7 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
 
                 if (parameter->type)
                 {
-                    not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                    not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NULL);
                     if (record_parameter_type == NOT_PTR_ERROR)
                     {
                         if (not_record_link_decrease(record_arg) < 0)
@@ -108,7 +108,7 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
                     {
                         if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                         {
-                            if (tuple == NOT_PTR_NULL)
+                            if (tuple == NULL)
                             {
                                 if (not_record_link_decrease(record_parameter_type) < 0)
                                 {
@@ -149,9 +149,9 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
 
                                 return -1;
                             }
-                            else if (record_arg2 == NOT_PTR_NULL)
+                            else if (record_arg2 == NULL)
                             {
-                                if (tuple == NOT_PTR_NULL)
+                                if (tuple == NULL)
                                 {
                                     if (not_record_link_decrease(record_parameter_type) < 0)
                                     {
@@ -263,7 +263,7 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
 
             if (parameter->type)
             {
-                not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NULL);
                 if (record_parameter_type == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_arg) < 0)
@@ -348,7 +348,7 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
 
                             return -1;
                         }
-                        else if (record_arg2 == NOT_PTR_NULL)
+                        else if (record_arg2 == NULL)
                         {
                             if (not_record_link_decrease(record_parameter_type) < 0)
                             {
@@ -393,7 +393,7 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
             item1 = item1->next;
         }
 
-        for (; item1 != NOT_PTR_NULL; item1 = item1->next)
+        for (; item1 != NULL; item1 = item1->next)
         {
             not_node_parameter_t *parameter = (not_node_parameter_t *)item1->value;
             if (!parameter->value)
@@ -421,9 +421,9 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
         not_node_parameter_t *parameter = (not_node_parameter_t *)item1->value;
         if ((parameter->flag & SYNTAX_MODIFIER_KARG) == SYNTAX_MODIFIER_KARG)
         {
-            not_record_tuple_t *tuple = NOT_PTR_NULL;
+            not_record_tuple_t *tuple = NULL;
 
-            not_record_t *record_parameter_type = NOT_PTR_NULL;
+            not_record_t *record_parameter_type = NULL;
             if (arg)
             {
                 not_record_t *record_arg = not_record_copy(arg);
@@ -434,7 +434,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
 
                 if (parameter->type)
                 {
-                    record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                    record_parameter_type = not_expression(parameter->type, strip, applicant, NULL);
                     if (record_parameter_type == NOT_PTR_ERROR)
                     {
                         if (not_record_link_decrease(record_arg) < 0)
@@ -482,7 +482,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
                     {
                         if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                         {
-                            if (tuple == NOT_PTR_NULL)
+                            if (tuple == NULL)
                             {
                                 not_error_type_by_node(base, "'%s' mismatch: '%s' and '%s'",
                                                        "argument", not_record_type_as_string(record_arg), not_record_type_as_string(record_parameter_type));
@@ -527,9 +527,9 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
 
                                 return -1;
                             }
-                            else if (record_arg2 == NOT_PTR_NULL)
+                            else if (record_arg2 == NULL)
                             {
-                                if (tuple == NOT_PTR_NULL)
+                                if (tuple == NULL)
                                 {
                                     not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
                                     not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
@@ -656,10 +656,10 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
                 return -1;
             }
 
-            not_record_t *record_parameter_type = NOT_PTR_NULL;
+            not_record_t *record_parameter_type = NULL;
             if (parameter->type)
             {
-                record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                record_parameter_type = not_expression(parameter->type, strip, applicant, NULL);
                 if (record_parameter_type == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_arg) < 0)
@@ -749,7 +749,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
 
                             return -1;
                         }
-                        else if (record_arg2 == NOT_PTR_NULL)
+                        else if (record_arg2 == NULL)
                         {
                             not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
                             not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
@@ -814,7 +814,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
             item1 = item1->next;
         }
 
-        for (; item1 != NOT_PTR_NULL; item1 = item1->next)
+        for (; item1 != NULL; item1 = item1->next)
         {
             not_node_parameter_t *parameter = (not_node_parameter_t *)item1->value;
             not_entry_t *entry = not_strip_input_find(strip, scope, parameter->key);
@@ -822,16 +822,16 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
             {
                 if (parameter->value)
                 {
-                    not_record_t *record_arg = not_expression(parameter->value, strip, applicant, NOT_PTR_NULL);
+                    not_record_t *record_arg = not_expression(parameter->value, strip, applicant, NULL);
                     if (record_arg == NOT_PTR_ERROR)
                     {
                         return -1;
                     }
 
-                    not_record_t *record_parameter_type = NOT_PTR_NULL;
+                    not_record_t *record_parameter_type = NULL;
                     if (parameter->type)
                     {
-                        record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                        record_parameter_type = not_expression(parameter->type, strip, applicant, NULL);
                         if (record_parameter_type == NOT_PTR_ERROR)
                         {
                             if (not_record_link_decrease(record_arg) < 0)
@@ -922,7 +922,7 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
 
                                     return -1;
                                 }
-                                else if (record_arg2 == NOT_PTR_NULL)
+                                else if (record_arg2 == NULL)
                                 {
                                     not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
                                     not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
@@ -1032,7 +1032,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
         if (!parameters)
         {
             uint64_t cnt1 = 0;
-            for (not_node_t *item1 = block1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+            for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
             {
                 cnt1 += 1;
             }
@@ -1059,7 +1059,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
         if (arguments)
         {
             not_node_block_t *block2 = (not_node_block_t *)arguments->value;
-            for (not_node_t *item2 = block2->items; item2 != NOT_PTR_NULL;)
+            for (not_node_t *item2 = block2->items; item2 != NULL;)
             {
                 not_node_argument_t *argument = (not_node_argument_t *)item2->value;
 
@@ -1085,13 +1085,13 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                     else
                     {
                         uint64_t cnt1 = 0;
-                        for (not_node_t *item1 = block1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+                        for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
                         {
                             cnt1 += 1;
                         }
 
                         uint64_t cnt2 = 0;
-                        for (not_node_t *item1 = block2->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+                        for (not_node_t *item1 = block2->items; item1 != NULL; item1 = item1->next)
                         {
                             cnt2 += 1;
                         }
@@ -1118,9 +1118,9 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                     not_node_parameter_t *parameter = (not_node_parameter_t *)item1->value;
                     if ((parameter->flag & SYNTAX_MODIFIER_KWARG) == SYNTAX_MODIFIER_KWARG)
                     {
-                        not_record_object_t *object = NOT_PTR_NULL, *top = NOT_PTR_NULL;
+                        not_record_object_t *object = NULL, *top = NULL;
 
-                        for (; item2 != NOT_PTR_NULL; item2 = item2->next)
+                        for (; item2 != NULL; item2 = item2->next)
                         {
                             argument = (not_node_argument_t *)item2->value;
                             if (!argument->value)
@@ -1128,16 +1128,16 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                 break;
                             }
 
-                            not_record_t *record_arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                            not_record_t *record_arg = not_expression(argument->value, strip, applicant, NULL);
                             if (record_arg == NOT_PTR_ERROR)
                             {
                                 return -1;
                             }
 
-                            not_record_t *record_parameter_type = NOT_PTR_NULL;
+                            not_record_t *record_parameter_type = NULL;
                             if (parameter->type)
                             {
-                                record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                                record_parameter_type = not_expression(parameter->type, strip, applicant, NULL);
                                 if (record_parameter_type == NOT_PTR_ERROR)
                                 {
                                     if (not_record_link_decrease(record_arg) < 0)
@@ -1185,7 +1185,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                 {
                                     if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                                     {
-                                        if (object == NOT_PTR_NULL)
+                                        if (object == NULL)
                                         {
                                             not_node_basic_t *basic1 = (not_node_basic_t *)argument->key->value;
                                             not_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
@@ -1235,9 +1235,9 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
 
                                             return -1;
                                         }
-                                        else if (record_arg2 == NOT_PTR_NULL)
+                                        else if (record_arg2 == NULL)
                                         {
-                                            if (object == NOT_PTR_NULL)
+                                            if (object == NULL)
                                             {
                                                 not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
                                                 not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
@@ -1290,7 +1290,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                             }
 
                             not_node_basic_t *basic = (not_node_basic_t *)argument->key->value;
-                            not_record_object_t *object2 = not_record_make_object(basic->value, record_arg, NOT_PTR_NULL);
+                            not_record_object_t *object2 = not_record_make_object(basic->value, record_arg, NULL);
                             if (object2 == NOT_PTR_ERROR)
                             {
                                 if (not_record_link_decrease(record_arg) < 0)
@@ -1308,7 +1308,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                 return -1;
                             }
 
-                            if (object == NOT_PTR_NULL)
+                            if (object == NULL)
                             {
                                 object = top = object2;
                             }
@@ -1358,23 +1358,23 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                     else
                     {
                         int8_t found = 0;
-                        for (not_node_t *item3 = item1; item3 != NOT_PTR_NULL; item3 = item3->next)
+                        for (not_node_t *item3 = item1; item3 != NULL; item3 = item3->next)
                         {
                             parameter = (not_node_parameter_t *)item3->value;
                             if (not_helper_id_cmp(argument->key, parameter->key) == 0)
                             {
                                 found = 1;
 
-                                not_record_t *record_arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                                not_record_t *record_arg = not_expression(argument->value, strip, applicant, NULL);
                                 if (record_arg == NOT_PTR_ERROR)
                                 {
                                     return -1;
                                 }
 
-                                not_record_t *record_parameter_type = NOT_PTR_NULL;
+                                not_record_t *record_parameter_type = NULL;
                                 if (parameter->type)
                                 {
-                                    record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                                    record_parameter_type = not_expression(parameter->type, strip, applicant, NULL);
                                     if (record_parameter_type == NOT_PTR_ERROR)
                                     {
                                         if (not_record_link_decrease(record_arg) < 0)
@@ -1465,7 +1465,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
 
                                                 return -1;
                                             }
-                                            else if (record_arg2 == NOT_PTR_NULL)
+                                            else if (record_arg2 == NULL)
                                             {
                                                 not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
                                                 not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
@@ -1559,22 +1559,22 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                     not_node_parameter_t *parameter = (not_node_parameter_t *)item1->value;
                     if ((parameter->flag & SYNTAX_MODIFIER_KARG) == SYNTAX_MODIFIER_KARG)
                     {
-                        not_record_tuple_t *tuple = NOT_PTR_NULL, *top = NOT_PTR_NULL;
+                        not_record_tuple_t *tuple = NULL, *top = NULL;
 
-                        for (; item2 != NOT_PTR_NULL; item2 = item2->next)
+                        for (; item2 != NULL; item2 = item2->next)
                         {
                             argument = (not_node_argument_t *)item2->value;
 
-                            not_record_t *record_arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+                            not_record_t *record_arg = not_expression(argument->key, strip, applicant, NULL);
                             if (record_arg == NOT_PTR_ERROR)
                             {
                                 return -1;
                             }
 
-                            not_record_t *record_parameter_type = NOT_PTR_NULL;
+                            not_record_t *record_parameter_type = NULL;
                             if (parameter->type)
                             {
-                                record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                                record_parameter_type = not_expression(parameter->type, strip, applicant, NULL);
                                 if (record_parameter_type == NOT_PTR_ERROR)
                                 {
                                     if (not_record_link_decrease(record_arg) < 0)
@@ -1622,7 +1622,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                 {
                                     if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                                     {
-                                        if (tuple == NOT_PTR_NULL)
+                                        if (tuple == NULL)
                                         {
                                             not_node_basic_t *basic1 = (not_node_basic_t *)argument->key->value;
                                             not_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
@@ -1672,9 +1672,9 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
 
                                             return -1;
                                         }
-                                        else if (record_arg2 == NOT_PTR_NULL)
+                                        else if (record_arg2 == NULL)
                                         {
-                                            if (tuple == NOT_PTR_NULL)
+                                            if (tuple == NULL)
                                             {
                                                 not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
                                                 not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
@@ -1726,7 +1726,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                 record_arg->typed = 1;
                             }
 
-                            not_record_tuple_t *tuple2 = not_record_make_tuple(record_arg, NOT_PTR_NULL);
+                            not_record_tuple_t *tuple2 = not_record_make_tuple(record_arg, NULL);
                             if (tuple2 == NOT_PTR_ERROR)
                             {
                                 if (not_record_link_decrease(record_arg) < 0)
@@ -1744,7 +1744,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                 return -1;
                             }
 
-                            if (tuple == NOT_PTR_NULL)
+                            if (tuple == NULL)
                             {
                                 tuple = top = tuple2;
                             }
@@ -1793,7 +1793,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                     }
                     else if ((parameter->flag & SYNTAX_MODIFIER_KWARG) == SYNTAX_MODIFIER_KWARG)
                     {
-                        not_record_t *record_arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+                        not_record_t *record_arg = not_expression(argument->key, strip, applicant, NULL);
                         if (record_arg == NOT_PTR_ERROR)
                         {
                             return -1;
@@ -1810,16 +1810,16 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                     }
                     else
                     {
-                        not_record_t *record_arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+                        not_record_t *record_arg = not_expression(argument->key, strip, applicant, NULL);
                         if (record_arg == NOT_PTR_ERROR)
                         {
                             return -1;
                         }
 
-                        not_record_t *record_parameter_type = NOT_PTR_NULL;
+                        not_record_t *record_parameter_type = NULL;
                         if (parameter->type)
                         {
-                            record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                            record_parameter_type = not_expression(parameter->type, strip, applicant, NULL);
                             if (record_parameter_type == NOT_PTR_ERROR)
                             {
                                 if (not_record_link_decrease(record_arg) < 0)
@@ -1909,7 +1909,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
 
                                         return -1;
                                     }
-                                    else if (record_arg2 == NOT_PTR_NULL)
+                                    else if (record_arg2 == NULL)
                                     {
                                         not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
                                         not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
@@ -1979,7 +1979,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
             }
         }
 
-        for (; item1 != NOT_PTR_NULL; item1 = item1->next)
+        for (; item1 != NULL; item1 = item1->next)
         {
             not_node_parameter_t *parameter = (not_node_parameter_t *)item1->value;
             not_entry_t *entry = not_strip_input_find(strip, scope, parameter->key);
@@ -1987,16 +1987,16 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
             {
                 if (parameter->value)
                 {
-                    not_record_t *record_arg = not_expression(parameter->value, strip, applicant, NOT_PTR_NULL);
+                    not_record_t *record_arg = not_expression(parameter->value, strip, applicant, NULL);
                     if (record_arg == NOT_PTR_ERROR)
                     {
                         return -1;
                     }
 
-                    not_record_t *record_parameter_type = NOT_PTR_NULL;
+                    not_record_t *record_parameter_type = NULL;
                     if (parameter->type)
                     {
-                        record_parameter_type = not_expression(parameter->type, strip, applicant, NOT_PTR_NULL);
+                        record_parameter_type = not_expression(parameter->type, strip, applicant, NULL);
                         if (record_parameter_type == NOT_PTR_ERROR)
                         {
                             if (not_record_link_decrease(record_arg) < 0)
@@ -2087,7 +2087,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
 
                                     return -1;
                                 }
-                                else if (record_arg2 == NOT_PTR_NULL)
+                                else if (record_arg2 == NULL)
                                 {
                                     not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
                                     not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
@@ -2178,7 +2178,7 @@ not_call_heritage_subs(not_node_t *scope, not_strip_t *strip, not_node_t *node, 
 {
     not_node_heritage_t *heritage = (not_node_heritage_t *)node->value;
 
-    not_record_t *record_heritage = not_expression(heritage->type, strip, applicant, NOT_PTR_NULL);
+    not_record_t *record_heritage = not_expression(heritage->type, strip, applicant, NULL);
     if (record_heritage == NOT_PTR_ERROR)
     {
         return -1;
@@ -2234,7 +2234,7 @@ not_call_heritage_subs(not_node_t *scope, not_strip_t *strip, not_node_t *node, 
             }
             return -1;
         }
-        else if (entry == NOT_PTR_NULL)
+        else if (entry == NULL)
         {
             not_node_basic_t *basic1 = (not_node_basic_t *)heritage->key->value;
             not_error_type_by_node(heritage->key, "'%s' already set", basic1->value);
@@ -2266,12 +2266,12 @@ static int32_t
 not_call_property_subs(not_node_t *scope, not_strip_t *strip, not_node_t *node, not_node_t *applicant)
 {
     not_node_property_t *property = (not_node_property_t *)node->value;
-    not_record_t *record_value = NOT_PTR_NULL;
-    not_record_t *record_parameter_type = NOT_PTR_NULL;
+    not_record_t *record_value = NULL;
+    not_record_t *record_parameter_type = NULL;
 
     if (property->value)
     {
-        record_value = not_expression(property->value, strip, applicant, NOT_PTR_NULL);
+        record_value = not_expression(property->value, strip, applicant, NULL);
         if (record_value == NOT_PTR_ERROR)
         {
             return -1;
@@ -2279,7 +2279,7 @@ not_call_property_subs(not_node_t *scope, not_strip_t *strip, not_node_t *node, 
 
         if (property->type)
         {
-            record_parameter_type = not_expression(property->type, strip, applicant, NOT_PTR_NULL);
+            record_parameter_type = not_expression(property->type, strip, applicant, NULL);
             if (record_parameter_type == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(record_value) < 0)
@@ -2345,7 +2345,7 @@ not_call_property_subs(not_node_t *scope, not_strip_t *strip, not_node_t *node, 
 
                     return -1;
                 }
-                else if (record_arg2 == NOT_PTR_NULL)
+                else if (record_arg2 == NULL)
                 {
                     not_node_basic_t *basic1 = (not_node_basic_t *)property->key->value;
                     not_error_type_by_node(property->key, "'%s' mismatch: '%s' and '%s'",
@@ -2429,7 +2429,7 @@ not_call_provide_class(not_strip_t *strip, not_node_t *node, not_node_t *applica
     if (class1->heritages)
     {
         not_node_block_t *block = (not_node_block_t *)class1->heritages->value;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             if (not_call_heritage_subs(node, strip_class, item, applicant) < 0)
             {
@@ -2441,7 +2441,7 @@ not_call_provide_class(not_strip_t *strip, not_node_t *node, not_node_t *applica
         }
     }
 
-    for (not_node_t *item = class1->block; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = class1->block; item != NULL; item = item->next)
     {
         if (item->kind == NODE_KIND_PROPERTY)
         {
@@ -2480,7 +2480,7 @@ not_call_operator_by_one_arg(not_node_t *base, not_record_t *content, not_record
 
     not_node_class_t *class1 = (not_node_class_t *)type->value;
 
-    for (not_node_t *item = class1->block; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = class1->block; item != NULL; item = item->next)
     {
         if (item->kind == NODE_KIND_FUN)
         {
@@ -2520,7 +2520,7 @@ not_call_operator_by_one_arg(not_node_t *base, not_record_t *content, not_record
                     return NOT_PTR_ERROR;
                 }
 
-                not_record_t *rax = not_thread_get_and_set_rax(NOT_PTR_NULL);
+                not_record_t *rax = not_thread_get_and_set_rax(NULL);
                 if (rax == NOT_PTR_ERROR)
                 {
                     return NOT_PTR_ERROR;
@@ -2556,7 +2556,7 @@ not_call_class(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_
 
     not_node_class_t *class1 = (not_node_class_t *)type->value;
 
-    for (not_node_t *item = class1->block; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = class1->block; item != NULL; item = item->next)
     {
         if (item->kind == NODE_KIND_FUN)
         {
@@ -2623,7 +2623,7 @@ not_call_class(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_
                     return NOT_PTR_ERROR;
                 }
 
-                not_record_t *rax = not_thread_get_and_set_rax(NOT_PTR_NULL);
+                not_record_t *rax = not_thread_get_and_set_rax(NULL);
                 if (rax == NOT_PTR_ERROR)
                 {
                     return NOT_PTR_ERROR;
@@ -2686,7 +2686,7 @@ not_call_fun(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_no
         return NOT_PTR_ERROR;
     }
 
-    not_record_t *rax = not_thread_get_and_set_rax(NOT_PTR_NULL);
+    not_record_t *rax = not_thread_get_and_set_rax(NULL);
     if (rax == NOT_PTR_ERROR)
     {
         return NOT_PTR_ERROR;
@@ -2735,7 +2735,7 @@ not_call_lambda(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not
         return NOT_PTR_ERROR;
     }
 
-    not_record_t *rax = not_thread_get_and_set_rax(NOT_PTR_NULL);
+    not_record_t *rax = not_thread_get_and_set_rax(NULL);
     if (rax == NOT_PTR_ERROR)
     {
         return NOT_PTR_ERROR;
@@ -2863,10 +2863,10 @@ not_check_value_by_type_json(not_record_t *arg, json_t *type)
         if (arg->kind == RECORD_KIND_OBJECT)
         {
             const char *key;
-            json_t *value_json = NOT_PTR_NULL;
+            json_t *value_json = NULL;
             json_object_foreach(type, key, value_json)
             {
-                for (not_record_object_t *object = (not_record_object_t *)arg->value; object != NOT_PTR_NULL; object = object->next)
+                for (not_record_object_t *object = (not_record_object_t *)arg->value; object != NULL; object = object->next)
                 {
                     if (strcmp(key, object->key) == 0)
                     {
@@ -2906,7 +2906,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
     if (arguments)
     {
         not_node_block_t *block = (not_node_block_t *)arguments->value;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             arg_count += 1;
         }
@@ -2923,14 +2923,14 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
         }
     }
 
-    not_record_tuple_t *top = NOT_PTR_NULL, *iter = NOT_PTR_NULL;
+    not_record_tuple_t *top = NULL, *iter = NULL;
 
     size_t param_count = json_array_size(parameters);
     size_t param_index = 0;
     if (arguments)
     {
         not_node_block_t *block = (not_node_block_t *)arguments->value;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL;)
+        for (not_node_t *item = block->items; item != NULL;)
         {
             not_node_argument_t *argument = (not_node_argument_t *)item->value;
 
@@ -2953,14 +2953,15 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
             json_t *prefix = json_object_get(parameter, "prefix");
             json_t *name = json_object_get(parameter, "name");
             json_t *type = json_object_get(parameter, "type");
+            json_t *reference = json_object_get(parameter, "reference");
 
             if (argument->value)
             {
                 if (json_is_string(prefix) && (strcmp(json_string_value(prefix), "**") == 0))
                 {
-                    not_record_object_t *object_top = NOT_PTR_NULL, *object_iter = NOT_PTR_NULL;
+                    not_record_object_t *object_top = NULL, *object_iter = NULL;
 
-                    for (; item != NOT_PTR_NULL; item = item->next)
+                    for (; item != NULL; item = item->next)
                     {
                         argument = (not_node_argument_t *)item->value;
                         if (!argument->value)
@@ -2968,7 +2969,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                             break;
                         }
 
-                        not_record_t *record_arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                        not_record_t *record_arg = not_expression(argument->value, strip, applicant, NULL);
                         if (record_arg == NOT_PTR_ERROR)
                         {
                             not_error_no_memory();
@@ -2990,12 +2991,32 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                             goto region_cleanup_kwarg;
                         }
 
+                        not_record_t *record_copy = NULL;
+                        if (reference && json_is_boolean(reference) && json_boolean_value(reference))
+                        {
+                            record_copy = record_arg;
+                        }
+                        else
+                        {
+                            record_copy = not_record_copy(record_arg);
+                            if (record_copy == NOT_PTR_ERROR)
+                            {
+                                not_record_link_decrease(record_arg);
+                                goto region_cleanup_kwarg;
+                            }
+
+                            if (not_record_link_decrease(record_arg) < 0)
+                            {
+                                goto region_cleanup_kwarg;
+                            }
+                        }
+
                         not_node_basic_t *basic = (not_node_basic_t *)argument->key->value;
 
-                        not_record_object_t *object = not_record_make_object(basic->value, record_arg, NOT_PTR_NULL);
+                        not_record_object_t *object = not_record_make_object(basic->value, record_copy, NULL);
                         if (object == NOT_PTR_ERROR)
                         {
-                            not_record_link_decrease(record_arg);
+                            not_record_link_decrease(record_copy);
                             goto region_cleanup_kwarg;
                         }
 
@@ -3019,7 +3040,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                         goto region_cleanup_kwarg;
                     }
 
-                    not_record_tuple_t *tuple = not_record_make_tuple(record, NOT_PTR_NULL);
+                    not_record_tuple_t *tuple = not_record_make_tuple(record, NULL);
                     if (record == NOT_PTR_ERROR)
                     {
                         not_record_link_decrease(record);
@@ -3059,7 +3080,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                         {
                             found = 1;
 
-                            not_record_t *record_arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                            not_record_t *record_arg = not_expression(argument->value, strip, applicant, NULL);
                             if (record_arg == NOT_PTR_ERROR)
                             {
                                 not_error_no_memory();
@@ -3081,10 +3102,30 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                                 goto region_cleanup;
                             }
 
-                            not_record_tuple_t *tuple = not_record_make_tuple(record_arg, NOT_PTR_NULL);
+                            not_record_t *record_copy = NULL;
+                            if (reference && json_is_boolean(reference) && json_boolean_value(reference))
+                            {
+                                record_copy = record_arg;
+                            }
+                            else
+                            {
+                                record_copy = not_record_copy(record_arg);
+                                if (record_copy == NOT_PTR_ERROR)
+                                {
+                                    not_record_link_decrease(record_arg);
+                                    goto region_cleanup;
+                                }
+
+                                if (not_record_link_decrease(record_arg) < 0)
+                                {
+                                    goto region_cleanup;
+                                }
+                            }
+
+                            not_record_tuple_t *tuple = not_record_make_tuple(record_copy, NULL);
                             if (tuple == NOT_PTR_ERROR)
                             {
-                                not_record_link_decrease(record_arg);
+                                not_record_link_decrease(record_copy);
                                 goto region_cleanup;
                             }
 
@@ -3117,9 +3158,9 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
             {
                 if (json_is_string(prefix) && (strcmp(json_string_value(prefix), "*") == 0))
                 {
-                    not_record_tuple_t *tuple_top = NOT_PTR_NULL, *tuple_iter = NOT_PTR_NULL;
+                    not_record_tuple_t *tuple_top = NULL, *tuple_iter = NULL;
 
-                    for (; item != NOT_PTR_NULL; item = item->next)
+                    for (; item != NULL; item = item->next)
                     {
                         argument = (not_node_argument_t *)item->value;
                         if (argument->value)
@@ -3127,7 +3168,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                             break;
                         }
 
-                        not_record_t *record_arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+                        not_record_t *record_arg = not_expression(argument->key, strip, applicant, NULL);
                         if (record_arg == NOT_PTR_ERROR)
                         {
                             not_error_no_memory();
@@ -3149,10 +3190,30 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                             goto region_cleanup_karg;
                         }
 
-                        not_record_tuple_t *tuple = not_record_make_tuple(record_arg, NOT_PTR_NULL);
+                        not_record_t *record_copy = NULL;
+                        if (reference && json_is_boolean(reference) && json_boolean_value(reference))
+                        {
+                            record_copy = record_arg;
+                        }
+                        else
+                        {
+                            record_copy = not_record_copy(record_arg);
+                            if (record_copy == NOT_PTR_ERROR)
+                            {
+                                not_record_link_decrease(record_arg);
+                                goto region_cleanup_karg;
+                            }
+
+                            if (not_record_link_decrease(record_arg) < 0)
+                            {
+                                goto region_cleanup_karg;
+                            }
+                        }
+
+                        not_record_tuple_t *tuple = not_record_make_tuple(record_copy, NULL);
                         if (tuple == NOT_PTR_ERROR)
                         {
-                            not_record_link_decrease(record_arg);
+                            not_record_link_decrease(record_copy);
                             goto region_cleanup_karg;
                         }
 
@@ -3176,7 +3237,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                         goto region_cleanup_karg;
                     }
 
-                    not_record_tuple_t *tuple = not_record_make_tuple(record, NOT_PTR_NULL);
+                    not_record_tuple_t *tuple = not_record_make_tuple(record, NULL);
                     if (record == NOT_PTR_ERROR)
                     {
                         not_record_link_decrease(record);
@@ -3211,7 +3272,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                 }
                 else
                 {
-                    not_record_t *record_arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+                    not_record_t *record_arg = not_expression(argument->key, strip, applicant, NULL);
                     if (record_arg == NOT_PTR_ERROR)
                     {
                         not_error_no_memory();
@@ -3233,10 +3294,30 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
                         goto region_cleanup;
                     }
 
-                    not_record_tuple_t *tuple = not_record_make_tuple(record_arg, NOT_PTR_NULL);
+                    not_record_t *record_copy = NULL;
+                    if (reference && json_is_boolean(reference) && json_boolean_value(reference))
+                    {
+                        record_copy = record_arg;
+                    }
+                    else
+                    {
+                        record_copy = not_record_copy(record_arg);
+                        if (record_copy == NOT_PTR_ERROR)
+                        {
+                            not_record_link_decrease(record_arg);
+                            goto region_cleanup;
+                        }
+
+                        if (not_record_link_decrease(record_arg) < 0)
+                        {
+                            goto region_cleanup;
+                        }
+                    }
+
+                    not_record_tuple_t *tuple = not_record_make_tuple(record_copy, NULL);
                     if (tuple == NOT_PTR_ERROR)
                     {
-                        not_record_link_decrease(record_arg);
+                        not_record_link_decrease(record_copy);
                         goto region_cleanup;
                     }
 
@@ -3488,7 +3569,7 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
                 }
                 return NOT_PTR_ERROR;
             }
-            not_record_t *record_value = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *record_value = not_expression(argument->key, strip, applicant, NULL);
             if (record_value == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(record_base) < 0)
@@ -3631,7 +3712,7 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
                 }
                 return NOT_PTR_ERROR;
             }
-            not_record_t *record_value = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *record_value = not_expression(argument->key, strip, applicant, NULL);
             if (record_value == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(record_base) < 0)
@@ -3825,7 +3906,7 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
                 return NOT_PTR_ERROR;
             }
 
-            not_record_t *record_value = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *record_value = not_expression(argument->key, strip, applicant, NULL);
             if (record_value == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(record_base) < 0)
@@ -3849,7 +3930,7 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
                     return NOT_PTR_ERROR;
                 }
 
-                not_record_t *record_round = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+                not_record_t *record_round = not_expression(argument->key, strip, applicant, NULL);
                 if (record_round == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_value) < 0)
@@ -4111,7 +4192,7 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
                 }
                 return NOT_PTR_ERROR;
             }
-            not_record_t *record_value = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *record_value = not_expression(argument->key, strip, applicant, NULL);
             if (record_value == NOT_PTR_ERROR)
             {
                 if (not_record_link_decrease(record_base) < 0)

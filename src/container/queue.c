@@ -121,7 +121,7 @@ void not_queue_unlink(not_queue_t *queue, not_queue_entry_t *entry)
 		entry->previous->next = entry->next;
 	}
 
-	entry->next = entry->previous = NOT_PTR_NULL;
+	entry->next = entry->previous = NULL;
 }
 
 void not_queue_sort(not_queue_t *queue, int (*f)(not_queue_entry_t *, not_queue_entry_t *))
@@ -157,7 +157,7 @@ not_queue_right_pop(not_queue_t *queue)
 {
 	if (not_queue_is_empty(queue))
 	{
-		return NOT_PTR_NULL;
+		return NULL;
 	}
 	not_queue_entry_t *entry = queue->end->previous;
 	not_queue_unlink(queue, entry);

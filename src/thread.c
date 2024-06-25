@@ -28,7 +28,7 @@ not_thread_init()
     bt->id = pthread_self();
 #endif
 
-    bt->parent = NOT_PTR_NULL;
+    bt->parent = NULL;
 
     bt->interpreter = not_interpreter_create();
     if (bt->interpreter == NOT_PTR_ERROR)
@@ -106,7 +106,7 @@ not_thread_create(
 
 #if defined(_WIN32) || defined(_WIN64)
     DWORD threadId;
-    HANDLE thread = CreateThread(NOT_PTR_NULL, 0, start_routine, arg, 0, &threadId);
+    HANDLE thread = CreateThread(NULL, 0, start_routine, arg, 0, &threadId);
     if (!thread)
     {
         not_interpreter_destroy(t->interpreter);
@@ -119,7 +119,7 @@ not_thread_create(
     t->thread = thread;
 #else
     pthread_t thread;
-    if (pthread_create(&thread, NOT_PTR_NULL, start_routine, arg) != 0)
+    if (pthread_create(&thread, NULL, start_routine, arg) != 0)
     {
         not_interpreter_destroy(t->interpreter);
         not_memory_free(t);
@@ -146,13 +146,13 @@ not_thread_find_by_id(not_thread_t *parent, not_thread_id_t id)
         }
 
         not_thread_t *r1 = not_thread_find_by_id(t, id);
-        if (r1 != NOT_PTR_NULL)
+        if (r1 != NULL)
         {
             return r1;
         }
     }
 
-    return NOT_PTR_NULL;
+    return NULL;
 }
 
 not_thread_t *
@@ -172,12 +172,12 @@ not_thread_get_current()
     }
 
     not_thread_t *r1 = not_thread_find_by_id(bt, id);
-    if (r1 != NOT_PTR_NULL)
+    if (r1 != NULL)
     {
         return r1;
     }
 
-    return NOT_PTR_NULL;
+    return NULL;
 }
 
 int32_t
@@ -199,7 +199,7 @@ not_thread_join(not_thread_t *thread)
         return -1;
     }
 #else
-    int32_t r1 = pthread_join(thread->id, NOT_PTR_NULL);
+    int32_t r1 = pthread_join(thread->id, NULL);
     if (r1 == 0)
     {
         return 0;
@@ -222,7 +222,7 @@ not_thread_join_all_childrens()
     {
         return -1;
     }
-    else if (thread == NOT_PTR_NULL)
+    else if (thread == NULL)
     {
         return 0;
     }
@@ -250,7 +250,7 @@ not_thread_exit()
 
     not_thread_t *parent = thread->parent;
 
-    for (not_queue_entry_t *a = parent->childrens->begin, *b = NOT_PTR_NULL; a != parent->childrens->end; a = b)
+    for (not_queue_entry_t *a = parent->childrens->begin, *b = NULL; a != parent->childrens->end; a = b)
     {
         b = a->next;
         not_thread_t *t = (not_thread_t *)a->value;
@@ -267,7 +267,7 @@ not_thread_exit()
 #if defined(_WIN32) || defined(_WIN64)
     ExitThread(0);
 #else
-    pthread_exit(NOT_PTR_NULL);
+    pthread_exit(NULL);
 #endif
     return 0;
 }

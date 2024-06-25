@@ -5,7 +5,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define NOT_PTR_NULL ((void *)0)
 #define NOT_PTR_ERROR ((void *)(int *)-1)
 
 typedef struct not_record

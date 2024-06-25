@@ -38,7 +38,7 @@ not_record_t *
 not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, not_node_t *right, not_node_t *applicant)
 {
     not_node_class_t *class1 = (not_node_class_t *)left->value;
-    for (not_node_t *item = class1->block; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = class1->block; item != NULL; item = item->next)
     {
         if (item->kind == NODE_KIND_PROPERTY)
         {
@@ -59,15 +59,15 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                 {
                     return NOT_PTR_ERROR;
                 }
-                else if (entry != NOT_PTR_NULL)
+                else if (entry != NULL)
                 {
                     return entry->value;
                 }
 
-                not_record_t *record_value = NOT_PTR_NULL;
+                not_record_t *record_value = NULL;
                 if (property->value)
                 {
-                    record_value = not_expression(property->value, strip, applicant, NOT_PTR_NULL);
+                    record_value = not_expression(property->value, strip, applicant, NULL);
                     if (record_value == NOT_PTR_ERROR)
                     {
                         return NOT_PTR_ERROR;
@@ -75,7 +75,7 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
 
                     if (property->type)
                     {
-                        not_record_t *record_type = not_expression(property->type, strip, applicant, NOT_PTR_NULL);
+                        not_record_t *record_type = not_expression(property->type, strip, applicant, NULL);
                         if (record_type == NOT_PTR_ERROR)
                         {
                             if (not_record_link_decrease(record_value) < 0)
@@ -153,7 +153,7 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
 
                                     return NOT_PTR_ERROR;
                                 }
-                                else if (record_value2 == NOT_PTR_NULL)
+                                else if (record_value2 == NULL)
                                 {
                                     not_node_basic_t *basic1 = (not_node_basic_t *)property->key->value;
                                     not_error_type_by_node(property->key, "'%s' mismatch: '%s' and '%s'",
@@ -199,7 +199,7 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                     }
                     return NOT_PTR_ERROR;
                 }
-                else if (entry == NOT_PTR_NULL)
+                else if (entry == NULL)
                 {
                     entry = not_symbol_table_find(left, property->key);
                 }
@@ -258,11 +258,11 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
     if (class1->heritages)
     {
         not_node_block_t *block = (not_node_block_t *)class1->heritages->value;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             not_node_heritage_t *heritage = (not_node_heritage_t *)item->value;
 
-            not_record_t *resp = not_expression(heritage->type, strip, applicant, NOT_PTR_NULL);
+            not_record_t *resp = not_expression(heritage->type, strip, applicant, NULL);
             if (resp == NOT_PTR_ERROR)
             {
                 return NOT_PTR_ERROR;
@@ -300,7 +300,7 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                 {
                     return NOT_PTR_ERROR;
                 }
-                else if (result != NOT_PTR_NULL)
+                else if (result != NULL)
                 {
                     return result;
                 }
@@ -322,14 +322,14 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
         }
     }
 
-    return NOT_PTR_NULL;
+    return NULL;
 }
 
 not_record_t *
 not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left, not_node_t *right, not_node_t *applicant)
 {
     not_node_class_t *class1 = (not_node_class_t *)left->value;
-    for (not_node_t *item = class1->block; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = class1->block; item != NULL; item = item->next)
     {
         if (item->kind == NODE_KIND_PROPERTY)
         {
@@ -359,7 +359,7 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
                 {
                     return NOT_PTR_ERROR;
                 }
-                else if (entry == NOT_PTR_NULL)
+                else if (entry == NULL)
                 {
                     not_node_basic_t *basic1 = (not_node_basic_t *)property->key->value;
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
@@ -431,7 +431,7 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
     if (class1->heritages)
     {
         not_node_block_t *block = (not_node_block_t *)class1->heritages->value;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             not_node_heritage_t *heritage = (not_node_heritage_t *)item->value;
 
@@ -440,7 +440,7 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
             {
                 return NOT_PTR_ERROR;
             }
-            else if (entry == NOT_PTR_NULL)
+            else if (entry == NULL)
             {
                 not_node_basic_t *basic1 = (not_node_basic_t *)heritage->key->value;
                 not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
@@ -462,7 +462,7 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
                 }
                 return NOT_PTR_ERROR;
             }
-            else if (result != NOT_PTR_NULL)
+            else if (result != NULL)
             {
                 if (not_record_link_decrease(entry->value) < 0)
                 {
@@ -473,7 +473,7 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
         }
     }
 
-    return NOT_PTR_NULL;
+    return NULL;
 }
 
 not_record_t *
@@ -484,7 +484,7 @@ not_attribute_object_builtin_remove(not_node_t *base, not_record_t *source, not_
         not_node_block_t *block = (not_node_block_t *)arguments->value;
 
         uint64_t cnt1 = 0;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             cnt1 += 1;
         }
@@ -509,7 +509,7 @@ not_attribute_object_builtin_remove(not_node_t *base, not_record_t *source, not_
     size_t array_length = sizeof(record_arg) / sizeof(record_arg[0]);
     for (size_t i = 0; i < array_length; i++)
     {
-        record_arg[i] = NOT_PTR_NULL;
+        record_arg[i] = NULL;
     }
 
     size_t parameter_index = 0;
@@ -520,7 +520,7 @@ not_attribute_object_builtin_remove(not_node_t *base, not_record_t *source, not_
         {
             if (not_helper_id_strcmp(argument->key, "key") == 0)
             {
-                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NULL);
                 if (arg == NOT_PTR_ERROR)
                 {
                     goto region_cleanup;
@@ -538,7 +538,7 @@ not_attribute_object_builtin_remove(not_node_t *base, not_record_t *source, not_
         }
         else
         {
-            not_record_t *arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *arg = not_expression(argument->key, strip, applicant, NULL);
             if (arg == NOT_PTR_ERROR)
             {
                 goto region_cleanup;
@@ -561,7 +561,7 @@ not_attribute_object_builtin_remove(not_node_t *base, not_record_t *source, not_
 
     for (size_t i = 0; i < array_length; i++)
     {
-        if (record_arg[i] == NOT_PTR_NULL)
+        if (record_arg[i] == NULL)
         {
             if (i == 0)
             {
@@ -572,7 +572,7 @@ not_attribute_object_builtin_remove(not_node_t *base, not_record_t *source, not_
     }
 
     char *key = (char *)record_arg[0]->value;
-    for (not_record_object_t *object = (not_record_object_t *)source->value, *previous = NOT_PTR_NULL; object != NOT_PTR_NULL; object = object->next)
+    for (not_record_object_t *object = (not_record_object_t *)source->value, *previous = NULL; object != NULL; object = object->next)
     {
         if (strcmp(object->key, key) == 0)
         {
@@ -591,11 +591,11 @@ not_attribute_object_builtin_remove(not_node_t *base, not_record_t *source, not_
             {
                 if (previous)
                 {
-                    previous->next = NOT_PTR_NULL;
+                    previous->next = NULL;
                 }
                 else
                 {
-                    source->value = NOT_PTR_NULL;
+                    source->value = NULL;
                 }
             }
 
@@ -640,7 +640,7 @@ not_attribute_object_builtin_add(not_node_t *base, not_record_t *source, not_nod
         not_node_block_t *block = (not_node_block_t *)arguments->value;
 
         uint64_t cnt1 = 0;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             cnt1 += 1;
         }
@@ -665,7 +665,7 @@ not_attribute_object_builtin_add(not_node_t *base, not_record_t *source, not_nod
     size_t array_length = sizeof(record_arg) / sizeof(record_arg[0]);
     for (size_t i = 0; i < array_length; i++)
     {
-        record_arg[i] = NOT_PTR_NULL;
+        record_arg[i] = NULL;
     }
 
     size_t parameter_index = 0;
@@ -676,7 +676,7 @@ not_attribute_object_builtin_add(not_node_t *base, not_record_t *source, not_nod
         {
             if (not_helper_id_strcmp(argument->key, "key") == 0)
             {
-                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NULL);
                 if (arg == NOT_PTR_ERROR)
                 {
                     goto region_cleanup;
@@ -693,7 +693,7 @@ not_attribute_object_builtin_add(not_node_t *base, not_record_t *source, not_nod
             }
             else if (not_helper_id_strcmp(argument->key, "value") == 0)
             {
-                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NULL);
                 if (arg == NOT_PTR_ERROR)
                 {
                     goto region_cleanup;
@@ -704,7 +704,7 @@ not_attribute_object_builtin_add(not_node_t *base, not_record_t *source, not_nod
         }
         else
         {
-            not_record_t *arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *arg = not_expression(argument->key, strip, applicant, NULL);
             if (arg == NOT_PTR_ERROR)
             {
                 goto region_cleanup;
@@ -727,7 +727,7 @@ not_attribute_object_builtin_add(not_node_t *base, not_record_t *source, not_nod
 
     for (size_t i = 0; i < array_length; i++)
     {
-        if (record_arg[i] == NOT_PTR_NULL)
+        if (record_arg[i] == NULL)
         {
             if (i == 0)
             {
@@ -743,8 +743,8 @@ not_attribute_object_builtin_add(not_node_t *base, not_record_t *source, not_nod
 
     int found = 0;
     char *key = (char *)record_arg[0]->value;
-    not_record_object_t *last_object = NOT_PTR_NULL;
-    for (not_record_object_t *object = (not_record_object_t *)source->value; object != NOT_PTR_NULL; object = object->next)
+    not_record_object_t *last_object = NULL;
+    for (not_record_object_t *object = (not_record_object_t *)source->value; object != NULL; object = object->next)
     {
         last_object = object;
         if (strcmp(object->key, key) == 0)
@@ -762,7 +762,7 @@ not_attribute_object_builtin_add(not_node_t *base, not_record_t *source, not_nod
 
     if (found == 0)
     {
-        not_record_object_t *new_object = not_record_make_object(key, record_arg[1], NOT_PTR_NULL);
+        not_record_object_t *new_object = not_record_make_object(key, record_arg[1], NULL);
         if (new_object == NOT_PTR_ERROR)
         {
             goto region_cleanup;
@@ -809,7 +809,7 @@ not_attribute_object_builtin_contain(not_node_t *base, not_record_t *source, not
         not_node_block_t *block = (not_node_block_t *)arguments->value;
 
         uint64_t cnt1 = 0;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             cnt1 += 1;
         }
@@ -834,7 +834,7 @@ not_attribute_object_builtin_contain(not_node_t *base, not_record_t *source, not
     size_t array_length = sizeof(record_arg) / sizeof(record_arg[0]);
     for (size_t i = 0; i < array_length; i++)
     {
-        record_arg[i] = NOT_PTR_NULL;
+        record_arg[i] = NULL;
     }
 
     size_t parameter_index = 0;
@@ -845,7 +845,7 @@ not_attribute_object_builtin_contain(not_node_t *base, not_record_t *source, not
         {
             if (not_helper_id_strcmp(argument->key, "key") == 0)
             {
-                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NULL);
                 if (arg == NOT_PTR_ERROR)
                 {
                     goto region_cleanup;
@@ -863,7 +863,7 @@ not_attribute_object_builtin_contain(not_node_t *base, not_record_t *source, not
         }
         else
         {
-            not_record_t *arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *arg = not_expression(argument->key, strip, applicant, NULL);
             if (arg == NOT_PTR_ERROR)
             {
                 goto region_cleanup;
@@ -886,7 +886,7 @@ not_attribute_object_builtin_contain(not_node_t *base, not_record_t *source, not
 
     for (size_t i = 0; i < array_length; i++)
     {
-        if (record_arg[i] == NOT_PTR_NULL)
+        if (record_arg[i] == NULL)
         {
             if (i == 0)
             {
@@ -898,7 +898,7 @@ not_attribute_object_builtin_contain(not_node_t *base, not_record_t *source, not
 
     int found = 0;
     char *key = (char *)record_arg[0]->value;
-    for (not_record_object_t *object = (not_record_object_t *)source->value; object != NOT_PTR_NULL; object = object->next)
+    for (not_record_object_t *object = (not_record_object_t *)source->value; object != NULL; object = object->next)
     {
         if (strcmp(object->key, key) == 0)
         {
@@ -936,7 +936,7 @@ not_attribute_tuple_builtin_remove(not_node_t *base, not_record_t *source, not_n
         not_node_block_t *block = (not_node_block_t *)arguments->value;
 
         uint64_t cnt1 = 0;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             cnt1 += 1;
         }
@@ -961,7 +961,7 @@ not_attribute_tuple_builtin_remove(not_node_t *base, not_record_t *source, not_n
     size_t array_length = sizeof(record_arg) / sizeof(record_arg[0]);
     for (size_t i = 0; i < array_length; i++)
     {
-        record_arg[i] = NOT_PTR_NULL;
+        record_arg[i] = NULL;
     }
 
     size_t parameter_index = 0;
@@ -972,7 +972,7 @@ not_attribute_tuple_builtin_remove(not_node_t *base, not_record_t *source, not_n
         {
             if (not_helper_id_strcmp(argument->key, "index") == 0)
             {
-                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NULL);
                 if (arg == NOT_PTR_ERROR)
                 {
                     goto region_cleanup;
@@ -990,7 +990,7 @@ not_attribute_tuple_builtin_remove(not_node_t *base, not_record_t *source, not_n
         }
         else
         {
-            not_record_t *arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *arg = not_expression(argument->key, strip, applicant, NULL);
             if (arg == NOT_PTR_ERROR)
             {
                 goto region_cleanup;
@@ -1013,7 +1013,7 @@ not_attribute_tuple_builtin_remove(not_node_t *base, not_record_t *source, not_n
 
     for (size_t i = 0; i < array_length; i++)
     {
-        if (record_arg[i] == NOT_PTR_NULL)
+        if (record_arg[i] == NULL)
         {
             if (i == 0)
             {
@@ -1025,7 +1025,7 @@ not_attribute_tuple_builtin_remove(not_node_t *base, not_record_t *source, not_n
 
     mpz_t length;
     mpz_init_set_si(length, 0);
-    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value; tuple != NOT_PTR_NULL; tuple = tuple->next)
+    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value; tuple != NULL; tuple = tuple->next)
     {
         mpz_add_ui(length, length, 1);
     }
@@ -1042,7 +1042,7 @@ not_attribute_tuple_builtin_remove(not_node_t *base, not_record_t *source, not_n
 
     mpz_t index;
     mpz_init_set_si(index, 0);
-    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value, *previous = NOT_PTR_NULL; tuple != NOT_PTR_NULL; tuple = tuple->next)
+    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value, *previous = NULL; tuple != NULL; tuple = tuple->next)
     {
         if (mpz_cmp(index, term) == 0)
         {
@@ -1061,11 +1061,11 @@ not_attribute_tuple_builtin_remove(not_node_t *base, not_record_t *source, not_n
             {
                 if (previous)
                 {
-                    previous->next = NOT_PTR_NULL;
+                    previous->next = NULL;
                 }
                 else
                 {
-                    source->value = NOT_PTR_NULL;
+                    source->value = NULL;
                 }
             }
 
@@ -1115,7 +1115,7 @@ not_attribute_tuple_builtin_set(not_node_t *base, not_record_t *source, not_node
         not_node_block_t *block = (not_node_block_t *)arguments->value;
 
         uint64_t cnt1 = 0;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             cnt1 += 1;
         }
@@ -1140,7 +1140,7 @@ not_attribute_tuple_builtin_set(not_node_t *base, not_record_t *source, not_node
     size_t array_length = sizeof(record_arg) / sizeof(record_arg[0]);
     for (size_t i = 0; i < array_length; i++)
     {
-        record_arg[i] = NOT_PTR_NULL;
+        record_arg[i] = NULL;
     }
 
     size_t parameter_index = 0;
@@ -1151,7 +1151,7 @@ not_attribute_tuple_builtin_set(not_node_t *base, not_record_t *source, not_node
         {
             if (not_helper_id_strcmp(argument->key, "index") == 0)
             {
-                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NULL);
                 if (arg == NOT_PTR_ERROR)
                 {
                     goto region_cleanup;
@@ -1168,7 +1168,7 @@ not_attribute_tuple_builtin_set(not_node_t *base, not_record_t *source, not_node
             }
             else if (not_helper_id_strcmp(argument->key, "value") == 0)
             {
-                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NULL);
                 if (arg == NOT_PTR_ERROR)
                 {
                     goto region_cleanup;
@@ -1179,7 +1179,7 @@ not_attribute_tuple_builtin_set(not_node_t *base, not_record_t *source, not_node
         }
         else
         {
-            not_record_t *arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *arg = not_expression(argument->key, strip, applicant, NULL);
             if (arg == NOT_PTR_ERROR)
             {
                 goto region_cleanup;
@@ -1202,7 +1202,7 @@ not_attribute_tuple_builtin_set(not_node_t *base, not_record_t *source, not_node
 
     for (size_t i = 0; i < array_length; i++)
     {
-        if (record_arg[i] == NOT_PTR_NULL)
+        if (record_arg[i] == NULL)
         {
             if (i == 0)
             {
@@ -1218,7 +1218,7 @@ not_attribute_tuple_builtin_set(not_node_t *base, not_record_t *source, not_node
 
     mpz_t length;
     mpz_init_set_si(length, 0);
-    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value; tuple != NOT_PTR_NULL; tuple = tuple->next)
+    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value; tuple != NULL; tuple = tuple->next)
     {
         mpz_add_ui(length, length, 1);
     }
@@ -1235,11 +1235,11 @@ not_attribute_tuple_builtin_set(not_node_t *base, not_record_t *source, not_node
 
     mpz_t index;
     mpz_init_set_si(index, 0);
-    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value; tuple != NOT_PTR_NULL; tuple = tuple->next)
+    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value; tuple != NULL; tuple = tuple->next)
     {
         if (mpz_cmp(index, term) < 0)
         {
-            if (tuple->next == NOT_PTR_NULL)
+            if (tuple->next == NULL)
             {
                 not_record_t *arg = not_record_make_undefined();
                 if (arg == NOT_PTR_ERROR)
@@ -1249,7 +1249,7 @@ not_attribute_tuple_builtin_set(not_node_t *base, not_record_t *source, not_node
                     goto region_cleanup;
                 }
 
-                not_record_tuple_t *new_tuple = not_record_make_tuple(arg, NOT_PTR_NULL);
+                not_record_tuple_t *new_tuple = not_record_make_tuple(arg, NULL);
                 if (new_tuple == NOT_PTR_ERROR)
                 {
                     mpz_clear(term);
@@ -1311,7 +1311,7 @@ not_attribute_tuple_builtin_insert(not_node_t *base, not_record_t *source, not_n
         not_node_block_t *block = (not_node_block_t *)arguments->value;
 
         uint64_t cnt1 = 0;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             cnt1 += 1;
         }
@@ -1336,7 +1336,7 @@ not_attribute_tuple_builtin_insert(not_node_t *base, not_record_t *source, not_n
     size_t array_length = sizeof(record_arg) / sizeof(record_arg[0]);
     for (size_t i = 0; i < array_length; i++)
     {
-        record_arg[i] = NOT_PTR_NULL;
+        record_arg[i] = NULL;
     }
 
     size_t parameter_index = 0;
@@ -1347,7 +1347,7 @@ not_attribute_tuple_builtin_insert(not_node_t *base, not_record_t *source, not_n
         {
             if (not_helper_id_strcmp(argument->key, "index") == 0)
             {
-                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NULL);
                 if (arg == NOT_PTR_ERROR)
                 {
                     goto region_cleanup;
@@ -1364,7 +1364,7 @@ not_attribute_tuple_builtin_insert(not_node_t *base, not_record_t *source, not_n
             }
             else if (not_helper_id_strcmp(argument->key, "value") == 0)
             {
-                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NULL);
                 if (arg == NOT_PTR_ERROR)
                 {
                     goto region_cleanup;
@@ -1375,7 +1375,7 @@ not_attribute_tuple_builtin_insert(not_node_t *base, not_record_t *source, not_n
         }
         else
         {
-            not_record_t *arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *arg = not_expression(argument->key, strip, applicant, NULL);
             if (arg == NOT_PTR_ERROR)
             {
                 goto region_cleanup;
@@ -1398,7 +1398,7 @@ not_attribute_tuple_builtin_insert(not_node_t *base, not_record_t *source, not_n
 
     for (size_t i = 0; i < array_length; i++)
     {
-        if (record_arg[i] == NOT_PTR_NULL)
+        if (record_arg[i] == NULL)
         {
             if (i == 0)
             {
@@ -1414,7 +1414,7 @@ not_attribute_tuple_builtin_insert(not_node_t *base, not_record_t *source, not_n
 
     mpz_t length;
     mpz_init_set_si(length, 0);
-    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value; tuple != NOT_PTR_NULL; tuple = tuple->next)
+    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value; tuple != NULL; tuple = tuple->next)
     {
         mpz_add_ui(length, length, 1);
     }
@@ -1432,11 +1432,11 @@ not_attribute_tuple_builtin_insert(not_node_t *base, not_record_t *source, not_n
     int appended = 0;
     mpz_t index;
     mpz_init_set_si(index, 0);
-    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value, *previous = NOT_PTR_NULL; tuple != NOT_PTR_NULL; tuple = tuple->next)
+    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value, *previous = NULL; tuple != NULL; tuple = tuple->next)
     {
         if (mpz_cmp(index, term) < 0)
         {
-            if (tuple->next == NOT_PTR_NULL)
+            if (tuple->next == NULL)
             {
                 not_record_t *arg = not_record_make_undefined();
                 if (arg == NOT_PTR_ERROR)
@@ -1446,7 +1446,7 @@ not_attribute_tuple_builtin_insert(not_node_t *base, not_record_t *source, not_n
                     goto region_cleanup;
                 }
 
-                not_record_tuple_t *new_tuple = not_record_make_tuple(arg, NOT_PTR_NULL);
+                not_record_tuple_t *new_tuple = not_record_make_tuple(arg, NULL);
                 if (new_tuple == NOT_PTR_ERROR)
                 {
                     mpz_clear(term);
@@ -1480,7 +1480,7 @@ not_attribute_tuple_builtin_insert(not_node_t *base, not_record_t *source, not_n
             else
             {
                 not_record_link_increase(record_arg[1]);
-                not_record_tuple_t *new_tuple = not_record_make_tuple(record_arg[1], NOT_PTR_NULL);
+                not_record_tuple_t *new_tuple = not_record_make_tuple(record_arg[1], NULL);
                 if (new_tuple == NOT_PTR_ERROR)
                 {
                     mpz_clear(term);
@@ -1537,7 +1537,7 @@ not_attribute_tuple_builtin_append(not_node_t *base, not_record_t *source, not_n
         not_node_block_t *block = (not_node_block_t *)arguments->value;
 
         uint64_t cnt1 = 0;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             cnt1 += 1;
         }
@@ -1562,7 +1562,7 @@ not_attribute_tuple_builtin_append(not_node_t *base, not_record_t *source, not_n
     size_t array_length = sizeof(record_arg) / sizeof(record_arg[0]);
     for (size_t i = 0; i < array_length; i++)
     {
-        record_arg[i] = NOT_PTR_NULL;
+        record_arg[i] = NULL;
     }
 
     size_t parameter_index = 0;
@@ -1573,7 +1573,7 @@ not_attribute_tuple_builtin_append(not_node_t *base, not_record_t *source, not_n
         {
             if (not_helper_id_strcmp(argument->key, "value") == 0)
             {
-                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NULL);
                 if (arg == NOT_PTR_ERROR)
                 {
                     goto region_cleanup;
@@ -1584,7 +1584,7 @@ not_attribute_tuple_builtin_append(not_node_t *base, not_record_t *source, not_n
         }
         else
         {
-            not_record_t *arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *arg = not_expression(argument->key, strip, applicant, NULL);
             if (arg == NOT_PTR_ERROR)
             {
                 goto region_cleanup;
@@ -1598,7 +1598,7 @@ not_attribute_tuple_builtin_append(not_node_t *base, not_record_t *source, not_n
 
     for (size_t i = 0; i < array_length; i++)
     {
-        if (record_arg[i] == NOT_PTR_NULL)
+        if (record_arg[i] == NULL)
         {
             if (i == 0)
             {
@@ -1610,7 +1610,7 @@ not_attribute_tuple_builtin_append(not_node_t *base, not_record_t *source, not_n
 
     mpz_t length;
     mpz_init_set_si(length, 0);
-    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value; tuple != NOT_PTR_NULL; tuple = tuple->next)
+    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value; tuple != NULL; tuple = tuple->next)
     {
         mpz_add_ui(length, length, 1);
     }
@@ -1623,11 +1623,11 @@ not_attribute_tuple_builtin_append(not_node_t *base, not_record_t *source, not_n
     int appended = 0;
     mpz_t index;
     mpz_init_set_si(index, 0);
-    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value, *previous = NOT_PTR_NULL; tuple != NOT_PTR_NULL; tuple = tuple->next)
+    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value, *previous = NULL; tuple != NULL; tuple = tuple->next)
     {
         if (mpz_cmp(index, term) < 0)
         {
-            if (tuple->next == NOT_PTR_NULL)
+            if (tuple->next == NULL)
             {
                 not_record_t *arg = not_record_make_undefined();
                 if (arg == NOT_PTR_ERROR)
@@ -1637,7 +1637,7 @@ not_attribute_tuple_builtin_append(not_node_t *base, not_record_t *source, not_n
                     goto region_cleanup;
                 }
 
-                not_record_tuple_t *new_tuple = not_record_make_tuple(arg, NOT_PTR_NULL);
+                not_record_tuple_t *new_tuple = not_record_make_tuple(arg, NULL);
                 if (new_tuple == NOT_PTR_ERROR)
                 {
                     mpz_clear(term);
@@ -1671,7 +1671,7 @@ not_attribute_tuple_builtin_append(not_node_t *base, not_record_t *source, not_n
             else
             {
                 not_record_link_increase(record_arg[0]);
-                not_record_tuple_t *new_tuple = not_record_make_tuple(record_arg[0], NOT_PTR_NULL);
+                not_record_tuple_t *new_tuple = not_record_make_tuple(record_arg[0], NULL);
                 if (new_tuple == NOT_PTR_ERROR)
                 {
                     mpz_clear(term);
@@ -1728,7 +1728,7 @@ not_attribute_tuple_builtin_count(not_node_t *base, not_record_t *source, not_no
         not_node_block_t *block = (not_node_block_t *)arguments->value;
 
         uint64_t cnt1 = 0;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             cnt1 += 1;
         }
@@ -1744,7 +1744,7 @@ not_attribute_tuple_builtin_count(not_node_t *base, not_record_t *source, not_no
 
     mpz_t length;
     mpz_init_set_si(length, 0);
-    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value; tuple != NOT_PTR_NULL; tuple = tuple->next)
+    for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value; tuple != NULL; tuple = tuple->next)
     {
         mpz_add_ui(length, length, 1);
     }
@@ -1764,7 +1764,7 @@ not_attribute_string_builtin_length(not_node_t *base, not_record_t *source, not_
         not_node_block_t *block = (not_node_block_t *)arguments->value;
 
         uint64_t cnt1 = 0;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             cnt1 += 1;
         }
@@ -1800,7 +1800,7 @@ not_attribute_string_builtin_upper(not_node_t *base, not_record_t *source, not_n
         not_node_block_t *block = (not_node_block_t *)arguments->value;
 
         uint64_t cnt1 = 0;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             cnt1 += 1;
         }
@@ -1841,7 +1841,7 @@ not_attribute_string_builtin_lower(not_node_t *base, not_record_t *source, not_n
         not_node_block_t *block = (not_node_block_t *)arguments->value;
 
         uint64_t cnt1 = 0;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             cnt1 += 1;
         }
@@ -1882,7 +1882,7 @@ not_attribute_string_builtin_count(not_node_t *base, not_record_t *source, not_n
         not_node_block_t *block = (not_node_block_t *)arguments->value;
 
         uint64_t cnt1 = 0;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             cnt1 += 1;
         }
@@ -1907,7 +1907,7 @@ not_attribute_string_builtin_count(not_node_t *base, not_record_t *source, not_n
     size_t array_length = sizeof(record_arg) / sizeof(record_arg[0]);
     for (size_t i = 0; i < array_length; i++)
     {
-        record_arg[i] = NOT_PTR_NULL;
+        record_arg[i] = NULL;
     }
 
     size_t parameter_index = 0;
@@ -1918,7 +1918,7 @@ not_attribute_string_builtin_count(not_node_t *base, not_record_t *source, not_n
         {
             if (not_helper_id_strcmp(argument->key, "value") == 0)
             {
-                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NULL);
                 if (arg == NOT_PTR_ERROR)
                 {
                     goto region_cleanup;
@@ -1936,7 +1936,7 @@ not_attribute_string_builtin_count(not_node_t *base, not_record_t *source, not_n
         }
         else
         {
-            not_record_t *arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *arg = not_expression(argument->key, strip, applicant, NULL);
             if (arg == NOT_PTR_ERROR)
             {
                 goto region_cleanup;
@@ -1959,7 +1959,7 @@ not_attribute_string_builtin_count(not_node_t *base, not_record_t *source, not_n
 
     for (size_t i = 0; i < array_length; i++)
     {
-        if (record_arg[i] == NOT_PTR_NULL)
+        if (record_arg[i] == NULL)
         {
             if (i == 0)
             {
@@ -2012,7 +2012,7 @@ not_attribute_string_builtin_replace(not_node_t *base, not_record_t *source, not
         not_node_block_t *block = (not_node_block_t *)arguments->value;
 
         uint64_t cnt1 = 0;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             cnt1 += 1;
         }
@@ -2037,7 +2037,7 @@ not_attribute_string_builtin_replace(not_node_t *base, not_record_t *source, not
     size_t array_length = sizeof(record_arg) / sizeof(record_arg[0]);
     for (size_t i = 0; i < array_length; i++)
     {
-        record_arg[i] = NOT_PTR_NULL;
+        record_arg[i] = NULL;
     }
 
     size_t parameter_index = 0;
@@ -2048,7 +2048,7 @@ not_attribute_string_builtin_replace(not_node_t *base, not_record_t *source, not
         {
             if (not_helper_id_strcmp(argument->key, "old") == 0)
             {
-                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NULL);
                 if (arg == NOT_PTR_ERROR)
                 {
                     goto region_cleanup;
@@ -2065,7 +2065,7 @@ not_attribute_string_builtin_replace(not_node_t *base, not_record_t *source, not
             }
             else if (not_helper_id_strcmp(argument->key, "new") == 0)
             {
-                not_record_t *arg = not_expression(argument->value, strip, applicant, NOT_PTR_NULL);
+                not_record_t *arg = not_expression(argument->value, strip, applicant, NULL);
                 if (arg == NOT_PTR_ERROR)
                 {
                     goto region_cleanup;
@@ -2083,7 +2083,7 @@ not_attribute_string_builtin_replace(not_node_t *base, not_record_t *source, not
         }
         else
         {
-            not_record_t *arg = not_expression(argument->key, strip, applicant, NOT_PTR_NULL);
+            not_record_t *arg = not_expression(argument->key, strip, applicant, NULL);
             if (arg == NOT_PTR_ERROR)
             {
                 goto region_cleanup;
@@ -2114,7 +2114,7 @@ not_attribute_string_builtin_replace(not_node_t *base, not_record_t *source, not
 
     for (size_t i = 0; i < array_length; i++)
     {
-        if (record_arg[i] == NOT_PTR_NULL)
+        if (record_arg[i] == NULL)
         {
             if (i == 0)
             {
@@ -2201,7 +2201,7 @@ not_attribute_string_builtin_trim(not_node_t *base, not_record_t *source, not_no
         not_node_block_t *block = (not_node_block_t *)arguments->value;
 
         uint64_t cnt1 = 0;
-        for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
             cnt1 += 1;
         }
@@ -2290,7 +2290,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             {
                 return NOT_PTR_ERROR;
             }
-            else if (result == NOT_PTR_NULL)
+            else if (result == NULL)
             {
                 not_node_class_t *class1 = (not_node_class_t *)type->value;
                 not_node_basic_t *basic1 = (not_node_basic_t *)binary->right->value;
@@ -2350,7 +2350,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
         {
             return NOT_PTR_ERROR;
         }
-        else if (result == NOT_PTR_NULL)
+        else if (result == NULL)
         {
             not_node_class_t *class1 = (not_node_class_t *)type->value;
             not_node_basic_t *basic1 = (not_node_basic_t *)binary->right->value;
@@ -2418,7 +2418,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             return result;
         }
 
-        for (not_record_object_t *item = (not_record_object_t *)left->value; item != NOT_PTR_NULL; item = item->next)
+        for (not_record_object_t *item = (not_record_object_t *)left->value; item != NULL; item = item->next)
         {
             if (not_helper_id_strcmp(binary->right, item->key) == 0)
             {

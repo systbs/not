@@ -15,7 +15,7 @@ not_record_t *
 not_record_create(uint64_t kind, void *value)
 {
     not_record_t *record = (not_record_t *)calloc(1, sizeof(not_record_t));
-    if (record == NOT_PTR_NULL)
+    if (record == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -50,7 +50,7 @@ not_record_t *
 not_record_make_int(const char *value)
 {
     mpz_t *basic = (mpz_t *)calloc(1, sizeof(mpz_t));
-    if (basic == NOT_PTR_NULL)
+    if (basic == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -72,7 +72,7 @@ not_record_t *
 not_record_make_int_from_ui(uint64_t value)
 {
     mpz_t *basic = (mpz_t *)calloc(1, sizeof(mpz_t));
-    if (basic == NOT_PTR_NULL)
+    if (basic == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -94,7 +94,7 @@ not_record_t *
 not_record_make_int_from_si(int64_t value)
 {
     mpz_t *basic = (mpz_t *)calloc(1, sizeof(mpz_t));
-    if (basic == NOT_PTR_NULL)
+    if (basic == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -115,7 +115,7 @@ not_record_t *
 not_record_make_int_from_z(mpz_t value)
 {
     mpz_t *basic = (mpz_t *)calloc(1, sizeof(mpz_t));
-    if (basic == NOT_PTR_NULL)
+    if (basic == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -135,7 +135,7 @@ not_record_t *
 not_record_make_int_from_f(mpf_t value)
 {
     mpz_t *basic = (mpz_t *)calloc(1, sizeof(mpz_t));
-    if (basic == NOT_PTR_NULL)
+    if (basic == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -156,7 +156,7 @@ not_record_t *
 not_record_make_float(const char *value)
 {
     mpf_t *basic = (mpf_t *)calloc(1, sizeof(mpf_t));
-    if (basic == NOT_PTR_NULL)
+    if (basic == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -177,7 +177,7 @@ not_record_t *
 not_record_make_float_from_d(double value)
 {
     mpf_t *basic = (mpf_t *)calloc(1, sizeof(mpf_t));
-    if (basic == NOT_PTR_NULL)
+    if (basic == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -198,7 +198,7 @@ not_record_t *
 not_record_make_float_from_si(int64_t value)
 {
     mpf_t *basic = (mpf_t *)calloc(1, sizeof(mpf_t));
-    if (basic == NOT_PTR_NULL)
+    if (basic == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -219,7 +219,7 @@ not_record_t *
 not_record_make_float_from_ui(uint64_t value)
 {
     mpf_t *basic = (mpf_t *)calloc(1, sizeof(mpf_t));
-    if (basic == NOT_PTR_NULL)
+    if (basic == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -240,7 +240,7 @@ not_record_t *
 not_record_make_float_from_f(mpf_t value)
 {
     mpf_t *basic = (mpf_t *)calloc(1, sizeof(mpf_t));
-    if (basic == NOT_PTR_NULL)
+    if (basic == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -260,7 +260,7 @@ not_record_t *
 not_record_make_float_from_z(mpz_t value)
 {
     mpf_t *basic = (mpf_t *)calloc(1, sizeof(mpf_t));
-    if (basic == NOT_PTR_NULL)
+    if (basic == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -281,7 +281,7 @@ not_record_t *
 not_record_make_char(char value)
 {
     char *basic = (char *)calloc(1, sizeof(char));
-    if (basic == NOT_PTR_NULL)
+    if (basic == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -301,7 +301,7 @@ not_record_t *
 not_record_make_string(char *value)
 {
     char *basic = (char *)calloc(1, strlen(value) + 1);
-    if (basic == NOT_PTR_NULL)
+    if (basic == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -321,7 +321,7 @@ not_record_object_t *
 not_record_make_object(const char *key, not_record_t *value, not_record_object_t *next)
 {
     not_record_object_t *basic = (not_record_object_t *)calloc(1, sizeof(not_record_object_t));
-    if (basic == NOT_PTR_NULL)
+    if (basic == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -346,7 +346,7 @@ not_record_tuple_t *
 not_record_make_tuple(not_record_t *value, not_record_tuple_t *next)
 {
     not_record_tuple_t *basic = (not_record_tuple_t *)calloc(1, sizeof(not_record_tuple_t));
-    if (basic == NOT_PTR_NULL)
+    if (basic == NULL)
     {
         return NOT_PTR_ERROR;
     }
@@ -360,19 +360,19 @@ not_record_make_tuple(not_record_t *value, not_record_tuple_t *next)
 not_record_t *
 not_record_make_null()
 {
-    return not_record_create(RECORD_KIND_NULL, NOT_PTR_NULL);
+    return not_record_create(RECORD_KIND_NULL, NULL);
 }
 
 not_record_t *
 not_record_make_undefined()
 {
-    return not_record_create(RECORD_KIND_UNDEFINED, NOT_PTR_NULL);
+    return not_record_create(RECORD_KIND_UNDEFINED, NULL);
 }
 
 not_record_t *
 not_record_make_nan()
 {
-    return not_record_create(RECORD_KIND_NAN, NOT_PTR_NULL);
+    return not_record_create(RECORD_KIND_NAN, NULL);
 }
 
 int32_t
@@ -389,7 +389,7 @@ not_record_object_destroy(not_record_object_t *object)
         {
             return -1;
         }
-        object->next = NOT_PTR_NULL;
+        object->next = NULL;
     }
 
     if (not_record_link_decrease(object->value) < 0)
@@ -417,7 +417,7 @@ not_record_tuple_destroy(not_record_tuple_t *tuple)
         {
             return -1;
         }
-        tuple->next = NOT_PTR_NULL;
+        tuple->next = NULL;
     }
 
     if (not_record_link_decrease(tuple->value) < 0)
@@ -493,7 +493,7 @@ not_record_t *
 not_record_tuple_arg_by_index(not_record_t *args, size_t index)
 {
     size_t i = 0;
-    for (not_record_tuple_t *tuple = (not_record_tuple_t *)args->value; tuple != NOT_PTR_NULL; tuple = tuple->next)
+    for (not_record_tuple_t *tuple = (not_record_tuple_t *)args->value; tuple != NULL; tuple = tuple->next)
     {
         if (i == index)
         {
@@ -502,5 +502,5 @@ not_record_tuple_arg_by_index(not_record_t *args, size_t index)
         i += 1;
     }
 
-    return NOT_PTR_NULL;
+    return NULL;
 }

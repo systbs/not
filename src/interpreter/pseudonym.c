@@ -67,11 +67,11 @@ not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, n
         if (type2->type->kind == RECORD_KIND_OBJECT)
         {
             uint64_t cnt1 = 0;
-            for (not_record_object_t *object1 = (not_record_object_t *)type1->value; object1 != NOT_PTR_NULL; object1 = object1->next)
+            for (not_record_object_t *object1 = (not_record_object_t *)type1->value; object1 != NULL; object1 = object1->next)
             {
                 int32_t found = 0;
                 cnt1 += 1;
-                for (not_record_object_t *object2 = (not_record_object_t *)type2->value; object2 != NOT_PTR_NULL; object2 = object2->next)
+                for (not_record_object_t *object2 = (not_record_object_t *)type2->value; object2 != NULL; object2 = object2->next)
                 {
                     if (strcmp(object1->key, object2->key) == 0)
                     {
@@ -94,7 +94,7 @@ not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, n
             }
 
             uint64_t cnt2 = 0;
-            for (not_record_object_t *object2 = (not_record_object_t *)type2->value; object2 != NOT_PTR_NULL; object2 = object2->next)
+            for (not_record_object_t *object2 = (not_record_object_t *)type2->value; object2 != NULL; object2 = object2->next)
             {
                 cnt2 += 1;
             }
@@ -132,12 +132,12 @@ not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, n
             uint64_t cnt1 = 0;
             for (
                 not_record_tuple_t *tuple1 = (not_record_tuple_t *)type1->value, *tuple2 = (not_record_tuple_t *)type2->value;
-                tuple1 != NOT_PTR_NULL;
+                tuple1 != NULL;
                 tuple1 = tuple1->next, tuple2 = tuple2->next)
             {
                 cnt1 += 1;
 
-                if (tuple2 == NOT_PTR_NULL)
+                if (tuple2 == NULL)
                 {
                     return 0;
                 }
@@ -154,7 +154,7 @@ not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, n
             }
 
             uint64_t cnt2 = 0;
-            for (not_record_tuple_t *tuple2 = (not_record_tuple_t *)type2->value; tuple2 != NOT_PTR_NULL; tuple2 = tuple2->next)
+            for (not_record_tuple_t *tuple2 = (not_record_tuple_t *)type2->value; tuple2 != NULL; tuple2 = tuple2->next)
             {
                 cnt2 += 1;
             }
@@ -180,11 +180,11 @@ not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, n
                 {
                     not_node_block_t *block1 = (not_node_block_t *)class1->heritages->value;
 
-                    for (not_node_t *item = block1->items; item != NOT_PTR_NULL; item = item->next)
+                    for (not_node_t *item = block1->items; item != NULL; item = item->next)
                     {
                         not_node_heritage_t *heritage = (not_node_heritage_t *)item->value;
 
-                        not_record_t *record_heritage = not_expression(heritage->type, strip, applicant, NOT_PTR_NULL);
+                        not_record_t *record_heritage = not_expression(heritage->type, strip, applicant, NULL);
                         if (record_heritage == NOT_PTR_ERROR)
                         {
                             return -1;
@@ -235,7 +235,7 @@ not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, n
             {
                 not_node_block_t *block1 = (not_node_block_t *)class1->generics->value;
 
-                for (not_node_t *item1 = block1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
                 {
                     not_node_generic_t *generic1 = (not_node_generic_t *)item1->value;
 
@@ -244,7 +244,7 @@ not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, n
                     {
                         return -1;
                     }
-                    if (strip_entry1 == NOT_PTR_NULL)
+                    if (strip_entry1 == NULL)
                     {
                         not_node_basic_t *basic1 = (not_node_basic_t *)generic1->key->value;
                         not_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
@@ -260,7 +260,7 @@ not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, n
                         }
                         return -1;
                     }
-                    if (strip_entry2 == NOT_PTR_NULL)
+                    if (strip_entry2 == NULL)
                     {
                         not_node_basic_t *basic1 = (not_node_basic_t *)generic1->key->value;
                         not_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
@@ -326,8 +326,8 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
     }
 
     not_record_type_t *base_type = (not_record_type_t *)base->value;
-    not_strip_t *copy_strip = NOT_PTR_NULL;
-    not_node_block_t *block1 = NOT_PTR_NULL;
+    not_strip_t *copy_strip = NULL;
+    not_node_block_t *block1 = NULL;
     if (base_type->type->kind == NODE_KIND_CLASS)
     {
         not_node_class_t *class1 = (not_node_class_t *)base_type->type->value;
@@ -384,7 +384,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
     not_node_t *item1 = block1->items;
 
     not_node_block_t *block2 = carrier->data->value;
-    for (not_node_t *item2 = block2->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+    for (not_node_t *item2 = block2->items; item2 != NULL; item2 = item2->next)
     {
         not_node_field_t *field = (not_node_field_t *)item2->value;
 
@@ -418,13 +418,13 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             else
             {
                 uint64_t cnt1 = 0;
-                for (not_node_t *item1 = block1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
                 {
                     cnt1 += 1;
                 }
 
                 uint64_t cnt2 = 0;
-                for (not_node_t *item1 = block2->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = block2->items; item1 != NULL; item1 = item1->next)
                 {
                     cnt2 += 1;
                 }
@@ -456,13 +456,13 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
         if (field->value)
         {
             int8_t found = 0;
-            for (not_node_t *item3 = item1; item3 != NOT_PTR_NULL; item3 = item3->next)
+            for (not_node_t *item3 = item1; item3 != NULL; item3 = item3->next)
             {
                 not_node_generic_t *generic = (not_node_generic_t *)item3->value;
                 if (not_helper_id_cmp(field->key, generic->key) == 0)
                 {
                     found = 1;
-                    not_record_t *record_field = not_expression(field->value, copy_strip, applicant, NOT_PTR_NULL);
+                    not_record_t *record_field = not_expression(field->value, copy_strip, applicant, NULL);
                     if (record_field == NOT_PTR_ERROR)
                     {
                         goto region_error;
@@ -478,7 +478,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
 
                     if (generic->type)
                     {
-                        not_record_t *record_gen_type = not_expression(generic->type, copy_strip, applicant, NOT_PTR_NULL);
+                        not_record_t *record_gen_type = not_expression(generic->type, copy_strip, applicant, NULL);
                         if (record_gen_type == NOT_PTR_ERROR)
                         {
                             if (not_record_link_decrease(record_field) < 0)
@@ -546,7 +546,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
                         }
                         goto region_error;
                     }
-                    else if (entry == NOT_PTR_NULL)
+                    else if (entry == NULL)
                     {
                         not_node_basic_t *basic1 = (not_node_basic_t *)generic->key->value;
                         not_error_type_by_node(field->key, "'%s' already set", basic1->value);
@@ -591,7 +591,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
         {
             not_node_generic_t *generic = (not_node_generic_t *)item1->value;
 
-            not_record_t *record_field = not_expression(field->key, copy_strip, applicant, NOT_PTR_NULL);
+            not_record_t *record_field = not_expression(field->key, copy_strip, applicant, NULL);
 
             if (record_field == NOT_PTR_ERROR)
             {
@@ -607,7 +607,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
 
             if (generic->type)
             {
-                not_record_t *record_gen_type = not_expression(generic->type, copy_strip, applicant, NOT_PTR_NULL);
+                not_record_t *record_gen_type = not_expression(generic->type, copy_strip, applicant, NULL);
                 if (record_gen_type == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_field) < 0)
@@ -660,7 +660,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
                 }
                 goto region_error;
             }
-            else if (entry == NOT_PTR_NULL)
+            else if (entry == NULL)
             {
                 not_node_basic_t *basic1 = (not_node_basic_t *)generic->key->value;
                 not_error_type_by_node(field->key, "'%s' already set", basic1->value);
@@ -676,7 +676,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
         }
     }
 
-    for (; item1 != NOT_PTR_NULL; item1 = item1->next)
+    for (; item1 != NULL; item1 = item1->next)
     {
         not_node_generic_t *generic = (not_node_generic_t *)item1->value;
         not_entry_t *entry = not_strip_variable_find(copy_strip, base_type->type, generic->key);
@@ -684,7 +684,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
         {
             if (generic->value)
             {
-                not_record_t *record_field = not_expression(generic->value, copy_strip, applicant, NOT_PTR_NULL);
+                not_record_t *record_field = not_expression(generic->value, copy_strip, applicant, NULL);
                 if (record_field == NOT_PTR_ERROR)
                 {
                     goto region_error;
@@ -707,7 +707,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
                     }
                     goto region_error;
                 }
-                else if (entry == NOT_PTR_NULL)
+                else if (entry == NULL)
                 {
                     not_node_basic_t *basic1 = (not_node_basic_t *)generic->key->value;
                     not_error_type_by_node(generic->key, "'%s' already set", basic1->value);

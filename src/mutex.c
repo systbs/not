@@ -11,10 +11,10 @@ int32_t
 not_mutex_init(not_mutex_t *mutex)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    mutex->handle = CreateMutex(NOT_PTR_NULL, FALSE, NOT_PTR_NULL);
-    return (mutex->handle == NOT_PTR_NULL) ? -1 : 0;
+    mutex->handle = CreateMutex(NULL, FALSE, NULL);
+    return (mutex->handle == NULL) ? -1 : 0;
 #else
-    return pthread_mutex_init(&mutex->handle, NOT_PTR_NULL);
+    return pthread_mutex_init(&mutex->handle, NULL);
 #endif
 }
 

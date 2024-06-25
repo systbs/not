@@ -97,7 +97,7 @@ not_path_join(const char *path_a, const char *path_b, char *buffer, size_t buffe
  * This function generates a new path by joining multiple paths together. It
  * will remove double separators, and unlike cwk_not_path_get_absolute it permits
  * the use of multiple relative paths to combine. The last path of the
- * submitted string array must be set to NOT_PTR_NULL. The result will be written to a
+ * submitted string array must be set to NULL. The result will be written to a
  * buffer, which might be truncated if the buffer is not large enough to hold
  * the full path. However, the truncated result will always be
  * null-terminated. The returned value is the amount of characters which the

@@ -66,7 +66,7 @@ void not_error_no_memory()
             goto region_fatal;
         }
 
-        not_record_object_t *object_code = not_record_make_object("code", code, NOT_PTR_NULL);
+        not_record_object_t *object_code = not_record_make_object("code", code, NULL);
         if (object_code == NOT_PTR_ERROR)
         {
             goto region_fatal;
@@ -126,7 +126,7 @@ void not_error_system(const char *format, ...)
             goto region_fatal;
         }
 
-        not_record_object_t *object_code = not_record_make_object("code", code, NOT_PTR_NULL);
+        not_record_object_t *object_code = not_record_make_object("code", code, NULL);
         if (object_code == NOT_PTR_ERROR)
         {
             goto region_fatal;
@@ -181,7 +181,7 @@ void not_error_lexer_by_position(not_position_t position, const char *format, ..
             goto region_fatal;
         }
 
-        not_record_object_t *object_line = not_record_make_object("line", line, NOT_PTR_NULL);
+        not_record_object_t *object_line = not_record_make_object("line", line, NULL);
         if (object_line == NOT_PTR_ERROR)
         {
             goto region_fatal;
@@ -225,7 +225,7 @@ void not_error_lexer_by_position(not_position_t position, const char *format, ..
             goto region_fatal;
         }
 
-        not_record_object_t *object_position = not_record_make_object("position", record_position, NOT_PTR_NULL);
+        not_record_object_t *object_position = not_record_make_object("position", record_position, NULL);
         if (object_position == NOT_PTR_ERROR)
         {
             goto region_fatal;
@@ -300,7 +300,7 @@ region_fatal:
 
     FILE *fp = fopen(position.path, "rb");
 
-    if (fp == NOT_PTR_NULL)
+    if (fp == NULL)
     {
         fprintf(stderr, "%s-%u:could not open(%s)\n",
                 __FILE__, __LINE__, position.path);
@@ -313,7 +313,7 @@ region_fatal:
     size_t len = sizeof(chunk);
 
     char *buf = calloc(1, len);
-    if (buf == NOT_PTR_NULL)
+    if (buf == NULL)
     {
         fprintf(stderr, "%s-%u:Unable to allocted a block of %zu bytes\n",
                 __FILE__, __LINE__, sizeof(chunk));
@@ -321,7 +321,7 @@ region_fatal:
     }
 
     buf[0] = '\0';
-    while (fgets(chunk, sizeof(chunk), fp) != NOT_PTR_NULL)
+    while (fgets(chunk, sizeof(chunk), fp) != NULL)
     {
         size_t len_used = strlen(buf);
         size_t chunk_used = strlen(chunk);
@@ -329,7 +329,7 @@ region_fatal:
         if (len - len_used < chunk_used)
         {
             len *= 2;
-            if ((buf = realloc(buf, len)) == NOT_PTR_NULL)
+            if ((buf = realloc(buf, len)) == NULL)
             {
                 fprintf(stderr, "%s-%u:Unable to reallocate a block of %zu bytes\n",
                         __FILE__, __LINE__, sizeof(len));
@@ -415,7 +415,7 @@ void not_error_syntax_by_position(not_position_t position, const char *format, .
             goto region_fatal;
         }
 
-        not_record_object_t *object_line = not_record_make_object("line", line, NOT_PTR_NULL);
+        not_record_object_t *object_line = not_record_make_object("line", line, NULL);
         if (object_line == NOT_PTR_ERROR)
         {
             goto region_fatal;
@@ -459,7 +459,7 @@ void not_error_syntax_by_position(not_position_t position, const char *format, .
             goto region_fatal;
         }
 
-        not_record_object_t *object_position = not_record_make_object("position", record_position, NOT_PTR_NULL);
+        not_record_object_t *object_position = not_record_make_object("position", record_position, NULL);
         if (object_position == NOT_PTR_ERROR)
         {
             goto region_fatal;
@@ -534,7 +534,7 @@ region_fatal:
 
     FILE *fp = fopen(position.path, "rb");
 
-    if (fp == NOT_PTR_NULL)
+    if (fp == NULL)
     {
         fprintf(stderr, "%s-%u:could not open(%s)\n",
                 __FILE__, __LINE__, position.path);
@@ -547,7 +547,7 @@ region_fatal:
     size_t len = sizeof(chunk);
 
     char *buf = calloc(1, len);
-    if (buf == NOT_PTR_NULL)
+    if (buf == NULL)
     {
         fprintf(stderr, "%s-%u:Unable to allocted a block of %zu bytes\n",
                 __FILE__, __LINE__, sizeof(chunk));
@@ -555,7 +555,7 @@ region_fatal:
     }
 
     buf[0] = '\0';
-    while (fgets(chunk, sizeof(chunk), fp) != NOT_PTR_NULL)
+    while (fgets(chunk, sizeof(chunk), fp) != NULL)
     {
         size_t len_used = strlen(buf);
         size_t chunk_used = strlen(chunk);
@@ -563,7 +563,7 @@ region_fatal:
         if (len - len_used < chunk_used)
         {
             len *= 2;
-            if ((buf = realloc(buf, len)) == NOT_PTR_NULL)
+            if ((buf = realloc(buf, len)) == NULL)
             {
                 fprintf(stderr, "%s-%u:Unable to reallocate a block of %zu bytes\n",
                         __FILE__, __LINE__, sizeof(len));
@@ -649,7 +649,7 @@ void not_error_semantic_by_node(not_node_t *node, const char *format, ...)
             goto region_fatal;
         }
 
-        not_record_object_t *object_line = not_record_make_object("line", line, NOT_PTR_NULL);
+        not_record_object_t *object_line = not_record_make_object("line", line, NULL);
         if (object_line == NOT_PTR_ERROR)
         {
             goto region_fatal;
@@ -693,7 +693,7 @@ void not_error_semantic_by_node(not_node_t *node, const char *format, ...)
             goto region_fatal;
         }
 
-        not_record_object_t *object_position = not_record_make_object("position", record_position, NOT_PTR_NULL);
+        not_record_object_t *object_position = not_record_make_object("position", record_position, NULL);
         if (object_position == NOT_PTR_ERROR)
         {
             goto region_fatal;
@@ -757,7 +757,7 @@ region_fatal:
 #endif
 
     not_node_t *node1 = node;
-    while (node1 != NOT_PTR_NULL)
+    while (node1 != NULL)
     {
         if (node1->kind == NODE_KIND_MODULE)
         {
@@ -802,7 +802,7 @@ region_fatal:
 
     FILE *fp = fopen(position.path, "rb");
 
-    if (fp == NOT_PTR_NULL)
+    if (fp == NULL)
     {
         fprintf(stderr, "%s-%u:could not open(%s)\n",
                 __FILE__, __LINE__, position.path);
@@ -815,7 +815,7 @@ region_fatal:
     size_t len = sizeof(chunk);
 
     char *buf = calloc(1, len);
-    if (buf == NOT_PTR_NULL)
+    if (buf == NULL)
     {
         fprintf(stderr, "%s-%u:Unable to allocted a block of %zu bytes\n",
                 __FILE__, __LINE__, sizeof(chunk));
@@ -823,7 +823,7 @@ region_fatal:
     }
 
     buf[0] = '\0';
-    while (fgets(chunk, sizeof(chunk), fp) != NOT_PTR_NULL)
+    while (fgets(chunk, sizeof(chunk), fp) != NULL)
     {
         size_t len_used = strlen(buf);
         size_t chunk_used = strlen(chunk);
@@ -831,7 +831,7 @@ region_fatal:
         if (len - len_used < chunk_used)
         {
             len *= 2;
-            if ((buf = realloc(buf, len)) == NOT_PTR_NULL)
+            if ((buf = realloc(buf, len)) == NULL)
             {
                 fprintf(stderr, "%s-%u:Unable to reallocate a block of %zu bytes\n",
                         __FILE__, __LINE__, sizeof(len));
@@ -917,7 +917,7 @@ void not_error_runtime_by_node(not_node_t *node, const char *format, ...)
             goto region_fatal;
         }
 
-        not_record_object_t *object_line = not_record_make_object("line", line, NOT_PTR_NULL);
+        not_record_object_t *object_line = not_record_make_object("line", line, NULL);
         if (object_line == NOT_PTR_ERROR)
         {
             goto region_fatal;
@@ -961,7 +961,7 @@ void not_error_runtime_by_node(not_node_t *node, const char *format, ...)
             goto region_fatal;
         }
 
-        not_record_object_t *object_position = not_record_make_object("position", record_position, NOT_PTR_NULL);
+        not_record_object_t *object_position = not_record_make_object("position", record_position, NULL);
         if (object_position == NOT_PTR_ERROR)
         {
             goto region_fatal;
@@ -1025,7 +1025,7 @@ region_fatal:
 #endif
 
     not_node_t *node1 = node;
-    while (node1 != NOT_PTR_NULL)
+    while (node1 != NULL)
     {
         if (node1->kind == NODE_KIND_MODULE)
         {
@@ -1070,7 +1070,7 @@ region_fatal:
 
     FILE *fp = fopen(position.path, "rb");
 
-    if (fp == NOT_PTR_NULL)
+    if (fp == NULL)
     {
         fprintf(stderr, "%s-%u:could not open(%s)\n",
                 __FILE__, __LINE__, position.path);
@@ -1083,7 +1083,7 @@ region_fatal:
     size_t len = sizeof(chunk);
 
     char *buf = calloc(1, len);
-    if (buf == NOT_PTR_NULL)
+    if (buf == NULL)
     {
         fprintf(stderr, "%s-%u:Unable to allocted a block of %zu bytes\n",
                 __FILE__, __LINE__, sizeof(chunk));
@@ -1091,7 +1091,7 @@ region_fatal:
     }
 
     buf[0] = '\0';
-    while (fgets(chunk, sizeof(chunk), fp) != NOT_PTR_NULL)
+    while (fgets(chunk, sizeof(chunk), fp) != NULL)
     {
         size_t len_used = strlen(buf);
         size_t chunk_used = strlen(chunk);
@@ -1099,7 +1099,7 @@ region_fatal:
         if (len - len_used < chunk_used)
         {
             len *= 2;
-            if ((buf = realloc(buf, len)) == NOT_PTR_NULL)
+            if ((buf = realloc(buf, len)) == NULL)
             {
                 fprintf(stderr, "%s-%u:Unable to reallocate a block of %zu bytes\n",
                         __FILE__, __LINE__, sizeof(len));
@@ -1185,7 +1185,7 @@ void not_error_type_by_node(not_node_t *node, const char *format, ...)
             goto region_fatal;
         }
 
-        not_record_object_t *object_line = not_record_make_object("line", line, NOT_PTR_NULL);
+        not_record_object_t *object_line = not_record_make_object("line", line, NULL);
         if (object_line == NOT_PTR_ERROR)
         {
             goto region_fatal;
@@ -1229,7 +1229,7 @@ void not_error_type_by_node(not_node_t *node, const char *format, ...)
             goto region_fatal;
         }
 
-        not_record_object_t *object_position = not_record_make_object("position", record_position, NOT_PTR_NULL);
+        not_record_object_t *object_position = not_record_make_object("position", record_position, NULL);
         if (object_position == NOT_PTR_ERROR)
         {
             goto region_fatal;
@@ -1293,7 +1293,7 @@ region_fatal:
 #endif
 
     not_node_t *node1 = node;
-    while (node1 != NOT_PTR_NULL)
+    while (node1 != NULL)
     {
         if (node1->kind == NODE_KIND_MODULE)
         {
@@ -1338,7 +1338,7 @@ region_fatal:
 
     FILE *fp = fopen(position.path, "rb");
 
-    if (fp == NOT_PTR_NULL)
+    if (fp == NULL)
     {
         fprintf(stderr, "%s-%u:could not open(%s)\n",
                 __FILE__, __LINE__, position.path);
@@ -1351,7 +1351,7 @@ region_fatal:
     size_t len = sizeof(chunk);
 
     char *buf = calloc(1, len);
-    if (buf == NOT_PTR_NULL)
+    if (buf == NULL)
     {
         fprintf(stderr, "%s-%u:Unable to allocted a block of %zu bytes\n",
                 __FILE__, __LINE__, sizeof(chunk));
@@ -1359,7 +1359,7 @@ region_fatal:
     }
 
     buf[0] = '\0';
-    while (fgets(chunk, sizeof(chunk), fp) != NOT_PTR_NULL)
+    while (fgets(chunk, sizeof(chunk), fp) != NULL)
     {
         size_t len_used = strlen(buf);
         size_t chunk_used = strlen(chunk);
@@ -1367,7 +1367,7 @@ region_fatal:
         if (len - len_used < chunk_used)
         {
             len *= 2;
-            if ((buf = realloc(buf, len)) == NOT_PTR_NULL)
+            if ((buf = realloc(buf, len)) == NULL)
             {
                 fprintf(stderr, "%s-%u:Unable to reallocate a block of %zu bytes\n",
                         __FILE__, __LINE__, sizeof(len));

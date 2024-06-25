@@ -182,7 +182,7 @@ not_repository_load(char *base, char *path)
     }
 
     strcpy(entry->path, base_file);
-    entry->root = NOT_PTR_NULL;
+    entry->root = NULL;
     entry->json = root;
     entry->handle = handle;
 
@@ -240,7 +240,7 @@ void not_repository_destroy()
 {
     not_repository_t *repository = not_repository_get();
 
-    for (not_queue_entry_t *n = repository->queue->begin, *b = NOT_PTR_NULL; n != repository->queue->end; n = b)
+    for (not_queue_entry_t *n = repository->queue->begin, *b = NULL; n != repository->queue->end; n = b)
     {
         b = n->next;
         not_module_t *module = (not_module_t *)n->value;

@@ -138,11 +138,11 @@ not_relational_lt(not_node_t *node, not_record_t *left, not_record_t *right, not
             size_t left_count = 0, right_count = 0;
             not_record_object_t *object_left;
             not_record_object_t *object_right;
-            for (object_left = (not_record_object_t *)left->value; object_left != NOT_PTR_NULL; object_left = object_left->next)
+            for (object_left = (not_record_object_t *)left->value; object_left != NULL; object_left = object_left->next)
             {
                 left_count += 1;
                 int found = 0;
-                for (object_right = (not_record_object_t *)right->value; object_right != NOT_PTR_NULL; object_right = object_right->next)
+                for (object_right = (not_record_object_t *)right->value; object_right != NULL; object_right = object_right->next)
                 {
                     if (strcmp(object_left->key, object_right->key) == 0)
                     {
@@ -178,7 +178,7 @@ not_relational_lt(not_node_t *node, not_record_t *left, not_record_t *right, not
                 }
             }
 
-            for (object_right = (not_record_object_t *)right->value; object_right != NOT_PTR_NULL; object_right = object_right->next)
+            for (object_right = (not_record_object_t *)right->value; object_right != NULL; object_right = object_right->next)
             {
                 right_count += 1;
             }
@@ -200,11 +200,11 @@ not_relational_lt(not_node_t *node, not_record_t *left, not_record_t *right, not
 
             not_record_tuple_t *tuple_left;
             not_record_tuple_t *tuple_right;
-            for (tuple_left = (not_record_tuple_t *)left->value, tuple_right = (not_record_tuple_t *)right->value; tuple_left != NOT_PTR_NULL; tuple_left = tuple_left->next, tuple_right = tuple_right->next)
+            for (tuple_left = (not_record_tuple_t *)left->value, tuple_right = (not_record_tuple_t *)right->value; tuple_left != NULL; tuple_left = tuple_left->next, tuple_right = tuple_right->next)
             {
                 left_count += 1;
 
-                if (tuple_right == NOT_PTR_NULL)
+                if (tuple_right == NULL)
                 {
                     return not_record_make_int_from_si(0);
                 }
@@ -230,7 +230,7 @@ not_relational_lt(not_node_t *node, not_record_t *left, not_record_t *right, not
                 }
             }
 
-            for (tuple_right = (not_record_tuple_t *)right->value; tuple_right != NOT_PTR_NULL; tuple_right = tuple_right->next)
+            for (tuple_right = (not_record_tuple_t *)right->value; tuple_right != NULL; tuple_right = tuple_right->next)
             {
                 right_count += 1;
             }
@@ -361,11 +361,11 @@ not_relational_le(not_node_t *node, not_record_t *left, not_record_t *right, not
             size_t left_count = 0, right_count = 0;
             not_record_object_t *object_left;
             not_record_object_t *object_right;
-            for (object_left = (not_record_object_t *)left->value; object_left != NOT_PTR_NULL; object_left = object_left->next)
+            for (object_left = (not_record_object_t *)left->value; object_left != NULL; object_left = object_left->next)
             {
                 left_count += 1;
                 int found = 0;
-                for (object_right = (not_record_object_t *)right->value; object_right != NOT_PTR_NULL; object_right = object_right->next)
+                for (object_right = (not_record_object_t *)right->value; object_right != NULL; object_right = object_right->next)
                 {
                     if (strcmp(object_left->key, object_right->key) == 0)
                     {
@@ -401,7 +401,7 @@ not_relational_le(not_node_t *node, not_record_t *left, not_record_t *right, not
                 }
             }
 
-            for (object_right = (not_record_object_t *)right->value; object_right != NOT_PTR_NULL; object_right = object_right->next)
+            for (object_right = (not_record_object_t *)right->value; object_right != NULL; object_right = object_right->next)
             {
                 right_count += 1;
             }
@@ -423,11 +423,11 @@ not_relational_le(not_node_t *node, not_record_t *left, not_record_t *right, not
 
             not_record_tuple_t *tuple_left;
             not_record_tuple_t *tuple_right;
-            for (tuple_left = (not_record_tuple_t *)left->value, tuple_right = (not_record_tuple_t *)right->value; tuple_left != NOT_PTR_NULL; tuple_left = tuple_left->next, tuple_right = tuple_right->next)
+            for (tuple_left = (not_record_tuple_t *)left->value, tuple_right = (not_record_tuple_t *)right->value; tuple_left != NULL; tuple_left = tuple_left->next, tuple_right = tuple_right->next)
             {
                 left_count += 1;
 
-                if (tuple_right == NOT_PTR_NULL)
+                if (tuple_right == NULL)
                 {
                     return not_record_make_int_from_si(0);
                 }
@@ -453,7 +453,7 @@ not_relational_le(not_node_t *node, not_record_t *left, not_record_t *right, not
                 }
             }
 
-            for (tuple_right = (not_record_tuple_t *)right->value; tuple_right != NOT_PTR_NULL; tuple_right = tuple_right->next)
+            for (tuple_right = (not_record_tuple_t *)right->value; tuple_right != NULL; tuple_right = tuple_right->next)
             {
                 right_count += 1;
             }
@@ -591,11 +591,11 @@ not_relational_gt(not_node_t *node, not_record_t *left, not_record_t *right, not
             size_t left_count = 0, right_count = 0;
             not_record_object_t *object_left;
             not_record_object_t *object_right;
-            for (object_left = (not_record_object_t *)left->value; object_left != NOT_PTR_NULL; object_left = object_left->next)
+            for (object_left = (not_record_object_t *)left->value; object_left != NULL; object_left = object_left->next)
             {
                 left_count += 1;
                 int found = 0;
-                for (object_right = (not_record_object_t *)right->value; object_right != NOT_PTR_NULL; object_right = object_right->next)
+                for (object_right = (not_record_object_t *)right->value; object_right != NULL; object_right = object_right->next)
                 {
                     if (strcmp(object_left->key, object_right->key) == 0)
                     {
@@ -631,7 +631,7 @@ not_relational_gt(not_node_t *node, not_record_t *left, not_record_t *right, not
                 }
             }
 
-            for (object_right = (not_record_object_t *)right->value; object_right != NOT_PTR_NULL; object_right = object_right->next)
+            for (object_right = (not_record_object_t *)right->value; object_right != NULL; object_right = object_right->next)
             {
                 right_count += 1;
             }
@@ -653,11 +653,11 @@ not_relational_gt(not_node_t *node, not_record_t *left, not_record_t *right, not
 
             not_record_tuple_t *tuple_left;
             not_record_tuple_t *tuple_right;
-            for (tuple_left = (not_record_tuple_t *)left->value, tuple_right = (not_record_tuple_t *)right->value; tuple_left != NOT_PTR_NULL; tuple_left = tuple_left->next, tuple_right = tuple_right->next)
+            for (tuple_left = (not_record_tuple_t *)left->value, tuple_right = (not_record_tuple_t *)right->value; tuple_left != NULL; tuple_left = tuple_left->next, tuple_right = tuple_right->next)
             {
                 left_count += 1;
 
-                if (tuple_right == NOT_PTR_NULL)
+                if (tuple_right == NULL)
                 {
                     return not_record_make_int_from_si(1);
                 }
@@ -683,7 +683,7 @@ not_relational_gt(not_node_t *node, not_record_t *left, not_record_t *right, not
                 }
             }
 
-            for (tuple_right = (not_record_tuple_t *)right->value; tuple_right != NOT_PTR_NULL; tuple_right = tuple_right->next)
+            for (tuple_right = (not_record_tuple_t *)right->value; tuple_right != NULL; tuple_right = tuple_right->next)
             {
                 right_count += 1;
             }
@@ -814,11 +814,11 @@ not_relational_ge(not_node_t *node, not_record_t *left, not_record_t *right, not
             size_t left_count = 0, right_count = 0;
             not_record_object_t *object_left;
             not_record_object_t *object_right;
-            for (object_left = (not_record_object_t *)left->value; object_left != NOT_PTR_NULL; object_left = object_left->next)
+            for (object_left = (not_record_object_t *)left->value; object_left != NULL; object_left = object_left->next)
             {
                 left_count += 1;
                 int found = 0;
-                for (object_right = (not_record_object_t *)right->value; object_right != NOT_PTR_NULL; object_right = object_right->next)
+                for (object_right = (not_record_object_t *)right->value; object_right != NULL; object_right = object_right->next)
                 {
                     if (strcmp(object_left->key, object_right->key) == 0)
                     {
@@ -854,7 +854,7 @@ not_relational_ge(not_node_t *node, not_record_t *left, not_record_t *right, not
                 }
             }
 
-            for (object_right = (not_record_object_t *)right->value; object_right != NOT_PTR_NULL; object_right = object_right->next)
+            for (object_right = (not_record_object_t *)right->value; object_right != NULL; object_right = object_right->next)
             {
                 right_count += 1;
             }
@@ -876,11 +876,11 @@ not_relational_ge(not_node_t *node, not_record_t *left, not_record_t *right, not
 
             not_record_tuple_t *tuple_left;
             not_record_tuple_t *tuple_right;
-            for (tuple_left = (not_record_tuple_t *)left->value, tuple_right = (not_record_tuple_t *)right->value; tuple_left != NOT_PTR_NULL; tuple_left = tuple_left->next, tuple_right = tuple_right->next)
+            for (tuple_left = (not_record_tuple_t *)left->value, tuple_right = (not_record_tuple_t *)right->value; tuple_left != NULL; tuple_left = tuple_left->next, tuple_right = tuple_right->next)
             {
                 left_count += 1;
 
-                if (tuple_right == NOT_PTR_NULL)
+                if (tuple_right == NULL)
                 {
                     return not_record_make_int_from_si(1);
                 }
@@ -906,7 +906,7 @@ not_relational_ge(not_node_t *node, not_record_t *left, not_record_t *right, not
                 }
             }
 
-            for (tuple_right = (not_record_tuple_t *)right->value; tuple_right != NOT_PTR_NULL; tuple_right = tuple_right->next)
+            for (tuple_right = (not_record_tuple_t *)right->value; tuple_right != NULL; tuple_right = tuple_right->next)
             {
                 right_count += 1;
             }

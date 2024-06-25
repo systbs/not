@@ -39,7 +39,7 @@ not_call_for_bracket(not_node_t *base, not_node_t *arguments, not_strip_t *strip
 {
     not_node_class_t *class1 = (not_node_class_t *)node->value;
 
-    for (not_node_t *item = class1->block; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = class1->block; item != NULL; item = item->next)
     {
         if (item->kind == NODE_KIND_FUN)
         {
@@ -70,7 +70,7 @@ not_call_for_bracket(not_node_t *base, not_node_t *arguments, not_strip_t *strip
                     return NOT_PTR_ERROR;
                 }
 
-                not_record_t *rax = not_thread_get_and_set_rax(NOT_PTR_NULL);
+                not_record_t *rax = not_thread_get_and_set_rax(NULL);
                 if (rax == NOT_PTR_ERROR)
                 {
                     return NOT_PTR_ERROR;
@@ -142,7 +142,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
             not_node_block_t *block = (not_node_block_t *)carrier->data->value;
 
             uint64_t arg_cnt = 0;
-            for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+            for (not_node_t *item = block->items; item != NULL; item = item->next)
             {
                 arg_cnt += 1;
             }
@@ -200,7 +200,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                 return NOT_PTR_ERROR;
             }
 
-            for (not_record_object_t *item = (not_record_object_t *)base->value; item != NOT_PTR_NULL; item = item->next)
+            for (not_record_object_t *item = (not_record_object_t *)base->value; item != NULL; item = item->next)
             {
                 if (strcmp(item->key, (char *)record_arg->value) == 0)
                 {
@@ -237,7 +237,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
             not_node_block_t *block = (not_node_block_t *)carrier->data->value;
 
             uint64_t arg_cnt = 0;
-            for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+            for (not_node_t *item = block->items; item != NULL; item = item->next)
             {
                 arg_cnt += 1;
             }
@@ -265,7 +265,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
             mpz_set_si(step, 1);
 
             arg_cnt = 0;
-            for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+            for (not_node_t *item = block->items; item != NULL; item = item->next)
             {
                 arg_cnt += 1;
 
@@ -333,7 +333,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
             mpz_set_si(term, 0);
             mpz_set_si(cnt, 0);
 
-            for (not_record_tuple_t *item = (not_record_tuple_t *)base->value; item != NOT_PTR_NULL; item = item->next)
+            for (not_record_tuple_t *item = (not_record_tuple_t *)base->value; item != NULL; item = item->next)
             {
                 mpz_add_ui(length, length, 1);
             }
@@ -384,19 +384,19 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
 
                 mpz_set(term, start);
 
-                not_record_tuple_t *top = NOT_PTR_NULL, *declaration = NOT_PTR_NULL;
+                not_record_tuple_t *top = NULL, *declaration = NULL;
                 if (mpz_cmp(start, stop) <= 0)
                 {
                     while ((mpz_cmp(term, start) >= 0) && (mpz_cmp(term, stop) <= 0))
                     {
                         mpz_set_si(cnt, 0);
-                        for (not_record_tuple_t *item = (not_record_tuple_t *)base->value; item != NOT_PTR_NULL; item = item->next)
+                        for (not_record_tuple_t *item = (not_record_tuple_t *)base->value; item != NULL; item = item->next)
                         {
                             if (mpz_cmp(term, cnt) == 0)
                             {
                                 not_record_link_increase(item->value);
 
-                                not_record_tuple_t *tuple = not_record_make_tuple(item->value, NOT_PTR_NULL);
+                                not_record_tuple_t *tuple = not_record_make_tuple(item->value, NULL);
                                 if (tuple == NOT_PTR_ERROR)
                                 {
                                     if (not_record_link_decrease(item->value) < 0)
@@ -435,7 +435,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                                     return NOT_PTR_ERROR;
                                 }
 
-                                if (declaration == NOT_PTR_NULL)
+                                if (declaration == NULL)
                                 {
                                     declaration = tuple;
                                     top = tuple;
@@ -458,13 +458,13 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                     while ((mpz_cmp(term, stop) >= 0) && (mpz_cmp(term, start) <= 0))
                     {
                         mpz_set_si(cnt, 0);
-                        for (not_record_tuple_t *item = (not_record_tuple_t *)base->value; item != NOT_PTR_NULL; item = item->next)
+                        for (not_record_tuple_t *item = (not_record_tuple_t *)base->value; item != NULL; item = item->next)
                         {
                             if (mpz_cmp(term, cnt) == 0)
                             {
                                 not_record_link_increase(item->value);
 
-                                not_record_tuple_t *tuple = not_record_make_tuple(item->value, NOT_PTR_NULL);
+                                not_record_tuple_t *tuple = not_record_make_tuple(item->value, NULL);
                                 if (tuple == NOT_PTR_ERROR)
                                 {
                                     if (not_record_link_decrease(item->value) < 0)
@@ -503,7 +503,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                                     return NOT_PTR_ERROR;
                                 }
 
-                                if (declaration == NOT_PTR_NULL)
+                                if (declaration == NULL)
                                 {
                                     declaration = tuple;
                                     top = tuple;
@@ -570,7 +570,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                 }
 
                 mpz_set(term, start);
-                for (not_record_tuple_t *item = (not_record_tuple_t *)base->value; item != NOT_PTR_NULL; item = item->next)
+                for (not_record_tuple_t *item = (not_record_tuple_t *)base->value; item != NULL; item = item->next)
                 {
                     if (mpz_cmp(cnt, term) == 0)
                     {
@@ -595,7 +595,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
             not_node_block_t *block = (not_node_block_t *)carrier->data->value;
 
             uint64_t arg_cnt = 0;
-            for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+            for (not_node_t *item = block->items; item != NULL; item = item->next)
             {
                 arg_cnt += 1;
             }
@@ -623,7 +623,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
             mpz_set_si(step, 1);
 
             arg_cnt = 0;
-            for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+            for (not_node_t *item = block->items; item != NULL; item = item->next)
             {
                 arg_cnt += 1;
 
@@ -737,13 +737,13 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
 
                 mpz_set(term, start);
 
-                not_record_tuple_t *top = NOT_PTR_NULL, *declaration = NOT_PTR_NULL;
+                not_record_tuple_t *top = NULL, *declaration = NULL;
                 if (mpz_cmp(start, stop) <= 0)
                 {
                     while ((mpz_cmp(term, start) >= 0) && (mpz_cmp(term, stop) <= 0))
                     {
                         mpz_set_si(cnt, 0);
-                        for (char *str = (char *)base->value; str != NOT_PTR_NULL; str++)
+                        for (char *str = (char *)base->value; str != NULL; str++)
                         {
                             if (mpz_cmp(term, cnt) == 0)
                             {
@@ -772,7 +772,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                                 }
                                 item->reference = 1;
 
-                                not_record_tuple_t *tuple = not_record_make_tuple(item, NOT_PTR_NULL);
+                                not_record_tuple_t *tuple = not_record_make_tuple(item, NULL);
                                 if (tuple == NOT_PTR_ERROR)
                                 {
                                     if (not_record_link_decrease(item) < 0)
@@ -811,7 +811,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                                     return NOT_PTR_ERROR;
                                 }
 
-                                if (declaration == NOT_PTR_NULL)
+                                if (declaration == NULL)
                                 {
                                     declaration = tuple;
                                     top = tuple;
@@ -834,7 +834,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                     while ((mpz_cmp(term, stop) >= 0) && (mpz_cmp(term, start) <= 0))
                     {
                         mpz_set_si(cnt, 0);
-                        for (char *str = (char *)base->value; str != NOT_PTR_NULL; str++)
+                        for (char *str = (char *)base->value; str != NULL; str++)
                         {
                             if (mpz_cmp(term, cnt) == 0)
                             {
@@ -864,7 +864,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                                 }
                                 item->reference = 1;
 
-                                not_record_tuple_t *tuple = not_record_make_tuple(item, NOT_PTR_NULL);
+                                not_record_tuple_t *tuple = not_record_make_tuple(item, NULL);
                                 if (tuple == NOT_PTR_ERROR)
                                 {
                                     if (not_record_link_decrease(item) < 0)
@@ -903,7 +903,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                                     return NOT_PTR_ERROR;
                                 }
 
-                                if (declaration == NOT_PTR_NULL)
+                                if (declaration == NULL)
                                 {
                                     declaration = tuple;
                                     top = tuple;
@@ -971,7 +971,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
 
                 mpz_set(term, start);
 
-                for (char *str = (char *)base->value; str != NOT_PTR_NULL; str++)
+                for (char *str = (char *)base->value; str != NULL; str++)
                 {
                     if (mpz_cmp(cnt, term) == 0)
                     {

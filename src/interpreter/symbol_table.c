@@ -189,5 +189,5 @@ not_symbol_table_find(not_node_t *scope, not_node_t *key)
         return NOT_PTR_ERROR;
     }
 
-    return NOT_PTR_NULL;
+    return NULL;
 }

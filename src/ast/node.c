@@ -144,7 +144,7 @@ not_node_create(not_node_t *parent, not_position_t position)
 	node->position = position;
 	node->parent = parent;
 
-	node->next = node->previous = NOT_PTR_NULL;
+	node->next = node->previous = NULL;
 
 	return node;
 }
@@ -235,7 +235,7 @@ not_node_make_null(not_node_t *node)
 		return NOT_PTR_ERROR;
 	}
 
-	basic->value = NOT_PTR_NULL;
+	basic->value = NULL;
 
 	not_node_update(node, NODE_KIND_NULL, basic);
 	return node;
@@ -251,7 +251,7 @@ not_node_make_kint(not_node_t *node)
 		return NOT_PTR_ERROR;
 	}
 
-	basic->value = NOT_PTR_NULL;
+	basic->value = NULL;
 
 	not_node_update(node, NODE_KIND_KINT, basic);
 
@@ -268,7 +268,7 @@ not_node_make_kfloat(not_node_t *node)
 		return NOT_PTR_ERROR;
 	}
 
-	basic->value = NOT_PTR_NULL;
+	basic->value = NULL;
 
 	not_node_update(node, NODE_KIND_KFLOAT, basic);
 
@@ -285,7 +285,7 @@ not_node_make_kchar(not_node_t *node)
 		return NOT_PTR_ERROR;
 	}
 
-	basic->value = NOT_PTR_NULL;
+	basic->value = NULL;
 
 	not_node_update(node, NODE_KIND_KCHAR, basic);
 
@@ -302,7 +302,7 @@ not_node_make_kstring(not_node_t *node)
 		return NOT_PTR_ERROR;
 	}
 
-	basic->value = NOT_PTR_NULL;
+	basic->value = NULL;
 
 	not_node_update(node, NODE_KIND_KSTRING, basic);
 

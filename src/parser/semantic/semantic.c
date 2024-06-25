@@ -130,7 +130,7 @@ not_semantic_lambda(not_node_t *node)
 {
     not_node_lambda_t *fun1 = (not_node_lambda_t *)node->value;
 
-    if (fun1->generics != NOT_PTR_NULL)
+    if (fun1->generics != NULL)
     {
         int32_t r1 = not_semantic_generics(fun1->generics);
         if (r1 == -1)
@@ -139,7 +139,7 @@ not_semantic_lambda(not_node_t *node)
         }
     }
 
-    if (fun1->parameters != NOT_PTR_NULL)
+    if (fun1->parameters != NULL)
     {
         int32_t r1 = not_semantic_parameters(fun1->parameters);
         if (r1 == -1)
@@ -148,7 +148,7 @@ not_semantic_lambda(not_node_t *node)
         }
     }
 
-    if (fun1->body != NOT_PTR_NULL)
+    if (fun1->body != NULL)
     {
         if (fun1->body->kind == NODE_KIND_BODY)
         {
@@ -298,7 +298,7 @@ not_semantic_array(not_node_t *node)
         return -1;
     }
 
-    if (carrier1->data != NOT_PTR_NULL)
+    if (carrier1->data != NULL)
     {
         int32_t r1 = not_semantic_arguments(carrier1->data);
         if (r1 == -1)
@@ -936,7 +936,7 @@ not_semantic_if(not_node_t *node)
 {
     not_node_if_t *if1 = (not_node_if_t *)node->value;
 
-    if (if1->condition != NOT_PTR_NULL)
+    if (if1->condition != NULL)
     {
         int32_t r1 = not_semantic_expression(if1->condition);
         if (r1 == -1)
@@ -945,7 +945,7 @@ not_semantic_if(not_node_t *node)
         }
     }
 
-    if (if1->then_body != NOT_PTR_NULL)
+    if (if1->then_body != NULL)
     {
         int32_t r1 = not_semantic_body(if1->then_body);
         if (r1 == -1)
@@ -954,7 +954,7 @@ not_semantic_if(not_node_t *node)
         }
     }
 
-    if (if1->else_body != NOT_PTR_NULL)
+    if (if1->else_body != NULL)
     {
         not_node_t *else_body1 = if1->else_body;
 
@@ -984,15 +984,15 @@ not_semantic_for(not_node_t *node)
 {
     not_node_for_t *for1 = (not_node_for_t *)node->value;
 
-    if (for1->key != NOT_PTR_NULL)
+    if (for1->key != NULL)
     {
-        for (not_node_t *node1 = node->parent, *subnode = node; node1 != NOT_PTR_NULL; subnode = node1, node1 = node1->parent)
+        for (not_node_t *node1 = node->parent, *subnode = node; node1 != NULL; subnode = node1, node1 = node1->parent)
         {
             if (node1->kind == NODE_KIND_CATCH)
             {
                 not_node_catch_t *catch1 = (not_node_catch_t *)node1->value;
 
-                for (not_node_t *item1 = catch1->parameters; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = catch1->parameters; item1 != NULL; item1 = item1->next)
                 {
                     not_node_parameter_t *parameter1 = (not_node_parameter_t *)item1->value;
                     if (not_semantic_idcmp(for1->key, parameter1->key) == 1)
@@ -1009,7 +1009,7 @@ not_semantic_for(not_node_t *node)
             {
                 not_node_for_t *for2 = (not_node_for_t *)node1->value;
 
-                for (not_node_t *item1 = for2->initializer; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = for2->initializer; item1 != NULL; item1 = item1->next)
                 {
                     if (item1->kind == NODE_KIND_VAR)
                     {
@@ -1028,7 +1028,7 @@ not_semantic_for(not_node_t *node)
                         }
                         else
                         {
-                            for (not_node_t *item2 = var2->key; item2 != NOT_PTR_NULL; item2 = item2->next)
+                            for (not_node_t *item2 = var2->key; item2 != NULL; item2 = item2->next)
                             {
                                 assert(item2->kind == NODE_KIND_ENTITY);
 
@@ -1079,7 +1079,7 @@ not_semantic_for(not_node_t *node)
             {
                 not_node_body_t *body1 = (not_node_body_t *)node1->value;
 
-                for (not_node_t *item1 = body1->declaration; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = body1->declaration; item1 != NULL; item1 = item1->next)
                 {
                     if (item1->id == subnode->id)
                     {
@@ -1089,7 +1089,7 @@ not_semantic_for(not_node_t *node)
                     if (item1->kind == NODE_KIND_FOR)
                     {
                         not_node_for_t *for2 = (not_node_for_t *)item1->value;
-                        if (for2->key != NOT_PTR_NULL)
+                        if (for2->key != NULL)
                         {
                             if (not_semantic_idcmp(for1->key, for2->key) == 1)
                             {
@@ -1104,7 +1104,7 @@ not_semantic_for(not_node_t *node)
                     else if (item1->kind == NODE_KIND_FORIN)
                     {
                         not_node_forin_t *for2 = (not_node_forin_t *)item1->value;
-                        if (for2->key != NOT_PTR_NULL)
+                        if (for2->key != NULL)
                         {
                             if (not_semantic_idcmp(for1->key, for2->key) == 1)
                             {
@@ -1133,7 +1133,7 @@ not_semantic_for(not_node_t *node)
                         else
                         {
                             not_node_block_t *block = (not_node_block_t *)var2->key->value;
-                            for (not_node_t *item2 = block->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                            for (not_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                             {
                                 assert(item2->kind == NODE_KIND_ENTITY);
                                 not_node_entity_t *entity1 = (not_node_entity_t *)item2->value;
@@ -1156,9 +1156,9 @@ not_semantic_for(not_node_t *node)
             {
                 not_node_fun_t *fun2 = (not_node_fun_t *)node1->value;
 
-                if (fun2->generics != NOT_PTR_NULL)
+                if (fun2->generics != NULL)
                 {
-                    for (not_node_t *item1 = fun2->generics; item1 != NOT_PTR_NULL; item1 = item1->next)
+                    for (not_node_t *item1 = fun2->generics; item1 != NULL; item1 = item1->next)
                     {
                         assert(item1->kind == NODE_KIND_GENERIC);
 
@@ -1174,9 +1174,9 @@ not_semantic_for(not_node_t *node)
                     }
                 }
 
-                if (fun2->parameters != NOT_PTR_NULL)
+                if (fun2->parameters != NULL)
                 {
-                    for (not_node_t *item2 = fun2->parameters; item2 != NOT_PTR_NULL; item2 = item2->next)
+                    for (not_node_t *item2 = fun2->parameters; item2 != NULL; item2 = item2->next)
                     {
                         assert(item2->kind == NODE_KIND_PARAMETER);
 
@@ -1197,7 +1197,7 @@ not_semantic_for(not_node_t *node)
             {
                 not_node_block_t *module1 = (not_node_block_t *)node1->value;
 
-                for (not_node_t *item1 = module1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = module1->items; item1 != NULL; item1 = item1->next)
                 {
                     if (item1->id == subnode->id)
                     {
@@ -1208,7 +1208,7 @@ not_semantic_for(not_node_t *node)
                     {
                         not_node_using_t *using1 = (not_node_using_t *)item1->value;
                         not_node_block_t *packages1 = (not_node_block_t *)using1->packages->value;
-                        for (not_node_t *item2 = packages1->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                        for (not_node_t *item2 = packages1->items; item2 != NULL; item2 = item2->next)
                         {
                             assert(item2->kind == NODE_KIND_PACKAGE);
 
@@ -1239,7 +1239,7 @@ not_semantic_for(not_node_t *node)
                     else if (item1->kind == NODE_KIND_FOR)
                     {
                         not_node_for_t *for2 = (not_node_for_t *)item1->value;
-                        if (for2->key != NOT_PTR_NULL)
+                        if (for2->key != NULL)
                         {
                             if (not_semantic_idcmp(for1->key, for2->key) == 1)
                             {
@@ -1254,7 +1254,7 @@ not_semantic_for(not_node_t *node)
                     else if (item1->kind == NODE_KIND_FORIN)
                     {
                         not_node_forin_t *for2 = (not_node_forin_t *)item1->value;
-                        if (for2->key != NOT_PTR_NULL)
+                        if (for2->key != NULL)
                         {
                             if (not_semantic_idcmp(for1->key, for2->key) == 1)
                             {
@@ -1283,7 +1283,7 @@ not_semantic_for(not_node_t *node)
                         else
                         {
                             not_node_block_t *block = (not_node_block_t *)var2->key->value;
-                            for (not_node_t *item2 = block->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                            for (not_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                             {
                                 assert(item2->kind == NODE_KIND_ENTITY);
                                 not_node_entity_t *entity1 = (not_node_entity_t *)item2->value;
@@ -1305,9 +1305,9 @@ not_semantic_for(not_node_t *node)
         }
     }
 
-    if (for1->initializer != NOT_PTR_NULL)
+    if (for1->initializer != NULL)
     {
-        for (not_node_t *item1 = for1->initializer; item1 != NOT_PTR_NULL; item1 = item1->next)
+        for (not_node_t *item1 = for1->initializer; item1 != NULL; item1 = item1->next)
         {
             if (item1->kind == NODE_KIND_VAR)
             {
@@ -1328,7 +1328,7 @@ not_semantic_for(not_node_t *node)
         }
     }
 
-    if (for1->condition != NOT_PTR_NULL)
+    if (for1->condition != NULL)
     {
         int32_t r1 = not_semantic_expression(for1->condition);
         if (r1 == -1)
@@ -1337,7 +1337,7 @@ not_semantic_for(not_node_t *node)
         }
     }
 
-    if (for1->body != NOT_PTR_NULL)
+    if (for1->body != NULL)
     {
         int32_t r2 = not_semantic_body(for1->body);
         if (r2 == -1)
@@ -1346,9 +1346,9 @@ not_semantic_for(not_node_t *node)
         }
     }
 
-    if (for1->incrementor != NOT_PTR_NULL)
+    if (for1->incrementor != NULL)
     {
-        for (not_node_t *item1 = for1->incrementor; item1 != NOT_PTR_NULL; item1 = item1->next)
+        for (not_node_t *item1 = for1->incrementor; item1 != NULL; item1 = item1->next)
         {
             int32_t r2 = not_semantic_assign(item1);
             if (r2 == -1)
@@ -1366,15 +1366,15 @@ not_semantic_forin(not_node_t *node)
 {
     not_node_forin_t *for1 = (not_node_forin_t *)node->value;
 
-    if (for1->key != NOT_PTR_NULL)
+    if (for1->key != NULL)
     {
-        for (not_node_t *node1 = node->parent, *subnode = node; node1 != NOT_PTR_NULL; subnode = node1, node1 = node1->parent)
+        for (not_node_t *node1 = node->parent, *subnode = node; node1 != NULL; subnode = node1, node1 = node1->parent)
         {
             if (node1->kind == NODE_KIND_CATCH)
             {
                 not_node_catch_t *catch1 = (not_node_catch_t *)node1->value;
 
-                for (not_node_t *item1 = catch1->parameters; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = catch1->parameters; item1 != NULL; item1 = item1->next)
                 {
                     not_node_parameter_t *parameter1 = (not_node_parameter_t *)item1->value;
                     if (not_semantic_idcmp(for1->key, parameter1->key) == 1)
@@ -1391,7 +1391,7 @@ not_semantic_forin(not_node_t *node)
             {
                 not_node_for_t *for2 = (not_node_for_t *)node1->value;
 
-                for (not_node_t *item1 = for2->initializer; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = for2->initializer; item1 != NULL; item1 = item1->next)
                 {
                     if (item1->kind == NODE_KIND_VAR)
                     {
@@ -1410,7 +1410,7 @@ not_semantic_forin(not_node_t *node)
                         }
                         else
                         {
-                            for (not_node_t *item2 = var2->key; item2 != NOT_PTR_NULL; item2 = item2->next)
+                            for (not_node_t *item2 = var2->key; item2 != NULL; item2 = item2->next)
                             {
                                 assert(item2->kind == NODE_KIND_ENTITY);
 
@@ -1461,7 +1461,7 @@ not_semantic_forin(not_node_t *node)
             {
                 not_node_body_t *body1 = (not_node_body_t *)node1->value;
 
-                for (not_node_t *item1 = body1->declaration; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = body1->declaration; item1 != NULL; item1 = item1->next)
                 {
                     if (item1->id == subnode->id)
                     {
@@ -1471,7 +1471,7 @@ not_semantic_forin(not_node_t *node)
                     if (item1->kind == NODE_KIND_FOR)
                     {
                         not_node_for_t *for2 = (not_node_for_t *)item1->value;
-                        if (for2->key != NOT_PTR_NULL)
+                        if (for2->key != NULL)
                         {
                             if (not_semantic_idcmp(for1->key, for2->key) == 1)
                             {
@@ -1486,7 +1486,7 @@ not_semantic_forin(not_node_t *node)
                     else if (item1->kind == NODE_KIND_FORIN)
                     {
                         not_node_forin_t *for2 = (not_node_forin_t *)item1->value;
-                        if (for2->key != NOT_PTR_NULL)
+                        if (for2->key != NULL)
                         {
                             if (not_semantic_idcmp(for1->key, for2->key) == 1)
                             {
@@ -1515,7 +1515,7 @@ not_semantic_forin(not_node_t *node)
                         else
                         {
                             not_node_block_t *block = (not_node_block_t *)var2->key->value;
-                            for (not_node_t *item2 = block->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                            for (not_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                             {
                                 assert(item2->kind == NODE_KIND_ENTITY);
                                 not_node_entity_t *entity1 = (not_node_entity_t *)item2->value;
@@ -1538,9 +1538,9 @@ not_semantic_forin(not_node_t *node)
             {
                 not_node_fun_t *fun2 = (not_node_fun_t *)node1->value;
 
-                if (fun2->generics != NOT_PTR_NULL)
+                if (fun2->generics != NULL)
                 {
-                    for (not_node_t *item1 = fun2->generics; item1 != NOT_PTR_NULL; item1 = item1->next)
+                    for (not_node_t *item1 = fun2->generics; item1 != NULL; item1 = item1->next)
                     {
                         assert(item1->kind == NODE_KIND_GENERIC);
 
@@ -1556,9 +1556,9 @@ not_semantic_forin(not_node_t *node)
                     }
                 }
 
-                if (fun2->parameters != NOT_PTR_NULL)
+                if (fun2->parameters != NULL)
                 {
-                    for (not_node_t *item2 = fun2->parameters; item2 != NOT_PTR_NULL; item2 = item2->next)
+                    for (not_node_t *item2 = fun2->parameters; item2 != NULL; item2 = item2->next)
                     {
                         assert(item2->kind == NODE_KIND_PARAMETER);
 
@@ -1579,7 +1579,7 @@ not_semantic_forin(not_node_t *node)
             {
                 not_node_block_t *module1 = (not_node_block_t *)node1->value;
 
-                for (not_node_t *item1 = module1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = module1->items; item1 != NULL; item1 = item1->next)
                 {
                     if (item1->id == subnode->id)
                     {
@@ -1590,7 +1590,7 @@ not_semantic_forin(not_node_t *node)
                     {
                         not_node_using_t *using1 = (not_node_using_t *)item1->value;
                         not_node_block_t *packages1 = (not_node_block_t *)using1->packages->value;
-                        for (not_node_t *item2 = packages1->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                        for (not_node_t *item2 = packages1->items; item2 != NULL; item2 = item2->next)
                         {
                             assert(item2->kind == NODE_KIND_PACKAGE);
 
@@ -1621,7 +1621,7 @@ not_semantic_forin(not_node_t *node)
                     else if (item1->kind == NODE_KIND_FOR)
                     {
                         not_node_for_t *for2 = (not_node_for_t *)item1->value;
-                        if (for2->key != NOT_PTR_NULL)
+                        if (for2->key != NULL)
                         {
                             if (not_semantic_idcmp(for1->key, for2->key) == 1)
                             {
@@ -1636,7 +1636,7 @@ not_semantic_forin(not_node_t *node)
                     else if (item1->kind == NODE_KIND_FORIN)
                     {
                         not_node_forin_t *for2 = (not_node_forin_t *)item1->value;
-                        if (for2->key != NOT_PTR_NULL)
+                        if (for2->key != NULL)
                         {
                             if (not_semantic_idcmp(for1->key, for2->key) == 1)
                             {
@@ -1665,7 +1665,7 @@ not_semantic_forin(not_node_t *node)
                         else
                         {
                             not_node_block_t *block = (not_node_block_t *)var2->key->value;
-                            for (not_node_t *item2 = block->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                            for (not_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                             {
                                 assert(item2->kind == NODE_KIND_ENTITY);
                                 not_node_entity_t *entity1 = (not_node_entity_t *)item2->value;
@@ -1687,7 +1687,7 @@ not_semantic_forin(not_node_t *node)
         }
     }
 
-    if (for1->body != NOT_PTR_NULL)
+    if (for1->body != NULL)
     {
         int32_t r2 = not_semantic_body(for1->body);
         if (r2 == -1)
@@ -1704,7 +1704,7 @@ not_semantic_entity(not_node_t *node)
 {
     not_node_entity_t *entity1 = (not_node_entity_t *)node->value;
 
-    for (not_node_t *item1 = node->previous; item1 != NOT_PTR_NULL; item1 = item1->previous)
+    for (not_node_t *item1 = node->previous; item1 != NULL; item1 = item1->previous)
     {
         assert(item1->kind == NODE_KIND_ENTITY);
 
@@ -1727,7 +1727,7 @@ not_semantic_set(not_node_t *node)
 {
     not_node_block_t *block = (not_node_block_t *)node->value;
 
-    for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = block->items; item != NULL; item = item->next)
     {
         int32_t r1 = not_semantic_entity(item);
         if (r1 == -1)
@@ -1743,13 +1743,13 @@ not_semantic_var(not_node_t *node)
 {
     not_node_var_t *var1 = (not_node_var_t *)node->value;
 
-    for (not_node_t *node1 = node->parent, *subnode = node; node1 != NOT_PTR_NULL; subnode = node1, node1 = node1->parent)
+    for (not_node_t *node1 = node->parent, *subnode = node; node1 != NULL; subnode = node1, node1 = node1->parent)
     {
         if (node1->kind == NODE_KIND_CATCH)
         {
             not_node_catch_t *catch1 = (not_node_catch_t *)node1->value;
 
-            for (not_node_t *item1 = catch1->parameters; item1 != NOT_PTR_NULL; item1 = item1->next)
+            for (not_node_t *item1 = catch1->parameters; item1 != NULL; item1 = item1->next)
             {
                 not_node_parameter_t *parameter2 = (not_node_parameter_t *)item1->value;
                 if (var1->key->kind == NODE_KIND_ID)
@@ -1766,7 +1766,7 @@ not_semantic_var(not_node_t *node)
                 else
                 {
                     not_node_block_t *block = (not_node_block_t *)var1->key->value;
-                    for (not_node_t *item2 = block->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                    for (not_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                     {
                         not_node_entity_t *entity1 = (not_node_entity_t *)item2->value;
                         if (not_semantic_idcmp(entity1->key, parameter2->key) == 1)
@@ -1787,7 +1787,7 @@ not_semantic_var(not_node_t *node)
         {
             not_node_for_t *for1 = (not_node_for_t *)node1->value;
 
-            for (not_node_t *item1 = for1->initializer; item1 != NOT_PTR_NULL; item1 = item1->next)
+            for (not_node_t *item1 = for1->initializer; item1 != NULL; item1 = item1->next)
             {
                 if (item1 == node)
                 {
@@ -1812,7 +1812,7 @@ not_semantic_var(not_node_t *node)
                         }
                         else
                         {
-                            for (not_node_t *item2 = var1->key; item2 != NOT_PTR_NULL; item2 = item2->next)
+                            for (not_node_t *item2 = var1->key; item2 != NULL; item2 = item2->next)
                             {
                                 assert(item2->kind == NODE_KIND_ENTITY);
 
@@ -1831,7 +1831,7 @@ not_semantic_var(not_node_t *node)
                     else
                     {
                         not_node_block_t *block = (not_node_block_t *)var1->key->value;
-                        for (not_node_t *item2 = block->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                        for (not_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                         {
                             assert(item2->kind == NODE_KIND_ENTITY);
 
@@ -1849,7 +1849,7 @@ not_semantic_var(not_node_t *node)
                             }
                             else
                             {
-                                for (not_node_t *item3 = var1->key; item3 != NOT_PTR_NULL; item3 = item3->next)
+                                for (not_node_t *item3 = var1->key; item3 != NULL; item3 = item3->next)
                                 {
                                     assert(item3->kind == NODE_KIND_ENTITY);
 
@@ -1874,7 +1874,7 @@ not_semantic_var(not_node_t *node)
         {
             not_node_body_t *body1 = (not_node_body_t *)node1->value;
 
-            for (not_node_t *item1 = body1->declaration; item1 != NOT_PTR_NULL; item1 = item1->next)
+            for (not_node_t *item1 = body1->declaration; item1 != NULL; item1 = item1->next)
             {
                 if (item1->id == subnode->id)
                 {
@@ -1884,7 +1884,7 @@ not_semantic_var(not_node_t *node)
                 if (item1->kind == NODE_KIND_FOR)
                 {
                     not_node_for_t *for2 = (not_node_for_t *)item1->value;
-                    if (for2->key != NOT_PTR_NULL)
+                    if (for2->key != NULL)
                     {
                         if (var1->key->kind == NODE_KIND_ID)
                         {
@@ -1900,7 +1900,7 @@ not_semantic_var(not_node_t *node)
                         else
                         {
                             not_node_block_t *block = (not_node_block_t *)var1->key->value;
-                            for (not_node_t *item2 = block->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                            for (not_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                             {
                                 assert(item2->kind == NODE_KIND_ENTITY);
 
@@ -1936,7 +1936,7 @@ not_semantic_var(not_node_t *node)
                         else
                         {
                             not_node_block_t *block = (not_node_block_t *)var1->key->value;
-                            for (not_node_t *item2 = block->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                            for (not_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                             {
                                 assert(item2->kind == NODE_KIND_ENTITY);
 
@@ -1957,7 +1957,7 @@ not_semantic_var(not_node_t *node)
                         if (var1->key->kind == NODE_KIND_ID)
                         {
                             not_node_block_t *block = (not_node_block_t *)var2->key->value;
-                            for (not_node_t *item2 = block->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                            for (not_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                             {
                                 assert(item2->kind == NODE_KIND_ENTITY);
 
@@ -1975,12 +1975,12 @@ not_semantic_var(not_node_t *node)
                         else
                         {
                             not_node_block_t *block1 = (not_node_block_t *)var1->key->value;
-                            for (not_node_t *item2 = block1->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                            for (not_node_t *item2 = block1->items; item2 != NULL; item2 = item2->next)
                             {
                                 not_node_entity_t *entity1 = (not_node_entity_t *)item2->value;
 
                                 not_node_block_t *block2 = (not_node_block_t *)var2->key->value;
-                                for (not_node_t *item3 = block2->items; item3 != NOT_PTR_NULL; item3 = item3->next)
+                                for (not_node_t *item3 = block2->items; item3 != NULL; item3 = item3->next)
                                 {
                                     assert(item3->kind == NODE_KIND_ENTITY);
 
@@ -2006,9 +2006,9 @@ not_semantic_var(not_node_t *node)
         {
             not_node_fun_t *fun1 = (not_node_fun_t *)node1->value;
 
-            if (fun1->generics != NOT_PTR_NULL)
+            if (fun1->generics != NULL)
             {
-                for (not_node_t *item1 = fun1->generics; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = fun1->generics; item1 != NULL; item1 = item1->next)
                 {
                     not_node_generic_t *generic2 = (not_node_generic_t *)item1->value;
                     if (var1->key->kind == NODE_KIND_ID)
@@ -2025,7 +2025,7 @@ not_semantic_var(not_node_t *node)
                     else
                     {
                         not_node_block_t *block = (not_node_block_t *)var1->key->value;
-                        for (not_node_t *item3 = block->items; item3 != NOT_PTR_NULL; item3 = item3->next)
+                        for (not_node_t *item3 = block->items; item3 != NULL; item3 = item3->next)
                         {
                             not_node_entity_t *entity1 = (not_node_entity_t *)item3->value;
                             if (not_semantic_idcmp(entity1->key, generic2->key) == 1)
@@ -2041,9 +2041,9 @@ not_semantic_var(not_node_t *node)
                 }
             }
 
-            if (fun1->parameters != NOT_PTR_NULL)
+            if (fun1->parameters != NULL)
             {
-                for (not_node_t *item1 = fun1->parameters; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = fun1->parameters; item1 != NULL; item1 = item1->next)
                 {
                     not_node_parameter_t *parameter1 = (not_node_parameter_t *)item1->value;
                     if (var1->key->kind == NODE_KIND_ID)
@@ -2060,7 +2060,7 @@ not_semantic_var(not_node_t *node)
                     else
                     {
                         not_node_block_t *block = (not_node_block_t *)var1->key->value;
-                        for (not_node_t *item2 = block->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                        for (not_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                         {
                             assert(item2->kind == NODE_KIND_ENTITY);
 
@@ -2083,7 +2083,7 @@ not_semantic_var(not_node_t *node)
         else if (node1->kind == NODE_KIND_MODULE)
         {
             not_node_block_t *module1 = (not_node_block_t *)node1->value;
-            for (not_node_t *item1 = module1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+            for (not_node_t *item1 = module1->items; item1 != NULL; item1 = item1->next)
             {
                 if (item1->id == subnode->id)
                 {
@@ -2094,7 +2094,7 @@ not_semantic_var(not_node_t *node)
                 {
                     not_node_using_t *using1 = (not_node_using_t *)item1->value;
                     not_node_block_t *packages1 = (not_node_block_t *)using1->packages->value;
-                    for (not_node_t *item2 = packages1->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                    for (not_node_t *item2 = packages1->items; item2 != NULL; item2 = item2->next)
                     {
                         not_node_package_t *package1 = (not_node_package_t *)item2->value;
 
@@ -2112,7 +2112,7 @@ not_semantic_var(not_node_t *node)
                         else
                         {
                             not_node_block_t *block = (not_node_block_t *)var1->key->value;
-                            for (not_node_t *item3 = block->items; item3 != NOT_PTR_NULL; item3 = item3->next)
+                            for (not_node_t *item3 = block->items; item3 != NULL; item3 = item3->next)
                             {
                                 not_node_entity_t *entity1 = (not_node_entity_t *)item3->value;
 
@@ -2145,7 +2145,7 @@ not_semantic_var(not_node_t *node)
                     else
                     {
                         not_node_block_t *block = (not_node_block_t *)var1->key->value;
-                        for (not_node_t *item2 = block->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                        for (not_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                         {
                             assert(item2->kind == NODE_KIND_ENTITY);
 
@@ -2164,7 +2164,7 @@ not_semantic_var(not_node_t *node)
                 else if (item1->kind == NODE_KIND_FOR)
                 {
                     not_node_for_t *for2 = (not_node_for_t *)item1->value;
-                    if (for2->key != NOT_PTR_NULL)
+                    if (for2->key != NULL)
                     {
                         if (var1->key->kind == NODE_KIND_ID)
                         {
@@ -2180,7 +2180,7 @@ not_semantic_var(not_node_t *node)
                         else
                         {
                             not_node_block_t *block = (not_node_block_t *)var1->key->value;
-                            for (not_node_t *item2 = block->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                            for (not_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                             {
                                 assert(item2->kind == NODE_KIND_ENTITY);
 
@@ -2216,7 +2216,7 @@ not_semantic_var(not_node_t *node)
                         else
                         {
                             not_node_block_t *block = (not_node_block_t *)var1->key->value;
-                            for (not_node_t *item2 = block->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                            for (not_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                             {
                                 not_node_entity_t *entity1 = (not_node_entity_t *)item2->value;
                                 if (not_semantic_idcmp(entity1->key, var2->key) == 1)
@@ -2235,7 +2235,7 @@ not_semantic_var(not_node_t *node)
                         if (var1->key->kind == NODE_KIND_ID)
                         {
                             not_node_block_t *block = (not_node_block_t *)var2->key->value;
-                            for (not_node_t *item2 = block->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                            for (not_node_t *item2 = block->items; item2 != NULL; item2 = item2->next)
                             {
                                 not_node_entity_t *entity1 = (not_node_entity_t *)item2->value;
                                 if (not_semantic_idcmp(var1->key, entity1->key) == 1)
@@ -2251,11 +2251,11 @@ not_semantic_var(not_node_t *node)
                         else
                         {
                             not_node_block_t *block1 = (not_node_block_t *)var1->key->value;
-                            for (not_node_t *item2 = block1->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                            for (not_node_t *item2 = block1->items; item2 != NULL; item2 = item2->next)
                             {
                                 not_node_entity_t *entity1 = (not_node_entity_t *)item2->value;
                                 not_node_block_t *block2 = (not_node_block_t *)var2->key->value;
-                                for (not_node_t *item3 = block2->items; item3 != NOT_PTR_NULL; item3 = item3->next)
+                                for (not_node_t *item3 = block2->items; item3 != NULL; item3 = item3->next)
                                 {
                                     not_node_entity_t *entity2 = (not_node_entity_t *)item3->value;
                                     if (not_semantic_idcmp(entity1->key, entity2->key) == 1)
@@ -2285,7 +2285,7 @@ not_semantic_var(not_node_t *node)
         }
     }
 
-    if (var1->type != NOT_PTR_NULL)
+    if (var1->type != NULL)
     {
         int32_t r1 = not_semantic_expression(var1->type);
         if (r1 == -1)
@@ -2294,7 +2294,7 @@ not_semantic_var(not_node_t *node)
         }
     }
 
-    if (var1->value != NOT_PTR_NULL)
+    if (var1->value != NULL)
     {
         int32_t r1 = not_semantic_expression(var1->value);
         if (r1 == -1)
@@ -2311,7 +2311,7 @@ not_semantic_field(not_node_t *node)
 {
     not_node_field_t *field1 = (not_node_field_t *)node->value;
 
-    if (field1->value != NOT_PTR_NULL)
+    if (field1->value != NULL)
     {
         if (field1->key->kind != NODE_KIND_ID)
         {
@@ -2320,12 +2320,12 @@ not_semantic_field(not_node_t *node)
         }
     }
 
-    for (not_node_t *item1 = node->previous; item1 != NOT_PTR_NULL; item1 = item1->previous)
+    for (not_node_t *item1 = node->previous; item1 != NULL; item1 = item1->previous)
     {
-        if (field1->value != NOT_PTR_NULL)
+        if (field1->value != NULL)
         {
             not_node_field_t *field2 = (not_node_field_t *)item1->value;
-            if (field2->value != NOT_PTR_NULL)
+            if (field2->value != NULL)
             {
                 if (not_semantic_idcmp(field1->key, field2->key) == 1)
                 {
@@ -2339,7 +2339,7 @@ not_semantic_field(not_node_t *node)
         else
         {
             not_node_field_t *field2 = (not_node_field_t *)item1->value;
-            if (field2->value != NOT_PTR_NULL)
+            if (field2->value != NULL)
             {
                 not_error_semantic_by_node(field1->key, "the single field is used after the pair field");
                 return -1;
@@ -2347,7 +2347,7 @@ not_semantic_field(not_node_t *node)
         }
     }
 
-    if (field1->key != NOT_PTR_NULL)
+    if (field1->key != NULL)
     {
         int32_t r1 = not_semantic_expression(field1->key);
         if (r1 == -1)
@@ -2356,7 +2356,7 @@ not_semantic_field(not_node_t *node)
         }
     }
 
-    if (field1->value != NOT_PTR_NULL)
+    if (field1->value != NULL)
     {
         int32_t r1 = not_semantic_expression(field1->value);
         if (r1 == -1)
@@ -2373,7 +2373,7 @@ not_semantic_fields(not_node_t *node)
 {
     not_node_block_t *block = (not_node_block_t *)node->value;
 
-    for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = block->items; item != NULL; item = item->next)
     {
         int32_t r1 = not_semantic_field(item);
         if (r1 == -1)
@@ -2389,7 +2389,7 @@ not_semantic_argument(not_node_t *node)
 {
     not_node_argument_t *argument1 = (not_node_argument_t *)node->value;
 
-    if (argument1->value != NOT_PTR_NULL)
+    if (argument1->value != NULL)
     {
         if (argument1->key->kind != NODE_KIND_ID)
         {
@@ -2399,11 +2399,11 @@ not_semantic_argument(not_node_t *node)
         }
     }
 
-    for (not_node_t *item1 = node->previous; item1 != NOT_PTR_NULL; item1 = item1->previous)
+    for (not_node_t *item1 = node->previous; item1 != NULL; item1 = item1->previous)
     {
         not_node_argument_t *argument2 = (not_node_argument_t *)item1->value;
 
-        if ((argument1->value != NOT_PTR_NULL) && (argument2->value != NOT_PTR_NULL))
+        if ((argument1->value != NULL) && (argument2->value != NULL))
         {
             if (not_semantic_idcmp(argument1->key, argument2->key) == 1)
             {
@@ -2416,7 +2416,7 @@ not_semantic_argument(not_node_t *node)
         }
     }
 
-    if (argument1->key != NOT_PTR_NULL)
+    if (argument1->key != NULL)
     {
         int32_t r1 = not_semantic_expression(argument1->key);
         if (r1 == -1)
@@ -2425,7 +2425,7 @@ not_semantic_argument(not_node_t *node)
         }
     }
 
-    if (argument1->value != NOT_PTR_NULL)
+    if (argument1->value != NULL)
     {
         int32_t r1 = not_semantic_expression(argument1->value);
         if (r1 == -1)
@@ -2441,7 +2441,7 @@ static int32_t
 not_semantic_arguments(not_node_t *node)
 {
     not_node_block_t *block = (not_node_block_t *)node->value;
-    for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = block->items; item != NULL; item = item->next)
     {
         int32_t r1 = not_semantic_argument(item);
         if (r1 == -1)
@@ -2457,7 +2457,7 @@ not_semantic_parameter(not_node_t *node)
 {
     not_node_parameter_t *parameter1 = (not_node_parameter_t *)node->value;
 
-    for (not_node_t *item1 = node->previous; item1 != NOT_PTR_NULL; item1 = item1->previous)
+    for (not_node_t *item1 = node->previous; item1 != NULL; item1 = item1->previous)
     {
         assert(item1->kind == NODE_KIND_GENERIC);
 
@@ -2472,17 +2472,17 @@ not_semantic_parameter(not_node_t *node)
         }
     }
 
-    for (not_node_t *node1 = node->parent; node1 != NOT_PTR_NULL; node1 = node1->parent)
+    for (not_node_t *node1 = node->parent; node1 != NULL; node1 = node1->parent)
     {
         if (node1->kind == NODE_KIND_FUN)
         {
             not_node_fun_t *fun2 = (not_node_fun_t *)node1->value;
 
-            if (fun2->generics != NOT_PTR_NULL)
+            if (fun2->generics != NULL)
             {
                 not_node_block_t *block1 = (not_node_block_t *)fun2->generics->value;
 
-                for (not_node_t *item1 = block1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
                 {
                     assert(item1->kind == NODE_KIND_GENERIC);
 
@@ -2500,7 +2500,7 @@ not_semantic_parameter(not_node_t *node)
         }
     }
 
-    if (parameter1->type != NOT_PTR_NULL)
+    if (parameter1->type != NULL)
     {
         int32_t r1 = not_semantic_expression(parameter1->type);
         if (r1 == -1)
@@ -2509,7 +2509,7 @@ not_semantic_parameter(not_node_t *node)
         }
     }
 
-    if (parameter1->value != NOT_PTR_NULL)
+    if (parameter1->value != NULL)
     {
         int32_t r1 = not_semantic_expression(parameter1->value);
         if (r1 == -1)
@@ -2526,7 +2526,7 @@ not_semantic_parameters(not_node_t *node)
 {
     not_node_block_t *block = (not_node_block_t *)node->value;
 
-    for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = block->items; item != NULL; item = item->next)
     {
         int32_t r1 = not_semantic_parameter(item);
         if (r1 == -1)
@@ -2542,7 +2542,7 @@ not_semantic_generic(not_node_t *node)
 {
     not_node_generic_t *generic1 = (not_node_generic_t *)node->value;
 
-    for (not_node_t *item1 = node->previous; item1 != NOT_PTR_NULL; item1 = item1->previous)
+    for (not_node_t *item1 = node->previous; item1 != NULL; item1 = item1->previous)
     {
         assert(item1->kind == NODE_KIND_GENERIC);
 
@@ -2557,7 +2557,7 @@ not_semantic_generic(not_node_t *node)
         }
     }
 
-    if (generic1->key != NOT_PTR_NULL)
+    if (generic1->key != NULL)
     {
         int32_t r1 = not_semantic_expression(generic1->key);
         if (r1 == -1)
@@ -2566,7 +2566,7 @@ not_semantic_generic(not_node_t *node)
         }
     }
 
-    if (generic1->type != NOT_PTR_NULL)
+    if (generic1->type != NULL)
     {
         int32_t r1 = not_semantic_expression(generic1->type);
         if (r1 == -1)
@@ -2575,7 +2575,7 @@ not_semantic_generic(not_node_t *node)
         }
     }
 
-    if (generic1->value != NOT_PTR_NULL)
+    if (generic1->value != NULL)
     {
         int32_t r1 = not_semantic_expression(generic1->value);
         if (r1 == -1)
@@ -2592,7 +2592,7 @@ not_semantic_generics(not_node_t *node)
 {
     not_node_block_t *block = (not_node_block_t *)node->value;
 
-    for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = block->items; item != NULL; item = item->next)
     {
         int32_t r1 = not_semantic_generic(item);
         if (r1 == -1)
@@ -2614,7 +2614,7 @@ not_semantic_catch(not_node_t *node)
         return -1;
     }
 
-    if (catch1->body != NOT_PTR_NULL)
+    if (catch1->body != NULL)
     {
         int32_t r1 = not_semantic_body(catch1->body);
         if (r1 == -1)
@@ -2631,7 +2631,7 @@ not_semantic_try(not_node_t *node)
 {
     not_node_try_t *try1 = (not_node_try_t *)node->value;
 
-    if (try1->body != NOT_PTR_NULL)
+    if (try1->body != NULL)
     {
         int32_t r1 = not_semantic_body(try1->body);
         if (r1 == -1)
@@ -2640,7 +2640,7 @@ not_semantic_try(not_node_t *node)
         }
     }
 
-    if (try1->catchs != NOT_PTR_NULL)
+    if (try1->catchs != NULL)
     {
         int32_t r1 = not_semantic_catch(try1->catchs);
         if (r1 == -1)
@@ -2761,7 +2761,7 @@ not_semantic_statement(not_node_t *node)
 static int32_t
 not_semantic_body(not_node_t *node)
 {
-    for (not_node_t *item = node; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = node; item != NULL; item = item->next)
     {
         int32_t r1 = not_semantic_statement(item);
         if (r1 == -1)
@@ -2779,7 +2779,7 @@ not_semantic_note(not_node_t *node)
 
     assert(carrier1->base->kind == NODE_KIND_ID);
 
-    for (not_node_t *node1 = node->previous; node1 != NOT_PTR_NULL; node1 = node1->previous)
+    for (not_node_t *node1 = node->previous; node1 != NULL; node1 = node1->previous)
     {
         not_node_carrier_t *carrier2 = (not_node_carrier_t *)node1->value;
 
@@ -2795,7 +2795,7 @@ not_semantic_note(not_node_t *node)
         }
     }
 
-    if (carrier1->base != NOT_PTR_NULL)
+    if (carrier1->base != NULL)
     {
         int32_t r1 = not_semantic_expression(carrier1->base);
         if (r1 == -1)
@@ -2804,7 +2804,7 @@ not_semantic_note(not_node_t *node)
         }
     }
 
-    if (carrier1->data != NOT_PTR_NULL)
+    if (carrier1->data != NULL)
     {
         int32_t r1 = not_semantic_arguments(carrier1->data);
         if (r1 == -1)
@@ -2821,7 +2821,7 @@ not_semantic_notes(not_node_t *node)
 {
     not_node_block_t *block = (not_node_block_t *)node->value;
 
-    for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = block->items; item != NULL; item = item->next)
     {
         int32_t r1 = not_semantic_note(item);
         if (r1 == -1)
@@ -2837,17 +2837,17 @@ not_semantic_fun(not_node_t *node)
 {
     not_node_fun_t *fun1 = (not_node_fun_t *)node->value;
 
-    for (not_node_t *node1 = node->parent; node1 != NOT_PTR_NULL; node1 = node1->parent)
+    for (not_node_t *node1 = node->parent; node1 != NULL; node1 = node1->parent)
     {
         if (node1->kind == NODE_KIND_CLASS)
         {
             not_node_class_t *class1 = (not_node_class_t *)node1->value;
 
-            if (class1->generics != NOT_PTR_NULL)
+            if (class1->generics != NULL)
             {
                 not_node_block_t *block1 = (not_node_block_t *)class1->generics->value;
 
-                for (not_node_t *item1 = block1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
                 {
                     assert(item1->kind == NODE_KIND_GENERIC);
 
@@ -2863,11 +2863,11 @@ not_semantic_fun(not_node_t *node)
                 }
             }
 
-            if (class1->heritages != NOT_PTR_NULL)
+            if (class1->heritages != NULL)
             {
                 not_node_block_t *block1 = (not_node_block_t *)class1->heritages->value;
 
-                for (not_node_t *item1 = block1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
                 {
                     assert(item1->kind == NODE_KIND_HERITAGE);
 
@@ -2884,7 +2884,7 @@ not_semantic_fun(not_node_t *node)
                 }
             }
 
-            for (not_node_t *item1 = class1->block; item1 != NOT_PTR_NULL; item1 = item1->next)
+            for (not_node_t *item1 = class1->block; item1 != NULL; item1 = item1->next)
             {
                 if (item1->id == node->id)
                 {
@@ -2932,7 +2932,7 @@ not_semantic_fun(not_node_t *node)
         }
     }
 
-    if (fun1->notes != NOT_PTR_NULL)
+    if (fun1->notes != NULL)
     {
         int32_t r1 = not_semantic_notes(fun1->notes);
         if (r1 == -1)
@@ -2941,7 +2941,7 @@ not_semantic_fun(not_node_t *node)
         }
     }
 
-    if (fun1->generics != NOT_PTR_NULL)
+    if (fun1->generics != NULL)
     {
         int32_t r1 = not_semantic_generics(fun1->generics);
         if (r1 == -1)
@@ -2950,7 +2950,7 @@ not_semantic_fun(not_node_t *node)
         }
     }
 
-    if (fun1->parameters != NOT_PTR_NULL)
+    if (fun1->parameters != NULL)
     {
         int32_t r1 = not_semantic_parameters(fun1->parameters);
         if (r1 == -1)
@@ -2959,7 +2959,7 @@ not_semantic_fun(not_node_t *node)
         }
     }
 
-    if (fun1->body != NOT_PTR_NULL)
+    if (fun1->body != NULL)
     {
         int32_t r1 = not_semantic_body(fun1->body);
         if (r1 == -1)
@@ -2976,17 +2976,17 @@ not_semantic_property(not_node_t *node)
 {
     not_node_property_t *property1 = (not_node_property_t *)node->value;
 
-    for (not_node_t *node1 = node->parent; node1 != NOT_PTR_NULL; node1 = node1->parent)
+    for (not_node_t *node1 = node->parent; node1 != NULL; node1 = node1->parent)
     {
         if (node1->kind == NODE_KIND_CLASS)
         {
             not_node_class_t *class1 = (not_node_class_t *)node1->value;
 
-            if (class1->generics != NOT_PTR_NULL)
+            if (class1->generics != NULL)
             {
                 not_node_block_t *block1 = (not_node_block_t *)class1->generics->value;
 
-                for (not_node_t *item1 = block1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
                 {
                     assert(item1->kind == NODE_KIND_GENERIC);
 
@@ -3002,11 +3002,11 @@ not_semantic_property(not_node_t *node)
                 }
             }
 
-            if (class1->heritages != NOT_PTR_NULL)
+            if (class1->heritages != NULL)
             {
                 not_node_block_t *block1 = (not_node_block_t *)class1->heritages->value;
 
-                for (not_node_t *item1 = block1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
                 {
                     assert(item1->kind == NODE_KIND_HERITAGE);
 
@@ -3023,7 +3023,7 @@ not_semantic_property(not_node_t *node)
                 }
             }
 
-            for (not_node_t *item1 = class1->block; item1 != NOT_PTR_NULL; item1 = item1->next)
+            for (not_node_t *item1 = class1->block; item1 != NULL; item1 = item1->next)
             {
                 if (item1->id == node->id)
                 {
@@ -3072,7 +3072,7 @@ not_semantic_property(not_node_t *node)
         }
     }
 
-    if (property1->notes != NOT_PTR_NULL)
+    if (property1->notes != NULL)
     {
         int32_t r1 = not_semantic_notes(property1->notes);
         if (r1 == -1)
@@ -3081,7 +3081,7 @@ not_semantic_property(not_node_t *node)
         }
     }
 
-    if (property1->type != NOT_PTR_NULL)
+    if (property1->type != NULL)
     {
         int32_t r1 = not_semantic_expression(property1->type);
         if (r1 == -1)
@@ -3090,7 +3090,7 @@ not_semantic_property(not_node_t *node)
         }
     }
 
-    if (property1->value != NOT_PTR_NULL)
+    if (property1->value != NULL)
     {
         int32_t r1 = not_semantic_expression(property1->value);
         if (r1 == -1)
@@ -3107,7 +3107,7 @@ not_semantic_heritage(not_node_t *node)
 {
     not_node_heritage_t *heritage1 = (not_node_heritage_t *)node->value;
 
-    for (not_node_t *item1 = node->previous; item1 != NOT_PTR_NULL; item1 = item1->previous)
+    for (not_node_t *item1 = node->previous; item1 != NULL; item1 = item1->previous)
     {
         assert(item1->kind == NODE_KIND_HERITAGE);
 
@@ -3122,15 +3122,15 @@ not_semantic_heritage(not_node_t *node)
         }
     }
 
-    for (not_node_t *node1 = node->parent; node1 != NOT_PTR_NULL; node1 = node1->parent)
+    for (not_node_t *node1 = node->parent; node1 != NULL; node1 = node1->parent)
     {
         if (node1->kind == NODE_KIND_CLASS)
         {
             not_node_class_t *class1 = (not_node_class_t *)node1->value;
 
-            if (class1->generics != NOT_PTR_NULL)
+            if (class1->generics != NULL)
             {
-                for (not_node_t *item1 = class1->generics; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = class1->generics; item1 != NULL; item1 = item1->next)
                 {
                     assert(item1->kind == NODE_KIND_GENERIC);
 
@@ -3150,7 +3150,7 @@ not_semantic_heritage(not_node_t *node)
         }
     }
 
-    if (heritage1->key != NOT_PTR_NULL)
+    if (heritage1->key != NULL)
     {
         int32_t r1 = not_semantic_expression(heritage1->key);
         if (r1 == -1)
@@ -3159,7 +3159,7 @@ not_semantic_heritage(not_node_t *node)
         }
     }
 
-    if (heritage1->type != NOT_PTR_NULL)
+    if (heritage1->type != NULL)
     {
         int32_t r1 = not_semantic_expression(heritage1->type);
         if (r1 == -1)
@@ -3176,7 +3176,7 @@ not_semantic_heritages(not_node_t *node)
 {
     not_node_block_t *block = (not_node_block_t *)node->value;
 
-    for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = block->items; item != NULL; item = item->next)
     {
         int32_t r1 = not_semantic_heritage(item);
         if (r1 == -1)
@@ -3192,13 +3192,13 @@ not_semantic_class(not_node_t *node)
 {
     not_node_class_t *class1 = (not_node_class_t *)node->value;
 
-    for (not_node_t *node1 = node->parent, *subnode = node; node1 != NOT_PTR_NULL; subnode = node1, node1 = node1->parent)
+    for (not_node_t *node1 = node->parent, *subnode = node; node1 != NULL; subnode = node1, node1 = node1->parent)
     {
         if (node1->kind == NODE_KIND_MODULE)
         {
             not_node_block_t *module1 = (not_node_block_t *)node1->value;
 
-            for (not_node_t *item1 = module1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+            for (not_node_t *item1 = module1->items; item1 != NULL; item1 = item1->next)
             {
                 if (item1->id == subnode->id)
                 {
@@ -3209,7 +3209,7 @@ not_semantic_class(not_node_t *node)
                 {
                     not_node_using_t *using1 = (not_node_using_t *)item1->value;
                     not_node_block_t *packages1 = (not_node_block_t *)using1->packages->value;
-                    for (not_node_t *item2 = packages1->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                    for (not_node_t *item2 = packages1->items; item2 != NULL; item2 = item2->next)
                     {
                         not_node_package_t *package1 = (not_node_package_t *)item2->value;
                         if (not_semantic_idcmp(package1->key, class1->key) == 1)
@@ -3237,7 +3237,7 @@ not_semantic_class(not_node_t *node)
                 else if (item1->kind == NODE_KIND_FOR)
                 {
                     not_node_for_t *for1 = (not_node_for_t *)item1->value;
-                    if (for1->key != NOT_PTR_NULL)
+                    if (for1->key != NULL)
                     {
                         if (not_semantic_idcmp(class1->key, for1->key) == 1)
                         {
@@ -3265,7 +3265,7 @@ not_semantic_class(not_node_t *node)
                     }
                     else
                     {
-                        for (not_node_t *item1 = var1->key; item1 != NOT_PTR_NULL; item1 = item1->next)
+                        for (not_node_t *item1 = var1->key; item1 != NULL; item1 = item1->next)
                         {
                             assert(item1->kind == NODE_KIND_ENTITY);
 
@@ -3288,11 +3288,11 @@ not_semantic_class(not_node_t *node)
         {
             not_node_class_t *class2 = (not_node_class_t *)node1->value;
 
-            if (class2->generics != NOT_PTR_NULL)
+            if (class2->generics != NULL)
             {
                 not_node_block_t *block1 = (not_node_block_t *)class1->generics->value;
 
-                for (not_node_t *item1 = block1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
                 {
                     assert(item1->kind == NODE_KIND_GENERIC);
 
@@ -3309,11 +3309,11 @@ not_semantic_class(not_node_t *node)
                 }
             }
 
-            if (class2->heritages != NOT_PTR_NULL)
+            if (class2->heritages != NULL)
             {
                 not_node_block_t *block1 = (not_node_block_t *)class1->generics->value;
 
-                for (not_node_t *item1 = block1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+                for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
                 {
                     assert(item1->kind == NODE_KIND_HERITAGE);
 
@@ -3330,7 +3330,7 @@ not_semantic_class(not_node_t *node)
                 }
             }
 
-            for (not_node_t *item1 = class2->block; item1 != NOT_PTR_NULL; item1 = item1->next)
+            for (not_node_t *item1 = class2->block; item1 != NULL; item1 = item1->next)
             {
                 if (item1->id == node->id)
                 {
@@ -3378,7 +3378,7 @@ not_semantic_class(not_node_t *node)
         }
     }
 
-    if (class1->notes != NOT_PTR_NULL)
+    if (class1->notes != NULL)
     {
         int32_t r1 = not_semantic_notes(class1->notes);
         if (r1 == -1)
@@ -3387,7 +3387,7 @@ not_semantic_class(not_node_t *node)
         }
     }
 
-    if (class1->generics != NOT_PTR_NULL)
+    if (class1->generics != NULL)
     {
         if ((class1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
         {
@@ -3403,7 +3403,7 @@ not_semantic_class(not_node_t *node)
         }
     }
 
-    if (class1->heritages != NOT_PTR_NULL)
+    if (class1->heritages != NULL)
     {
         if ((class1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
         {
@@ -3419,7 +3419,7 @@ not_semantic_class(not_node_t *node)
         }
     }
 
-    for (not_node_t *item = class1->block; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = class1->block; item != NULL; item = item->next)
     {
         if (item->kind == NODE_KIND_CLASS)
         {
@@ -3488,7 +3488,7 @@ not_semantic_package(not_node_t *node)
 {
     not_node_package_t *package1 = (not_node_package_t *)node->value;
 
-    for (not_node_t *item1 = node->previous; item1 != NOT_PTR_NULL; item1 = item1->previous)
+    for (not_node_t *item1 = node->previous; item1 != NULL; item1 = item1->previous)
     {
         not_node_package_t *package2 = (not_node_package_t *)item1->value;
         if (not_semantic_idcmp(package1->key, package2->key) == 1)
@@ -3501,13 +3501,13 @@ not_semantic_package(not_node_t *node)
         }
     }
 
-    for (not_node_t *node1 = node->parent, *subnode = node; node1 != NOT_PTR_NULL; subnode = node1, node1 = node1->parent)
+    for (not_node_t *node1 = node->parent, *subnode = node; node1 != NULL; subnode = node1, node1 = node1->parent)
     {
         if (node1->kind == NODE_KIND_MODULE)
         {
             not_node_block_t *module1 = (not_node_block_t *)node1->value;
 
-            for (not_node_t *item1 = module1->items; item1 != NOT_PTR_NULL; item1 = item1->next)
+            for (not_node_t *item1 = module1->items; item1 != NULL; item1 = item1->next)
             {
                 if (item1->id == subnode->id)
                 {
@@ -3518,7 +3518,7 @@ not_semantic_package(not_node_t *node)
                 {
                     not_node_using_t *using1 = (not_node_using_t *)item1->value;
                     not_node_block_t *packages1 = (not_node_block_t *)using1->packages->value;
-                    for (not_node_t *item2 = packages1->items; item2 != NOT_PTR_NULL; item2 = item2->next)
+                    for (not_node_t *item2 = packages1->items; item2 != NULL; item2 = item2->next)
                     {
                         not_node_package_t *package2 = (not_node_package_t *)item2->value;
                         if (not_semantic_idcmp(package1->key, package2->key) == 1)
@@ -3547,7 +3547,7 @@ not_semantic_package(not_node_t *node)
                 else if (item1->kind == NODE_KIND_FOR)
                 {
                     not_node_for_t *for1 = (not_node_for_t *)item1->value;
-                    if (for1->key != NOT_PTR_NULL)
+                    if (for1->key != NULL)
                     {
                         if (not_semantic_idcmp(package1->key, for1->key) == 1)
                         {
@@ -3562,7 +3562,7 @@ not_semantic_package(not_node_t *node)
                 else if (item1->kind == NODE_KIND_FORIN)
                 {
                     not_node_forin_t *for1 = (not_node_forin_t *)item1->value;
-                    if (for1->key != NOT_PTR_NULL)
+                    if (for1->key != NULL)
                     {
                         if (not_semantic_idcmp(package1->key, for1->key) == 1)
                         {
@@ -3590,7 +3590,7 @@ not_semantic_package(not_node_t *node)
                     }
                     else
                     {
-                        for (not_node_t *item1 = var1->key; item1 != NOT_PTR_NULL; item1 = item1->next)
+                        for (not_node_t *item1 = var1->key; item1 != NULL; item1 = item1->next)
                         {
                             assert(item1->kind == NODE_KIND_ENTITY);
 
@@ -3613,7 +3613,7 @@ not_semantic_package(not_node_t *node)
         }
     }
 
-    if (package1->value != NOT_PTR_NULL)
+    if (package1->value != NULL)
     {
         int32_t r1 = not_semantic_expression(package1->value);
         if (r1 == -1)
@@ -3630,7 +3630,7 @@ not_semantic_packages(not_node_t *node)
 {
     not_node_block_t *block = (not_node_block_t *)node->value;
 
-    for (not_node_t *item = block->items; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = block->items; item != NULL; item = item->next)
     {
         int32_t r1 = not_semantic_package(item);
         if (r1 == -1)
@@ -3647,7 +3647,7 @@ not_semantic_using(not_node_t *node)
 {
     not_node_using_t *using1 = (not_node_using_t *)node->value;
 
-    if (using1->packages != NOT_PTR_NULL)
+    if (using1->packages != NULL)
     {
         int32_t r1 = not_semantic_packages(using1->packages);
         if (r1 == -1)
@@ -3672,7 +3672,7 @@ not_semantic_module(not_node_t *node)
 {
     not_node_block_t *module = (not_node_block_t *)node->value;
 
-    for (not_node_t *item = module->items; item != NOT_PTR_NULL; item = item->next)
+    for (not_node_t *item = module->items; item != NULL; item = item->next)
     {
         if (item->kind == NODE_KIND_USING)
         {
