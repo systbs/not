@@ -27,6 +27,25 @@ not_record_create(uint64_t kind, void *value)
     return record;
 }
 
+void not_record_link_increase(not_record_t *record)
+{
+    record->link += 1;
+}
+
+int32_t
+not_record_link_decrease(not_record_t *record)
+{
+    record->link -= 1;
+    if (record->link == 0)
+    {
+        if (not_record_destroy(record) < 0)
+        {
+            return -1;
+        }
+    }
+    return 0;
+}
+
 not_record_t *
 not_record_make_int(const char *value)
 {
@@ -356,8 +375,122 @@ not_record_make_nan()
     return not_record_create(RECORD_KIND_NAN, NOT_PTR_NULL);
 }
 
+int32_t
+not_record_object_destroy(not_record_object_t *object)
+{
+    if (!object)
+    {
+        return 0;
+    }
+
+    if (object->next)
+    {
+        if (not_record_object_destroy(object->next) < 0)
+        {
+            return -1;
+        }
+        object->next = NOT_PTR_NULL;
+    }
+
+    if (not_record_link_decrease(object->value) < 0)
+    {
+        return -1;
+    }
+
+    free(object->key);
+    free(object);
+
+    return 0;
+}
+
+int32_t
+not_record_tuple_destroy(not_record_tuple_t *tuple)
+{
+    if (!tuple)
+    {
+        return 0;
+    }
+
+    if (tuple->next)
+    {
+        if (not_record_tuple_destroy(tuple->next) < 0)
+        {
+            return -1;
+        }
+        tuple->next = NOT_PTR_NULL;
+    }
+
+    if (not_record_link_decrease(tuple->value) < 0)
+    {
+        return -1;
+    }
+
+    free(tuple);
+
+    return 0;
+}
+
+int32_t
+not_record_destroy(not_record_t *record)
+{
+    if (record->kind == RECORD_KIND_OBJECT)
+    {
+        not_record_object_t *object = (not_record_object_t *)record->value;
+        if (not_record_object_destroy(object) < 0)
+        {
+            return -1;
+        }
+        free(record);
+    }
+    else if (record->kind == RECORD_KIND_TUPLE)
+    {
+        not_record_tuple_t *tuple = (not_record_tuple_t *)record->value;
+        if (not_record_tuple_destroy(tuple) < 0)
+        {
+            return -1;
+        }
+        free(record);
+    }
+    else if (record->kind == RECORD_KIND_TYPE)
+    {
+    }
+    else if (record->kind == RECORD_KIND_STRUCT)
+    {
+    }
+    else if (record->kind == RECORD_KIND_BUILTIN)
+    {
+    }
+    else
+    {
+        if (record->kind == RECORD_KIND_INT)
+        {
+            mpz_clear(*(mpz_t *)(record->value));
+        }
+        else if (record->kind == RECORD_KIND_FLOAT)
+        {
+            mpf_clear(*(mpf_t *)(record->value));
+        }
+        else if (record->kind == RECORD_KIND_NULL)
+        {
+        }
+        else if (record->kind == RECORD_KIND_UNDEFINED)
+        {
+        }
+        else if (record->kind == RECORD_KIND_NAN)
+        {
+        }
+        else if (record->reference != 1)
+        {
+            free(record->value);
+        }
+        free(record);
+    }
+
+    return 0;
+}
+
 not_record_t *
-tuple_arg_by_index(not_record_t *args, size_t index)
+not_record_tuple_arg_by_index(not_record_t *args, size_t index)
 {
     size_t i = 0;
     for (not_record_tuple_t *tuple = (not_record_tuple_t *)args->value; tuple != NOT_PTR_NULL; tuple = tuple->next)

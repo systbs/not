@@ -3298,7 +3298,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
 
     if (not_record_link_decrease(record) < 0)
     {
-        if (result.ptr)
+        if (result.ptr && (result.ptr != NOT_PTR_ERROR))
         {
             not_record_t *r = (not_record_t *)result.ptr;
             not_record_link_decrease(r);
@@ -3306,7 +3306,7 @@ not_call_ffi(not_node_t *base, not_node_t *arguments, not_strip_t *strip, void *
         return NOT_PTR_ERROR;
     }
 
-    if (result.ptr)
+    if (result.ptr && (result.ptr != NOT_PTR_ERROR))
     {
         return (not_record_t *)result.ptr;
     }

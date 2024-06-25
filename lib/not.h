@@ -55,8 +55,12 @@ typedef struct not_record_tuple
 not_record_t *
 not_record_create(uint64_t kind, void *value);
 
-not_record_t *
-not_record_make_null();
+int32_t
+not_record_link_decrease(not_record_t *record);
+
+void not_record_link_increase(not_record_t *record);
+
+not_record_t *not_record_make_null();
 
 not_record_t *
 not_record_make_undefined();
@@ -109,7 +113,16 @@ not_record_make_int_from_f(mpf_t value);
 not_record_t *
 not_record_make_int(const char *value);
 
+int32_t
+not_record_destroy(not_record_t *record);
+
+int32_t
+not_record_tuple_destroy(not_record_tuple_t *tuple);
+
+int32_t
+not_record_object_destroy(not_record_object_t *object);
+
 not_record_t *
-tuple_arg_by_index(not_record_t *args, size_t index);
+not_record_tuple_arg_by_index(not_record_t *args, size_t index);
 
 #endif

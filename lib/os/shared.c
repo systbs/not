@@ -114,9 +114,9 @@ struct permission permissions[21] = {
 not_record_t *
 f_open(not_record_t *args) // (const char *path, mpz_t *flag, mpz_t *mode)
 {
-    not_record_t *arg0 = tuple_arg_by_index(args, 0);
-    not_record_t *arg1 = tuple_arg_by_index(args, 1);
-    not_record_t *arg2 = tuple_arg_by_index(args, 2);
+    not_record_t *arg0 = not_record_tuple_arg_by_index(args, 0);
+    not_record_t *arg1 = not_record_tuple_arg_by_index(args, 1);
+    not_record_t *arg2 = not_record_tuple_arg_by_index(args, 2);
 
     int _flag = mpz_get_ui(*(mpz_t *)arg1->value);
 
@@ -137,14 +137,14 @@ f_open(not_record_t *args) // (const char *path, mpz_t *flag, mpz_t *mode)
     final_flags |= O_NONBLOCK;
 #endif
 
-    unsigned int _mode = mpz_get_ui(*(mpz_t *)arg2->value);
+    unsigned int mode = mpz_get_ui(*(mpz_t *)arg2->value);
 
     size_t num_permissions = sizeof(permissions) / sizeof(permissions[0]);
     mode_t final_modes = 0;
 
     for (size_t i = 0; i < num_permissions; i++)
     {
-        if ((_mode & permissions[i].term) == permissions[i].term)
+        if ((mode & permissions[i].term) == permissions[i].term)
             final_modes |= permissions[i].value;
     }
 
@@ -156,8 +156,8 @@ f_open(not_record_t *args) // (const char *path, mpz_t *flag, mpz_t *mode)
 not_record_t *
 f_read(not_record_t *args) // (mpz_t *fd, mpz_t *count)
 {
-    not_record_t *arg0 = tuple_arg_by_index(args, 0);
-    not_record_t *arg1 = tuple_arg_by_index(args, 1);
+    not_record_t *arg0 = not_record_tuple_arg_by_index(args, 0);
+    not_record_t *arg1 = not_record_tuple_arg_by_index(args, 1);
 
     int fd = mpz_get_si(*(mpz_t *)arg0->value);
     ssize_t nbytes = mpz_get_si(*(mpz_t *)arg1->value);
@@ -268,9 +268,9 @@ replace_escaped(const char *input, char *output)
 not_record_t *
 f_write(not_record_t *args) // (mpz_t *fd, const char *buf, mpz_t *n)
 {
-    not_record_t *arg0 = tuple_arg_by_index(args, 0);
-    not_record_t *arg1 = tuple_arg_by_index(args, 1);
-    not_record_t *arg2 = tuple_arg_by_index(args, 2);
+    not_record_t *arg0 = not_record_tuple_arg_by_index(args, 0);
+    not_record_t *arg1 = not_record_tuple_arg_by_index(args, 1);
+    not_record_t *arg2 = not_record_tuple_arg_by_index(args, 2);
 
     int fd = mpz_get_si(*(mpz_t *)arg0->value);
     const char *buf = (char *)arg1->value;
@@ -297,7 +297,7 @@ final:
 not_record_t *
 f_close(not_record_t *args) // (mpz_t *fd)
 {
-    not_record_t *arg0 = tuple_arg_by_index(args, 0);
+    not_record_t *arg0 = not_record_tuple_arg_by_index(args, 0);
 
     int fd = mpz_get_si(*(mpz_t *)arg0->value);
     int t = close(fd);
@@ -330,9 +330,9 @@ struct whence whences[3] = {
 not_record_t *
 f_seek(not_record_t *args) // (mpz_t *fd, mpz_t *offset, mpz_t *whence)
 {
-    not_record_t *arg0 = tuple_arg_by_index(args, 0);
-    not_record_t *arg1 = tuple_arg_by_index(args, 1);
-    not_record_t *arg2 = tuple_arg_by_index(args, 2);
+    not_record_t *arg0 = not_record_tuple_arg_by_index(args, 0);
+    not_record_t *arg1 = not_record_tuple_arg_by_index(args, 1);
+    not_record_t *arg2 = not_record_tuple_arg_by_index(args, 2);
 
     int fd = mpz_get_si(*(mpz_t *)arg0->value);
     long off = mpz_get_si(*(mpz_t *)arg1->value);
@@ -431,13 +431,22 @@ err:
 not_record_t *
 f_stat(not_record_t *args) // (const char *path)
 {
-    not_record_t *arg0 = tuple_arg_by_index(args, 0);
+    not_record_t *arg0 = not_record_tuple_arg_by_index(args, 0);
     const char *path = (char *)arg0->value;
 
     struct stat st;
     if (stat(path, &st) < 0)
     {
         goto err;
+    }
+
+    size_t num_permissions = sizeof(permissions) / sizeof(permissions[0]);
+    mode_t final_modes = 0;
+
+    for (size_t i = 0; i < num_permissions; i++)
+    {
+        if ((st.st_mode & permissions[i].term) == permissions[i].term)
+            final_modes |= permissions[i].value;
     }
 
     not_record_t *value;
@@ -467,7 +476,7 @@ f_stat(not_record_t *args) // (const char *path)
     value = not_record_make_int_from_ui(st.st_nlink);
     next = not_record_make_object("nlink", value, next);
 
-    value = not_record_make_int_from_ui(st.st_mode);
+    value = not_record_make_int_from_ui(final_modes);
     next = not_record_make_object("mode", value, next);
 
     value = not_record_make_int_from_ui(st.st_ino);
