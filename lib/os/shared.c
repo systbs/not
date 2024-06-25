@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <jansson.h>
 #include <dirent.h>
+#include <errno.h>
 
 #include "../not.h"
 
@@ -438,7 +439,7 @@ f_stat(not_record_t *args) // (const char *path)
     struct stat st;
     if (stat(path, &st) < 0)
     {
-        goto err;
+        return not_record_make_int_from_si(errno);
     }
 
     size_t num_permissions = sizeof(permissions) / sizeof(permissions[0]);
@@ -596,18 +597,47 @@ err:
 }
 
 not_record_t *
-f_readdir(not_record_t *args) // (const char *path)
+f_remove(not_record_t *args) // (const char *path)
 {
     not_record_t *arg0 = not_record_tuple_arg_by_index(args, 0);
+    const char *path = (char *)arg0->value;
+
+    if (remove(path) == 0)
+    {
+        return not_record_make_int_from_si(0);
+    }
+    else
+    {
+        return not_record_make_int_from_si(errno);
+    }
+}
+
+typedef struct
+{
+    int dd_fd;
+    long dd_loc;
+    long dd_size;
+    char *dd_buf;
+    int dd_len;
+    long dd_seek;
+    void *dd_direct;
+} MyDIR;
+
+not_record_t *
+d_read(not_record_t *args) // (const char *path)
+{
+    not_record_t *arg0 = not_record_tuple_arg_by_index(args, 0);
+
     const char *path = (char *)arg0->value;
 
     DIR *dp = opendir(path);
     if (dp == NULL)
     {
-        return not_record_make_null();
+        return not_record_make_int_from_si(errno);
     }
 
-    not_record_tuple_t *tuple_top = NULL, *tuple_iter = NULL;
+    not_record_tuple_t *tuple_top = NULL,
+                       *tuple_iter = NULL;
 
     struct dirent *entry;
     while ((entry = readdir(dp)))
@@ -719,5 +749,49 @@ err:
     if (tuple_top)
         not_record_tuple_destroy(tuple_top);
 
-    return not_record_make_null();
+    return not_record_make_int_from_si(errno);
+}
+
+not_record_t *
+d_remove(not_record_t *args) // (const char *path)
+{
+    not_record_t *arg0 = not_record_tuple_arg_by_index(args, 0);
+    const char *path = (char *)arg0->value;
+
+    if (rmdir(path) == 0)
+    {
+        return not_record_make_int_from_si(0);
+    }
+    else
+    {
+        return not_record_make_int_from_si(errno);
+    }
+}
+
+not_record_t *
+d_make(not_record_t *args) // (const char *path)
+{
+    not_record_t *arg0 = not_record_tuple_arg_by_index(args, 0);
+    not_record_t *arg1 = not_record_tuple_arg_by_index(args, 1);
+    const char *path = (char *)arg0->value;
+
+    unsigned int mode = mpz_get_ui(*(mpz_t *)arg1->value);
+
+    size_t num_permissions = sizeof(permissions) / sizeof(permissions[0]);
+    mode_t final_modes = 0;
+
+    for (size_t i = 0; i < num_permissions; i++)
+    {
+        if ((mode & permissions[i].term) == permissions[i].term)
+            final_modes |= permissions[i].value;
+    }
+
+    if (mkdir(path, final_modes) == 0)
+    {
+        return not_record_make_int_from_si(0);
+    }
+    else
+    {
+        return not_record_make_int_from_si(errno);
+    }
 }

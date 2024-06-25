@@ -96,11 +96,42 @@
             ]
         },
         {
-            "name": "f_readdir",
+            "name": "f_remove",
             "parameters": [
                 {
                     "name": "path",
                     "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "d_read",
+            "parameters": [
+                {
+                    "name": "path",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "d_remove",
+            "parameters": [
+                {
+                    "name": "path",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "d_make",
+            "parameters": [
+                {
+                    "name": "path",
+                    "type": "string"
+                },
+                {
+                    "name": "mode",
+                    "type": "int"
                 }
             ]
         }

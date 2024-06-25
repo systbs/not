@@ -1,4 +1,6 @@
-using f_open, f_read, f_write, f_close, f_seek, f_gets, f_getc, f_stat, f_readdir from "./shared.json";
+using ValueError, PermissionError, BadFileDescriptorError, EmFileError, EnFileError, ExistError, MLinkError, NoSpaceError, NotEmptyError, BusyError, FaultError, IsDirectoryError, LoopError, NameTooLongError, NoEntryError, NoMemoryError, NotDirectoryError, NotPermittedError, ReadonlyError, CrossDeviceError, UnknownError from "~/error";
+using f_open, f_read, f_write, f_close, f_seek, f_gets, f_getc, f_stat, f_remove from "./shared.json";
+using d_read, d_remove, d_make from "./shared.json";
 
 export readonly var Print = fun (value, end = "\n", f:File = null) {
 
@@ -21,10 +23,6 @@ export readonly var Print = fun (value, end = "\n", f:File = null) {
     }
 };
 
-export readonly var ReadDirectory = fun (path:string) {
-    return f_readdir(path);
-};
-
 export readonly var Input = fun (comment:string = "") {
     Print(comment, end = "");
     var r = f_gets();
@@ -38,19 +36,6 @@ export readonly var GetChar = fun () {
 export readonly var Stat = fun (path:string) {
     return f_stat(path);
 };
-
-export class ValueError {
-    export message:string;
-    export fun constructor (value:string)
-    {
-        message = value;
-    }
-
-    export fun ToString()
-    {
-        return message;
-    }
-}
 
 export class File {
     export static readonly O_RDONLY = 0x0000;
@@ -165,5 +150,340 @@ export class File {
 
     export fun GetFd {
         return fd;
+    }
+
+    export static fun Remove(path:string) {
+        var r = f_remove(path);
+        if (r instanceof int)
+        {
+            if (r == 0)
+            {
+                return r;
+            }  
+            else if (r == 13)
+            {
+                throw PermissionError("Permission denied");
+            }
+            else if (r == 16)
+            {
+                throw BusyError("File is busy");
+            }
+            else if (r == 14)
+            {
+                throw FaultError("Bad address");
+            }
+            else if (r == 21)
+            {
+                throw IsDirectoryError("Bad address");
+            }
+            else if (r == 40)
+            {
+                throw LoopError("Too many symbolic links encountered");
+            }
+            else if (r == 36)
+            {
+                throw NameTooLongError("Pathname is too long");
+            }
+            else if (r == 2)
+            {
+                throw NoEntryError("File does not exist");
+            }
+            else if (r == 12)
+            {
+                throw NoMemoryError("Out of memory");
+            }
+            else if (r == 20)
+            {
+                throw NotDirectoryError("A component of the path is not a directory");
+            }
+            else if (r == 1)
+            {
+                throw NotPermittedError("Operation not permitted");
+            }
+            else if (r == 30)
+            {
+                throw ReadonlyError("Read-only file system");
+            }
+            else if (r == 18)
+            {
+                throw CrossDeviceError("Cross-device link");
+            }
+            else
+            {
+                throw UnknownError("Error in deleting file");
+            }
+        }
+        return r;
+    }
+}
+
+export class Directory {
+    export static readonly S_IFMT = 0xF000;
+    export static readonly S_IFDIR = 0x4000;
+    export static readonly S_IFCHR = 0x2000;
+    export static readonly S_IFREG = 0x8000;
+    export static readonly S_IREAD = 0x0100;
+    export static readonly S_IWRITE = 0x0080;
+    export static readonly S_IEXEC = 0x0040;
+    export static readonly S_IFIFO = 0x1000;
+    export static readonly S_IFBLK = 0x3000;
+
+    export static readonly S_IRWXU = (Directory.S_IREAD | Directory.S_IWRITE | Directory.S_IEXEC);
+    export static readonly S_IXUSR = Directory.S_IEXEC;
+    export static readonly S_IWUSR = Directory.S_IWRITE;
+    export static readonly S_IRUSR = Directory.S_IREAD;
+
+    export static readonly S_IRGRP = (Directory.S_IRUSR >> 3);
+    export static readonly S_IWGRP = (Directory.S_IWUSR >> 3);
+    export static readonly S_IXGRP = (Directory.S_IXUSR >> 3);
+    export static readonly S_IRWXG = (Directory.S_IRWXU >> 3);
+
+    export static readonly S_IROTH = (Directory.S_IRGRP >> 3);
+    export static readonly S_IWOTH = (Directory.S_IWGRP >> 3);
+    export static readonly S_IXOTH = (Directory.S_IXGRP >> 3);
+    export static readonly S_IRWXO = (Directory.S_IRWXG >> 3);
+
+    export static fun Make(path:string, mode:int = Directory.S_IRWXU) {
+        var r = d_make(path, mode);
+        if (r instanceof int)
+        {
+            if (r == 0)
+            {
+                return r;
+            }
+            else if (r == 13)
+            {
+                throw PermissionError("Permission denied");
+            }
+            else if (r == 17)
+            {
+                throw ExistError("Directory already exists");
+            }
+            else if (r == 28)
+            {
+                throw NoSpaceError("No space left on device");
+            }
+            else if (r == 31)
+            {
+                throw MLinkError("Too many hard links to the directory");
+            }
+            else if (r == 9)
+            {
+                throw BadFileDescriptorError("Bad file descriptor");
+            }
+            else if (r == 24)
+            {
+                throw EmFileError("Too many open files by this process");
+            }
+            else if (r == 23)
+            {
+                throw EnFileError("Too many open files in the system");
+            }
+            else if (r == 16)
+            {
+                throw BusyError("File is busy");
+            }
+            else if (r == 14)
+            {
+                throw FaultError("Bad address");
+            }
+            else if (r == 21)
+            {
+                throw IsDirectoryError("Bad address");
+            }
+            else if (r == 40)
+            {
+                throw LoopError("Too many symbolic links encountered");
+            }
+            else if (r == 36)
+            {
+                throw NameTooLongError("Pathname is too long");
+            }
+            else if (r == 2)
+            {
+                throw NoEntryError("File does not exist");
+            }
+            else if (r == 12)
+            {
+                throw NoMemoryError("Out of memory");
+            }
+            else if (r == 20)
+            {
+                throw NotDirectoryError("A component of the path is not a directory");
+            }
+            else if (r == 1)
+            {
+                throw NotPermittedError("Operation not permitted");
+            }
+            else if (r == 30)
+            {
+                throw ReadonlyError("Read-only file system");
+            }
+            else if (r == 18)
+            {
+                throw CrossDeviceError("Cross-device link");
+            }
+            else if (r == 39)
+            {
+                throw NotEmptyError("Directory not empty");
+            }
+            else
+            {
+                throw UnknownError("Error in deleting directory");
+            }
+        }
+        return r;
+    }
+
+    export static fun Read(path:string) {
+        var r = d_read(path);
+        if (r instanceof int)
+        {
+            if (r == 13)
+            {
+                throw PermissionError("Permission denied");
+            }
+            else if (r == 9)
+            {
+                throw BadFileDescriptorError("Bad file descriptor");
+            }
+            else if (r == 24)
+            {
+                throw EmFileError("Too many open files by this process");
+            }
+            else if (r == 23)
+            {
+                throw EnFileError("Too many open files in the system");
+            }
+            else if (r == 16)
+            {
+                throw BusyError("File is busy");
+            }
+            else if (r == 14)
+            {
+                throw FaultError("Bad address");
+            }
+            else if (r == 21)
+            {
+                throw IsDirectoryError("Bad address");
+            }
+            else if (r == 40)
+            {
+                throw LoopError("Too many symbolic links encountered");
+            }
+            else if (r == 36)
+            {
+                throw NameTooLongError("Pathname is too long");
+            }
+            else if (r == 2)
+            {
+                throw NoEntryError("File does not exist");
+            }
+            else if (r == 12)
+            {
+                throw NoMemoryError("Out of memory");
+            }
+            else if (r == 20)
+            {
+                throw NotDirectoryError("A component of the path is not a directory");
+            }
+            else if (r == 1)
+            {
+                throw NotPermittedError("Operation not permitted");
+            }
+            else if (r == 30)
+            {
+                throw ReadonlyError("Read-only file system");
+            }
+            else if (r == 18)
+            {
+                throw CrossDeviceError("Cross-device link");
+            }
+            else
+            {
+                throw UnknownError("Error in deleting file");
+            }
+        }
+        return r;
+    }
+
+    export static fun Remove(path:string) {
+        var r = d_remove(path);
+        if (r instanceof int)
+        {
+            if (r == 0)
+            {
+                return r;
+            }
+            else if (r == 13)
+            {
+                throw PermissionError("Permission denied");
+            }
+            else if (r == 9)
+            {
+                throw BadFileDescriptorError("Bad file descriptor");
+            }
+            else if (r == 24)
+            {
+                throw EmFileError("Too many open files by this process");
+            }
+            else if (r == 23)
+            {
+                throw EnFileError("Too many open files in the system");
+            }
+            else if (r == 16)
+            {
+                throw BusyError("File is busy");
+            }
+            else if (r == 14)
+            {
+                throw FaultError("Bad address");
+            }
+            else if (r == 21)
+            {
+                throw IsDirectoryError("Bad address");
+            }
+            else if (r == 40)
+            {
+                throw LoopError("Too many symbolic links encountered");
+            }
+            else if (r == 36)
+            {
+                throw NameTooLongError("Pathname is too long");
+            }
+            else if (r == 2)
+            {
+                throw NoEntryError("File does not exist");
+            }
+            else if (r == 12)
+            {
+                throw NoMemoryError("Out of memory");
+            }
+            else if (r == 20)
+            {
+                throw NotDirectoryError("A component of the path is not a directory");
+            }
+            else if (r == 1)
+            {
+                throw NotPermittedError("Operation not permitted");
+            }
+            else if (r == 30)
+            {
+                throw ReadonlyError("Read-only file system");
+            }
+            else if (r == 18)
+            {
+                throw CrossDeviceError("Cross-device link");
+            }
+            else if (r == 39)
+            {
+                throw NotEmptyError("Directory not empty");
+            }
+            else
+            {
+                throw UnknownError("Error in deleting directory");
+            }
+        }
+        return r;
     }
 }

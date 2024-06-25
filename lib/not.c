@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <float.h>
 #include <jansson.h>
+#include <errno.h>
 
 #include "not.h"
 
@@ -17,6 +18,7 @@ not_record_create(uint64_t kind, void *value)
     not_record_t *record = (not_record_t *)calloc(1, sizeof(not_record_t));
     if (record == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
 
@@ -52,6 +54,7 @@ not_record_make_int(const char *value)
     mpz_t *basic = (mpz_t *)calloc(1, sizeof(mpz_t));
     if (basic == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
 
@@ -74,6 +77,7 @@ not_record_make_int_from_ui(uint64_t value)
     mpz_t *basic = (mpz_t *)calloc(1, sizeof(mpz_t));
     if (basic == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
 
@@ -96,6 +100,7 @@ not_record_make_int_from_si(int64_t value)
     mpz_t *basic = (mpz_t *)calloc(1, sizeof(mpz_t));
     if (basic == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
 
@@ -117,6 +122,7 @@ not_record_make_int_from_z(mpz_t value)
     mpz_t *basic = (mpz_t *)calloc(1, sizeof(mpz_t));
     if (basic == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
 
@@ -137,6 +143,7 @@ not_record_make_int_from_f(mpf_t value)
     mpz_t *basic = (mpz_t *)calloc(1, sizeof(mpz_t));
     if (basic == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
 
@@ -158,6 +165,7 @@ not_record_make_float(const char *value)
     mpf_t *basic = (mpf_t *)calloc(1, sizeof(mpf_t));
     if (basic == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
 
@@ -179,6 +187,7 @@ not_record_make_float_from_d(double value)
     mpf_t *basic = (mpf_t *)calloc(1, sizeof(mpf_t));
     if (basic == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
 
@@ -200,6 +209,7 @@ not_record_make_float_from_si(int64_t value)
     mpf_t *basic = (mpf_t *)calloc(1, sizeof(mpf_t));
     if (basic == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
 
@@ -221,6 +231,7 @@ not_record_make_float_from_ui(uint64_t value)
     mpf_t *basic = (mpf_t *)calloc(1, sizeof(mpf_t));
     if (basic == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
 
@@ -242,6 +253,7 @@ not_record_make_float_from_f(mpf_t value)
     mpf_t *basic = (mpf_t *)calloc(1, sizeof(mpf_t));
     if (basic == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
 
@@ -262,6 +274,7 @@ not_record_make_float_from_z(mpz_t value)
     mpf_t *basic = (mpf_t *)calloc(1, sizeof(mpf_t));
     if (basic == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
 
@@ -283,6 +296,7 @@ not_record_make_char(char value)
     char *basic = (char *)calloc(1, sizeof(char));
     if (basic == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
 
@@ -303,6 +317,7 @@ not_record_make_string(char *value)
     char *basic = (char *)calloc(1, strlen(value) + 1);
     if (basic == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
     strcpy(basic, value);
@@ -323,6 +338,7 @@ not_record_make_object(const char *key, not_record_t *value, not_record_object_t
     not_record_object_t *basic = (not_record_object_t *)calloc(1, sizeof(not_record_object_t));
     if (basic == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
 
@@ -330,8 +346,8 @@ not_record_make_object(const char *key, not_record_t *value, not_record_object_t
     basic->key = calloc(length, sizeof(char) + 1);
     if (basic->key == NOT_PTR_ERROR)
     {
-
         free(basic);
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
     strcpy(basic->key, key);
@@ -348,6 +364,7 @@ not_record_make_tuple(not_record_t *value, not_record_tuple_t *next)
     not_record_tuple_t *basic = (not_record_tuple_t *)calloc(1, sizeof(not_record_tuple_t));
     if (basic == NULL)
     {
+        errno = ENOMEM;
         return NOT_PTR_ERROR;
     }
 

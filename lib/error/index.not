@@ -1,0 +1,347 @@
+export class ValueError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class OsError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class PermissionError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class BadFileDescriptorError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class NotExistError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class OutOfMemoryError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class NotEntryError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+
+
+export class LoopError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+
+export class OverflowError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class EnFileError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class EmFileError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class BusyError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class FaultError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class IOError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class IsDirectoryError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class NameTooLongError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class NoMemoryError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class NotDirectoryError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class NotPermittedError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class ReadonlyError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class CrossDeviceError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class NotEmptyError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class ExistError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class MLinkError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class NoSpaceError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class UnknownError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+
+
+
+
+
+

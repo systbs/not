@@ -154,8 +154,8 @@ if (data)
 ```
 
 ```csharp
-using Print, ReadDirectory from "~/os";
-for (var dir in ReadDirectory("./"))
+using Print, Directory from "~/os";
+for (var dir in Directory.Read("./"))
 {
 	Print(dir);
 }

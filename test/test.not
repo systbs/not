@@ -1,4 +1,4 @@
-using Print, File, Input, Stat, ReadDirectory from "~/os";
+using Print, File, Input, Stat, Directory from "~/os";
 
 Print("Hello World");
 
@@ -99,7 +99,11 @@ var obj2 = {a:1, b:2, c:3};
 
 Print(obj1 < obj2);
 
-for (var dir in ReadDirectory("./"))
+Directory.Make("./yas");
+
+for (var dir in Directory.Read("./"))
 {
 	Print(dir);
 }
+
+Directory.Remove("./yas");
