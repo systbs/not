@@ -450,42 +450,145 @@ f_stat(not_record_t *args) // (const char *path)
     }
 
     not_record_t *value;
-    not_record_object_t *next = NULL;
+    not_record_object_t *top = NULL, *iter = NULL;
 
     value = not_record_make_int_from_si(st.st_ctime);
-    next = not_record_make_object("ctime", value, next);
+    if (value == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
+    iter = not_record_make_object("ctime", value, NULL);
+    if (iter == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
+    top = iter;
 
     value = not_record_make_int_from_si(st.st_mtime);
-    next = not_record_make_object("mtime", value, next);
+    if (value == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
+    iter->next = not_record_make_object("mtime", value, NULL);
+    iter = iter->next;
+    if (iter == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
 
     value = not_record_make_int_from_si(st.st_atime);
-    next = not_record_make_object("atime", value, next);
+    if (value == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
+    iter->next = not_record_make_object("atime", value, NULL);
+    iter = iter->next;
+    if (iter == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
 
     value = not_record_make_int_from_ui(st.st_size);
-    next = not_record_make_object("size", value, next);
+    if (value == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
+    iter->next = not_record_make_object("size", value, NULL);
+    iter = iter->next;
+    if (iter == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
 
     value = not_record_make_int_from_ui(st.st_rdev);
-    next = not_record_make_object("rdev", value, next);
+    if (value == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
+    iter->next = not_record_make_object("rdev", value, NULL);
+    iter = iter->next;
+    if (iter == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
 
     value = not_record_make_int_from_ui(st.st_gid);
-    next = not_record_make_object("gid", value, next);
+    if (value == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
+    iter->next = not_record_make_object("gid", value, NULL);
+    iter = iter->next;
+    if (iter == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
 
     value = not_record_make_int_from_ui(st.st_uid);
-    next = not_record_make_object("uid", value, next);
+    if (value == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
+    iter->next = not_record_make_object("uid", value, NULL);
+    iter = iter->next;
+    if (iter == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
 
     value = not_record_make_int_from_ui(st.st_nlink);
-    next = not_record_make_object("nlink", value, next);
+    if (value == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
+    iter->next = not_record_make_object("nlink", value, NULL);
+    iter = iter->next;
+    if (iter == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
 
     value = not_record_make_int_from_ui(final_modes);
-    next = not_record_make_object("mode", value, next);
+    if (value == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
+    iter->next = not_record_make_object("mode", value, NULL);
+    iter = iter->next;
+    if (iter == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
 
     value = not_record_make_int_from_ui(st.st_ino);
-    next = not_record_make_object("ino", value, next);
+    if (value == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
+    iter->next = not_record_make_object("ino", value, NULL);
+    iter = iter->next;
+    if (iter == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
 
     value = not_record_make_int_from_ui(st.st_dev);
-    next = not_record_make_object("dev", value, next);
+    if (value == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
+    iter->next = not_record_make_object("dev", value, NULL);
+    iter = iter->next;
+    if (iter == NOT_PTR_ERROR)
+    {
+        goto cleanup;
+    }
 
-    return not_record_create(RECORD_KIND_OBJECT, next);
+    return not_record_create(RECORD_KIND_OBJECT, top);
+
+cleanup:
+    if (top)
+        not_record_object_destroy(top);
 
 err:
     return NULL;
