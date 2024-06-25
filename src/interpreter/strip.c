@@ -215,7 +215,7 @@ not_strip_variable_remove_by_scope(not_strip_t *strip, not_node_t *scope)
 int32_t
 not_strip_destroy(not_strip_t *strip)
 {
-    if (strip->previous)
+    if (!!strip->previous)
     {
         if (not_strip_destroy(strip->previous) < 0)
         {
@@ -230,59 +230,9 @@ not_strip_destroy(not_strip_t *strip)
         b = a->next;
         not_entry_t *item = (not_entry_t *)a->value;
 
-        if (item->value)
+        if (not_record_link_decrease(item->value) < 0)
         {
-            if (item->block->kind == NODE_KIND_VAR)
-            {
-                not_node_var_t *var1 = (not_node_var_t *)item->block->value;
-                if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
-                {
-                    if (not_record_link_decrease(item->value) < 0)
-                    {
-                        return -1;
-                    }
-                }
-            }
-            else if (item->block->kind == NODE_KIND_ENTITY)
-            {
-                not_node_entity_t *entity1 = (not_node_entity_t *)item->block->value;
-                if ((entity1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
-                {
-                    if (not_record_link_decrease(item->value) < 0)
-                    {
-                        return -1;
-                    }
-                }
-            }
-            else if (item->block->kind == NODE_KIND_PROPERTY)
-            {
-                not_node_property_t *property1 = (not_node_property_t *)item->block->value;
-                if ((property1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
-                {
-                    if (not_record_link_decrease(item->value) < 0)
-                    {
-                        return -1;
-                    }
-                }
-            }
-            else if (item->block->kind == NODE_KIND_PARAMETER)
-            {
-                not_node_parameter_t *parameter1 = (not_node_parameter_t *)item->block->value;
-                if ((parameter1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
-                {
-                    if (not_record_link_decrease(item->value) < 0)
-                    {
-                        return -1;
-                    }
-                }
-            }
-            else
-            {
-                if (not_record_link_decrease(item->value) < 0)
-                {
-                    return -1;
-                }
-            }
+            return -1;
         }
 
         not_memory_free(item);
@@ -295,59 +245,9 @@ not_strip_destroy(not_strip_t *strip)
         b = a->next;
         not_entry_t *item = (not_entry_t *)a->value;
 
-        if (item->value)
+        if (not_record_link_decrease(item->value) < 0)
         {
-            if (item->block->kind == NODE_KIND_VAR)
-            {
-                not_node_var_t *var1 = (not_node_var_t *)item->block->value;
-                if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
-                {
-                    if (not_record_link_decrease(item->value) < 0)
-                    {
-                        return -1;
-                    }
-                }
-            }
-            else if (item->block->kind == NODE_KIND_ENTITY)
-            {
-                not_node_entity_t *entity1 = (not_node_entity_t *)item->block->value;
-                if ((entity1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
-                {
-                    if (not_record_link_decrease(item->value) < 0)
-                    {
-                        return -1;
-                    }
-                }
-            }
-            else if (item->block->kind == NODE_KIND_PROPERTY)
-            {
-                not_node_property_t *property1 = (not_node_property_t *)item->block->value;
-                if ((property1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
-                {
-                    if (not_record_link_decrease(item->value) < 0)
-                    {
-                        return -1;
-                    }
-                }
-            }
-            else if (item->block->kind == NODE_KIND_PARAMETER)
-            {
-                not_node_parameter_t *parameter1 = (not_node_parameter_t *)item->block->value;
-                if ((parameter1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
-                {
-                    if (not_record_link_decrease(item->value) < 0)
-                    {
-                        return -1;
-                    }
-                }
-            }
-            else
-            {
-                if (not_record_link_decrease(item->value) < 0)
-                {
-                    return -1;
-                }
-            }
+            return -1;
         }
 
         not_memory_free(item);
@@ -376,11 +276,6 @@ void not_strip_attach(not_strip_t *strip, not_strip_t *previous)
 not_strip_t *
 not_strip_copy(not_strip_t *strip)
 {
-    if (strip == NULL)
-    {
-        return NULL;
-    }
-
     not_strip_t *strip_previous = NULL;
     if (strip->previous)
     {
@@ -413,10 +308,7 @@ not_strip_copy(not_strip_t *strip)
         if (entry == NULL)
         {
             not_error_no_memory();
-            if (not_strip_destroy(strip_copy) < 0)
-            {
-                return NOT_PTR_ERROR;
-            }
+            not_strip_destroy(strip_copy);
             return NOT_PTR_ERROR;
         }
 
@@ -430,14 +322,12 @@ not_strip_copy(not_strip_t *strip)
         if (NOT_PTR_ERROR == not_queue_right_push(strip_copy->variables, entry))
         {
             not_memory_free(entry);
-            if (not_strip_destroy(strip_copy) < 0)
-            {
-                return NOT_PTR_ERROR;
-            }
+            not_strip_destroy(strip_copy);
             return NOT_PTR_ERROR;
         }
     }
 
+    /*
     for (not_queue_entry_t *a = strip->inputs->begin; a != strip->inputs->end; a = a->next)
     {
         not_entry_t *item = (not_entry_t *)a->value;
@@ -446,10 +336,7 @@ not_strip_copy(not_strip_t *strip)
         if (entry == NULL)
         {
             not_error_no_memory();
-            if (not_strip_destroy(strip_copy) < 0)
-            {
-                return NOT_PTR_ERROR;
-            }
+            not_strip_destroy(strip_copy);
             return NOT_PTR_ERROR;
         }
 
@@ -463,13 +350,11 @@ not_strip_copy(not_strip_t *strip)
         if (NOT_PTR_ERROR == not_queue_right_push(strip_copy->inputs, entry))
         {
             not_memory_free(entry);
-            if (not_strip_destroy(strip_copy) < 0)
-            {
-                return NOT_PTR_ERROR;
-            }
+            not_strip_destroy(strip_copy);
             return NOT_PTR_ERROR;
         }
     }
+    */
 
     return strip_copy;
 }

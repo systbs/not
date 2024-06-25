@@ -221,13 +221,13 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                     return NOT_PTR_ERROR;
                 }
 
-                not_strip_t *copy_strip = not_strip_copy(strip);
-                if (copy_strip == NOT_PTR_ERROR)
+                not_strip_t *strip_copy = not_strip_copy(strip);
+                if (strip_copy == NOT_PTR_ERROR)
                 {
                     return NOT_PTR_ERROR;
                 }
 
-                return not_record_make_type(item, copy_strip);
+                return not_record_make_type(item, strip_copy);
             }
         }
         else if (item->kind == NODE_KIND_FUN)
@@ -244,13 +244,13 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                     return NOT_PTR_ERROR;
                 }
 
-                not_strip_t *copy_strip = not_strip_copy(strip);
-                if (copy_strip == NOT_PTR_ERROR)
+                not_strip_t *strip_copy = not_strip_copy(strip);
+                if (strip_copy == NOT_PTR_ERROR)
                 {
                     return NOT_PTR_ERROR;
                 }
 
-                return not_record_make_type(item, copy_strip);
+                return not_record_make_type(item, strip_copy);
             }
         }
     }
@@ -385,13 +385,13 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
                     return NOT_PTR_ERROR;
                 }
 
-                not_strip_t *copy_strip = not_strip_copy(strip);
-                if (copy_strip == NOT_PTR_ERROR)
+                not_strip_t *strip_copy = not_strip_copy(strip);
+                if (strip_copy == NOT_PTR_ERROR)
                 {
                     return NOT_PTR_ERROR;
                 }
 
-                return not_record_make_type(item, copy_strip);
+                return not_record_make_type(item, strip_copy);
             }
         }
         else if (item->kind == NODE_KIND_FUN)
@@ -417,13 +417,13 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
                     return NOT_PTR_ERROR;
                 }
 
-                not_strip_t *copy_strip = not_strip_copy(strip);
-                if (copy_strip == NOT_PTR_ERROR)
+                not_strip_t *strip_copy = not_strip_copy(strip);
+                if (strip_copy == NOT_PTR_ERROR)
                 {
                     return NOT_PTR_ERROR;
                 }
 
-                return not_record_make_type(item, copy_strip);
+                return not_record_make_type(item, strip_copy);
             }
         }
     }

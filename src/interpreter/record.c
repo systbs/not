@@ -1132,7 +1132,7 @@ not_record_object_copy(not_record_object_t *object)
     }
 
     size_t length = strlen(object->key);
-    basic->key = not_memory_calloc(length, sizeof(char) + 1);
+    basic->key = not_memory_calloc(length + 1, sizeof(char));
     if (basic->key == NOT_PTR_ERROR)
     {
         not_error_no_memory();
@@ -1206,34 +1206,22 @@ not_record_tuple_copy(not_record_tuple_t *tuple)
 not_record_struct_t *
 not_record_struct_copy(not_record_struct_t *struct1)
 {
-    not_strip_t *value = NULL;
-
-    if (struct1->value)
+    not_strip_t *strip_copy = not_strip_copy(struct1->value);
+    if (strip_copy == NOT_PTR_ERROR)
     {
-        value = not_strip_copy(struct1->value);
-        if (value == NOT_PTR_ERROR)
-        {
-            return NOT_PTR_ERROR;
-        }
+        return NOT_PTR_ERROR;
     }
 
     not_record_struct_t *basic = (not_record_struct_t *)not_memory_calloc(1, sizeof(not_record_struct_t));
     if (basic == NULL)
     {
         not_error_no_memory();
-        if (value)
-        {
-            if (not_strip_destroy(value) < 0)
-            {
-                return NOT_PTR_ERROR;
-            }
-        }
-
+        not_strip_destroy(strip_copy);
         return NOT_PTR_ERROR;
     }
 
     basic->type = struct1->type;
-    basic->value = value;
+    basic->value = strip_copy;
 
     return basic;
 }
@@ -1337,6 +1325,20 @@ not_record_type_copy(not_record_type_t *type)
             }
         }
         else if (type->type->kind == NODE_KIND_CLASS)
+        {
+            if (not_strip_destroy((not_strip_t *)value) < 0)
+            {
+                return NOT_PTR_ERROR;
+            }
+        }
+        else if (type->type->kind == NODE_KIND_FUN)
+        {
+            if (not_strip_destroy((not_strip_t *)value) < 0)
+            {
+                return NOT_PTR_ERROR;
+            }
+        }
+        else if (type->type->kind == NODE_KIND_LAMBDA)
         {
             if (not_strip_destroy((not_strip_t *)value) < 0)
             {

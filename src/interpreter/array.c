@@ -78,10 +78,6 @@ not_call_for_bracket(not_node_t *base, not_node_t *arguments, not_strip_t *strip
                 else if (!rax)
                 {
                     rax = not_record_make_undefined();
-                    if (rax == NOT_PTR_ERROR)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
                 }
 
                 return rax;

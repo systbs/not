@@ -35,7 +35,7 @@
 #include "execute.h"
 
 int32_t
-not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
+not_assign_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 {
     if (left->readonly)
     {
@@ -157,7 +157,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             mpz_clear(*(mpz_t *)(left->value));
-            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)) + 1);
             if (ptr == NULL)
             {
                 not_error_no_memory();
@@ -582,7 +582,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             }
 
             mpf_clear(*(mpf_t *)left->value);
-            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)) + 1);
             if (ptr == NULL)
             {
                 not_error_no_memory();
@@ -1003,7 +1003,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
 
-            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)) + 1);
             if (ptr == NULL)
             {
                 not_error_no_memory();
@@ -1411,7 +1411,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return 0;
             }
 
-            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)) + 1);
             if (ptr == NULL)
             {
                 not_error_no_memory();
@@ -1848,7 +1848,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
 
-            void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
+            void *ptr = not_memory_calloc(1, strlen((char *)(right->value)) + 1);
             if (ptr == NULL)
             {
                 not_error_no_memory();
@@ -2321,7 +2321,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
 
-            void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
+            void *ptr = not_memory_calloc(1, strlen((char *)(right->value)) + 1);
             if (ptr == NULL)
             {
                 not_error_no_memory();
@@ -2794,7 +2794,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
 
-            void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
+            void *ptr = not_memory_calloc(1, strlen((char *)(right->value)) + 1);
             if (ptr == NULL)
             {
                 not_error_no_memory();
@@ -3287,7 +3287,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
 
-            void *ptr = not_memory_calloc(1, strlen((char *)(right->value)));
+            void *ptr = not_memory_calloc(1, strlen((char *)(right->value)) + 1);
             if (ptr == NULL)
             {
                 not_error_no_memory();
@@ -3296,15 +3296,6 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
             strcpy((char *)(ptr), (char *)(right->value));
             left->value = ptr;
             left->kind = RECORD_KIND_STRING;
-
-            if (right->null)
-            {
-                left->null = 1;
-            }
-            else
-            {
-                left->null = 0;
-            }
 
             if (right->null)
             {
@@ -3737,7 +3728,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)) + 1);
             if (ptr == NULL)
             {
                 not_error_no_memory();
@@ -4008,7 +3999,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)) + 1);
             if (ptr == NULL)
             {
                 not_error_no_memory();
@@ -4279,7 +4270,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
         }
         else if (right->kind == RECORD_KIND_STRING)
         {
-            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)) + 1);
             if (ptr == NULL)
             {
                 not_error_no_memory();
@@ -4598,7 +4589,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
 
-            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)) + 1);
             if (ptr == NULL)
             {
                 not_error_no_memory();
@@ -5015,7 +5006,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
                 return -1;
             }
 
-            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)));
+            void *ptr = not_memory_realloc(left->value, strlen((char *)(right->value)) + 1);
             if (ptr == NULL)
             {
                 not_error_no_memory();
@@ -5323,7 +5314,7 @@ not_execute_set_value(not_node_t *node, not_record_t *left, not_record_t *right)
 }
 
 int32_t
-not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     if (node->kind == NODE_KIND_ASSIGN)
     {
@@ -5344,7 +5335,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, right) < 0)
+        if (not_assign_set_value(node, left, right) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -5411,7 +5402,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result) < 0)
+        if (not_assign_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -5467,7 +5458,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result) < 0)
+        if (not_assign_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -5523,7 +5514,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result) < 0)
+        if (not_assign_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -5579,7 +5570,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result) < 0)
+        if (not_assign_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -5635,7 +5626,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result) < 0)
+        if (not_assign_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -5691,7 +5682,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result) < 0)
+        if (not_assign_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -5747,7 +5738,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result) < 0)
+        if (not_assign_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -5803,7 +5794,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result) < 0)
+        if (not_assign_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -5859,7 +5850,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result) < 0)
+        if (not_assign_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -5915,7 +5906,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result) < 0)
+        if (not_assign_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {
@@ -5971,7 +5962,7 @@ not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
             return -1;
         }
 
-        if (not_execute_set_value(node, left, result) < 0)
+        if (not_assign_set_value(node, left, result) < 0)
         {
             if (not_record_link_decrease(left) < 0)
             {

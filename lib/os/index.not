@@ -217,7 +217,7 @@ export class File {
     }
 }
 
-export class Directory {
+export static class Directory {
     export static readonly S_IFMT = 0xF000;
     export static readonly S_IFDIR = 0x4000;
     export static readonly S_IFCHR = 0x2000;
@@ -244,7 +244,9 @@ export class Directory {
     export static readonly S_IRWXO = (Directory.S_IRWXG >> 3);
 
     export static fun Make(path:string, mode:int = Directory.S_IRWXU) {
+    
         var r = d_make(path, mode);
+
         if (r instanceof int)
         {
             if (r == 0)

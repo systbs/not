@@ -99,7 +99,7 @@ not_record_t *
 not_expression(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin);
 
 int32_t
-not_execute_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin);
+not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin);
 
 not_record_t *
 not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant);

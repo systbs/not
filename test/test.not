@@ -106,4 +106,4 @@ for (var dir in Directory.Read("./"))
 	Print(dir);
 }
 
-Directory.Remove("./yas");
+Directory.Remove("./yas2");

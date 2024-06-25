@@ -343,7 +343,7 @@ not_record_make_object(const char *key, not_record_t *value, not_record_object_t
     }
 
     size_t length = strlen(key);
-    basic->key = calloc(length, sizeof(char) + 1);
+    basic->key = calloc(length + 1, sizeof(char));
     if (basic->key == NOT_PTR_ERROR)
     {
         free(basic);

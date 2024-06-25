@@ -63,6 +63,20 @@ export class NotExistError {
     }
 }
 
+export class NoEntryError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+
 export class OutOfMemoryError {
     export message:string;
     export fun constructor (value:string)

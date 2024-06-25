@@ -1982,8 +1982,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
         for (; item1 != NULL; item1 = item1->next)
         {
             not_node_parameter_t *parameter = (not_node_parameter_t *)item1->value;
-            not_entry_t *entry = not_strip_input_find(strip, scope, parameter->key);
-            if (!entry)
+            if (!not_strip_input_find(strip, scope, parameter->key))
             {
                 if (parameter->value)
                 {
@@ -2139,13 +2138,10 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                         record_arg->typed = 1;
                     }
 
-                    not_entry_t *entry2 = not_strip_input_push(strip, scope, item1, parameter->key, record_arg);
-                    if (entry2 == NOT_PTR_ERROR)
+                    not_entry_t *entry = not_strip_input_push(strip, scope, item1, parameter->key, record_arg);
+                    if (entry == NOT_PTR_ERROR)
                     {
-                        if (not_record_link_decrease(record_arg) < 0)
-                        {
-                            return -1;
-                        }
+                        not_record_link_decrease(record_arg);
                         return -1;
                     }
                 }
@@ -2420,8 +2416,8 @@ not_call_provide_class(not_strip_t *strip, not_node_t *node, not_node_t *applica
 {
     not_node_class_t *class1 = (not_node_class_t *)node->value;
 
-    not_strip_t *strip_class = not_strip_copy(strip);
-    if (strip_class == NOT_PTR_ERROR)
+    not_strip_t *strip_copy = not_strip_copy(strip);
+    if (strip_copy == NOT_PTR_ERROR)
     {
         return NOT_PTR_ERROR;
     }
@@ -2431,12 +2427,10 @@ not_call_provide_class(not_strip_t *strip, not_node_t *node, not_node_t *applica
         not_node_block_t *block = (not_node_block_t *)class1->heritages->value;
         for (not_node_t *item = block->items; item != NULL; item = item->next)
         {
-            if (not_call_heritage_subs(node, strip_class, item, applicant) < 0)
+            if (not_call_heritage_subs(node, strip_copy, item, applicant) < 0)
             {
-                if (not_strip_destroy(strip_class) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
+                not_strip_destroy(strip_copy);
+                return NOT_PTR_ERROR;
             }
         }
     }
@@ -2448,24 +2442,19 @@ not_call_provide_class(not_strip_t *strip, not_node_t *node, not_node_t *applica
             not_node_property_t *property = (not_node_property_t *)item->value;
             if ((property->flag & SYNTAX_MODIFIER_STATIC) != SYNTAX_MODIFIER_STATIC)
             {
-                if (not_call_property_subs(node, strip_class, item, applicant) < 0)
+                if (not_call_property_subs(node, strip_copy, item, applicant) < 0)
                 {
-                    if (not_strip_destroy(strip_class) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    not_strip_destroy(strip_copy);
+                    return NOT_PTR_ERROR;
                 }
             }
         }
     }
 
-    not_record_t *result = not_record_make_struct(node, strip_class);
+    not_record_t *result = not_record_make_struct(node, strip_copy);
     if (result == NOT_PTR_ERROR)
     {
-        if (not_strip_destroy(strip_class) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
+        not_strip_destroy(strip_copy);
     }
 
     return result;
@@ -2556,6 +2545,15 @@ not_call_class(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_
 
     not_node_class_t *class1 = (not_node_class_t *)type->value;
 
+    if ((class1->flag & SYNTAX_MODIFIER_STATIC))
+    {
+        not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
+        not_error_type_by_node(base, "'%s' unexpected access to '%s' in static class",
+                               basic2->value, CONSTRUCTOR_STR);
+        not_record_link_decrease(content);
+        return NOT_PTR_ERROR;
+    }
+
     for (not_node_t *item = class1->block; item != NULL; item = item->next)
     {
         if (item->kind == NODE_KIND_FUN)
@@ -2569,57 +2567,35 @@ not_call_class(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
                     not_error_type_by_node(base, "'%s' unexpected access to '%s'",
                                            basic2->value, basic1->value);
+                    not_record_link_decrease(content);
                     return NOT_PTR_ERROR;
                 }
 
                 not_strip_t *strip_copy = not_strip_copy(strip_class);
                 if (strip_copy == NOT_PTR_ERROR)
                 {
+                    not_record_link_decrease(content);
                     return NOT_PTR_ERROR;
                 }
 
                 if (not_call_parameters_subs(base, item, strip_copy, fun1->parameters, arguments, applicant) < 0)
                 {
-                    if (not_strip_destroy(strip_copy) < 0)
-                    {
-                        if (not_record_link_decrease(content) < 0)
-                        {
-                            return NOT_PTR_ERROR;
-                        }
-                        return NOT_PTR_ERROR;
-                    }
-                    if (not_record_link_decrease(content) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    not_strip_destroy(strip_copy);
+                    not_record_link_decrease(content);
                     return NOT_PTR_ERROR;
                 }
+
                 int32_t r1 = not_execute_fun(item, strip_copy, applicant);
                 if (r1 < 0)
                 {
-                    if (not_strip_destroy(strip_copy) < 0)
-                    {
-                        if (not_record_link_decrease(content) < 0)
-                        {
-                            return NOT_PTR_ERROR;
-                        }
-                        return NOT_PTR_ERROR;
-                    }
-
-                    if (not_record_link_decrease(content) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
-
+                    not_strip_destroy(strip_copy);
+                    not_record_link_decrease(content);
                     return NOT_PTR_ERROR;
                 }
 
                 if (not_strip_destroy(strip_copy) < 0)
                 {
-                    if (not_record_link_decrease(content) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    not_record_link_decrease(content);
                     return NOT_PTR_ERROR;
                 }
 
@@ -2647,10 +2623,7 @@ not_call_class(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_
 
     not_node_basic_t *basic1 = (not_node_basic_t *)class1->key->value;
     not_error_type_by_node(base, "'%s' no constructor was found", basic1->value);
-    if (not_record_link_decrease(content) < 0)
-    {
-        return NOT_PTR_ERROR;
-    }
+    not_record_link_decrease(content);
     return NOT_PTR_ERROR;
 }
 
@@ -2674,10 +2647,7 @@ not_call_fun(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_no
     int32_t r1 = not_execute_fun(node, strip_copy, applicant);
     if (r1 < 0)
     {
-        if (not_strip_destroy(strip_copy) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
+        not_strip_destroy(strip_copy);
         return NOT_PTR_ERROR;
     }
 
@@ -2694,10 +2664,6 @@ not_call_fun(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_no
     else if (!rax)
     {
         rax = not_record_make_undefined();
-        if (rax == NOT_PTR_ERROR)
-        {
-            return NOT_PTR_ERROR;
-        }
     }
 
     return rax;
@@ -2723,10 +2689,7 @@ not_call_lambda(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not
     int32_t r1 = not_execute_lambda(node, strip_copy, applicant);
     if (r1 < 0)
     {
-        if (not_strip_destroy(strip_copy) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
+        not_strip_destroy(strip_copy);
         return NOT_PTR_ERROR;
     }
 
@@ -2743,10 +2706,6 @@ not_call_lambda(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not
     else if (!rax)
     {
         rax = not_record_make_undefined();
-        if (rax == NOT_PTR_ERROR)
-        {
-            return NOT_PTR_ERROR;
-        }
     }
 
     return rax;

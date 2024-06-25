@@ -81,10 +81,7 @@ not_symbol_table_destroy()
         b = n->next;
         not_entry_t *entry = (not_entry_t *)n->value;
 
-        if (entry->value)
-        {
-            not_record_link_decrease(entry->value);
-        }
+        not_record_link_decrease(entry->value);
 
         not_memory_free(entry);
         not_queue_unlink(st->queue_variables, n);

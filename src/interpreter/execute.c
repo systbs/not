@@ -1653,7 +1653,7 @@ not_execute_for(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
             }
             else
             {
-                int32_t r1 = not_execute_assign(item1, strip, applicant, NULL);
+                int32_t r1 = not_assign(item1, strip, applicant, NULL);
                 if (r1 == -1)
                 {
                     return -1;
@@ -1778,7 +1778,7 @@ region_start_loop:
         {
             for (not_node_t *item1 = for1->incrementor; item1 != NULL; item1 = item1->next)
             {
-                int32_t r1 = not_execute_assign(item1, strip, applicant, NULL);
+                int32_t r1 = not_assign(item1, strip, applicant, NULL);
                 if (r1 == -1)
                 {
                     goto region_error;
@@ -2698,7 +2698,7 @@ not_execute_statement(not_node_t *scope, not_node_t *node, not_strip_t *strip, n
     }
     else
     {
-        int32_t r1 = not_execute_assign(node, strip, applicant, NULL);
+        int32_t r1 = not_assign(node, strip, applicant, NULL);
         if (r1 < 0)
         {
             return r1;
