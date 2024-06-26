@@ -48,6 +48,7 @@ not_conditional(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not
         }
 
         int32_t truthy = not_execute_truthy(condition);
+
         if (not_record_link_decrease(condition) < 0)
         {
             return NOT_PTR_ERROR;

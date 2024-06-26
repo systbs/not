@@ -8,9 +8,7 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
-#elif defined(__linux__)
-#include <dlfcn.h>
-#elif defined(__APPLE__) && defined(__MACH__)
+#else
 #include <dlfcn.h>
 #endif
 
@@ -216,6 +214,7 @@ region_normal_module:
 
     strcpy(entry->path, base_file);
     entry->root = root_node;
+    entry->syntax = syntax;
 
     if (NOT_PTR_ERROR == not_queue_right_push(repository->queue, entry))
     {
@@ -243,10 +242,12 @@ void not_repository_destroy()
     for (not_queue_entry_t *n = repository->queue->begin, *b = NULL; n != repository->queue->end; n = b)
     {
         b = n->next;
+
         not_module_t *module = (not_module_t *)n->value;
         if (module->root)
         {
             not_node_destroy(module->root);
+            not_syntax_destroy(module->syntax);
         }
         else
         {
@@ -257,5 +258,11 @@ void not_repository_destroy()
 #endif
             json_decref(module->json);
         }
+
+        not_memory_free(module);
+        not_queue_unlink(repository->queue, n);
+        not_memory_free(n);
     }
+
+    not_queue_destroy(repository->queue);
 }

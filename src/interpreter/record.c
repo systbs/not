@@ -68,6 +68,8 @@ not_record_create(uint64_t kind, void *value)
     record->kind = kind;
     record->value = value;
     record->link = 1;
+    record->reference = 0;
+    record->readonly = 0;
 
     return record;
 }
@@ -80,6 +82,11 @@ void not_record_link_increase(not_record_t *record)
 int32_t
 not_record_link_decrease(not_record_t *record)
 {
+    if (!record)
+    {
+        return 0;
+    }
+
     record->link -= 1;
     if (record->link == 0)
     {
@@ -639,6 +646,7 @@ not_record_make_int_from_si(int64_t value)
         not_memory_free(basic);
         return NOT_PTR_ERROR;
     }
+
     return record;
 }
 
@@ -1360,19 +1368,63 @@ not_record_copy(not_record_t *record)
 {
     if (record->kind == RECORD_KIND_INT)
     {
-        return not_record_make_int_from_z(*(mpz_t *)(record->value));
+        not_record_t *record_copy = not_record_make_int_from_z(*(mpz_t *)(record->value));
+        if (record_copy == NOT_PTR_ERROR)
+        {
+            return NOT_PTR_ERROR;
+        }
+
+        if (record->null)
+        {
+            record_copy->null = 1;
+        }
+
+        return record_copy;
     }
     else if (record->kind == RECORD_KIND_FLOAT)
     {
-        return not_record_make_float_from_f(*(mpf_t *)(record->value));
+        not_record_t *record_copy = not_record_make_float_from_f(*(mpf_t *)(record->value));
+        if (record_copy == NOT_PTR_ERROR)
+        {
+            return NOT_PTR_ERROR;
+        }
+
+        if (record->null)
+        {
+            record_copy->null = 1;
+        }
+
+        return record_copy;
     }
     else if (record->kind == RECORD_KIND_CHAR)
     {
-        return not_record_make_char(*(char *)(record->value));
+        not_record_t *record_copy = not_record_make_char(*(char *)(record->value));
+        if (record_copy == NOT_PTR_ERROR)
+        {
+            return NOT_PTR_ERROR;
+        }
+
+        if (record->null)
+        {
+            record_copy->null = 1;
+        }
+
+        return record_copy;
     }
     else if (record->kind == RECORD_KIND_STRING)
     {
-        return not_record_make_string((char *)(record->value));
+        not_record_t *record_copy = not_record_make_string((char *)(record->value));
+        if (record_copy == NOT_PTR_ERROR)
+        {
+            return NOT_PTR_ERROR;
+        }
+
+        if (record->null)
+        {
+            record_copy->null = 1;
+        }
+
+        return record_copy;
     }
     else if (record->kind == RECORD_KIND_OBJECT)
     {
@@ -1391,6 +1443,12 @@ not_record_copy(not_record_t *record)
             }
             return NOT_PTR_ERROR;
         }
+
+        if (record->null)
+        {
+            record_copy->null = 1;
+        }
+
         return record_copy;
     }
     else if (record->kind == RECORD_KIND_TUPLE)
@@ -1410,6 +1468,12 @@ not_record_copy(not_record_t *record)
             }
             return NOT_PTR_ERROR;
         }
+
+        if (record->null)
+        {
+            record_copy->null = 1;
+        }
+
         return record_copy;
     }
     else if (record->kind == RECORD_KIND_STRUCT)
@@ -1456,30 +1520,90 @@ not_record_copy(not_record_t *record)
             return NOT_PTR_ERROR;
         }
 
+        if (record->null)
+        {
+            record_copy->null = 1;
+        }
+
         return record_copy;
     }
     else if (record->kind == RECORD_KIND_NULL)
     {
-        return not_record_make_null();
+        not_record_t *record_copy = not_record_make_null();
+        if (record_copy == NOT_PTR_ERROR)
+        {
+            return NOT_PTR_ERROR;
+        }
+
+        if (record->null)
+        {
+            record_copy->null = 1;
+        }
+
+        return record_copy;
     }
     else if (record->kind == RECORD_KIND_UNDEFINED)
     {
-        return not_record_make_undefined();
+        not_record_t *record_copy = not_record_make_undefined();
+        if (record_copy == NOT_PTR_ERROR)
+        {
+            return NOT_PTR_ERROR;
+        }
+
+        if (record->null)
+        {
+            record_copy->null = 1;
+        }
+
+        return record_copy;
     }
     else if (record->kind == RECORD_KIND_NAN)
     {
-        return not_record_make_nan();
+        not_record_t *record_copy = not_record_make_nan();
+        if (record_copy == NOT_PTR_ERROR)
+        {
+            return NOT_PTR_ERROR;
+        }
+
+        if (record->null)
+        {
+            record_copy->null = 1;
+        }
+
+        return record_copy;
     }
     else if (record->kind == RECORD_KIND_PROC)
     {
         not_record_proc_t *basic = (not_record_proc_t *)record->value;
-        return not_record_make_proc(basic->handle, basic->map);
+        not_record_t *record_copy = not_record_make_proc(basic->handle, basic->map);
+        if (record_copy == NOT_PTR_ERROR)
+        {
+            return NOT_PTR_ERROR;
+        }
+
+        if (record->null)
+        {
+            record_copy->null = 1;
+        }
+
+        return record_copy;
     }
     else if (record->kind == RECORD_KIND_BUILTIN)
     {
         not_record_builtin_t *basic = (not_record_builtin_t *)record->value;
         not_record_link_increase(basic->source);
-        return not_record_make_builtin(basic->source, basic->handle);
+        not_record_t *record_copy = not_record_make_builtin(basic->source, basic->handle);
+        if (record_copy == NOT_PTR_ERROR)
+        {
+            return NOT_PTR_ERROR;
+        }
+
+        if (record->null)
+        {
+            record_copy->null = 1;
+        }
+
+        return record_copy;
     }
 
     return NULL;
@@ -1531,6 +1655,7 @@ not_record_destroy(not_record_t *record)
         {
             return -1;
         }
+        not_memory_free(basic);
         not_memory_free(record);
     }
     else
@@ -1552,10 +1677,12 @@ not_record_destroy(not_record_t *record)
         else if (record->kind == RECORD_KIND_NAN)
         {
         }
-        else if (record->reference != 1)
+
+        if (record->reference != 1)
         {
             not_memory_free(record->value);
         }
+
         not_memory_free(record);
     }
 

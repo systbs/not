@@ -8,6 +8,8 @@
 #include <dlfcn.h>
 #endif
 
+typedef struct not_syntax not_syntax_t;
+
 typedef struct not_module
 {
     char path[MAX_PATH];
@@ -18,6 +20,7 @@ typedef struct not_module
     void *handle;
 #endif
 
+    not_syntax_t *syntax;
     not_node_t *root;
     json_t *json;
 } not_module_t;

@@ -127,6 +127,684 @@ not_node_kind_as_string(not_node_t *node)
 
 void not_node_destroy(not_node_t *node)
 {
+	if (!node)
+	{
+		return;
+	}
+
+	if (node->kind == NODE_KIND_MODULE)
+	{
+		not_node_block_t *basic = (not_node_block_t *)node->value;
+		for (not_node_t *item = basic->items, *next = NULL; item != NULL; item = next)
+		{
+			next = item->next;
+			not_node_destroy(item);
+		}
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_USING)
+	{
+		not_node_using_t *basic = (not_node_using_t *)node->value;
+		not_node_destroy(basic->packages);
+		not_node_destroy(basic->path);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_PACKAGES)
+	{
+		not_node_block_t *basic = (not_node_block_t *)node->value;
+		for (not_node_t *item = basic->items, *next = NULL; item != NULL; item = next)
+		{
+			next = item->next;
+			not_node_destroy(item);
+		}
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_PACKAGE)
+	{
+		not_node_package_t *basic = (not_node_package_t *)node->value;
+		not_node_destroy(basic->key);
+		not_node_destroy(basic->value);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_NOTES)
+	{
+		not_node_block_t *basic = (not_node_block_t *)node->value;
+		for (not_node_t *item = basic->items, *next = NULL; item != NULL; item = next)
+		{
+			next = item->next;
+			not_node_destroy(item);
+		}
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_NOTE)
+	{
+		not_node_carrier_t *basic = (not_node_carrier_t *)node->value;
+		not_node_destroy(basic->base);
+		not_node_destroy(basic->data);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_BODY)
+	{
+		not_node_body_t *basic = (not_node_body_t *)node->value;
+		for (not_node_t *item = basic->declaration, *next = NULL; item != NULL; item = next)
+		{
+			next = item->next;
+			not_node_destroy(item);
+		}
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_CLASS)
+	{
+		not_node_class_t *class = (not_node_class_t *)node->value;
+		not_node_destroy(class->notes);
+		not_node_destroy(class->key);
+		not_node_destroy(class->generics);
+		not_node_destroy(class->heritages);
+
+		for (not_node_t *item = class->block, *next = NULL; item != NULL; item = next)
+		{
+			next = item->next;
+			not_node_destroy(item);
+		}
+		not_memory_free(class);
+	}
+	else if (node->kind == NODE_KIND_FUN)
+	{
+		not_node_fun_t *fun = (not_node_fun_t *)node->value;
+		not_node_destroy(fun->notes);
+		not_node_destroy(fun->key);
+		not_node_destroy(fun->generics);
+		not_node_destroy(fun->parameters);
+		not_node_destroy(fun->result);
+		not_node_destroy(fun->body);
+		not_memory_free(fun);
+	}
+	else if (node->kind == NODE_KIND_LAMBDA)
+	{
+		not_node_lambda_t *fun = (not_node_lambda_t *)node->value;
+		not_node_destroy(fun->key);
+		not_node_destroy(fun->generics);
+		not_node_destroy(fun->parameters);
+		not_node_destroy(fun->result);
+		not_node_destroy(fun->body);
+		not_memory_free(fun);
+	}
+	else if (node->kind == NODE_KIND_GENERICS)
+	{
+		not_node_block_t *basic = (not_node_block_t *)node->value;
+		for (not_node_t *item = basic->items, *next = NULL; item != NULL; item = next)
+		{
+			next = item->next;
+			not_node_destroy(item);
+		}
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_HERITAGES)
+	{
+		not_node_block_t *basic = (not_node_block_t *)node->value;
+		for (not_node_t *item = basic->items, *next = NULL; item != NULL; item = next)
+		{
+			next = item->next;
+			not_node_destroy(item);
+		}
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_PARAMETERS)
+	{
+		not_node_block_t *basic = (not_node_block_t *)node->value;
+		for (not_node_t *item = basic->items, *next = NULL; item != NULL; item = next)
+		{
+			next = item->next;
+			not_node_destroy(item);
+		}
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_ARGUMENTS)
+	{
+		not_node_block_t *basic = (not_node_block_t *)node->value;
+		for (not_node_t *item = basic->items, *next = NULL; item != NULL; item = next)
+		{
+			next = item->next;
+			not_node_destroy(item);
+		}
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_FIELDS)
+	{
+		not_node_block_t *basic = (not_node_block_t *)node->value;
+		for (not_node_t *item = basic->items, *next = NULL; item != NULL; item = next)
+		{
+			next = item->next;
+			not_node_destroy(item);
+		}
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_OBJECT)
+	{
+		not_node_block_t *basic = (not_node_block_t *)node->value;
+		for (not_node_t *item = basic->items, *next = NULL; item != NULL; item = next)
+		{
+			next = item->next;
+			not_node_destroy(item);
+		}
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_TUPLE)
+	{
+		not_node_block_t *basic = (not_node_block_t *)node->value;
+		for (not_node_t *item = basic->items, *next = NULL; item != NULL; item = next)
+		{
+			next = item->next;
+			not_node_destroy(item);
+		}
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_PAIR)
+	{
+		not_node_pair_t *basic = (not_node_pair_t *)node->value;
+		not_node_destroy(basic->key);
+		not_node_destroy(basic->value);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_GENERIC)
+	{
+		not_node_generic_t *basic = (not_node_generic_t *)node->value;
+		not_node_destroy(basic->key);
+		not_node_destroy(basic->type);
+		not_node_destroy(basic->value);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_HERITAGE)
+	{
+		not_node_heritage_t *basic = (not_node_heritage_t *)node->value;
+		not_node_destroy(basic->key);
+		not_node_destroy(basic->type);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_PROPERTY)
+	{
+		not_node_property_t *basic = (not_node_property_t *)node->value;
+		not_node_destroy(basic->key);
+		not_node_destroy(basic->type);
+		not_node_destroy(basic->value);
+		not_node_destroy(basic->notes);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_PARAMETER)
+	{
+		not_node_parameter_t *basic = (not_node_parameter_t *)node->value;
+		not_node_destroy(basic->key);
+		not_node_destroy(basic->type);
+		not_node_destroy(basic->value);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_ARGUMENT)
+	{
+		not_node_argument_t *basic = (not_node_argument_t *)node->value;
+		not_node_destroy(basic->key);
+		not_node_destroy(basic->value);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_FIELD)
+	{
+		not_node_field_t *basic = (not_node_field_t *)node->value;
+		not_node_destroy(basic->key);
+		not_node_destroy(basic->value);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_FOR)
+	{
+		not_node_for_t *for1 = (not_node_for_t *)node->value;
+		not_node_destroy(for1->key);
+		not_node_destroy(for1->initializer);
+		not_node_destroy(for1->condition);
+		not_node_destroy(for1->incrementor);
+		not_node_destroy(for1->body);
+		not_memory_free(for1);
+	}
+	else if (node->kind == NODE_KIND_FORIN)
+	{
+		not_node_forin_t *for1 = (not_node_forin_t *)node->value;
+		not_node_destroy(for1->key);
+		not_node_destroy(for1->field);
+		not_node_destroy(for1->value);
+		not_node_destroy(for1->iterator);
+		not_node_destroy(for1->body);
+		not_memory_free(for1);
+	}
+	else if (node->kind == NODE_KIND_TRY)
+	{
+		not_node_try_t *try1 = (not_node_try_t *)node->value;
+		not_node_destroy(try1->body);
+		not_node_destroy(try1->catchs);
+		not_memory_free(try1);
+	}
+	else if (node->kind == NODE_KIND_CATCH)
+	{
+		not_node_catch_t *catch1 = (not_node_catch_t *)node->value;
+		not_node_destroy(catch1->body);
+		not_node_destroy(catch1->next);
+		not_node_destroy(catch1->parameters);
+		not_memory_free(catch1);
+	}
+	else if (node->kind == NODE_KIND_IF)
+	{
+		not_node_if_t *if1 = (not_node_if_t *)node->value;
+		not_node_destroy(if1->condition);
+		not_node_destroy(if1->else_body);
+		not_node_destroy(if1->then_body);
+		not_memory_free(if1);
+	}
+	else if (node->kind == NODE_KIND_VAR)
+	{
+		not_node_var_t *var1 = (not_node_var_t *)node->value;
+		not_node_destroy(var1->key);
+		not_node_destroy(var1->type);
+		not_node_destroy(var1->value);
+		not_memory_free(var1);
+	}
+	else if (node->kind == NODE_KIND_SET)
+	{
+		not_node_block_t *basic = (not_node_block_t *)node->value;
+		for (not_node_t *item = basic->items, *next = NULL; item != NULL; item = next)
+		{
+			next = item->next;
+			not_node_destroy(item);
+		}
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_ENTITY)
+	{
+		not_node_entity_t *entity = (not_node_entity_t *)node->value;
+		not_node_destroy(entity->key);
+		not_node_destroy(entity->type);
+		not_node_destroy(entity->value);
+		not_memory_free(entity);
+	}
+	else if (node->kind == NODE_KIND_BREAK)
+	{
+		not_node_unary_t *basic = (not_node_unary_t *)node->value;
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_CONTINUE)
+	{
+		not_node_unary_t *basic = (not_node_unary_t *)node->value;
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_THROW)
+	{
+		not_node_unary_t *basic = (not_node_unary_t *)node->value;
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_RETURN)
+	{
+		not_node_unary_t *basic = (not_node_unary_t *)node->value;
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_CONDITIONAL)
+	{
+		not_node_triple_t *basic = (not_node_triple_t *)node->value;
+		not_node_destroy(basic->base);
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_LOR)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_LAND)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_OR)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_XOR)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_AND)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_EQ)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_NEQ)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_SHL)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_SHR)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_LT)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_LE)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_GT)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_GE)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_MUL)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_DIV)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_MOD)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_EPI)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_POW)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_PLUS)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_MINUS)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_ASSIGN)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_OR_ASSIGN)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_AND_ASSIGN)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_SHL_ASSIGN)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_SHR_ASSIGN)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_MUL_ASSIGN)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_DIV_ASSIGN)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_MOD_ASSIGN)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_EPI_ASSIGN)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_POW_ASSIGN)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_SUB_ASSIGN)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_ADD_ASSIGN)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_INSTANCEOF)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_TILDE)
+	{
+		not_node_unary_t *basic = (not_node_unary_t *)node->value;
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_POS)
+	{
+		not_node_unary_t *basic = (not_node_unary_t *)node->value;
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_NEG)
+	{
+		not_node_unary_t *basic = (not_node_unary_t *)node->value;
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_NOT)
+	{
+		not_node_unary_t *basic = (not_node_unary_t *)node->value;
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_SIZEOF)
+	{
+		not_node_unary_t *basic = (not_node_unary_t *)node->value;
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_TYPEOF)
+	{
+		not_node_unary_t *basic = (not_node_unary_t *)node->value;
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_PARENTHESIS)
+	{
+		not_node_unary_t *basic = (not_node_unary_t *)node->value;
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_CALL)
+	{
+		not_node_carrier_t *basic = (not_node_carrier_t *)node->value;
+		not_node_destroy(basic->base);
+		not_node_destroy(basic->data);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_ARRAY)
+	{
+		not_node_carrier_t *basic = (not_node_carrier_t *)node->value;
+		not_node_destroy(basic->base);
+		not_node_destroy(basic->data);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_PSEUDONYM)
+	{
+		not_node_carrier_t *basic = (not_node_carrier_t *)node->value;
+		not_node_destroy(basic->base);
+		not_node_destroy(basic->data);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_ATTRIBUTE)
+	{
+		not_node_binary_t *basic = (not_node_binary_t *)node->value;
+		not_node_destroy(basic->left);
+		not_node_destroy(basic->right);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_ID)
+	{
+		not_node_basic_t *basic = (not_node_basic_t *)node->value;
+		not_memory_free(basic->value);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_CHAR)
+	{
+		not_node_basic_t *basic = (not_node_basic_t *)node->value;
+		not_memory_free(basic->value);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_NUMBER)
+	{
+		not_node_basic_t *basic = (not_node_basic_t *)node->value;
+		not_memory_free(basic->value);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_STRING)
+	{
+		not_node_basic_t *basic = (not_node_basic_t *)node->value;
+		not_memory_free(basic->value);
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_NULL)
+	{
+		not_node_basic_t *basic = (not_node_basic_t *)node->value;
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_KCHAR)
+	{
+		not_node_basic_t *basic = (not_node_basic_t *)node->value;
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_KFLOAT)
+	{
+		not_node_basic_t *basic = (not_node_basic_t *)node->value;
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_KINT)
+	{
+		not_node_basic_t *basic = (not_node_basic_t *)node->value;
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_KSTRING)
+	{
+		not_node_basic_t *basic = (not_node_basic_t *)node->value;
+		not_memory_free(basic);
+	}
+
+	// printf("node = %d\n", node->kind);
 	not_memory_free(node);
 }
 
@@ -143,6 +821,7 @@ not_node_create(not_node_t *parent, not_position_t position)
 	node->id = node_counter++;
 	node->position = position;
 	node->parent = parent;
+	node->kind = NODE_KIND_RAW;
 
 	node->next = node->previous = NULL;
 
@@ -171,7 +850,17 @@ not_node_make_id(not_node_t *node, char *value)
 		return NOT_PTR_ERROR;
 	}
 
-	basic->value = value;
+	char *str = not_memory_calloc(strlen(value) + 1, sizeof(char));
+	if (!str)
+	{
+		not_error_no_memory();
+		not_memory_free(str);
+		return NOT_PTR_ERROR;
+	}
+
+	strcpy(str, value);
+
+	basic->value = str;
 
 	not_node_update(node, NODE_KIND_ID, basic);
 	return node;
@@ -187,7 +876,17 @@ not_node_make_number(not_node_t *node, char *value)
 		return NOT_PTR_ERROR;
 	}
 
-	basic->value = value;
+	char *str = not_memory_calloc(strlen(value) + 1, sizeof(char));
+	if (!str)
+	{
+		not_error_no_memory();
+		not_memory_free(str);
+		return NOT_PTR_ERROR;
+	}
+
+	strcpy(str, value);
+
+	basic->value = str;
 
 	not_node_update(node, NODE_KIND_NUMBER, basic);
 	return node;
@@ -203,7 +902,17 @@ not_node_make_char(not_node_t *node, char *value)
 		return NOT_PTR_ERROR;
 	}
 
-	basic->value = value;
+	char *str = not_memory_calloc(strlen(value) + 1, sizeof(char));
+	if (!str)
+	{
+		not_error_no_memory();
+		not_memory_free(str);
+		return NOT_PTR_ERROR;
+	}
+
+	strcpy(str, value);
+
+	basic->value = str;
 
 	not_node_update(node, NODE_KIND_CHAR, basic);
 	return node;
@@ -219,7 +928,17 @@ not_node_make_string(not_node_t *node, char *value)
 		return NOT_PTR_ERROR;
 	}
 
-	basic->value = value;
+	char *str = not_memory_calloc(strlen(value) + 1, sizeof(char));
+	if (!str)
+	{
+		not_error_no_memory();
+		not_memory_free(str);
+		return NOT_PTR_ERROR;
+	}
+
+	strcpy(str, value);
+
+	basic->value = str;
 
 	not_node_update(node, NODE_KIND_STRING, basic);
 	return node;
@@ -1373,7 +2092,7 @@ not_node_make_fields(not_node_t *node, not_node_t *items)
 
 	basic->items = items;
 
-	not_node_update(node, NODE_KIND_PARAMETERS, basic);
+	not_node_update(node, NODE_KIND_FIELDS, basic);
 	return node;
 }
 
@@ -1407,7 +2126,7 @@ not_node_make_generics(not_node_t *node, not_node_t *items)
 
 	basic->items = items;
 
-	not_node_update(node, NODE_KIND_PARAMETERS, basic);
+	not_node_update(node, NODE_KIND_GENERICS, basic);
 	return node;
 }
 

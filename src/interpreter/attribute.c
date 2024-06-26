@@ -184,7 +184,17 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
 
                 if ((property->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
                 {
-                    record_value = not_record_copy(record_value);
+                    not_record_t *record_copy = not_record_copy(record_value);
+                    if (record_copy == NOT_PTR_ERROR)
+                    {
+                        return NOT_PTR_ERROR;
+                    }
+
+                    if (not_record_link_decrease(record_value) < 0)
+                    {
+                        return NOT_PTR_ERROR;
+                    }
+                    record_value = record_copy;
                 }
 
                 entry = not_symbol_table_push(left, item, property->key, record_value);
@@ -203,6 +213,8 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                 {
                     entry = not_symbol_table_find(left, property->key);
                 }
+
+                not_record_link_increase(entry->value);
 
                 return entry->value;
             }

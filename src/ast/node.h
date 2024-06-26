@@ -18,6 +18,8 @@ typedef struct not_node
 
 typedef enum not_node_kind
 {
+	NODE_KIND_RAW = 0,
+
 	NODE_KIND_ID,
 
 	NODE_KIND_NUMBER,

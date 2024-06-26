@@ -118,6 +118,7 @@ not_syntax_restore(not_syntax_t *syntax)
 	scanner->token = state->token;
 
 	not_memory_free(state);
+	not_memory_free(queue_entry);
 
 	return 1;
 }
@@ -1183,6 +1184,7 @@ not_syntax_postfix(not_syntax_t *syntax, not_node_t *parent)
 					{
 						return NOT_PTR_ERROR;
 					}
+					not_node_destroy(concepts);
 					not_node_destroy(node);
 					return node2;
 				}
@@ -4641,5 +4643,6 @@ not_syntax_create(char *path)
 void not_syntax_destroy(not_syntax_t *syntax)
 {
 	not_queue_destroy(syntax->states);
+	not_scanner_destroy(syntax->scanner);
 	not_memory_free(syntax);
 }

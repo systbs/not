@@ -49,6 +49,7 @@ not_thread_init()
 void not_thread_destroy()
 {
     not_thread_t *thread = not_thread_get();
+    not_queue_destroy(thread->childrens);
     not_interpreter_destroy(thread->interpreter);
 }
 
@@ -257,10 +258,12 @@ not_thread_exit()
         if (t->id == thread->id)
         {
             not_queue_unlink(parent->childrens, a);
+            not_memory_free(a);
             break;
         }
     }
 
+    not_queue_destroy(thread->childrens);
     not_interpreter_destroy(thread->interpreter);
     not_memory_free(thread);
 

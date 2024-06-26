@@ -78,6 +78,7 @@ not_queue_query(not_queue_t *queue, int (*f)(not_queue_entry_t *))
 void not_queue_destroy(not_queue_t *queue)
 {
 	not_queue_clear(queue);
+	not_memory_free(queue->end);
 	not_memory_free(queue);
 }
 

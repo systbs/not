@@ -268,6 +268,7 @@ not_config_init()
         not_memory_free(data);
         return -1;
     }
+    not_memory_free(data);
 
     json_t *packages_path = json_object_get(root, "packages_path");
     if (!packages_path || !json_is_string(packages_path))

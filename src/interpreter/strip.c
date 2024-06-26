@@ -240,6 +240,8 @@ not_strip_destroy(not_strip_t *strip)
         not_memory_free(a);
     }
 
+    not_queue_destroy(strip->variables);
+
     for (not_queue_entry_t *a = strip->inputs->begin, *b = NULL; a != strip->inputs->end; a = b)
     {
         b = a->next;
@@ -254,6 +256,8 @@ not_strip_destroy(not_strip_t *strip)
         not_queue_unlink(strip->inputs, a);
         not_memory_free(a);
     }
+
+    not_queue_destroy(strip->inputs);
 
     not_memory_free(strip);
 

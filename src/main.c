@@ -21,6 +21,7 @@
 #include "repository.h"
 #include "interpreter.h"
 #include "thread.h"
+#include "memory.h"
 #include "scanner/scanner.h"
 #include "ast/node.h"
 #include "parser/syntax/syntax.h"
@@ -106,8 +107,14 @@ region_error:
 
 		printf("%s\n", not_record_to_string(expection, ""));
 
+		not_record_link_decrease(expection);
 		not_queue_unlink(t->interpreter->expections, a);
+		not_memory_free(a);
 	}
+
+	not_symbol_table_destroy();
+	not_thread_destroy();
+	not_repository_destroy();
 
 	exit(-1);
 }

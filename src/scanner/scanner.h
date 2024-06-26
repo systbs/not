@@ -28,7 +28,4 @@ not_scanner_advance(not_scanner_t *scanner);
 int32_t
 not_scanner_gt(not_scanner_t *scanner);
 
-not_scanner_t *
-not_scanner_create_from_buffer(char *buf, char *path);
-
 #endif // __scanner_H__

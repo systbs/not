@@ -45,6 +45,10 @@ not_scanner_digit_value(int32_t ch)
 void not_scanner_set_token(not_scanner_t *scanner, not_token_t token)
 {
 	// printf("%s-%lld:%lld  %s\n", token.position.path, token.position.line, token.position.column, not_token_get_name(token.type));
+	if (scanner->token.value)
+	{
+		not_memory_free(scanner->token.value);
+	}
 	scanner->token = token;
 }
 
@@ -102,33 +106,10 @@ not_scanner_create(char *path)
 	return scanner;
 }
 
-not_scanner_t *
-not_scanner_create_from_buffer(char *buf, char *path)
-{
-	not_scanner_t *scanner = (not_scanner_t *)not_memory_calloc(1, sizeof(not_scanner_t));
-	if (scanner == NULL)
-	{
-		not_error_no_memory();
-		return NULL;
-	}
-
-	strcpy(scanner->path, path);
-
-	scanner->source = buf;
-	scanner->offset = 0;
-	scanner->reading_offset = 0;
-	scanner->line = 1;
-	scanner->column = 1;
-	scanner->ch = ' ';
-
-	not_scanner_advance(scanner);
-
-	return scanner;
-}
-
 void not_scanner_destroy(not_scanner_t *scanner)
 {
-	free(scanner);
+	not_memory_free(scanner->source);
+	not_memory_free(scanner);
 }
 
 static int32_t

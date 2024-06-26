@@ -1268,27 +1268,21 @@ not_execute_entity(not_node_t *scope, not_node_t *node, not_record_t *value, not
         }
     }
 
-    if (value_select)
+    if ((entity->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
     {
-        if (value_select->link > 0)
+        not_record_t *record_copy = not_record_copy(value_select);
+        if (record_copy == NOT_PTR_ERROR)
         {
-            if ((entity->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
-            {
-                value_select = not_record_copy(value_select);
-                if (value_select == NOT_PTR_ERROR)
-                {
-                    return -1;
-                }
-            }
+            not_record_link_decrease(value_select);
+            return -1;
         }
-        else
+
+        if (not_record_link_decrease(value_select) < 0)
         {
-            if ((entity->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
-            {
-                not_error_type_by_node(entity->key, "the unreferenced type is assigned to the reference type");
-                return -1;
-            }
+            return -1;
         }
+
+        value_select = record_copy;
 
         if ((entity->flag & SYNTAX_MODIFIER_READONLY) == SYNTAX_MODIFIER_READONLY)
         {
@@ -1418,7 +1412,7 @@ not_execute_var(not_node_t *scope, not_node_t *node, not_strip_t *strip, not_nod
     else
     {
         not_record_t *record_value = NULL;
-        not_record_t *record_type = NULL;
+
         if (var1->value)
         {
             record_value = not_expression(var1->value, strip, applicant, NULL);
@@ -1429,7 +1423,7 @@ not_execute_var(not_node_t *scope, not_node_t *node, not_strip_t *strip, not_nod
 
             if (var1->type)
             {
-                record_type = not_expression(var1->type, strip, applicant, NULL);
+                not_record_t *record_type = not_expression(var1->type, strip, applicant, NULL);
                 if (record_type == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_value) < 0)
@@ -1492,15 +1486,12 @@ not_execute_var(not_node_t *scope, not_node_t *node, not_strip_t *strip, not_nod
                     }
                     else
                     {
-                        if (record_value->link > 1)
+                        not_record_t *record_copy = not_record_copy(record_value);
+                        if (not_record_link_decrease(record_value) < 0)
                         {
-                            not_record_t *record_copy = not_record_copy(record_value);
-                            if (not_record_link_decrease(record_value) < 0)
-                            {
-                                return -1;
-                            }
-                            record_value = record_copy;
+                            return -1;
                         }
+                        record_value = record_copy;
 
                         not_record_t *record_value2 = not_execute_value_casting_by_type(var1->key, record_value, record_type);
                         if (record_value2 == NOT_PTR_ERROR)
@@ -1547,25 +1538,22 @@ not_execute_var(not_node_t *scope, not_node_t *node, not_strip_t *strip, not_nod
 
         if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) != SYNTAX_MODIFIER_REFERENCE)
         {
-            if (record_value->link > 1)
+            not_record_t *record_copy = not_record_copy(record_value);
+            if (not_record_link_decrease(record_value) < 0)
             {
-                not_record_t *record_copy = not_record_copy(record_value);
-                if (not_record_link_decrease(record_value) < 0)
-                {
-                    return -1;
-                }
-                record_value = record_copy;
+                return -1;
             }
-        }
+            record_value = record_copy;
 
-        if ((var1->flag & SYNTAX_MODIFIER_READONLY) == SYNTAX_MODIFIER_READONLY)
-        {
-            record_value->readonly = 1;
-        }
+            if ((var1->flag & SYNTAX_MODIFIER_READONLY) == SYNTAX_MODIFIER_READONLY)
+            {
+                record_value->readonly = 1;
+            }
 
-        if (var1->type)
-        {
-            record_value->typed = 1;
+            if (var1->type)
+            {
+                record_value->typed = 1;
+            }
         }
 
         if (((var1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC) || (scope->kind == NODE_KIND_MODULE))
@@ -2383,7 +2371,9 @@ not_execute_try(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
                     return -1;
                 }
 
+                not_record_link_decrease(expection);
                 not_queue_unlink(t->interpreter->expections, a);
+                not_memory_free(a);
 
                 if (catch1->parameters)
                 {
