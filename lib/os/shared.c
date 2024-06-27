@@ -151,8 +151,14 @@ f_open(not_record_t *args) // (const char *path, mpz_t *flag, mpz_t *mode)
     }
 
     int fd = open((char *)arg0->value, final_flags, final_modes);
+    if (fd < 0)
+    {
+        goto err;
+    }
 
     return not_record_make_int_from_si(fd);
+err:
+    return not_record_make_int_from_si(errno);
 }
 
 not_record_t *
@@ -160,6 +166,7 @@ f_read(not_record_t *args) // (mpz_t *fd, mpz_t *count)
 {
     not_record_t *arg0 = not_record_tuple_arg_by_index(args, 0);
     not_record_t *arg1 = not_record_tuple_arg_by_index(args, 1);
+    not_record_t *arg2 = not_record_tuple_arg_by_index(args, 2);
 
     int fd = mpz_get_si(*(mpz_t *)arg0->value);
     ssize_t nbytes = mpz_get_si(*(mpz_t *)arg1->value);
@@ -175,6 +182,7 @@ f_read(not_record_t *args) // (mpz_t *fd, mpz_t *count)
         char *content = (char *)malloc(contentSize);
         if (content == NULL)
         {
+            errno = ENOMEM;
             goto err;
         }
 
@@ -193,6 +201,8 @@ f_read(not_record_t *args) // (mpz_t *fd, mpz_t *count)
             totalBytesRead += bytesRead;
         }
 
+        mpz_set_si(*(mpz_t *)arg2->value, bytesRead);
+
         if (bytesRead == -1)
         {
             free(content);
@@ -210,10 +220,14 @@ f_read(not_record_t *args) // (mpz_t *fd, mpz_t *count)
         char *buffer = (char *)malloc(nbytes);
         if (buffer == NULL)
         {
+            errno = ENOMEM;
             goto err;
         }
 
         bytesRead = read(fd, buffer, nbytes);
+
+        mpz_set_si(*(mpz_t *)arg2->value, bytesRead);
+
         if (bytesRead == -1)
         {
             free(buffer);
@@ -226,7 +240,7 @@ f_read(not_record_t *args) // (mpz_t *fd, mpz_t *count)
     }
 
 err:
-    return not_record_make_null();
+    return not_record_make_int_from_si(errno);
 }
 
 static inline void
@@ -273,26 +287,30 @@ f_write(not_record_t *args) // (mpz_t *fd, const char *buf, mpz_t *n)
     not_record_t *arg0 = not_record_tuple_arg_by_index(args, 0);
     not_record_t *arg1 = not_record_tuple_arg_by_index(args, 1);
     not_record_t *arg2 = not_record_tuple_arg_by_index(args, 2);
+    not_record_t *arg3 = not_record_tuple_arg_by_index(args, 3);
 
     int fd = mpz_get_si(*(mpz_t *)arg0->value);
     const char *buf = (char *)arg1->value;
     ssize_t nbytes = mpz_get_ui(*(mpz_t *)arg2->value);
 
     ssize_t t = -1;
-
     char *modified = calloc(strlen(buf) + 1, sizeof(char));
     if (!modified)
     {
+        mpz_set_si(*(mpz_t *)arg3->value, ENOMEM);
         goto final;
     }
     replace_escaped(buf, modified);
 
     t = write(fd, modified, nbytes);
+    if (t < 0)
+    {
+        mpz_set_si(*(mpz_t *)arg3->value, errno);
+    }
 
     free(modified);
 
 final:
-
     return not_record_make_int_from_si(t);
 }
 
@@ -303,8 +321,13 @@ f_close(not_record_t *args) // (mpz_t *fd)
 
     int fd = mpz_get_si(*(mpz_t *)arg0->value);
     int t = close(fd);
-
+    if (t < 0)
+    {
+        goto err;
+    }
     return not_record_make_int_from_si(t);
+err:
+    return not_record_make_int_from_si(errno);
 }
 
 #define P_SEEK_SET 0
@@ -335,6 +358,7 @@ f_seek(not_record_t *args) // (mpz_t *fd, mpz_t *offset, mpz_t *whence)
     not_record_t *arg0 = not_record_tuple_arg_by_index(args, 0);
     not_record_t *arg1 = not_record_tuple_arg_by_index(args, 1);
     not_record_t *arg2 = not_record_tuple_arg_by_index(args, 2);
+    not_record_t *arg3 = not_record_tuple_arg_by_index(args, 3);
 
     int fd = mpz_get_si(*(mpz_t *)arg0->value);
     long off = mpz_get_si(*(mpz_t *)arg1->value);
@@ -349,7 +373,11 @@ f_seek(not_record_t *args) // (mpz_t *fd, mpz_t *offset, mpz_t *whence)
             final_whences |= whences[i].value;
     }
 
-    long t = lseek(fd, off, final_whences);
+    off_t t = lseek(fd, off, final_whences);
+    if (t < 0)
+    {
+        mpz_set_si(*(mpz_t *)arg3->value, errno);
+    }
 
     return not_record_make_int_from_si(t);
 }

@@ -32,6 +32,11 @@
                 {
                     "name": "count",
                     "type": "int"
+                },
+                {
+                    "name": "bytesRead",
+                    "type": "int",
+                    "reference": true
                 }
             ]
         },
@@ -49,6 +54,11 @@
                 {
                     "name": "n",
                     "type": "int"
+                },
+                {
+                    "name": "errno",
+                    "type": "int",
+                    "reference": true
                 }
             ]
         },
@@ -75,6 +85,11 @@
                 {
                     "name": "whence",
                     "type": "int"
+                },
+                {
+                    "name": "errno",
+                    "type": "int",
+                    "reference": true
                 }
             ]
         },

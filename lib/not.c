@@ -326,7 +326,6 @@ not_record_make_string(char *value)
     if (record == NOT_PTR_ERROR)
     {
         free(basic);
-        free(basic);
         return NOT_PTR_ERROR;
     }
     return record;

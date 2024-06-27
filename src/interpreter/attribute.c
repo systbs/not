@@ -78,10 +78,7 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                         not_record_t *record_type = not_expression(property->type, strip, applicant, NULL);
                         if (record_type == NOT_PTR_ERROR)
                         {
-                            if (not_record_link_decrease(record_value) < 0)
-                            {
-                                return NOT_PTR_ERROR;
-                            }
+                            not_record_link_decrease(record_value);
                             return NOT_PTR_ERROR;
                         }
 
@@ -91,14 +88,8 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                             not_error_type_by_node(property->key, "'%s' unsupported type: '%s'",
                                                    basic1->value, not_record_type_as_string(record_type));
 
-                            if (not_record_link_decrease(record_type) < 0)
-                            {
-                                return NOT_PTR_ERROR;
-                            }
-                            if (not_record_link_decrease(record_value) < 0)
-                            {
-                                return NOT_PTR_ERROR;
-                            }
+                            not_record_link_decrease(record_type);
+                            not_record_link_decrease(record_value);
 
                             return NOT_PTR_ERROR;
                         }
@@ -106,14 +97,9 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                         int32_t r1 = not_execute_value_check_by_type(node, record_value, record_type);
                         if (r1 < 0)
                         {
-                            if (not_record_link_decrease(record_type) < 0)
-                            {
-                                return NOT_PTR_ERROR;
-                            }
-                            if (not_record_link_decrease(record_value) < 0)
-                            {
-                                return NOT_PTR_ERROR;
-                            }
+                            not_record_link_decrease(record_type);
+                            not_record_link_decrease(record_value);
+
                             return NOT_PTR_ERROR;
                         }
                         else if (r1 == 0)
@@ -161,6 +147,14 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                                     not_record_link_decrease(record_value);
 
                                     return NOT_PTR_ERROR;
+                                }
+
+                                if (record_value != record_value2)
+                                {
+                                    if (not_record_link_decrease(record_value) < 0)
+                                    {
+                                        return NOT_PTR_ERROR;
+                                    }
                                 }
 
                                 record_value = record_value2;
@@ -340,16 +334,7 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
             not_node_property_t *property = (not_node_property_t *)item->value;
             if (not_helper_id_cmp(property->key, right) == 0)
             {
-                if ((property->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
-                {
-                    not_node_basic_t *basic1 = (not_node_basic_t *)property->key->value;
-                    not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
-                    not_error_type_by_node(node, "'%s' unexpected access to '%s'",
-                                           basic2->value, basic1->value);
-                    return NOT_PTR_ERROR;
-                }
-
-                if ((property->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
+                if (((property->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT) || ((property->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC))
                 {
                     not_node_basic_t *basic1 = (not_node_basic_t *)property->key->value;
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
@@ -380,7 +365,7 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
             not_node_class_t *class2 = (not_node_class_t *)item->value;
             if (not_helper_id_cmp(class2->key, right) == 0)
             {
-                if ((class2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                if (((class2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT) || ((class2->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC))
                 {
                     not_node_basic_t *basic1 = (not_node_basic_t *)class2->key->value;
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
@@ -403,16 +388,7 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
             not_node_fun_t *fun1 = (not_node_fun_t *)item->value;
             if (not_helper_id_cmp(fun1->key, right) == 0)
             {
-                if ((fun1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
-                {
-                    not_node_basic_t *basic1 = (not_node_basic_t *)fun1->key->value;
-                    not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
-                    not_error_type_by_node(node, "'%s' unexpected access to '%s'",
-                                           basic2->value, basic1->value);
-                    return NOT_PTR_ERROR;
-                }
-
-                if ((fun1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC)
+                if (((fun1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT) || ((fun1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC))
                 {
                     not_node_basic_t *basic1 = (not_node_basic_t *)fun1->key->value;
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;

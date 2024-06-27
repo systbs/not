@@ -132,6 +132,45 @@ export class OverflowError {
     }
 }
 
+export class UnavailableError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class QuotaError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class FileBigError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+ 
 export class EnFileError {
     export message:string;
     export fun constructor (value:string)
@@ -328,6 +367,58 @@ export class MLinkError {
 }
 
 export class NoSpaceError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class InterruptError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class PipeError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class SeekPipeError {
+    export message:string;
+    export fun constructor (value:string)
+    {
+        message = value;
+    }
+
+    export fun ToString()
+    {
+        return message;
+    }
+}
+
+export class NoIOError {
     export message:string;
     export fun constructor (value:string)
     {

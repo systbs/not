@@ -92,18 +92,11 @@ if (data)
 var st = Stat("text.txt");
 Print(st);
 
-Print(!data);
-
-var obj1 = {a:0, b:1};
-var obj2 = {a:1, b:2, c:3};
-
-Print(obj1 < obj2);
-
-Directory.Make("./yas");
+//Directory.Make("./yas");
 
 for (var dir in Directory.Read("./"))
 {
 	Print(dir);
 }
 
-Directory.Remove("./yas2");
+Directory.Remove("./yas");

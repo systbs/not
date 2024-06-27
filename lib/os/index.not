@@ -1,24 +1,29 @@
-using ValueError, PermissionError, BadFileDescriptorError, EmFileError, EnFileError, ExistError, MLinkError, NoSpaceError, NotEmptyError, BusyError, FaultError, IsDirectoryError, LoopError, NameTooLongError, NoEntryError, NoMemoryError, NotDirectoryError, NotPermittedError, ReadonlyError, CrossDeviceError, UnknownError from "~/error";
+using FileBigError, QuotaError, UnavailableError, OverflowError, SeekPipeError, NoIOError, PipeError, IOError, InterruptError, 
+ValueError, PermissionError, BadFileDescriptorError, EmFileError, EnFileError, ExistError, MLinkError, NoSpaceError, 
+NotEmptyError, BusyError, FaultError, IsDirectoryError, LoopError, NameTooLongError, NoEntryError, NoMemoryError, 
+NotDirectoryError, NotPermittedError, ReadonlyError, CrossDeviceError, UnknownError from "~/error";
+
 using f_open, f_read, f_write, f_close, f_seek, f_gets, f_getc, f_stat, f_remove from "./shared.json";
 using d_read, d_remove, d_make from "./shared.json";
 
 export readonly var Print = fun (value, end = "\n", f:File = null) {
     var content = ((value instanceof string) ? value : string(value)) + ((end instanceof string) ? end : string(end));
+    var errno = 0;
     if (f)
     {
         var fd = f.GetFd();
         if (fd > 0)
         {
-            f_write(fd, content, content.Length());
+            f_write(fd, content, content.Length(), errno);
         }
         else
         {
-            f_write(1, content, content.Length());
+            f_write(1, content, content.Length(), errno);
         }
     }
     else
     {
-        f_write(1, content, content.Length());
+        f_write(1, content, content.Length(), errno);
     }
 };
 
@@ -99,12 +104,75 @@ export class File {
         _path = path;
     }
 
-    export fun Read(count:int = -1) {
+    export fun Read(count:int = -1, bytesRead:int = 0) {
         if (fd < 0) {
             throw ValueError("I/O operation on closed file");
         }
-
-        return f_read(fd, count);
+        
+        r = f_read(fd, count, bytesRead);
+        if (r instanceof int) {
+            if (r == 11)
+            {
+                throw UnavailableError("Resource temporarily unavailable");
+            }
+            else if (r == 9)
+            {
+                throw BadFileDescriptorError("Bad file descriptor");
+            }
+            else if (r == 22)
+            {
+                throw ValueError("Invalid argument");
+            }
+            else if (r == 89)
+            {
+                throw ValueError("Destination address required");
+            }
+            else if (r == 6)
+            {
+                throw NoIOError("No such device or address");
+            }
+            else if (r == 122)
+            {
+                throw QuotaError("Quota exceeded");
+            }
+            else if (r == 14)
+            {
+                throw FaultError("Bad address");
+            }
+            else if (r == 27)
+            {
+                throw FileBigError("File too large");
+            }
+            else if (r == 4)
+            {
+                throw InterruptError("Interrupted system call");
+            }
+            else if (r == 22)
+            {
+                throw ValueError("Invalid argument");
+            }
+            else if (r == 5)
+            {
+                throw IOError("Input/Output error");
+            }
+            else if (r == 28)
+            {
+                throw NoSpaceError("No space left on device");
+            }
+            else if (r == 1)
+            {
+                throw NotPermittedError("Operation not permitted");
+            }
+            else if (r == 32)
+            {
+                throw PipeError("No space left on device");
+            }
+            else
+            {
+                throw UnknownError("Unknown error");
+            }
+        }
+        return r;
     }
 
     export fun Write(content) {
@@ -112,15 +180,75 @@ export class File {
             throw ValueError("I/O operation on closed file");
         }
 
-        if (content instanceof string)
+        var errno = 0;
+        var data = (content instanceof string) ? content : string(content);
+        var r = f_write(fd, data, data.Length(), errno);
+
+        if (r < 0)
         {
-            return f_write(fd, content, content.Length());
+            if (errno == 11)
+            {
+                throw UnavailableError("Resource temporarily unavailable");
+            }
+            else if (errno == 9)
+            {
+                throw BadFileDescriptorError("Bad file descriptor");
+            }
+            else if (errno == 22)
+            {
+                throw ValueError("Invalid argument");
+            }
+            else if (errno == 89)
+            {
+                throw ValueError("Destination address required");
+            }
+            else if (errno == 6)
+            {
+                throw NoIOError("No such device or address");
+            }
+            else if (errno == 122)
+            {
+                throw QuotaError("Quota exceeded");
+            }
+            else if (errno == 14)
+            {
+                throw FaultError("Bad address");
+            }
+            else if (errno == 27)
+            {
+                throw FileBigError("File too large");
+            }
+            else if (errno == 4)
+            {
+                throw InterruptError("Interrupted system call");
+            }
+            else if (errno == 22)
+            {
+                throw ValueError("Invalid argument");
+            }
+            else if (errno == 5)
+            {
+                throw IOError("Input/Output error");
+            }
+            else if (errno == 28)
+            {
+                throw NoSpaceError("No space left on device");
+            }
+            else if (errno == 1)
+            {
+                throw NotPermittedError("Operation not permitted");
+            }
+            else if (errno == 32)
+            {
+                throw PipeError("No space left on device");
+            }
+            else
+            {
+                throw UnknownError("Unknown error");
+            }
         }
-        else
-        {
-            var data = string(content);
-            return f_write(fd, data, data.Length());
-        }
+
+        return r;
     }
 
     export fun Seek(offset:int, whence:int = File.SEEK_SET) {
@@ -128,7 +256,53 @@ export class File {
             throw ValueError("I/O operation on closed file");
         }
 
-        return f_seek(fd, offset, whence);
+        var errno = 0;
+        var r = f_seek(fd, offset, whence, errno);
+        if (r < 0)
+        {
+            if (errno == 32)
+            {
+                throw PipeError("No space left on device");
+            }
+            else if (errno == 29)
+            {
+                throw SeekPipeError("Illegal seek");
+            }
+            else if (errno == 75)
+            {
+                throw OverflowError("Value too large for defined data type");
+            }
+            else if (errno == 28)
+            {
+                throw NoSpaceError("No space left on device");
+            }
+            else if (errno == 5)
+            {
+                throw IOError("Input/Output error");
+            }
+            else if (errno == 9)
+            {
+                throw BadFileDescriptorError("Bad file descriptor");
+            }
+            else if (errno == 4)
+            {
+                throw InterruptError("Interrupted system call");
+            }
+            else if (errno == 22)
+            {
+                throw ValueError("Invalid argument");
+            }
+            else if (errno == 6)
+            {
+                throw NoIOError("No such device or address");
+            }
+            else
+            {
+                throw UnknownError("Unknown error");
+            }
+        }
+
+        return r;
     }
 
     export fun Close() {
@@ -137,9 +311,29 @@ export class File {
         }
 
         var r = f_close(fd);
-        if (r < 0)
+        if (r == 32)
         {
-            return r;
+            throw PipeError("No space left on device");
+        }
+        else if (r == 28)
+        {
+            throw NoSpaceError("No space left on device");
+        }
+        else if (r == 5)
+        {
+            throw IOError("Input/Output error");
+        }
+        else if (r == 9)
+        {
+            throw BadFileDescriptorError("Bad file descriptor");
+        }
+        else if (r == 4)
+        {
+            throw InterruptError("Interrupted system call");
+        }
+        else if (r != 0)
+        {
+            throw UnknownError("Unknown error");
         }
 
         fd = -1;
@@ -209,7 +403,7 @@ export class File {
             }
             else
             {
-                throw UnknownError("Error in deleting file");
+                throw UnknownError("Unknown error");
             }
         }
         return r;
