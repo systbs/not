@@ -39,7 +39,8 @@
         "ffi.h": "c",
         "thread.h": "c",
         "assert.h": "c",
-        "not.h": "c"
+        "not.h": "c",
+        "errno.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
