@@ -848,7 +848,7 @@ not_record_make_char(char value)
 not_record_t *
 not_record_make_string(char *value)
 {
-    char *basic = (char *)not_memory_calloc(1, strlen(value) + 1);
+    char *basic = (char *)not_memory_calloc(strlen(value) + 1, sizeof(char));
     if (basic == NULL)
     {
         not_error_no_memory();
@@ -859,7 +859,6 @@ not_record_make_string(char *value)
     not_record_t *record = not_record_create(RECORD_KIND_STRING, basic);
     if (record == NOT_PTR_ERROR)
     {
-        not_memory_free(basic);
         not_memory_free(basic);
         return NOT_PTR_ERROR;
     }

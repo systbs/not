@@ -3,7 +3,6 @@ using f_open, f_read, f_write, f_close, f_seek, f_gets, f_getc, f_stat, f_remove
 using d_read, d_remove, d_make from "./shared.json";
 
 export readonly var Print = fun (value, end = "\n", f:File = null) {
-
     var content = ((value instanceof string) ? value : string(value)) + ((end instanceof string) ? end : string(end));
     if (f)
     {

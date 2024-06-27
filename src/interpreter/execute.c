@@ -830,10 +830,6 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
         {
             return record_value;
         }
-        else if (record_value->kind == RECORD_KIND_UNDEFINED)
-        {
-            return record_value;
-        }
         else
         {
             return NULL;
@@ -845,10 +841,6 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
         {
             return record_value;
         }
-        else if (record_value->kind == RECORD_KIND_UNDEFINED)
-        {
-            return record_value;
-        }
         else
         {
             return NULL;
@@ -857,10 +849,6 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
     else if (type1->type->kind == NODE_KIND_KINT)
     {
         if (record_value->kind == RECORD_KIND_INT)
-        {
-            return record_value;
-        }
-        else if (record_value->kind == RECORD_KIND_UNDEFINED)
         {
             return record_value;
         }
@@ -890,10 +878,6 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
             mpz_clear(val);
             record_value->value = ptr;
             record_value->kind = RECORD_KIND_FLOAT;
-            return record_value;
-        }
-        else if (record_value->kind == RECORD_KIND_UNDEFINED)
-        {
             return record_value;
         }
         else
@@ -980,10 +964,7 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
 
             return record_value;
         }
-        else if (record_value->kind == RECORD_KIND_UNDEFINED)
-        {
-            return record_value;
-        }
+
         return NULL;
     }
     else if (type1->type->kind == NODE_KIND_ARRAY)
@@ -1025,10 +1006,7 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
 
             return record_value;
         }
-        else if (record_value->kind == RECORD_KIND_UNDEFINED)
-        {
-            return record_value;
-        }
+
         return NULL;
     }
     else if (type1->type->kind == NODE_KIND_TUPLE)
@@ -1096,10 +1074,7 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
 
             return record_value;
         }
-        else if (record_value->kind == RECORD_KIND_UNDEFINED)
-        {
-            return record_value;
-        }
+
         return NULL;
     }
     else if (type1->type->kind == NODE_KIND_CLASS)
@@ -1803,7 +1778,6 @@ not_execute_forin(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
 
     not_record_object_t *object = NULL;
     not_record_tuple_t *tuple = NULL;
-    not_record_t *item = NULL;
     size_t index = 0;
     int no_iterable = 0;
 region_start_loop:
@@ -2008,24 +1982,18 @@ region_start_loop:
     }
     else if (iterator->kind == RECORD_KIND_STRING)
     {
-        if (item)
+        char *str = (char *)iterator->value;
+        str += index++;
+
+        if (*str != '\0')
         {
-            char *str = (char *)iterator->value;
-            str += index++;
-            item->value = str;
-        }
-        else
-        {
-            item = not_record_create(RECORD_KIND_CHAR, (char *)iterator->value);
+            not_record_t *item = not_record_create(RECORD_KIND_CHAR, str);
             if (item == NOT_PTR_ERROR)
             {
                 return -1;
             }
             item->reference = 1;
-        }
 
-        if (*(char *)item->value != '\0')
-        {
             if (for1->value)
             {
                 not_record_t *record_key = not_record_make_undefined();
@@ -2081,7 +2049,6 @@ region_start_loop:
                     }
                     return -1;
                 }
-                not_record_link_increase(tuple->value);
             }
             else
             {
@@ -2106,7 +2073,6 @@ region_start_loop:
                     }
                     return -1;
                 }
-                not_record_link_increase(item);
             }
         }
         else
@@ -2301,14 +2267,6 @@ region_continue_loop:
     goto region_start_loop;
 
 region_end_loop:
-    if (item)
-    {
-        if (not_record_link_decrease(item) < 0)
-        {
-            return -1;
-        }
-    }
-
     if (not_record_link_decrease(iterator) < 0)
     {
         return -1;
@@ -2841,6 +2799,7 @@ not_execute_lambda(not_node_t *node, not_strip_t *strip, not_node_t *applicant)
         not_record_t *value = not_expression(fun->body, strip, applicant, NULL);
         if (value == NOT_PTR_ERROR)
         {
+            not_strip_variable_remove_by_scope(strip, node);
             return -1;
         }
 
@@ -2881,6 +2840,10 @@ not_execute_module(not_node_t *node)
             int32_t r = not_execute_statement(node, item, strip, node);
             if (r < 0)
             {
+                if (not_strip_destroy(strip) < 0)
+                {
+                    return -1;
+                }
                 return r;
             }
         }

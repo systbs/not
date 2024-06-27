@@ -124,32 +124,30 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                                 not_error_type_by_node(property->key, "'%s' mismatch: '%s' and '%s'",
                                                        basic1->value, not_record_type_as_string(record_type), not_record_type_as_string(record_value));
 
-                                if (not_record_link_decrease(record_type) < 0)
-                                {
-                                    return NOT_PTR_ERROR;
-                                }
-                                if (not_record_link_decrease(record_value) < 0)
-                                {
-                                    return NOT_PTR_ERROR;
-                                }
+                                not_record_link_decrease(record_type);
+                                not_record_link_decrease(record_value);
 
                                 return NOT_PTR_ERROR;
                             }
                             else
                             {
-                                record_value = not_record_copy(record_value);
+                                not_record_t *record_copy = not_record_copy(record_value);
+                                if (record_copy == NOT_PTR_ERROR)
+                                {
+                                    return NOT_PTR_ERROR;
+                                }
+
+                                if (not_record_link_decrease(record_value) < 0)
+                                {
+                                    return NOT_PTR_ERROR;
+                                }
+                                record_value = record_copy;
 
                                 not_record_t *record_value2 = not_execute_value_casting_by_type(node, record_value, record_type);
                                 if (record_value2 == NOT_PTR_ERROR)
                                 {
-                                    if (not_record_link_decrease(record_type) < 0)
-                                    {
-                                        return NOT_PTR_ERROR;
-                                    }
-                                    if (not_record_link_decrease(record_value) < 0)
-                                    {
-                                        return NOT_PTR_ERROR;
-                                    }
+                                    not_record_link_decrease(record_type);
+                                    not_record_link_decrease(record_value);
 
                                     return NOT_PTR_ERROR;
                                 }
@@ -159,14 +157,8 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                                     not_error_type_by_node(property->key, "'%s' mismatch: '%s' and '%s'",
                                                            basic1->value, not_record_type_as_string(record_type), not_record_type_as_string(record_value));
 
-                                    if (not_record_link_decrease(record_type) < 0)
-                                    {
-                                        return NOT_PTR_ERROR;
-                                    }
-                                    if (not_record_link_decrease(record_value) < 0)
-                                    {
-                                        return NOT_PTR_ERROR;
-                                    }
+                                    not_record_link_decrease(record_type);
+                                    not_record_link_decrease(record_value);
 
                                     return NOT_PTR_ERROR;
                                 }

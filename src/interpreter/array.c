@@ -118,8 +118,31 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
             not_record_struct_t *record_struct = (not_record_struct_t *)base->value;
             not_node_t *type = record_struct->type;
 
-            not_strip_t *strip_new = (not_strip_t *)record_struct->value;
-            not_record_t *result = not_call_for_bracket(node, carrier->data, strip_new, type, applicant);
+            not_strip_t *strip_copy = not_strip_copy((not_strip_t *)record_struct->value);
+            if (strip_copy == NOT_PTR_ERROR)
+            {
+                return NOT_PTR_ERROR;
+            }
+
+            not_strip_t *strip_local = not_strip_copy(strip);
+            if (strip_local == NOT_PTR_ERROR)
+            {
+                return NOT_PTR_ERROR;
+            }
+
+            not_strip_attach(strip_copy, strip_local);
+
+            not_record_t *result = not_call_for_bracket(node, carrier->data, strip_copy, type, applicant);
+
+            if (not_strip_destroy(strip_copy) < 0)
+            {
+                if (result != NOT_PTR_ERROR)
+                {
+                    not_record_link_decrease(result);
+                }
+                not_record_link_decrease(base);
+                return NOT_PTR_ERROR;
+            }
 
             if (not_record_link_decrease(base) < 0)
             {
@@ -148,11 +171,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                 not_error_type_by_node(node, "'%s' takes %lld positional arguments but %lld were given",
                                        not_record_type_as_string(base), 1, arg_cnt);
 
-                if (not_record_link_decrease(base) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(base);
                 return NOT_PTR_ERROR;
             }
 
@@ -162,20 +181,14 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
             if (argument->value)
             {
                 not_error_type_by_node(item1, "'%s' not support", "pair");
-                if (not_record_link_decrease(base) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
+                not_record_link_decrease(base);
                 return NOT_PTR_ERROR;
             }
 
             not_record_t *record_arg = not_expression(argument->key, strip, applicant, origin);
             if (record_arg == NOT_PTR_ERROR)
             {
-                if (not_record_link_decrease(base) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
+                not_record_link_decrease(base);
                 return NOT_PTR_ERROR;
             }
 
@@ -183,15 +196,8 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
             {
                 not_error_type_by_node(item1, "'%s' must be of '%s' type", "key", "string");
 
-                if (not_record_link_decrease(record_arg) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
-                if (not_record_link_decrease(base) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
+                not_record_link_decrease(record_arg);
+                not_record_link_decrease(base);
 
                 return NOT_PTR_ERROR;
             }
@@ -217,14 +223,8 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
             not_error_type_by_node(node, "'%s' has no contain key '%s'",
                                    not_record_type_as_string(base), (char *)record_arg->value);
 
-            if (not_record_link_decrease(record_arg) < 0)
-            {
-                return NOT_PTR_ERROR;
-            }
-            if (not_record_link_decrease(base) < 0)
-            {
-                return NOT_PTR_ERROR;
-            }
+            not_record_link_decrease(record_arg);
+            not_record_link_decrease(base);
 
             return NOT_PTR_ERROR;
         }
@@ -243,10 +243,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                 not_error_type_by_node(node, "'%s' takes %lld positional arguments but %lld were given",
                                        not_record_type_as_string(base), 3, arg_cnt);
 
-                if (not_record_link_decrease(base) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
+                not_record_link_decrease(base);
 
                 return NOT_PTR_ERROR;
             }
@@ -269,39 +266,32 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
 
                 if (argument->value)
                 {
-                    mpz_clears(start, stop, step);
                     not_error_type_by_node(item, "'%s' not support", "pair");
-                    if (not_record_link_decrease(base) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    mpz_clear(start);
+                    mpz_clear(stop);
+                    mpz_clear(step);
+                    not_record_link_decrease(base);
                     return NOT_PTR_ERROR;
                 }
 
                 not_record_t *record_arg = not_expression(argument->key, strip, applicant, origin);
                 if (record_arg == NOT_PTR_ERROR)
                 {
-                    mpz_clears(start, stop, step);
-                    if (not_record_link_decrease(base) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    not_record_link_decrease(base);
+                    mpz_clear(start);
+                    mpz_clear(stop);
+                    mpz_clear(step);
                     return NOT_PTR_ERROR;
                 }
 
                 if (record_arg->kind != RECORD_KIND_INT)
                 {
-                    mpz_clears(start, stop, step);
                     not_error_type_by_node(item, "'%s' must be of '%s' type", "key", "int");
-
-                    if (not_record_link_decrease(record_arg) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
-                    if (not_record_link_decrease(base) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    mpz_clear(start);
+                    mpz_clear(stop);
+                    mpz_clear(step);
+                    not_record_link_decrease(record_arg);
+                    not_record_link_decrease(base);
 
                     return NOT_PTR_ERROR;
                 }
@@ -317,6 +307,11 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                 else if (arg_cnt == 3)
                 {
                     record_to_mpz(record_arg, step);
+                }
+
+                if (not_record_link_decrease(record_arg) < 0)
+                {
+                    return NOT_PTR_ERROR;
                 }
             }
 
@@ -345,10 +340,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                     mpz_clear(term);
                     mpz_clear(cnt);
                     mpz_clear(length);
-                    if (not_record_link_decrease(base) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    not_record_link_decrease(base);
                     return NOT_PTR_ERROR;
                 }
 
@@ -361,10 +353,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                     mpz_clear(term);
                     mpz_clear(cnt);
                     mpz_clear(length);
-                    if (not_record_link_decrease(base) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    not_record_link_decrease(base);
                     return NOT_PTR_ERROR;
                 }
 
@@ -416,18 +405,12 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                                     {
                                         if (not_record_tuple_destroy(top) < 0)
                                         {
-                                            if (not_record_link_decrease(base) < 0)
-                                            {
-                                                return NOT_PTR_ERROR;
-                                            }
+                                            not_record_link_decrease(base);
                                             return NOT_PTR_ERROR;
                                         }
                                     }
 
-                                    if (not_record_link_decrease(base) < 0)
-                                    {
-                                        return NOT_PTR_ERROR;
-                                    }
+                                    not_record_link_decrease(base);
                                     return NOT_PTR_ERROR;
                                 }
 
@@ -484,18 +467,12 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                                     {
                                         if (not_record_tuple_destroy(top) < 0)
                                         {
-                                            if (not_record_link_decrease(base) < 0)
-                                            {
-                                                return NOT_PTR_ERROR;
-                                            }
+                                            not_record_link_decrease(base);
                                             return NOT_PTR_ERROR;
                                         }
                                     }
 
-                                    if (not_record_link_decrease(base) < 0)
-                                    {
-                                        return NOT_PTR_ERROR;
-                                    }
+                                    not_record_link_decrease(base);
                                     return NOT_PTR_ERROR;
                                 }
 
@@ -528,10 +505,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                 not_record_t *result = not_record_create(RECORD_KIND_TUPLE, top);
                 if (result == NOT_PTR_ERROR)
                 {
-                    if (not_record_link_decrease(base) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    not_record_link_decrease(base);
                     return NOT_PTR_ERROR;
                 }
 
@@ -553,10 +527,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                     mpz_clear(term);
                     mpz_clear(cnt);
                     mpz_clear(length);
-                    if (not_record_link_decrease(base) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    not_record_link_decrease(base);
                     return NOT_PTR_ERROR;
                 }
 
@@ -601,10 +572,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                 not_error_type_by_node(node, "'%s' takes %lld positional arguments but %lld were given",
                                        not_record_type_as_string(base), 3, arg_cnt);
 
-                if (not_record_link_decrease(base) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
+                not_record_link_decrease(base);
 
                 return NOT_PTR_ERROR;
             }
@@ -627,39 +595,36 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
 
                 if (argument->value)
                 {
-                    mpz_clears(start, stop, step);
+                    mpz_clear(start);
+                    mpz_clear(stop);
+                    mpz_clear(step);
                     not_error_type_by_node(item, "'%s' not support", "pair");
-                    if (not_record_link_decrease(base) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    not_record_link_decrease(base);
                     return NOT_PTR_ERROR;
                 }
 
                 not_record_t *record_arg = not_expression(argument->key, strip, applicant, origin);
                 if (record_arg == NOT_PTR_ERROR)
                 {
-                    mpz_clears(start, stop, step);
-                    if (not_record_link_decrease(base) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    mpz_clear(start);
+                    mpz_clear(stop);
+                    mpz_clear(step);
+                    not_record_link_decrease(base);
                     return NOT_PTR_ERROR;
                 }
 
                 if (record_arg->kind != RECORD_KIND_INT)
                 {
-                    mpz_clears(start, stop, step);
+                    mpz_clear(start);
+                    mpz_clear(stop);
+                    mpz_clear(step);
                     not_error_type_by_node(item, "'%s' must be of '%s' type", "key", "int");
 
                     if (not_record_link_decrease(record_arg) < 0)
                     {
                         return NOT_PTR_ERROR;
                     }
-                    if (not_record_link_decrease(base) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    not_record_link_decrease(base);
 
                     return NOT_PTR_ERROR;
                 }
@@ -675,6 +640,11 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                 else if (arg_cnt == 3)
                 {
                     record_to_mpz(record_arg, step);
+                }
+
+                if (not_record_link_decrease(record_arg) < 0)
+                {
+                    return NOT_PTR_ERROR;
                 }
             }
 
@@ -698,10 +668,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                     mpz_clear(term);
                     mpz_clear(cnt);
                     mpz_clear(length);
-                    if (not_record_link_decrease(base) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    not_record_link_decrease(base);
                     return NOT_PTR_ERROR;
                 }
 
@@ -714,10 +681,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                     mpz_clear(term);
                     mpz_clear(cnt);
                     mpz_clear(length);
-                    if (not_record_link_decrease(base) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    not_record_link_decrease(base);
                     return NOT_PTR_ERROR;
                 }
 
@@ -752,17 +716,11 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                                     mpz_clear(term);
                                     mpz_clear(cnt);
                                     mpz_clear(length);
-                                    if (not_record_link_decrease(base) < 0)
-                                    {
-                                        return NOT_PTR_ERROR;
-                                    }
+                                    not_record_link_decrease(base);
 
                                     if (top)
                                     {
-                                        if (not_record_tuple_destroy(top) < 0)
-                                        {
-                                            return NOT_PTR_ERROR;
-                                        }
+                                        not_record_tuple_destroy(top);
                                     }
                                     return NOT_PTR_ERROR;
                                 }
@@ -790,20 +748,10 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
 
                                     if (top)
                                     {
-                                        if (not_record_tuple_destroy(top) < 0)
-                                        {
-                                            if (not_record_link_decrease(base) < 0)
-                                            {
-                                                return NOT_PTR_ERROR;
-                                            }
-                                            return NOT_PTR_ERROR;
-                                        }
+                                        not_record_tuple_destroy(top);
                                     }
 
-                                    if (not_record_link_decrease(base) < 0)
-                                    {
-                                        return NOT_PTR_ERROR;
-                                    }
+                                    not_record_link_decrease(base);
                                     return NOT_PTR_ERROR;
                                 }
 
@@ -843,17 +791,11 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                                     mpz_clear(term);
                                     mpz_clear(cnt);
                                     mpz_clear(length);
-                                    if (not_record_link_decrease(base) < 0)
-                                    {
-                                        return NOT_PTR_ERROR;
-                                    }
+                                    not_record_link_decrease(base);
 
                                     if (top)
                                     {
-                                        if (not_record_tuple_destroy(top) < 0)
-                                        {
-                                            return NOT_PTR_ERROR;
-                                        }
+                                        not_record_tuple_destroy(top);
                                     }
 
                                     return NOT_PTR_ERROR;
@@ -882,20 +824,10 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
 
                                     if (top)
                                     {
-                                        if (not_record_tuple_destroy(top) < 0)
-                                        {
-                                            if (not_record_link_decrease(base) < 0)
-                                            {
-                                                return NOT_PTR_ERROR;
-                                            }
-                                            return NOT_PTR_ERROR;
-                                        }
+                                        not_record_tuple_destroy(top);
                                     }
 
-                                    if (not_record_link_decrease(base) < 0)
-                                    {
-                                        return NOT_PTR_ERROR;
-                                    }
+                                    not_record_link_decrease(base);
                                     return NOT_PTR_ERROR;
                                 }
 
@@ -928,10 +860,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                 not_record_t *result = not_record_create(RECORD_KIND_TUPLE, top);
                 if (result == NOT_PTR_ERROR)
                 {
-                    if (not_record_link_decrease(base) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    not_record_link_decrease(base);
                     return NOT_PTR_ERROR;
                 }
 
@@ -953,10 +882,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                     mpz_clear(term);
                     mpz_clear(cnt);
                     mpz_clear(length);
-                    if (not_record_link_decrease(base) < 0)
-                    {
-                        return NOT_PTR_ERROR;
-                    }
+                    not_record_link_decrease(base);
                     return NOT_PTR_ERROR;
                 }
 
@@ -980,10 +906,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                             mpz_clear(term);
                             mpz_clear(cnt);
                             mpz_clear(length);
-                            if (not_record_link_decrease(base) < 0)
-                            {
-                                return NOT_PTR_ERROR;
-                            }
+                            not_record_link_decrease(base);
                             return NOT_PTR_ERROR;
                         }
                         item->reference = 1;

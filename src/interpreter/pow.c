@@ -34,9 +34,11 @@
 #include "helper.h"
 #include "execute.h"
 
-void mpf_to_mpfr(mpfr_t rop, const mpf_t op)
+void cleanup_gmp_mpfr()
 {
-    mpfr_set_f(rop, op, MPFR_RNDN);
+    // GMP function to free all cached memory
+    mp_get_memory_functions(NULL, NULL, NULL);
+    mpfr_free_cache();
 }
 
 void mpfr_to_mpf(mpf_t rop, const mpfr_t op)
@@ -55,8 +57,8 @@ void mpf_pow(mpf_t result, const mpf_t base, const mpf_t exp)
     mpfr_init2(exp_fr, mpf_get_prec(exp));
     mpfr_init2(result_fr, mpf_get_prec(result));
 
-    mpf_to_mpfr(base_fr, base);
-    mpf_to_mpfr(exp_fr, exp);
+    mpfr_set_f(base_fr, base, MPFR_RNDN);
+    mpfr_set_f(exp_fr, exp, MPFR_RNDN);
 
     mpfr_pow(result_fr, base_fr, exp_fr, MPFR_RNDN);
 
@@ -65,6 +67,7 @@ void mpf_pow(mpf_t result, const mpf_t base, const mpf_t exp)
     mpfr_clear(base_fr);
     mpfr_clear(exp_fr);
     mpfr_clear(result_fr);
+    cleanup_gmp_mpfr();
 }
 
 void mpf_pow_z(mpf_t result, mpz_t base, mpz_t exp)
@@ -134,13 +137,7 @@ not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_nod
 
             if (mpf_is_int(result))
             {
-                mpz_t result_mpz;
-                mpz_init(result_mpz);
-                mpz_set_f(result_mpz, result);
-
-                record = not_record_make_int_from_z(result_mpz);
-
-                mpz_clear(result_mpz);
+                record = not_record_make_int_from_f(result);
             }
             else
             {
@@ -163,7 +160,15 @@ not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_nod
             mpf_pow(result, num1, (*(mpf_t *)(right->value)));
             mpf_clear(num1);
 
-            not_record_t *record = not_record_make_float_from_f(result);
+            not_record_t *record = NULL;
+            if (mpf_is_int(result))
+            {
+                record = not_record_make_int_from_f(result);
+            }
+            else
+            {
+                record = not_record_make_float_from_f(result);
+            }
 
             mpf_clear(result);
 
@@ -188,13 +193,7 @@ not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_nod
 
             if (mpf_is_int(result))
             {
-                mpz_t result_mpz;
-                mpz_init(result_mpz);
-                mpz_set_f(result_mpz, result);
-
-                record = not_record_make_int_from_z(result_mpz);
-
-                mpz_clear(result_mpz);
+                record = not_record_make_int_from_f(result);
             }
             else
             {
@@ -230,22 +229,7 @@ not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_nod
             mpz_clear(num1);
             mpz_clear(num2);
 
-            not_record_t *record = NULL;
-
-            if (mpf_is_int(result))
-            {
-                mpz_t result_mpz;
-                mpz_init(result_mpz);
-                mpz_set_f(result_mpz, result);
-
-                record = not_record_make_int_from_z(result_mpz);
-
-                mpz_clear(result_mpz);
-            }
-            else
-            {
-                record = not_record_make_float_from_f(result);
-            }
+            not_record_t *record = not_record_make_float_from_f(result);
 
             mpf_clear(result);
 
@@ -310,13 +294,7 @@ not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_nod
 
             if (mpf_is_int(result))
             {
-                mpz_t result_mpz;
-                mpz_init(result_mpz);
-                mpz_set_f(result_mpz, result);
-
-                record = not_record_make_int_from_z(result_mpz);
-
-                mpz_clear(result_mpz);
+                record = not_record_make_int_from_f(result);
             }
             else
             {
@@ -338,7 +316,15 @@ not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_nod
             mpf_pow(result, num1, (*(mpf_t *)(right->value)));
             mpf_clear(num1);
 
-            not_record_t *record = not_record_make_float_from_f(result);
+            not_record_t *record = NULL;
+            if (mpf_is_int(result))
+            {
+                record = not_record_make_int_from_f(result);
+            }
+            else
+            {
+                record = not_record_make_float_from_f(result);
+            }
 
             mpf_clear(result);
 
@@ -363,13 +349,7 @@ not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_nod
 
             if (mpf_is_int(result))
             {
-                mpz_t result_mpz;
-                mpz_init(result_mpz);
-                mpz_set_f(result_mpz, result);
-
-                record = not_record_make_int_from_z(result_mpz);
-
-                mpz_clear(result_mpz);
+                record = not_record_make_int_from_f(result);
             }
             else
             {

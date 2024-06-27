@@ -139,6 +139,7 @@ not_syntax_release(not_syntax_t *syntax)
 	}
 
 	not_memory_free(state);
+	not_memory_free(queue_entry);
 	return 1;
 }
 
@@ -1164,11 +1165,11 @@ not_syntax_postfix(not_syntax_t *syntax, not_node_t *parent)
 			not_node_t *concepts = not_syntax_fields(syntax, node);
 			if (concepts == NOT_PTR_ERROR)
 			{
+				not_node_destroy(node);
 				if (not_syntax_restore(syntax) == -1)
 				{
 					return NOT_PTR_ERROR;
 				}
-				not_node_destroy(node);
 				return node2;
 			}
 			else
@@ -1180,12 +1181,12 @@ not_syntax_postfix(not_syntax_t *syntax, not_node_t *parent)
 
 				if (syntax->token->type != TOKEN_GT)
 				{
+					not_node_destroy(concepts);
+					not_node_destroy(node);
 					if (not_syntax_restore(syntax) == -1)
 					{
 						return NOT_PTR_ERROR;
 					}
-					not_node_destroy(concepts);
-					not_node_destroy(node);
 					return node2;
 				}
 				else
@@ -2691,6 +2692,12 @@ not_syntax_for_stmt(not_syntax_t *syntax, not_node_t *parent)
 
 		if (syntax->token->type != TOKEN_IN_KEYWORD)
 		{
+			if (field)
+				not_node_destroy(field);
+
+			if (value)
+				not_node_destroy(value);
+
 			if (not_syntax_restore(syntax) < 0)
 			{
 				return NOT_PTR_ERROR;

@@ -5328,24 +5328,14 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
         not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         if (not_assign_set_value(node, left, right) < 0)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
-
-            if (not_record_link_decrease(right) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
+            not_record_link_decrease(right);
 
             return -1;
         }
@@ -5374,25 +5364,15 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
         not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         not_record_t *result = not_addative_plus(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
-
-            if (not_record_link_decrease(right) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
+            not_record_link_decrease(right);
 
             return -1;
         }
@@ -5404,14 +5384,16 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
 
         if (not_assign_set_value(node, left, result) < 0)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         if (not_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
+
+        if (not_record_link_decrease(result) < 0)
         {
             return -1;
         }
@@ -5430,25 +5412,15 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
         not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         not_record_t *result = not_addative_minus(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
-
-            if (not_record_link_decrease(right) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
+            not_record_link_decrease(right);
 
             return -1;
         }
@@ -5460,14 +5432,16 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
 
         if (not_assign_set_value(node, left, result) < 0)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         if (not_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
+
+        if (not_record_link_decrease(result) < 0)
         {
             return -1;
         }
@@ -5486,25 +5460,15 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
         not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         not_record_t *result = not_multipicative_mul(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
-
-            if (not_record_link_decrease(right) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
+            not_record_link_decrease(right);
 
             return -1;
         }
@@ -5516,14 +5480,16 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
 
         if (not_assign_set_value(node, left, result) < 0)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         if (not_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
+
+        if (not_record_link_decrease(result) < 0)
         {
             return -1;
         }
@@ -5542,25 +5508,15 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
         not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         not_record_t *result = not_addative_plus(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
-
-            if (not_record_link_decrease(right) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
+            not_record_link_decrease(right);
 
             return -1;
         }
@@ -5572,14 +5528,16 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
 
         if (not_assign_set_value(node, left, result) < 0)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         if (not_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
+
+        if (not_record_link_decrease(result) < 0)
         {
             return -1;
         }
@@ -5598,25 +5556,15 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
         not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         not_record_t *result = not_multipicative_epi(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
-
-            if (not_record_link_decrease(right) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
+            not_record_link_decrease(right);
 
             return -1;
         }
@@ -5628,14 +5576,16 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
 
         if (not_assign_set_value(node, left, result) < 0)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         if (not_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
+
+        if (not_record_link_decrease(result) < 0)
         {
             return -1;
         }
@@ -5654,25 +5604,15 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
         not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         not_record_t *result = not_multipicative_mod(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
-
-            if (not_record_link_decrease(right) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
+            not_record_link_decrease(right);
 
             return -1;
         }
@@ -5684,14 +5624,16 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
 
         if (not_assign_set_value(node, left, result) < 0)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         if (not_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
+
+        if (not_record_link_decrease(result) < 0)
         {
             return -1;
         }
@@ -5710,25 +5652,15 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
         not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         not_record_t *result = not_power_pow(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
-
-            if (not_record_link_decrease(right) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
+            not_record_link_decrease(right);
 
             return -1;
         }
@@ -5740,14 +5672,16 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
 
         if (not_assign_set_value(node, left, result) < 0)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         if (not_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
+
+        if (not_record_link_decrease(result) < 0)
         {
             return -1;
         }
@@ -5766,25 +5700,15 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
         not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         not_record_t *result = not_shifting_shl(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
-
-            if (not_record_link_decrease(right) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
+            not_record_link_decrease(right);
 
             return -1;
         }
@@ -5796,14 +5720,16 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
 
         if (not_assign_set_value(node, left, result) < 0)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         if (not_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
+
+        if (not_record_link_decrease(result) < 0)
         {
             return -1;
         }
@@ -5822,25 +5748,15 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
         not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         not_record_t *result = not_shifting_shr(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
-
-            if (not_record_link_decrease(right) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
+            not_record_link_decrease(right);
 
             return -1;
         }
@@ -5852,14 +5768,16 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
 
         if (not_assign_set_value(node, left, result) < 0)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         if (not_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
+
+        if (not_record_link_decrease(result) < 0)
         {
             return -1;
         }
@@ -5878,25 +5796,15 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
         not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         not_record_t *result = not_execute_and(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
-
-            if (not_record_link_decrease(right) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
+            not_record_link_decrease(right);
 
             return -1;
         }
@@ -5908,14 +5816,16 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
 
         if (not_assign_set_value(node, left, result) < 0)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         if (not_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
+
+        if (not_record_link_decrease(result) < 0)
         {
             return -1;
         }
@@ -5934,25 +5844,15 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
         not_record_t *right = not_expression(binary->right, strip, applicant, origin);
         if (right == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         not_record_t *result = not_execute_or(node, left, right, applicant);
         if (result == NOT_PTR_ERROR)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
-
-            if (not_record_link_decrease(right) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
+            not_record_link_decrease(right);
 
             return -1;
         }
@@ -5964,14 +5864,16 @@ not_assign(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node
 
         if (not_assign_set_value(node, left, result) < 0)
         {
-            if (not_record_link_decrease(left) < 0)
-            {
-                return -1;
-            }
+            not_record_link_decrease(left);
             return -1;
         }
 
         if (not_record_link_decrease(left) < 0)
+        {
+            return -1;
+        }
+
+        if (not_record_link_decrease(result) < 0)
         {
             return -1;
         }

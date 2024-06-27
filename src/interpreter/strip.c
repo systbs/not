@@ -184,6 +184,14 @@ not_strip_input_push(not_strip_t *strip, not_node_t *scope, not_node_t *block, n
 int32_t
 not_strip_variable_remove_by_scope(not_strip_t *strip, not_node_t *scope)
 {
+    if (strip->previous)
+    {
+        if (not_strip_variable_remove_by_scope(strip->previous, scope) < 0)
+        {
+            return -1;
+        }
+    }
+
     for (not_queue_entry_t *a = strip->variables->begin, *b = NULL; a != strip->variables->end; a = b)
     {
         b = a->next;
@@ -198,14 +206,6 @@ not_strip_variable_remove_by_scope(not_strip_t *strip, not_node_t *scope)
             not_memory_free(entry);
             not_queue_unlink(strip->variables, a);
             not_memory_free(a);
-        }
-    }
-
-    if (strip->previous)
-    {
-        if (not_strip_variable_remove_by_scope(strip->previous, scope) < 0)
-        {
-            return -1;
         }
     }
 
@@ -258,7 +258,6 @@ not_strip_destroy(not_strip_t *strip)
     }
 
     not_queue_destroy(strip->inputs);
-
     not_memory_free(strip);
 
     return 0;

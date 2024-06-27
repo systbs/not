@@ -105,7 +105,9 @@ region_error:
 		b = a->next;
 		not_record_t *expection = (not_record_t *)a->value;
 
-		printf("%s\n", not_record_to_string(expection, ""));
+		char *str = not_record_to_string(expection, "");
+		printf("%s\n", str);
+		not_memory_free(str);
 
 		not_record_link_decrease(expection);
 		not_queue_unlink(t->interpreter->expections, a);
