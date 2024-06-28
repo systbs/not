@@ -116,11 +116,7 @@ not_strip_variable_find(not_strip_t *strip, not_node_t *scope, not_node_t *key)
     if (strip->previous)
     {
         not_entry_t *entry = not_strip_variable_find(strip->previous, scope, key);
-        if (entry == NOT_PTR_ERROR)
-        {
-            return NOT_PTR_ERROR;
-        }
-        else if (entry != NULL)
+        if (entry != NULL)
         {
             return entry;
         }

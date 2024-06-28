@@ -1442,6 +1442,11 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                         {
                             argument = (not_node_argument_t *)item2->value;
 
+                            if (argument->value)
+                            {
+                                break;
+                            }
+
                             not_record_t *record_arg = not_expression(argument->key, strip, applicant, NULL);
                             if (record_arg == NOT_PTR_ERROR)
                             {
@@ -1937,6 +1942,56 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                         return -1;
                     }
                 }
+                else if ((parameter->flag & SYNTAX_MODIFIER_KARG) == SYNTAX_MODIFIER_KARG)
+                {
+                    not_record_t *record_arg = not_record_create(RECORD_KIND_TUPLE, NULL);
+                    if (record_arg == NOT_PTR_ERROR)
+                    {
+                        return -1;
+                    }
+
+                    if ((parameter->flag & SYNTAX_MODIFIER_READONLY) == SYNTAX_MODIFIER_READONLY)
+                    {
+                        record_arg->readonly = 1;
+                    }
+
+                    if (parameter->type)
+                    {
+                        record_arg->typed = 1;
+                    }
+
+                    not_entry_t *entry = not_strip_input_push(strip, scope, item1, parameter->key, record_arg);
+                    if (entry == NOT_PTR_ERROR)
+                    {
+                        not_record_link_decrease(record_arg);
+                        return -1;
+                    }
+                }
+                else if ((parameter->flag & SYNTAX_MODIFIER_KWARG) == SYNTAX_MODIFIER_KWARG)
+                {
+                    not_record_t *record_arg = not_record_create(RECORD_KIND_OBJECT, NULL);
+                    if (record_arg == NOT_PTR_ERROR)
+                    {
+                        return -1;
+                    }
+
+                    if ((parameter->flag & SYNTAX_MODIFIER_READONLY) == SYNTAX_MODIFIER_READONLY)
+                    {
+                        record_arg->readonly = 1;
+                    }
+
+                    if (parameter->type)
+                    {
+                        record_arg->typed = 1;
+                    }
+
+                    not_entry_t *entry = not_strip_input_push(strip, scope, item1, parameter->key, record_arg);
+                    if (entry == NOT_PTR_ERROR)
+                    {
+                        not_record_link_decrease(record_arg);
+                        return -1;
+                    }
+                }
                 else
                 {
                     if (scope->kind == NODE_KIND_FUN)
@@ -1962,6 +2017,120 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                     return -1;
                 }
             }
+        }
+    }
+
+    return 0;
+}
+
+static int32_t
+not_call_generic_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip, not_node_t *node, not_node_t *applicant)
+{
+    not_node_generic_t *generic = (not_node_generic_t *)node->value;
+
+    not_entry_t *entry = not_strip_variable_find(strip, scope, generic->key);
+    if (entry == NULL)
+    {
+        if (generic->value)
+        {
+            not_record_t *record_arg = not_expression(generic->value, strip, applicant, NULL);
+            if (record_arg == NOT_PTR_ERROR)
+            {
+                return -1;
+            }
+
+            if (record_arg->kind != RECORD_KIND_TYPE)
+            {
+                not_node_basic_t *basic1 = (not_node_basic_t *)generic->key->value;
+                not_error_type_by_node(generic->value, "'%s' unsupported type: '%s'",
+                                       basic1->value, not_record_type_as_string(record_arg));
+
+                not_record_link_decrease(record_arg);
+                return -1;
+            }
+
+            if (generic->type)
+            {
+                not_record_t *record_generic_type = not_expression(generic->type, strip, applicant, NULL);
+                if (record_generic_type == NOT_PTR_ERROR)
+                {
+                    not_record_link_decrease(record_arg);
+                    return -1;
+                }
+
+                if (record_generic_type->kind != RECORD_KIND_TYPE)
+                {
+                    not_node_basic_t *basic1 = (not_node_basic_t *)generic->key->value;
+                    not_error_type_by_node(generic->type, "'%s' unsupported type: '%s'",
+                                           basic1->value, not_record_type_as_string(record_generic_type));
+
+                    not_record_link_decrease(record_generic_type);
+                    not_record_link_decrease(record_arg);
+
+                    return -1;
+                }
+
+                int32_t r1 = not_pseudonym_type_extends_of_type(base, record_arg, record_generic_type, strip, applicant);
+                if (r1 < 0)
+                {
+                    not_record_link_decrease(record_generic_type);
+                    not_record_link_decrease(record_arg);
+
+                    return -1;
+                }
+                else if (r1 == 0)
+                {
+                    not_node_basic_t *basic1 = (not_node_basic_t *)generic->key->value;
+                    not_error_type_by_node(generic->key, "'%s' mismatch: '%s' and '%s'",
+                                           basic1->value, not_record_type_as_string(record_arg), not_record_type_as_string(record_generic_type));
+
+                    not_record_link_decrease(record_generic_type);
+                    return -1;
+                }
+
+                if (not_record_link_decrease(record_generic_type) < 0)
+                {
+                    return -1;
+                }
+            }
+
+            if (NOT_PTR_ERROR == not_strip_variable_push(strip, scope, node, generic->key, record_arg))
+            {
+                not_record_link_decrease(record_arg);
+                return -1;
+            }
+        }
+        else
+        {
+            if (scope->kind == NODE_KIND_CLASS)
+            {
+                not_node_class_t *class1 = (not_node_class_t *)scope->value;
+                not_node_basic_t *basic1 = (not_node_basic_t *)class1->key->value;
+                not_node_basic_t *basic2 = (not_node_basic_t *)generic->key->value;
+                not_error_type_by_node(base, "'%s' missing '%s' required positional generic", basic1->value, basic2->value);
+                return -1;
+            }
+            else if (scope->kind == NODE_KIND_FUN)
+            {
+                not_node_fun_t *fun1 = (not_node_fun_t *)scope->value;
+                not_node_basic_t *basic1 = (not_node_basic_t *)fun1->key->value;
+                not_node_basic_t *basic2 = (not_node_basic_t *)generic->key->value;
+                not_error_type_by_node(base, "'%s' missing '%s' required positional generic", basic1->value, basic2->value);
+                return -1;
+            }
+            else
+            {
+                not_node_basic_t *basic2 = (not_node_basic_t *)generic->key->value;
+                not_error_type_by_node(base, "'%s' missing '%s' required positional generic", "lambda", basic2->value);
+                return -1;
+            }
+        }
+    }
+    else
+    {
+        if (not_record_link_decrease(entry->value) < 0)
+        {
+            return -1;
         }
     }
 
@@ -2327,6 +2496,19 @@ not_call_class(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_
         return NOT_PTR_ERROR;
     }
 
+    if (class1->generics)
+    {
+        not_node_block_t *block = (not_node_block_t *)class1->generics->value;
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
+        {
+            if (not_call_generic_subs(base, type, strip_class, item, applicant) < 0)
+            {
+                not_record_link_decrease(content);
+                return NOT_PTR_ERROR;
+            }
+        }
+    }
+
     for (not_node_t *item = class1->block; item != NULL; item = item->next)
     {
         if (item->kind == NODE_KIND_FUN)
@@ -2411,6 +2593,19 @@ not_call_fun(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not_no
         return NOT_PTR_ERROR;
     }
 
+    if (fun1->generics)
+    {
+        not_node_block_t *block = (not_node_block_t *)fun1->generics->value;
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
+        {
+            if (not_call_generic_subs(base, node, strip_copy, item, applicant) < 0)
+            {
+                not_strip_destroy(strip_copy);
+                return NOT_PTR_ERROR;
+            }
+        }
+    }
+
     if (not_call_parameters_subs(base, node, strip_copy, fun1->parameters, arguments, applicant) < 0)
     {
         not_strip_destroy(strip_copy);
@@ -2451,6 +2646,19 @@ not_call_lambda(not_node_t *base, not_node_t *arguments, not_strip_t *strip, not
     if (strip_copy == NOT_PTR_ERROR)
     {
         return NOT_PTR_ERROR;
+    }
+
+    if (fun1->generics)
+    {
+        not_node_block_t *block = (not_node_block_t *)fun1->generics->value;
+        for (not_node_t *item = block->items; item != NULL; item = item->next)
+        {
+            if (not_call_generic_subs(base, node, strip_copy, item, applicant) < 0)
+            {
+                not_strip_destroy(strip_copy);
+                return NOT_PTR_ERROR;
+            }
+        }
     }
 
     if (not_call_parameters_subs(base, node, strip_copy, fun1->parameters, arguments, applicant) < 0)

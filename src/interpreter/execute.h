@@ -3,6 +3,9 @@
 #define __EXECUTE_H__ 1
 
 int32_t
+not_pseudonym_type_extends_of_type(not_node_t *node, not_record_t *record_type1, not_record_t *record_type2, not_strip_t *strip, not_node_t *applicant);
+
+int32_t
 not_execute_type_check_by_type(not_node_t *node, not_record_t *record_type1, not_record_t *record_type2);
 
 int32_t

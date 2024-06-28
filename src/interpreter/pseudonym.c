@@ -35,7 +35,7 @@
 #include "execute.h"
 
 int32_t
-not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, not_record_t *record_type2, not_strip_t *strip, not_node_t *applicant)
+not_pseudonym_type_extends_of_type(not_node_t *node, not_record_t *record_type1, not_record_t *record_type2, not_strip_t *strip, not_node_t *applicant)
 {
     not_record_type_t *type1 = (not_record_type_t *)record_type1->value;
     not_record_type_t *type2 = (not_record_type_t *)record_type2->value;
@@ -204,7 +204,7 @@ not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, n
                             return -1;
                         }
 
-                        int32_t r1 = not_execute_type_extends_of_type(node, record_heritage, record_type2, strip, applicant);
+                        int32_t r1 = not_pseudonym_type_extends_of_type(node, record_heritage, record_type2, strip, applicant);
                         if (r1 == -1)
                         {
                             if (not_record_link_decrease(record_heritage) < 0)
@@ -271,7 +271,7 @@ not_execute_type_extends_of_type(not_node_t *node, not_record_t *record_type1, n
                         return -1;
                     }
 
-                    int32_t r1 = not_execute_type_extends_of_type(node, strip_entry1->value, strip_entry2->value, strip, applicant);
+                    int32_t r1 = not_pseudonym_type_extends_of_type(node, strip_entry1->value, strip_entry2->value, strip, applicant);
                     if (r1 == -1)
                     {
                         if (not_record_link_decrease(strip_entry1->value) < 0)
@@ -502,7 +502,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
                             goto region_error;
                         }
 
-                        int32_t r1 = not_execute_type_extends_of_type(field->key, record_field, record_gen_type, copy_strip, applicant);
+                        int32_t r1 = not_pseudonym_type_extends_of_type(field->key, record_field, record_gen_type, copy_strip, applicant);
                         if (r1 < 0)
                         {
                             if (not_record_link_decrease(record_field) < 0)
@@ -617,7 +617,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
                     goto region_error;
                 }
 
-                int32_t r1 = not_execute_type_extends_of_type(field->key, record_field, record_gen_type, copy_strip, applicant);
+                int32_t r1 = not_pseudonym_type_extends_of_type(field->key, record_field, record_gen_type, copy_strip, applicant);
                 if (r1 < 0)
                 {
                     if (not_record_link_decrease(record_field) < 0)

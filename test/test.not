@@ -1,6 +1,6 @@
 using Print, File, Input, Stat, Directory from "~/os";
 using Tensor from "~/tensor";
 
-var t = Tensor<float>([1,2,3,4,5], dims = [4, 5, 6]);
+var t = Tensor(1,2,3,4, dims = [4, 5, 6]);
 Print(t.GetIndex(1, 2, 3));
 Print(t.GetPosition(45));

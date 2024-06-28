@@ -1,9 +1,11 @@
 using Print from "~/os";
 
-export class Tensor<T extends float> {
+export class Tensor<T extends float = float> {
     _dims = [];
-    export fun constructor(values, dims = []) {
+    _values = [];
+    export fun constructor(*values:T, dims = []) {
         _dims = dims.Count() > 0 ? dims : [values.Count()];
+        _values = values;
     }
 
     export fun GetIndex(*pos:int) {
