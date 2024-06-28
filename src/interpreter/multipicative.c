@@ -34,62 +34,55 @@
 #include "helper.h"
 #include "execute.h"
 
-static void
-mpf_mod(mpf_t r, const mpf_t n, const mpf_t d)
+void mpf_mod(mpf_t result, const mpf_t a, const mpf_t b)
 {
-	mpf_t quotient;
-	mpf_init(quotient);
-	mpf_div(quotient, n, d);
-	mpf_floor(quotient, quotient);
-	// r = n - quotient * d
-	mpf_mul(quotient, quotient, d);
-	mpf_sub(r, n, quotient);
-	mpf_clear(quotient);
+	mpf_t temp_div, temp_int;
+
+	mpf_init(temp_div);
+	mpf_init(temp_int);
+
+	//  temp_div = a / b
+	mpf_div(temp_div, a, b);
+
+	//  temp_int = floor(temp_div)
+	mpf_floor(temp_int, temp_div);
+
+	//  result = a - (temp_int * b)
+	mpf_mul(temp_int, temp_int, b); // temp_int = floor(a / b) * b
+	mpf_sub(result, a, temp_int);	// result = a - floor(a / b) * b
+
+	mpf_clear(temp_div);
+	mpf_clear(temp_int);
 }
 
-static void
-mpf_epi(mpf_t r, const mpf_t n, const mpf_t d)
+void mpf_fdiv_q(mpf_t result, const mpf_t a, const mpf_t b)
 {
-	mpf_t quotient;
-	mpf_init(quotient);
-	mpf_div(quotient, n, d);
-	mpf_floor(quotient, quotient);
-	// r = quotient * d
-	mpf_mul(r, quotient, d);
-	mpf_clear(quotient);
-}
+	mpf_t temp;
+	mpz_t z_result;
 
-static void
-mpz_epi(mpz_t r, const mpz_t n, const mpz_t d)
-{
-	mpf_t quotient, mpf_n, mpf_d, mpf_r;
-	mpf_init(quotient);
-	mpf_init(mpf_n);
-	mpf_init(mpf_d);
-	mpf_init(mpf_r);
-	mpf_set_z(mpf_n, n);
-	mpf_set_z(mpf_d, d);
-	mpf_div(quotient, mpf_n, mpf_d);
-	mpf_floor(quotient, quotient);
-	// r = quotient * d
-	mpf_mul(mpf_r, quotient, mpf_d);
-	mpz_set_f(r, mpf_r);
-	mpf_clear(mpf_r);
-	mpf_clear(mpf_n);
-	mpf_clear(mpf_d);
-	mpf_clear(quotient);
+	mpf_init(temp);
+	mpz_init(z_result);
+
+	mpf_div(temp, a, b);
+
+	mpz_set_f(z_result, temp);
+
+	mpf_set_z(result, z_result);
+
+	mpf_clear(temp);
+	mpz_clear(z_result);
 }
 
 not_record_t *
 not_multipicative_mul(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-	if (left->null)
+	if (left->null || left->undefined || left->nan)
 	{
 		return not_record_make_nan();
 	}
 	else if (left->kind == RECORD_KIND_INT)
 	{
-		if (right->null)
+		if (right->null || right->undefined || right->nan)
 		{
 			return not_record_make_nan();
 		}
@@ -142,7 +135,7 @@ not_multipicative_mul(not_node_t *node, not_record_t *left, not_record_t *right,
 	}
 	else if (left->kind == RECORD_KIND_FLOAT)
 	{
-		if (right->null)
+		if (right->null || right->undefined || right->nan)
 		{
 			return not_record_make_nan();
 		}
@@ -190,7 +183,7 @@ not_multipicative_mul(not_node_t *node, not_record_t *left, not_record_t *right,
 	}
 	else if (left->kind == RECORD_KIND_CHAR)
 	{
-		if (right->null)
+		if (right->null || right->undefined || right->nan)
 		{
 			return not_record_make_nan();
 		}
@@ -242,7 +235,7 @@ not_multipicative_mul(not_node_t *node, not_record_t *left, not_record_t *right,
 	}
 	else if (left->kind == RECORD_KIND_STRING)
 	{
-		if (right->null)
+		if (right->null || right->undefined || right->nan)
 		{
 			return not_record_make_nan();
 		}
@@ -301,13 +294,13 @@ not_multipicative_mul(not_node_t *node, not_record_t *left, not_record_t *right,
 not_record_t *
 not_multipicative_div(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-	if (left->null)
+	if (left->null || left->undefined || left->nan)
 	{
 		return not_record_make_nan();
 	}
 	else if (left->kind == RECORD_KIND_INT)
 	{
-		if (right->null)
+		if (right->null || right->undefined || right->nan)
 		{
 			return not_record_make_nan();
 		}
@@ -377,7 +370,7 @@ not_multipicative_div(not_node_t *node, not_record_t *left, not_record_t *right,
 	}
 	else if (left->kind == RECORD_KIND_FLOAT)
 	{
-		if (right->null)
+		if (right->null || right->undefined || right->nan)
 		{
 			return not_record_make_nan();
 		}
@@ -443,7 +436,7 @@ not_multipicative_div(not_node_t *node, not_record_t *left, not_record_t *right,
 	}
 	else if (left->kind == RECORD_KIND_CHAR)
 	{
-		if (right->null)
+		if (right->null || right->undefined || right->nan)
 		{
 			return not_record_make_nan();
 		}
@@ -522,13 +515,13 @@ not_multipicative_div(not_node_t *node, not_record_t *left, not_record_t *right,
 not_record_t *
 not_multipicative_mod(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-	if (left->null)
+	if (left->null || left->undefined || left->nan)
 	{
 		return not_record_make_nan();
 	}
 	else if (left->kind == RECORD_KIND_INT)
 	{
-		if (right->null)
+		if (right->null || right->undefined || right->nan)
 		{
 			return not_record_make_nan();
 		}
@@ -581,7 +574,7 @@ not_multipicative_mod(not_node_t *node, not_record_t *left, not_record_t *right,
 	}
 	else if (left->kind == RECORD_KIND_FLOAT)
 	{
-		if (right->null)
+		if (right->null || right->undefined || right->nan)
 		{
 			return not_record_make_nan();
 		}
@@ -629,7 +622,7 @@ not_multipicative_mod(not_node_t *node, not_record_t *left, not_record_t *right,
 	}
 	else if (left->kind == RECORD_KIND_CHAR)
 	{
-		if (right->null)
+		if (right->null || right->undefined || right->nan)
 		{
 			return not_record_make_nan();
 		}
@@ -690,13 +683,13 @@ not_multipicative_mod(not_node_t *node, not_record_t *left, not_record_t *right,
 not_record_t *
 not_multipicative_epi(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-	if (left->null)
+	if (left->null || left->undefined || left->nan)
 	{
 		return not_record_make_nan();
 	}
 	else if (left->kind == RECORD_KIND_INT)
 	{
-		if (right->null)
+		if (right->null || right->undefined || right->nan)
 		{
 			return not_record_make_nan();
 		}
@@ -708,7 +701,7 @@ not_multipicative_epi(not_node_t *node, not_record_t *left, not_record_t *right,
 			mpz_init_set(num1, (*(mpz_t *)(left->value)));
 			mpz_init_set(num2, (*(mpz_t *)(right->value)));
 
-			mpz_epi(result, num1, num2);
+			mpz_fdiv_q(result, num1, num2);
 			mpz_clear(num1);
 			mpz_clear(num2);
 			not_record_t *record = not_record_make_int_from_z(result);
@@ -723,7 +716,7 @@ not_multipicative_epi(not_node_t *node, not_record_t *left, not_record_t *right,
 
 			mpf_set_z(num1, (*(mpz_t *)(left->value)));
 
-			mpf_epi(result, num1, (*(mpf_t *)(right->value)));
+			mpf_fdiv_q(result, num1, (*(mpf_t *)(right->value)));
 			mpf_clear(num1);
 			not_record_t *record = not_record_make_float_from_f(result);
 			mpf_clear(result);
@@ -737,7 +730,7 @@ not_multipicative_epi(not_node_t *node, not_record_t *left, not_record_t *right,
 			mpz_init_set(num1, (*(mpz_t *)(left->value)));
 			mpz_init_set_si(num2, (*(char *)(right->value)));
 
-			mpz_epi(result, num1, num2);
+			mpz_fdiv_q(result, num1, num2);
 			mpz_clear(num1);
 			mpz_clear(num2);
 			not_record_t *record = not_record_make_int_from_z(result);
@@ -749,7 +742,7 @@ not_multipicative_epi(not_node_t *node, not_record_t *left, not_record_t *right,
 	}
 	else if (left->kind == RECORD_KIND_FLOAT)
 	{
-		if (right->null)
+		if (right->null || right->undefined || right->nan)
 		{
 			return not_record_make_nan();
 		}
@@ -762,7 +755,7 @@ not_multipicative_epi(not_node_t *node, not_record_t *left, not_record_t *right,
 			mpz_set_f(num1, (*(mpf_t *)(left->value)));
 			mpz_init_set(num2, (*(mpz_t *)(right->value)));
 
-			mpz_epi(result, num1, num2);
+			mpz_fdiv_q(result, num1, num2);
 			mpz_clear(num1);
 			mpz_clear(num2);
 			not_record_t *record = not_record_make_int_from_z(result);
@@ -773,7 +766,7 @@ not_multipicative_epi(not_node_t *node, not_record_t *left, not_record_t *right,
 		{
 			mpf_t result;
 			mpf_init(result);
-			mpf_epi(result, (*(mpf_t *)(left->value)), (*(mpf_t *)(right->value)));
+			mpf_fdiv_q(result, (*(mpf_t *)(left->value)), (*(mpf_t *)(right->value)));
 			not_record_t *record = not_record_make_float_from_f(result);
 			mpf_clear(result);
 
@@ -786,7 +779,7 @@ not_multipicative_epi(not_node_t *node, not_record_t *left, not_record_t *right,
 
 			mpf_init_set_si(num2, (*(char *)(right->value)));
 
-			mpf_epi(result, (*(mpf_t *)(left->value)), num2);
+			mpf_fdiv_q(result, (*(mpf_t *)(left->value)), num2);
 			mpf_clear(num2);
 			not_record_t *record = not_record_make_float_from_f(result);
 			mpf_clear(result);
@@ -797,7 +790,7 @@ not_multipicative_epi(not_node_t *node, not_record_t *left, not_record_t *right,
 	}
 	else if (left->kind == RECORD_KIND_CHAR)
 	{
-		if (right->null)
+		if (right->null || right->undefined || right->nan)
 		{
 			return not_record_make_nan();
 		}
@@ -809,7 +802,7 @@ not_multipicative_epi(not_node_t *node, not_record_t *left, not_record_t *right,
 			mpz_init_set_si(num1, (*(char *)(left->value)));
 			mpz_init_set(num2, (*(mpz_t *)(right->value)));
 
-			mpz_epi(result, num1, num2);
+			mpz_fdiv_q(result, num1, num2);
 			mpz_clear(num1);
 			mpz_clear(num2);
 			not_record_t *record = not_record_make_int_from_z(result);
@@ -823,7 +816,7 @@ not_multipicative_epi(not_node_t *node, not_record_t *left, not_record_t *right,
 
 			mpf_init_set_si(num1, (*(char *)(left->value)));
 
-			mpf_epi(result, num1, (*(mpf_t *)(right->value)));
+			mpf_fdiv_q(result, num1, (*(mpf_t *)(right->value)));
 			mpf_clear(num1);
 			not_record_t *record = not_record_make_float_from_f(result);
 			mpf_clear(result);
@@ -837,7 +830,7 @@ not_multipicative_epi(not_node_t *node, not_record_t *left, not_record_t *right,
 			mpz_init_set_si(num1, (*(char *)(left->value)));
 			mpz_init_set_si(num2, (*(char *)(right->value)));
 
-			mpz_epi(result, num1, num2);
+			mpz_fdiv_q(result, num1, num2);
 			mpz_clear(num1);
 			mpz_clear(num2);
 			not_record_t *record = not_record_make_int_from_z(result);

@@ -37,9 +37,9 @@
 not_record_t *
 not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-    if (left->null)
+    if (left->null || left->undefined || left->nan)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(1);
         }
@@ -64,7 +64,7 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_INT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(mpz_cmp_d((*(mpz_t *)(left->value)), 0) == 0);
         }
@@ -102,7 +102,7 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(mpf_cmp_d((*(mpf_t *)(left->value)), 0) == 0);
         }
@@ -140,7 +140,7 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si((*(char *)(left->value)) == 0);
         }
@@ -173,7 +173,7 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_STRING)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -186,7 +186,7 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_OBJECT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -264,7 +264,7 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_TUPLE)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -337,7 +337,7 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_TYPE)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -358,7 +358,7 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_NULL)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(1);
         }
@@ -425,7 +425,7 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_PROC)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -446,7 +446,7 @@ not_equality_eq(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_BUILTIN)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }

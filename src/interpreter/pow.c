@@ -108,13 +108,13 @@ int mpf_is_int(mpf_t num)
 not_record_t *
 not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-    if (left->null)
+    if (left->null || left->undefined || left->nan)
     {
         return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_INT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -209,7 +209,7 @@ not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_nod
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -271,7 +271,7 @@ not_power_pow(not_node_t *node, not_record_t *left, not_record_t *right, not_nod
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }

@@ -37,7 +37,7 @@
 not_record_t *
 not_execute_land(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-    if (left->null)
+    if (left->null || left->undefined || left->nan)
     {
         if (not_record_link_decrease(right) < 0)
         {

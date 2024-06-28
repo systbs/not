@@ -37,13 +37,13 @@
 not_record_t *
 not_shifting_shr(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-    if (left->null)
+    if (left->null || left->undefined || left->nan)
     {
         return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_INT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -146,7 +146,7 @@ not_shifting_shr(not_node_t *node, not_record_t *left, not_record_t *right, not_
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -252,7 +252,7 @@ not_shifting_shr(not_node_t *node, not_record_t *left, not_record_t *right, not_
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -364,13 +364,13 @@ not_shifting_shr(not_node_t *node, not_record_t *left, not_record_t *right, not_
 not_record_t *
 not_shifting_shl(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-    if (left->null)
+    if (left->null || left->undefined || left->nan)
     {
         return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_INT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -440,7 +440,7 @@ not_shifting_shl(not_node_t *node, not_record_t *left, not_record_t *right, not_
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -513,7 +513,7 @@ not_shifting_shl(not_node_t *node, not_record_t *left, not_record_t *right, not_
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }

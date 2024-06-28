@@ -36,13 +36,13 @@
 not_record_t *
 not_execute_xor(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-    if (left->null)
+    if (left->null || left->undefined || left->nan)
     {
         return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_UNDEFINED)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -69,7 +69,7 @@ not_execute_xor(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_NAN)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -90,7 +90,7 @@ not_execute_xor(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_INT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_z((*(mpz_t *)(left->value)));
         }
@@ -135,7 +135,7 @@ not_execute_xor(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_f((*(mpf_t *)(left->value)));
         }
@@ -198,7 +198,7 @@ not_execute_xor(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_char((*(char *)(left->value)));
         }
@@ -238,7 +238,7 @@ not_execute_xor(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_STRING)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -259,7 +259,7 @@ not_execute_xor(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_OBJECT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -280,7 +280,7 @@ not_execute_xor(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_TUPLE)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -301,7 +301,7 @@ not_execute_xor(not_node_t *node, not_record_t *left, not_record_t *right, not_n
     }
     else if (left->kind == RECORD_KIND_TYPE)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }

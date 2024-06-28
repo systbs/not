@@ -37,13 +37,13 @@
 not_record_t *
 not_relational_lt(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-    if (left->null)
+    if (left->null || left->undefined || left->nan)
     {
         return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_INT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -69,7 +69,7 @@ not_relational_lt(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -95,7 +95,7 @@ not_relational_lt(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -116,7 +116,7 @@ not_relational_lt(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_STRING)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -251,9 +251,9 @@ not_relational_lt(not_node_t *node, not_record_t *left, not_record_t *right, not
 not_record_t *
 not_relational_le(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-    if (left->null)
+    if (left->null || left->undefined || left->nan)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(1);
         }
@@ -266,7 +266,7 @@ not_relational_le(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_INT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -292,7 +292,7 @@ not_relational_le(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -318,7 +318,7 @@ not_relational_le(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -339,7 +339,7 @@ not_relational_le(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_STRING)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -490,13 +490,13 @@ not_relational_le(not_node_t *node, not_record_t *left, not_record_t *right, not
 not_record_t *
 not_relational_gt(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-    if (left->null)
+    if (left->null || left->undefined || left->nan)
     {
         return not_record_make_int_from_si(0);
     }
     else if (left->kind == RECORD_KIND_INT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -522,7 +522,7 @@ not_relational_gt(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -548,7 +548,7 @@ not_relational_gt(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -569,7 +569,7 @@ not_relational_gt(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_STRING)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -704,9 +704,9 @@ not_relational_gt(not_node_t *node, not_record_t *left, not_record_t *right, not
 not_record_t *
 not_relational_ge(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-    if (left->null)
+    if (left->null || left->undefined || left->nan)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(1);
         }
@@ -719,7 +719,7 @@ not_relational_ge(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_INT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -745,7 +745,7 @@ not_relational_ge(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -771,7 +771,7 @@ not_relational_ge(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }
@@ -792,7 +792,7 @@ not_relational_ge(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_STRING)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_int_from_si(0);
         }

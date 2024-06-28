@@ -551,6 +551,7 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                         {
                             return NOT_PTR_ERROR;
                         }
+                        not_record_link_increase(item->value);
                         return item->value;
                     }
                     mpz_add_ui(cnt, cnt, 1);
@@ -928,6 +929,17 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                 }
             }
         }
+    }
+    else
+    {
+        not_record_t *result = not_record_make_type(node, base);
+        if (result == NOT_PTR_ERROR)
+        {
+            not_record_link_decrease(base);
+            return NOT_PTR_ERROR;
+        }
+
+        return result;
     }
 
     not_error_type_by_node(node, "array implement not support");

@@ -127,9 +127,8 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                                 {
                                     return NOT_PTR_ERROR;
                                 }
-                                record_value = record_copy;
 
-                                not_record_t *record_value2 = not_execute_value_casting_by_type(node, record_value, record_type);
+                                not_record_t *record_value2 = not_execute_value_casting_by_type(node, record_copy, record_type);
                                 if (record_value2 == NOT_PTR_ERROR)
                                 {
                                     not_record_link_decrease(record_type);
@@ -149,15 +148,7 @@ not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, 
                                     return NOT_PTR_ERROR;
                                 }
 
-                                if (record_value != record_value2)
-                                {
-                                    if (not_record_link_decrease(record_value) < 0)
-                                    {
-                                        return NOT_PTR_ERROR;
-                                    }
-                                }
-
-                                record_value = record_value2;
+                                record_value = record_copy;
                             }
                         }
 
@@ -1215,6 +1206,29 @@ not_attribute_tuple_builtin_set(not_node_t *base, not_record_t *source, not_node
 
     mpz_t index;
     mpz_init_set_si(index, 0);
+
+    if (source->value == NULL)
+    {
+        not_record_t *arg = not_record_make_undefined();
+        if (arg == NOT_PTR_ERROR)
+        {
+            mpz_clear(term);
+            mpz_clear(index);
+            goto region_cleanup;
+        }
+
+        not_record_tuple_t *new_tuple = not_record_make_tuple(arg, NULL);
+        if (new_tuple == NOT_PTR_ERROR)
+        {
+            mpz_clear(term);
+            mpz_clear(index);
+            not_record_link_decrease(arg);
+            goto region_cleanup;
+        }
+
+        source->value = new_tuple;
+    }
+
     for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value; tuple != NULL; tuple = tuple->next)
     {
         if (mpz_cmp(index, term) < 0)
@@ -1412,6 +1426,29 @@ not_attribute_tuple_builtin_insert(not_node_t *base, not_record_t *source, not_n
     int appended = 0;
     mpz_t index;
     mpz_init_set_si(index, 0);
+
+    if (source->value == NULL)
+    {
+        not_record_t *arg = not_record_make_undefined();
+        if (arg == NOT_PTR_ERROR)
+        {
+            mpz_clear(term);
+            mpz_clear(index);
+            goto region_cleanup;
+        }
+
+        not_record_tuple_t *new_tuple = not_record_make_tuple(arg, NULL);
+        if (new_tuple == NOT_PTR_ERROR)
+        {
+            mpz_clear(term);
+            mpz_clear(index);
+            not_record_link_decrease(arg);
+            goto region_cleanup;
+        }
+
+        source->value = new_tuple;
+    }
+
     for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value, *previous = NULL; tuple != NULL; tuple = tuple->next)
     {
         if (mpz_cmp(index, term) < 0)
@@ -2261,10 +2298,11 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
     {
         not_record_type_t *record_type = (not_record_type_t *)left->value;
         not_node_t *type = record_type->type;
-        not_strip_t *strip_new = (not_strip_t *)record_type->value;
+        not_strip_t *strip_type = (not_strip_t *)record_type->value;
+
         if (type->kind == NODE_KIND_CLASS)
         {
-            not_record_t *result = not_attribute_from_type(node, strip_new, type, binary->right, applicant);
+            not_record_t *result = not_attribute_from_type(node, strip_type, type, binary->right, applicant);
 
             if (result == NOT_PTR_ERROR)
             {
@@ -2278,11 +2316,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
                 not_error_type_by_node(binary->right, "'%s' object has no attribute '%s'",
                                        basic2->value, basic1->value);
 
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return NOT_PTR_ERROR;
             }
 
@@ -2322,9 +2356,9 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
     {
         not_record_struct_t *record_struct = (not_record_struct_t *)left->value;
         not_node_t *type = record_struct->type;
-        not_strip_t *strip_new = (not_strip_t *)record_struct->value;
+        not_strip_t *strip_struct = (not_strip_t *)record_struct->value;
 
-        not_record_t *result = not_attribute_from_struct(node, strip_new, type, binary->right, applicant);
+        not_record_t *result = not_attribute_from_struct(node, strip_struct, type, binary->right, applicant);
 
         if (result == NOT_PTR_ERROR)
         {
@@ -2338,11 +2372,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             not_error_type_by_node(binary->right, "'%s' object has no attribute '%s'",
                                    basic2->value, basic1->value);
 
-            if (not_record_link_decrease(left) < 0)
-            {
-                return NOT_PTR_ERROR;
-            }
-
+            not_record_link_decrease(left);
             return NOT_PTR_ERROR;
         }
 
@@ -2360,11 +2390,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             not_record_t *result = not_record_make_builtin(left, &not_attribute_object_builtin_remove);
             if (result == NOT_PTR_ERROR)
             {
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return NOT_PTR_ERROR;
             }
             return result;
@@ -2374,11 +2400,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             not_record_t *result = not_record_make_builtin(left, &not_attribute_object_builtin_add);
             if (result == NOT_PTR_ERROR)
             {
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return NOT_PTR_ERROR;
             }
             return result;
@@ -2388,11 +2410,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             not_record_t *result = not_record_make_builtin(left, &not_attribute_object_builtin_contain);
             if (result == NOT_PTR_ERROR)
             {
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return NOT_PTR_ERROR;
             }
             return result;
@@ -2402,11 +2420,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
         {
             if (not_helper_id_strcmp(binary->right, item->key) == 0)
             {
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return item->value;
             }
         }
@@ -2415,11 +2429,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
         not_error_type_by_node(node, "'%s' has no attribute '%s'",
                                not_record_type_as_string(left), basic1->value);
 
-        if (not_record_link_decrease(left) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
-
+        not_record_link_decrease(left);
         return NOT_PTR_ERROR;
     }
     else if (left->kind == RECORD_KIND_TUPLE)
@@ -2429,11 +2439,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             not_record_t *result = not_record_make_builtin(left, &not_attribute_tuple_builtin_remove);
             if (result == NOT_PTR_ERROR)
             {
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return NOT_PTR_ERROR;
             }
             return result;
@@ -2443,11 +2449,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             not_record_t *result = not_record_make_builtin(left, &not_attribute_tuple_builtin_set);
             if (result == NOT_PTR_ERROR)
             {
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return NOT_PTR_ERROR;
             }
             return result;
@@ -2457,11 +2459,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             not_record_t *result = not_record_make_builtin(left, &not_attribute_tuple_builtin_insert);
             if (result == NOT_PTR_ERROR)
             {
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return NOT_PTR_ERROR;
             }
             return result;
@@ -2471,11 +2469,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             not_record_t *result = not_record_make_builtin(left, &not_attribute_tuple_builtin_count);
             if (result == NOT_PTR_ERROR)
             {
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return NOT_PTR_ERROR;
             }
             return result;
@@ -2485,11 +2479,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             not_record_t *result = not_record_make_builtin(left, &not_attribute_tuple_builtin_append);
             if (result == NOT_PTR_ERROR)
             {
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return NOT_PTR_ERROR;
             }
             return result;
@@ -2499,11 +2489,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
         not_error_type_by_node(node, "'%s' has no attribute '%s'",
                                not_record_type_as_string(left), basic1->value);
 
-        if (not_record_link_decrease(left) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
-
+        not_record_link_decrease(left);
         return NOT_PTR_ERROR;
     }
     else if (left->kind == RECORD_KIND_STRING)
@@ -2513,11 +2499,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             not_record_t *result = not_record_make_builtin(left, &not_attribute_string_builtin_length);
             if (result == NOT_PTR_ERROR)
             {
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return NOT_PTR_ERROR;
             }
             return result;
@@ -2527,11 +2509,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             not_record_t *result = not_record_make_builtin(left, &not_attribute_string_builtin_upper);
             if (result == NOT_PTR_ERROR)
             {
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return NOT_PTR_ERROR;
             }
             return result;
@@ -2541,11 +2519,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             not_record_t *result = not_record_make_builtin(left, &not_attribute_string_builtin_lower);
             if (result == NOT_PTR_ERROR)
             {
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return NOT_PTR_ERROR;
             }
             return result;
@@ -2555,11 +2529,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             not_record_t *result = not_record_make_builtin(left, &not_attribute_string_builtin_count);
             if (result == NOT_PTR_ERROR)
             {
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return NOT_PTR_ERROR;
             }
             return result;
@@ -2569,11 +2539,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             not_record_t *result = not_record_make_builtin(left, &not_attribute_string_builtin_replace);
             if (result == NOT_PTR_ERROR)
             {
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return NOT_PTR_ERROR;
             }
             return result;
@@ -2583,11 +2549,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
             not_record_t *result = not_record_make_builtin(left, &not_attribute_string_builtin_trim);
             if (result == NOT_PTR_ERROR)
             {
-                if (not_record_link_decrease(left) < 0)
-                {
-                    return NOT_PTR_ERROR;
-                }
-
+                not_record_link_decrease(left);
                 return NOT_PTR_ERROR;
             }
             return result;
@@ -2597,11 +2559,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
         not_error_type_by_node(node, "'%s' has no attribute '%s'",
                                not_record_type_as_string(left), basic1->value);
 
-        if (not_record_link_decrease(left) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
-
+        not_record_link_decrease(left);
         return NOT_PTR_ERROR;
     }
     else
@@ -2610,11 +2568,7 @@ not_attribute(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
         not_error_type_by_node(binary->right, "'%s' has no attribute '%s'",
                                not_record_type_as_string(left), basic1->value);
 
-        if (not_record_link_decrease(left) < 0)
-        {
-            return NOT_PTR_ERROR;
-        }
-
+        not_record_link_decrease(left);
         return NOT_PTR_ERROR;
     }
 }

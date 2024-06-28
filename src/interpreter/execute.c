@@ -40,12 +40,24 @@ not_execute_body(not_node_t *node, not_strip_t *strip, not_node_t *applicant);
 int32_t
 not_execute_truthy(not_record_t *left)
 {
-    if (left->null)
+    if (left->null || left->undefined || left->nan)
+    {
+        return 0;
+    }
+    else if (left->undefined)
+    {
+        return 0;
+    }
+    else if (left->nan)
     {
         return 0;
     }
 
-    if (left->kind == RECORD_KIND_UNDEFINED)
+    if (left->kind == RECORD_KIND_NULL)
+    {
+        return 0;
+    }
+    else if (left->kind == RECORD_KIND_UNDEFINED)
     {
         return 0;
     }
@@ -92,10 +104,6 @@ not_execute_truthy(not_record_t *left)
     else if (left->kind == RECORD_KIND_BUILTIN)
     {
         return 1;
-    }
-    else if (left->kind == RECORD_KIND_NULL)
-    {
-        return 0;
     }
 
     return 0;
@@ -830,6 +838,21 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
         {
             return record_value;
         }
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
+        {
+            char *ptr = not_memory_calloc(1, sizeof(char));
+            if (!ptr)
+            {
+                not_error_no_memory();
+                return NOT_PTR_ERROR;
+            }
+            ptr[0] = '\0';
+
+            record_value->undefined = 1;
+            record_value->value = ptr;
+            record_value->kind = RECORD_KIND_CHAR;
+            return record_value;
+        }
         else
         {
             return NULL;
@@ -841,6 +864,21 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
         {
             return record_value;
         }
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
+        {
+            char *ptr = not_memory_calloc(1, sizeof(char));
+            if (!ptr)
+            {
+                not_error_no_memory();
+                return NOT_PTR_ERROR;
+            }
+            ptr[0] = '\0';
+
+            record_value->undefined = 1;
+            record_value->value = ptr;
+            record_value->kind = RECORD_KIND_STRING;
+            return record_value;
+        }
         else
         {
             return NULL;
@@ -850,6 +888,36 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
     {
         if (record_value->kind == RECORD_KIND_INT)
         {
+            return record_value;
+        }
+        else if (record_value->kind == RECORD_KIND_NAN)
+        {
+            void *ptr = not_memory_calloc(1, sizeof(mpz_t));
+            if (!ptr)
+            {
+                not_error_no_memory();
+                return NOT_PTR_ERROR;
+            }
+            mpz_init_set_si(*(mpz_t *)ptr, 0);
+
+            record_value->nan = 1;
+            record_value->value = ptr;
+            record_value->kind = RECORD_KIND_INT;
+            return record_value;
+        }
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
+        {
+            void *ptr = not_memory_calloc(1, sizeof(mpz_t));
+            if (!ptr)
+            {
+                not_error_no_memory();
+                return NOT_PTR_ERROR;
+            }
+            mpz_init_set_si(*(mpz_t *)ptr, 0);
+
+            record_value->undefined = 1;
+            record_value->value = ptr;
+            record_value->kind = RECORD_KIND_INT;
             return record_value;
         }
         else
@@ -865,8 +933,6 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
         }
         else if (record_value->kind == RECORD_KIND_INT)
         {
-            mpz_t val;
-            mpz_init_set(val, *(mpz_t *)(record_value->value));
             void *ptr = not_memory_realloc(record_value->value, sizeof(mpf_t));
             if (!ptr)
             {
@@ -874,8 +940,38 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
                 return NOT_PTR_ERROR;
             }
             mpf_init(*(mpf_t *)ptr);
-            mpf_set_z(*(mpf_t *)ptr, val);
-            mpz_clear(val);
+            mpf_set_z(*(mpf_t *)ptr, *(mpz_t *)(record_value->value));
+
+            record_value->value = ptr;
+            record_value->kind = RECORD_KIND_FLOAT;
+            return record_value;
+        }
+        else if (record_value->kind == RECORD_KIND_NAN)
+        {
+            void *ptr = not_memory_calloc(1, sizeof(mpf_t));
+            if (!ptr)
+            {
+                not_error_no_memory();
+                return NOT_PTR_ERROR;
+            }
+            mpf_init_set_si(*(mpf_t *)ptr, 0);
+
+            record_value->nan = 1;
+            record_value->value = ptr;
+            record_value->kind = RECORD_KIND_FLOAT;
+            return record_value;
+        }
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
+        {
+            void *ptr = not_memory_calloc(1, sizeof(mpf_t));
+            if (!ptr)
+            {
+                not_error_no_memory();
+                return NOT_PTR_ERROR;
+            }
+            mpf_init_set_si(*(mpf_t *)ptr, 0);
+
+            record_value->undefined = 1;
             record_value->value = ptr;
             record_value->kind = RECORD_KIND_FLOAT;
             return record_value;
@@ -964,7 +1060,12 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
 
             return record_value;
         }
-
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
+        {
+            record_value->undefined = 1;
+            record_value->kind = RECORD_KIND_OBJECT;
+            return record_value;
+        }
         return NULL;
     }
     else if (type1->type->kind == NODE_KIND_ARRAY)
@@ -1006,7 +1107,12 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
 
             return record_value;
         }
-
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
+        {
+            record_value->undefined = 1;
+            record_value->kind = RECORD_KIND_TUPLE;
+            return record_value;
+        }
         return NULL;
     }
     else if (type1->type->kind == NODE_KIND_TUPLE)
@@ -1074,7 +1180,12 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
 
             return record_value;
         }
-
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
+        {
+            record_value->undefined = 1;
+            record_value->kind = RECORD_KIND_TUPLE;
+            return record_value;
+        }
         return NULL;
     }
     else if (type1->type->kind == NODE_KIND_CLASS)
@@ -1171,10 +1282,47 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
                 return NOT_PTR_ERROR;
             }
 
-            not_record_t *r = not_record_make_struct(type1->type, copy_strip);
-            r->null = 1;
+            not_record_struct_t *struct1 = not_memory_calloc(1, sizeof(not_record_struct_t));
+            if (!struct1)
+            {
+                not_error_no_memory();
+                not_strip_destroy(copy_strip);
+                return NOT_PTR_ERROR;
+            }
 
-            return r;
+            struct1->type = type1->type;
+            struct1->value = copy_strip;
+
+            record_value->value = struct1;
+            record_value->kind = RECORD_KIND_STRUCT;
+            record_value->null = 1;
+
+            return record_value;
+        }
+        else if (record_value->kind == RECORD_KIND_UNDEFINED)
+        {
+            not_strip_t *copy_strip = not_strip_copy(type1->value);
+            if (copy_strip == NOT_PTR_ERROR)
+            {
+                return NOT_PTR_ERROR;
+            }
+
+            not_record_struct_t *struct1 = not_memory_calloc(1, sizeof(not_record_struct_t));
+            if (!struct1)
+            {
+                not_error_no_memory();
+                not_strip_destroy(copy_strip);
+                return NOT_PTR_ERROR;
+            }
+
+            struct1->type = type1->type;
+            struct1->value = copy_strip;
+
+            record_value->value = struct1;
+            record_value->kind = RECORD_KIND_STRUCT;
+            record_value->undefined = 1;
+
+            return record_value;
         }
 
         return NULL;
@@ -1395,27 +1543,83 @@ not_execute_var(not_node_t *scope, not_node_t *node, not_strip_t *strip, not_nod
             {
                 return -1;
             }
-
-            if (var1->type)
+        }
+        else
+        {
+            record_value = not_record_make_undefined();
+            if (record_value == NOT_PTR_ERROR)
             {
-                not_record_t *record_type = not_expression(var1->type, strip, applicant, NULL);
-                if (record_type == NOT_PTR_ERROR)
-                {
-                    if (not_record_link_decrease(record_value) < 0)
-                    {
-                        return -1;
-                    }
+                return -1;
+            }
+        }
 
+        if (var1->type)
+        {
+            not_record_t *record_type = not_expression(var1->type, strip, applicant, NULL);
+            if (record_type == NOT_PTR_ERROR)
+            {
+                if (not_record_link_decrease(record_value) < 0)
+                {
                     return -1;
                 }
 
-                if (record_type->kind != RECORD_KIND_TYPE)
+                return -1;
+            }
+
+            if (record_type->kind != RECORD_KIND_TYPE)
+            {
+                not_node_basic_t *basic1 = (not_node_basic_t *)var1->key->value;
+                not_error_type_by_node(var1->key, "'%s' unsupported type: '%s'",
+                                       basic1->value, not_record_type_as_string(record_type));
+
+                if (not_record_link_decrease(record_type) < 0)
+                {
+                    return -1;
+                }
+
+                if (not_record_link_decrease(record_value) < 0)
+                {
+                    return -1;
+                }
+
+                return -1;
+            }
+
+            int32_t r1 = not_execute_value_check_by_type(var1->key, record_value, record_type);
+            if (r1 < 0)
+            {
+                if (not_record_link_decrease(record_type) < 0)
+                {
+                    return -1;
+                }
+                if (not_record_link_decrease(record_value) < 0)
+                {
+                    return -1;
+                }
+            }
+            else if (r1 == 0)
+            {
+                if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                 {
                     not_node_basic_t *basic1 = (not_node_basic_t *)var1->key->value;
-                    not_error_type_by_node(var1->key, "'%s' unsupported type: '%s'",
-                                           basic1->value, not_record_type_as_string(record_type));
+                    not_error_type_by_node(var1->key, "'%s' mismatch: '%s' and '%s'",
+                                           basic1->value, not_record_type_as_string(record_type), not_record_type_as_string(record_value));
 
                     if (not_record_link_decrease(record_type) < 0)
+                    {
+                        return -1;
+                    }
+                    if (not_record_link_decrease(record_value) < 0)
+                    {
+                        return -1;
+                    }
+
+                    return -1;
+                }
+                else
+                {
+                    not_record_t *record_copy = not_record_copy(record_value);
+                    if (record_copy == NOT_PTR_ERROR)
                     {
                         return -1;
                     }
@@ -1425,24 +1629,21 @@ not_execute_var(not_node_t *scope, not_node_t *node, not_strip_t *strip, not_nod
                         return -1;
                     }
 
-                    return -1;
-                }
+                    not_record_t *record_value2 = not_execute_value_casting_by_type(var1->key, record_copy, record_type);
+                    if (record_value2 == NOT_PTR_ERROR)
+                    {
+                        if (not_record_link_decrease(record_type) < 0)
+                        {
+                            return -1;
+                        }
+                        if (not_record_link_decrease(record_value) < 0)
+                        {
+                            return -1;
+                        }
 
-                int32_t r1 = not_execute_value_check_by_type(var1->key, record_value, record_type);
-                if (r1 < 0)
-                {
-                    if (not_record_link_decrease(record_type) < 0)
-                    {
                         return -1;
                     }
-                    if (not_record_link_decrease(record_value) < 0)
-                    {
-                        return -1;
-                    }
-                }
-                else if (r1 == 0)
-                {
-                    if ((var1->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
+                    else if (record_value2 == NULL)
                     {
                         not_node_basic_t *basic1 = (not_node_basic_t *)var1->key->value;
                         not_error_type_by_node(var1->key, "'%s' mismatch: '%s' and '%s'",
@@ -1459,55 +1660,14 @@ not_execute_var(not_node_t *scope, not_node_t *node, not_strip_t *strip, not_nod
 
                         return -1;
                     }
-                    else
-                    {
-                        not_record_t *record_copy = not_record_copy(record_value);
-                        if (not_record_link_decrease(record_value) < 0)
-                        {
-                            return -1;
-                        }
-                        record_value = record_copy;
 
-                        not_record_t *record_value2 = not_execute_value_casting_by_type(var1->key, record_value, record_type);
-                        if (record_value2 == NOT_PTR_ERROR)
-                        {
-                            if (not_record_link_decrease(record_type) < 0)
-                            {
-                                return -1;
-                            }
-                            if (not_record_link_decrease(record_value) < 0)
-                            {
-                                return -1;
-                            }
-
-                            return -1;
-                        }
-                        else if (record_value2 == NULL)
-                        {
-                            not_node_basic_t *basic1 = (not_node_basic_t *)var1->key->value;
-                            not_error_type_by_node(var1->key, "'%s' mismatch: '%s' and '%s'",
-                                                   basic1->value, not_record_type_as_string(record_type), not_record_type_as_string(record_value));
-
-                            if (not_record_link_decrease(record_type) < 0)
-                            {
-                                return -1;
-                            }
-                            if (not_record_link_decrease(record_value) < 0)
-                            {
-                                return -1;
-                            }
-
-                            return -1;
-                        }
-
-                        record_value = record_value2;
-                    }
+                    record_value = record_copy;
                 }
+            }
 
-                if (not_record_link_decrease(record_type) < 0)
-                {
-                    return -1;
-                }
+            if (not_record_link_decrease(record_type) < 0)
+            {
+                return -1;
             }
         }
 

@@ -137,43 +137,28 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
                                 not_record_link_decrease(record_parameter_type);
                                 return -1;
                             }
-                            record_arg = record_copy;
 
-                            not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
-                            if (record_arg2 == NOT_PTR_ERROR)
+                            not_record_t *record_casted = not_execute_value_casting_by_type(parameter->key, record_copy, record_parameter_type);
+                            if (record_casted == NOT_PTR_ERROR)
                             {
                                 not_record_link_decrease(record_parameter_type);
-                                not_record_link_decrease(record_arg);
+                                not_record_link_decrease(record_copy);
 
                                 return -1;
                             }
-                            else if (record_arg2 == NULL)
+                            else if (record_casted == NULL)
                             {
-                                if (tuple == NULL)
-                                {
-                                    if (not_record_link_decrease(record_parameter_type) < 0)
-                                    {
-                                        return -1;
-                                    }
-                                    if (not_record_link_decrease(record_arg) < 0)
-                                    {
-                                        return -1;
-                                    }
+                                not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
+                                not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
+                                                       basic1->value, not_record_type_as_string(record_copy), not_record_type_as_string(record_parameter_type));
 
-                                    return 0;
-                                }
+                                not_record_link_decrease(record_parameter_type);
+                                not_record_link_decrease(record_copy);
+
+                                return -1;
                             }
 
-                            if (record_arg != record_arg2)
-                            {
-                                if (not_record_link_decrease(record_arg) < 0)
-                                {
-                                    not_record_link_decrease(record_parameter_type);
-                                    return -1;
-                                }
-                            }
-
-                            record_arg = record_arg2;
+                            record_arg = record_copy;
                         }
                     }
 
@@ -312,47 +297,28 @@ not_call_parameters_check_by_one_arg(not_node_t *base, not_strip_t *strip, not_n
                             not_record_link_decrease(record_parameter_type);
                             return -1;
                         }
-                        record_arg = record_copy;
 
-                        not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
-                        if (record_arg2 == NOT_PTR_ERROR)
+                        not_record_t *record_casted = not_execute_value_casting_by_type(parameter->key, record_copy, record_parameter_type);
+                        if (record_casted == NOT_PTR_ERROR)
                         {
-                            if (not_record_link_decrease(record_parameter_type) < 0)
-                            {
-                                return -1;
-                            }
-
-                            if (not_record_link_decrease(record_arg) < 0)
-                            {
-                                return -1;
-                            }
+                            not_record_link_decrease(record_parameter_type);
+                            not_record_link_decrease(record_copy);
 
                             return -1;
                         }
-                        else if (record_arg2 == NULL)
+                        else if (record_casted == NULL)
                         {
-                            if (not_record_link_decrease(record_parameter_type) < 0)
-                            {
-                                return -1;
-                            }
-                            if (not_record_link_decrease(record_arg) < 0)
-                            {
-                                return -1;
-                            }
+                            not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
+                            not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
+                                                   basic1->value, not_record_type_as_string(record_copy), not_record_type_as_string(record_parameter_type));
 
-                            return 0;
+                            not_record_link_decrease(record_parameter_type);
+                            not_record_link_decrease(record_copy);
+
+                            return -1;
                         }
 
-                        if (record_arg != record_arg2)
-                        {
-                            if (not_record_link_decrease(record_arg) < 0)
-                            {
-                                not_record_link_decrease(record_parameter_type);
-                                return -1;
-                            }
-                        }
-
-                        record_arg = record_arg2;
+                        record_arg = record_copy;
                     }
                 }
 
@@ -504,41 +470,27 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
                                 return -1;
                             }
 
-                            record_arg = record_copy;
-
-                            not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
-                            if (record_arg2 == NOT_PTR_ERROR)
+                            not_record_t *record_casted = not_execute_value_casting_by_type(parameter->key, record_copy, record_parameter_type);
+                            if (record_casted == NOT_PTR_ERROR)
                             {
                                 not_record_link_decrease(record_parameter_type);
-                                not_record_link_decrease(record_arg);
+                                not_record_link_decrease(record_copy);
 
                                 return -1;
                             }
-                            else if (record_arg2 == NULL)
+                            else if (record_casted == NULL)
                             {
-                                if (tuple == NULL)
-                                {
-                                    not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
-                                    not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
-                                                           basic1->value, not_record_type_as_string(record_arg), not_record_type_as_string(record_parameter_type));
+                                not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
+                                not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
+                                                       basic1->value, not_record_type_as_string(record_copy), not_record_type_as_string(record_parameter_type));
 
-                                    not_record_link_decrease(record_parameter_type);
-                                    not_record_link_decrease(record_arg);
+                                not_record_link_decrease(record_parameter_type);
+                                not_record_link_decrease(record_copy);
 
-                                    return -1;
-                                }
+                                return -1;
                             }
 
-                            if (record_arg != record_arg2)
-                            {
-                                if (not_record_link_decrease(record_arg) < 0)
-                                {
-                                    not_record_link_decrease(record_parameter_type);
-                                    return -1;
-                                }
-                            }
-
-                            record_arg = record_arg2;
+                            record_arg = record_copy;
                         }
                     }
 
@@ -731,52 +683,27 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
                             return -1;
                         }
 
-                        record_arg = record_copy;
-
-                        not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
-                        if (record_arg2 == NOT_PTR_ERROR)
+                        not_record_t *record_casted = not_execute_value_casting_by_type(parameter->key, record_copy, record_parameter_type);
+                        if (record_casted == NOT_PTR_ERROR)
                         {
-                            if (not_record_link_decrease(record_parameter_type) < 0)
-                            {
-                                return -1;
-                            }
-
-                            if (not_record_link_decrease(record_arg) < 0)
-                            {
-                                return -1;
-                            }
+                            not_record_link_decrease(record_parameter_type);
+                            not_record_link_decrease(record_copy);
 
                             return -1;
                         }
-                        else if (record_arg2 == NULL)
+                        else if (record_casted == NULL)
                         {
                             not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
                             not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
-                                                   basic1->value, not_record_type_as_string(record_arg), not_record_type_as_string(record_parameter_type));
+                                                   basic1->value, not_record_type_as_string(record_copy), not_record_type_as_string(record_parameter_type));
 
-                            if (not_record_link_decrease(record_parameter_type) < 0)
-                            {
-                                return -1;
-                            }
-
-                            if (not_record_link_decrease(record_arg) < 0)
-                            {
-                                return -1;
-                            }
+                            not_record_link_decrease(record_parameter_type);
+                            not_record_link_decrease(record_copy);
 
                             return -1;
                         }
 
-                        if (record_arg != record_arg2)
-                        {
-                            if (not_record_link_decrease(record_arg) < 0)
-                            {
-                                not_record_link_decrease(record_parameter_type);
-                                return -1;
-                            }
-                        }
-
-                        record_arg = record_arg2;
+                        record_arg = record_copy;
                     }
                 }
 
@@ -922,52 +849,27 @@ not_call_parameters_subs_by_one_arg(not_node_t *base, not_node_t *scope, not_str
                                     return -1;
                                 }
 
-                                record_arg = record_copy;
-
-                                not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
-                                if (record_arg2 == NOT_PTR_ERROR)
+                                not_record_t *record_casted = not_execute_value_casting_by_type(parameter->key, record_copy, record_parameter_type);
+                                if (record_casted == NOT_PTR_ERROR)
                                 {
-                                    if (not_record_link_decrease(record_parameter_type) < 0)
-                                    {
-                                        return -1;
-                                    }
-
-                                    if (not_record_link_decrease(record_arg) < 0)
-                                    {
-                                        return -1;
-                                    }
+                                    not_record_link_decrease(record_parameter_type);
+                                    not_record_link_decrease(record_copy);
 
                                     return -1;
                                 }
-                                else if (record_arg2 == NULL)
+                                else if (record_casted == NULL)
                                 {
                                     not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
                                     not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
-                                                           basic1->value, not_record_type_as_string(record_arg), not_record_type_as_string(record_parameter_type));
+                                                           basic1->value, not_record_type_as_string(record_copy), not_record_type_as_string(record_parameter_type));
 
-                                    if (not_record_link_decrease(record_parameter_type) < 0)
-                                    {
-                                        return -1;
-                                    }
-
-                                    if (not_record_link_decrease(record_arg) < 0)
-                                    {
-                                        return -1;
-                                    }
+                                    not_record_link_decrease(record_parameter_type);
+                                    not_record_link_decrease(record_copy);
 
                                     return -1;
                                 }
 
-                                if (record_arg != record_arg2)
-                                {
-                                    if (not_record_link_decrease(record_arg) < 0)
-                                    {
-                                        not_record_link_decrease(record_parameter_type);
-                                        return -1;
-                                    }
-                                }
-
-                                record_arg = record_arg2;
+                                record_arg = record_copy;
                             }
                         }
 
@@ -1253,45 +1155,27 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                             return -1;
                                         }
 
-                                        record_arg = record_copy;
-
-                                        not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
-                                        if (record_arg2 == NOT_PTR_ERROR)
+                                        not_record_t *record_casted = not_execute_value_casting_by_type(parameter->key, record_copy, record_parameter_type);
+                                        if (record_casted == NOT_PTR_ERROR)
                                         {
                                             not_record_link_decrease(record_parameter_type);
-                                            not_record_link_decrease(record_arg);
+                                            not_record_link_decrease(record_copy);
 
                                             return -1;
                                         }
-                                        else if (record_arg2 == NULL)
+                                        else if (record_casted == NULL)
                                         {
-                                            if (object == NULL)
-                                            {
-                                                not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
-                                                not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
-                                                                       basic1->value, not_record_type_as_string(record_arg), not_record_type_as_string(record_parameter_type));
+                                            not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
+                                            not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
+                                                                   basic1->value, not_record_type_as_string(record_copy), not_record_type_as_string(record_parameter_type));
 
-                                                not_record_link_decrease(record_parameter_type);
-                                                not_record_link_decrease(record_arg);
+                                            not_record_link_decrease(record_parameter_type);
+                                            not_record_link_decrease(record_copy);
 
-                                                return -1;
-                                            }
-                                            else
-                                            {
-                                                break;
-                                            }
+                                            return -1;
                                         }
 
-                                        if (record_arg != record_arg2)
-                                        {
-                                            if (not_record_link_decrease(record_arg) < 0)
-                                            {
-                                                not_record_link_decrease(record_parameter_type);
-                                                return -1;
-                                            }
-                                        }
-
-                                        record_arg = record_arg2;
+                                        record_arg = record_copy;
                                     }
                                 }
 
@@ -1460,38 +1344,27 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                                 return -1;
                                             }
 
-                                            record_arg = record_copy;
-
-                                            not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
-                                            if (record_arg2 == NOT_PTR_ERROR)
+                                            not_record_t *record_casted = not_execute_value_casting_by_type(parameter->key, record_copy, record_parameter_type);
+                                            if (record_casted == NOT_PTR_ERROR)
                                             {
                                                 not_record_link_decrease(record_parameter_type);
-                                                not_record_link_decrease(record_arg);
+                                                not_record_link_decrease(record_copy);
 
                                                 return -1;
                                             }
-                                            else if (record_arg2 == NULL)
+                                            else if (record_casted == NULL)
                                             {
                                                 not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
                                                 not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
-                                                                       basic1->value, not_record_type_as_string(record_arg), not_record_type_as_string(record_parameter_type));
+                                                                       basic1->value, not_record_type_as_string(record_copy), not_record_type_as_string(record_parameter_type));
 
                                                 not_record_link_decrease(record_parameter_type);
-                                                not_record_link_decrease(record_arg);
+                                                not_record_link_decrease(record_copy);
 
                                                 return -1;
                                             }
 
-                                            if (record_arg != record_arg2)
-                                            {
-                                                if (not_record_link_decrease(record_arg) < 0)
-                                                {
-                                                    not_record_link_decrease(record_parameter_type);
-                                                    return -1;
-                                                }
-                                            }
-
-                                            record_arg = record_arg2;
+                                            record_arg = record_copy;
                                         }
                                     }
 
@@ -1669,52 +1542,27 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                             return -1;
                                         }
 
-                                        record_arg = record_copy;
-
-                                        not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
-                                        if (record_arg2 == NOT_PTR_ERROR)
+                                        not_record_t *record_casted = not_execute_value_casting_by_type(parameter->key, record_copy, record_parameter_type);
+                                        if (record_casted == NOT_PTR_ERROR)
                                         {
                                             not_record_link_decrease(record_parameter_type);
-                                            not_record_link_decrease(record_arg);
-                                            if (top)
-                                            {
-                                                not_record_tuple_destroy(top);
-                                            }
+                                            not_record_link_decrease(record_copy);
 
                                             return -1;
                                         }
-                                        else if (record_arg2 == NULL)
+                                        else if (record_casted == NULL)
                                         {
-                                            if (tuple == NULL)
-                                            {
-                                                not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
-                                                not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
-                                                                       basic1->value, not_record_type_as_string(record_arg), not_record_type_as_string(record_parameter_type));
+                                            not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
+                                            not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
+                                                                   basic1->value, not_record_type_as_string(record_copy), not_record_type_as_string(record_parameter_type));
 
-                                                not_record_link_decrease(record_parameter_type);
-                                                not_record_link_decrease(record_arg);
-                                                if (top)
-                                                {
-                                                    not_record_tuple_destroy(top);
-                                                }
-                                                return -1;
-                                            }
-                                            else
-                                            {
-                                                break;
-                                            }
+                                            not_record_link_decrease(record_parameter_type);
+                                            not_record_link_decrease(record_copy);
+
+                                            return -1;
                                         }
 
-                                        if (record_arg != record_arg2)
-                                        {
-                                            if (not_record_link_decrease(record_arg) < 0)
-                                            {
-                                                not_record_link_decrease(record_parameter_type);
-                                                return -1;
-                                            }
-                                        }
-
-                                        record_arg = record_arg2;
+                                        record_arg = record_copy;
                                     }
                                 }
 
@@ -1881,38 +1729,27 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                         return -1;
                                     }
 
-                                    record_arg = record_copy;
-
-                                    not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
-                                    if (record_arg2 == NOT_PTR_ERROR)
+                                    not_record_t *record_casted = not_execute_value_casting_by_type(parameter->key, record_copy, record_parameter_type);
+                                    if (record_casted == NOT_PTR_ERROR)
                                     {
                                         not_record_link_decrease(record_parameter_type);
-                                        not_record_link_decrease(record_arg);
+                                        not_record_link_decrease(record_copy);
 
                                         return -1;
                                     }
-                                    else if (record_arg2 == NULL)
+                                    else if (record_casted == NULL)
                                     {
                                         not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
                                         not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
-                                                               basic1->value, not_record_type_as_string(record_arg), not_record_type_as_string(record_parameter_type));
+                                                               basic1->value, not_record_type_as_string(record_copy), not_record_type_as_string(record_parameter_type));
 
                                         not_record_link_decrease(record_parameter_type);
-                                        not_record_link_decrease(record_arg);
+                                        not_record_link_decrease(record_copy);
 
                                         return -1;
                                     }
 
-                                    if (record_arg != record_arg2)
-                                    {
-                                        if (not_record_link_decrease(record_arg) < 0)
-                                        {
-                                            not_record_link_decrease(record_parameter_type);
-                                            return -1;
-                                        }
-                                    }
-
-                                    record_arg = record_arg2;
+                                    record_arg = record_copy;
                                 }
                             }
 
@@ -2036,38 +1873,27 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                     return -1;
                                 }
 
-                                record_arg = record_copy;
-
-                                not_record_t *record_arg2 = not_execute_value_casting_by_type(base, record_arg, record_parameter_type);
-                                if (record_arg2 == NOT_PTR_ERROR)
+                                not_record_t *record_casted = not_execute_value_casting_by_type(parameter->key, record_copy, record_parameter_type);
+                                if (record_casted == NOT_PTR_ERROR)
                                 {
                                     not_record_link_decrease(record_parameter_type);
-                                    not_record_link_decrease(record_arg);
+                                    not_record_link_decrease(record_copy);
 
                                     return -1;
                                 }
-                                else if (record_arg2 == NULL)
+                                else if (record_casted == NULL)
                                 {
                                     not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
                                     not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
-                                                           basic1->value, not_record_type_as_string(record_arg), not_record_type_as_string(record_parameter_type));
+                                                           basic1->value, not_record_type_as_string(record_copy), not_record_type_as_string(record_parameter_type));
 
                                     not_record_link_decrease(record_parameter_type);
-                                    not_record_link_decrease(record_arg);
+                                    not_record_link_decrease(record_copy);
 
                                     return -1;
                                 }
 
-                                if (record_arg != record_arg2)
-                                {
-                                    if (not_record_link_decrease(record_arg) < 0)
-                                    {
-                                        not_record_link_decrease(record_parameter_type);
-                                        return -1;
-                                    }
-                                }
-
-                                record_arg = record_arg2;
+                                record_arg = record_copy;
                             }
                         }
 
@@ -2236,7 +2062,6 @@ not_call_property_subs(not_node_t *scope, not_strip_t *strip, not_node_t *node, 
 {
     not_node_property_t *property = (not_node_property_t *)node->value;
     not_record_t *record_value = NULL;
-    not_record_t *record_parameter_type = NULL;
 
     if (property->value)
     {
@@ -2244,91 +2069,6 @@ not_call_property_subs(not_node_t *scope, not_strip_t *strip, not_node_t *node, 
         if (record_value == NOT_PTR_ERROR)
         {
             return -1;
-        }
-
-        if (property->type)
-        {
-            record_parameter_type = not_expression(property->type, strip, applicant, NULL);
-            if (record_parameter_type == NOT_PTR_ERROR)
-            {
-                not_record_link_decrease(record_value);
-                return -1;
-            }
-
-            if (record_parameter_type->kind != RECORD_KIND_TYPE)
-            {
-                not_node_basic_t *basic1 = (not_node_basic_t *)property->key->value;
-                not_error_type_by_node(property->type, "'%s' unsupported type: '%s'",
-                                       basic1->value, not_record_type_as_string(record_parameter_type));
-
-                not_record_link_decrease(record_parameter_type);
-                not_record_link_decrease(record_value);
-
-                return -1;
-            }
-
-            int32_t r1 = not_execute_value_check_by_type(property->key, record_value, record_parameter_type);
-            if (r1 < 0)
-            {
-                not_record_link_decrease(record_parameter_type);
-                not_record_link_decrease(record_value);
-
-                return -1;
-            }
-            else if (r1 == 0)
-            {
-                not_record_t *record_copy = not_record_copy(record_value);
-                if (record_copy == NOT_PTR_ERROR)
-                {
-                    not_record_link_decrease(record_parameter_type);
-                    not_record_link_decrease(record_value);
-                    return -1;
-                }
-
-                if (not_record_link_decrease(record_value) < 0)
-                {
-                    not_record_link_decrease(record_parameter_type);
-                    return -1;
-                }
-
-                record_value = record_copy;
-
-                not_record_t *record_arg2 = not_execute_value_casting_by_type(property->key, record_value, record_parameter_type);
-                if (record_arg2 == NOT_PTR_ERROR)
-                {
-                    not_record_link_decrease(record_parameter_type);
-                    not_record_link_decrease(record_value);
-
-                    return -1;
-                }
-                else if (record_arg2 == NULL)
-                {
-                    not_node_basic_t *basic1 = (not_node_basic_t *)property->key->value;
-                    not_error_type_by_node(property->key, "'%s' mismatch: '%s' and '%s'",
-                                           basic1->value, not_record_type_as_string(record_value), not_record_type_as_string(record_parameter_type));
-
-                    not_record_link_decrease(record_parameter_type);
-                    not_record_link_decrease(record_value);
-
-                    return -1;
-                }
-
-                if (record_value != record_arg2)
-                {
-                    if (not_record_link_decrease(record_value) < 0)
-                    {
-                        not_record_link_decrease(record_parameter_type);
-                        return -1;
-                    }
-                }
-
-                record_value = record_arg2;
-            }
-
-            if (not_record_link_decrease(record_parameter_type) < 0)
-            {
-                return -1;
-            }
         }
     }
     else
@@ -2340,15 +2080,86 @@ not_call_property_subs(not_node_t *scope, not_strip_t *strip, not_node_t *node, 
         }
     }
 
-    if (record_value->link > 0)
+    if (property->type)
     {
-        not_record_t *record_copy = not_record_copy(record_value);
-        if (not_record_link_decrease(record_value) < 0)
+        not_record_t *record_parameter_type = not_expression(property->type, strip, applicant, NULL);
+        if (record_parameter_type == NOT_PTR_ERROR)
+        {
+            not_record_link_decrease(record_value);
+            return -1;
+        }
+
+        if (record_parameter_type->kind != RECORD_KIND_TYPE)
+        {
+            not_node_basic_t *basic1 = (not_node_basic_t *)property->key->value;
+            not_error_type_by_node(property->type, "'%s' unsupported type: '%s'",
+                                   basic1->value, not_record_type_as_string(record_parameter_type));
+
+            not_record_link_decrease(record_parameter_type);
+            not_record_link_decrease(record_value);
+
+            return -1;
+        }
+
+        int32_t r1 = not_execute_value_check_by_type(property->key, record_value, record_parameter_type);
+        if (r1 < 0)
+        {
+            not_record_link_decrease(record_parameter_type);
+            not_record_link_decrease(record_value);
+
+            return -1;
+        }
+        else if (r1 == 0)
+        {
+            not_record_t *record_copy = not_record_copy(record_value);
+            if (record_copy == NOT_PTR_ERROR)
+            {
+                not_record_link_decrease(record_parameter_type);
+                not_record_link_decrease(record_value);
+                return -1;
+            }
+
+            if (not_record_link_decrease(record_value) < 0)
+            {
+                not_record_link_decrease(record_parameter_type);
+                return -1;
+            }
+
+            not_record_t *record_casted = not_execute_value_casting_by_type(property->key, record_copy, record_parameter_type);
+            if (record_casted == NOT_PTR_ERROR)
+            {
+                not_record_link_decrease(record_parameter_type);
+                not_record_link_decrease(record_copy);
+
+                return -1;
+            }
+            else if (record_casted == NULL)
+            {
+                not_node_basic_t *basic1 = (not_node_basic_t *)property->key->value;
+                not_error_type_by_node(property->key, "'%s' mismatch: '%s' and '%s'",
+                                       basic1->value, not_record_type_as_string(record_copy), not_record_type_as_string(record_parameter_type));
+
+                not_record_link_decrease(record_parameter_type);
+                not_record_link_decrease(record_copy);
+
+                return -1;
+            }
+
+            record_value = record_copy;
+        }
+
+        if (not_record_link_decrease(record_parameter_type) < 0)
         {
             return -1;
         }
-        record_value = record_copy;
     }
+
+    not_record_t *record_copy = not_record_copy(record_value);
+    if (not_record_link_decrease(record_value) < 0)
+    {
+        return -1;
+    }
+    record_value = record_copy;
 
     if ((property->flag & SYNTAX_MODIFIER_READONLY) == SYNTAX_MODIFIER_READONLY)
     {
@@ -3373,6 +3184,10 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
 
             if (not_record_link_decrease(record_base) < 0)
             {
+                if (result != NOT_PTR_ERROR)
+                {
+                    not_record_link_decrease(result);
+                }
                 return NOT_PTR_ERROR;
             }
 
@@ -3380,6 +3195,7 @@ not_call(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t
             {
                 return NOT_PTR_ERROR;
             }
+
             return result;
         }
         else if (type->kind == NODE_KIND_FUN)

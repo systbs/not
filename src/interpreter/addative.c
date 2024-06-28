@@ -37,13 +37,13 @@
 not_record_t *
 not_addative_plus(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-    if (left->null)
+    if (left->null || left->undefined || left->nan)
     {
         return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_INT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -108,7 +108,7 @@ not_addative_plus(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -168,7 +168,7 @@ not_addative_plus(not_node_t *node, not_record_t *left, not_record_t *right, not
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -254,27 +254,17 @@ not_addative_plus(not_node_t *node, not_record_t *left, not_record_t *right, not
             return NOT_PTR_ERROR;
         }
 
-        not_record_t *result = not_record_make_string(str_all);
+        not_record_t *record = not_record_make_string(str_all);
         not_memory_free(str_all);
 
-        return result;
+        return record;
     }
     else if (left->kind == RECORD_KIND_OBJECT)
     {
-        if (right->null)
-        {
-            return not_record_make_nan();
-        }
-
         return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_TUPLE)
     {
-        if (right->null)
-        {
-            return not_record_make_nan();
-        }
-
         return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_STRUCT)
@@ -288,9 +278,13 @@ not_addative_plus(not_node_t *node, not_record_t *left, not_record_t *right, not
 not_record_t *
 not_addative_minus(not_node_t *node, not_record_t *left, not_record_t *right, not_node_t *applicant)
 {
-    if (left->kind == RECORD_KIND_INT)
+    if (left->null || left->undefined || left->nan)
     {
-        if (right->null)
+        return not_record_make_nan();
+    }
+    else if (left->kind == RECORD_KIND_INT)
+    {
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -355,7 +349,7 @@ not_addative_minus(not_node_t *node, not_record_t *left, not_record_t *right, no
     }
     else if (left->kind == RECORD_KIND_FLOAT)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -415,7 +409,7 @@ not_addative_minus(not_node_t *node, not_record_t *left, not_record_t *right, no
     }
     else if (left->kind == RECORD_KIND_CHAR)
     {
-        if (right->null)
+        if (right->null || right->undefined || right->nan)
         {
             return not_record_make_nan();
         }
@@ -499,20 +493,10 @@ not_addative_minus(not_node_t *node, not_record_t *left, not_record_t *right, no
     }
     else if (left->kind == RECORD_KIND_OBJECT)
     {
-        if (right->null)
-        {
-            return not_record_make_nan();
-        }
-
         return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_TUPLE)
     {
-        if (right->null)
-        {
-            return not_record_make_nan();
-        }
-
         return not_record_make_nan();
     }
     else if (left->kind == RECORD_KIND_STRUCT)

@@ -11,7 +11,9 @@ typedef struct not_record
     uint8_t readonly : 1;
     uint8_t typed : 1;
     uint8_t null : 1;
-    uint8_t reserved : 4;
+    uint8_t undefined : 1;
+    uint8_t nan : 1;
+    uint8_t reserved : 2;
     int64_t link;
     uint8_t kind;
     void *value;
@@ -168,6 +170,12 @@ not_record_type_copy(not_record_type_t *type);
 not_record_struct_t *
 not_record_struct_copy(not_record_struct_t *struct1);
 
+not_record_builtin_t *
+not_record_builtin_copy(not_record_builtin_t *builtin);
+
+not_record_proc_t *
+not_record_proc_copy(not_record_proc_t *proc);
+
 int32_t
 not_record_type_destroy(not_record_type_t *type);
 
@@ -182,5 +190,11 @@ not_record_to_string(not_record_t *record, char *previous_buf);
 
 not_record_t *
 not_record_make_builtin(not_record_t *source, void *handle);
+
+int32_t
+not_record_builtin_destroy(not_record_builtin_t *builtin);
+
+int32_t
+not_record_proc_destroy(not_record_proc_t *proc);
 
 #endif
