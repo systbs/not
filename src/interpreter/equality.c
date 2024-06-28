@@ -535,7 +535,7 @@ not_equality(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_no
             return NOT_PTR_ERROR;
         }
 
-        left = not_record_make_int_from_si(1);
+        left = not_record_make_int_from_si(0);
         if (left == NOT_PTR_ERROR)
         {
             return NOT_PTR_ERROR;

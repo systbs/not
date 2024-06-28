@@ -74,6 +74,9 @@ const char *const symbols[] = {
     [TOKEN_STRING] = "string",
 
     [TOKEN_NULL_KEYWORD] = "null keyword",
+    [TOKEN_UNDEFINED_KEYWORD] = "undefined keyword",
+    [TOKEN_NAN_KEYWORD] = "nan keyword",
+
     [TOKEN_INT_KEYWORD] = "int keyword",
     [TOKEN_FLOAT_KEYWORD] = "float keyword",
     [TOKEN_CHAR_KEYWORD] = "char keyword",

@@ -331,6 +331,52 @@ not_syntax_null(not_syntax_t *syntax, not_node_t *parent)
 }
 
 static not_node_t *
+not_syntax_undefined(not_syntax_t *syntax, not_node_t *parent)
+{
+	not_node_t *node = not_node_create(parent, syntax->token->position);
+	if (node == NOT_PTR_ERROR)
+	{
+		return NOT_PTR_ERROR;
+	}
+
+	not_node_t *node2 = not_node_make_undefined(node);
+	if (node2 == NOT_PTR_ERROR)
+	{
+		return NOT_PTR_ERROR;
+	}
+
+	if (not_syntax_match(syntax, TOKEN_UNDEFINED_KEYWORD) == -1)
+	{
+		return NOT_PTR_ERROR;
+	}
+
+	return node2;
+}
+
+static not_node_t *
+not_syntax_nan(not_syntax_t *syntax, not_node_t *parent)
+{
+	not_node_t *node = not_node_create(parent, syntax->token->position);
+	if (node == NOT_PTR_ERROR)
+	{
+		return NOT_PTR_ERROR;
+	}
+
+	not_node_t *node2 = not_node_make_nan(node);
+	if (node2 == NOT_PTR_ERROR)
+	{
+		return NOT_PTR_ERROR;
+	}
+
+	if (not_syntax_match(syntax, TOKEN_NAN_KEYWORD) == -1)
+	{
+		return NOT_PTR_ERROR;
+	}
+
+	return node2;
+}
+
+static not_node_t *
 not_syntax_kint(not_syntax_t *syntax, not_node_t *parent)
 {
 	not_node_t *node = not_node_create(parent, syntax->token->position);
@@ -926,7 +972,17 @@ not_syntax_primary(not_syntax_t *syntax, not_node_t *parent)
 	{
 		return not_syntax_null(syntax, parent);
 	}
-	else if (syntax->token->type == TOKEN_INT_KEYWORD)
+	else if (syntax->token->type == TOKEN_UNDEFINED_KEYWORD)
+	{
+		return not_syntax_undefined(syntax, parent);
+	}
+	else if (syntax->token->type == TOKEN_NAN_KEYWORD)
+	{
+		return not_syntax_nan(syntax, parent);
+	}
+	else
+
+		if (syntax->token->type == TOKEN_INT_KEYWORD)
 	{
 		return not_syntax_kint(syntax, parent);
 	}

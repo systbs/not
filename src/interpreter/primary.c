@@ -899,6 +899,18 @@ not_primary_null(not_node_t *node, not_strip_t *strip, not_node_t *applicant, no
 }
 
 not_record_t *
+not_primary_undefined(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+{
+    return not_record_make_undefined();
+}
+
+not_record_t *
+not_primary_nan(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+{
+    return not_record_make_nan();
+}
+
+not_record_t *
 not_primary_kint(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     return not_record_make_type(node, NULL);
@@ -1181,6 +1193,14 @@ not_primary(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_nod
         if (node->kind == NODE_KIND_NULL)
     {
         return not_primary_null(node, strip, applicant, origin);
+    }
+    else if (node->kind == NODE_KIND_UNDEFINED)
+    {
+        return not_primary_undefined(node, strip, applicant, origin);
+    }
+    else if (node->kind == NODE_KIND_NAN)
+    {
+        return not_primary_nan(node, strip, applicant, origin);
     }
     else
 

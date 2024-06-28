@@ -102,6 +102,18 @@ not_semantic_null(not_node_t *node)
 }
 
 static int32_t
+not_semantic_undefined(not_node_t *node)
+{
+    return 0;
+}
+
+static int32_t
+not_semantic_nan(not_node_t *node)
+{
+    return 0;
+}
+
+static int32_t
 not_semantic_kint(not_node_t *node)
 {
     return 0;
@@ -211,6 +223,14 @@ not_semantic_primary(not_node_t *node)
         if (node->kind == NODE_KIND_NULL)
     {
         return not_semantic_null(node);
+    }
+    else if (node->kind == NODE_KIND_UNDEFINED)
+    {
+        return not_semantic_undefined(node);
+    }
+    else if (node->kind == NODE_KIND_NAN)
+    {
+        return not_semantic_nan(node);
     }
     else
 

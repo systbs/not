@@ -783,6 +783,16 @@ void not_node_destroy(not_node_t *node)
 		not_node_basic_t *basic = (not_node_basic_t *)node->value;
 		not_memory_free(basic);
 	}
+	else if (node->kind == NODE_KIND_UNDEFINED)
+	{
+		not_node_basic_t *basic = (not_node_basic_t *)node->value;
+		not_memory_free(basic);
+	}
+	else if (node->kind == NODE_KIND_NAN)
+	{
+		not_node_basic_t *basic = (not_node_basic_t *)node->value;
+		not_memory_free(basic);
+	}
 	else if (node->kind == NODE_KIND_KCHAR)
 	{
 		not_node_basic_t *basic = (not_node_basic_t *)node->value;
@@ -957,6 +967,38 @@ not_node_make_null(not_node_t *node)
 	basic->value = NULL;
 
 	not_node_update(node, NODE_KIND_NULL, basic);
+	return node;
+}
+
+not_node_t *
+not_node_make_undefined(not_node_t *node)
+{
+	not_node_basic_t *basic = (not_node_basic_t *)not_memory_calloc(1, sizeof(not_node_basic_t));
+	if (!basic)
+	{
+		not_error_no_memory();
+		return NOT_PTR_ERROR;
+	}
+
+	basic->value = NULL;
+
+	not_node_update(node, NODE_KIND_UNDEFINED, basic);
+	return node;
+}
+
+not_node_t *
+not_node_make_nan(not_node_t *node)
+{
+	not_node_basic_t *basic = (not_node_basic_t *)not_memory_calloc(1, sizeof(not_node_basic_t));
+	if (!basic)
+	{
+		not_error_no_memory();
+		return NOT_PTR_ERROR;
+	}
+
+	basic->value = NULL;
+
+	not_node_update(node, NODE_KIND_NAN, basic);
 	return node;
 }
 

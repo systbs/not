@@ -32,6 +32,9 @@ typedef enum not_node_kind
 	NODE_KIND_PSEUDONYM,
 
 	NODE_KIND_NULL,
+	NODE_KIND_UNDEFINED,
+	NODE_KIND_NAN,
+
 	NODE_KIND_KINT,
 	NODE_KIND_KFLOAT,
 	NODE_KIND_KCHAR,
@@ -348,6 +351,12 @@ not_node_t *
 not_node_make_null(not_node_t *node);
 
 not_node_t *
+not_node_make_undefined(not_node_t *node);
+
+not_node_t *
+not_node_make_nan(not_node_t *node);
+
+not_node_t *
 not_node_make_kint(not_node_t *node);
 
 not_node_t *
@@ -358,12 +367,6 @@ not_node_make_kchar(not_node_t *node);
 
 not_node_t *
 not_node_make_kstring(not_node_t *node);
-
-not_node_t *
-not_node_make_this(not_node_t *node);
-
-not_node_t *
-not_node_make_self(not_node_t *node);
 
 not_node_t *
 not_node_make_tuple(not_node_t *node, not_node_t *items);

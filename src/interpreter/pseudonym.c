@@ -462,7 +462,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
                 if (not_helper_id_cmp(field->key, generic->key) == 0)
                 {
                     found = 1;
-                    not_record_t *record_field = not_expression(field->value, copy_strip, applicant, NULL);
+                    not_record_t *record_field = not_expression(field->value, strip, applicant, NULL);
                     if (record_field == NOT_PTR_ERROR)
                     {
                         goto region_error;
@@ -478,7 +478,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
 
                     if (generic->type)
                     {
-                        not_record_t *record_gen_type = not_expression(generic->type, copy_strip, applicant, NULL);
+                        not_record_t *record_gen_type = not_expression(generic->type, strip, applicant, NULL);
                         if (record_gen_type == NOT_PTR_ERROR)
                         {
                             if (not_record_link_decrease(record_field) < 0)
@@ -591,7 +591,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
         {
             not_node_generic_t *generic = (not_node_generic_t *)item1->value;
 
-            not_record_t *record_field = not_expression(field->key, copy_strip, applicant, NULL);
+            not_record_t *record_field = not_expression(field->key, strip, applicant, NULL);
 
             if (record_field == NOT_PTR_ERROR)
             {
@@ -607,7 +607,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
 
             if (generic->type)
             {
-                not_record_t *record_gen_type = not_expression(generic->type, copy_strip, applicant, NULL);
+                not_record_t *record_gen_type = not_expression(generic->type, strip, applicant, NULL);
                 if (record_gen_type == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_field) < 0)
@@ -684,7 +684,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
         {
             if (generic->value)
             {
-                not_record_t *record_field = not_expression(generic->value, copy_strip, applicant, NULL);
+                not_record_t *record_field = not_expression(generic->value, strip, applicant, NULL);
                 if (record_field == NOT_PTR_ERROR)
                 {
                     goto region_error;
@@ -698,8 +698,8 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
                     goto region_error;
                 }
 
-                not_entry_t *entry = not_strip_variable_push(copy_strip, base_type->type, item1, generic->key, record_field);
-                if (entry == NOT_PTR_ERROR)
+                not_entry_t *entry2 = not_strip_variable_push(copy_strip, base_type->type, item1, generic->key, record_field);
+                if (entry2 == NOT_PTR_ERROR)
                 {
                     if (not_record_link_decrease(record_field) < 0)
                     {
@@ -707,7 +707,7 @@ not_pseudonym(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_n
                     }
                     goto region_error;
                 }
-                else if (entry == NULL)
+                else if (entry2 == NULL)
                 {
                     not_node_basic_t *basic1 = (not_node_basic_t *)generic->key->value;
                     not_error_type_by_node(generic->key, "'%s' already set", basic1->value);
