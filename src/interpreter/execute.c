@@ -933,7 +933,7 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
         }
         else if (record_value->kind == RECORD_KIND_INT)
         {
-            void *ptr = not_memory_realloc(record_value->value, sizeof(mpf_t));
+            void *ptr = not_memory_calloc(1, sizeof(mpf_t));
             if (!ptr)
             {
                 not_error_no_memory();
@@ -941,6 +941,8 @@ not_execute_value_casting_by_type(not_node_t *node, not_record_t *record_value, 
             }
             mpf_init(*(mpf_t *)ptr);
             mpf_set_z(*(mpf_t *)ptr, *(mpz_t *)(record_value->value));
+            mpz_clear(*(mpz_t *)(record_value->value));
+            not_memory_free(record_value->value);
 
             record_value->value = ptr;
             record_value->kind = RECORD_KIND_FLOAT;

@@ -1457,10 +1457,9 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                 return -1;
                             }
 
-                            not_record_t *record_parameter_type = NULL;
                             if (parameter->type)
                             {
-                                record_parameter_type = not_expression(parameter->type, strip, applicant, NULL);
+                                not_record_t *record_parameter_type = not_expression(parameter->type, strip, applicant, NULL);
                                 if (record_parameter_type == NOT_PTR_ERROR)
                                 {
                                     not_record_link_decrease(record_arg);
@@ -1503,25 +1502,9 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                 {
                                     if ((parameter->flag & SYNTAX_MODIFIER_REFERENCE) == SYNTAX_MODIFIER_REFERENCE)
                                     {
-                                        if (tuple == NULL)
-                                        {
-                                            not_node_basic_t *basic1 = (not_node_basic_t *)argument->key->value;
-                                            not_error_type_by_node(argument->key, "'%s' mismatch: '%s' and '%s'",
-                                                                   basic1->value, not_record_type_as_string(record_arg), not_record_type_as_string(record_parameter_type));
-
-                                            not_record_link_decrease(record_parameter_type);
-                                            not_record_link_decrease(record_arg);
-                                            if (top)
-                                            {
-                                                not_record_tuple_destroy(top);
-                                            }
-
-                                            return -1;
-                                        }
-                                        else
-                                        {
-                                            break;
-                                        }
+                                        not_record_link_decrease(record_parameter_type);
+                                        not_record_link_decrease(record_arg);
+                                        break;
                                     }
                                     else
                                     {
@@ -1557,14 +1540,9 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                                         }
                                         else if (record_casted == NULL)
                                         {
-                                            not_node_basic_t *basic1 = (not_node_basic_t *)parameter->key->value;
-                                            not_error_type_by_node(parameter->key, "'%s' mismatch: '%s' and '%s'",
-                                                                   basic1->value, not_record_type_as_string(record_copy), not_record_type_as_string(record_parameter_type));
-
                                             not_record_link_decrease(record_parameter_type);
                                             not_record_link_decrease(record_copy);
-
-                                            return -1;
+                                            break;
                                         }
 
                                         record_arg = record_copy;
@@ -1809,8 +1787,8 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
         for (; item1 != NULL; item1 = item1->next)
         {
             not_node_parameter_t *parameter = (not_node_parameter_t *)item1->value;
-            not_entry_t *f = not_strip_input_find(strip, scope, parameter->key);
-            if (!f)
+            not_entry_t *entry = not_strip_input_find(strip, scope, parameter->key);
+            if (!entry)
             {
                 if (parameter->value)
                 {
@@ -1935,8 +1913,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                         }
                     }
 
-                    not_entry_t *entry = not_strip_input_push(strip, scope, item1, parameter->key, record_arg);
-                    if (entry == NOT_PTR_ERROR)
+                    if (NOT_PTR_ERROR == not_strip_input_push(strip, scope, item1, parameter->key, record_arg))
                     {
                         not_record_link_decrease(record_arg);
                         return -1;
@@ -1960,8 +1937,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                         record_arg->typed = 1;
                     }
 
-                    not_entry_t *entry = not_strip_input_push(strip, scope, item1, parameter->key, record_arg);
-                    if (entry == NOT_PTR_ERROR)
+                    if (NOT_PTR_ERROR == not_strip_input_push(strip, scope, item1, parameter->key, record_arg))
                     {
                         not_record_link_decrease(record_arg);
                         return -1;
@@ -1985,8 +1961,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
                         record_arg->typed = 1;
                     }
 
-                    not_entry_t *entry = not_strip_input_push(strip, scope, item1, parameter->key, record_arg);
-                    if (entry == NOT_PTR_ERROR)
+                    if (NOT_PTR_ERROR == not_strip_input_push(strip, scope, item1, parameter->key, record_arg))
                     {
                         not_record_link_decrease(record_arg);
                         return -1;
@@ -2012,7 +1987,7 @@ not_call_parameters_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip
             }
             else
             {
-                if (not_record_link_decrease(f->value) < 0)
+                if (not_record_link_decrease(entry->value) < 0)
                 {
                     return -1;
                 }
