@@ -1089,17 +1089,16 @@ not_record_type_destroy(not_record_type_t *type)
             return -1;
         }
     }
-    else if (type->type->kind == NODE_KIND_ARRAY)
+    else if (type->type->kind == NODE_KIND_TUPLE)
     {
-        not_record_t *value = (not_record_t *)type->value;
-        if (not_record_link_decrease(value) < 0)
+        if (not_record_tuple_destroy((not_record_tuple_t *)type->value) < 0)
         {
             return -1;
         }
     }
-    else if (type->type->kind == NODE_KIND_TUPLE)
+    else if (type->type->kind == NODE_KIND_ARRAY)
     {
-        if (not_record_tuple_destroy((not_record_tuple_t *)type->value) < 0)
+        if (not_record_link_decrease((not_record_t *)type->value) < 0)
         {
             return -1;
         }
@@ -1554,10 +1553,7 @@ not_record_copy(not_record_t *record)
         not_record_t *record_copy = not_record_create(RECORD_KIND_TYPE, basic);
         if (record_copy == NOT_PTR_ERROR)
         {
-            if (not_record_type_destroy(basic) < 0)
-            {
-                return NOT_PTR_ERROR;
-            }
+            not_record_type_destroy(basic);
             return NOT_PTR_ERROR;
         }
 

@@ -2,74 +2,74 @@ using ValueError from "~/error";
 using Print from "~/os";
 
 export class Tensor<T extends float = float> {
-    _dims = [];
-    _values = [];
+    dims = [];
+    values = [];
     export fun constructor(*values:T, dims = []) {
         var count = values.Count();
-        _dims = dims.Count() > 0 ? dims : [count];
+        this.dims = dims.Count() > 0 ? dims : [count];
 
         var total = 1;
-        for (var dim in _dims)
+        for (var dim in this.dims)
         {
             total *= dim;
         }
         
-        _values = values;
+        this.values = values;
         for (var i = count;i < total; i += 1)
         {
-            _values.Set(i, 0);
+            this.values.Set(i, 0);
         }
     }
 
     export fun GetIndex(*pos:int) {
         var index = 0;
         var stride = 1;
-        for (var i = _dims.Count() - 1; i >= 0; i -= 1) {
+        for (var i = dims.Count() - 1; i >= 0; i -= 1) {
             index += pos[i] * stride;
-            stride *= _dims[i];
+            stride *= dims[i];
         }
         return index;
     }
 
     export fun GetPosition(index:int) {
         var pos = [];
-        for (var i = _dims.Count() - 1; i >= 0; i -= 1) {
-            pos.Set(i, index % _dims[i]);
-            index \= _dims[i];
+        for (var i = dims.Count() - 1; i >= 0; i -= 1) {
+            pos.Set(i, index % dims[i]);
+            index \= dims[i];
         }
         return pos;
     }
 
     export fun GetDims() {
-        return _dims;
+        return dims;
     }
 
     export fun [](start:int, stop:int = undefined, step:int = undefined) {
         if ((stop != undefined) && (step != undefined))
         {
-            return _values[start, stop, step];
+            return values[start, stop, step];
         }
         else if (stop != undefined)
         {
-            return _values[start, stop];
+            return values[start, stop];
         }
         else
         {
-            return _values[start];
+            return values[start];
         }
     }
 
     export fun Dot(t:Tensor<T>) {
-        if (_dims != t.GetDims())
+        if (dims != t.GetDims())
         {
             throw ValueError("Dimensions of the tensors do not match");
         }
 
-        var total_elements = _values.Count();
+        var total_elements = this.values.Count();
 
         var result = 0;
         for (var i = 0; i < total_elements; i += 1) {
-            result += _values[i] * t[i];
+            result += values[i] * t[i];
         }
         
         return result;

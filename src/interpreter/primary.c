@@ -392,7 +392,6 @@ not_primary_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                     not_node_parameter_t *parameter1 = (not_node_parameter_t *)item1->value;
                     if (not_helper_id_cmp(parameter1->key, name) == 0)
                     {
-                        assert(strip != NULL);
                         not_entry_t *entry = not_strip_variable_find(strip, base, parameter1->key);
                         if (entry == NOT_PTR_ERROR)
                         {
@@ -427,7 +426,6 @@ not_primary_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
                     not_node_generic_t *generic1 = (not_node_generic_t *)item1->value;
                     if (not_helper_id_cmp(generic1->key, name) == 0)
                     {
-                        assert(strip != NULL);
                         not_entry_t *entry = not_strip_variable_find(strip, base, generic1->key);
                         if (entry == NOT_PTR_ERROR)
                         {
@@ -935,6 +933,35 @@ not_primary_kstring(not_node_t *node, not_strip_t *strip, not_node_t *applicant,
 }
 
 not_record_t *
+not_primary_this(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
+{
+    not_node_t *iter = node->parent;
+    while (iter)
+    {
+        if (iter->kind == NODE_KIND_CLASS)
+        {
+            break;
+        }
+        iter = iter->parent;
+    }
+
+    if (iter)
+    {
+        not_strip_t *strip_copy = not_strip_copy(strip);
+        if (strip_copy == NOT_PTR_ERROR)
+        {
+            return NOT_PTR_ERROR;
+        }
+
+        return not_record_make_struct(iter, strip_copy);
+    }
+    else
+    {
+        return not_record_make_undefined();
+    }
+}
+
+not_record_t *
 not_primary_lambda(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_t *origin)
 {
     not_node_lambda_t *fun1 = (not_node_lambda_t *)node->value;
@@ -1201,6 +1228,12 @@ not_primary(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_nod
     else if (node->kind == NODE_KIND_NAN)
     {
         return not_primary_nan(node, strip, applicant, origin);
+    }
+    else
+
+        if (node->kind == NODE_KIND_THIS)
+    {
+        return not_primary_this(node, strip, applicant, origin);
     }
     else
 

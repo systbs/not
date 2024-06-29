@@ -114,6 +114,12 @@ not_semantic_nan(not_node_t *node)
 }
 
 static int32_t
+not_semantic_this(not_node_t *node)
+{
+    return 0;
+}
+
+static int32_t
 not_semantic_kint(not_node_t *node)
 {
     return 0;
@@ -231,6 +237,12 @@ not_semantic_primary(not_node_t *node)
     else if (node->kind == NODE_KIND_NAN)
     {
         return not_semantic_nan(node);
+    }
+    else
+
+        if (node->kind == NODE_KIND_THIS)
+    {
+        return not_semantic_this(node);
     }
     else
 

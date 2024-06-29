@@ -40,6 +40,8 @@ typedef enum not_node_kind
 	NODE_KIND_KCHAR,
 	NODE_KIND_KSTRING,
 
+	NODE_KIND_THIS,
+
 	NODE_KIND_TYPEOF,
 	NODE_KIND_SIZEOF,
 	NODE_KIND_PARENTHESIS,
@@ -367,6 +369,9 @@ not_node_make_kchar(not_node_t *node);
 
 not_node_t *
 not_node_make_kstring(not_node_t *node);
+
+not_node_t *
+not_node_make_this(not_node_t *node);
 
 not_node_t *
 not_node_make_tuple(not_node_t *node, not_node_t *items);

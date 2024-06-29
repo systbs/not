@@ -2042,6 +2042,20 @@ not_scanner_advance(not_scanner_t *scanner)
 
 				return 1;
 			}
+			else if (strncmp(scanner->source + start_offset, "this", max(length, 4)) == 0)
+			{
+				not_scanner_set_token(scanner, (not_token_t){
+												   .type = TOKEN_THIS_KEYWORD,
+												   .value = NULL,
+												   .position = {
+													   .path = scanner->path,
+													   .offset = scanner->offset - length,
+													   .column = scanner->column - length,
+													   .line = scanner->line,
+													   .length = length}});
+
+				return 1;
+			}
 			else if (strncmp(scanner->source + start_offset, "int", max(length, 3)) == 0)
 			{
 				not_scanner_set_token(scanner, (not_token_t){

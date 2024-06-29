@@ -57,6 +57,10 @@ not_pseudonym_type_extends_of_type(not_node_t *node, not_record_t *record_type1,
         {
             return 1;
         }
+        else if (type2->type->kind == NODE_KIND_KINT)
+        {
+            return 1;
+        }
         else
         {
             return 0;
@@ -197,20 +201,14 @@ not_pseudonym_type_extends_of_type(not_node_t *node, not_record_t *record_type1,
                             not_error_type_by_node(heritage->key, "'%s' unexpected type as heritage '%s'",
                                                    basic2->value, basic1->value);
 
-                            if (not_record_link_decrease(record_heritage) < 0)
-                            {
-                                return -1;
-                            }
+                            not_record_link_decrease(record_heritage);
                             return -1;
                         }
 
                         int32_t r1 = not_pseudonym_type_extends_of_type(node, record_heritage, record_type2, strip, applicant);
                         if (r1 == -1)
                         {
-                            if (not_record_link_decrease(record_heritage) < 0)
-                            {
-                                return -1;
-                            }
+                            not_record_link_decrease(record_heritage);
                             return -1;
                         }
                         else if (r1 == 1)
@@ -254,34 +252,22 @@ not_pseudonym_type_extends_of_type(not_node_t *node, not_record_t *record_type1,
                     not_entry_t *strip_entry2 = not_strip_variable_find(type2->value, type2->type, generic1->key);
                     if (strip_entry2 == NOT_PTR_ERROR)
                     {
-                        if (not_record_link_decrease(strip_entry1->value) < 0)
-                        {
-                            return -1;
-                        }
+                        not_record_link_decrease(strip_entry1->value);
                         return -1;
                     }
                     if (strip_entry2 == NULL)
                     {
                         not_node_basic_t *basic1 = (not_node_basic_t *)generic1->key->value;
                         not_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
-                        if (not_record_link_decrease(strip_entry1->value) < 0)
-                        {
-                            return -1;
-                        }
+                        not_record_link_decrease(strip_entry1->value);
                         return -1;
                     }
 
                     int32_t r1 = not_pseudonym_type_extends_of_type(node, strip_entry1->value, strip_entry2->value, strip, applicant);
                     if (r1 == -1)
                     {
-                        if (not_record_link_decrease(strip_entry1->value) < 0)
-                        {
-                            return -1;
-                        }
-                        if (not_record_link_decrease(strip_entry2->value) < 0)
-                        {
-                            return -1;
-                        }
+                        not_record_link_decrease(strip_entry1->value);
+                        not_record_link_decrease(strip_entry2->value);
                         return -1;
                     }
                     else if (r1 == 0)
@@ -295,6 +281,15 @@ not_pseudonym_type_extends_of_type(not_node_t *node, not_record_t *record_type1,
                             return -1;
                         }
                         return 0;
+                    }
+
+                    if (not_record_link_decrease(strip_entry1->value) < 0)
+                    {
+                        return -1;
+                    }
+                    if (not_record_link_decrease(strip_entry2->value) < 0)
+                    {
+                        return -1;
                     }
                 }
             }

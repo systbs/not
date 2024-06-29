@@ -34,6 +34,22 @@
 #include "helper.h"
 #include "execute.h"
 
+static not_node_t *
+nearset_class(not_node_t *node)
+{
+    not_node_t *iter = node;
+    while (iter)
+    {
+        if (iter->kind == NODE_KIND_CLASS)
+        {
+            break;
+        }
+        iter = iter->parent;
+    }
+
+    return iter;
+}
+
 not_record_t *
 not_attribute_from_type(not_node_t *node, not_strip_t *strip, not_node_t *left, not_node_t *right, not_node_t *applicant)
 {
@@ -327,6 +343,14 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
             {
                 if (((property->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT) || ((property->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC))
                 {
+                    if ((property->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                    {
+                        not_node_t *near = nearset_class(node);
+                        if (near && near->id == left->id)
+                        {
+                            goto success_property;
+                        }
+                    }
                     not_node_basic_t *basic1 = (not_node_basic_t *)property->key->value;
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
                     not_error_type_by_node(node, "'%s' unexpected access to '%s'",
@@ -334,6 +358,7 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
                     return NOT_PTR_ERROR;
                 }
 
+            success_property:
                 not_entry_t *entry = not_strip_variable_find(strip, left, property->key);
                 if (entry == NOT_PTR_ERROR)
                 {
@@ -358,6 +383,15 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
             {
                 if (((class2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT) || ((class2->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC))
                 {
+                    if ((class2->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                    {
+                        not_node_t *near = nearset_class(node);
+                        if (near && near->id == left->id)
+                        {
+                            goto success_class;
+                        }
+                    }
+
                     not_node_basic_t *basic1 = (not_node_basic_t *)class2->key->value;
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
                     not_error_type_by_node(node, "'%s' unexpected access to '%s'",
@@ -365,6 +399,7 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
                     return NOT_PTR_ERROR;
                 }
 
+            success_class:
                 not_strip_t *strip_copy = not_strip_copy(strip);
                 if (strip_copy == NOT_PTR_ERROR)
                 {
@@ -381,6 +416,15 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
             {
                 if (((fun1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT) || ((fun1->flag & SYNTAX_MODIFIER_STATIC) == SYNTAX_MODIFIER_STATIC))
                 {
+                    if ((fun1->flag & SYNTAX_MODIFIER_EXPORT) != SYNTAX_MODIFIER_EXPORT)
+                    {
+                        not_node_t *near = nearset_class(node);
+                        if (near && near->id == left->id)
+                        {
+                            goto success_fun;
+                        }
+                    }
+
                     not_node_basic_t *basic1 = (not_node_basic_t *)fun1->key->value;
                     not_node_basic_t *basic2 = (not_node_basic_t *)class1->key->value;
                     not_error_type_by_node(node, "'%s' unexpected access to '%s'",
@@ -388,6 +432,7 @@ not_attribute_from_struct(not_node_t *node, not_strip_t *strip, not_node_t *left
                     return NOT_PTR_ERROR;
                 }
 
+            success_fun:
                 not_strip_t *strip_copy = not_strip_copy(strip);
                 if (strip_copy == NOT_PTR_ERROR)
                 {

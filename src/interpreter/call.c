@@ -2060,6 +2060,7 @@ not_call_generic_subs(not_node_t *base, not_node_t *scope, not_strip_t *strip, n
                                            basic1->value, not_record_type_as_string(record_arg), not_record_type_as_string(record_generic_type));
 
                     not_record_link_decrease(record_generic_type);
+                    not_record_link_decrease(record_arg);
                     return -1;
                 }
 

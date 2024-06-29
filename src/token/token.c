@@ -82,6 +82,7 @@ const char *const symbols[] = {
     [TOKEN_CHAR_KEYWORD] = "char keyword",
     [TOKEN_STRING_KEYWORD] = "string keyword",
 
+    [TOKEN_THIS_KEYWORD] = "this keyword",
     [TOKEN_CONTINUE_KEYWORD] = "continue keyword",
     [TOKEN_BREAK_KEYWORD] = "break keyword",
     [TOKEN_ELSE_KEYWORD] = "else keyword",

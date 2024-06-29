@@ -70,7 +70,7 @@ not_strip_variable_push(not_strip_t *strip, not_node_t *scope, not_node_t *block
     for (not_queue_entry_t *a1 = strip->variables->begin; a1 != strip->variables->end; a1 = a1->next)
     {
         not_entry_t *item = (not_entry_t *)a1->value;
-        if (not_helper_id_cmp(item->key, key) == 0)
+        if ((item->scope->id == scope->id) && (not_helper_id_cmp(item->key, key) == 0))
         {
             return NULL;
         }
