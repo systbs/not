@@ -298,34 +298,22 @@ not_execute_type_check_by_type(not_node_t *node, not_record_t *record_type1, not
                     not_entry_t *strip_entry2 = not_strip_variable_find(type2->value, type2->type, generic1->key);
                     if (strip_entry2 == NOT_PTR_ERROR)
                     {
-                        if (not_record_link_decrease(strip_entry1->value) < 0)
-                        {
-                            return -1;
-                        }
+                        not_record_link_decrease(strip_entry1->value);
                         return -1;
                     }
                     if (strip_entry2 == NULL)
                     {
                         not_node_basic_t *basic1 = (not_node_basic_t *)generic1->key->value;
                         not_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
-                        if (not_record_link_decrease(strip_entry1->value) < 0)
-                        {
-                            return -1;
-                        }
+                        not_record_link_decrease(strip_entry1->value);
                         return -1;
                     }
 
                     int32_t r1 = not_execute_type_check_by_type(node, strip_entry1->value, strip_entry2->value);
                     if (r1 == -1)
                     {
-                        if (not_record_link_decrease(strip_entry1->value) < 0)
-                        {
-                            return -1;
-                        }
-                        if (not_record_link_decrease(strip_entry2->value) < 0)
-                        {
-                            return -1;
-                        }
+                        not_record_link_decrease(strip_entry1->value);
+                        not_record_link_decrease(strip_entry2->value);
                         return -1;
                     }
                     else if (r1 == 0)
@@ -339,6 +327,15 @@ not_execute_type_check_by_type(not_node_t *node, not_record_t *record_type1, not
                             return -1;
                         }
                         return 0;
+                    }
+
+                    if (not_record_link_decrease(strip_entry1->value) < 0)
+                    {
+                        return -1;
+                    }
+                    if (not_record_link_decrease(strip_entry2->value) < 0)
+                    {
+                        return -1;
                     }
                 }
             }
@@ -550,34 +547,22 @@ not_execute_value_check_by_type(not_node_t *node, not_record_t *record_value, no
                         not_entry_t *strip_entry2 = not_strip_variable_find(type1->value, type1->type, generic1->key);
                         if (strip_entry2 == NOT_PTR_ERROR)
                         {
-                            if (not_record_link_decrease(strip_entry1->value) < 0)
-                            {
-                                return -1;
-                            }
+                            not_record_link_decrease(strip_entry1->value);
                             return -1;
                         }
                         if (strip_entry2 == NULL)
                         {
                             not_node_basic_t *basic1 = (not_node_basic_t *)generic1->key->value;
                             not_error_runtime_by_node(node, "'%s' is not initialized", basic1->value);
-                            if (not_record_link_decrease(strip_entry1->value) < 0)
-                            {
-                                return -1;
-                            }
+                            not_record_link_decrease(strip_entry1->value);
                             return -1;
                         }
 
                         int32_t r1 = not_execute_type_check_by_type(node, strip_entry1->value, strip_entry2->value);
                         if (r1 == -1)
                         {
-                            if (not_record_link_decrease(strip_entry1->value) < 0)
-                            {
-                                return -1;
-                            }
-                            if (not_record_link_decrease(strip_entry2->value) < 0)
-                            {
-                                return -1;
-                            }
+                            not_record_link_decrease(strip_entry1->value);
+                            not_record_link_decrease(strip_entry2->value);
                             return -1;
                         }
                         else if (r1 == 0)
@@ -591,6 +576,15 @@ not_execute_value_check_by_type(not_node_t *node, not_record_t *record_value, no
                                 return -1;
                             }
                             return 0;
+                        }
+
+                        if (not_record_link_decrease(strip_entry1->value) < 0)
+                        {
+                            return -1;
+                        }
+                        if (not_record_link_decrease(strip_entry2->value) < 0)
+                        {
+                            return -1;
                         }
                     }
                 }

@@ -65,7 +65,7 @@ export class Tensor<T extends float = float> {
             throw ValueError("Dimensions of the tensors do not match");
         }
 
-        var total_elements = this.values.Count();
+        var total_elements = values.Count();
 
         var result = 0;
         for (var i = 0; i < total_elements; i += 1) {
