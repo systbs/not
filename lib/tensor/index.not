@@ -120,7 +120,7 @@ export class Tensor<T extends float = float> {
         {
             for (;stop < 0;)
             {
-                start += this.dims[0];
+                stop += this.dims[0];
             }
         }
          
@@ -189,6 +189,8 @@ export class Tensor<T extends float = float> {
             }
         };
         extract_values([], 0);
+
+        Print(new_values);
         
         var t = Tensor<T>(new_values);
         t.Reshape(new_dims);

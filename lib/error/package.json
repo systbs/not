@@ -1,13 +1,13 @@
 {
-    "name": "os",
+    "name": "error",
     "version": "1.0.0-alpha+001",
     "keywords": [
         "not",
         "library",
-        "os"
+        "error"
     ],
-    "author": "",
+    "author": "Yas",
     "license": "ISC",
-    "description": "",
+    "description": "Error library",
     "dependencies": {}
 }
