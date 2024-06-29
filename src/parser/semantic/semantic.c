@@ -204,6 +204,42 @@ not_semantic_parenthesis(not_node_t *node)
 }
 
 static int32_t
+not_semantic_object(not_node_t *node)
+{
+    not_node_block_t *block = (not_node_block_t *)node->value;
+
+    for (not_node_t *item = block->items; item != NULL; item = item->next)
+    {
+        not_node_pair_t *pair = (not_node_pair_t *)item->value;
+        if (pair->value)
+        {
+            int32_t r1 = not_semantic_expression(pair->value);
+            if (r1 == -1)
+            {
+                return -1;
+            }
+        }
+    }
+    return 0;
+}
+
+static int32_t
+not_semantic_tuple(not_node_t *node)
+{
+    not_node_block_t *block = (not_node_block_t *)node->value;
+
+    for (not_node_t *item = block->items; item != NULL; item = item->next)
+    {
+        int32_t r1 = not_semantic_expression(item);
+        if (r1 == -1)
+        {
+            return -1;
+        }
+    }
+    return 0;
+}
+
+static int32_t
 not_semantic_primary(not_node_t *node)
 {
     if (node->kind == NODE_KIND_ID)
@@ -270,13 +306,11 @@ not_semantic_primary(not_node_t *node)
 
         if (node->kind == NODE_KIND_TUPLE)
     {
-        // return semantic_tuple(node);
-        return 0;
+        return not_semantic_tuple(node);
     }
     else if (node->kind == NODE_KIND_OBJECT)
     {
-        // return semantic_object(node);
-        return 0;
+        return not_semantic_object(node);
     }
     else
 

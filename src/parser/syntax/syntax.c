@@ -707,7 +707,16 @@ not_syntax_pair(not_syntax_t *syntax, not_node_t *parent)
 		return NOT_PTR_ERROR;
 	}
 
-	not_node_t *key = not_syntax_expression(syntax, node);
+	not_node_t *key = NULL;
+	if (syntax->token->type == TOKEN_ID)
+	{
+		key = not_syntax_id(syntax, node);
+	}
+	else
+	{
+		key = not_syntax_string(syntax, node);
+	}
+
 	if (key == NOT_PTR_ERROR)
 	{
 		return NOT_PTR_ERROR;

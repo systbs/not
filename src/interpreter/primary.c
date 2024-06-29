@@ -1101,17 +1101,37 @@ not_primary_object(not_node_t *node, not_strip_t *strip, not_node_t *applicant, 
     {
         not_node_pair_t *pair = (not_node_pair_t *)item->value;
 
-        not_record_t *record_value = not_expression(pair->value, strip, applicant, NULL);
-        if (record_value == NOT_PTR_ERROR)
+        not_record_t *record_value = NULL;
+
+        if (pair->value)
         {
-            if (top)
+            record_value = not_expression(pair->value, strip, applicant, NULL);
+            if (record_value == NOT_PTR_ERROR)
             {
-                if (not_record_object_destroy(top) < 0)
+                if (top)
                 {
-                    return NOT_PTR_ERROR;
+                    if (not_record_object_destroy(top) < 0)
+                    {
+                        return NOT_PTR_ERROR;
+                    }
                 }
+                return NOT_PTR_ERROR;
             }
-            return NOT_PTR_ERROR;
+        }
+        else
+        {
+            record_value = not_expression(pair->key, strip, applicant, NULL);
+            if (record_value == NOT_PTR_ERROR)
+            {
+                if (top)
+                {
+                    if (not_record_object_destroy(top) < 0)
+                    {
+                        return NOT_PTR_ERROR;
+                    }
+                }
+                return NOT_PTR_ERROR;
+            }
         }
 
         if (record_value->kind != RECORD_KIND_TYPE)

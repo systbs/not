@@ -8,7 +8,7 @@ export class Tensor<T extends float = float> {
         var extract = fun(nested_list) {
             if (typeof nested_list != "tuple")
             {
-                throw ValueError("Input must be a list");
+                throw ValueError("Input must be a nd-array");
             }
             
             var values = [];
@@ -17,7 +17,7 @@ export class Tensor<T extends float = float> {
             var extract_dimensions_and_values = fun (lst, reference current_dims, depth = 0) {
                 if (typeof lst != "tuple")
                 {
-                    throw ValueError("All elements must be lists");
+                    throw ValueError("All elements must be nd-array");
                 }
 
                 if (depth == current_dims.Count())
@@ -48,15 +48,15 @@ export class Tensor<T extends float = float> {
                 }
             };
             extract_dimensions_and_values(nested_list, dims);
-            return {d:dims, v:values};
+            return {dims, values};
         };
 
-        var {d, v} = extract(values);
+        var {dims, v:values} = extract(values);
         this.values = v;
-        this.dims = d;
+        this.dims = dims;
     }
 
-    export fun GetIndex(*pos:int) {
+    export fun GetIndex(pos) {
         var index = 0;
         var stride = 1;
         for (var i = dims.Count() - 1; i >= 0; i -= 1) {
@@ -79,34 +79,120 @@ export class Tensor<T extends float = float> {
         return dims;
     }
 
-    export fun [](start:int, stop:int = undefined, step:int = undefined) {
-        if ((stop != undefined) && (step != undefined))
+    export fun GetValues() {
+        return values;
+    }
+
+    export fun Reshape(dims) {
+        if (typeof dims != "tuple")
         {
-            return values[start, stop, step];
+            throw ValueError("Input dims must be a tuple");
         }
-        else if (stop != undefined)
+
+        var total = 1;
+        for (var dim in dims)
         {
-            return values[start, stop];
+            total *= dim;
+        }
+
+        if (total != values.Count())
+        {
+            throw ValueError("Total number of elements does not match the shape dimensions.");
+        }
+
+        this.dims = dims;
+
+        return this;
+    }
+
+    export fun [](start:int, stop:int = undefined, step:int = undefined) {
+
+        for (;start < 0;)
+        {
+            start += this.dims[0];
+        }
+
+        if (stop == undefined)
+        {
+            stop = start;
         }
         else
         {
-            return values[start];
+            for (;stop < 0;)
+            {
+                start += this.dims[0];
+            }
         }
-    }
-
-    export fun Dot(t:Tensor<T>) {
-        if (dims != t.GetDims())
+         
+        if (step == undefined)
         {
-            throw ValueError("Dimensions of the tensors do not match");
+            step = stop > start ? 1 : -1;
         }
 
-        var total_elements = values.Count();
-
-        var result = 0;
-        for (var i = 0; i < total_elements; i += 1) {
-            result += values[i] * t[i];
+        var new_dims = this.dims;
+        if (step > 0)
+        {
+            var val = (stop - start - 1) \ step + 1;
+            if (val == 0)
+            {
+                new_dims.Remove(0);
+            }
+            else
+            {
+                new_dims.Set(0, val);
+            }
         }
+        else
+        {
+            var val = (start - stop - 1) \ (step > 0 ? step : -step) + 1;
+            if (val == 0)
+            {
+                new_dims.Remove(0);
+            }
+            else
+            {
+                new_dims.Set(0, val);
+            }
+        }
+
+        var new_values = [];
+
+        var extract_values = fun (position, current_dim){
+            if (current_dim == this.dims.Count())
+            {
+                var index = this.GetIndex(position);
+                new_values.Append(this.values[index]);
+                return;
+            }
+            if (current_dim == 0){
+                if (step > 0){
+                    
+                    for (var i = start;i <= stop;i += step)
+                    {
+                        extract_values(position.Append(i), current_dim + 1);
+                    }
+                }
+                else
+                {
+                    for (var i = start;i >= stop;i += step)
+                    {
+                        extract_values(position.Append(i), current_dim + 1);
+                    }
+                }
+            }
+            else
+            {
+                for (var i = 0; i < this.dims[current_dim]; i += 1)
+                {
+                    extract_values(position.Append(i), current_dim + 1);
+                }
+            }
+        };
+        extract_values([], 0);
         
-        return result;
+        var t = Tensor<T>(new_values);
+        t.Reshape(new_dims);
+
+        return t;
     }
 }

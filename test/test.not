@@ -2,4 +2,5 @@ using Print, File, Input, Stat, Directory from "~/os";
 using Tensor from "~/tensor";
 
 var t1 = Tensor([[1, 2, 3], [4, 5, 6]]);
-Print(t1.GetDims());
+var t2 = t1[1];
+Print("values:" + t2.GetValues() + " dims:" + t2.GetDims());
