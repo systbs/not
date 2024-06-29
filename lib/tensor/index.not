@@ -4,21 +4,56 @@ using Print from "~/os";
 export class Tensor<T extends float = float> {
     dims = [];
     values = [];
-    export fun constructor(*values:T, dims = []) {
-        var count = values.Count();
-        this.dims = dims.Count() > 0 ? dims : [count];
+    export fun constructor(values) {
+        var extract = fun(nested_list) {
+            if (typeof nested_list != "tuple")
+            {
+                throw ValueError("Input must be a list");
+            }
+            
+            var values = [];
+            var dims = [];
 
-        var total = 1;
-        for (var dim in this.dims)
-        {
-            total *= dim;
-        }
-        
-        this.values = values;
-        for (var i = count;i < total; i += 1)
-        {
-            this.values.Set(i, 0);
-        }
+            var extract_dimensions_and_values = fun (lst, reference current_dims, depth = 0) {
+                if (typeof lst != "tuple")
+                {
+                    throw ValueError("All elements must be lists");
+                }
+
+                if (depth == current_dims.Count())
+                {
+                    current_dims.Append(lst.Count());
+                }
+                else if (current_dims[depth] != lst.Count())
+                {
+                    throw ValueError("Inconsistent dimensions at depth " + depth + ": expected " + current_dims[depth] + ", got " + lst.Count);
+                }
+
+                if (typeof lst[0] == "tuple")
+                {
+                    for (var sublist in lst)
+                    {
+                        extract_dimensions_and_values(sublist, current_dims, depth + 1);
+                    }
+                }
+                else
+                {
+                    for (var item in lst)
+                    {
+                        if (!((item instanceof float) || (item instanceof int))) {
+                            throw ValueError("All elements must be integers or floats");
+                        }
+                        values.Append(item);
+                    }
+                }
+            };
+            extract_dimensions_and_values(nested_list, dims);
+            return {d:dims, v:values};
+        };
+
+        var {d, v} = extract(values);
+        this.values = v;
+        this.dims = d;
     }
 
     export fun GetIndex(*pos:int) {

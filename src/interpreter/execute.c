@@ -1368,6 +1368,7 @@ not_execute_entity(not_node_t *scope, not_node_t *node, not_record_t *value, not
             {
                 if (not_helper_id_strcmp(key_search, object->key) == 0)
                 {
+                    not_record_link_increase(object->value);
                     value_select = object->value;
                     break;
                 }

@@ -1685,6 +1685,30 @@ not_attribute_tuple_builtin_append(not_node_t *base, not_record_t *source, not_n
     int appended = 0;
     mpz_t index;
     mpz_init_set_si(index, 0);
+
+    if (source->value == NULL)
+    {
+        not_record_t *arg = not_record_make_undefined();
+        if (arg == NOT_PTR_ERROR)
+        {
+            mpz_clear(term);
+            mpz_clear(index);
+            goto region_cleanup;
+        }
+
+        not_record_tuple_t *new_tuple = not_record_make_tuple(arg, NULL);
+        if (new_tuple == NOT_PTR_ERROR)
+        {
+            mpz_clear(term);
+            mpz_clear(index);
+            not_record_link_decrease(arg);
+            goto region_cleanup;
+        }
+
+        source->value = new_tuple;
+        appended = 1;
+    }
+
     for (not_record_tuple_t *tuple = (not_record_tuple_t *)source->value, *previous = NULL; tuple != NULL; tuple = tuple->next)
     {
         if (mpz_cmp(index, term) < 0)
