@@ -13,7 +13,8 @@ typedef struct not_record
     uint8_t null : 1;
     uint8_t undefined : 1;
     uint8_t nan : 1;
-    uint8_t reserved : 2;
+    uint8_t unpack : 1;
+    uint8_t reserved : 1;
     int64_t link;
     uint8_t kind;
     void *value;

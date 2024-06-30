@@ -367,6 +367,14 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                     mpz_add(stop, length, stop);
                 }
 
+                if (arg_cnt == 2)
+                {
+                    if (mpz_cmp(start, stop) > 0)
+                    {
+                        mpz_set_si(step, -1);
+                    }
+                }
+
                 mpz_set(term, start);
 
                 not_record_tuple_t *top = NULL, *declaration = NULL;
@@ -694,6 +702,14 @@ not_array(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_node_
                 while (mpz_cmp_si(stop, 0) < 0)
                 {
                     mpz_add(stop, length, stop);
+                }
+
+                if (arg_cnt == 2)
+                {
+                    if (mpz_cmp(start, stop) > 0)
+                    {
+                        mpz_set_si(step, -1);
+                    }
                 }
 
                 mpz_set(term, start);

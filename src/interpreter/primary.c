@@ -46,7 +46,7 @@ not_primary_get_root(not_node_t *base)
 }
 
 not_record_t *
-not_primary_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, not_node_t *applicant)
+not_primary_selection(not_node_t *base, not_node_t *sub, not_node_t *name, not_strip_t *strip, not_node_t *applicant)
 {
     if (base->kind == NODE_KIND_CATCH)
     {
@@ -188,6 +188,11 @@ not_primary_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
 
         for (not_node_t *item1 = block1->items; item1 != NULL; item1 = item1->next)
         {
+            if (sub && (item1->id == sub->id))
+            {
+                break;
+            }
+
             if (item1->kind == NODE_KIND_FOR)
             {
                 not_node_for_t *for1 = (not_node_for_t *)item1->value;
@@ -477,6 +482,11 @@ not_primary_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
 
         for (not_node_t *item1 = class1->block; item1 != NULL; item1 = item1->next)
         {
+            if (sub && (item1->id == sub->id) && (sub->kind == NODE_KIND_PROPERTY))
+            {
+                break;
+            }
+
             if (item1->kind == NODE_KIND_CLASS)
             {
                 not_node_class_t *class2 = (not_node_class_t *)item1->value;
@@ -801,7 +811,7 @@ not_primary_selection(not_node_t *base, not_node_t *name, not_strip_t *strip, no
 
     if (base->parent != NULL)
     {
-        return not_primary_selection(base->parent, name, strip, applicant);
+        return not_primary_selection(base->parent, base, name, strip, applicant);
     }
 
     not_node_basic_t *basic1 = (not_node_basic_t *)name->value;
@@ -814,9 +824,9 @@ not_primary_id(not_node_t *node, not_strip_t *strip, not_node_t *applicant, not_
 {
     if (origin)
     {
-        return not_primary_selection(origin, node, strip, applicant);
+        return not_primary_selection(origin, node, node, strip, applicant);
     }
-    return not_primary_selection(node->parent, node, strip, applicant);
+    return not_primary_selection(node->parent, node, node, strip, applicant);
 }
 
 not_record_t *

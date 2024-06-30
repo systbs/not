@@ -1447,6 +1447,10 @@ not_record_copy(not_record_t *record)
             return NOT_PTR_ERROR;
         }
 
+        record_copy->null = record->null;
+        record_copy->undefined = record->undefined;
+        record_copy->nan = record->nan;
+
         return record_copy;
     }
     else if (record->kind == RECORD_KIND_FLOAT)
@@ -1456,6 +1460,10 @@ not_record_copy(not_record_t *record)
         {
             return NOT_PTR_ERROR;
         }
+
+        record_copy->null = record->null;
+        record_copy->undefined = record->undefined;
+        record_copy->nan = record->nan;
 
         return record_copy;
     }
@@ -1467,6 +1475,10 @@ not_record_copy(not_record_t *record)
             return NOT_PTR_ERROR;
         }
 
+        record_copy->null = record->null;
+        record_copy->undefined = record->undefined;
+        record_copy->nan = record->nan;
+
         return record_copy;
     }
     else if (record->kind == RECORD_KIND_STRING)
@@ -1476,6 +1488,10 @@ not_record_copy(not_record_t *record)
         {
             return NOT_PTR_ERROR;
         }
+
+        record_copy->null = record->null;
+        record_copy->undefined = record->undefined;
+        record_copy->nan = record->nan;
 
         return record_copy;
     }
@@ -1497,6 +1513,10 @@ not_record_copy(not_record_t *record)
             return NOT_PTR_ERROR;
         }
 
+        record_copy->null = record->null;
+        record_copy->undefined = record->undefined;
+        record_copy->nan = record->nan;
+
         return record_copy;
     }
     else if (record->kind == RECORD_KIND_TUPLE)
@@ -1517,6 +1537,10 @@ not_record_copy(not_record_t *record)
             return NOT_PTR_ERROR;
         }
 
+        record_copy->null = record->null;
+        record_copy->undefined = record->undefined;
+        record_copy->nan = record->nan;
+
         return record_copy;
     }
     else if (record->kind == RECORD_KIND_STRUCT)
@@ -1535,10 +1559,9 @@ not_record_copy(not_record_t *record)
             return NOT_PTR_ERROR;
         }
 
-        if (record->null)
-        {
-            record_copy->null = 1;
-        }
+        record_copy->null = record->null;
+        record_copy->undefined = record->undefined;
+        record_copy->nan = record->nan;
 
         return record_copy;
     }
@@ -1557,6 +1580,10 @@ not_record_copy(not_record_t *record)
             return NOT_PTR_ERROR;
         }
 
+        record_copy->null = record->null;
+        record_copy->undefined = record->undefined;
+        record_copy->nan = record->nan;
+
         return record_copy;
     }
     else if (record->kind == RECORD_KIND_NULL)
@@ -1566,6 +1593,10 @@ not_record_copy(not_record_t *record)
         {
             return NOT_PTR_ERROR;
         }
+
+        record_copy->null = record->null;
+        record_copy->undefined = record->undefined;
+        record_copy->nan = record->nan;
 
         return record_copy;
     }
@@ -1577,6 +1608,10 @@ not_record_copy(not_record_t *record)
             return NOT_PTR_ERROR;
         }
 
+        record_copy->null = record->null;
+        record_copy->undefined = record->undefined;
+        record_copy->nan = record->nan;
+
         return record_copy;
     }
     else if (record->kind == RECORD_KIND_NAN)
@@ -1586,6 +1621,10 @@ not_record_copy(not_record_t *record)
         {
             return NOT_PTR_ERROR;
         }
+
+        record_copy->null = record->null;
+        record_copy->undefined = record->undefined;
+        record_copy->nan = record->nan;
 
         return record_copy;
     }
@@ -1604,6 +1643,10 @@ not_record_copy(not_record_t *record)
             return NOT_PTR_ERROR;
         }
 
+        record_copy->null = record->null;
+        record_copy->undefined = record->undefined;
+        record_copy->nan = record->nan;
+
         return record_copy;
     }
     else if (record->kind == RECORD_KIND_BUILTIN)
@@ -1620,6 +1663,10 @@ not_record_copy(not_record_t *record)
             not_record_builtin_destroy(basic);
             return NOT_PTR_ERROR;
         }
+
+        record_copy->null = record->null;
+        record_copy->undefined = record->undefined;
+        record_copy->nan = record->nan;
 
         return record_copy;
     }
